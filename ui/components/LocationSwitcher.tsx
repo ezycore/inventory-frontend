@@ -99,17 +99,23 @@ export function LocationSwitcher() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          // A long location name is the widest thing in the header — cap it on
-          // small screens and truncate rather than push the page sideways.
-          className="group relative h-9 min-w-0 max-w-[40vw] shrink gap-2 px-4 rounded-full border border-border backdrop-blur-sm transition-all duration-300 hover:border-primary/40 sm:max-w-none sm:shrink-0"
+          title={currentLocation?.name}
+          // A long location name is the widest thing in the header, and `Button`
+          // is `whitespace-nowrap shrink-0` — so the cap has to hold at *every*
+          // breakpoint. Uncapping it above `sm` sized the trigger to the full
+          // name and shoved the breadcrumbs off-screen.
+          className="group relative h-9 min-w-0 max-w-[40vw] shrink gap-2 px-4 rounded-full border border-border backdrop-blur-sm transition-all duration-300 hover:border-primary/40 sm:max-w-[200px] lg:max-w-[260px]"
         >
           <div className="flex min-w-0 items-center gap-2">
             <div className="relative shrink-0">
               <MapPin className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
               <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-primary rounded-full animate-pulse" />
             </div>
+            {/* max-w-full is load-bearing: `items-start` means the span is not
+                stretched, so it sizes to max-content and spills out of the
+                capped button — `truncate` alone never fires. */}
             <div className="flex min-w-0 flex-col items-start">
-              <span className="truncate text-sm font-semibold">
+              <span className="max-w-full truncate text-sm font-semibold">
                 {currentLocation?.name || t("title")}
               </span>
             </div>
@@ -133,14 +139,21 @@ export function LocationSwitcher() {
               key={location.id}
               onClick={() => handleLocationSelect(location)}
               variant="ghost"
-              className="w-full flex items-center justify-between px-3 py-2.5 transition-all duration-200 group"
+              // h-auto: a default location stacks two lines (name + badge), which
+              // the size variant's fixed `h-9` clips. Let the padding set the height.
+              className="w-full flex h-auto items-center justify-between px-3 py-2.5 transition-all duration-200 group"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+              {/* min-w-0 all the way down, or `truncate` never fires and the
+                  name overflows the fixed-width popover. */}
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
                   <MapPin className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">
+                <div className="flex min-w-0 flex-col items-start">
+                  <span
+                    className="max-w-full truncate text-sm font-medium"
+                    title={location.name}
+                  >
                     {location.name}
                   </span>
                   {location.isDefault && (

@@ -112,7 +112,7 @@ export function CourierRow({
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex min-w-0 flex-1 items-center gap-3 rounded-md p-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md p-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span
               className={cn(
@@ -122,7 +122,7 @@ export function CourierRow({
             >
               {meta.initial}
             </span>
-            <span className="flex min-w-0 flex-col">
+            <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-sm font-semibold leading-tight">
                 {meta.label}
               </span>
@@ -130,7 +130,11 @@ export function CourierRow({
                 {sub}
               </span>
             </span>
-            <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            {/* The chips take their own line under the name on a phone: inline
+                beside the switch and the chevron they need ~437px, so every
+                `shrink-0` sibling overflowed the row and overlapped. The left
+                pad lines them up with the label, past the 40px logo + gap. */}
+            <span className="flex w-full shrink-0 items-center gap-1.5 pl-[3.25rem] sm:ml-auto sm:w-auto sm:pl-0">
               {configured && <ModeChip mode={mode} />}
               <StatusChip configured={configured} enabled={enabled} />
             </span>

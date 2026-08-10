@@ -8,6 +8,7 @@ import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import type { CustomAction } from "@/types/DataTable";
 import type { PurchaseOrder } from "@/types";
 import { populatedRef } from "@/utils/populated-ref";
+import { copyText } from "@/utils/clipboard";
 import { toast } from "sonner";
 import { statusConfig } from "../status-config";
 
@@ -35,9 +36,13 @@ export const getPurchaseHistoryColumns = ({
           variant="ghost"
           size="sm"
           className="h-6 w-6 p-0"
-          onClick={() => {
-            navigator.clipboard.writeText(row.original.orderNumber);
-            toast.success(t("history.invoiceCopied"));
+          onClick={async () => {
+            try {
+              await copyText(row.original.orderNumber);
+              toast.success(t("history.invoiceCopied"));
+            } catch {
+              toast.error(t("history.copyFailed"));
+            }
           }}
           title={t("history.copyInvoiceTooltip")}
         >

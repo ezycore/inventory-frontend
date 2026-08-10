@@ -214,8 +214,8 @@ export function FieldSettingsManager({
   return (
     <div className="space-y-6">
       {/* Header with actions */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
             {t("title")}
@@ -224,7 +224,7 @@ export function FieldSettingsManager({
             {tManager("subtitle", { module })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {hasChanges && (
             <Button variant="outline" size="sm" onClick={handleReset} disabled={saving}>
               <RotateCcw className="h-4 w-4 mr-2" />
@@ -443,35 +443,37 @@ function FieldToggleItem({
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-3 rounded-lg border transition-colors",
+        "flex items-center justify-between gap-3 p-3 rounded-lg border transition-colors",
         isExcluded
           ? "bg-muted/50 border-muted"
           : "bg-background border-border hover:border-primary/50"
       )}
     >
-      <div className="flex items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={cn("font-medium text-sm", isExcluded && "text-muted-foreground")}>
-              {field.label}
-            </span>
-            {isRequired && (
-              <Badge variant="destructive" className="text-xs h-5">
-                {t("required")}
-              </Badge>
-            )}
-            <Badge variant="secondary" className="text-xs h-5">
-              {field.type}
+      {/* `min-w-0` + a wrapping badge row: label and badges must fold onto a second line
+          on a phone rather than squeeze the switch out of the row. */}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={cn("font-medium text-sm", isExcluded && "text-muted-foreground")}>
+            {field.label}
+          </span>
+          {isRequired && (
+            <Badge variant="destructive" className="text-xs h-5">
+              {t("required")}
             </Badge>
-          </div>
-          {field.helperText && (
-            <p className="text-xs text-muted-foreground mt-0.5">{typeof field.helperText === "function" ? field.helperText({}) : field.helperText}</p>
           )}
+          <Badge variant="secondary" className="text-xs h-5">
+            {field.type}
+          </Badge>
         </div>
+        {field.helperText && (
+          <p className="text-xs text-muted-foreground mt-0.5">{typeof field.helperText === "function" ? field.helperText({}) : field.helperText}</p>
+        )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
+        {/* Hidden on a phone: the disabled switch already says it, and the label wrapped
+            to two lines and stole the switch's width. */}
         {isRequired && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="hidden text-xs text-muted-foreground sm:flex items-center gap-1 whitespace-nowrap">
             <AlertCircle className="h-3 w-3" />
             {t("cantHide")}
           </span>

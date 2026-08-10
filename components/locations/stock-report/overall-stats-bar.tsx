@@ -130,11 +130,14 @@ export function OverallStatsBar({ summaries, isLoading }: OverallStatsProps) {
               )}
             />
             <div className="relative flex items-start justify-between">
-              <div className="space-y-1.5">
+              {/* `min-w-0` + `break-words`: a currency total is one unbreakable token, and
+                  without them it forces the row wider than the card and pushes the icon
+                  under `overflow-hidden` on a half-width mobile tile. */}
+              <div className="min-w-0 space-y-1.5">
                 <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70">
                   {stat.label}
                 </p>
-                <p className="text-xl font-bold tracking-tight tabular-nums">
+                <p className="break-words text-base font-bold tracking-tight tabular-nums sm:text-lg lg:text-xl">
                   {stat.value}
                 </p>
               </div>

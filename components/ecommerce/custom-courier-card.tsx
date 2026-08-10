@@ -119,7 +119,9 @@ function CustomCourierRow({
       </span>
 
       <div className="flex min-w-0 flex-col">
-        <span className="text-sm font-semibold leading-tight">
+        {/* Merchant-typed and up to 60 chars, so it truncates rather than
+            pushing the toggle and the icon buttons off a phone screen. */}
+        <span className="truncate text-sm font-semibold leading-tight">
           {courier.name}
         </span>
         <span className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">

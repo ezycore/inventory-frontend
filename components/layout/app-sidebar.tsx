@@ -54,6 +54,17 @@ import { AppTitle } from "./app-title";
 import type { NavItem } from "@/types/layout";
 
 /**
+ * Dismisses the mobile sidebar. On mobile the sidebar renders as an overlay
+ * sheet and a client-side navigation swaps the page *behind* it, so every nav
+ * click has to close it explicitly or the user never sees where they landed.
+ * A no-op on desktop, where `openMobile` is not read. Mirrors `AppTitle`.
+ */
+function useCloseMobileNav() {
+  const { setOpenMobile } = useSidebar();
+  return React.useCallback(() => setOpenMobile(false), [setOpenMobile]);
+}
+
+/**
  * Renders a parent nav item with sub-items. When the sidebar is expanded we
  * use the standard inline Collapsible; when collapsed to icon-only we render
  * a hover/click DropdownMenu so nested items remain reachable.
@@ -66,6 +77,7 @@ function NestedNavItem({
   pathname: string;
 }) {
   const { state, isMobile } = useSidebar();
+  const closeMobileNav = useCloseMobileNav();
   const { itemLabel } = useNavLabels();
   const isCollapsed = state === "collapsed" && !isMobile;
   const subItems = item.items || [];
@@ -136,7 +148,7 @@ function NestedNavItem({
                   asChild
                   isActive={pathname === subItem.url}
                 >
-                  <Link href={subItem.url}>
+                  <Link href={subItem.url} onClick={closeMobileNav}>
                     <span>{itemLabel(subItem.title)}</span>
                   </Link>
                 </SidebarMenuSubButton>
@@ -159,6 +171,17 @@ export default function AppSidebar() {
   const canManageBilling = useCanManageBilling();
   const tUserMenu = useTranslations("layout.userMenu");
   const { itemLabel, groupLabel } = useNavLabels();
+  const closeMobileNav = useCloseMobileNav();
+
+  // The footer menu navigates imperatively, so it closes the mobile sheet the
+  // same way the nav links do — see `useCloseMobileNav`.
+  const navigate = React.useCallback(
+    (url: string) => {
+      closeMobileNav();
+      router.push(url);
+    },
+    [closeMobileNav, router],
+  );
 
   // Filter each group's items based on user role, permissions, and features;
   // drop groups left empty by the filtering.
@@ -206,7 +229,7 @@ export default function AppSidebar() {
                       tooltip={itemLabel(item.title)}
                       isActive={pathname === item.url}
                     >
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={closeMobileNav}>
                         <NavIcon name={item.icon} />
                         <span>{itemLabel(item.title)}</span>
                       </Link>
@@ -254,7 +277,7 @@ export default function AppSidebar() {
                   <DropdownMenuSeparator />
 
                   <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                    <DropdownMenuItem onClick={() => navigate("/profile")}>
                       <UserCircleIcon className="mr-2 h-4 w-4" />
                       {tUserMenu("profile")}
                     </DropdownMenuItem>
@@ -263,7 +286,7 @@ export default function AppSidebar() {
                         owner keeps access even if their role loses `organization.edit`. */}
                     {canManageBilling && (
                       <DropdownMenuItem
-                        onClick={() => router.push("/dashboard/billing")}
+                        onClick={() => navigate("/dashboard/billing")}
                       >
                         <CreditCardIcon className="mr-2 h-4 w-4" />
                         {tUserMenu("billing")}
@@ -271,7 +294,7 @@ export default function AppSidebar() {
                     )}
                     {/* This slot gives the help guides their only route into `/help`; the
                         header's "?" only ever opens the guide for the current screen. */}
-                    <DropdownMenuItem onClick={() => router.push("/help")}>
+                    <DropdownMenuItem onClick={() => navigate("/help")}>
                       <HelpCircleIcon className="mr-2 h-4 w-4" />
                       {tUserMenu("help")}
                     </DropdownMenuItem>

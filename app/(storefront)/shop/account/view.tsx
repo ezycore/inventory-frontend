@@ -17,6 +17,7 @@ import { AccountArea } from "@/components/storefront/account/account-area";
 import { SocialLoginButtons } from "@/components/storefront/account/social-login-buttons";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { sfInput as input } from "@/components/storefront/field-styles";
+import { SfPasswordInput } from "@/components/storefront/sf-password-input";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -235,7 +236,7 @@ export default function AccountPage() {
                 ) : undefined
               }
             >
-              <input style={input} type="password" autoComplete={isLogin ? "current-password" : "new-password"} placeholder="••••••••" value={form.password} onChange={(e) => set("password", e.target.value)} required />
+              <SfPasswordInput autoComplete={isLogin ? "current-password" : "new-password"} placeholder="••••••••" value={form.password} onChange={(e) => set("password", e.target.value)} required />
             </Field>
             <button type="submit" disabled={pending} style={{ ...primaryBtn, opacity: pending ? 0.6 : 1, marginTop: 4 }}>
               {pending

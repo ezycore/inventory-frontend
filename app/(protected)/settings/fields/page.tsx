@@ -87,18 +87,22 @@ function FieldSettingsForm() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          {modules.map((module) => (
-            <TabsTrigger
-              key={module.key}
-              value={module.key}
-              className="flex items-center gap-2 cursor-pointer data-[state=active]:border-primary"
-            >
-              <module.icon className="h-4 w-4" />
-              {module.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Four nowrap triggers exceed a phone viewport; scroll the strip instead of
+            clipping the last tab out of reach. */}
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="w-max">
+            {modules.map((module) => (
+              <TabsTrigger
+                key={module.key}
+                value={module.key}
+                className="flex items-center gap-2 cursor-pointer data-[state=active]:border-primary"
+              >
+                <module.icon className="h-4 w-4" />
+                {module.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {modules.map((module) => (
           <TabsContent key={module.key} value={module.key}>

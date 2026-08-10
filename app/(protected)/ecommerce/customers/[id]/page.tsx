@@ -81,7 +81,7 @@ export default function CustomerDetailPage() {
 
       <div className="grid items-start gap-5 lg:grid-cols-[280px_1fr]">
         {/* Contact + stats */}
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <Card className="space-y-2.5 p-5 shadow-none">
             <h3 className="text-sm font-semibold">Contact</h3>
             <div className="flex items-center gap-2 text-sm">
@@ -121,40 +121,48 @@ export default function CustomerDetailPage() {
             </p>
           ) : (
             <>
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/40 text-left text-xs font-semibold text-muted-foreground">
-                    <th className="px-4 py-2.5">Order</th>
-                    <th className="px-3 py-2.5">Date</th>
-                    <th className="px-3 py-2.5">Total</th>
-                    <th className="px-3 py-2.5">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((o) => (
-                    <tr
-                      key={o._id}
-                      onClick={() => router.push(`/ecommerce/orders/${o._id}`)}
-                      className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
-                    >
-                      <td className="px-4 py-3 font-semibold">{o.orderNumber}</td>
-                      <td className="px-3 py-3 text-muted-foreground">
-                        {fmtDate(o.createdAt)}
-                      </td>
-                      <td className="px-3 py-3 font-semibold tabular-nums">
-                        {formatMoney(o.totalAmount, currency)}
-                      </td>
-                      <td className="px-3 py-3">
-                        <StatusBadge
-                          status={ORDER_STATUS_BADGE[o.status] ?? "info"}
-                          label={labelFor(o.status)}
-                          size="sm"
-                        />
-                      </td>
+              {/* Scrolls rather than squeezes: the four columns need ~30rem,
+                  and inside the card's `overflow-hidden` the surplus was being
+                  clipped — no scrollbar, a wrapped order number, and a status
+                  badge cut in half. */}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[30rem] border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/40 text-left text-xs font-semibold text-muted-foreground">
+                      <th className="whitespace-nowrap px-4 py-2.5">Order</th>
+                      <th className="whitespace-nowrap px-3 py-2.5">Date</th>
+                      <th className="whitespace-nowrap px-3 py-2.5">Total</th>
+                      <th className="whitespace-nowrap px-3 py-2.5">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {orders.map((o) => (
+                      <tr
+                        key={o._id}
+                        onClick={() => router.push(`/ecommerce/orders/${o._id}`)}
+                        className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
+                      >
+                        <td className="whitespace-nowrap px-4 py-3 font-semibold">
+                          {o.orderNumber}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
+                          {fmtDate(o.createdAt)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 font-semibold tabular-nums">
+                          {formatMoney(o.totalAmount, currency)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3">
+                          <StatusBadge
+                            status={ORDER_STATUS_BADGE[o.status] ?? "info"}
+                            label={labelFor(o.status)}
+                            size="sm"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {pagination && (
                 <TablePager
                   page={pagination.page}

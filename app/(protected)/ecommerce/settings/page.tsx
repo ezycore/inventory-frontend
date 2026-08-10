@@ -34,6 +34,7 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { CourierSettings } from "@/components/ecommerce/courier-settings";
 import { OrderStepLabelsSettings } from "@/components/ecommerce/order-step-labels-settings";
 import { NotificationMatrix } from "@/components/notifications/notification-matrix";
+import { copyText } from "@/utils/clipboard";
 
 type Option = { label: string; value: string };
 
@@ -297,7 +298,7 @@ function PublishTab({ settings }: { settings: StorefrontSettings }) {
   const copy = async () => {
     if (!liveUrl) return;
     try {
-      await navigator.clipboard.writeText(liveUrl);
+      await copyText(liveUrl);
       toast.success("Store URL copied");
     } catch {
       toast.error("Couldn't copy the URL");

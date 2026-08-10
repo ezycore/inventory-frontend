@@ -6,7 +6,7 @@ import { toast } from "@/lib/storefront-toast";
 import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { sfInput as input } from "@/components/storefront/field-styles";
+import { SfPasswordInput } from "@/components/storefront/sf-password-input";
 
 const fieldLabel: CSSProperties = {
   display: "block",
@@ -62,16 +62,16 @@ export function PasswordCard() {
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div>
           <label style={fieldLabel}>{t.currentPasswordLabel}</label>
-          <input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} style={input} />
+          <SfPasswordInput autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "var(--profcols)", gap: "14px 40px" }}>
           <div>
             <label style={fieldLabel}>{t.newPasswordLabel}</label>
-            <input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} style={input} />
+            <SfPasswordInput autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
           </div>
           <div>
             <label style={fieldLabel}>{t.confirmPasswordLabel}</label>
-            <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} style={input} />
+            <SfPasswordInput autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </div>
         </div>
         <div>

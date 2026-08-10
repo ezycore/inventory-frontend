@@ -138,9 +138,11 @@ function Hero({
   const tStatus = useTranslations('common.status')
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">
+      {/* Card already supplies the vertical padding (`py-(--card-spacing)`), so
+          this sets the horizontal inset only — `p-5` here stacked on top of it. */}
+      <CardContent className="flex flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted sm:h-20 sm:w-20">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={image} alt={name} className="h-full w-full object-cover" />
@@ -148,8 +150,8 @@ function Hero({
               <Package className="h-8 w-8 text-muted-foreground/50" />
             )}
           </div>
-          <div className="space-y-1">
-            <h1 className="text-xl font-bold">{name}</h1>
+          <div className="min-w-0 space-y-1">
+            <h1 className="text-lg font-bold break-words sm:text-xl">{name}</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
@@ -172,14 +174,14 @@ function Hero({
           </div>
         </div>
 
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-row items-center justify-between gap-2 sm:flex-col sm:items-end">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant={status === 'active' ? 'secondary' : 'outline'}>
               {tStatus.has(status) ? tStatus(status) : status}
             </Badge>
             {isLowStock && <Badge variant="destructive">{t('lowStockBadge')}</Badge>}
           </div>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-bold whitespace-nowrap tabular-nums sm:text-3xl">
             {quantity.toLocaleString()} <span className="text-base font-medium text-muted-foreground">{unitLabel}</span>
           </p>
         </div>
@@ -197,13 +199,17 @@ interface StatTileProps {
 
 function StatTile({ icon: Icon, label, value, sub }: StatTileProps) {
   return (
-    <Card>
-      <CardContent className="pb-4 pt-5">
-        <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-          <Icon className="h-4 w-4" />
-          <span className="text-sm font-medium">{label}</span>
+    // size="sm" tightens --card-spacing to 4. The old `pb-4 pt-5` stacked on the
+    // Card's own py-6, which is what made these tiles mostly empty on a phone.
+    <Card size="sm">
+      <CardContent>
+        <div className="mb-1 flex min-w-0 items-center gap-2 text-muted-foreground">
+          <Icon className="h-4 w-4 shrink-0" />
+          <span className="truncate text-sm font-medium">{label}</span>
         </div>
-        <p className="text-2xl font-bold">{value}</p>
+        {/* A formatted currency is the widest thing here and shares a half-width
+            column on mobile — let it wrap rather than run past the card. */}
+        <p className="text-xl font-bold tabular-nums [overflow-wrap:anywhere] sm:text-2xl">{value}</p>
         <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
       </CardContent>
     </Card>

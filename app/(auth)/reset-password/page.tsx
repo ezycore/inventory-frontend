@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@ui/components/card";
-import { Input } from "@ui/components/input";
+import { Password } from "@ui/components/input-password";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { KeyRound, Loader2, AlertTriangle } from "lucide-react";
@@ -129,9 +129,8 @@ function ResetPasswordForm() {
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input
+                    <Password
                       id="newPassword"
-                      type="password"
                       placeholder="Min. 8 characters"
                       value={formData.newPassword}
                       onChange={(e) =>
@@ -146,9 +145,8 @@ function ResetPasswordForm() {
                   </div>
                   <div className="grid gap-3">
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
+                    <Password
                       id="confirmPassword"
-                      type="password"
                       placeholder="Re-enter password"
                       value={formData.confirmPassword}
                       onChange={(e) =>

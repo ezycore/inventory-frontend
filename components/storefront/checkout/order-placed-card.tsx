@@ -8,6 +8,7 @@ import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
 import { ghostLink, primaryLink } from "@/components/storefront/checkout/checkout-bits";
+import { copyText } from "@/utils/clipboard";
 
 /** Post-checkout success card — order number + track/continue CTAs. */
 export function OrderPlacedCard({
@@ -25,9 +26,13 @@ export function OrderPlacedCard({
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     if (!order.trackUrl) return;
-    await navigator.clipboard.writeText(order.trackUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await copyText(order.trackUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // The link stays on screen either way — don't flip to "Copied".
+    }
   };
 
   return (

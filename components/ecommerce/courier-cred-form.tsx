@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Lock, Package, Store } from "lucide-react";
 import {
   useCourierPackages,
@@ -10,6 +10,7 @@ import {
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
+import { Password } from "@/ui/components/input-password";
 import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Spinner } from "@/ui/components/spinner";
@@ -120,6 +121,18 @@ export function CourierCredForm({
         {fields.map((f) => {
           const remote = remoteFieldFor(f.key);
           const id = `${provider}-${f.key}`;
+          // Shared by both branches below — a secret only differs by masking.
+          const fieldProps = {
+            id,
+            value: creds[f.key] ?? "",
+            placeholder: configured
+              ? f.secret
+                ? "•••••••• (unchanged)"
+                : `${f.label} (unchanged)`
+              : f.label,
+            onChange: (e: ChangeEvent<HTMLInputElement>) =>
+              setField(f.key, e.target.value),
+          };
           return (
             <div
               key={f.key}
@@ -142,20 +155,10 @@ export function CourierCredForm({
                   loadLabel={remote.loadLabel}
                   icon={remote.icon}
                 />
+              ) : f.secret ? (
+                <Password {...fieldProps} autoComplete="off" />
               ) : (
-                <Input
-                  id={id}
-                  type={f.secret ? "password" : "text"}
-                  value={creds[f.key] ?? ""}
-                  placeholder={
-                    configured
-                      ? f.secret
-                        ? "•••••••• (unchanged)"
-                        : `${f.label} (unchanged)`
-                      : f.label
-                  }
-                  onChange={(e) => setField(f.key, e.target.value)}
-                />
+                <Input {...fieldProps} type="text" />
               )}
             </div>
           );

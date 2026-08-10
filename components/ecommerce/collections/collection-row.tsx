@@ -53,7 +53,7 @@ export function CollectionRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3",
+        "flex flex-wrap items-center gap-3",
         compact
           ? "rounded-lg border p-2 pl-2.5"
           : "border-b p-3 last:border-0",
@@ -91,7 +91,9 @@ export function CollectionRow({
         >
           {value.name}
         </div>
-        <div className="text-xs text-muted-foreground">/{value.slug}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          /{value.slug}
+        </div>
       </div>
 
       <Input
@@ -99,7 +101,15 @@ export function CollectionRow({
         onChange={(e) => onDisplayNameChange(e.target.value)}
         onBlur={onDisplayNameBlur}
         placeholder={value.name}
-        className={cn("h-9 flex-none", compact ? "w-28" : "w-48")}
+        className={cn(
+          "h-9 flex-none",
+          compact
+            ? "w-28"
+            // Wraps to its own full-width line on a phone: inline, w-48 plus the
+            // arrows and the Listed toggle are wider than a 360px viewport, which
+            // squeezed the name column to zero and pushed the toggle off-screen.
+            : "order-last w-full sm:order-none sm:w-48",
+        )}
         aria-label={`Display name for ${value.name}`}
       />
 
@@ -111,7 +121,7 @@ export function CollectionRow({
           aria-label={`List ${value.name} on the store`}
         />
       ) : (
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <label className="flex flex-none items-center gap-2 whitespace-nowrap text-sm text-muted-foreground">
           <Switch
             checked={value.isListed}
             disabled={disabled}

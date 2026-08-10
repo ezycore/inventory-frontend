@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@ui/components/card";
 import { Input } from "@ui/components/input";
+import { Password } from "@ui/components/input-password";
 import { Label } from "@ui/components/label";
 import { cn } from "@ui/lib/utils";
 import { ArrowLeft, Loader2, Shield } from "lucide-react";
@@ -235,9 +236,8 @@ export function LoginForm({
                     {t("forgotPassword")}
                   </Link>
                 </div>
-                <Input
+                <Password
                   id="password"
-                  type="password"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })

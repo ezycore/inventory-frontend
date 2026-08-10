@@ -285,6 +285,15 @@ Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific compone
 
 **Permission display** — helpers for `resource.action` permission strings (grouping, action icons, category colors) plus the `PermissionGroupCard` category card live in `components/shared/permissions/`. Used by the profile Permissions tab and Settings → Roles; reuse these instead of re-deriving category colors or action icons.
 
+**Masked fields** — every password *and* every secret shown as dots (API keys, courier credentials)
+uses a component that carries its own reveal toggle, so a user can verify what they typed. There are
+two, one per design system, and no third: `Password` (`ui/components/input-password.tsx`) for the
+admin app (shadcn `Input`, labels from `common.actions.{showPassword,hidePassword}`), and
+`SfPasswordInput` (`components/storefront/sf-password-input.tsx`) for the shopper side (inline
+`sfInput` skin, labels from the storefront dictionary). Never hand-roll
+`type={show ? "text" : "password"}` again — that pattern had been pasted into the profile
+password tab three times and left every other field with no toggle at all.
+
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
 **Hydration-safe client state:** components that read persisted zustand stores (auth/cart), `window`,
@@ -411,6 +420,14 @@ value no longer appears in the page — i.e. **renaming a button breaks the buil
 It also fails on a sidebar route that no page covers and `docs/help/BACKLOG.md` does not defer. Write pages
 with the `help-docs` skill. Its one blind spot: a backend change that alters what a number *means* with no
 frontend diff (valuation method, tax rules) — check the reports pages by hand.
+
+**Copy to clipboard — always `copyText()` (`utils/clipboard.ts`), never `navigator.clipboard`
+directly.** That API only exists in a **secure context** (HTTPS / `localhost` / `127.0.0.1`), so a
+direct call is `undefined` and throws when the dev app is opened from a phone over LAN HTTP
+(`http://192.168.x.x:3000`) — the helper falls back to a hidden-textarea `execCommand("copy")` there.
+It **rejects** on failure, so keep your own try/catch and error toast: several call sites used to
+fire-and-forget and toast success unconditionally, which claimed a copy that never happened (worst
+on the 2FA backup codes).
 
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
 - **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.

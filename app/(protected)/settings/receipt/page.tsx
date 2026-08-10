@@ -54,12 +54,17 @@ const buildPreviewSrcDoc = (
       width: auto !important;
       padding: 16px !important;
       background: #f3f4f6 !important;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      overflow-x: auto;
     }
+    /* Centered with auto margins, NOT flex: an A4 doc carries print minimums
+       (table.totals alone is 300px wide) that exceed a phone-width iframe, and a
+       centered flex item that overflows is clipped on BOTH sides — the left edge
+       then cannot be scrolled to at all. Auto margins collapse to 0 once the paper
+       outgrows the frame, so the overflow goes right and stays swipeable. */
     .preview-paper {
       width: ${PREVIEW_PAPER_WIDTH[paper]};
+      min-width: min-content;
+      margin: 0 auto;
       background: #fff;
       padding: 14px;
       box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);

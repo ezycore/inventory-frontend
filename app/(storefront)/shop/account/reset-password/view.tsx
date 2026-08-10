@@ -10,7 +10,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
-import { sfInput as input } from "@/components/storefront/field-styles";
+import { SfPasswordInput } from "@/components/storefront/sf-password-input";
 
 const wrap: CSSProperties = {
   maxWidth: 440,
@@ -112,9 +112,7 @@ export default function ResetPasswordPage() {
         >
           <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={fieldLabel}>{t.newPasswordLabel}</span>
-            <input
-              style={input}
-              type="password"
+            <SfPasswordInput
               autoComplete="new-password"
               placeholder="••••••••"
               value={password}
@@ -124,9 +122,7 @@ export default function ResetPasswordPage() {
           </label>
           <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={fieldLabel}>{t.confirmPasswordLabel}</span>
-            <input
-              style={input}
-              type="password"
+            <SfPasswordInput
               autoComplete="new-password"
               placeholder="••••••••"
               value={confirm}

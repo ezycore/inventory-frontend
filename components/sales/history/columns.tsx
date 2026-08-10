@@ -12,6 +12,7 @@ import {
 } from '@/ui/components/tooltip';
 import type { Sale, SaleStatus } from '@/types';
 import { populatedRef } from '@/utils/populated-ref';
+import { copyText } from '@/utils/clipboard';
 import { toast } from 'sonner';
 
 // ── Status config ───────────────────────────────────────────────────
@@ -50,9 +51,13 @@ export function getSalesHistoryColumns(
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-0"
-            onClick={() => {
-              navigator.clipboard.writeText(row.original.invoiceNumber);
-              toast.success(t('toasts.invoiceCopied'));
+            onClick={async () => {
+              try {
+                await copyText(row.original.invoiceNumber);
+                toast.success(t('toasts.invoiceCopied'));
+              } catch {
+                toast.error(t('toasts.copyFailed'));
+              }
             }}
             title={t('columns.copyInvoice')}
           >
