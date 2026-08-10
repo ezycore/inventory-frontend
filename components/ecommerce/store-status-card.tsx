@@ -50,8 +50,12 @@ export function StoreStatusCard({
   };
 
   return (
-    <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4 shadow-none">
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+    // Stacked below `sm`. `flex-wrap` alone never wrapped: the left group is
+    // `flex-1 min-w-0`, so it shrank without limit instead of pushing the
+    // buttons to their own row — on a phone the text column collapsed to a
+    // ~110px ribbon and "Connect a custom domain" broke across three lines.
+    <Card className="flex flex-col gap-4 p-4 shadow-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="flex w-full min-w-0 items-center gap-4 sm:w-auto sm:flex-1">
         <span
           className={cn(
             "grid h-12 w-12 flex-none place-items-center rounded-xl border",
@@ -117,7 +121,7 @@ export function StoreStatusCard({
       </div>
 
       {primaryUrl && (
-        <div className="flex flex-none items-center gap-2">
+        <div className="flex w-full flex-none items-center gap-2 sm:w-auto">
           <Button
             variant="outline"
             size="sm"
