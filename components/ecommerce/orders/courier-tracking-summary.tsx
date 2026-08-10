@@ -44,13 +44,15 @@ export function CourierTrackingSummary({
         <Truck className="h-4 w-4" />
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="text-sm font-semibold">
           {carrier} · {isManual ? "dispatched" : "consignment created"}
         </div>
 
+        {/* Consignment ids are long and unbroken — without `break-all` one
+            widens the card past a phone viewport. */}
         {tracking ? (
-          <div className="text-xs text-muted-foreground">
+          <div className="break-all text-xs text-muted-foreground">
             Tracking{" "}
             {courier?.trackingUrl ? (
               <a

@@ -44,10 +44,12 @@ export function OrderStepper({
               >
                 {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
               </div>
+              {/* 10px on a phone: five labels at text-xs plus their connectors
+                  exceed a 360px viewport and wrap mid-word. */}
               <span
                 title={title}
                 className={cn(
-                  "text-xs",
+                  "text-center text-[10px] sm:text-xs",
                   current
                     ? "font-semibold text-foreground"
                     : "text-muted-foreground",
@@ -59,7 +61,7 @@ export function OrderStepper({
             {i < steps.length - 1 && (
               <div
                 className={cn(
-                  "mx-1 mb-5 h-0.5 flex-1",
+                  "mx-0.5 mb-5 h-0.5 flex-1 sm:mx-1",
                   i < currentStep ? "bg-primary" : "bg-border",
                 )}
               />
