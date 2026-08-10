@@ -470,9 +470,11 @@ export function ImportLowStockDialog({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {t("purchaseSettings")}
           </p>
-          <div className="grid grid-cols-3 gap-3">
+          {/* Three columns do not fit a phone — the supplier trigger truncated to
+              a few characters. Supplier takes the full first row on mobile. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {/* Supplier */}
-            <div className="space-y-1 w-full">
+            <div className="space-y-1 w-full col-span-2 sm:col-span-1">
               <Label className="text-xs">
                 {t("supplier")} <span className="text-destructive">*</span>
               </Label>
@@ -522,9 +524,10 @@ export function ImportLowStockDialog({
           </div>
         </div>
 
-        {/* Search & Filters */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+        {/* Search & Filters. The two fixed-width triggers left nothing for the
+            search box on a phone, so it collapsed to just its icon. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:flex-1">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={t("searchPlaceholder")}
@@ -533,32 +536,36 @@ export function ImportLowStockDialog({
               className="pl-9 h-9"
             />
           </div>
-          <Select value={brandFilter} onValueChange={setBrandFilter}>
-            <SelectTrigger className="w-[140px] h-9">
-              <SelectValue placeholder={t("allBrands")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allBrands")}</SelectItem>
-              {brandOptions?.map((brand) => (
-                <SelectItem key={brand.value} value={brand.value}>
-                  {brand.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[150px] h-9">
-              <SelectValue placeholder={t("allCategories")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allCategories")}</SelectItem>
-              {categoryOptions?.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex-1 sm:flex-none">
+            <Select value={brandFilter} onValueChange={setBrandFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                <SelectValue placeholder={t("allBrands")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allBrands")}</SelectItem>
+                {brandOptions?.map((brand) => (
+                  <SelectItem key={brand.value} value={brand.value}>
+                    {brand.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 sm:flex-none">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-[150px]">
+                <SelectValue placeholder={t("allCategories")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allCategories")}</SelectItem>
+                {categoryOptions?.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Select-all bar */}
@@ -604,7 +611,7 @@ export function ImportLowStockDialog({
                 <div
                   key={item._id}
                   onClick={() => toggleSelect(item._id)}
-                  className={`flex items-center gap-3 rounded-lg border border-l-2 px-3 py-2 cursor-pointer transition-colors ${
+                  className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-l-2 px-3 py-2 cursor-pointer transition-colors ${
                     isCritical ? "border-l-destructive" : "border-l-warning"
                   } ${isSelected ? "border-primary bg-primary/5" : "hover:bg-muted/40"}`}
                 >
@@ -636,42 +643,47 @@ export function ImportLowStockDialog({
                     )}
                   </div>
 
-                  {/* Stock + urgency */}
-                  <div className="flex flex-none flex-col items-end gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`text-sm tabular-nums ${
-                          isCritical ? "text-destructive font-bold" : "text-warning font-semibold"
-                        }`}
-                      >
-                        {stock}
-                      </span>
-                      {getUrgencyBadge(item.quantity, item.quantityAlert || 1, {
-                        critical: t("urgencyCritical"),
-                        high: t("urgencyHigh"),
-                        medium: t("urgencyMedium"),
-                      })}
+                  {/* Stock and order qty drop to their own full-width line on
+                      mobile — as peers of the product they were overlapping it
+                      and pushing the qty unit off the row. */}
+                  <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+                    {/* Stock + urgency */}
+                    <div className="flex min-w-0 flex-col items-start gap-0.5 sm:items-end">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`text-sm tabular-nums ${
+                            isCritical ? "text-destructive font-bold" : "text-warning font-semibold"
+                          }`}
+                        >
+                          {stock}
+                        </span>
+                        {getUrgencyBadge(item.quantity, item.quantityAlert || 1, {
+                          critical: t("urgencyCritical"),
+                          high: t("urgencyHigh"),
+                          medium: t("urgencyMedium"),
+                        })}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums">
+                        {t("colNeededQty")}: <span className="text-primary font-semibold">{neededQtyDisplay}</span>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-muted-foreground tabular-nums">
-                      {t("colNeededQty")}: <span className="text-primary font-semibold">{neededQtyDisplay}</span>
-                    </div>
-                  </div>
 
-                  {/* Order qty */}
-                  <div
-                    className="flex flex-none items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <NumberField
-                      precision={0}
-                      min={1}
-                      value={orderQuantities[item._id] ?? purchaseUnitQty}
-                      onChange={(v) => updateOrderQty(item._id, v ?? 1)}
-                      className="w-16 h-7 text-center text-sm"
-                    />
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {getOrderUnitShortName(item)}
-                    </span>
+                    {/* Order qty */}
+                    <div
+                      className="flex flex-none items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <NumberField
+                        precision={0}
+                        min={1}
+                        value={orderQuantities[item._id] ?? purchaseUnitQty}
+                        onChange={(v) => updateOrderQty(item._id, v ?? 1)}
+                        className="w-16 h-7 text-center text-sm"
+                      />
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {getOrderUnitShortName(item)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -680,7 +692,9 @@ export function ImportLowStockDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2 sm:justify-between items-center">
+        {/* flex-col (not the footer's default col-reverse) so the selection
+            count stays above the actions on mobile instead of under them. */}
+        <DialogFooter className="flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground tabular-nums">
               {selectedIds.size}
