@@ -482,7 +482,11 @@
       "updatedDateLabel": "আপডেটের তারিখ",
       "updatedDatePlaceholder": "তারিখ নির্বাচন করুন",
       "parentLabel": "প্যারেন্ট ক্যাটাগরি",
-      "parentPlaceholder": "সব ক্যাটাগরি"
+      "parentPlaceholder": "সব ক্যাটাগরি",
+      "typeLabel": "ধরন",
+      "typePlaceholder": "সব ধরন",
+      "typeParent": "প্যারেন্ট ক্যাটাগরি",
+      "typeSub": "সাব-ক্যাটাগরি"
     },
     "form": {
       "name": "ক্যাটাগরির নাম",

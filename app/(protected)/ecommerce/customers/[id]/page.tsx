@@ -11,17 +11,9 @@ import { TablePager } from "@/components/shared/table-pager";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
-import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
-
-const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
-  pending: "pending",
-  confirmed: "confirmed",
-  processing: "processing",
-  shipped: "shipped",
-  delivered: "delivered",
-  cancelled: "cancelled",
-  rejected: "rejected",
-};
+import { StatusBadge } from "@/ui/components/status-badge";
+import { ORDER_STATUS_BADGE } from "@/lib/order-status";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 
 const fmtDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -34,6 +26,7 @@ export default function CustomerDetailPage() {
   const id = String(useParams().id);
   const router = useRouter();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const { labelFor } = useOrderStatusLabels();
   const { data, isLoading, isError } = useOnlineCustomer(id);
   const [ordersPage, setOrdersPage] = useState(1);
   const { data: ordersData, isLoading: ordersLoading } = useOnlineCustomerOrders(
@@ -154,6 +147,7 @@ export default function CustomerDetailPage() {
                       <td className="px-3 py-3">
                         <StatusBadge
                           status={ORDER_STATUS_BADGE[o.status] ?? "info"}
+                          label={labelFor(o.status)}
                           size="sm"
                         />
                       </td>

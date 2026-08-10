@@ -142,7 +142,7 @@ export default function CategoriesPage() {
           enableSorting={true}
           defaultColumnVisibility={{ status: false }}
           enableRowHover={true}
-          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70" : "")}
+          rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           operations={sharedOperations}
           customActions={vatAction}
         />

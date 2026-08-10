@@ -98,7 +98,7 @@ function ComboReturnHeader({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-orange-200 bg-orange-50/60 p-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-orange-200 bg-orange-50/60 p-3 dark:border-orange-500/40 dark:bg-orange-500/10">
       <div className="flex items-center gap-2">
         <Checkbox
           checked={anySelected}

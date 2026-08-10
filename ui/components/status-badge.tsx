@@ -82,22 +82,29 @@ export interface StatusBadgeProps
     | "suspended" | "review" | "moderate" | "confirmed" | "premium"
     | "featured" | "vip" | "in_progress" | "in-progress"
     | "shipped" | "delivered" | "returned"
+  /**
+   * Text to show instead of the humanized `status`. The colour still comes from
+   * `status`, so a caller can rename what the badge says without inventing a
+   * variant — that is how storefront orders render a merchant's own step wording
+   * while every other resource keeps the default text.
+   */
+  label?: string
 }
 
-function StatusBadge({ className, status, size, ...props }: StatusBadgeProps) {
+function StatusBadge({ className, status, size, label, ...props }: StatusBadgeProps) {
   // Normalize status for display (replace underscores/hyphens with spaces and capitalize)
   const displayStatus = status
     .replace(/[_-]/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
-  
+
   return (
-    <div 
-      className={cn(statusBadgeVariants({ status, size }), className)} 
+    <div
+      className={cn(statusBadgeVariants({ status, size }), className)}
       {...props}
     >
-      {displayStatus}
+      {label || displayStatus}
     </div>
   )
 }

@@ -1,5 +1,4 @@
 // coding-standard: maintained
-import type { StatusBadgeProps } from "@/ui/components/status-badge";
 
 /** The forward delivery pipeline (terminal Cancelled/Rejected sit outside it). */
 export const DELIVERY_STEPS = [
@@ -18,29 +17,9 @@ export const PICKUP_STEPS = [
   "picked_up",
 ] as const;
 
-export const STEP_LABELS: Record<string, string> = {
-  pending: "Pending",
-  confirmed: "Confirmed",
-  processing: "Processing",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  ready_for_pickup: "Ready for pickup",
-  picked_up: "Picked up",
-};
-
-export const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
-  pending: "pending",
-  confirmed: "confirmed",
-  processing: "processing",
-  shipped: "shipped",
-  delivered: "delivered",
-  // Reuse existing badge variants for the pickup branch.
-  ready_for_pickup: "shipped",
-  picked_up: "delivered",
-  returned: "returned",
-  cancelled: "cancelled",
-  rejected: "rejected",
-};
+// Step labels and badge variants live in `lib/order-status.ts` — one source for
+// every admin surface, because merchants can rename the steps per organization.
+// Read them through `useOrderStatusLabels()`, never from a local copy.
 
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 

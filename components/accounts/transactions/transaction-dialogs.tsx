@@ -96,7 +96,7 @@ export function IncomeDialog() {
           {t("addIncome")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("recordIncomeTitle")}</DialogTitle>
         </DialogHeader>
@@ -160,7 +160,7 @@ export function ExpenseDialog() {
           {t("addExpense")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("recordExpenseTitle")}</DialogTitle>
         </DialogHeader>
@@ -221,7 +221,7 @@ export function TransferDialog() {
           {t("transfer")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("transferTitle")}</DialogTitle>
         </DialogHeader>

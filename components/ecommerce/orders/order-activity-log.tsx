@@ -1,12 +1,27 @@
 // coding-standard: maintained
 import type { AdminStorefrontOrder } from "@/services/api";
-import { actorLabel, cap, longDate } from "./order-detail-helpers";
+import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { actorLabel, longDate } from "./order-detail-helpers";
 
-/** Reverse-chronological order timeline built from `statusHistory` + placement. */
+/**
+ * Reverse-chronological order timeline built from `statusHistory` + placement.
+ *
+ * Reads the org's step wording like every other admin surface — this log used to
+ * capitalize the raw status key, which would have printed "Order Shipped" directly
+ * beneath a stepper reading the merchant's own name for that step.
+ *
+ * **"Moved to X", not "Order X".** The old prefix only read as English because the
+ * canonical keys happen to be participles ("Order Shipped"). A merchant's own
+ * wording is a noun phrase, so the same template produced "Order Needs review" and
+ * "Order Cash collected". "Moved to" reads correctly for both, and keeps the entry
+ * distinct from the "Order placed" row below it.
+ */
 export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
+  const { labelFor } = useOrderStatusLabels();
+
   const events = [
     ...(order.statusHistory ?? []).map((e) => ({
-      text: `Order ${cap(e.status)}`,
+      text: `Moved to ${labelFor(e.status)}`,
       at: e.at,
       by: e.by,
     })),
