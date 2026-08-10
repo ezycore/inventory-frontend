@@ -285,6 +285,15 @@ Shadcn/Radix-based primitives live in `ui/components/`. Feature-specific compone
 
 **Permission display** — helpers for `resource.action` permission strings (grouping, action icons, category colors) plus the `PermissionGroupCard` category card live in `components/shared/permissions/`. Used by the profile Permissions tab and Settings → Roles; reuse these instead of re-deriving category colors or action icons.
 
+**Masked fields** — every password *and* every secret shown as dots (API keys, courier credentials)
+uses a component that carries its own reveal toggle, so a user can verify what they typed. There are
+two, one per design system, and no third: `Password` (`ui/components/input-password.tsx`) for the
+admin app (shadcn `Input`, labels from `common.actions.{showPassword,hidePassword}`), and
+`SfPasswordInput` (`components/storefront/sf-password-input.tsx`) for the shopper side (inline
+`sfInput` skin, labels from the storefront dictionary). Never hand-roll
+`type={show ? "text" : "password"}` again — that pattern had been pasted into the profile
+password tab three times and left every other field with no toggle at all.
+
 The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern for CRUD pages — it manages modal open state, edit/view/add modes, and delegates delete/bulkDelete to caller-provided async functions.
 
 **Hydration-safe client state:** components that read persisted zustand stores (auth/cart), `window`,

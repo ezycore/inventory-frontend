@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/ui/components/dialog";
 import { Input } from "@/ui/components/input";
+import { Password } from "@/ui/components/input-password";
 import { Label } from "@/ui/components/label";
 import { cn } from "@/ui/lib/utils";
 import {
@@ -282,9 +283,8 @@ export function TwoFactorTab() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="enable-password">{t("passwordLabel")}</Label>
-              <Input
+              <Password
                 id="enable-password"
-                type="password"
                 autoComplete="current-password"
                 placeholder={t("passwordPlaceholder")}
                 value={enablePassword}
@@ -482,9 +482,9 @@ export function TwoFactorTab() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="disable-password">{t("passwordLabel")}</Label>
-              <Input
+              <Password
                 id="disable-password"
-                type="password"
+                autoComplete="current-password"
                 placeholder={t("passwordPlaceholder")}
                 value={disablePassword}
                 onChange={(e) => setDisablePassword(e.target.value)}

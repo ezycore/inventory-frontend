@@ -7,7 +7,9 @@
     "close": "Close",
     "search": "Search",
     "confirm": "Confirm",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "status": {
     "label": "Status",
