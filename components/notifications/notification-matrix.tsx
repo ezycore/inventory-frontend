@@ -326,6 +326,8 @@ export function NotificationMatrix({
       {!hideDomainTabs && availableDomains.length > 1 && (
         <Tabs value={activeDomain} onValueChange={setActiveDomain}>
           {/* One nowrap trigger per domain overruns a phone viewport, and nothing clips
+              a `w-fit` TabsList — the whole page scrolls sideways instead. Scroll the
+              strip on its own. */}
           <div className="overflow-x-auto pb-1">
             <TabsList className="w-max">
               <TabsTrigger value="all">{t("domains.all")}</TabsTrigger>
