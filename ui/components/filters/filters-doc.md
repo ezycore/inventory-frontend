@@ -223,6 +223,21 @@ halves, because either one alone is broken:
   `FilterBar` leaves its inline slot empty, since overflow is measured before
   visibility.
 
+**Narrow screens.** `FilterBar` is `basis-full` below `sm` and `flex-1` from
+`sm` up, so on a phone it takes a row of its own inside the toolbar's
+`flex-wrap` instead of sharing one with the title and the action buttons — the
+title cannot shrink below its own text, which left the bar too narrow for the
+Filters button plus Reset and clipped it at the card edge. Reset itself drops
+its label below `sm` and renders as the ✕ alone (same pattern as the toolbar's
+Sort button), keeping its `aria-label`.
+
+Reset is `variant="outline"`, not `ghost`, **because** of that icon-only state:
+a bare muted ✕ is the same glyph in the same colour as the per-field clear
+button inside a text filter, so without the label the two read as one control.
+The border disambiguates it and matches the Filters trigger beside it. Its
+colour is the same at every width — a control that recolours at a breakpoint is
+inconsistent, and the icon-only problem was never a colour problem.
+
 ### FilterFieldType (8 Types)
 
 ```typescript
