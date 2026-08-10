@@ -686,7 +686,11 @@ resolved **per request from the host**, never baked.
   calls `print()` when images settle — no popup, no blocker. **Mobile** (Android Chrome, iOS —
   `needsTopLevelPrint`) opens a **top-level tab** instead and prints that, closing it on
   `afterprint`: those browsers route a subframe's `print()` to the top document, so the hidden
-  frame printed the app UI instead of the invoice. That path makes the **synchronous-from-click**
+  frame printed the app UI instead of the invoice. That tab must be navigated to a **blob: URL** —
+  `document.write` into `about:blank` makes Chrome Android fail with "There was a problem printing
+  the page" even when the target is Save-as-PDF — and readiness is **polled** for the blob URL,
+  because a `load` listener would die with the discarded initial about:blank window and its
+  `readyState: "complete"` would otherwise print a blank sheet. That path makes the **synchronous-from-click**
   rule load-bearing — a deferred `printHtml` gets its tab blocked, and callers already toast
   `common.print.popupBlocked` on the `false` return. Only count `!img.complete` images as pending
   (cached images never fire `onload`; that bug used to silently prevent the dialog from opening)
