@@ -325,24 +325,28 @@ export function NotificationMatrix({
     <div className="space-y-4">
       {!hideDomainTabs && availableDomains.length > 1 && (
         <Tabs value={activeDomain} onValueChange={setActiveDomain}>
-          <TabsList>
-            <TabsTrigger value="all">{t("domains.all")}</TabsTrigger>
-            {availableDomains.map((domain) => (
-              <TabsTrigger key={domain} value={domain}>
-                {t(`domains.${domain}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          {/* One nowrap trigger per domain overruns a phone viewport, and nothing clips
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="w-max">
+              <TabsTrigger value="all">{t("domains.all")}</TabsTrigger>
+              {availableDomains.map((domain) => (
+                <TabsTrigger key={domain} value={domain}>
+                  {t(`domains.${domain}`)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
         </Tabs>
       )}
 
-      <div className="overflow-x-auto">
-        <SimpleTable
-          columns={columns}
-          rows={visible}
-          getRowKey={(row) => row.key}
-        />
-      </div>
+      {/* No scroll wrapper here: `Table` already renders its own
+          `w-full overflow-x-auto` container, and nesting a second one just adds a
+          dead outer scroller that never moves. */}
+      <SimpleTable
+        columns={columns}
+        rows={visible}
+        getRowKey={(row) => row.key}
+      />
     </div>
   );
 }
