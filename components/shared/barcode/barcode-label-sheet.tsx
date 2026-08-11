@@ -230,8 +230,8 @@ export default function BarcodeLabelSheet({
   const grid = document.getElementById("bls-grid");
   if (!grid || grid.innerHTML.trim() === "" || selected.size === 0) return;
 
-  // Prints via the shared path (utils/print.ts): hidden iframe on desktop, a
-  // top-level tab on mobile. Called straight from the click so the tab opens.
+  // Prints via the shared path (utils/print.ts): hidden iframe on desktop, the
+  // top-level document behind @media print on mobile.
   const opened = printHtml(`<div id="print-grid">${grid.innerHTML}</div>`, {
    title: "Barcode Labels",
    styles: LABEL_PRINT_STYLES,

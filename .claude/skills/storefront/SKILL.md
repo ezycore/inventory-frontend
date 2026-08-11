@@ -681,24 +681,47 @@ resolved **per request from the host**, never baked.
   through the shared letterhead print engine `utils/print-documents.ts` via the adapter
   `utils/print-storefront-order.ts`; letterhead = org Receipt & Print settings, shipped to the
   shopper via the store payload's `printable` block. Never hand-roll invoice markup.
-  **Mechanics** (`utils/print.ts`): `printHtml` builds one standalone document and delivers it
-  two ways. **Desktop** renders it into a **hidden same-origin iframe** (`#app-print-frame`) and
-  calls `print()` when images settle — no popup, no blocker. **Mobile** (Android Chrome, iOS —
-  `needsTopLevelPrint`) opens a **top-level tab** instead and prints that, closing it on
-  `afterprint`: those browsers route a subframe's `print()` to the top document, so the hidden
-  frame printed the app UI instead of the invoice. That tab must be navigated to a **blob: URL** —
-  `document.write` into `about:blank` makes Chrome Android fail with "There was a problem printing
-  the page" even when the target is Save-as-PDF — and readiness is **polled** for the blob URL,
-  because a `load` listener would die with the discarded initial about:blank window and its
-  `readyState: "complete"` would otherwise print a blank sheet. That path makes the **synchronous-from-click**
-  rule load-bearing — a deferred `printHtml` gets its tab blocked, and callers already toast
-  `common.print.popupBlocked` on the `false` return. Only count `!img.complete` images as pending
-  (cached images never fire `onload`; that bug used to silently prevent the dialog from opening)
-  and keep the grace timeout.
-  All print CSS uses **`@page { margin: 0 }`** so the browser cannot paint its default
-  title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
-  page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
-  Don't reintroduce `@page` margins, and don't collapse the two paths back into one.
+  **Mechanics** (`utils/print.ts`): `printHtml` builds one document and delivers it two ways,
+  split by `needsTopLevelPrint()` (Android / iOS UA). Do not collapse the paths back into one.
+
+  **Desktop** — hidden same-origin iframe (`#app-print-frame`), `print()` once images settle. No
+  popup, no blocker, nothing about the app moves. This path is stable; leave it alone.
+
+  **Mobile** — `printInTopDocument` prints the app's OWN top-level document with everything but
+  the invoice hidden. A phone will not print anything else: an iframe's `print()` is routed to the
+  top document (the original "mobile printed the whole app" bug). *Unverified but suspected:* a
+  document the browser never navigated to (`document.write` into `about:blank`, a `blob:` URL)
+  errored with "There was a problem printing the page" — that attempt also carried the teardown
+  bug below, so the delivery method was never cleanly isolated. Don't treat it as settled either
+  way; the top-document path works and needs no tab.
+
+  Four traps, each one a real failed print:
+  1. **Never tear down on `afterprint`.** Android fires it the moment `print()` hands off to the
+     system print UI, *before* that UI renders — the invoice is deleted mid-flight and the preview
+     snapshots the plain app, which looks exactly like trap #1's iframe bug. Tear down on `focus`
+     / `visibilitychange → visible` instead, with `TEARDOWN_MIN_AGE_MS` as a floor.
+  2. **Strip a NAMED `@page size`** (`dialogPaperWins`) — confirmed on an Android device
+     2026-08-11, A4 and Letter both correct. The phone lays out at its ~412px
+     viewport, never at the paper, and Chrome compensates by scaling to fill the sheet — but only
+     while CSS and the print dialog agree on the paper. `size: A4` + Letter selected ⇒ no scaling,
+     and the invoice prints as a tiny column in the corner. A *physical* size (`80mm auto`) is
+     kept: a receipt roll is the real paper. **Do not** "fix" this by pinning `width: 210mm` on
+     the root — that was tried, it kills the scale-to-fit and shrinks A4 too.
+  3. **`margin: 0` always survives** the strip: it is what suppresses the browser's own
+     title/URL/date header-footer. Whitespace lives in body padding (left/right — repeats every
+     page) and `.doc` padding (top/bottom — per document in bulk `.inv-page` breaks).
+  4. Only count `!img.complete` images as pending (cached images never fire `onload`; that used to
+     stop the dialog opening entirely) and keep the grace timeout.
+
+  Shadow-root plumbing: the invoice mounts into a shadow root on `#app-print-root` and
+  `@media print` hides `body > *:not(#app-print-root)` — verified against the live app, where 29
+  body children (portals, devtools, extension nodes) all disappear. The boundary is what keeps
+  Tailwind preflight and the dark-theme `color` off an invoice that must be black-on-white, and it
+  forces two rewrites of the caller's CSS: **`@page` hoisted** to a document-level `<style>` (page
+  at-rules are ignored in a shadow root) and **`body` retargeted to `:host`** (matches nothing
+  there). Both checked against the real sheets — `body { font-size: 12px; padding: 0 14mm }`
+  computes to 52.91px side padding. Images come from `root.querySelectorAll("img")`;
+  `document.images` cannot see into a shadow root.
 - **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
   `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
   `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
