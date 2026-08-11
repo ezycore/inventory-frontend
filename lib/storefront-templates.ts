@@ -28,7 +28,16 @@ const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
 const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
-const FOOTER = { columns: "columns", simple: "simple", rich: "rich" } as const;
+// `columns` / `simple` / `rich` are the three that have always existed; their
+// LAYOUTS were rebuilt on 2026-08-11 but the ids are unchanged on purpose, so
+// every existing store picks up the repair without its owner choosing again.
+const FOOTER = {
+  columns: "columns",
+  simple: "simple",
+  rich: "rich",
+  contact: "contact",
+  newsletter: "newsletter",
+} as const;
 const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
 const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
 // Card CTA layout. Separate from PRODUCTCARD on purpose: density and actions are

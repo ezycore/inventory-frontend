@@ -292,6 +292,13 @@ export const queryKeys = {
     ...resourceKeys("ecommerce-customers"),
     orders: (id: string, page: number, limit: number) =>
       ["ecommerce-customers", "detail", id, "orders", page, limit] as const,
+    /**
+     * Footer sign-ups. Under this resource's root on purpose — they are read on
+     * the same screen and written only by shoppers, so nothing here ever needs
+     * its own invalidation and one `all()` flush still covers the whole page.
+     */
+    subscribers: (params?: Params) =>
+      ["ecommerce-customers", "subscribers", params ?? {}] as const,
   },
 
   storefrontDashboard: {

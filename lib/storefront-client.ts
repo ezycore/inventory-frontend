@@ -133,6 +133,14 @@ export interface StorefrontStore {
     logo?: StoreLogoStyle;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */
     homeCollections?: StoreHomeCollections;
+    /**
+     * Footer copy the merchant owns. Every one of these has a localized
+     * fallback in the storefront dictionary, so unset means "use the built-in
+     * wording" — never "render an empty line".
+     */
+    footerNote?: string;
+    footerContactHeading?: string;
+    footerNewsletter?: StoreFooterNewsletter;
   };
   /** Org letterhead (Settings → Receipt & Print) — order invoices print with the
    * same letterhead as every other document. */
@@ -206,7 +214,13 @@ export interface StoreTemplates {
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
   checkout: "single" | "multi";
-  footer: "columns" | "simple" | "rich";
+  /**
+   * `contact` leads with the merchant's phone/WhatsApp and `newsletter` with a
+   * sign-up form, so both **degrade** rather than render an empty block: with no
+   * published number, or no sign-up copy at all, they fall back to the plain
+   * anchored body that `columns` renders. See `StoreFooter`.
+   */
+  footer: "columns" | "simple" | "rich" | "contact" | "newsletter";
   header: "classic" | "minimal" | "centered";
   productCard: "standard" | "compact" | "bold";
   /**
@@ -247,6 +261,17 @@ export interface StoreFooterContentPages {
   show?: boolean;
   /** Heading override; blank ⇒ the built-in localized "Information" label. */
   title?: string;
+}
+
+/**
+ * Sign-up copy for the Stay-in-touch footer (`theme.footerNewsletter`).
+ * Each field falls back to a localized default, so unset means "use the
+ * built-in wording", never "render nothing".
+ */
+export interface StoreFooterNewsletter {
+  heading?: string;
+  blurb?: string;
+  buttonLabel?: string;
 }
 
 /** The single-line bar above the storefront header (admin Navigation tab). */
@@ -472,6 +497,13 @@ export interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  /**
+   * Product thumbnail, resolved live from the catalogue by the backend rather
+   * than snapshotted onto the line — so it follows the merchant replacing the
+   * photo instead of pointing at a deleted one. Present on the order **detail**
+   * response only, and absent for a delisted or image-less product.
+   */
+  image?: string;
 }
 
 export interface ShippingAddress {
@@ -970,7 +1002,33 @@ export const storefrontApi = {
       method: "POST",
       body: { anonymousId },
     }),
+  /**
+   * Record a GUEST's checkout details on their mirrored cart, one field at a
+   * time as they leave each input. Without it a guest who fills the form and
+   * then leaves is an abandoned cart the merchant cannot name — the number was
+   * typed, just never sent anywhere.
+   *
+   * Fire-and-forget like the rest of the mirror: never awaited on a money path.
+   */
+  captureCartContact: (
+    slug: string,
+    body: { anonymousId: string; name?: string; phone?: string; email?: string },
+  ) => sfFetch<{ ok: boolean }>(slug, "/cart/contact", { method: "POST", body }),
   /** Exchange a recovery-email token for the cart behind it. */
   restoreCart: (slug: string, token: string) =>
     sfFetch<RestoredCart>(slug, `/cart/restore/${token}`),
+
+  /**
+   * Footer sign-up. **Not** part of the cart mirror above and not
+   * fire-and-forget: the shopper pressed a button and is owed an answer, so
+   * this one's rejection is caught by the form and shown.
+   *
+   * The response says `ok` whether the address was new or already on the list —
+   * the server will not tell an anonymous caller which, so neither can the UI.
+   */
+  subscribe: (slug: string, email: string) =>
+    sfFetch<{ ok: boolean }>(slug, "/subscribe", {
+      method: "POST",
+      body: { email },
+    }),
 };

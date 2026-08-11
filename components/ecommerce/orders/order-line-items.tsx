@@ -43,9 +43,21 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
           key={idx}
           className="flex items-center gap-3 border-b px-4 py-3 sm:px-5"
         >
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
-            {it.productName.slice(0, 2).toUpperCase()}
-          </div>
+          {/* `image` is resolved live from the catalogue by the backend (order
+              lines don't snapshot it), so a deleted product or one with no
+              photo falls back to the initials tile this always was. */}
+          {it.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={it.image}
+              alt=""
+              className="h-10 w-10 flex-none rounded-md border object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
+              {it.productName.slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{it.productName}</div>
           </div>
