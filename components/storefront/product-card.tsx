@@ -96,8 +96,16 @@ export function ProductCard({
   /* Wraps between the parts, never inside one: a 2-column mobile grid leaves
      ~130px here, and "From" + price + struck compare-at is wider than that —
      unwrapped, each money string broke mid-value and the card's overflow:hidden
-     clipped the last one. The dense layout drops the struck compare-at, which
-     does not fit beside a 40px button. */
+     clipped the last one. `iconOnly` drops the struck compare-at, which does
+     not fit beside a 40px button.
+
+     That test is on the CTA layout, NOT the density: `iconOnly` is the only one
+     that shares this row with its button (see the `price` prop below), so it is
+     the only one short of width. Keying it on `compactLayout` instead stripped
+     the "was" from every dense row whose CTA sits on its own line — new
+     arrivals, search, the PDP related row — while the "-N%" badge over the
+     image kept rendering unconditionally. A discount badge with no anchor price
+     beside it is a saving the shopper cannot check. */
   const priceRow = (
     <div
       style={{
@@ -122,7 +130,7 @@ export function ProductCard({
       >
         {money(price, currency)}
       </span>
-      {pct > 0 && !compactLayout ? (
+      {pct > 0 && actions !== "iconOnly" ? (
         <span style={{ fontSize: 12, color: "var(--faint)", textDecoration: "line-through", whiteSpace: "nowrap" }}>
           {money(compareAt, currency)}
         </span>

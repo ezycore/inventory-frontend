@@ -3,16 +3,15 @@
  * Print helpers — build one standalone HTML document per print surface (labels,
  * list tables, POS/letterhead documents) and open the browser print dialog on it.
  *
- * Two delivery paths, same document:
+ * Two delivery paths, same markup:
  * - **Desktop** renders it into a hidden same-origin iframe and prints that. No
  *   popup blocker, no stray tab, nothing about the app moves.
- * - **Mobile** (Android Chrome, iOS) opens a real top-level tab instead, because
- *   those browsers route a subframe's `print()` to the top document — the hidden
- *   frame prints nothing and the user gets the app UI on paper. See
- *   `needsTopLevelPrint`.
- *
- * Because of that second path, `printHtml` MUST be called synchronously from the
- * click handler, or the tab is blocked.
+ * - **Mobile** (Android Chrome, iOS) mounts it into the app's own top-level
+ *   document behind `@media print`, because those browsers will print nothing
+ *   else: a subframe's `print()` is routed to the top document, and a document
+ *   they never navigated to (`document.write` into `about:blank`, or a `blob:`
+ *   URL) errors out with "There was a problem printing the page". See
+ *   `needsTopLevelPrint` and `printInTopDocument`.
  *
  * Images (logos/barcodes) are awaited before printing — counting an image as
  * pending only when it isn't already `complete`. (The popup era attached
@@ -31,10 +30,12 @@ export const escapeHtml = (value: unknown): string =>
 const FRAME_ID = "app-print-frame";
 
 /** Resolves when every <img> has settled — or after a grace timeout, so one
- * dead image URL can never hold the print dialog hostage. */
-const whenImagesReady = (doc: Document): Promise<void> =>
+ * dead image URL can never hold the print dialog hostage. Takes the images
+ * rather than a Document: on the mobile path they live in a shadow root, which
+ * `document.images` does not see. */
+const whenImagesReady = (images: ArrayLike<HTMLImageElement>): Promise<void> =>
   new Promise((resolve) => {
-    const pending = Array.from(doc.images).filter((img) => !img.complete);
+    const pending = Array.from(images).filter((img) => !img.complete);
     if (pending.length === 0) {
       resolve();
       return;
@@ -154,80 +155,168 @@ const printWhenReady = (
   doc: Document,
   locale: "en" | "bn",
 ): void => {
-  void Promise.all([whenImagesReady(doc), whenFontsReady(doc, locale)]).then(
-    () => {
-      win.focus();
-      win.print();
-    },
-  );
+  void Promise.all([
+    whenImagesReady(doc.images),
+    whenFontsReady(doc, locale),
+  ]).then(() => {
+    win.focus();
+    win.print();
+  });
 };
 
-/** Give up waiting for the tab's document rather than polling forever. */
-const TAB_READY_TIMEOUT_MS = 10_000;
-const TAB_READY_POLL_MS = 60;
+const PRINT_ROOT_ID = "app-print-root";
+const PRINT_STYLE_ID = "app-print-style";
+const PRINT_FONT_ID = "app-print-font";
+
+/** Floor on how long the injected invoice lives, so a focus event in the same
+ *  tick as `print()` cannot tear it down before the print UI reads the page. */
+const TEARDOWN_MIN_AGE_MS = 4000;
+
+/** `@page` is a page-level at-rule: valid only in a document stylesheet. */
+const PAGE_AT_RULE = /@page[^{]*\{[^}]*\}/g;
+/** `body { … }` selectors, which match nothing inside a shadow root. */
+const BODY_SELECTOR = /\bbody\b(?=\s*[,{])/g;
+
+/** A named paper in `@page size` — `A4`, `Letter`, … as opposed to `80mm auto`. */
+const NAMED_PAGE_SIZE = /\bsize\s*:\s*(a[0-9]|letter|legal|ledger|tabloid)\b[^;}]*;?/gi;
 
 /**
- * Mobile path: a real top-level tab, which is the only frame those browsers
- * will print. Opened synchronously so it still counts as the user's click.
- * `onafterprint` closes it again; if the browser never fires that event the tab
- * simply stays, which is a visible, recoverable outcome — unlike printing the
- * wrong document.
+ * Drop a NAMED `@page size` so the paper chosen in the print dialog wins.
  *
- * The document is served from a **blob: URL**, not `document.write` into
- * `about:blank`: Chrome for Android refuses to print a written-into blank
- * document and answers "There was a problem printing the page" — with no
- * printer involved, since even Save-as-PDF goes through the same pipeline. A
- * blob URL is a real navigation and prints normally. It also inherits this
- * origin, so the document stays readable for the image/font wait below.
+ * A phone lays the printed page out at the app's viewport (~412px), never at the
+ * paper, and Chrome rescues that by scaling the result up to fill the sheet —
+ * but only while the CSS and the dialog agree on the paper. Declare `size: A4`
+ * and pick Letter, and the scale-to-fit is skipped: the invoice prints as a
+ * narrow column in the corner at unreadable size. Since the dialog's paper is
+ * the one actually in the tray, CSS has no business overriding it here.
  *
- * Readiness is polled rather than hung off a `load` listener: the listener would
- * have to be attached to the initial about:blank window, which is discarded when
- * the blob document replaces it.
+ * A *physical* size (`80mm auto` for thermal) is kept: that is a receipt roll,
+ * not a preference, and there is no sensible fallback if it is dropped.
+ * `margin: 0` is always kept — it is what suppresses the browser's own
+ * title/URL/date header and footer.
  */
-const printInNewTab = (html: string, locale: "en" | "bn"): boolean => {
-  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-  const win = window.open(url, "_blank");
-  if (!win) {
-    URL.revokeObjectURL(url);
-    return false;
+const dialogPaperWins = (pageRules: string): string =>
+  pageRules.replace(NAMED_PAGE_SIZE, "");
+
+/**
+ * Mobile path: print the app's OWN top-level document, with everything except
+ * the injected invoice hidden by `@media print`.
+ *
+ * Neither a hidden iframe nor a synthetic tab works on Chrome for Android. The
+ * subframe's `print()` is routed to the top document (that is the original
+ * "it printed the whole app" bug), and a document the browser did not navigate
+ * to — `document.write` into `about:blank`, or a `blob:` URL — fails outright
+ * with "There was a problem printing the page", printer or not. The one thing
+ * proven to print on that device is an ordinary top-level page, so the invoice
+ * becomes part of one.
+ *
+ * The markup goes in a **shadow root** so the app's stylesheet cannot reach it
+ * (Tailwind preflight and the dark-theme `color` would otherwise repaint an
+ * invoice that is supposed to be black on white), which forces two rewrites of
+ * the caller's CSS, both handled here:
+ *   - `@page` rules are hoisted out to a document-level <style>.
+ *   - `body` selectors are retargeted to `:host`, the shadow root's own box.
+ */
+const printInTopDocument = (
+  bodyHtml: string,
+  title: string,
+  styles: string,
+  locale: "en" | "bn",
+): boolean => {
+  document.getElementById(PRINT_ROOT_ID)?.remove();
+  document.getElementById(PRINT_STYLE_ID)?.remove();
+
+  const pageRules = styles.match(PAGE_AT_RULE)?.join("\n") ?? "";
+  const scopedStyles = styles
+    .replace(PAGE_AT_RULE, "")
+    .replace(BODY_SELECTOR, ":host");
+  const fontFallback =
+    locale === "bn" ? `:host { font-family: ${BENGALI_FONT_FAMILY}; }` : "";
+
+  if (locale === "bn" && !document.getElementById(PRINT_FONT_ID)) {
+    const link = document.createElement("link");
+    link.id = PRINT_FONT_ID;
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap";
+    document.head.appendChild(link);
   }
 
-  const release = () => URL.revokeObjectURL(url);
-  const deadline = Date.now() + TAB_READY_TIMEOUT_MS;
-
-  const whenLoaded = () => {
-    let doc: Document | null = null;
-    try {
-      // Until the blob navigation commits, this is still the opener's initial
-      // about:blank — which reports `readyState: "complete"` and would print a
-      // blank sheet. The URL check is what distinguishes the two.
-      doc = win.location.href === url ? win.document : null;
-    } catch {
-      // Cross-origin only while the blob navigation is still in flight.
-      doc = null;
-    }
-
-    if (win.closed) {
-      release();
-      return;
-    }
-    if (!doc || doc.readyState !== "complete") {
-      if (Date.now() > deadline) {
-        release();
-        return;
+  const sheet = document.createElement("style");
+  sheet.id = PRINT_STYLE_ID;
+  sheet.textContent = `
+    ${dialogPaperWins(pageRules)}
+    #${PRINT_ROOT_ID} { display: none; }
+    @media print {
+      /* The app is hidden rather than unmounted: unmounting would lose scroll
+         position, focus and any open dialog for the rest of the session. */
+      body > *:not(#${PRINT_ROOT_ID}) { display: none !important; }
+      #${PRINT_ROOT_ID} { display: block !important; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
       }
-      setTimeout(whenLoaded, TAB_READY_POLL_MS);
+    }`;
+  document.head.appendChild(sheet);
+
+  const host = document.createElement("div");
+  host.id = PRINT_ROOT_ID;
+  document.body.appendChild(host);
+
+  const root = host.attachShadow({ mode: "open" });
+  root.innerHTML = `<style>
+      /* all:initial severs every inherited value from the app — colour, font,
+         line-height — so the sheet below starts from the same blank slate a
+         standalone document would have. */
+      :host { all: initial; display: block; color: #111827; background: #fff; }
+      * { box-sizing: border-box; }
+      ${fontFallback}
+      ${scopedStyles}
+    </style>${bodyHtml}`;
+
+  // The PDF filename comes from the document title on this path, since the
+  // invoice has no document of its own to name.
+  const previousTitle = document.title;
+  document.title = title;
+
+  /**
+   * NOT `afterprint`. On Chrome for Android `print()` hands the page to the
+   * system print UI and returns immediately, firing `afterprint` before that UI
+   * has rendered anything — tearing the invoice down mid-flight, so the preview
+   * snapshots the plain app. That looks identical to the original "it printed
+   * the whole app" bug and is the reason this path appeared not to work.
+   *
+   * Instead, tear down once this tab is genuinely interactive again (the print
+   * UI takes focus / hides the page, and returning restores it). A minimum
+   * lifetime guards against a stray focus event arriving in the same tick.
+   * Overstaying costs nothing: the root is `display: none` on screen, and the
+   * next print removes it by id.
+   */
+  const bornAt = Date.now();
+  const onVisible = () => {
+    if (document.visibilityState === "visible") finish();
+  };
+  const finish = () => {
+    const age = Date.now() - bornAt;
+    if (age < TEARDOWN_MIN_AGE_MS) {
+      setTimeout(finish, TEARDOWN_MIN_AGE_MS - age);
       return;
     }
-
-    win.onafterprint = () => {
-      release();
-      win.close();
-    };
-    printWhenReady(win, doc, locale);
+    window.removeEventListener("focus", finish);
+    document.removeEventListener("visibilitychange", onVisible);
+    document.title = previousTitle;
+    host.remove();
+    sheet.remove();
   };
+  window.addEventListener("focus", finish);
+  document.addEventListener("visibilitychange", onVisible);
 
-  whenLoaded();
+  void Promise.all([
+    whenImagesReady(root.querySelectorAll("img")),
+    whenFontsReady(document, locale),
+  ]).then(() => window.print());
+
   return true;
 };
 
@@ -262,23 +351,21 @@ const printInHiddenFrame = (html: string, locale: "en" | "bn"): boolean => {
 };
 
 /**
- * Render `bodyHtml` as a standalone document and open the print dialog.
- * Returns `false` when printing could not be started — on mobile that means the
- * new tab was blocked, which callers surface as the popup-blocked hint.
+ * Render `bodyHtml` and open the print dialog. Returns `false` only when the
+ * dialog could not be started at all; callers surface that as a toast.
  *
- * MUST be called synchronously from the user's click: the mobile path opens a
- * tab, and a deferred `window.open` is blocked.
+ * Still safest called synchronously from the click — nothing here needs a popup
+ * any more, but the print dialog is a user-gesture affordance in every browser.
  */
 export const printHtml = (
   bodyHtml: string,
   options: PrintHtmlOptions = {},
 ): boolean => {
   const { title = "Print", styles = "", locale = "en" } = options;
-  const html = buildDocument(bodyHtml, title, styles, locale);
 
   return needsTopLevelPrint()
-    ? printInNewTab(html, locale)
-    : printInHiddenFrame(html, locale);
+    ? printInTopDocument(bodyHtml, title, styles, locale)
+    : printInHiddenFrame(buildDocument(bodyHtml, title, styles, locale), locale);
 };
 
 export interface PrintTableColumn<TRow> {
