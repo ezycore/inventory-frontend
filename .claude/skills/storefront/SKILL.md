@@ -482,6 +482,12 @@ resolved **per request from the host**, never baked.
   excludes any path containing a dot, so these routes resolve the host themselves via
   **`lib/storefront-host-map.ts`** — the shared rule set the proxy now also uses. Change host→store
   rules there, in one place, or robots/sitemap will describe a different store than the pages do.
+  ⚠ **An IP host is not a domain.** `isCustomDomainCandidate` gates on `host.includes(".")`, which
+  an IPv4 literal satisfies — so guard with `isIpHost` (`lib/organization-utils.ts`, shared with
+  `hostImpliesWorkspace`). Both used to hardcode `192.168.*`, which meant reaching the dev server
+  from a phone on any other private range (`10.x`, most hotspots and office wifi) had the admin
+  app answer **"Workspace not found"**: the gate read the IP as a merchant custom domain and asked
+  the backend to resolve it.
   Sitemap data comes from BE `GET /:slug/sitemap` (`lib/storefront-server.ts` `getStoreSitemap`,
   cached 1h) which returns **identifiers**; the URLs are built here because only this side knows
   whether the base is `/shop` or `""`. A non-store host gets a bare `Disallow: /` and an empty sitemap.
