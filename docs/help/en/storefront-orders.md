@@ -55,6 +55,15 @@ both.
 Use it to see who buys repeatedly and what they buy. Repeat online buyers are the cheapest sales you
 will ever make.
 
+**Subscribers** is the second tab: people who gave you an email address through the sign-up form in
+your shop footer. Most of them have never ordered — that is the point of the list. The **Account**
+column tells you which ones also have a store account, so you can tell a customer from a lead.
+
+The list is read-only, and deliberately so: each row records that someone asked to hear from you and
+when. You cannot add an address by hand, because an address you typed in yourself is not a record of
+anyone agreeing to anything. To collect any, set your footer layout to **Stay in touch** under
+Online Store → Customize → Footer.
+
 ## Next
 
 [Run discounts and coupons](./storefront-promotions.md).

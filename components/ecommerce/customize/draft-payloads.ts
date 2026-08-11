@@ -79,6 +79,20 @@ const trimContentPages = (c: FooterContentPagesDraft) => ({
   title: c.title.trim() || undefined,
 });
 
+/**
+ * Sign-up copy, blanks dropped. Sends `undefined` for the whole block when the
+ * merchant filled none of it, so the stored document stays absent rather than
+ * holding three empty strings that read as "set to nothing".
+ */
+const trimNewsletter = (n: CustomizeDraft["footerNewsletter"]) => {
+  const block = {
+    heading: n.heading.trim() || undefined,
+    blurb: n.blurb.trim() || undefined,
+    buttonLabel: n.buttonLabel.trim() || undefined,
+  };
+  return Object.values(block).some(Boolean) ? block : undefined;
+};
+
 const trimBadges = (badges: CustomizeDraft["badges"]) =>
   // All three slots are kept (empty = the storefront's default copy) so their
   // positions survive a reload.
@@ -224,6 +238,11 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
+      // `undefined`, never `""` — an empty field means "use the storefront's
+      // localized wording", and an empty string would print a blank line.
+      footerNote: draft.footerNote.trim() || undefined,
+      footerContactHeading: draft.footerContactHeading.trim() || undefined,
+      footerNewsletter: trimNewsletter(draft.footerNewsletter),
     },
     trustBadges: trimBadges(draft.badges),
     heroBanner: cleanHeroBanner(draft.heroBanner),
@@ -281,6 +300,14 @@ export function toPreviewPayload(
     trustBadges: trimBadges(draft.badges),
     heroSlides: trimSlides(draft.heroSlides),
     heroBanner: cleanHeroBanner(draft.heroBanner),
+    // Footer copy streams RAW (not `|| undefined`): an empty string is a real
+    // draft here — "cleared, so show the localized default" — and collapsing it
+    // to undefined would make the preview fall back to the SAVED text instead,
+    // so clearing a field would look like it did nothing.
+    footerText: draft.footerText,
+    footerNote: draft.footerNote,
+    footerContactHeading: draft.footerContactHeading,
+    footerNewsletter: draft.footerNewsletter,
     nav: toNav(draft),
     // `null` (not undefined) is what tells the preview store the launcher is
     // switched off, as opposed to "nothing drafted yet" — see the store's note.

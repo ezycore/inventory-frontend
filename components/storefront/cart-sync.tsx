@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { storefrontApi } from "@/lib/storefront-client";
 import { toast } from "@/lib/storefront-toast";
-import { cartAnonymousId } from "@/services/storefront/cart-identity";
+import { cartAnonymousId, isSfPreview } from "@/services/storefront/cart-identity";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore, type CartItem } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -16,12 +16,6 @@ const DEBOUNCE_MS = 2000;
 
 /** Claims already made this page load — keyed by store + shopper + handle. */
 const claimed = new Set<string>();
-
-/** The Customize editor's live preview (`?preview=1`), same test the preview
- *  bridge uses. A merchant theming their shop is not a shopper. */
-function isPreview(): boolean {
-  return new URLSearchParams(window.location.search).get("preview") === "1";
-}
 
 /**
  * Mirrors the browser cart to the server so the merchant can see abandoned carts
@@ -61,7 +55,7 @@ export function CartSync({ slug }: { slug: string }) {
     // The Customize editor renders the REAL storefront in an iframe at
     // `?preview=1`. Without this, a merchant theming their shop and tapping
     // "Add to cart" would pollute their own funnel with carts they never had.
-    if (isPreview()) return;
+    if (isSfPreview()) return;
 
     const anonymousId = cartAnonymousId(slug);
     if (!anonymousId) return;
@@ -166,7 +160,7 @@ export function CartSync({ slug }: { slug: string }) {
   // its own items, the next debounced sync would push them over the merge and
   // undo it — so adopting is what makes cross-device carts actually work.
   useEffect(() => {
-    if (typeof window === "undefined" || !slug || isPreview()) return;
+    if (typeof window === "undefined" || !slug || isSfPreview()) return;
 
     const claim = (token: string | null, shopperId: string | undefined) => {
       if (!token || !shopperId) return;
@@ -218,7 +212,7 @@ export function CartSync({ slug }: { slug: string }) {
   // view, so the checkout page — a money path — is not touched by an analytics
   // feature. The backend stamp is first-write-wins, so repeat calls are free.
   useEffect(() => {
-    if (typeof window === "undefined" || !slug || isPreview()) return;
+    if (typeof window === "undefined" || !slug || isSfPreview()) return;
     if (!pathname?.includes("/checkout")) return;
     if (useCartStore.getState().items.length === 0) return;
 

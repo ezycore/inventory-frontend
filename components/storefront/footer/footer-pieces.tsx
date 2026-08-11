@@ -31,9 +31,19 @@ export interface FooterColumn {
   links: FooterLinkItem[];
 }
 
-/** Shared props built once in `StoreFooter` and passed to each variant. */
+/**
+ * Shared props built once in `StoreFooter` and passed to each variant.
+ *
+ * Everything a variant renders arrives here, and **every string in it is either
+ * the merchant's or a localized default** — there is no copy baked into a
+ * variant body. That is the rule the 2026-08-11 rebuild exists to hold: a footer
+ * that prints something the owner cannot change is a footer they will ask us to
+ * change for them.
+ */
 export interface FooterProps {
   base: string;
+  /** Needed by the sign-up form — it posts to this store's public endpoint. */
+  slug: string;
   store?: StorefrontStore;
   t: FooterT;
   name: string;
@@ -42,6 +52,19 @@ export interface FooterProps {
   footerGroups: StoreFooterGroup[];
   footerContentPages?: StoreFooterContentPages;
   infoPages: ContentPageLink[];
+  /**
+   * The brand paragraph, **already resolved** — `theme.footerText` if the
+   * merchant wrote one, the localized default otherwise. Resolved in
+   * `StoreFooter` rather than here because the live Customize draft has to win
+   * over the saved value, and only that component sees the draft.
+   */
+  blurb: string;
+  /** `theme.footerNote` — the bottom bar's right side. Blank ⇒ currency only. */
+  note?: string;
+  /** `theme.footerContactHeading` — Contact-first heading. Blank ⇒ localized. */
+  contactHeading?: string;
+  /** `theme.footerNewsletter` — sign-up copy. Blank fields ⇒ localized. */
+  newsletter?: { heading?: string; blurb?: string; buttonLabel?: string };
 }
 
 export const uppercaseLabel: CSSProperties = {
@@ -123,7 +146,12 @@ function FooterAnchor({ item }: { item: FooterLinkItem }) {
   );
 }
 
-function FooterCol({ column }: { column: FooterColumn }) {
+/**
+ * One link column. Exported because Contact-first lays its columns out in its
+ * own three-track grid rather than through `FooterColumns` — but must still get
+ * the same accordion behaviour below 680px.
+ */
+export function FooterCol({ column }: { column: FooterColumn }) {
   // Renders open (matches SSR + desktop). Below 680px the heading is a real
   // accordion toggle; on desktop CSS makes it inert and always shows the links.
   const [open, setOpen] = useState(true);
@@ -152,27 +180,36 @@ function FooterCol({ column }: { column: FooterColumn }) {
 }
 
 /**
- * The columned footer body: brand block on the left, one column per group +
- * the content-pages column, and an aside (payments / contact) as the last
- * column. Collapses to stacked accordions below 680px.
+ * The columned footer body: an identity block on the left and the link columns
+ * **anchored to the right edge**, each sized to its own content.
+ *
+ * That sizing is the whole repair. The columns used to be
+ * `repeat(auto-fit, minmax(132px, 1fr))` inside a `3fr` track, so every column
+ * stretched to fill whatever space was left while its links stayed ~70px of
+ * left-aligned text. It was written for a shop with three or four link groups;
+ * most shops have one, and with none configured the two remaining stacks were
+ * ~336px wide each and half the footer was empty. Content-sized tracks look
+ * deliberate at one group **and** at four, which is what a layout has to do when
+ * it cannot know how many it will get.
+ *
+ * `lead` is the identity side. Each variant fills it differently — brand +
+ * contact, brand + sign-up, brand alone — and that is the only structural
+ * difference between three of the five layouts.
  */
 export function FooterColumns({
-  brand,
+  lead,
   columns,
-  aside,
 }: {
-  brand: ReactNode;
+  lead: ReactNode;
   columns: FooterColumn[];
-  aside?: ReactNode;
 }) {
   return (
     <div className="sf-footer-grid">
-      <div>{brand}</div>
+      <div className="sf-footer-lead">{lead}</div>
       <div className="sf-footer-cols">
         {columns.map((c) => (
           <FooterCol key={c.key} column={c} />
         ))}
-        {aside ? <div className="sf-footer-aside">{aside}</div> : null}
       </div>
     </div>
   );
@@ -192,46 +229,47 @@ export function FooterBrand({
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
         <Brand name={name} logo={logo} markSize={31} nameSize={16} />
       </div>
-      <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 320 }}>
+      <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 340 }}>
         {blurb}
       </p>
     </div>
   );
 }
 
-/** The "We accept" payment badges + call-us line (footer aside column). */
-export function FooterPayments({
-  store,
-  t,
-  phone,
-}: {
-  store?: StorefrontStore;
-  t: FooterT;
-  phone: string;
-}) {
+/**
+ * The merchant's number as one quiet line, and a real `tel:` link — a shopper on
+ * a phone reading a footer is one tap from calling, and printing the digits as
+ * plain text throws that away.
+ */
+export function FooterCallLine({ phone, t }: { phone: string; t: FooterT }) {
+  if (!phone.trim()) return null;
   return (
-    <div>
-      <div style={{ ...uppercaseLabel, marginBottom: 11 }}>{t.weAccept}</div>
-      <PaymentBadges store={store} t={t} />
-      {phone ? (
-        <div
-          style={{
-            marginTop: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12.5,
-            color: "var(--muted)",
-          }}
-        >
-          <Icon name="phone" size={15} /> {t.callUs} {phone}
-        </div>
-      ) : null}
-    </div>
+    <a
+      href={`tel:${phone.replace(/\s+/g, "")}`}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        fontSize: 12.5,
+        color: "var(--muted)",
+        textDecoration: "none",
+      }}
+    >
+      <Icon name="phone" size={15} /> {t.callUs} {phone}
+    </a>
   );
 }
 
-export function PaymentBadges({ store, t }: { store?: StorefrontStore; t: FooterT }) {
+export function PaymentBadges({
+  store,
+  t,
+  compact,
+}: {
+  store?: StorefrontStore;
+  t: FooterT;
+  /** Bottom-bar sizing — the badges sit beside 12px text there, not on their own. */
+  compact?: boolean;
+}) {
   return (
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
       {(store?.allowedPaymentMethods ?? ["cod", "bank"]).map((m) => (
@@ -241,9 +279,9 @@ export function PaymentBadges({ store, t }: { store?: StorefrontStore; t: Footer
             background: "var(--surface)",
             border: "1px solid var(--border)",
             color: "var(--text)",
-            fontSize: 11.5,
+            fontSize: compact ? 11 : 11.5,
             fontWeight: 600,
-            padding: "6px 10px",
+            padding: compact ? "4px 9px" : "6px 10px",
             borderRadius: 7,
           }}
         >
@@ -270,32 +308,56 @@ export function FooterShell({
   );
 }
 
+/**
+ * The closing line: copyright, the accepted payment methods, and the merchant's
+ * own note.
+ *
+ * **Payments live here, not in a link column.** They are a reassurance, not
+ * navigation — and putting them in the columns region is what forced the extra
+ * track that left the gap `FooterColumns` describes.
+ *
+ * The right-hand side is `theme.footerNote`. It used to be the hardcoded string
+ * `"Bangladesh · <currency>"`, which is a claim about the merchant's business
+ * that the platform has no standing to make; unset, it now prints the store's
+ * currency and nothing more.
+ */
 export function BottomBar({
   name,
   currency,
+  note,
+  store,
   t,
+  center,
 }: {
   name: string;
   currency?: string;
+  note?: string;
+  store?: StorefrontStore;
   t: FooterT;
+  /** Centered layouts stack this instead of spreading it. */
+  center?: boolean;
 }) {
   return (
     <div
       style={{
         borderTop: "1px solid var(--border)",
         paddingTop: 16,
+        width: "100%",
         fontSize: 12,
         color: "var(--faint)",
         display: "flex",
-        justifyContent: "space-between",
+        justifyContent: center ? "center" : "space-between",
+        alignItems: "center",
         flexWrap: "wrap",
-        gap: 8,
+        textAlign: center ? "center" : undefined,
+        gap: center ? 10 : "8px 18px",
       }}
     >
       <span>
         © {new Date().getFullYear()} {name} · {t.poweredBy} EzyCore
       </span>
-      <span>Bangladesh · {currency ?? "BDT"}</span>
+      <PaymentBadges store={store} t={t} compact />
+      <span>{note?.trim() || currency || ""}</span>
     </div>
   );
 }

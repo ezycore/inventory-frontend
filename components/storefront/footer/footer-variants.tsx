@@ -8,52 +8,87 @@ import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { SocialLinks } from "@/components/storefront/social-links";
 import { Brand } from "@/components/storefront/logo-mark";
 import {
+  FooterContactCard,
+  useHasContactSurface,
+} from "@/components/storefront/footer/footer-contact-card";
+import { FooterNewsletter } from "@/components/storefront/footer/footer-newsletter";
+import {
   BottomBar,
   FooterBrand,
+  FooterCallLine,
+  FooterCol,
   FooterColumns,
-  FooterPayments,
   FooterShell,
-  PaymentBadges,
   footerColumns,
   footerLink,
   type FooterProps,
 } from "@/components/storefront/footer/footer-pieces";
 
-/** Brand + one column per group + content-pages column + payments aside. */
-function ColumnsBody(props: FooterProps) {
+/**
+ * The five footer layouts, all fed from `FooterProps` and nothing else.
+ *
+ * Three of them (`columns`, `rich`, `contact`) share one body — brand-ish block
+ * on the left, content-sized link columns anchored right — and differ only in
+ * what fills the left side and what sits above it. That is deliberate: the
+ * repair the 2026-08-11 rebuild is for lives in `FooterColumns`, and a variant
+ * that re-implemented the grid would quietly opt out of it.
+ */
+
+/** The identity side of the columned body: brand, blurb, phone, socials. */
+function BrandLead(props: FooterProps) {
   return (
-    <FooterColumns
-      brand={
-        <FooterBrand
-          name={props.name}
-          logo={props.logo}
-          blurb={props.store?.theme?.footerText ?? props.t.storeInfo}
-        />
-      }
-      columns={footerColumns(props)}
-      aside={<FooterPayments store={props.store} t={props.t} phone={props.phone} />}
+    <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
+      <FooterBrand
+        name={props.name}
+        logo={props.logo}
+        blurb={props.blurb}
+      />
+      <FooterCallLine phone={props.phone} t={props.t} />
+      <SocialLinks social={props.store?.social} size={16} />
+    </div>
+  );
+}
+
+/** Brand + link columns + the closing bar. The shared skeleton of three layouts. */
+function ColumnsBody(props: FooterProps) {
+  return <FooterColumns lead={<BrandLead {...props} />} columns={footerColumns(props)} />;
+}
+
+function Bottom(props: FooterProps, center?: boolean) {
+  return (
+    <BottomBar
+      name={props.name}
+      currency={props.store?.currency}
+      note={props.note}
+      store={props.store}
+      t={props.t}
+      center={center}
     />
   );
 }
 
+/**
+ * **Anchored columns** — the default, and the repair of the layout that shipped
+ * before. See `FooterColumns` for what the grid change fixes.
+ */
 export function ColumnsFooter(props: FooterProps) {
   return (
     <FooterShell>
       <ColumnsBody {...props} />
-      <SocialLinks
-        social={props.store?.social}
-        label={props.t.followUs}
-        style={{ paddingBottom: 20 }}
-      />
-      <BottomBar name={props.name} currency={props.store?.currency} t={props.t} />
+      {Bottom(props)}
     </FooterShell>
   );
 }
 
+/**
+ * **Trust bar** — the anchored body under a strip of the merchant's own
+ * promises. The badges are `store.trustBadges` (Customize → Footer), each
+ * falling back per-slot to a localized default so a merchant who filled in only
+ * the first still gets three sensible ones.
+ */
 export function RichFooter(props: FooterProps) {
   const { t } = props;
-  // Owner-editable badges (live draft wins) with PER-SLOT fallback: each of the
-  // three slots keeps its built-in localized default until the owner sets text.
+  // Live draft wins so the Customize editor repaints as the merchant types.
   const previewBadges = useSfPreview((s) => s.badges);
   const saved = previewBadges ?? props.store?.trustBadges ?? [];
   const defaults: { icon: IconName; label: string }[] = [
@@ -68,20 +103,13 @@ export function RichFooter(props: FooterProps) {
 
   return (
     <FooterShell>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))",
-          gap: "var(--gap)",
-          paddingBottom: 24,
-          marginBottom: 24,
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
+      {/* A tinted band rather than three floating icons: the row is one claim
+          about the shop, and giving it a ground says so without a heading. */}
+      <div className="sf-footer-trustbar">
         {trust.map((tr) => (
           <div key={tr.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "var(--primary)" }}>
-              <Icon name={tr.icon} size={20} />
+            <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
+              <Icon name={tr.icon} size={19} />
             </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{tr.label}</span>
           </div>
@@ -89,42 +117,117 @@ export function RichFooter(props: FooterProps) {
       </div>
 
       <ColumnsBody {...props} />
-
-      <SocialLinks social={props.store?.social} label={t.followUs} style={{ paddingBottom: 20 }} />
-
-      <BottomBar name={props.name} currency={props.store?.currency} t={t} />
+      {Bottom(props)}
     </FooterShell>
   );
 }
 
 /**
- * Deliberately minimal: brand + a single flat row of links (group titles are
- * not shown — that is what Columns / Rich are for), payment badges, socials and
- * the copyright line. Respects the content-pages show toggle like the others.
+ * **Contact-first** — the merchant's phone and chat channels lead, link columns
+ * anchored right.
+ *
+ * Degrades to `ColumnsFooter` when the merchant has published neither a number
+ * nor a chat channel, because the alternative is an empty card where the whole
+ * point of the layout should be. A merchant who picks this and then clears their
+ * number gets a correct footer, not a broken one.
+ */
+export function ContactFooter(props: FooterProps) {
+  const reachable = useHasContactSurface(props.store, props.base, props.phone);
+  if (!reachable) return <ColumnsFooter {...props} />;
+
+  return (
+    <FooterShell>
+      <div className="sf-footer-grid sf-footer-grid-3">
+        <div className="sf-footer-lead">
+          <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
+            <FooterBrand
+              name={props.name}
+              logo={props.logo}
+              blurb={props.blurb}
+            />
+            <SocialLinks social={props.store?.social} size={16} />
+          </div>
+        </div>
+        <div className="sf-footer-aside">
+          <FooterContactCard
+            store={props.store}
+            base={props.base}
+            t={props.t}
+            heading={props.contactHeading}
+            phone={props.phone}
+          />
+        </div>
+        <div className="sf-footer-cols">
+          {footerColumns(props).map((column) => (
+            <FooterCol key={column.key} column={column} />
+          ))}
+        </div>
+      </div>
+      {Bottom(props)}
+    </FooterShell>
+  );
+}
+
+/**
+ * **Stay in touch** — the wide left side earns its width by asking for
+ * something. The sign-up posts to this store's public `/subscribe` endpoint;
+ * addresses land in Online Store → Storefront Accounts → Subscribers.
+ */
+export function NewsletterFooter(props: FooterProps) {
+  const copy = props.newsletter;
+  return (
+    <FooterShell>
+      <FooterColumns
+        lead={
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start" }}>
+            <Brand name={props.name} logo={props.logo} markSize={31} nameSize={16} />
+            <FooterNewsletter
+              slug={props.slug}
+              t={props.t}
+              heading={copy?.heading}
+              blurb={copy?.blurb}
+              buttonLabel={copy?.buttonLabel}
+            />
+            <SocialLinks social={props.store?.social} size={16} />
+          </div>
+        }
+        columns={footerColumns(props)}
+      />
+      {Bottom(props)}
+    </FooterShell>
+  );
+}
+
+/**
+ * **Centered** — a single stack, so it cannot leave a gap on the right because
+ * it has no right. Group titles are dropped and every link joins one row: this
+ * is the layout for a shop with a handful of CMS pages and no link groups yet,
+ * which is every shop on its first day.
  */
 export function SimpleFooter(props: FooterProps) {
   const links = footerColumns(props).flatMap((c) => c.links);
 
   return (
-    <FooterShell pad="24px var(--pad)">
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          marginBottom: 18,
-        }}
-      >
-        <Link
-          href={storeHref(props.base)}
-          style={{ display: "flex", alignItems: "center", gap: 9 }}
-        >
-          <Brand name={props.name} logo={props.logo} markSize={28} nameSize={15} />
+    <FooterShell pad="30px var(--pad) 24px">
+      <div className="sf-footer-centered">
+        <Link href={storeHref(props.base)} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <Brand name={props.name} logo={props.logo} markSize={30} nameSize={16} />
         </Link>
+
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--muted)",
+            lineHeight: 1.6,
+            margin: 0,
+            maxWidth: 460,
+          }}
+        >
+          {props.blurb}
+        </p>
+
         {links.length > 0 ? (
-          <nav style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+          <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 20px" }}>
             {links.map((l) =>
               l.external ? (
                 <a key={l.key} href={l.href} style={footerLink}>
@@ -138,10 +241,14 @@ export function SimpleFooter(props: FooterProps) {
             )}
           </nav>
         ) : null}
-        <PaymentBadges store={props.store} t={props.t} />
+
+        <FooterCallLine phone={props.phone} t={props.t} />
+        <SocialLinks social={props.store?.social} size={16} />
+        {/* No `<PaymentBadges>` here — the bottom bar carries them for every
+            layout now, and rendering them twice is what this stack did on the
+            first browser pass. */}
+        {Bottom(props, true)}
       </div>
-      <SocialLinks social={props.store?.social} style={{ paddingBottom: 14 }} />
-      <BottomBar name={props.name} currency={props.store?.currency} t={props.t} />
     </FooterShell>
   );
 }

@@ -55,9 +55,11 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "centered", label: "Centered", description: "Logo centred, menu underneath" },
   ],
   footer: [
-    { value: "columns", label: "Columns", description: "Your link groups side by side" },
-    { value: "simple", label: "Simple", description: "One quiet row of links" },
-    { value: "rich", label: "Rich", description: "Trust badges above the link columns" },
+    { value: "columns", label: "Columns", description: "Brand and contact left, link groups right" },
+    { value: "simple", label: "Centered", description: "One centered stack — best with few links" },
+    { value: "rich", label: "Trust badges", description: "Your three promises above the columns" },
+    { value: "contact", label: "Contact first", description: "Your phone and chat lead the footer" },
+    { value: "newsletter", label: "Stay in touch", description: "An email sign-up beside your links" },
   ],
   checkout: [
     { value: "single-page", label: "Single page", description: "Everything on one screen" },

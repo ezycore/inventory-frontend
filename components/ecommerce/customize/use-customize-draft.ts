@@ -79,6 +79,17 @@ export interface FooterContentPagesDraft {
 }
 
 /**
+ * Sign-up copy for the Stay-in-touch footer. Every field defined so the inputs
+ * stay controlled; empty means "use the storefront's localized wording", which
+ * is why `toSettingsPayload` sends `undefined` rather than `""`.
+ */
+export interface FooterNewsletterDraft {
+  heading: string;
+  blurb: string;
+  buttonLabel: string;
+}
+
+/**
  * Everything the Customize page can change, in one object.
  *
  * It is deliberately ONE draft rather than per-section state: the rail's parts
@@ -114,6 +125,11 @@ export interface CustomizeDraft {
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerContentPages: FooterContentPagesDraft;
+  /** Bottom-bar note; empty ⇒ the storefront prints the store's currency. */
+  footerNote: string;
+  /** Contact-first heading; empty ⇒ the localized "Order by phone". */
+  footerContactHeading: string;
+  footerNewsletter: FooterNewsletterDraft;
   /** Category docs, not settings — saved through their own mutations. */
   collections: CollectionRowValue[];
 }
@@ -156,6 +172,9 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   footer: (d) => [
     d.templates.footer,
     d.footerText,
+    d.footerNote,
+    d.footerContactHeading,
+    d.footerNewsletter,
     d.badges,
     d.footerGroups,
     d.footerContentPages,
@@ -263,6 +282,13 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     footerContentPages: {
       show: settings.nav?.footerContentPages?.show ?? true,
       title: settings.nav?.footerContentPages?.title ?? "",
+    },
+    footerNote: t.footerNote ?? "",
+    footerContactHeading: t.footerContactHeading ?? "",
+    footerNewsletter: {
+      heading: t.footerNewsletter?.heading ?? "",
+      blurb: t.footerNewsletter?.blurb ?? "",
+      buttonLabel: t.footerNewsletter?.buttonLabel ?? "",
     },
   };
 }

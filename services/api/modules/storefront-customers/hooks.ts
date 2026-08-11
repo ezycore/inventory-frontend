@@ -20,6 +20,14 @@ export const useOnlineCustomer = (id: string) =>
     select: (r) => r.data,
   });
 
+export const useStorefrontSubscribers = (params: OnlineCustomersParams = {}) =>
+  useQuery({
+    queryKey: queryKeys.storefrontCustomers.subscribers(params),
+    queryFn: () => storefrontCustomersApi.subscribers(params),
+    placeholderData: keepPreviousData,
+    select: (r) => r.data,
+  });
+
 export const useOnlineCustomerOrders = (
   id: string,
   page: number,

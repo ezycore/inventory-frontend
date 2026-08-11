@@ -698,59 +698,64 @@ resolved **per request from the host**, never baked.
   through the shared letterhead print engine `utils/print-documents.ts` via the adapter
   `utils/print-storefront-order.ts`; letterhead = org Receipt & Print settings, shipped to the
   shopper via the store payload's `printable` block. Never hand-roll invoice markup.
-  **Mechanics** (`utils/print.ts`): `printHtml` builds one document and delivers it two ways,
-  split by `needsTopLevelPrint()` (Android / iOS UA). Do not collapse the paths back into one.
+  **Mechanics** (`utils/print.ts`): `printHtml` builds one standalone document and delivers it
+  two ways. **Desktop** renders it into a **hidden same-origin iframe** (`#app-print-frame`) and
+  calls `print()` when images settle — no popup, no blocker. **Mobile** (Android Chrome, iOS —
+  `needsTopLevelPrint`) opens a **top-level tab** instead and prints that, closing it on
+  `afterprint`: those browsers route a subframe's `print()` to the top document, so the hidden
+  frame printed the app UI instead of the invoice. That tab must be navigated to a **blob: URL** —
+  `document.write` into `about:blank` makes Chrome Android fail with "There was a problem printing
+  the page" even when the target is Save-as-PDF — and readiness is **polled** for the blob URL,
+  because a `load` listener would die with the discarded initial about:blank window and its
+  `readyState: "complete"` would otherwise print a blank sheet. That path makes the **synchronous-from-click**
+  rule load-bearing — a deferred `printHtml` gets its tab blocked, and callers already toast
+  `common.print.popupBlocked` on the `false` return. Only count `!img.complete` images as pending
+  (cached images never fire `onload`; that bug used to silently prevent the dialog from opening)
+  and keep the grace timeout.
+  All print CSS uses **`@page { margin: 0 }`** so the browser cannot paint its default
+  title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
+  page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
+  Don't reintroduce `@page` margins, and don't collapse the two paths back into one.
+- **Footer** (rebuilt 2026-08-11 — **five** layouts): `store-footer.tsx` is the slim entry (variant
+  resolve + prop build); the bodies live in `components/storefront/footer/` — `footer-pieces.tsx`
+  (shell/brand/columns/bottom-bar + the `FooterColumn` model helpers
+  `groupColumns`/`contentPagesColumn`/`footerColumns`), `footer-variants.tsx` (the five),
+  `footer-contact-card.tsx` and `footer-newsletter.tsx`.
 
-  **Desktop** — hidden same-origin iframe (`#app-print-frame`), `print()` once images settle. No
-  popup, no blocker, nothing about the app moves. This path is stable; leave it alone.
+  | `templates.footer` | Layout | Left side | Notes |
+  |---|---|---|---|
+  | `columns` | Anchored columns (default) | brand + blurb + phone + socials | the repair; every existing store gets it without re-choosing |
+  | `simple` | Centered | one centred stack | flat link row, drops group titles; for 0–1 groups |
+  | `rich` | Trust bar | same as `columns`, under a tinted badge band | `trustBadges`, per-slot localized fallback |
+  | `contact` | Contact-first | brand + a phone/WhatsApp card | **degrades to `columns`** when no number and no channel |
+  | `newsletter` | Stay in touch | brand + the sign-up form | posts `POST /:slug/subscribe` |
 
-  **Mobile** — `printInTopDocument` prints the app's OWN top-level document with everything but
-  the invoice hidden. A phone will not print anything else: an iframe's `print()` is routed to the
-  top document (the original "mobile printed the whole app" bug). *Unverified but suspected:* a
-  document the browser never navigated to (`document.write` into `about:blank`, a `blob:` URL)
-  errored with "There was a problem printing the page" — that attempt also carried the teardown
-  bug below, so the delivery method was never cleanly isolated. Don't treat it as settled either
-  way; the top-document path works and needs no tab.
+  **The grid is the point.** Link columns are `auto` tracks in a flex row pinned `flex-end`, sized to
+  their own content. They used to be `repeat(auto-fit, minmax(132px, 1fr))` inside a `3fr` track,
+  which stretched each column to fill the leftover space while its links stayed ~70px of left-aligned
+  text — fine at the three-or-four groups it was designed for, and at **zero** groups (the default)
+  it left two ~336px stacks with half the footer empty. Do not reintroduce an `fr` ceiling here.
+  Below 680px every layout is one stacked column with tap-to-open accordions (per-column
+  `useState(true)` — SSR-safe, desktop heading inert + always-open).
 
-  Four traps, each one a real failed print:
-  1. **Never tear down on `afterprint`.** Android fires it the moment `print()` hands off to the
-     system print UI, *before* that UI renders — the invoice is deleted mid-flight and the preview
-     snapshots the plain app, which looks exactly like trap #1's iframe bug. Tear down on `focus`
-     / `visibilitychange → visible` instead, with `TEARDOWN_MIN_AGE_MS` as a floor.
-  2. **Strip a NAMED `@page size`** (`dialogPaperWins`) — confirmed on an Android device
-     2026-08-11, A4 and Letter both correct. The phone lays out at its ~412px
-     viewport, never at the paper, and Chrome compensates by scaling to fill the sheet — but only
-     while CSS and the print dialog agree on the paper. `size: A4` + Letter selected ⇒ no scaling,
-     and the invoice prints as a tiny column in the corner. A *physical* size (`80mm auto`) is
-     kept: a receipt roll is the real paper. **Do not** "fix" this by pinning `width: 210mm` on
-     the root — that was tried, it kills the scale-to-fit and shrinks A4 too.
-  3. **`margin: 0` always survives** the strip: it is what suppresses the browser's own
-     title/URL/date header-footer. Whitespace lives in body padding (left/right — repeats every
-     page) and `.doc` padding (top/bottom — per document in bulk `.inv-page` breaks).
-  4. Only count `!img.complete` images as pending (cached images never fire `onload`; that used to
-     stop the dialog opening entirely) and keep the grace timeout.
+  **Payments moved to the bottom bar.** They are a reassurance, not navigation, and being a column
+  is what forced the extra track that left the gap. `BottomBar` is also where `theme.footerNote`
+  lands — it replaced a hardcoded `"Bangladesh · <currency>"`, which was a claim about the
+  merchant's business the platform had no standing to make; unset ⇒ currency alone.
 
-  Shadow-root plumbing: the invoice mounts into a shadow root on `#app-print-root` and
-  `@media print` hides `body > *:not(#app-print-root)` — verified against the live app, where 29
-  body children (portals, devtools, extension nodes) all disappear. The boundary is what keeps
-  Tailwind preflight and the dark-theme `color` off an invoice that must be black-on-white, and it
-  forces two rewrites of the caller's CSS: **`@page` hoisted** to a document-level `<style>` (page
-  at-rules are ignored in a shadow root) and **`body` retargeted to `:host`** (matches nothing
-  there). Both checked against the real sheets — `body { font-size: 12px; padding: 0 14mm }`
-  computes to 52.91px side padding. Images come from `root.querySelectorAll("img")`;
-  `document.images` cannot see into a shadow root.
-- **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
-  `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
-  `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
-  `footer-variants.tsx` (Columns/Rich/Simple). **Each footer group is its own auto-flowing column**
-  (`.sf-footer-*` in storefront.css: grid ≥680px, tap-to-open `<details>`-style accordions below via a
-  per-column `useState(true)` — SSR-safe, desktop heading is inert + always-open). The auto
-  **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
-  `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
-  overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
-  the show toggle. Edited in Customize → **Footer** (`customize/footer-links-field.tsx`, groups + the
-  content-pages Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
-  live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
+  **Nothing in a footer body is fixed copy.** Every string arrives on `FooterProps` and is either the
+  merchant's (`theme.footerText` / `footerNote` / `footerContactHeading` / `footerNewsletter`,
+  `nav.footer`, `trustBadges`, `contact.phone`, `contactButton`, `social`, `allowedPaymentMethods`)
+  or a localized default. Contact-first reads the **launcher's** channel config through
+  `useContactLink` rather than a footer-only copy of the number — one home per number.
+
+  The auto **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is
+  controlled by `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy
+  default), `title` overrides the heading; Centered honours the toggle too. Edited in Customize →
+  **Footer** (`customize/footer-links-field.tsx` + `parts/footer-part.tsx`, whose per-layout blocks
+  only render for the layout that shows them). Groups, the content-pages toggle/heading, the variant
+  **and all four copy fields** are live-previewed — the copy fields stream **raw**, so `""` reaches
+  the preview store as "cleared → localized default" rather than falling back to the saved text. Social links
   are edited in admin Store Settings → General → Social
   links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
   (a schemeless `facebook.com/x` is a *relative* href, so the button used to 404 on the shop's own
@@ -788,7 +793,57 @@ resolved **per request from the host**, never baked.
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
-## Work log (what was built, newest first — as of 2026-08-09)
+## Work log (what was built, newest first — as of 2026-08-11)
+
+- **Footer rebuilt: five layouts, no fixed copy (FE + BE)** (2026-08-11): the Columns footer left a
+  wide gap on its right and the whole thing read thin. **The cause was the grid, not the styling** —
+  see the Footer bullet above for the `auto-fit minmax(132px, 1fr)` diagnosis and the degradation
+  table; the short version is that it was written for 3–4 link groups and the default store has 0.
+  `columns` / `simple` / `rich` were **repaired in place** (same ids, so every existing store improves
+  without its owner choosing again) and two new layouts were added: `contact` (phone/WhatsApp lead,
+  degrading back to `columns` when the merchant has published neither) and `newsletter` (a real
+  sign-up form).
+  Everything the footer prints is now merchant-controlled: three new `theme` fields (`footerNote`,
+  `footerContactHeading`, `footerNewsletter{heading,blurb,buttonLabel}`), each with a localized
+  fallback, plus the hardcoded `"Bangladesh · <currency>"` bottom-bar string finally gone.
+  New backend collection `StorefrontSubscriber` + `POST /api/storefront/:slug/subscribe`
+  (unauthenticated, own tighter limiter, idempotent and **silent about it** — telling an anonymous
+  caller "already subscribed" makes a public form an address oracle) and
+  `GET /api/ecommerce/customers/subscribers` behind `storefront.view`, surfaced as a second tab on
+  Ecommerce → Storefront Accounts.
+  Four things worth keeping: **(1)** the sign-up is the **one** storefront write that is NOT
+  fire-and-forget — the shopper pressed a button and is owed an answer, unlike the cart mirror.
+  **(2)** Contact-first reuses `useContactLink`, so the footer can never offer a channel the floating
+  launcher has dropped. **(3)** The four copy fields stream **raw** to the live preview; collapsing
+  `""` to `undefined` there would make clearing a field show the saved text back. **(4)** A
+  subscriber row is a consent record, so nothing in the admin app creates or edits one, and
+  unsubscribing sets `status` rather than deleting — a deleted row is re-created by the next
+  submission with the opt-out lost.
+
+- **Order-line thumbnails + guest contact on abandoned carts (FE + BE)** (2026-08-11):
+  **(1) Neither order-detail view showed a product image.** The merchant sheet drew an initials tile
+  and the shopper's tracking view drew an empty `<Media />` — because an order line snapshots
+  `productName`/`price` and nothing else. The line now carries an `image` **resolved live from the
+  catalogue** by the backend `storefrontOrderImagesService`, on the two DETAIL endpoints only
+  (`useStorefrontOrder`, `useShopperOrder`); the two list endpoints render no lines and do not pay
+  for the lookup. **Do not "fix" this by snapshotting the URL onto the line** — replacing a product
+  photo deletes the old R2 object, so a frozen URL becomes a broken `<img>` the day the merchant
+  uploads a better picture, and reading live means the orders that already exist get their pictures
+  with no backfill. Both callers keep their placeholder branch: a deleted or image-less product
+  legitimately resolves to `undefined`.
+  **(2) A guest cart could never be named**, so `/ecommerce/carts` said "Guest — not reachable" on
+  every row — including the converted ones, where the order sitting beside it carried the buyer's
+  name and phone in full. Two captures now feed a `guest` block on the cart mirror: the checkout form
+  posts each field **on blur** (`hooks/use-guest-contact-capture.ts` → `POST /:slug/cart/contact`),
+  and a placed guest order backfills its `shippingAddress` name/phone onto the cart it converts. The
+  Shopper column is now three-state (`CartShopperCell`) and search matches guest fields too.
+  Three things to keep: the capture is **guests only** (a signed-in shopper's account is the better
+  identity, and the list hides the guest block once `shopperId` is set); it is **fire-and-forget on a
+  money path**, never awaited, exactly like the rest of the cart mirror; and a captured phone is
+  **contact detail, not marketing consent** — automated recovery still requires an account, which is
+  why `storefront-cart-recovery.service.ts` was left alone.
+  `isPreview()` moved out of `cart-sync.tsx` into `services/storefront/cart-identity.ts` as
+  `isSfPreview()` — every mirror write needs it, and there are two callers now.
 
 - **Five more shop-owner reports: page cursor, logo controls, sold-out cards, homepage
   collections (FE + BE)** (2026-08-09):
@@ -1053,7 +1108,9 @@ resolved **per request from the host**, never baked.
   **`—`, never `0%`**, when the backend sends `null` — a zero would tell a brand-new merchant their
   funnel is flawless. **(4)** An unclaimed cart says **"Guest — not reachable"** rather than showing
   a blank name: there is genuinely no contact detail and no consent record, and a blank would imply
-  the merchant could chase it.
+  the merchant could chase it. *(Superseded 2026-08-11 — a guest who reaches the checkout form now
+  leaves a name/phone, so that label is reserved for a cart that never got that far. See the top of
+  the work log.)*
   **Not done:** recovery sends (Phase 3) — this page is read-only, and there is deliberately no
   action on a cart.
 
