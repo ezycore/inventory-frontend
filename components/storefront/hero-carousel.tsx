@@ -44,8 +44,11 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
  * Home hero carousel — owner-managed slides (Customize → Hero).
  * Crossfade + staggered text rise, 5s autoplay (paused on hover/press, skipped
  * for reduced-motion), dots with a time-to-next fill, arrows, and swipe.
- * Slides without an image get a brand-tinted panel; with an image, a scrim
- * keeps the white text readable. Classes live in storefront.css (.sf-hero-*).
+ * Slides without an image get a brand-tinted panel; with an image, it renders
+ * as a blurred fill (`.sf-hero-art-bg`) behind the full photo at `contain`
+ * (`.sf-hero-art-fg`) so a slide never loses its edges to a `cover` crop, plus
+ * a scrim that keeps the white text readable. Classes live in storefront.css
+ * (.sf-hero-*).
  */
 export function HeroCarousel({
   slides,
@@ -110,14 +113,14 @@ export function HeroCarousel({
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== current}
             >
-              <div
-                className="sf-hero-art"
-                style={
-                  img
-                    ? { backgroundImage: `url("${img}")` }
-                    : { background: TINTS[i % TINTS.length] }
-                }
-              />
+              {img ? (
+                <>
+                  <div className="sf-hero-art-bg" style={{ backgroundImage: `url("${img}")` }} />
+                  <div className="sf-hero-art-fg" style={{ backgroundImage: `url("${img}")` }} />
+                </>
+              ) : (
+                <div className="sf-hero-art" style={{ background: TINTS[i % TINTS.length] }} />
+              )}
               <div className="sf-hero-scrim" />
               <div className="sf-hero-copy">
                 {slide.badge?.trim() ? (

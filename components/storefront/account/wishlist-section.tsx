@@ -87,7 +87,7 @@ export function WishlistSection() {
           return (
             <div key={p.productId} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <Link href={pdp} style={{ position: "relative", display: "block" }}>
-                <Media src={p.image} alt={p.name} label="product" radius={0} />
+                <Media src={p.image} alt={p.name} label="product" radius={0} fit="canvas" />
                 <button
                   type="button"
                   aria-label={t.removeLabel}

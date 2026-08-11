@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { CSSProperties, ReactNode } from "react";
 import { ORDER_STATUS, type Lang } from "@/lib/storefront-i18n";
 import { money, discountPct } from "@/components/storefront/format";
@@ -50,13 +51,25 @@ export function Placeholder({
   );
 }
 
-/** Square media: a real image (object-cover) or a striped placeholder. */
+/**
+ * Media: a real image (or a striped placeholder) filling a fixed-ratio box.
+ *
+ * `fit="cover"` (default) crops to fill — right for small thumbs (cart rows,
+ * search results, gallery rail) where a uniform crop reads as intentional.
+ * `fit="canvas"` shows the WHOLE photo (`object-fit: contain`) over a
+ * blurred, scaled-up copy of itself filling the rest of the box — so a photo
+ * shot to a different ratio than the slot never loses its edges (a logo near
+ * the bottom, a subject off-centre), and there's no hard-edged letterbox bar
+ * against a busy lifestyle shot. Costs one extra `<img>` of the same (cached)
+ * src; no image analysis, no upload constraint.
+ */
 export function Media({
   src,
   alt,
   label,
   ratio = "1 / 1",
   radius = 11,
+  fit = "cover",
   className,
   style,
 }: {
@@ -65,10 +78,48 @@ export function Media({
   label?: string;
   ratio?: string;
   radius?: number;
+  fit?: "cover" | "canvas";
   className?: string;
   style?: CSSProperties;
 }) {
   if (src) {
+    if (fit === "canvas") {
+      return (
+        <div
+          className={className}
+          style={{
+            position: "relative",
+            aspectRatio: ratio,
+            width: "100%",
+            overflow: "hidden",
+            borderRadius: radius,
+            background: "var(--surface)",
+            ...style,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: "-8%",
+              width: "116%",
+              height: "116%",
+              objectFit: "cover",
+              filter: "blur(22px) saturate(1.2) brightness(0.88)",
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt || ""}
+            style={{ position: "relative", width: "100%", height: "100%", objectFit: "contain" }}
+          />
+        </div>
+      );
+    }
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img

@@ -663,6 +663,24 @@ resolved **per request from the host**, never baked.
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+  - **`<Media fit="canvas">`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it"
+    box: a blurred, scaled copy of the same `src` fills the frame behind the full photo at
+    `object-fit: contain`. Reach for it on any card-sized-or-larger slot whose photo isn't guaranteed
+    pre-cropped to the box, because owner photos are rarely shot to a perfect square and cropping one
+    25% off the sides silently cuts the product or a corner prop (2026-08-11). Current call sites:
+    `product-card.tsx`'s grid image, `home-minimal.tsx`'s product tiles, `home-classic.tsx`'s hero
+    banner (4:3), and `wishlist-section.tsx`'s saved-item grid — all card-grid or hero-sized slots.
+    Leave small row thumbs (cart drawer + cart page, search results, tracking, quick-buy sheet,
+    header search, the PDP thumbnail rail, `thumbImageUrl` call sites generally) on the default
+    `fit="cover"` — a uniform crop reads as intentional at that size and a blurred halo around a
+    48–76px thumbnail is visual noise, not a fix. Two deliberate holdouts at card size: the PDP hero
+    (`product-gallery.tsx`) stays `cover` because its hover-to-magnify transform scales the `<img>`
+    itself — wrapping it in the two-layer canvas div would zoom the blurred backdrop along with the
+    photo, and the merchant already controls that one shot's crop directly; `home-hero-split.tsx`'s
+    banner already opts out via `ratio="auto"` (no forced ratio at all, so nothing to crop) — don't
+    layer canvas fit on top of that, the two solve the same problem differently on purpose. The hero
+    carousel uses the same two-layer idea directly in CSS (`.sf-hero-art-bg`/`-fg`, see the hero
+    bullet above) since it paints via `background-image`, not an `<img>`.
 - **PDP gallery** — `components/storefront/product-gallery.tsx` owns the thumb rail + hero for both
   product templates (`layout="top" | "side"`) **and** the hover-to-magnify. The page passes raw
   `images` + the selected index; clamping lives in the gallery (a variant switch can swap in a
@@ -1650,8 +1668,10 @@ resolved **per request from the host**, never baked.
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
   subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
   (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
-  swipe, reduced-motion; imageless = brand-tinted panel, image = scrim; CTA has a white border for
-  near-black brands). Renders on Classic + Hero Split when slides exist (Minimal keeps its hero;
+  swipe, reduced-motion; imageless = brand-tinted panel, image = blurred-canvas fit (`.sf-hero-art-bg`
+  blurred cover behind, `.sf-hero-art-fg` full photo at `contain` on top — a slide never loses its
+  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands). Renders on
+  Classic + Hero Split when slides exist (Minimal keeps its hero;
   empty = static hero). Admin: Customize → Theme → `hero-slides-editor.tsx`; slide image upload =
   `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
   cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.

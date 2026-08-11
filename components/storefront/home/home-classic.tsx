@@ -87,7 +87,7 @@ export function Classic(props: TplProps) {
               ))}
             </div>
           </div>
-          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" />
+          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" fit="canvas" />
         </div>
       </div>
       )}

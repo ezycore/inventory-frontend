@@ -158,7 +158,7 @@ export function ProductCard({
           The wrapper carries the positioning context for both. */}
       <div style={{ position: "relative" }}>
         <Link href={href} style={{ position: "relative", display: "block" }}>
-          <Media src={thumb} alt={product.name} label="product" radius={0} />
+          <Media src={thumb} alt={product.name} label="product" radius={0} fit="canvas" />
           {pct > 0 ? (
             <span
               style={{

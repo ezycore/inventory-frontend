@@ -54,7 +54,7 @@ export function Minimal({ base, currency, featured, categories, t }: TplProps) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--mincols), minmax(0,1fr))", gap: "clamp(20px,3vw,40px)" }}>
           {picks.map((p) => (
             <Link key={p._id} href={storeHref(base, `/products/${p.slug}`)} style={{ display: "flex", flexDirection: "column" }}>
-              <Media src={cardImageUrl(p.images?.[0])} alt={p.name} label="product" radius={12} style={{ marginBottom: 14 }} />
+              <Media src={cardImageUrl(p.images?.[0])} alt={p.name} label="product" radius={12} fit="canvas" style={{ marginBottom: 14 }} />
               <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", lineHeight: 1.35, marginBottom: 4 }}>{p.name}</span>
               <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{money(p.price, currency)}</span>
             </Link>
