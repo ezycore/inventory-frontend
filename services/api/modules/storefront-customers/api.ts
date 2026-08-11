@@ -1,6 +1,11 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
-import type { ShopperDetail, ShopperListItem, ShopperOrder } from "@/types/api";
+import type {
+  ShopperDetail,
+  ShopperListItem,
+  ShopperOrder,
+  StorefrontSubscriberListItem,
+} from "@/types/api";
 import { buildQueryParams } from "../../utils";
 
 // Response shapes generated from the backend shopper DTOs (`ecommerce.dto.ts`). The
@@ -8,6 +13,8 @@ import { buildQueryParams } from "../../utils";
 export type OnlineCustomer = ShopperListItem;
 export type OnlineCustomerDetail = ShopperDetail;
 export type OnlineCustomerOrder = ShopperOrder;
+/** A footer sign-up — someone who asked to hear from the shop, with no account. */
+export type StorefrontSubscriber = StorefrontSubscriberListItem;
 
 export interface OnlineCustomerOrdersParams {
   page?: number;
@@ -49,6 +56,17 @@ export interface OnlineCustomerOrdersResult {
   };
 }
 
+/** The `GET /ecommerce/customers/subscribers` envelope. */
+export interface StorefrontSubscribersResult {
+  items: StorefrontSubscriber[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 const base = "/ecommerce/customers";
 
 export const storefrontCustomersApi = {
@@ -65,4 +83,10 @@ export const storefrontCustomersApi = {
     params: OnlineCustomerOrdersParams = {},
   ): Promise<ApiResponse<OnlineCustomerOrdersResult>> =>
     apiClient.get(`${base}/${id}/orders${buildQueryParams(params)}`),
+  // Footer sign-ups. Written only by shoppers on the storefront, so this is a
+  // read with no matching mutation anywhere in the admin app.
+  subscribers: (
+    params: OnlineCustomersParams = {},
+  ): Promise<ApiResponse<StorefrontSubscribersResult>> =>
+    apiClient.get(`${base}/subscribers${buildQueryParams(params)}`),
 };

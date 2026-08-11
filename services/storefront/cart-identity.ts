@@ -59,3 +59,17 @@ export function cartAnonymousId(slug: string): string | null {
     return null;
   }
 }
+
+/**
+ * The Customize editor renders the REAL storefront in an iframe at `?preview=1`.
+ * Every cart-mirror write checks this first: a merchant theming their shop is
+ * not a shopper, and letting them add to cart would pollute their own funnel
+ * with carts they never had.
+ *
+ * Lives beside the handle because the two are always used together — a mirror
+ * write needs an id AND a shopper, and this is the test for the second.
+ */
+export function isSfPreview(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("preview") === "1";
+}

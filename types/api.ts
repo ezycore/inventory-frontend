@@ -175,6 +175,8 @@ export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];
 export type AbandonedCartListItem = Schemas["AbandonedCartListItem"];
 export type AbandonedCartStats = Schemas["AbandonedCartStats"];
+export type StorefrontSubscriberListItem =
+  Schemas["StorefrontSubscriberListItem"];
 
 // Auth & users ---------------------------------------------------------------
 export type Me = Schemas["Me"];

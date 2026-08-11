@@ -33,6 +33,7 @@ import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
 import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
 import { cartAnonymousId } from "@/services/storefront/cart-identity";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import {
@@ -92,6 +93,9 @@ export default function CheckoutPage() {
 
   const [addr, setAddr] = useState({ name: "", phone: "", address: "", notes: "" });
   const set = (k: keyof typeof addr, v: string) => setAddr((a) => ({ ...a, [k]: v }));
+  // Merchant visibility only (abandoned carts), guests only, fire-and-forget —
+  // a shopper who fills this form and leaves is otherwise unreachable.
+  const captureContact = useGuestContactCapture(slug, !shopper);
   // Which saved address is selected (null + isNew → the shopper is entering a new one).
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -421,13 +425,20 @@ export default function CheckoutPage() {
               {!shopper ? <GuestNotice base={base} t={t} /> : null}
               <div style={label}>{isPickup ? t.pickupHeading : t.deliveryAddress}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
-                <input style={input} placeholder={t.fullName} value={addr.name} onChange={(e) => set("name", e.target.value)} />
+                <input
+                  style={input}
+                  placeholder={t.fullName}
+                  value={addr.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  onBlur={(e) => captureContact("name", e.target.value)}
+                />
                 <input
                   style={phoneInvalid ? { ...input, borderColor: "#dc2626" } : input}
                   placeholder={t.phone}
                   value={addr.phone}
                   inputMode="tel"
                   onChange={(e) => set("phone", e.target.value)}
+                  onBlur={(e) => captureContact("phone", e.target.value)}
                 />
                 {/* Shown only once they have typed something — an empty field is
                     incomplete, not wrong, and reads as nagging if flagged. */}

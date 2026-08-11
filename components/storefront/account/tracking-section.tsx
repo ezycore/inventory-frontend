@@ -169,8 +169,11 @@ export function TrackingSection({
             <div style={eyebrow}>{t.orderItems}</div>
             {order.items.map((ci, idx) => (
               <div key={idx} style={{ display: "flex", gap: 11, alignItems: "center", padding: "8px 0", borderBottom: idx < order.items.length - 1 ? "1px solid var(--border)" : "none" }}>
+                {/* `image` is resolved live from the catalogue by the backend
+                    (order lines don't snapshot it), so a delisted product or
+                    one with no photo falls through to the placeholder. */}
                 <div style={{ width: 42, height: 42, flex: "none" }}>
-                  <Media radius={7} />
+                  <Media src={ci.image} alt={ci.productName} radius={7} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 500, lineHeight: 1.3 }}>{ci.productName}</div>

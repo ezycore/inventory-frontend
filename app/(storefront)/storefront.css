@@ -1288,11 +1288,10 @@
   }
 }
 
-/* ---- Footer (Columns / Rich) ----
-   One column PER footer group (auto-flowing) instead of the old fixed
-   2fr-1fr-1fr grid that stacked every group inside a single cell. Below 680px
-   each group collapses into a tap-to-open accordion; on desktop the heading is
-   inert and the links always show. */
+/* ---- Footer (all five layouts) ----
+   Mobile is one stacked column for every variant, with each link group a
+   tap-to-open accordion. The desktop rules below 680px do the layout work; on
+   desktop the accordion heading is inert and the links always show. */
 .sf-footer-grid {
   display: flex;
   flex-direction: column;
@@ -1302,6 +1301,26 @@
 .sf-footer-cols {
   display: flex;
   flex-direction: column;
+}
+/* Centered layout (`simple`). No horizontal axis to leave a gap on. */
+.sf-footer-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+/* Trust strip (`rich`). A tinted band, so the row reads as one claim about the
+   shop rather than three icons floating above the links. */
+.sf-footer-trustbar {
+  display: grid;
+  grid-template-columns: repeat(var(--trustcols), minmax(0, 1fr));
+  gap: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 26px;
 }
 .sf-footer-col {
   border-top: 1px solid var(--border);
@@ -1364,25 +1383,51 @@
 .sf-footer-link:hover {
   color: var(--text);
 }
+/* Contact-first's middle track. It holds a bordered card, so it deliberately
+   carries no rule of its own — the aside used to be the payment badges, which
+   needed one to separate them from the links above. */
 .sf-footer-aside {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
+  min-width: 0;
 }
 
 @media (min-width: 680px) {
+  /*
+   * The link columns are sized to THEIR CONTENT and anchored to the right edge.
+   *
+   * They used to be `repeat(auto-fit, minmax(132px, 1fr))` inside a `3fr` track,
+   * which stretched every column to fill the leftover space while its links
+   * stayed ~70px of left-aligned text. That was written for a shop with three or
+   * four link groups; most shops have one, and a shop with none left two ~336px
+   * stacks with half the footer empty. `auto` + `flex-end` looks deliberate at
+   * one group and at four — which is what this has to do, since it cannot know
+   * how many it will be given.
+   */
   .sf-footer-grid {
     display: grid;
-    grid-template-columns: minmax(200px, 1.5fr) minmax(0, 3fr);
-    gap: 32px;
+    grid-template-columns: minmax(220px, 1fr) minmax(0, auto);
+    gap: 56px;
     align-items: start;
   }
+  /* Contact-first: identity, the contact card, then the links. */
+  .sf-footer-grid-3 {
+    grid-template-columns: minmax(210px, 1fr) minmax(230px, 300px) minmax(0, auto);
+    gap: 44px;
+  }
   .sf-footer-cols {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-    gap: 28px;
+    display: flex;
+    /* `row` is NOT the default here — the mobile base rule above sets
+       `flex-direction: column` for the stacked accordions, and it survives into
+       this block unless it is reset. Without it the link groups stack on top of
+       each other on desktop, which is exactly the empty-footer look this layout
+       exists to fix. */
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 26px 52px;
   }
   .sf-footer-col {
     border-top: 0;
+    min-width: 0;
   }
   /* Desktop: the heading is a static label, links always visible. */
   .sf-footer-col-head {

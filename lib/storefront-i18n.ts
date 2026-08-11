@@ -432,6 +432,15 @@ export interface Dict {
   shopAsCustomer: string;
   information: string;
   followUs: string;
+  /* ---- footer layouts (Contact-first + Stay-in-touch) ------------------ */
+  footerOrderByPhone: string;
+  footerNewsletterHeading: string;
+  footerNewsletterBlurb: string;
+  footerSubscribe: string;
+  footerEmailPh: string;
+  footerSubscribed: string;
+  footerSubscribeFailed: string;
+  footerEmailInvalid: string;
 }
 
 const en: Dict = {
@@ -815,6 +824,15 @@ const en: Dict = {
   shopAsCustomer: "Shop as a customer",
   information: "Information",
   followUs: "Follow us",
+  footerOrderByPhone: "Order by phone",
+  footerNewsletterHeading: "Stay in touch",
+  footerNewsletterBlurb:
+    "Get new arrivals and offers before anyone else. One email a week, never more.",
+  footerSubscribe: "Subscribe",
+  footerEmailPh: "your@email.com",
+  footerSubscribed: "You're on the list. Thank you!",
+  footerSubscribeFailed: "Couldn't sign you up. Please try again.",
+  footerEmailInvalid: "Enter a valid email address",
 };
 
 const bn: Dict = {
@@ -1198,6 +1216,15 @@ const bn: Dict = {
   shopAsCustomer: "গ্রাহক হিসেবে কেনাকাটা",
   information: "তথ্য",
   followUs: "আমাদের ফলো করুন",
+  footerOrderByPhone: "ফোনে অর্ডার করুন",
+  footerNewsletterHeading: "যোগাযোগে থাকুন",
+  footerNewsletterBlurb:
+    "নতুন পণ্য ও অফার সবার আগে জানুন। সপ্তাহে একটি ইমেইল, তার বেশি নয়।",
+  footerSubscribe: "সাবস্ক্রাইব",
+  footerEmailPh: "your@email.com",
+  footerSubscribed: "আপনি তালিকায় যুক্ত হয়েছেন। ধন্যবাদ!",
+  footerSubscribeFailed: "সাবস্ক্রাইব করা যায়নি। আবার চেষ্টা করুন।",
+  footerEmailInvalid: "সঠিক ইমেইল ঠিকানা দিন",
 };
 
 export const I18N: Record<Lang, Dict> = { en, bn };

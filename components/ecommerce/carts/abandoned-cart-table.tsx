@@ -13,10 +13,16 @@ import { cn } from "@/ui/lib/utils";
  * (capped at 50 lines server-side) and ship with the list payload, so opening one
  * costs no request.
  *
- * The **Shopper** column is the honest part: a cart that never signed in reads
- * "Guest — not reachable", because there is genuinely no contact detail and no
- * consent record for it. Showing a blank there would imply a merchant could chase
- * it. See the cohort table in the backend plan.
+ * The **Shopper** column is the honest part, and it has three states rather than
+ * two. An account is the best identity; failing that, whatever the guest typed
+ * into the checkout form (or the order that closed the cart) is shown as
+ * "Guest", because that is a real, actionable contact detail. Only a cart that
+ * never reached the form reads "Not reachable" — there, showing a blank would
+ * imply a merchant could chase it. See the cohort table in the backend plan.
+ *
+ * A guest phone is contact detail, **not marketing consent**: automated recovery
+ * still requires an account (backend `storefront-cart-recovery.service.ts`), so
+ * the merchant reaching out here is a deliberate human act.
  */
 interface AbandonedCartTableProps {
   carts: AbandonedCart[];
@@ -115,22 +121,7 @@ function CartRow({
           <Chevron className="h-4 w-4 text-muted-foreground" />
         </td>
         <td className="px-3 py-3">
-          {cart.shopper ? (
-            <>
-              <div className="font-medium">{cart.shopper.name || "—"}</div>
-              <div className="text-xs text-muted-foreground">
-                {cart.shopper.email}
-                {cart.shopper.phone ? ` · ${cart.shopper.phone}` : ""}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="font-medium text-muted-foreground">Guest</div>
-              {/* Say it plainly: there is no contact detail and no consent
-                  record, so no recovery message can ever go to this cart. */}
-              <div className="text-xs text-muted-foreground">Not reachable</div>
-            </>
-          )}
+          <CartShopperCell cart={cart} />
         </td>
         <td className="px-3 py-3 tabular-nums">{cart.itemCount}</td>
         <td className="px-3 py-3 font-medium tabular-nums">
@@ -172,6 +163,53 @@ function CartRow({
           </td>
         </tr>
       ) : null}
+    </>
+  );
+}
+
+/**
+ * Who this cart belongs to: the account, else what the guest typed at checkout,
+ * else nobody. The guest row is tagged so a merchant can tell a volunteered
+ * detail from a registered one — they are not equally reliable, and only the
+ * first one is theirs to chase by hand.
+ */
+function CartShopperCell({ cart }: { cart: AbandonedCart }) {
+  if (cart.shopper) {
+    return (
+      <>
+        <div className="font-medium">{cart.shopper.name || "—"}</div>
+        <div className="text-xs text-muted-foreground">
+          {cart.shopper.email}
+          {cart.shopper.phone ? ` · ${cart.shopper.phone}` : ""}
+        </div>
+      </>
+    );
+  }
+
+  const guest = cart.guest;
+  const contact = [guest?.phone, guest?.email].filter(Boolean).join(" · ");
+  if (guest && (guest.name || contact)) {
+    return (
+      <>
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium">{guest.name || "Guest"}</span>
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Guest
+          </span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {contact || "Left at checkout"}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="font-medium text-muted-foreground">Guest</div>
+      {/* Say it plainly: this one never reached the checkout form, so there is
+          no contact detail at all — not merely no consent. */}
+      <div className="text-xs text-muted-foreground">Not reachable</div>
     </>
   );
 }

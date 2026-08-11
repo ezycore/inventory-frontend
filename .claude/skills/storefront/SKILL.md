@@ -699,18 +699,46 @@ resolved **per request from the host**, never baked.
   title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
   page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
   Don't reintroduce `@page` margins, and don't collapse the two paths back into one.
-- **Footer**: `store-footer.tsx` is the slim entry (variant resolve + prop build); the bodies live in
-  `components/storefront/footer/` — `footer-pieces.tsx` (shell/brand/columns/aside/bottom-bar + the
-  `FooterColumn` model helpers `groupColumns`/`contentPagesColumn`/`footerColumns`) and
-  `footer-variants.tsx` (Columns/Rich/Simple). **Each footer group is its own auto-flowing column**
-  (`.sf-footer-*` in storefront.css: grid ≥680px, tap-to-open `<details>`-style accordions below via a
-  per-column `useState(true)` — SSR-safe, desktop heading is inert + always-open). The auto
-  **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is controlled by
-  `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy default), `title`
-  overrides the heading. Simple is a deliberately flat link row (drops group titles) but still honours
-  the show toggle. Edited in Customize → **Footer** (`customize/footer-links-field.tsx`, groups + the
-  content-pages Switch/heading) — groups, the content-pages toggle/heading **and** the variant are all
-  live-previewed (2026-07-31; the groups were the last Customize control that wasn't). Social links
+- **Footer** (rebuilt 2026-08-11 — **five** layouts): `store-footer.tsx` is the slim entry (variant
+  resolve + prop build); the bodies live in `components/storefront/footer/` — `footer-pieces.tsx`
+  (shell/brand/columns/bottom-bar + the `FooterColumn` model helpers
+  `groupColumns`/`contentPagesColumn`/`footerColumns`), `footer-variants.tsx` (the five),
+  `footer-contact-card.tsx` and `footer-newsletter.tsx`.
+
+  | `templates.footer` | Layout | Left side | Notes |
+  |---|---|---|---|
+  | `columns` | Anchored columns (default) | brand + blurb + phone + socials | the repair; every existing store gets it without re-choosing |
+  | `simple` | Centered | one centred stack | flat link row, drops group titles; for 0–1 groups |
+  | `rich` | Trust bar | same as `columns`, under a tinted badge band | `trustBadges`, per-slot localized fallback |
+  | `contact` | Contact-first | brand + a phone/WhatsApp card | **degrades to `columns`** when no number and no channel |
+  | `newsletter` | Stay in touch | brand + the sign-up form | posts `POST /:slug/subscribe` |
+
+  **The grid is the point.** Link columns are `auto` tracks in a flex row pinned `flex-end`, sized to
+  their own content. They used to be `repeat(auto-fit, minmax(132px, 1fr))` inside a `3fr` track,
+  which stretched each column to fill the leftover space while its links stayed ~70px of left-aligned
+  text — fine at the three-or-four groups it was designed for, and at **zero** groups (the default)
+  it left two ~336px stacks with half the footer empty. Do not reintroduce an `fr` ceiling here.
+  Below 680px every layout is one stacked column with tap-to-open accordions (per-column
+  `useState(true)` — SSR-safe, desktop heading inert + always-open).
+
+  **Payments moved to the bottom bar.** They are a reassurance, not navigation, and being a column
+  is what forced the extra track that left the gap. `BottomBar` is also where `theme.footerNote`
+  lands — it replaced a hardcoded `"Bangladesh · <currency>"`, which was a claim about the
+  merchant's business the platform had no standing to make; unset ⇒ currency alone.
+
+  **Nothing in a footer body is fixed copy.** Every string arrives on `FooterProps` and is either the
+  merchant's (`theme.footerText` / `footerNote` / `footerContactHeading` / `footerNewsletter`,
+  `nav.footer`, `trustBadges`, `contact.phone`, `contactButton`, `social`, `allowedPaymentMethods`)
+  or a localized default. Contact-first reads the **launcher's** channel config through
+  `useContactLink` rather than a footer-only copy of the number — one home per number.
+
+  The auto **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is
+  controlled by `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy
+  default), `title` overrides the heading; Centered honours the toggle too. Edited in Customize →
+  **Footer** (`customize/footer-links-field.tsx` + `parts/footer-part.tsx`, whose per-layout blocks
+  only render for the layout that shows them). Groups, the content-pages toggle/heading, the variant
+  **and all four copy fields** are live-previewed — the copy fields stream **raw**, so `""` reaches
+  the preview store as "cleared → localized default" rather than falling back to the saved text. Social links
   are edited in admin Store Settings → General → Social
   links card. **All hrefs go through `hrefFor` in `social-links.tsx`** — it forces a scheme
   (a schemeless `facebook.com/x` is a *relative* href, so the button used to 404 on the shop's own
@@ -748,7 +776,57 @@ resolved **per request from the host**, never baked.
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
-## Work log (what was built, newest first — as of 2026-08-09)
+## Work log (what was built, newest first — as of 2026-08-11)
+
+- **Footer rebuilt: five layouts, no fixed copy (FE + BE)** (2026-08-11): the Columns footer left a
+  wide gap on its right and the whole thing read thin. **The cause was the grid, not the styling** —
+  see the Footer bullet above for the `auto-fit minmax(132px, 1fr)` diagnosis and the degradation
+  table; the short version is that it was written for 3–4 link groups and the default store has 0.
+  `columns` / `simple` / `rich` were **repaired in place** (same ids, so every existing store improves
+  without its owner choosing again) and two new layouts were added: `contact` (phone/WhatsApp lead,
+  degrading back to `columns` when the merchant has published neither) and `newsletter` (a real
+  sign-up form).
+  Everything the footer prints is now merchant-controlled: three new `theme` fields (`footerNote`,
+  `footerContactHeading`, `footerNewsletter{heading,blurb,buttonLabel}`), each with a localized
+  fallback, plus the hardcoded `"Bangladesh · <currency>"` bottom-bar string finally gone.
+  New backend collection `StorefrontSubscriber` + `POST /api/storefront/:slug/subscribe`
+  (unauthenticated, own tighter limiter, idempotent and **silent about it** — telling an anonymous
+  caller "already subscribed" makes a public form an address oracle) and
+  `GET /api/ecommerce/customers/subscribers` behind `storefront.view`, surfaced as a second tab on
+  Ecommerce → Storefront Accounts.
+  Four things worth keeping: **(1)** the sign-up is the **one** storefront write that is NOT
+  fire-and-forget — the shopper pressed a button and is owed an answer, unlike the cart mirror.
+  **(2)** Contact-first reuses `useContactLink`, so the footer can never offer a channel the floating
+  launcher has dropped. **(3)** The four copy fields stream **raw** to the live preview; collapsing
+  `""` to `undefined` there would make clearing a field show the saved text back. **(4)** A
+  subscriber row is a consent record, so nothing in the admin app creates or edits one, and
+  unsubscribing sets `status` rather than deleting — a deleted row is re-created by the next
+  submission with the opt-out lost.
+
+- **Order-line thumbnails + guest contact on abandoned carts (FE + BE)** (2026-08-11):
+  **(1) Neither order-detail view showed a product image.** The merchant sheet drew an initials tile
+  and the shopper's tracking view drew an empty `<Media />` — because an order line snapshots
+  `productName`/`price` and nothing else. The line now carries an `image` **resolved live from the
+  catalogue** by the backend `storefrontOrderImagesService`, on the two DETAIL endpoints only
+  (`useStorefrontOrder`, `useShopperOrder`); the two list endpoints render no lines and do not pay
+  for the lookup. **Do not "fix" this by snapshotting the URL onto the line** — replacing a product
+  photo deletes the old R2 object, so a frozen URL becomes a broken `<img>` the day the merchant
+  uploads a better picture, and reading live means the orders that already exist get their pictures
+  with no backfill. Both callers keep their placeholder branch: a deleted or image-less product
+  legitimately resolves to `undefined`.
+  **(2) A guest cart could never be named**, so `/ecommerce/carts` said "Guest — not reachable" on
+  every row — including the converted ones, where the order sitting beside it carried the buyer's
+  name and phone in full. Two captures now feed a `guest` block on the cart mirror: the checkout form
+  posts each field **on blur** (`hooks/use-guest-contact-capture.ts` → `POST /:slug/cart/contact`),
+  and a placed guest order backfills its `shippingAddress` name/phone onto the cart it converts. The
+  Shopper column is now three-state (`CartShopperCell`) and search matches guest fields too.
+  Three things to keep: the capture is **guests only** (a signed-in shopper's account is the better
+  identity, and the list hides the guest block once `shopperId` is set); it is **fire-and-forget on a
+  money path**, never awaited, exactly like the rest of the cart mirror; and a captured phone is
+  **contact detail, not marketing consent** — automated recovery still requires an account, which is
+  why `storefront-cart-recovery.service.ts` was left alone.
+  `isPreview()` moved out of `cart-sync.tsx` into `services/storefront/cart-identity.ts` as
+  `isSfPreview()` — every mirror write needs it, and there are two callers now.
 
 - **Five more shop-owner reports: page cursor, logo controls, sold-out cards, homepage
   collections (FE + BE)** (2026-08-09):
@@ -1013,7 +1091,9 @@ resolved **per request from the host**, never baked.
   **`—`, never `0%`**, when the backend sends `null` — a zero would tell a brand-new merchant their
   funnel is flawless. **(4)** An unclaimed cart says **"Guest — not reachable"** rather than showing
   a blank name: there is genuinely no contact detail and no consent record, and a blank would imply
-  the merchant could chase it.
+  the merchant could chase it. *(Superseded 2026-08-11 — a guest who reaches the checkout form now
+  leaves a name/phone, so that label is reserved for a cart that never got that far. See the top of
+  the work log.)*
   **Not done:** recovery sends (Phase 3) — this page is read-only, and there is deliberately no
   action on a cart.
 
