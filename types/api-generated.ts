@@ -1483,7 +1483,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:218`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:219`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1502,7 +1502,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:228`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:229`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -1881,13 +1881,13 @@ export interface paths {
         };
         /**
          * GET /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:23`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:24`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories"];
         put?: never;
         /**
          * POST /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:70`. Requires permission `categories.create`.
+         * @description Defined in `src/routes/categories.routes.ts:71`. Requires permission `categories.create`.
          */
         post: operations["post_api_categories"];
         delete?: never;
@@ -1905,7 +1905,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/stats
-         * @description Defined in `src/routes/categories.routes.ts:31`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:32`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_stats"];
         put?: never;
@@ -1925,7 +1925,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/tree
-         * @description Defined in `src/routes/categories.routes.ts:34`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:35`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_tree"];
         put?: never;
@@ -1945,7 +1945,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/by-path
-         * @description Defined in `src/routes/categories.routes.ts:38`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:39`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_by_path"];
         put?: never;
@@ -1965,7 +1965,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/active
-         * @description Defined in `src/routes/categories.routes.ts:46`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:47`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_active"];
         put?: never;
@@ -1985,7 +1985,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/slug/:slug
-         * @description Defined in `src/routes/categories.routes.ts:54`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:55`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_slug_slug"];
         put?: never;
@@ -2005,18 +2005,18 @@ export interface paths {
         };
         /**
          * GET /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:62`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:63`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_id"];
         /**
          * PUT /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:79`. Requires permission `categories.edit`.
+         * @description Defined in `src/routes/categories.routes.ts:80`. Requires permission `categories.edit`.
          */
         put: operations["put_api_categories_id"];
         post?: never;
         /**
          * DELETE /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:88`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:89`. Requires permission `categories.delete`.
          */
         delete: operations["delete_api_categories_id"];
         options?: never;
@@ -2035,7 +2035,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/categories/:id/apply-default-tax
-         * @description Defined in `src/routes/categories.routes.ts:99`. Requires permission `products.edit`. Gated by organization feature `tax` — returns 403 when disabled.
+         * @description Defined in `src/routes/categories.routes.ts:100`. Requires permission `products.edit`. Gated by organization feature `tax` — returns 403 when disabled.
          */
         post: operations["post_api_categories_id_apply_default_tax"];
         delete?: never;
@@ -2055,7 +2055,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/categories/bulk-delete
-         * @description Defined in `src/routes/categories.routes.ts:108`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:109`. Requires permission `categories.delete`.
          */
         post: operations["post_api_categories_bulk_delete"];
         delete?: never;
@@ -9741,6 +9741,10 @@ export interface components {
                 order?: number;
                 displayName?: string;
                 isDefault?: boolean;
+                seo?: {
+                    title?: string;
+                    description?: string;
+                };
             };
         };
         ContentPage: {
@@ -9752,6 +9756,10 @@ export interface components {
             published: boolean;
             showInFooter: boolean;
             sortOrder: number;
+            seo?: {
+                title?: string;
+                description?: string;
+            };
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -10974,6 +10982,7 @@ export interface components {
         StoreHost: {
             exists: boolean;
             slug?: string;
+            canonicalHost?: string | null;
         };
         StorefrontSettings: {
             _id: string;
@@ -10987,6 +10996,12 @@ export interface components {
                 publicId: string;
             } | null;
             banner?: {
+                url: string;
+                mediumUrl: string;
+                thumbnailUrl: string;
+                publicId: string;
+            } | null;
+            socialImage?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
@@ -11149,6 +11164,15 @@ export interface components {
             customersConfig?: {
                 allowAccounts?: boolean;
             };
+            adminStatusLabels?: {
+                pending?: string;
+                confirmed?: string;
+                processing?: string;
+                shipped?: string;
+                delivered?: string;
+                ready_for_pickup?: string;
+                picked_up?: string;
+            };
             trustBadges?: {
                 text?: string;
                 icon?: string;
@@ -11296,6 +11320,10 @@ export interface components {
             slug: string;
             title: string;
             body?: string;
+            seo?: {
+                title?: string;
+                description?: string;
+            };
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -11380,6 +11408,7 @@ export interface components {
             logo?: unknown;
             favicon?: unknown;
             banner?: unknown;
+            socialImage?: unknown;
             contact?: unknown;
             social?: unknown;
             contactButton?: {
@@ -11488,6 +11517,10 @@ export interface components {
                 publicId: string;
             } | null;
             description: string | null;
+            seo?: {
+                title?: string;
+                description?: string;
+            } | null;
             isSubcategory: boolean;
             parent: {
                 _id: string;
@@ -17138,6 +17171,15 @@ export interface operations {
                     customersConfig?: {
                         allowAccounts?: boolean;
                     };
+                    adminStatusLabels?: {
+                        pending?: string;
+                        confirmed?: string;
+                        processing?: string;
+                        shipped?: string;
+                        delivered?: string;
+                        ready_for_pickup?: string;
+                        picked_up?: string;
+                    };
                     trustBadges?: {
                         text: string;
                         icon?: string;
@@ -18595,6 +18637,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 parentId?: string | "null" | "!null" | "";
+                level?: "parent" | "sub" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -18874,6 +18917,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 parentId?: string | "null" | "!null" | "";
+                level?: "parent" | "sub" | "";
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -31272,7 +31316,7 @@ export interface operations {
                 page?: number;
                 limit?: number;
                 customerId?: string;
-                status?: "draft" | "partial" | "paid" | "cancelled";
+                status?: "draft" | "due" | "partial" | "paid" | "cancelled";
                 startDate?: string;
                 endDate?: string;
                 search?: string;
@@ -36205,6 +36249,10 @@ export interface operations {
                     published?: boolean;
                     showInFooter?: boolean;
                     sortOrder?: number;
+                    seo?: {
+                        title?: string;
+                        description?: string;
+                    };
                 };
             };
         };
@@ -36333,6 +36381,10 @@ export interface operations {
                     published?: boolean;
                     showInFooter?: boolean;
                     sortOrder?: number;
+                    seo?: {
+                        title?: string;
+                        description?: string;
+                    };
                 };
             };
         };
@@ -36698,6 +36750,8 @@ export interface operations {
                 "application/json": {
                     isListed?: boolean | ("true" | "false" | "1" | "0");
                     displayName?: string;
+                    seoTitle?: string;
+                    seoDescription?: string;
                 };
             };
         };

@@ -68,13 +68,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { origin, base } = target;
   const url = (path: string) => `${origin}${path}`;
 
-  const now = new Date();
+  /**
+   * `lastmod` is a claim, and a claim that always says "just now" is one a search
+   * engine learns to discount — taking the honest entries down with it. So every
+   * date below is a real one or absent:
+   *
+   *  - products and pages carry their own `updatedAt`;
+   *  - the home page and `/products` are catalogue views, so the newest product
+   *    edit IS their last modification;
+   *  - **collections and brands get none.** The public taxonomy readers don't
+   *    project `updatedAt`, and widening a shopper-facing payload to feed a
+   *    sitemap is the wrong trade. Omitting the field is a valid sitemap and an
+   *    honest one; inventing `now` was neither.
+   */
+  const newest = (dates: (string | undefined)[]): Date | undefined => {
+    const stamps = dates
+      .filter((d): d is string => !!d)
+      .map((d) => new Date(d).getTime())
+      .filter((t) => Number.isFinite(t));
+    return stamps.length ? new Date(Math.max(...stamps)) : undefined;
+  };
+
+  const catalogUpdatedAt = newest((data?.products ?? []).map((p) => p.updatedAt));
 
   const entries: MetadataRoute.Sitemap = [
-    { url: url(storeHref(base)), lastModified: now, changeFrequency: "daily", priority: 1 },
+    {
+      url: url(storeHref(base)),
+      lastModified: catalogUpdatedAt,
+      changeFrequency: "daily",
+      priority: 1,
+    },
     {
       url: url(storeHref(base, "/products")),
-      lastModified: now,
+      lastModified: catalogUpdatedAt,
       changeFrequency: "daily",
       priority: 0.9,
     },
@@ -88,7 +114,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const c of data.collections) {
     entries.push({
       url: url(collectionUrl(base, c.path)),
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
     });
@@ -96,7 +121,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const b of data.brands) {
     entries.push({
       url: url(facetUrl(base, "brandId", b.id)),
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
     });
@@ -104,7 +128,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const p of data.products) {
     entries.push({
       url: url(storeHref(base, `/products/${encodeURIComponent(p.slug)}`)),
-      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : undefined,
       changeFrequency: "weekly",
       priority: 0.8,
     });
@@ -112,7 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const p of data.pages) {
     entries.push({
       url: url(storeHref(base, `/pages/${encodeURIComponent(p.slug)}`)),
-      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : undefined,
       changeFrequency: "monthly",
       priority: 0.4,
     });

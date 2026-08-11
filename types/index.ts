@@ -254,6 +254,9 @@ export interface StorefrontSettings {
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;
+  /** Share-card image (1200×630). Unset ⇒ the public payload falls back to
+   *  banner → logo; this field is the merchant's own upload only. */
+  socialImage?: Image | null;
   storefrontLocationId?: string;
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };

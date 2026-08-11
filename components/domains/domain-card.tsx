@@ -12,7 +12,7 @@ import {
 import { StatusBadge, type StatusBadgeProps } from "@/ui/components/status-badge";
 import { adminUrlForDomain } from "@/lib/admin-url";
 import { ExternalLink, Loader2, RefreshCw, Trash2 } from "lucide-react";
-import { DnsInstructions } from "./dns-instructions";
+import { DnsInstructions, WwwDnsRecord } from "./dns-instructions";
 
 /** Map a domain status to a StatusBadge variant (`verifying` has no variant). */
 const badgeStatus = (
@@ -84,6 +84,12 @@ export function DomainCard({
               />
               <UrlRow label={t("adminUrl")} url={adminUrlForDomain(domain.domain)} />
             </div>
+          )}
+
+          {/* Stays after activation on purpose — see WwwDnsRecord. A merchant who
+              skipped it during setup has no other way back to the record. */}
+          {isActive && (
+            <WwwDnsRecord domain={domain.domain} step={t("wwwRecord")} />
           )}
 
           <div className="flex flex-wrap gap-2">

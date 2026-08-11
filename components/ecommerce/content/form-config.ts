@@ -52,6 +52,26 @@ export const contentFormConfig: DynamicFormConfig = {
       columnSpan: 4,
       defaultValue: 0,
     },
+    // Search-engine overrides. `title` above is the page heading and may run to
+    // 160 characters; a search result wants ~70, so these are separate fields
+    // rather than a reuse. Empty falls back to the heading (and, for the
+    // description, to nothing at all — which is what shipped before).
+    {
+      name: "seo.title",
+      type: "input",
+      label: "Search title (optional)",
+      placeholder: "Falls back to the page title",
+      validation: { maxLength: 70 },
+      columnSpan: 6,
+    },
+    {
+      name: "seo.description",
+      type: "input",
+      label: "Search description (optional)",
+      placeholder: "One or two sentences shown under the link in Google",
+      validation: { maxLength: 200 },
+      columnSpan: 6,
+    },
   ],
 };
 
@@ -62,6 +82,7 @@ export const contentDefaultValues = {
   published: false,
   showInFooter: true,
   sortOrder: 0,
+  seo: { title: "", description: "" },
 };
 
 export const contentFilterConfig: FilterConfig = {
