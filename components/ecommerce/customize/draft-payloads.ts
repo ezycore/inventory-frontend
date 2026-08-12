@@ -287,6 +287,7 @@ export function toPreviewPayload(
       productCard: draft.templates.productCard,
       cardActions: draft.templates.cardActions,
       pagination: draft.templates.pagination,
+      imageFit: draft.templates.imageFit,
       // Reached through the preview's page switcher; each is read by exactly one
       // storefront page, via `useStoreTemplate`.
       collection: draft.templates.collection,

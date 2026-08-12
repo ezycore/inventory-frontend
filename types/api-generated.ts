@@ -11215,6 +11215,7 @@ export interface components {
                 hero?: string;
                 headerMenu?: string;
                 pagination?: string;
+                imageFit?: string;
             };
             customersConfig?: {
                 allowAccounts?: boolean;
@@ -17361,6 +17362,7 @@ export interface operations {
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
+                        imageFit?: string;
                     };
                     customersConfig?: {
                         allowAccounts?: boolean;

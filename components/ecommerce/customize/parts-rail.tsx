@@ -209,6 +209,16 @@ export function PartsRail({
                     onChange={(v) => patchTemplate("cardActions", v)}
                   />
                 </PartBlock>
+                <PartBlock
+                  label="Image fit"
+                  hint="Applies everywhere a photo is shown — cards, home, hero, wishlist."
+                >
+                  <TemplatePicker
+                    templateKey="imageFit"
+                    value={draft.templates.imageFit}
+                    onChange={(v) => patchTemplate("imageFit", v)}
+                  />
+                </PartBlock>
               </>
             ) : (
               // home / product / checkout are a single layout choice each, so

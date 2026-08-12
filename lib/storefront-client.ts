@@ -203,6 +203,7 @@ export interface StoreTemplatesRaw {
   hero?: string;
   headerMenu?: string;
   pagination?: string;
+  imageFit?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -239,6 +240,8 @@ export interface StoreTemplates {
    * scroll (then a button), or a button only. Collection page + search results.
    */
   pagination: "pages" | "infinite" | "loadMore";
+  /** How a photo fills a box it doesn't match: full photo w/ blurred fill, or cropped. */
+  imageFit: "fit" | "crop";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */
