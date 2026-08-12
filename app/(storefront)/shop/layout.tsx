@@ -16,6 +16,15 @@ import { StoreShell } from "@/components/storefront/store-shell";
 // first paint already has the logo (no icon-less gap before hydration), and
 // `useFaviconOverride` in StoreShell keeps the same tag fresh client-side.
 
+/** Chrome-less wrapper for the two states where there is no store to build a
+ *  header from. The `.sf-root` design tokens come from the group layout above,
+ *  so the page inside still renders in the storefront's own styling. */
+const BareStorefront = ({ children }: { children: ReactNode }) => (
+  <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
+    {children}
+  </div>
+);
+
 /**
  * Resolves the active store from the request host (set by `proxy.ts`) and hands
  * `slug`/`base` to the client `StoreShell`. Server boundary so the slug comes
@@ -29,22 +38,19 @@ export default async function ShopLayout({
 }) {
   const { slug, base } = await getStoreContext();
 
-  if (!slug) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-2 p-6 text-center">
-        {/* This branch still answers HTTP 200 (a layout cannot set a status), so
-            without an explicit noindex an unpublished or unknown store would be
-            indexed as a soft 404 on every one of its URLs. React 19 hoists this
-            into <head>. A real 404 status is the fuller fix — it needs the owner
-            sign-in affordance in shop/page.tsx to move first. */}
-        <meta name="robots" content="noindex, nofollow" />
-        <h1 className="text-xl font-semibold">Store unavailable</h1>
-        <p className="text-sm text-gray-500">
-          This store doesn&apos;t exist or isn&apos;t published yet.
-        </p>
-      </div>
-    );
-  }
+  // No store on this host: render the page anyway, bare.
+  //
+  // This branch used to return its own "Store unavailable" card and never render
+  // `children` — which meant the pages below never *executed*, and so the
+  // `notFound()` they each already call could not fire. A layout cannot set a
+  // status code, so every URL of an unpublished store answered 200 with an
+  // apology: a soft 404 on the whole catalogue. Letting the page run is what
+  // moves the status to a real 404; the card itself now lives in `not-found.tsx`,
+  // where it can be shown with the right status behind it.
+  //
+  // `StoreShell` is skipped deliberately — a header, nav and footer built from a
+  // store that does not exist is worse than no chrome at all.
+  if (!slug) return <BareStorefront>{children}</BareStorefront>;
 
   // Fetch store + footer pages + live campaigns + the category tree server-side
   // so the shell paints the real name/brand/logo immediately and footer links,
@@ -60,6 +66,11 @@ export default async function ShopLayout({
     getStoreCampaigns(slug),
     getStoreCategories(slug),
   ]);
+
+  // The host names a store but the payload didn't come back — unpublished, or the
+  // API is down. Same reasoning as above: no chrome, and let the page decide the
+  // status.
+  if (!store) return <BareStorefront>{children}</BareStorefront>;
 
   const favicon = store?.favicon?.thumbnailUrl || store?.favicon?.url;
 

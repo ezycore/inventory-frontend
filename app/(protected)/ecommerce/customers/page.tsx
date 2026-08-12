@@ -2,57 +2,99 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
-import { useOnlineCustomers, type OnlineCustomer } from "@/services/api";
+import {
+  useOnlineCustomers,
+  useStorefrontSubscribers,
+} from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { formatMoney } from "@/components/storefront/format";
 import { ListPagination } from "@/components/ecommerce/list-pagination";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
-import { Card } from "@/ui/components/card";
-import { Skeleton } from "@/ui/components/skeleton";
+import { AccountsTable } from "@/components/ecommerce/customers/accounts-table";
+import { SubscribersTable } from "@/components/ecommerce/customers/subscribers-table";
+import { cn } from "@/ui/lib/utils";
 
-const fmtDate = (iso: string | null) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
-};
+/**
+ * The two ways someone can be attached to a shop without having bought: an
+ * account, or a footer sign-up. Both are read-only and both are written on the
+ * storefront — the admin app never creates either, which is why this page has no
+ * "add" button and the subscriber tab has no row actions.
+ */
+const TABS = [
+  {
+    key: "accounts" as const,
+    label: "Accounts",
+    hint: "Shoppers who created an account on your storefront. Buyers who ordered without one live under Customers.",
+    search: "Search name, phone, email",
+  },
+  {
+    key: "subscribers" as const,
+    label: "Subscribers",
+    hint: "People who signed up through your shop footer. They may never have ordered — this is a mailing list, not a customer list.",
+    search: "Search email",
+  },
+];
+
+type TabKey = (typeof TABS)[number]["key"];
 
 export default function EcommerceCustomersPage() {
-  const router = useRouter();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const [tab, setTab] = useState<TabKey>("accounts");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
-  const { data, isLoading, isFetching } = useOnlineCustomers({
-    search: search || undefined,
-    page,
-    limit,
-  });
-  const customers = data?.items ?? [];
-  const pagination = data?.pagination;
+  const params = { search: search || undefined, page, limit };
+  // Both run, and only the visible one is read. The alternative — `enabled` on
+  // each — makes switching tabs a spinner every time, for two lists that are a
+  // few kilobytes each.
+  const accounts = useOnlineCustomers(params);
+  const subscribers = useStorefrontSubscribers(params);
+
+  const active = TABS.find((t) => t.key === tab) ?? TABS[0];
+  const query = tab === "accounts" ? accounts : subscribers;
+  const pagination = query.data?.pagination;
+
+  const switchTab = (next: TabKey) => {
+    setTab(next);
+    // The two lists do not share a page cursor or a search term — page 3 of the
+    // accounts list means nothing in a subscriber list of 12.
+    setPage(1);
+    setSearch("");
+  };
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Storefront Accounts</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Shoppers who created an account on your storefront. Buyers who ordered
-          without an account live under Customers.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{active.hint}</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">
-          All Customers{" "}
-          <span className="font-normal text-muted-foreground">
-            ({pagination?.total ?? 0})
-          </span>
-        </h2>
+        <div className="flex flex-wrap gap-1">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => switchTab(t.key)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                tab === t.key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted",
+              )}
+            >
+              {t.label}
+              {tab === t.key && pagination ? (
+                <span className="ml-1.5 font-normal tabular-nums opacity-80">
+                  {pagination.total}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
         <ListSearchInput
-          placeholder="Search name, phone, email"
+          key={tab}
+          placeholder={active.search}
           onSearch={(v) => {
             setSearch(v);
             setPage(1);
@@ -60,61 +102,25 @@ export default function EcommerceCustomersPage() {
         />
       </div>
 
-      <Card className="overflow-hidden p-0 shadow-none">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b bg-muted/40 text-left text-xs font-semibold text-muted-foreground">
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-3 py-3">Phone</th>
-                <th className="px-3 py-3">Orders</th>
-                <th className="px-3 py-3">Total spent</th>
-                <th className="px-3 py-3">Last order</th>
-                <th className="w-8" />
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b">
-                    <td colSpan={6} className="px-4 py-3">
-                      <Skeleton className="h-5 w-full" />
-                    </td>
-                  </tr>
-                ))
-              ) : customers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center">
-                    <div className="text-sm font-semibold">No customers yet</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Shoppers appear here once they register on your store.
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                customers.map((c) => (
-                  <CustomerRow
-                    key={c._id}
-                    customer={c}
-                    currency={currency}
-                    fmtDate={fmtDate}
-                    onOpen={() =>
-                      router.push(`/ecommerce/customers/${c._id}`)
-                    }
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      {tab === "accounts" ? (
+        <AccountsTable
+          customers={accounts.data?.items ?? []}
+          currency={currency}
+          isLoading={accounts.isLoading}
+        />
+      ) : (
+        <SubscribersTable
+          subscribers={subscribers.data?.items ?? []}
+          isLoading={subscribers.isLoading}
+        />
+      )}
 
       <ListPagination
         page={page}
         totalPages={pagination?.totalPages ?? 1}
         total={pagination?.total}
         limit={limit}
-        isFetching={isFetching}
+        isFetching={query.isFetching}
         onPageChange={setPage}
         onLimitChange={(n) => {
           setLimit(n);
@@ -122,40 +128,5 @@ export default function EcommerceCustomersPage() {
         }}
       />
     </div>
-  );
-}
-
-function CustomerRow({
-  customer: c,
-  currency,
-  fmtDate,
-  onOpen,
-}: {
-  customer: OnlineCustomer;
-  currency?: string;
-  fmtDate: (iso: string | null) => string;
-  onOpen: () => void;
-}) {
-  return (
-    <tr
-      onClick={onOpen}
-      className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
-    >
-      <td className="px-4 py-3">
-        <div className="font-medium">{c.name}</div>
-        <div className="text-xs text-muted-foreground">{c.email}</div>
-      </td>
-      <td className="px-3 py-3 text-muted-foreground">{c.phone || "—"}</td>
-      <td className="px-3 py-3 tabular-nums">{c.orders}</td>
-      <td className="px-3 py-3 font-semibold tabular-nums">
-        {formatMoney(c.totalSpent, currency)}
-      </td>
-      <td className="px-3 py-3 text-muted-foreground">
-        {fmtDate(c.lastOrderAt)}
-      </td>
-      <td className="px-3 py-3 text-muted-foreground">
-        <ChevronRight className="h-4 w-4" />
-      </td>
-    </tr>
   );
 }

@@ -16,6 +16,7 @@ import {
   CollectionRow,
   toRowValue,
 } from "@/components/ecommerce/collections/collection-row";
+import { CollectionSeoFields } from "@/components/ecommerce/collections/collection-seo-fields";
 
 /**
  * Catalog → Collections: the full-width home for the storefront category
@@ -32,6 +33,8 @@ export function CollectionsTab() {
   const reorder = useReorderCollections();
   // Display-name edits are local until blur, so typing doesn't fire a PATCH per keystroke.
   const [edits, setEdits] = useState<Record<string, string>>({});
+  // Same policy for the two SEO fields, keyed `<id>:title` / `<id>:description`.
+  const [seoEdits, setSeoEdits] = useState<Record<string, string>>({});
 
   if (isLoading) {
     return (
@@ -117,6 +120,12 @@ export function CollectionsTab() {
       <div className="overflow-hidden rounded-lg border bg-card">
         {items.map((c, i) => {
           const row = toRowValue(c);
+          const seoTitle = seoEdits[`${c._id}:title`] ?? row.seoTitle;
+          const seoDescription =
+            seoEdits[`${c._id}:description`] ?? row.seoDescription;
+          const setSeo = (key: "title" | "description") => (v: string) =>
+            setSeoEdits((e) => ({ ...e, [`${c._id}:${key}`]: v }));
+
           return (
             <CollectionRow
               key={c._id}
@@ -138,7 +147,32 @@ export function CollectionsTab() {
               onToggleListed={(isListed) =>
                 updateCollection.mutate({ id: c._id, isListed })
               }
-            />
+            >
+              <CollectionSeoFields
+                name={row.displayName || row.name}
+                title={seoTitle}
+                description={seoDescription}
+                onTitleChange={setSeo("title")}
+                onDescriptionChange={setSeo("description")}
+                onCommit={() => {
+                  // Only send what moved: a PATCH carrying an unchanged field is
+                  // harmless but a blur on an untouched input would still fire one.
+                  const title = seoTitle.trim();
+                  const description = seoDescription.trim();
+                  if (
+                    title === row.seoTitle &&
+                    description === row.seoDescription
+                  ) {
+                    return;
+                  }
+                  updateCollection.mutate({
+                    id: c._id,
+                    seoTitle: title,
+                    seoDescription: description,
+                  });
+                }}
+              />
+            </CollectionRow>
           );
         })}
       </div>

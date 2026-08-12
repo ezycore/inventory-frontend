@@ -1,7 +1,18 @@
 // coding-standard: maintained
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { hostnameOf, resolveStoreForHost } from "@/lib/storefront-host-map";
+import {
+  hostnameOf,
+  isLocalDevHost,
+  isTenantRoutingConfigured,
+  resolveStoreForHost,
+  type ResolvedStore,
+} from "@/lib/storefront-host-map";
+import {
+  lookupCanonicalHostByHost,
+  lookupCanonicalHostBySlug,
+} from "@/lib/storefront-domain-lookup";
+import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
 
 /**
  * Option A routing + admin auth gate.
@@ -24,6 +35,11 @@ import { hostnameOf, resolveStoreForHost } from "@/lib/storefront-host-map";
  * The host→store rules themselves live in `lib/storefront-host-map.ts` — shared,
  * because `/robots.txt` and `/sitemap.xml` are excluded by the matcher below and
  * so must resolve the host without going through this proxy.
+ *
+ * A store with a custom domain renders on more than one of those hosts at once,
+ * so store traffic is additionally **301'd onto its canonical host**
+ * (`canonicalRedirectFor`) — the admin app is never touched by it. See
+ * `lib/storefront-canonical-redirect.ts`.
  */
 
 // Public admin routes that don't require authentication.
@@ -44,6 +60,30 @@ const isStorePath = (pathname: string) =>
 
 const isLegacyStorePath = (pathname: string) =>
   pathname === "/s" || pathname.startsWith("/s/");
+
+/**
+ * The one host this store's public URLs belong to, or null to serve the request
+ * where it is. Costs one cached backend lookup per store per minute per instance.
+ *
+ * Skipped outright in two cases, on the same principle `robots.ts` and
+ * `sitemap.ts` follow — say nothing rather than say something false:
+ *  - **local dev** (`*.localhost`), where a store whose seed data names a
+ *    production domain would bounce the developer clean out of their dev server;
+ *  - **a build with no `NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN`**, which cannot tell a
+ *    tenant subdomain from a custom domain and therefore cannot know whether
+ *    `/shop` belongs in the target path.
+ */
+const canonicalHostFor = async (
+  store: ResolvedStore,
+  host: string,
+): Promise<string | null> => {
+  if (isLocalDevHost(host) || !isTenantRoutingConfigured()) return null;
+  // On a custom domain this reuses the cache entry the host→slug lookup just
+  // filled, so resolving both costs one fetch, not two.
+  return store.base === ""
+    ? lookupCanonicalHostByHost(host)
+    : lookupCanonicalHostBySlug(store.slug);
+};
 
 export async function proxy(request: NextRequest) {
   const hostHeader = request.headers.get("host") || "";
@@ -73,6 +113,39 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL(store.base || "/", request.url));
     }
 
+    // ---- One permanent home per store ----
+    //
+    // A store with a custom domain renders on every host that resolves to it:
+    // the domain, a registered `www.` twin, and `{slug}.ezycore.com/shop`. The
+    // canonical tag asks a crawler to pick one; this tells it. Handles the host
+    // swap and the `/shop` strip together, so a stale
+    // `www.uriibaba.com/shop/phones` reaches `uriibaba.com/phones` in one hop.
+    //
+    // Only store traffic pays the lookup: on a tenant subdomain the admin app
+    // owns every path outside `/shop` and must never be redirected anywhere.
+    if (store.base === "" || isStorePath(pathname)) {
+      const host = hostnameOf(hostHeader);
+      const target = canonicalRedirectFor({
+        method: request.method,
+        host,
+        pathname,
+        base: store.base,
+        canonicalHost: await canonicalHostFor(store, host),
+      });
+      if (target) {
+        // A canonical host is served over TLS by definition — it only reaches
+        // `active` once its on-demand certificate is issued. Staying on the same
+        // host keeps the request's own scheme and port, which is what makes the
+        // `/shop` strip still work on a plain-http dev origin.
+        const sameHost = target.host === host;
+        const scheme = sameHost
+          ? request.nextUrl.protocol.replace(":", "")
+          : "https";
+        const destination = `${scheme}://${sameHost ? hostHeader : target.host}${target.path}${request.nextUrl.search}`;
+        return NextResponse.redirect(destination, 301);
+      }
+    }
+
     if (store.base === "") {
       // Custom domain: the store is served at the root → rewrite to /shop.
       if (!isStorePath(pathname)) {
@@ -81,6 +154,8 @@ export async function proxy(request: NextRequest) {
         return NextResponse.rewrite(url, { request: { headers } });
       }
       // Keep the internal `/shop` path out of the public custom-domain URL space.
+      // GET/HEAD already left above with a 301; this catches the rest, where a
+      // permanent redirect would be the wrong instruction to cache.
       return NextResponse.redirect(
         new URL(pathname.replace(/^\/shop/, "") || "/", request.url),
       );

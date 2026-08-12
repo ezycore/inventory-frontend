@@ -330,12 +330,22 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
-  /* -------------------------------------------------------------- footer */
+  /* -------------------------------------------------------------- footer
+     All five sketch the same thing: a wide identity block on the LEFT and the
+     link columns pushed to the RIGHT edge at their own width. That asymmetry is
+     the point of the layout, so the sketches have to show it — a sketch of four
+     equal columns is what the footer used to be, and looked fine while the real
+     thing left half its width empty. */
   "footer:columns": (
     <Frame className="justify-end">
-      <span className="flex gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className="flex flex-1 flex-col gap-0.5">
+      <span className="flex items-start gap-2 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className={cn(IMG, "h-1.5 w-1.5 rounded-full")} />
+          <span className={cn(BAR, "h-0.5 w-full")} />
+          <span className={cn(BAR, "h-0.5 w-2/3")} />
+        </span>
+        {[0, 1].map((i) => (
+          <span key={i} className="flex w-5 flex-col gap-0.5">
             <span className={cn(BAR, "h-0.5 w-3/5 bg-muted-foreground/60")} />
             <span className={cn(BAR, "h-0.5 w-full")} />
             <span className={cn(BAR, "h-0.5 w-4/5")} />
@@ -346,10 +356,14 @@ const SKETCHES: Record<string, ReactNode> = {
   ),
   "footer:simple": (
     <Frame className="justify-end">
-      <span className="flex items-center justify-center gap-1.5 rounded-[2px] border border-border bg-background p-2">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className={cn(BAR, "h-0.5 w-3")} />
-        ))}
+      <span className="flex flex-col items-center gap-1 rounded-[2px] border border-border bg-background p-1.5">
+        <span className={cn(IMG, "h-1.5 w-1.5 rounded-full")} />
+        <span className={cn(BAR, "h-0.5 w-2/3")} />
+        <span className="flex items-center gap-1">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className={cn(BAR, "h-0.5 w-2.5")} />
+          ))}
+        </span>
       </span>
     </Frame>
   ),
@@ -360,11 +374,56 @@ const SKETCHES: Record<string, ReactNode> = {
           <span key={i} className={cn(CTA, "h-1.5 w-1.5 rounded-full")} />
         ))}
       </span>
-      <span className="flex gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className="flex flex-1 flex-col gap-0.5">
+      <span className="flex items-start gap-2 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className={cn(BAR, "h-0.5 w-full")} />
+          <span className={cn(BAR, "h-0.5 w-2/3")} />
+        </span>
+        {[0, 1].map((i) => (
+          <span key={i} className="flex w-5 flex-col gap-0.5">
             <span className={cn(BAR, "h-0.5 w-3/5 bg-muted-foreground/60")} />
             <span className={cn(BAR, "h-0.5 w-full")} />
+          </span>
+        ))}
+      </span>
+    </Frame>
+  ),
+  "footer:contact": (
+    <Frame className="justify-end">
+      <span className="flex items-start gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className={cn(IMG, "h-1.5 w-1.5 rounded-full")} />
+          <span className={cn(BAR, "h-0.5 w-full")} />
+        </span>
+        {/* The contact card — the one element this layout is named for. */}
+        <span className="flex w-7 flex-col gap-0.5 rounded-[2px] border border-primary/40 bg-primary/10 p-1">
+          <span className={cn(BAR, "h-1 w-full bg-muted-foreground/60")} />
+          <span className={cn(CTA, "h-1 w-4/5")} />
+        </span>
+        <span className="flex w-4 flex-col gap-0.5">
+          <span className={cn(BAR, "h-0.5 w-3/5 bg-muted-foreground/60")} />
+          <span className={cn(BAR, "h-0.5 w-full")} />
+          <span className={cn(BAR, "h-0.5 w-4/5")} />
+        </span>
+      </span>
+    </Frame>
+  ),
+  "footer:newsletter": (
+    <Frame className="justify-end">
+      <span className="flex items-start gap-2 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className={cn(BAR, "h-0.5 w-2/3 bg-muted-foreground/60")} />
+          {/* The sign-up row: a field and its button. */}
+          <span className="flex items-center gap-0.5">
+            <span className={cn(BOX, "h-1.5 flex-1")} />
+            <span className={cn(CTA, "h-1.5 w-3")} />
+          </span>
+        </span>
+        {[0, 1].map((i) => (
+          <span key={i} className="flex w-5 flex-col gap-0.5">
+            <span className={cn(BAR, "h-0.5 w-3/5 bg-muted-foreground/60")} />
+            <span className={cn(BAR, "h-0.5 w-full")} />
+            <span className={cn(BAR, "h-0.5 w-4/5")} />
           </span>
         ))}
       </span>

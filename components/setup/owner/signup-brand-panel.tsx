@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import { BarChart3, Package, ShieldCheck, Store, Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { BRAND } from "@/constants/brand";
 
@@ -11,34 +12,17 @@ import { BRAND } from "@/constants/brand";
  * have not seen it yet. The online store leads: it is the capability they are
  * least likely to expect from an inventory tool, and the one that changes what
  * their business can do.
+ *
+ * Only the icon and the message-key stem live here — both components below
+ * bind their own `t`, since a plain function called during render cannot.
  */
 const SIGNUP_HIGHLIGHTS = [
-  {
-    icon: Store,
-    title: "Your own online store",
-    description: "Branded, on your domain — included in every plan.",
-  },
-  {
-    icon: Package,
-    title: "One stock count",
-    description: "Your website and your counter can't sell the same piece twice.",
-  },
-  {
-    icon: Truck,
-    title: "Courier pickup built in",
-    description: "Pathao, Steadfast and eCourier, from inside the order.",
-  },
-  {
-    icon: BarChart3,
-    title: "Online and in-store, one report",
-    description: "Sales, profit and low-stock alerts in one place.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure by design",
-    description: "Role-based access and full control.",
-  },
-];
+  { icon: Store, key: "store" },
+  { icon: Package, key: "stock" },
+  { icon: Truck, key: "courier" },
+  { icon: BarChart3, key: "reports" },
+  { icon: ShieldCheck, key: "security" },
+] as const;
 
 /** How many highlights the mobile strip can carry without wrapping past a line or two. */
 const MOBILE_HIGHLIGHT_COUNT = 3;
@@ -48,6 +32,9 @@ const MOBILE_HIGHLIGHT_COUNT = 3;
  * `SignupHighlightStrip` for what phone-width signups get instead.
  */
 export function SignupBrandPanel() {
+  const t = useTranslations("auth.signup");
+  const tHighlight = useTranslations("auth.signup.highlights");
+
   return (
     // Gradient runs the logo palette itself — brand green (#0E8F73) into the
     // mark's two navies — so the inverse logo mark sits on its own colours.
@@ -71,12 +58,9 @@ export function SignupBrandPanel() {
 
       <div className="relative space-y-3">
         <h2 className="max-w-[15ch] text-3xl font-bold leading-[1.14] tracking-tight xl:text-4xl">
-          Put your shop online. Sell while you sleep.
+          {t("panelHeadline")}
         </h2>
-        <p className="max-w-sm text-sm text-white/75">
-          A branded online store — plus the stock, sales, purchases and delivery
-          behind it. One workspace, set up in about two minutes.
-        </p>
+        <p className="max-w-sm text-sm text-white/75">{t("panelSubhead")}</p>
       </div>
 
       {/* Pushed to the bottom so the pitch reads first and the panel has no
@@ -84,20 +68,27 @@ export function SignupBrandPanel() {
       <ul className="relative mt-auto">
         {SIGNUP_HIGHLIGHTS.map((highlight) => (
           <li
-            key={highlight.title}
+            key={highlight.key}
             className="flex items-center gap-3.5 border-t border-white/10 py-3 first:border-t-0"
           >
             <highlight.icon className="h-4 w-4 shrink-0 text-[#6FE3C4]" />
             <div className="min-w-0">
-              <p className="text-sm font-medium">{highlight.title}</p>
-              <p className="text-xs text-white/60">{highlight.description}</p>
+              <p className="text-sm font-medium">
+                {tHighlight(`${highlight.key}Title`)}
+              </p>
+              <p className="text-xs text-white/60">
+                {tHighlight(`${highlight.key}Description`)}
+              </p>
             </div>
           </li>
         ))}
       </ul>
 
       <p className="relative text-xs text-white/50">
-        © {new Date().getFullYear()} {BRAND.name}. All rights reserved.
+        {t("panelCopyright", {
+          year: new Date().getFullYear(),
+          brand: BRAND.name,
+        })}
       </p>
     </aside>
   );
@@ -109,15 +100,17 @@ export function SignupBrandPanel() {
  * carries its leading claims at mobile width, from the same list.
  */
 export function SignupHighlightStrip() {
+  const tHighlight = useTranslations("auth.signup.highlights");
+
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-2 lg:hidden">
       {SIGNUP_HIGHLIGHTS.slice(0, MOBILE_HIGHLIGHT_COUNT).map((highlight) => (
         <li
-          key={highlight.title}
+          key={highlight.key}
           className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
         >
           <highlight.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-          {highlight.title}
+          {tHighlight(`${highlight.key}Title`)}
         </li>
       ))}
     </ul>

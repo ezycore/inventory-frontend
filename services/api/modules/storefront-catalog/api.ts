@@ -87,7 +87,14 @@ export const storefrontCatalogApi = {
     apiClient.get(collectionsBase),
   updateCollection: (
     id: string,
-    dto: { isListed?: boolean; displayName?: string },
+    dto: {
+      isListed?: boolean;
+      displayName?: string;
+      // Flat, mapped to `storefront.seo.*` server-side — same convention as the
+      // product editor. An empty string clears the override.
+      seoTitle?: string;
+      seoDescription?: string;
+    },
   ): Promise<ApiResponse<StorefrontCollection>> =>
     apiClient.patch(`${collectionsBase}/${id}`, dto),
   reorderCollections: (

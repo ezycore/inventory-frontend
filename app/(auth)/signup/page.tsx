@@ -3,11 +3,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ArrowRight, Loader2, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-import { ownerSetupFormConfig } from "@/components/setup/owner/owner-setup-form-config";
+import { getOwnerSetupFormConfig } from "@/components/setup/owner/owner-setup-form-config";
 import { SetupProgress } from "@/components/setup/owner/setup-progress";
 import {
   SignupBrandPanel,
@@ -17,6 +18,7 @@ import { BRAND, LEGAL_URLS } from "@/constants/brand";
 import { getCountryDefaults } from "@/constants/organization-options";
 import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
+import { detectCountryCode } from "@/utils/detect-country";
 import { slugify } from "@/utils/slugify";
 import { Button } from "@/ui/components/button";
 import DynamicForm from "@/ui/components/form";
@@ -35,8 +37,13 @@ function getSignupPlanFromUrl() {
 }
 
 export default function Signup() {
+  const t = useTranslations("auth.signup");
   const createOwnerMutation = useSignupAPi();
-  const { form, config } = useDynamicForm(ownerSetupFormConfig);
+  // Memoized on `t`: `useDynamicForm` keys its schema, resolver and default
+  // values off the config's identity, so an unstable config would rebuild the
+  // form on every keystroke. `t` changes only when the locale does.
+  const formConfig = useMemo(() => getOwnerSetupFormConfig(t), [t]);
+  const { form, config } = useDynamicForm(formConfig);
 
   // Derived-field updates run from the form's onFieldChange, which fires
   // directly on every keystroke / selection (more reliable than a watch effect):
@@ -44,22 +51,31 @@ export default function Signup() {
   //  - org name → auto-generates the slug, until the user edits the slug by hand
   const slugManuallyEditedRef = useRef(false);
 
+  const applyCountryDefaults = useCallback(
+    (countryCode: string) => {
+      const defaults = getCountryDefaults(countryCode);
+      if (!defaults) return;
+      form.setValue("timezone", defaults.timezone, { shouldValidate: true });
+      form.setValue("currency", defaults.currency, { shouldValidate: true });
+    },
+    [form],
+  );
+
   const handleFieldChange = useCallback(
     (fieldName: string, value: any) => {
       if (fieldName === "country") {
-        const defaults = getCountryDefaults(value);
-        if (defaults) {
-          form.setValue("timezone", defaults.timezone, {
-            shouldValidate: true,
-          });
-          form.setValue("currency", defaults.currency, {
-            shouldValidate: true,
-          });
-        }
+        applyCountryDefaults(value);
       } else if (fieldName === "organizationName") {
         if (!slugManuallyEditedRef.current) {
-          form.setValue("organizationSlug", slugify(value || ""), {
-            shouldValidate: Boolean(value),
+          const suggestion = slugify(value || "");
+          // A name with no Latin characters — "রহিম ফার্মেসি" — slugifies to
+          // the empty string. Leave the field blank and let them type it:
+          // never validate here, or a required-field error lands on a control
+          // they have not touched, blaming them for their own shop's name. We
+          // don't generate a substitute either — this address is what they and
+          // their customers have to remember, so it is theirs to choose.
+          form.setValue("organizationSlug", suggestion, {
+            shouldValidate: Boolean(suggestion),
           });
         }
       } else if (fieldName === "organizationSlug") {
@@ -67,17 +83,33 @@ export default function Signup() {
         slugManuallyEditedRef.current = true;
       }
     },
-    [form],
+    [applyCountryDefaults, form],
   );
 
-  // `/signup?demo=true` pre-enables the "load sample data" switch so the new
-  // (real) account lands fully populated. It stays a normal, permanent workspace
-  // — the seeded rows are `isDemoData` and can be wiped via the demo banner's
-  // one-click reset. The user can still toggle the switch off before submitting.
+  // Pre-select the country the visitor is actually in, which fills timezone and
+  // currency with it. Otherwise a Dhaka merchant has to find Bangladesh in a
+  // list of fourteen and Asia/Dhaka in a list of seventeen, on the screen where
+  // they have least patience for either. Runs client-side only (the detection
+  // reads `Intl`/`navigator`), and only while the field is still untouched.
+  useEffect(() => {
+    if (form.getValues("country")) return;
+    const detected = detectCountryCode();
+    if (!detected) return;
+    form.setValue("country", detected, { shouldValidate: true });
+    applyCountryDefaults(detected);
+  }, [applyCountryDefaults, form]);
+
+  // `/signup?demo=false` opts OUT of the sample data that is otherwise on by
+  // default. The seeded rows are `isDemoData` and can be wiped via the demo
+  // banner's one-click reset; the workspace itself is normal and permanent.
+  // The user can still flip the switch either way before submitting.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("demo") === "true") {
-      form.setValue("loadSampleData", true, { shouldValidate: false });
+    const demo = params.get("demo");
+    if (demo === "true" || demo === "false") {
+      form.setValue("loadSampleData", demo === "true", {
+        shouldValidate: false,
+      });
     }
   }, [form]);
 
@@ -88,13 +120,13 @@ export default function Signup() {
     if (createOwnerMutation.isPending) return;
 
     if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     // Schema already enforces this — belt and suspenders.
     if (data.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("passwordTooShort"));
       return;
     }
 
@@ -131,16 +163,15 @@ export default function Signup() {
                 language + theme toggles in the top-right corner. */}
             <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">
-                Create your workspace and online store
+                {t("title")}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Two minutes, and you&apos;re in — with a storefront ready to
-                publish. Already have an account?{" "}
+                {t("subtitle")} {t("haveAccount")}{" "}
                 <Link
                   href="/login"
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
-                  Sign in
+                  {t("signIn")}
                 </Link>
               </p>
             </div>
@@ -159,11 +190,9 @@ export default function Signup() {
                   <Loader2 className="h-7 w-7 animate-spin text-primary" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-lg font-semibold">
-                    Setting up your account…
-                  </p>
+                  <p className="text-lg font-semibold">{t("creatingTitle")}</p>
                   <p className="text-sm text-muted-foreground">
-                    We&apos;re creating your workspace. This only takes a moment.
+                    {t("creatingDescription")}
                   </p>
                 </div>
               </div>
@@ -187,12 +216,13 @@ export default function Signup() {
                 <p className="flex items-start gap-2.5 border-l-2 border-amber-500/70 bg-amber-500/5 px-3 py-2.5 text-xs text-muted-foreground">
                   <ShieldAlert className="mt-px h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500" />
                   <span>
-                    This is the{" "}
-                    <span className="font-medium text-foreground">
-                      owner account
-                    </span>{" "}
-                    — full control over users, roles and settings. You can invite
-                    your team once you&apos;re in.
+                    {t.rich("ownerNotice", {
+                      b: (chunks) => (
+                        <span className="font-medium text-foreground">
+                          {chunks}
+                        </span>
+                      ),
+                    })}
                   </span>
                 </p>
               </>
@@ -206,25 +236,28 @@ export default function Signup() {
               {/* Passive consent, deliberately not a checkbox — the links must
                   reach the public marketing site, which is a different origin. */}
               <p className="text-xs text-muted-foreground">
-                By creating an account you agree to the{" "}
-                <a
-                  href={LEGAL_URLS.terms}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
-                >
-                  Terms
-                </a>{" "}
-                and{" "}
-                <a
-                  href={LEGAL_URLS.privacy}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
-                >
-                  Privacy Policy
-                </a>
-                .
+                {t.rich("legalConsent", {
+                  terms: (chunks) => (
+                    <a
+                      href={LEGAL_URLS.terms}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                  privacy: (chunks) => (
+                    <a
+                      href={LEGAL_URLS.privacy}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
               </p>
               {/* Native submit for the form rendered above — DynamicForm's own
                   button only calls the same handler, so this is equivalent. */}
@@ -233,7 +266,7 @@ export default function Signup() {
                 form="owner-setup-form"
                 className="gap-2 sm:w-auto"
               >
-                Create workspace
+                {t("submit")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

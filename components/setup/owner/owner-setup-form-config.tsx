@@ -6,164 +6,200 @@ import { SampleDataToggle } from "@/components/setup/owner/sample-data-toggle";
 import {
   COUNTRY_OPTIONS,
   CURRENCY_OPTIONS,
-  INDUSTRY_OPTIONS,
   TIMEZONE_OPTIONS,
+  getIndustryOptions,
 } from "@/constants/organization-options";
+import type { Translator } from "@/i18n/config";
 import { getRootDomain } from "@/lib/organization-utils";
+import { slugify } from "@/utils/slugify";
 import { DynamicFormConfig } from "@/ui/components/form/type";
 
-/** Field config for the signup form — the owner account plus its organization. */
-export const ownerSetupFormConfig: DynamicFormConfig = {
-  sections: [
-    {
-      title: "Your account",
-      description: "You'll sign in with this",
-      icon: <User className="h-4 w-4" />,
-      collapsible: false,
-      fields: [
-        {
-          name: "firstName",
-          type: "input",
-          label: "First Name",
-          columnSpan: 6,
-          placeholder: "John",
-          required: true,
-          validation: { minLength: 2, maxLength: 100 },
-        },
-        {
-          name: "lastName",
-          type: "input",
-          label: "Last Name",
-          columnSpan: 6,
-          placeholder: "Doe",
-          validation: { maxLength: 100 },
-        },
-        {
-          name: "email",
-          type: "input",
-          label: "Email Address",
-          columnSpan: 6,
-          placeholder: "john@company.com",
-          required: true,
-          validation: { email: true },
-        },
-        {
-          name: "phone",
-          type: "input",
-          label: "Phone Number",
-          columnSpan: 6,
-          placeholder: "+1 (234) 567-8900",
-          validation: { maxLength: 20 },
-        },
-        {
-          name: "password",
-          type: "password",
-          label: "Password",
-          columnSpan: 6,
-          placeholder: "Create a password",
-          required: true,
-          // Stated as persistent helper text rather than only a placeholder,
-          // which disappears the moment they start typing.
-          helperText: "Minimum 8 characters",
-          validation: { minLength: 8 },
-        },
-        {
-          name: "confirmPassword",
-          type: "password",
-          label: "Confirm Password",
-          columnSpan: 6,
-          placeholder: "Re-enter password",
-          required: true,
-          validation: { minLength: 8 },
-        },
-      ],
-    },
-    {
-      title: "Your organization",
-      description: "You can change all of this later",
-      icon: <Building2 className="h-4 w-4" />,
-      collapsible: false,
-      fields: [
-        {
-          name: "organizationName",
-          type: "input",
-          label: "Organization Name",
-          columnSpan: 6,
-          placeholder: "ABC Manufacturing Ltd",
-          required: true,
-          validation: { minLength: 2, maxLength: 200 },
-        },
-        {
-          name: "organizationSlug",
-          type: "input",
-          label: "Workspace address",
-          columnSpan: 6,
-          placeholder: "abc-manufacturing-ltd",
-          required: true,
-          // Rendered inside the field so the address is visible, not just
-          // described. Omitted when NEXT_PUBLIC_ROOT_DOMAIN is unset (local dev
-          // / single-host), where there is no subdomain to show.
-          suffix: () => {
-            const root = getRootDomain();
-            return root ? `.${root}` : undefined;
+/**
+ * Field config for the signup form — the owner account plus its organization.
+ *
+ * A builder rather than a constant because every label on it is translated;
+ * the caller binds `t` to the `auth.signup` namespace. Memoize the result —
+ * `useDynamicForm` keys its schema and defaults off the config's identity.
+ *
+ * Country, timezone and currency option *labels* stay English: those three
+ * arrays are shared with Settings → Organization, which reads a different
+ * message namespace, and they are country names and ISO currency codes rather
+ * than product copy. Business types are translated (`getIndustryOptions`) —
+ * those are our words, not proper nouns.
+ */
+export function getOwnerSetupFormConfig(t: Translator): DynamicFormConfig {
+  return {
+    sections: [
+      {
+        title: t("accountSectionTitle"),
+        description: t("accountSectionDescription"),
+        icon: <User className="h-4 w-4" />,
+        collapsible: false,
+        fields: [
+          {
+            name: "firstName",
+            type: "input",
+            label: t("firstNameLabel"),
+            columnSpan: 6,
+            placeholder: t("firstNamePlaceholder"),
+            required: true,
+            validation: { minLength: 2, maxLength: 100 },
           },
-          validation: {
-            minLength: 2,
-            maxLength: 100,
-            pattern: /^[a-z0-9-]+$/,
-            patternMessage:
-              "Only lowercase letters, numbers, and hyphens allowed",
+          {
+            name: "lastName",
+            type: "input",
+            label: t("lastNameLabel"),
+            columnSpan: 6,
+            placeholder: t("lastNamePlaceholder"),
+            validation: { maxLength: 100 },
           },
-          tooltip:
-            "Where you and your team will sign in — and the address your online store gets on day one. Lowercase letters, numbers and hyphens. Prefer your own domain? You can connect one later in Settings → Domains.",
-        },
-        {
-          name: "industry",
-          type: "select",
-          label: "Industry",
-          columnSpan: 6,
-          placeholder: "Select industry",
-          required: true,
-          options: INDUSTRY_OPTIONS,
-        },
-        {
-          name: "country",
-          type: "select",
-          label: "Country",
-          columnSpan: 6,
-          placeholder: "Select country",
-          required: true,
-          options: COUNTRY_OPTIONS,
-        },
-        {
-          name: "timezone",
-          type: "select",
-          label: "Timezone",
-          columnSpan: 6,
-          placeholder: "Select timezone",
-          required: true,
-          options: TIMEZONE_OPTIONS,
-        },
-        {
-          name: "currency",
-          type: "select",
-          label: "Currency",
-          columnSpan: 6,
-          placeholder: "Select currency",
-          required: true,
-          options: CURRENCY_OPTIONS,
-        },
-        {
-          name: "loadSampleData",
-          type: "custom",
-          // Render as a rich toggle card while keeping a boolean in the schema.
-          zodType: "boolean",
-          defaultValue: false,
-          label: "",
-          columnSpan: 12,
-          customComponent: SampleDataToggle,
-        },
-      ],
-    },
-  ],
-};
+          {
+            name: "email",
+            type: "input",
+            label: t("emailLabel"),
+            columnSpan: 6,
+            placeholder: t("emailPlaceholder"),
+            required: true,
+            validation: { email: true },
+          },
+          {
+            name: "phone",
+            type: "input",
+            label: t("phoneLabel"),
+            columnSpan: 6,
+            placeholder: t("phonePlaceholder"),
+            validation: { maxLength: 20 },
+          },
+          {
+            name: "password",
+            type: "password",
+            label: t("passwordLabel"),
+            columnSpan: 6,
+            placeholder: t("passwordPlaceholder"),
+            required: true,
+            // Stated as persistent helper text rather than only a placeholder,
+            // which disappears the moment they start typing.
+            helperText: t("passwordHelper"),
+            validation: { minLength: 8 },
+          },
+          {
+            name: "confirmPassword",
+            type: "password",
+            label: t("confirmPasswordLabel"),
+            columnSpan: 6,
+            placeholder: t("confirmPasswordPlaceholder"),
+            required: true,
+            validation: { minLength: 8 },
+          },
+        ],
+      },
+      {
+        title: t("organizationSectionTitle"),
+        description: t("organizationSectionDescription"),
+        icon: <Building2 className="h-4 w-4" />,
+        collapsible: false,
+        fields: [
+          {
+            name: "organizationName",
+            type: "input",
+            label: t("organizationNameLabel"),
+            columnSpan: 6,
+            placeholder: t("organizationNamePlaceholder"),
+            required: true,
+            validation: { minLength: 2, maxLength: 200 },
+          },
+          {
+            name: "organizationSlug",
+            type: "input",
+            // NOT "workspace address" — that reads as a street address, which
+            // is the one thing it isn't. This field is a URL.
+            label: t("organizationSlugLabel"),
+            columnSpan: 6,
+            placeholder: t("organizationSlugPlaceholder"),
+            required: true,
+            // Rendered inside the field so the address is visible, not just
+            // described. Omitted when NEXT_PUBLIC_ROOT_DOMAIN is unset (local dev
+            // / single-host), where there is no subdomain to show.
+            suffix: () => {
+              const root = getRootDomain();
+              return root ? `.${root}` : undefined;
+            },
+            // A shop name written in Bangla (or any non-Latin script) slugifies
+            // to nothing, so the page leaves this field empty for the merchant
+            // to fill in. Saying why, at the field, is the whole fix: without
+            // it they meet a required-field error on something they never
+            // touched and read it as "this software won't take my shop's name".
+            // We deliberately do NOT invent a slug for them — it is the address
+            // they and their customers have to remember.
+            helperText: (values) => {
+              const name =
+                typeof values.organizationName === "string"
+                  ? values.organizationName.trim()
+                  : "";
+              return name && !slugify(name)
+                ? t("organizationSlugManualHelper")
+                : t("organizationSlugHelper");
+            },
+            validation: {
+              minLength: 2,
+              maxLength: 100,
+              pattern: /^[a-z0-9-]+$/,
+              patternMessage: t("organizationSlugPatternMessage"),
+            },
+            tooltip: t("organizationSlugTooltip"),
+          },
+          {
+            name: "industry",
+            type: "select",
+            label: t("industryLabel"),
+            columnSpan: 6,
+            placeholder: t("industryPlaceholder"),
+            required: true,
+            options: getIndustryOptions(t),
+          },
+          {
+            name: "country",
+            type: "select",
+            label: t("countryLabel"),
+            columnSpan: 6,
+            placeholder: t("countryPlaceholder"),
+            required: true,
+            options: COUNTRY_OPTIONS,
+          },
+          {
+            name: "timezone",
+            type: "select",
+            label: t("timezoneLabel"),
+            columnSpan: 6,
+            placeholder: t("timezonePlaceholder"),
+            required: true,
+            options: TIMEZONE_OPTIONS,
+          },
+          {
+            name: "currency",
+            type: "select",
+            label: t("currencyLabel"),
+            columnSpan: 6,
+            placeholder: t("currencyPlaceholder"),
+            required: true,
+            options: CURRENCY_OPTIONS,
+          },
+          {
+            name: "loadSampleData",
+            type: "custom",
+            // Render as a rich toggle card while keeping a boolean in the schema.
+            zodType: "boolean",
+            // On by default. An empty workspace is the most common way a trial
+            // dies in its first five minutes — there is nothing to look at, so
+            // there is nothing to come back for. The switch stays, so anyone
+            // who wants to start clean still can.
+            defaultValue: true,
+            label: "",
+            columnSpan: 12,
+            customComponent: SampleDataToggle,
+          },
+        ],
+      },
+    ],
+  };
+}

@@ -50,6 +50,34 @@ your logo, banner, slide and announcement pictures — save the moment you uploa
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 
+### Footer
+
+**Footer** is the last thing a shopper reads and the place a hesitant one looks for proof that a real
+business is behind the shop. There are five layouts, and the right one depends on how much you have
+to put in it:
+
+- **Columns** — your brand, a line about the shop, your phone and your social links on the left;
+  your link groups on the right. The sensible default, and it looks right whether you have one link
+  group or four.
+- **Centered** — one centred stack. Best when you have only a few links; it is the tidiest way to
+  look finished on your first week.
+- **Trust badges** — Columns, with your three promises in a band above it. Write your own, or leave
+  a badge empty to keep the standard wording.
+- **Contact first** — your phone number at full size with a WhatsApp button beside it. Choose this if
+  people phone you to order, which in Bangladesh many still do. If you have not published a number or
+  a WhatsApp button, this quietly falls back to Columns rather than showing an empty box.
+- **Stay in touch** — an email sign-up beside your links. Addresses collect under **Storefront
+  Accounts → Subscribers**.
+
+Everything in the footer is yours to write. **About your shop** is the paragraph under your name.
+**Bottom line** is the small text on the right of the copyright — a city, a trade licence number,
+whatever you need there; leave it empty and it shows your currency. Your phone comes from
+Settings → General and your chat buttons from the **WhatsApp button** part, so there is only ever one
+copy of your number to keep correct.
+
+Anything you leave blank falls back to standard wording in both English and Bangla, so a footer you
+never touch still reads properly.
+
 One setting changes how shoppers move through a long list: under **Collections**, the way more
 products load. Numbered pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load
 more button keep them moving, which suits a catalogue people browse rather than search. Infinite

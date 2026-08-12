@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type Control, useWatch } from "react-hook-form";
 
 import { cn } from "@/ui/lib/utils";
@@ -26,14 +27,17 @@ const ORG_FIELDS = [
  * this rail and not the whole page (and not DynamicForm with it).
  */
 export function SetupProgress({ control }: { control: Control<any> }) {
+  const t = useTranslations("auth.signup");
   const values = useWatch({ control, name: [...ACCOUNT_FIELDS, ...ORG_FIELDS] });
   const filled = (from: number, count: number) =>
     values.slice(from, from + count).every((v) => Boolean(v));
 
+  // The same two keys the form's section headers use — the rail names the
+  // sections, so a reworded header must never leave it saying something else.
   const steps = [
-    { label: "Your account", done: filled(0, ACCOUNT_FIELDS.length) },
+    { label: t("accountSectionTitle"), done: filled(0, ACCOUNT_FIELDS.length) },
     {
-      label: "Your organization",
+      label: t("organizationSectionTitle"),
       done: filled(ACCOUNT_FIELDS.length, ORG_FIELDS.length),
     },
   ];

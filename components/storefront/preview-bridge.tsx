@@ -48,6 +48,12 @@ export function StorePreviewBridge() {
         collections: p.collections,
         footerGroups: p.nav?.footer,
         footerContentPages: p.nav?.footerContentPages,
+        // Footer copy. Sent raw, so `""` reaches the store as a real draft
+        // ("cleared → show the localized default") rather than as "not drafted".
+        footerText: p.footerText,
+        footerNote: p.footerNote,
+        footerContactHeading: p.footerContactHeading,
+        footerNewsletter: p.footerNewsletter,
         // Explicit `null` when the merchant has the launcher off — the store
         // can't use a `?? saved` fallback for it, same as the images below.
         contactButton: p.contactButton,

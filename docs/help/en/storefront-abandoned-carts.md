@@ -44,19 +44,18 @@ top to bottom and look for the **biggest single drop** — that is where to spen
 
 1. **Built a cart** — added at least one item.
 2. **Reached checkout** — opened the checkout page.
-3. **Signed in** — your store requires an account before ordering, so everyone must pass here.
-4. **Email verified** — shoppers cannot place an order until they have clicked the link in their
-   verification email.
+3. **Signed in** — chose to use an account rather than checking out as a guest.
+4. **Email verified** — of those, the ones who have confirmed their address.
 5. **Ordered** — became a real order.
 
-Steps 3 and 4 are worth watching closely, because they are walls your store puts up on purpose.
+Steps 3 and 4 are **not** walls: shoppers can check out as guests, so a cart that skips them and
+still reaches **Ordered** is a perfectly healthy one. Read them as "how many chose an account",
+not as drop-off — a big gap between step 2 and step 3 with a healthy step 5 means guest checkout is
+doing its job.
 
-- A big drop at **Signed in** means people did not want to create an account. You cannot remove that
-  requirement, but you can make it far less work: turn on **Google sign-in** in your store settings,
-  which lets a shopper in with one tap.
-- A big drop at **Email verified** is people who *did* create an account and then never came back
-  from their inbox. Google sign-in skips this step entirely too, because those accounts arrive
-  already verified.
+Signed-in shoppers are worth having (order history, saved addresses, and they are the only ones
+reminder emails can reach), so **Google sign-in** in your store settings is still worth turning on —
+it makes an account one tap, and those accounts arrive already verified.
 
 ## Most-abandoned products
 
@@ -70,15 +69,25 @@ problem is usually that product — its price, or it being out of stock — rath
 - **Ordered** — carts that became orders.
 - **All** — every cart that ever held an item.
 
-Search matches the **shopper's** name, email or phone.
+Search matches the name, email or phone on the cart — whether it came from a shopper's account or
+from what a guest typed at checkout.
 
-## "Guest — not reachable"
+## Who a cart belongs to
 
-A cart only gets a name once the shopper signs in. Before that you have no email, no phone and no
-permission to contact them, so those rows show **Guest — not reachable**. This is usually the largest
-group, and there is no way to message them — which is exactly why the funnel above matters more than
-the list. Fixing the step that loses them helps everyone; a message can only ever reach the few who
-already signed in.
+The Shopper column has three answers, and the difference between them matters:
+
+- **A name and email with no tag** — the shopper is signed in. This is their account.
+- **A name or phone tagged "Guest"** — they are not signed in, but they got as far as filling in the
+  checkout form, so you have a real contact detail. It is captured as they type, which means a cart
+  abandoned *between* the form and the Place order button still shows who left it. A guest cart that
+  became an order shows the buyer from that order.
+- **"Guest — not reachable"** — the cart never reached the checkout form, so there is genuinely no
+  name and no number. Nothing can be done with these individually, which is exactly why the funnel
+  above matters more than the list.
+
+A guest's phone number is a contact detail, not permission to market to them. Automatic reminders
+still only go to shoppers with an account (see below) — reaching out to a guest is a call you make
+deliberately.
 
 ## What you can do about it
 
@@ -86,8 +95,11 @@ The most common causes of abandonment, roughly in order:
 
 1. **Unexpected delivery cost.** Shoppers who only see the charge at checkout often leave. Keep your
    delivery charges modest and predictable.
-2. **Making people work to buy.** See the sign-in and verification notes above.
+2. **A long checkout form.** Trim the required fields under Store Settings → Checkout to the ones you
+   genuinely need to deliver.
 3. **A price or stock problem on one product.** Check the most-abandoned list.
+4. **Guests who left a number.** These are the only rows you can act on one by one — a short call
+   about a cart abandoned an hour ago converts far better than any email.
 
 ## Things worth knowing
 
@@ -109,8 +121,9 @@ never a second one quietly cancelling the first.
 Two limits are deliberate:
 
 - **At most two reminders per cart**, ever. More reads as spam and costs you the subscriber.
-- **Only shoppers who signed in** can be emailed. A guest cart has no address and no permission
-  attached to it, so it can never be contacted — which is why the funnel matters more than the list.
+- **Only shoppers who signed in** can be emailed automatically. A guest may have left you a phone
+  number at checkout, but that was given to complete an order, not to receive marketing — so
+  EzyCore never messages it for you.
 
 Shoppers who switch off *Promotional email* in their account never receive these, even when the
 feature is on. That switch is theirs, not yours.

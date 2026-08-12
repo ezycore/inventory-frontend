@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { lookupStoreByHost } from "@/lib/storefront-domain-lookup";
+import { isIpHost } from "@/lib/organization-utils";
 
 /**
  * Host → store resolution, shared by every entry point that has to answer "is this
@@ -71,6 +72,10 @@ export function resolveStoreFromHost(host: string): ResolvedStore | null {
 export function isCustomDomainCandidate(host: string): boolean {
   return (
     host.includes(".") &&
+    // An IPv4 literal satisfies `includes(".")` but is a LAN/dev address, not a
+    // merchant domain — without this every request to a dev server reached over
+    // the network spends a backend lookup to be told so.
+    !isIpHost(host) &&
     !host.endsWith(".localhost") &&
     (!STOREFRONT_ROOT ||
       (host !== STOREFRONT_ROOT && !host.endsWith(`.${STOREFRONT_ROOT}`)))
