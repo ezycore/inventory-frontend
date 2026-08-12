@@ -22,7 +22,8 @@ import { useEffect } from "react";
  * sample data. Lets the user wipe the demo data via a confirm dialog.
  *
  * Visibility is keyed on `demoSeedStatus`, which is set whenever a signup loaded
- * sample data (the "Load sample data" switch or `/signup?demo=true`).
+ * sample data — the signup switch, which is ON by default (`/signup?demo=false`
+ * opts out; `?demo=true` forces it back on).
  * `clearSampleData` unsets the status, so the banner disappears once the data is
  * wiped. The workspace itself is a normal, permanent tenant throughout.
  */
