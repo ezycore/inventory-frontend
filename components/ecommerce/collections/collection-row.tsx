@@ -25,6 +25,9 @@ export interface CollectionRowValue {
   parentId?: string | null;
   displayName: string;
   isListed: boolean;
+  /** Merchant SEO overrides for the collection landing page; "" when unset. */
+  seoTitle: string;
+  seoDescription: string;
 }
 
 export function CollectionRow({
@@ -38,6 +41,7 @@ export function CollectionRow({
   onDisplayNameChange,
   onDisplayNameBlur,
   onToggleListed,
+  children,
 }: {
   value: CollectionRowValue;
   isFirst: boolean;
@@ -49,17 +53,22 @@ export function CollectionRow({
   onDisplayNameChange: (v: string) => void;
   onDisplayNameBlur?: () => void;
   onToggleListed: (isListed: boolean) => void;
+  /**
+   * Extra controls rendered under the row, inside its container. Catalog →
+   * Collections puts the SEO fields here; the 380px Customize rail passes
+   * nothing, because two more text inputs do not fit and are not what that
+   * panel is for.
+   */
+  children?: React.ReactNode;
 }) {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3",
-        compact
-          ? "rounded-lg border p-2 pl-2.5"
-          : "border-b p-3 last:border-0",
+        compact ? "rounded-lg border p-2 pl-2.5" : "border-b p-3 last:border-0",
         compact && !value.isListed && "bg-muted/40",
       )}
     >
+      <div className="flex flex-wrap items-center gap-3">
       <div className="flex flex-none flex-col">
         <button
           type="button"
@@ -130,6 +139,8 @@ export function CollectionRow({
           Listed
         </label>
       )}
+      </div>
+      {children}
     </div>
   );
 }
@@ -141,7 +152,11 @@ export function toRowValue(c: {
   slug?: string;
   slugPath?: string;
   parentId?: string | null;
-  storefront?: { isListed?: boolean; displayName?: string };
+  storefront?: {
+    isListed?: boolean;
+    displayName?: string;
+    seo?: { title?: string; description?: string };
+  };
 }): CollectionRowValue {
   return {
     _id: c._id,
@@ -151,5 +166,7 @@ export function toRowValue(c: {
     parentId: c.parentId ?? null,
     displayName: c.storefront?.displayName ?? "",
     isListed: c.storefront?.isListed !== false,
+    seoTitle: c.storefront?.seo?.title ?? "",
+    seoDescription: c.storefront?.seo?.description ?? "",
   };
 }

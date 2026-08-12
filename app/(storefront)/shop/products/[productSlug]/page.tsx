@@ -63,11 +63,16 @@ export default async function Page({
     slug ? getStoreCategories(slug) : null,
   ]);
 
-  // Real 404, not a 200 saying "not found" — but only when the store payload came
-  // back, which proves the API is reachable. `getStoreServer` helpers return null
-  // for *any* failure, so without that guard a backend blip would tell crawlers a
-  // live product is permanently gone. Store present + product null = genuinely gone.
-  if (store && !product) notFound();
+  // Real 404, not a 200 saying "not found".
+  //
+  // The store payload used to be treated as a liveness probe — `store && !product`
+  // — so that a backend blip (every `getStoreServer` helper returns null for *any*
+  // failure) could not tell crawlers a live product was gone. That guard only made
+  // sense while `shop/layout.tsx` short-circuited a store-less request into its own
+  // card; now that the layout renders the page instead, the alternative to a 404 is
+  // a 200 carrying an empty product view — a soft 404, which is the worse signal of
+  // the two. A 404 is not permanent either way; a crawler re-checks it.
+  if (!store || !product) notFound();
 
   // Product + Offer is what puts a price and a stock state in the search result;
   // the breadcrumb mirrors the trail the page renders. Both must use the SAME

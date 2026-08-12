@@ -1,8 +1,11 @@
+// coding-standard: maintained
 /**
  * Organization Options Constants
  * Centralized location for all organization-related form options
  * Country → Timezone and Currency are LINKED for auto-suggestion
  */
+
+import type { Translator } from "@/i18n/config";
 
 // ============================================
 // COUNTRY DATA WITH LINKED TIMEZONE & CURRENCY
@@ -159,18 +162,39 @@ export const CURRENCY_OPTIONS = [
   { label: "BRL (R$)", value: "BRL" },
 ];
 
-export const INDUSTRY_OPTIONS = [
-  { label: "Pharmacy", value: "PHARMACY" },
-  { label: "Grocery Store", value: "GROCERY_STORE" },
-  { label: "Electronics", value: "ELECTRONICS_STORE" },
-  { label: "Fashion & Apparel", value: "FASHION_APPAREL" },
-  { label: "Hardware Store", value: "HARDWARE_STORE" },
-  { label: "Manufacturing", value: "MANUFACTURING_UNIT" },
-  { label: "Wholesale", value: "WHOLESALE_DISTRIBUTOR" },
-  { label: "Restaurant & F&B", value: "RESTAURANT_FNB" },
-  { label: "Service Business", value: "SERVICE_BUSINESS" },
-  { label: "Other", value: "OTHER" },
-];
+/**
+ * Business types, in the order they are offered. Mirrors the backend
+ * `INDUSTRY_TYPES` enum — a value missing there is rejected by the org model,
+ * and a value missing here is simply unreachable at signup.
+ *
+ * `ONLINE_SHOP` leads because it is the most common shape of new retail
+ * business in Bangladesh; before it existed every Facebook/Instagram seller had
+ * to pick "Other", which is also the industry with the thinnest seed data.
+ */
+export const INDUSTRY_VALUES = [
+  "ONLINE_SHOP",
+  "PHARMACY",
+  "GROCERY_STORE",
+  "ELECTRONICS_STORE",
+  "FASHION_APPAREL",
+  "HARDWARE_STORE",
+  "MANUFACTURING_UNIT",
+  "WHOLESALE_DISTRIBUTOR",
+  "RESTAURANT_FNB",
+  "SERVICE_BUSINESS",
+  "OTHER",
+] as const;
+
+/**
+ * Industry dropdown options with translated labels. The value is the backend
+ * enum member and never localized; only the label is.
+ */
+export function getIndustryOptions(t: Translator) {
+  return INDUSTRY_VALUES.map((value) => ({
+    value,
+    label: t(`industries.${value}`),
+  }));
+}
 
 // ============================================
 // HELPER FUNCTIONS
@@ -224,14 +248,4 @@ export type CurrencyCode =
   | "JPY"
   | "CNY"
   | "BRL";
-export type IndustryType =
-  | "PHARMACY"
-  | "GROCERY_STORE"
-  | "ELECTRONICS_STORE"
-  | "FASHION_APPAREL"
-  | "HARDWARE_STORE"
-  | "MANUFACTURING_UNIT"
-  | "WHOLESALE_DISTRIBUTOR"
-  | "RESTAURANT_FNB"
-  | "SERVICE_BUSINESS"
-  | "OTHER";
+export type IndustryType = (typeof INDUSTRY_VALUES)[number];

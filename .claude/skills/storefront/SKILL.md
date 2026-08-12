@@ -207,6 +207,17 @@ reads as two filters at once.
     card (which resolves against the *draft* density, or the preview lies), and the Customize
     `tpl` seed — which would otherwise write `add-buy` into a compact store the next time its owner
     saved **any** template, restyling their cards without asking.
+  - **The struck compare-at is gated on this axis, not on density** (`product-card.tsx`,
+    `pct > 0 && actions !== "iconOnly"`). `iconOnly` is the only layout that *shares* the price row
+    with its button — the card passes `priceRow` in as `CardCtaRow`'s `price` prop, leaving ~90px
+    beside a fixed 40px "+" on a 2-column mobile grid. Every other layout puts its CTA on its own
+    line, so the price row is full width and the "was" fits. This read `!compactLayout` until
+    2026-08-11 and that was the orthogonality bug in miniature: a `standard`-density store showed
+    the strikethrough on its Classic featured row (`variant="full"`) and dropped it on new arrivals,
+    search and the PDP related row (`variant="compact"`) — while the `-N%` badge over the image
+    rendered in all of them, since it never had the guard. A discount badge with no anchor beside it
+    advertises a saving the shopper cannot check. **When you add a `cardActions` value, decide which
+    row its CTA occupies before copying either branch.**
   - **`layoutOwnsImage(actions)` decides where variant options open**, and is the rule to keep:
     a layout that paints its CTA over the product image (`reveal`) has taken the space the
     in-card flyout uses, so those products go to the **quick-buy sheet** instead. The two obvious
@@ -482,6 +493,12 @@ resolved **per request from the host**, never baked.
   excludes any path containing a dot, so these routes resolve the host themselves via
   **`lib/storefront-host-map.ts`** — the shared rule set the proxy now also uses. Change host→store
   rules there, in one place, or robots/sitemap will describe a different store than the pages do.
+  ⚠ **An IP host is not a domain.** `isCustomDomainCandidate` gates on `host.includes(".")`, which
+  an IPv4 literal satisfies — so guard with `isIpHost` (`lib/organization-utils.ts`, shared with
+  `hostImpliesWorkspace`). Both used to hardcode `192.168.*`, which meant reaching the dev server
+  from a phone on any other private range (`10.x`, most hotspots and office wifi) had the admin
+  app answer **"Workspace not found"**: the gate read the IP as a merchant custom domain and asked
+  the backend to resolve it.
   Sitemap data comes from BE `GET /:slug/sitemap` (`lib/storefront-server.ts` `getStoreSitemap`,
   cached 1h) which returns **identifiers**; the URLs are built here because only this side knows
   whether the base is `/shop` or `""`. A non-store host gets a bare `Disallow: /` and an empty sitemap.

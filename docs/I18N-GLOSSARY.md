@@ -131,6 +131,8 @@ sidebar must say which one it is opening.
 | Report | রিপোর্ট | |
 | Billing | বিলিং | |
 | Organization / Workspace | প্রতিষ্ঠান | REVIEW — ওয়ার্কস্পেস alt |
+| Workspace URL | প্রতিষ্ঠানের লিংক | the signup/login subdomain field. NOT ঠিকানা — "address" reads as a street address, which is exactly the misreading the English label was renamed to fix (was "Workspace address"). Login still says প্রতিষ্ঠানের স্লাগ for the same value — REVIEW, they should match |
+| Business type (industry) | ব্যবসার ধরন | signup's industry select; শিল্প means manufacturing industry and is wrong for a shop |
 | User | ব্যবহারকারী | ইউজার alt — REVIEW |
 | Role | রোল | ভূমিকা reads odd in software |
 | Permission | পারমিশন | অনুমতি alt — REVIEW |
