@@ -6,6 +6,7 @@ import type {
   StoreContactButton,
   StoreFooterContentPages,
   StoreFooterGroup,
+  StoreFooterNewsletter,
   StoreHeroBanner,
   StoreHeroSlide,
   StoreHomeCollections,
@@ -74,6 +75,18 @@ interface SfPreviewState {
   /** Draft controls for the auto content-pages footer column. */
   footerContentPages: StoreFooterContentPages | null;
   /**
+   * Draft footer copy (Customize → Footer): the brand blurb, the bottom-bar
+   * note, the Contact-first heading and the sign-up wording.
+   *
+   * All four are `null` until drafted and **empty string is a real draft** —
+   * "cleared, so use the storefront's localized default" — so consumers must
+   * treat `""` as a value and only fall back on `null`.
+   */
+  footerText: string | null;
+  footerNote: string | null;
+  footerContactHeading: string | null;
+  footerNewsletter: StoreFooterNewsletter | null;
+  /**
    * Draft store logo and banner.
    *
    * These two are `undefined` until the editor has sent one, where every other field starts `null`,
@@ -123,6 +136,10 @@ interface SfPreviewState {
     collections?: CatalogCategory[];
     footerGroups?: StoreFooterGroup[];
     footerContentPages?: StoreFooterContentPages;
+    footerText?: string;
+    footerNote?: string;
+    footerContactHeading?: string;
+    footerNewsletter?: StoreFooterNewsletter;
     // `null` is meaningful (image removed), so these are nullable in the patch too.
     logo?: StorefrontImage | null;
     banner?: StorefrontImage | null;
@@ -155,6 +172,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   collections: null,
   footerGroups: null,
   footerContentPages: null,
+  footerText: null,
+  footerNote: null,
+  footerContactHeading: null,
+  footerNewsletter: null,
   logo: undefined,
   banner: undefined,
   logoStyle: null,
@@ -195,6 +216,16 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.footerContentPages !== undefined
           ? patch.footerContentPages
           : s.footerContentPages,
+      footerText: patch.footerText !== undefined ? patch.footerText : s.footerText,
+      footerNote: patch.footerNote !== undefined ? patch.footerNote : s.footerNote,
+      footerContactHeading:
+        patch.footerContactHeading !== undefined
+          ? patch.footerContactHeading
+          : s.footerContactHeading,
+      footerNewsletter:
+        patch.footerNewsletter !== undefined
+          ? patch.footerNewsletter
+          : s.footerNewsletter,
       logo: patch.logo !== undefined ? patch.logo : s.logo,
       banner: patch.banner !== undefined ? patch.banner : s.banner,
       logoStyle: patch.logoStyle !== undefined ? patch.logoStyle : s.logoStyle,

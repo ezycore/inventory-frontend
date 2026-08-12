@@ -17,7 +17,10 @@ export async function generateMetadata({
   const { slug } = await getStoreContext();
   const page = slug ? await getStorePage(slug, pageSlug) : null;
   return storePageMetadata({
-    title: page?.title || "Page",
+    // Merchant SEO overrides win; else the page heading. The heading can run to
+    // 160 characters, which is why the override exists as its own field.
+    title: page?.seo?.title || page?.title || "Page",
+    description: page?.seo?.description || undefined,
     path: `/pages/${pageSlug}`,
   });
 }
@@ -40,9 +43,9 @@ export default async function Page({
     slug ? getStore(slug) : null,
   ]);
 
-  // Real 404, gated on the store payload proving the API is up — see the same
-  // guard on the product page for why a bare `!page` check would be unsafe.
-  if (store && !page) notFound();
+  // Real 404 — see the product page for why the store payload is no longer used
+  // as a liveness probe here.
+  if (!store || !page) notFound();
 
   return <View initialPage={page ?? undefined} />;
 }

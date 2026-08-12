@@ -33,6 +33,7 @@ import { Skeleton } from "@/ui/components/skeleton";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { CourierSettings } from "@/components/ecommerce/courier-settings";
 import { OrderStepLabelsSettings } from "@/components/ecommerce/order-step-labels-settings";
+import { SeoSettings } from "@/components/ecommerce/seo-settings";
 import { NotificationMatrix } from "@/components/notifications/notification-matrix";
 import { copyText } from "@/utils/clipboard";
 
@@ -46,6 +47,7 @@ const TABS = [
   { id: "couriers", label: "Couriers" },
   { id: "checkout", label: "Checkout" },
   { id: "orderSteps", label: "Order steps" },
+  { id: "seo", label: "SEO" },
   { id: "notifications", label: "Notifications" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -114,6 +116,8 @@ function SettingsTab({
       return <CheckoutTab settings={settings} />;
     case "orderSteps":
       return <OrderStepLabelsSettings />;
+    case "seo":
+      return <SeoSettings settings={settings} />;
     case "notifications":
       return <NotificationsTab />;
   }

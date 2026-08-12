@@ -114,6 +114,17 @@ export interface StorefrontHomeCollections {
   align?: "left" | "center" | "right";
 }
 
+/**
+ * Copy for the footer's sign-up block (the `newsletter` footer layout).
+ * Every field falls back to a localized default on the storefront, so an unset
+ * one is "use the built-in wording", never "show nothing".
+ */
+export interface StorefrontFooterNewsletter {
+  heading?: string;
+  blurb?: string;
+  buttonLabel?: string;
+}
+
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
@@ -122,6 +133,11 @@ export interface StorefrontTheme {
   homepageSections?: string[];
   logo?: StorefrontLogoStyle;
   homeCollections?: StorefrontHomeCollections;
+  /** Right-hand side of the footer's bottom bar; unset ⇒ the store's currency. */
+  footerNote?: string;
+  /** Heading over the Contact-first footer's phone block. */
+  footerContactHeading?: string;
+  footerNewsletter?: StorefrontFooterNewsletter;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";
@@ -254,6 +270,9 @@ export interface StorefrontSettings {
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;
+  /** Share-card image (1200×630). Unset ⇒ the public payload falls back to
+   *  banner → logo; this field is the merchant's own upload only. */
+  socialImage?: Image | null;
   storefrontLocationId?: string;
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };

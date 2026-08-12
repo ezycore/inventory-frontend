@@ -52,11 +52,22 @@ export function getSubdomain(): string | null {
  * Pure host → workspace-slug resolution, usable server- or client-side. Pass a
  * hostname (no port). Returns null for apex / reserved / IP / localhost hosts.
  */
+/**
+ * A bare IP literal, v4 or v6. Never a workspace and never a custom domain — a
+ * merchant registers a NAME in Settings → Domains, never an address. Matching
+ * only `192.168.*` (as this file did until 2026-08-11) breaks every other
+ * private range: `10.x` covers most corporate wifi and phone hotspots, and a
+ * developer opening the dev server from a phone on one got the workspace gate's
+ * "Workspace not found" instead of the app.
+ */
+export const isIpHost = (h: string): boolean =>
+  /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.includes(":") || h === "::1";
+
 export function subdomainFromHostname(hostname: string): string | null {
   const h = hostname.toLowerCase();
 
-  // Plain localhost / loopback — no workspace.
-  if (h === "localhost" || h === "127.0.0.1" || h.startsWith("192.168.")) {
+  // Plain localhost / loopback / any IP address — no workspace.
+  if (h === "localhost" || isIpHost(h)) {
     return null;
   }
 
@@ -120,8 +131,7 @@ export function hostImpliesWorkspace(hostname: string): boolean {
   const isLocal =
     h === "localhost" ||
     h.endsWith(".localhost") ||
-    h === "127.0.0.1" ||
-    h.startsWith("192.168.") ||
+    isIpHost(h) ||
     h.includes(".local");
   if (!root || isLocal) return false;
 

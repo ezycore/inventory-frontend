@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Switch } from "@/ui/components/switch";
 import { cn } from "@/ui/lib/utils";
@@ -15,8 +16,13 @@ export interface SampleDataToggleProps {
  * Rich toggle card for the signup form's "load sample data" option. Rendered
  * as a `custom` field (with `zodType: "boolean"`) so the schema still sees a
  * plain boolean.
+ *
+ * Reads its own copy rather than taking it as props: the form engine renders a
+ * `customComponent` with only the field's value/onChange, and this sits inside
+ * the app's intl provider like any other client component.
  */
 export function SampleDataToggle({ value, onChange }: SampleDataToggleProps) {
+  const t = useTranslations("auth.signup");
   const checked = Boolean(value);
 
   return (
@@ -51,11 +57,10 @@ export function SampleDataToggle({ value, onChange }: SampleDataToggleProps) {
         </div>
         <div className="space-y-0.5">
           <p className="text-sm font-medium text-foreground">
-            Load sample data so I can explore
+            {t("sampleDataTitle")}
           </p>
           <p className="text-sm text-muted-foreground">
-            Pre-fill your workspace with example products, stock, purchases and
-            sales. You can clear it anytime.
+            {t("sampleDataDescription")}
           </p>
         </div>
       </div>

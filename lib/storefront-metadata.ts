@@ -9,6 +9,11 @@ import { canonicalTarget } from "@/lib/storefront-canonical";
  * ("Cart · Rashid's Mart") instead of the app's default, plus a host-correct
  * canonical and the right robots directive. Transactional pages (cart, checkout,
  * account) pass `index: false` so they aren't indexed.
+ *
+ * It also owns the **share card**. In this market Facebook is the primary
+ * discovery channel, so a page whose link renders as a bare grey box in a post
+ * loses traffic that has nothing to do with ranking — `openGraph` and `twitter`
+ * are built here for every page rather than left to the two that remembered.
  */
 export async function storePageMetadata(opts: {
   title: string;
@@ -40,9 +45,20 @@ export async function storePageMetadata(opts: {
       ? `${target.origin}${target.base}${opts.path}`
       : undefined;
 
+  // Relative URLs anywhere in this object resolve against it. Per-request rather
+  // than a module constant, because the right base is the store's canonical host
+  // and only this function knows it.
+  const metadataBase = target.origin ? new URL(target.origin) : undefined;
+
+  // No dimensions: the backend stores three variants but not their sizes, and
+  // `og:image:width` without a height helps nobody. Guessing from the 1600px cap
+  // would be a claim about an aspect ratio nothing here knows.
+  const images = opts.image ? [{ url: opts.image }] : undefined;
+
   return {
     title: fullTitle,
     description: opts.description,
+    metadataBase,
     alternates: canonical ? { canonical } : undefined,
     robots:
       opts.index === false
@@ -51,9 +67,30 @@ export async function storePageMetadata(opts: {
     openGraph: {
       title: fullTitle,
       description: opts.description,
+      // Always `website`.
+      //
+      // `og:type: "product"` was tried and removed: Next's `OpenGraph` union does
+      // not carry it, and on its own it buys nothing — the value of that type is
+      // the `product:price:amount` / `product:availability` companions, which the
+      // storefront does not emit. Price and stock reach search engines through
+      // JSON-LD `Product` + `Offer` (`lib/storefront-jsonld.ts`), which is the
+      // channel that is actually read. A cast to smuggle the string past the type
+      // would add a lie to the type system for no crawler benefit.
       type: "website",
+      siteName: storeName,
+      // The indexable storefront is English — the BN toggle is client-side on the
+      // same URL, so there is no second locale to declare. Revisit with §S4.6.
+      locale: "en_US",
       url: canonical,
-      images: opts.image ? [{ url: opts.image }] : undefined,
+      images,
+    },
+    twitter: {
+      // A large image is the whole point of a share card; without one the
+      // summary layout is the honest choice rather than a card with a blank slot.
+      card: images ? "summary_large_image" : "summary",
+      title: fullTitle,
+      description: opts.description,
+      images,
     },
   };
 }
