@@ -112,6 +112,14 @@ export interface StorefrontStore {
    */
   favicon?: StorefrontImage | null;
   banner?: StorefrontImage | null;
+  /**
+   * Share-card image, already resolved server-side through
+   * socialImage → banner → logo. Chained there, like `favicon` is not, because
+   * every fallback is a real image the merchant owns — there is no platform
+   * default worth showing, and re-deriving the chain in each `generateMetadata`
+   * is how the three of them drift apart.
+   */
+  socialImage?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };
   social?: { facebook?: string; instagram?: string; whatsapp?: string };
   /**
@@ -379,6 +387,9 @@ export interface ContentPageView {
   slug: string;
   title: string;
   body: string;
+  /** Merchant SEO overrides; absent until one is set. `title` above is the page
+   *  heading and may run to 160 characters, so the search title is its own field. */
+  seo?: { title?: string; description?: string };
   updatedAt?: string;
 }
 
@@ -414,6 +425,8 @@ export interface CatalogCategory {
 /** `GET …/categories/resolve?path=` — one collection, plus its breadcrumb parent. */
 export interface CatalogCategoryDetail extends CatalogCategory {
   description?: string | null;
+  /** Merchant SEO overrides for this landing page; null when never set. */
+  seo?: { title?: string; description?: string } | null;
   isSubcategory: boolean;
   parent?: { _id: string; name: string; slugPath?: string } | null;
 }

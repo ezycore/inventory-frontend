@@ -68,8 +68,10 @@ export async function generateMetadata({
     isIndexableCatalogUrl(sp, catalogPage(raw.page)) && !sp.brandId;
 
   return storePageMetadata({
-    title: collection.name,
-    description: collection.description ?? undefined,
+    // Merchant SEO overrides win; else the collection's display name and its
+    // description — same precedence as the product page.
+    title: collection.seo?.title || collection.name,
+    description: collection.seo?.description || collection.description || undefined,
     path: indexable ? `/${collection.slugPath}` : undefined,
     index: indexable,
     follow: true,

@@ -89,11 +89,15 @@ export const useUpdateCollection = () => {
       id: string;
       isListed?: boolean;
       displayName?: string;
+      seoTitle?: string;
+      seoDescription?: string;
       silent?: boolean;
     }) =>
       storefrontCatalogApi.updateCollection(v.id, {
         isListed: v.isListed,
         displayName: v.displayName,
+        seoTitle: v.seoTitle,
+        seoDescription: v.seoDescription,
       }),
     onSuccess: (res, v) => {
       if (!v.silent) handleMutationSuccess(res.message || "Collection updated");
