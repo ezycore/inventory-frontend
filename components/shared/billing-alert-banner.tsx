@@ -30,17 +30,29 @@ export function BillingAlertBanner() {
 
   const entitlement = subscription.data?.entitlement;
 
-  // Canceled: data is retained, but the subscription has ended — point the user
-  // at billing to re-subscribe (no invoice to "Pay now").
+  // Billing-confined tier: data is retained but the workspace cannot be used
+  // until a plan is paid for. Two states land here and they are NOT the same
+  // sentence — `canceled` ended a subscription the customer had, `incomplete`
+  // never started one (a trial that ran out, or a signup before the money
+  // landed). Telling a first-time customer to "reactivate" is nonsense, so the
+  // copy branches while the banner itself stays single-source.
   if (entitlement && needsReactivation(entitlement)) {
+    const neverStarted = entitlement.subscriptionStatus === "incomplete";
     return (
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-amber-700 dark:text-amber-400">
         <div className="flex items-center gap-2 text-sm">
           <CalendarX className="h-4 w-4 shrink-0" />
-          <span>
-            Your subscription has <strong>ended</strong>. Your data is safe —
-            choose a plan to reactivate your workspace.
-          </span>
+          {neverStarted ? (
+            <span>
+              Your workspace is <strong>waiting on payment</strong>. Your data is
+              safe — choose a plan to activate it.
+            </span>
+          ) : (
+            <span>
+              Your subscription has <strong>ended</strong>. Your data is safe —
+              choose a plan to reactivate your workspace.
+            </span>
+          )}
         </div>
         {canManageBilling && (
           <Button
@@ -49,7 +61,9 @@ export function BillingAlertBanner() {
             variant="outline"
             className="border-amber-500/50 bg-transparent text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
           >
-            <Link href="/dashboard/billing">Reactivate</Link>
+            <Link href="/dashboard/billing">
+              {neverStarted ? "Choose a plan" : "Reactivate"}
+            </Link>
           </Button>
         )}
       </div>

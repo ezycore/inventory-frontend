@@ -38,5 +38,12 @@ mistaken for finished work.
   `app/(protected)/ecommerce/customize/page.tsx`). Documented as part of `storefront-catalog.md`.
   Worth deleting the dead route directory.
 
+- **Billing has no help page at all.** `/dashboard/billing` is reached from the user menu and the
+  overdue banner, never the sidebar, so `constants/navItem.ts` does not list it and the coverage gate
+  cannot see it — the build stays green with nothing written. It is now one of the more
+  explanation-hungry screens: a Monthly/Yearly switch, a trial explainer shown before a trial starts,
+  a "trial already used" state, and the difference between an upgrade (charged now, prorated) and a
+  downgrade (applied at period end). Owner-facing, and the questions are all money questions.
+
 - **Screenshots.** None of the pages have any. They rot fastest and cost most to maintain by hand, so
   they should be generated with Playwright against seeded demo data in CI, never captured manually.
