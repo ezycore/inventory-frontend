@@ -20,6 +20,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   cardActions: "addBuy",
   hero: "slides",
   pagination: "pages",
+  imageFit: "fit",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -56,6 +57,7 @@ const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // every existing store already renders, and it is the only mode that puts a real
 // paginated crawl path in the HTML without help.
 const PAGINATION = { pages: "pages", infinite: "infinite", "load-more": "loadMore" } as const;
+const IMAGEFIT = { fit: "fit", crop: "crop" } as const;
 
 function pick<M extends Record<string, string>>(
   map: M,
@@ -86,7 +88,13 @@ export function resolveTemplates(
     cardActions: resolveCardActions(t.cardActions, productCard),
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
+    imageFit: pick(IMAGEFIT, t.imageFit, DEFAULT_TEMPLATES.imageFit),
   };
+}
+
+/** `templates.imageFit` → the `<Media fit>` value it drives. */
+export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "canvas" {
+  return imageFit === "crop" ? "cover" : "canvas";
 }
 
 /**

@@ -671,6 +671,31 @@
   background-size: cover;
   background-position: center;
 }
+/* Slide photo, split into two layers instead of one `cover` fill: a
+   blurred/scaled copy behind (fills the box, whatever its ratio) and the
+   full photo on top at `contain` (never cropped). A cover-only fill was
+   trimming the top/bottom of every slide not shot to the hero's wide box —
+   losing the exact things owners put near an edge (a logo, a corner prop).
+   The blurred layer is what a hard-edged letterbox bar would otherwise be:
+   it extends the photo's own scenery instead of showing the card background
+   through a seam. `inset: -6%` + `scale(1.02)` push the blur's own soft edge
+   outside the frame so it can't leave a faint rim. */
+.sf-hero-art-bg {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(26px) saturate(1.15) brightness(0.82);
+  transform: scale(1.02);
+}
+.sf-hero-art-fg {
+  position: absolute;
+  inset: 0;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 .sf-hero-scrim {
   position: absolute;
   inset: 0;
