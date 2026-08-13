@@ -30,8 +30,11 @@ function getSignupPlanFromUrl() {
     params.get("planName") || params.get("plan") || params.get("planSlug");
   const planSlug = params.get("planSlug") || undefined;
 
+  // Send nothing when no plan was chosen — Mission Control then picks the entry
+  // plan (first public + active by sort order). Defaulting to a hardcoded slug
+  // here would break every direct signup the day that plan is renamed.
   return {
-    planName: planName?.trim() || "free",
+    ...(planName?.trim() && { planName: planName.trim() }),
     ...(planSlug && { planSlug }),
   };
 }

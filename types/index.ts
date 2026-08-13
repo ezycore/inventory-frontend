@@ -476,6 +476,10 @@ export interface Entitlement {
   organizationId: string;
   planSlug?: string;
   planName?: string;
+  /** Package identity shared by every billing cadence of one tier — "start"
+   * covers `start-monthly` and `start-yearly`. Lets the billing page pre-select
+   * the current cadence in its Monthly/Yearly toggle. Absent on ungrouped plans. */
+  planGroup?: string;
   interval?: "month" | "year" | "one_time";
   /** Billing period = `intervalCount × interval` (e.g. month × 6). Missing = 1. */
   intervalCount?: number;
@@ -493,6 +497,11 @@ export interface Entitlement {
   gateway?: "stripe" | "sslcommerz" | "paystation" | "manual";
   currentPeriodEnd?: string | null;
   trialEndsAt?: string | null;
+  /** Whether this workspace has ever used its one-time free trial. Drives the
+   * choice between offering a trial and saying it is already spent. Cannot be
+   * derived from `trialEndsAt`, which is blanked the moment a trial ends.
+   * Absent on mirrors written before the field existed — treat as `false`. */
+  trialUsed?: boolean;
   pendingPlanChange?: ScheduledPlanChange | null;
   scheduledPlanChange?: ScheduledPlanChange | null;
   scheduledChange?: ScheduledPlanChange | null;
@@ -551,6 +560,13 @@ export interface AvailablePlan {
   compareAtAmount?: number;
   /** Limited-time-offer end date (ISO). Display-only. */
   offerEndsAt?: string;
+  /** Package identity shared by every billing cadence of one tier — "start"
+   * covers `start-monthly` and `start-yearly`. Absent on ungrouped plans, which
+   * then render as a card of their own. */
+  group?: string;
+  /** Tier position (1 = entry), identical on every plan in a `group`. Decides
+   * upgrade vs downgrade before cadence does — see `utils/plan-groups.ts`. */
+  groupRank?: number;
   trialDays?: number;
   modules: string[];
   features: string[];

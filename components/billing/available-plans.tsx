@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   useGetAvailablePlans,
@@ -9,6 +9,9 @@ import {
   useRequestPlanChange,
 } from "@/services/api";
 import { TrialEndConfirmDialog } from "./trial-end-confirm-dialog";
+import { TrialInfoModal } from "./trial-info-modal";
+import { BillingCycleToggle } from "./billing-cycle-toggle";
+import { PlanCard, type PlanCardState } from "./plan-card";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
@@ -17,19 +20,15 @@ import {
   getScheduledPlanChange,
 } from "@/lib/subscription-utils";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/components/card";
-import { Badge } from "@/ui/components/badge";
-import { Button } from "@/ui/components/button";
+  groupPlans,
+  planCadences,
+  resolvePlanChangeDirection,
+  trialEndDateFrom,
+  variantFor,
+} from "@/utils/plan-groups";
 import { Skeleton } from "@/ui/components/skeleton";
-import { ArrowDownCircle, ArrowUpCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { AvailablePlan } from "@/types";
-import { cn } from "@/ui/lib/utils";
 
 function PlansSkeleton() {
   return (
@@ -41,10 +40,17 @@ function PlansSkeleton() {
   );
 }
 
+/**
+ * The plan grid on the billing page: one card per PACKAGE, plus a billing-cycle
+ * switch when a package is sold on more than one cadence.
+ *
+ * Grouping is not cosmetic — a tier sold monthly and yearly is two plans sharing
+ * a `group`, and without collapsing them the grid shows two identical-looking
+ * cards with the same name. See `utils/plan-groups.ts`.
+ */
 export function AvailablePlans() {
   const t = useTranslations("settings.billing");
   const tPlans = useTranslations("settings.billing.plans");
-  const tInterval = useTranslations("settings.billing.interval");
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { formatDate } = useFormatters();
   const { data: sub } = useGetSubscription();
@@ -52,57 +58,67 @@ export function AvailablePlans() {
   const planChange = useRequestPlanChange();
   // Target plan awaiting the "your trial ends now" confirmation (null = closed).
   const [confirmPlan, setConfirmPlan] = useState<AvailablePlan | null>(null);
+  // Target plan awaiting the "here's how the trial works" explainer, with the
+  // trial end date stamped at the moment it opens (see `TrialInfoModal`).
+  const [trialPrompt, setTrialPrompt] = useState<{
+    plan: AvailablePlan;
+    endsOn: string;
+  } | null>(null);
+  const [cycle, setCycle] = useState<number | null>(null);
+
+  const plans = useMemo(() => data?.plans ?? [], [data]);
+  const groups = useMemo(() => groupPlans(plans), [plans]);
+  const cadences = useMemo(() => planCadences(groups), [groups]);
 
   if (isLoading) return <PlansSkeleton />;
-  if (isError || !data) return null;
+  if (isError || !data || plans.length === 0) return null;
 
-  const plans = data.plans ?? [];
-  if (plans.length === 0) return null;
-
+  const entitlement = sub?.entitlement;
   // A canceled subscription has no "current" plan — every plan is a fresh
   // reactivation (checkout), so don't mark the old plan current or disable it.
-  const isCanceled = sub?.entitlement?.subscriptionStatus === "canceled";
-  const currentSlug = isCanceled ? undefined : sub?.entitlement?.planSlug;
+  const isCanceled = entitlement?.subscriptionStatus === "canceled";
+  const currentSlug = isCanceled ? undefined : entitlement?.planSlug;
+  const currentPlan = currentSlug
+    ? plans.find((p) => p.slug === currentSlug)
+    : undefined;
   // On a live trial, switching to a different paid plan ends the trial now and
   // requires payment — confirm before proceeding.
-  const isTrialing =
-    !isCanceled && sub?.entitlement?.subscriptionStatus === "trialing";
-  const currentAmount = isCanceled ? null : sub?.entitlement?.amount ?? null;
-  const scheduledChange = getScheduledPlanChange(sub?.entitlement);
+  const isTrialing = !isCanceled && entitlement?.subscriptionStatus === "trialing";
+  // The trial is one-time per workspace, so a spent trial must never be offered
+  // again. `trialUsed` is absent on mirrors written before the field existed —
+  // treat that as unused, matching the server default.
+  const trialEligible = !entitlement?.trialUsed;
+  const scheduledChange = getScheduledPlanChange(entitlement);
   // The backend rejects plan changes in these states (see MC BILLING.md §5.8):
   // a scheduled cancel must be resumed first (any change would clear it), and
   // an overdue sub must settle its invoice first (free is still allowed — that
   // is walking away from the paid plan, not acquiring one). Mirror that here so
   // the buttons don't offer actions that can only fail.
-  const isCancelScheduled =
-    !isCanceled && !!getScheduledCancellation(sub?.entitlement);
-  const isPastDue =
-    !isCanceled && sub?.entitlement?.subscriptionStatus === "past_due";
+  const isCancelScheduled = !isCanceled && !!getScheduledCancellation(entitlement);
+  const isPastDue = !isCanceled && entitlement?.subscriptionStatus === "past_due";
   const isChangeBlocked = (plan: AvailablePlan) =>
     isCancelScheduled || (isPastDue && plan.amount > 0);
 
-  // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
-  const intervalSuffix = (plan: AvailablePlan) => {
-    const n = plan.intervalCount ?? 1;
-    if (plan.interval === "month")
-      return n > 1 ? tInterval("everyNMonthsSuffix", { n }) : tInterval("monthSuffix");
-    if (plan.interval === "year")
-      return n > 1 ? tInterval("everyNYearsSuffix", { n }) : tInterval("yearSuffix");
-    return "";
-  };
+  const selectedMonths = cycle ?? cadences[0]?.months ?? null;
 
-  // Whole-number % off vs the anchor price; MC only sends compareAtAmount
-  // when it is a real discount, but never trust a struck price ≤ the real one.
-  const discountPct = (plan: AvailablePlan) =>
-    plan.compareAtAmount && plan.compareAtAmount > plan.amount
-      ? Math.round((1 - plan.amount / plan.compareAtAmount) * 100)
-      : null;
+  /** True when choosing this plan starts a free trial rather than a payment. */
+  const startsTrial = (plan: AvailablePlan) =>
+    trialEligible &&
+    (plan.trialDays ?? 0) > 0 &&
+    !isTrialing &&
+    plan.slug !== currentSlug;
 
-  // Gate paid switches made during a trial behind the "trial ends now" confirm;
-  // everything else (free target, same plan, already-paid upgrades) goes straight
-  // through.
+  /**
+   * Route the click. Three gates, in order of how surprising they are:
+   * a trial the customer has not seen explained, a paid switch that ends a
+   * running trial, and everything else straight through.
+   */
   const handleChange = (plan: AvailablePlan) => {
     if (planChange.isPending || isChangeBlocked(plan)) return;
+    if (startsTrial(plan)) {
+      setTrialPrompt({ plan, endsOn: trialEndDateFrom(plan.trialDays ?? 0) });
+      return;
+    }
     if (isTrialing && plan.amount > 0 && plan.slug !== currentSlug) {
       setConfirmPlan(plan);
       return;
@@ -149,8 +165,36 @@ export function AvailablePlans() {
     );
   };
 
+  const cardState = (plan: AvailablePlan): PlanCardState => ({
+    isCurrent: currentSlug === plan.slug,
+    isScheduled: scheduledChange?.planSlug === plan.slug,
+    hasScheduledChange: !!scheduledChange,
+    // Direction mirrors Mission Control's own rule (tier rank, then cadence) —
+    // a raw amount comparison would label a cross-tier change "Downgrade" while
+    // MC charges for it immediately. See `utils/plan-groups.ts`.
+    direction:
+      !currentPlan || currentPlan.slug === plan.slug
+        ? null
+        : resolvePlanChangeDirection(currentPlan, plan),
+    disabled: planChange.isPending || isChangeBlocked(plan),
+    startsTrial: startsTrial(plan),
+  });
+
   return (
     <div className="space-y-4">
+      <TrialInfoModal
+        plan={trialPrompt?.plan ?? null}
+        price={trialPrompt ? formatCurrency(trialPrompt.plan.amount, currency) : ""}
+        endsOn={trialPrompt?.endsOn ?? null}
+        onOpenChange={(open) => {
+          if (!open) setTrialPrompt(null);
+        }}
+        onConfirm={() => {
+          const plan = trialPrompt?.plan;
+          setTrialPrompt(null);
+          if (plan) proceedChange(plan);
+        }}
+      />
       <TrialEndConfirmDialog
         plan={confirmPlan}
         price={confirmPlan ? formatCurrency(confirmPlan.amount, currency) : ""}
@@ -163,11 +207,10 @@ export function AvailablePlans() {
           if (plan) proceedChange(plan);
         }}
       />
+
       <div className="space-y-1">
         <h2 className="text-lg font-semibold tracking-tight">{tPlans("title")}</h2>
-        <p className="text-sm text-muted-foreground">
-          {tPlans("subtitle")}
-        </p>
+        <p className="text-sm text-muted-foreground">{tPlans("subtitle")}</p>
         {isCancelScheduled && (
           <p className="text-sm text-amber-600 dark:text-amber-500">
             {tPlans("blockedCancelScheduled")}
@@ -178,123 +221,31 @@ export function AvailablePlans() {
             {tPlans("blockedPastDue")}
           </p>
         )}
+        {!trialEligible && (
+          <p className="text-sm text-muted-foreground">{tPlans("trialUsed")}</p>
+        )}
       </div>
 
+      {cadences.length > 1 && selectedMonths !== null && (
+        <BillingCycleToggle
+          cadences={cadences}
+          selected={selectedMonths}
+          onSelect={setCycle}
+        />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {plans.map((plan) => {
-          const isCurrent = currentSlug === plan.slug;
-          const isScheduled = scheduledChange?.planSlug === plan.slug;
-          const direction: "upgrade" | "downgrade" | null =
-            isCurrent || currentAmount == null
-              ? null
-              : plan.amount > currentAmount
-                ? "upgrade"
-                : plan.amount < currentAmount
-                  ? "downgrade"
-                  : null;
-
+        {groups.map((group) => {
+          const plan = variantFor(group, selectedMonths);
           return (
-            <Card
-              key={plan.id}
-              className={cn(
-                "relative",
-                isCurrent && "border-primary ring-1 ring-primary",
-              )}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{plan.name}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    {isScheduled && <Badge variant="secondary">{tPlans("scheduled")}</Badge>}
-                    {isCurrent && <Badge>{tPlans("current")}</Badge>}
-                  </div>
-                </div>
-                {plan.description && (
-                  <CardDescription>{plan.description}</CardDescription>
-                )}
-                <div className="pt-2">
-                  {discountPct(plan) !== null && (
-                    <span className="mr-2 text-sm text-muted-foreground line-through">
-                      {formatCurrency(plan.compareAtAmount as number, currency)}
-                    </span>
-                  )}
-                  <span className="text-2xl font-bold">
-                    {formatCurrency(plan.amount, currency)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {intervalSuffix(plan)}
-                  </span>
-                  {discountPct(plan) !== null && (
-                    <Badge variant="secondary" className="ml-2 align-middle">
-                      {tPlans("offBadge", { pct: discountPct(plan) as number })}
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {plan.features.length > 0 && (
-                  <ul className="space-y-1.5">
-                    {plan.features.map((f) => (
-                      <li
-                        key={f}
-                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                      >
-                        <Check className="size-4 text-emerald-500" />
-                        <span className="capitalize">
-                          {f.replace(/([A-Z])/g, " $1")}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {isScheduled ? (
-                  <Button variant="outline" className="w-full" disabled>
-                    {tPlans("downgradeScheduledBtn")}
-                  </Button>
-                ) : isCurrent && scheduledChange ? (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={planChange.isPending || isChangeBlocked(plan)}
-                    onClick={() => handleChange(plan)}
-                  >
-                    {tPlans("cancelDowngrade")}
-                  </Button>
-                ) : isCurrent ? (
-                  <Button variant="outline" className="w-full" disabled>
-                    {tPlans("currentPlanBtn")}
-                  </Button>
-                ) : currentAmount == null ? (
-                  <Button
-                    className="w-full"
-                    disabled={planChange.isPending || isChangeBlocked(plan)}
-                    onClick={() => handleChange(plan)}
-                  >
-                    {tPlans("choosePlan")}
-                  </Button>
-                ) : direction === "upgrade" ? (
-                  <Button
-                    className="w-full"
-                    disabled={planChange.isPending || isChangeBlocked(plan)}
-                    onClick={() => handleChange(plan)}
-                  >
-                    <ArrowUpCircle className="size-4" />
-                    {tPlans("upgrade")}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={planChange.isPending || isChangeBlocked(plan)}
-                    onClick={() => handleChange(plan)}
-                  >
-                    <ArrowDownCircle className="size-4" />
-                    {tPlans("downgrade")}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <PlanCard
+              key={group.key}
+              plan={plan}
+              name={group.name}
+              currency={currency}
+              state={cardState(plan)}
+              onChoose={() => handleChange(plan)}
+            />
           );
         })}
       </div>

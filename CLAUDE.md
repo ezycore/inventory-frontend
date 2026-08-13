@@ -486,7 +486,29 @@ Two consequences:
 
 `OrganizationFeatures` (defined in `types/index.ts`) controls which modules are enabled per organization. Helper functions in `lib/feature-utils.ts` (`isFeatureEnabled`, `areAllFeaturesEnabled`) check feature state from `user.organization.features` in the auth store.
 
-Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | reactivate | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now", and `needsReactivation()` (`reactivate` = canceled) routes the user to `/dashboard/billing` to re-subscribe (their data is retained; the backend confines them to billing routes).
+**Plans are grouped, not listed flat.** A tier sold monthly *and* yearly is **two** plans in Mission
+Control sharing a `group` (`start-monthly` + `start-yearly`, both `group: "start"`) — the slug is the
+billing key, so each cadence must stay its own plan. `utils/plan-groups.ts` collapses them:
+`groupPlans()` (one card per package), `planCadences()` (the billing-cycle switch), `variantFor()`
+(which variant a card shows). Rendering the flat list instead shows two identical-looking cards with
+the same name. Two rules that are easy to get wrong:
+
+- **`resolvePlanChangeDirection()` is a cross-repo contract** — it mirrors
+  `mission-control/src/utils/plan-change-direction.ts` and must change in lockstep. Tier rank first,
+  cadence second, raw amount only as the legacy fallback. This side only labels a button; MC decides
+  what happens. When they disagree, a card reading "Downgrade" charges the customer immediately.
+- **`planCadences()` returns `[]` unless some package really sells more than one cadence.** Without
+  that filter, ungrouped plans (each a group of one) still yield differing month counts and render an
+  **inert** switch — every card falls back to its only variant, so clicking does nothing.
+
+The billing grid is split three ways so no piece outgrows the component size limit:
+`available-plans.tsx` (orchestrator — cadence state, grouping, both dialogs), `plan-card.tsx` (one
+card + its action button), `billing-cycle-toggle.tsx` (the switch). Two dialogs, and they are not
+interchangeable: `trial-info-modal.tsx` explains a trial **before** it starts (gated on
+`entitlement.trialUsed`, which is one-time per workspace), `trial-end-confirm-dialog.tsx` confirms
+**ending** a running trial to switch to a paid plan.
+
+Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | reactivate | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now", and `needsReactivation()` (`reactivate` = canceled **or** `incomplete`, i.e. awaiting a first payment) routes the user to `/dashboard/billing` to subscribe or re-subscribe (their data is retained; the backend confines them to billing routes). Both of those arrive from MC as `status:"inactive"`, so the classifier resolves them **before** the `inactive → blocked` branch — reordering that check silently locks customers out of checkout.
 
 ### Path Aliases
 
