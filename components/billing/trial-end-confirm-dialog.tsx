@@ -16,10 +16,13 @@ import type { AvailablePlan } from "@/types";
 
 /**
  * Confirms ending an active free trial to switch onto a paid plan. Switching
- * mid-trial ends the trial immediately and requires payment (the backend drops
- * the workspace to the free baseline until the new plan is paid), so this
- * destructive, non-obvious step is confirmed first. Controlled: a non-null `plan`
- * opens it; `onConfirm` proceeds with the change, `onOpenChange(false)` dismisses.
+ * mid-trial ends the trial immediately and requires payment — until that payment
+ * lands the subscription is `incomplete`, which confines the workspace to the
+ * billing page (data retained, nothing deleted). That is destructive enough, and
+ * non-obvious enough, to confirm first. Controlled: a non-null `plan` opens it;
+ * `onConfirm` proceeds with the change, `onOpenChange(false)` dismisses.
+ *
+ * Distinct from `TrialInfoModal`, which explains a trial *before* it starts.
  */
 export function TrialEndConfirmDialog({
   plan,
