@@ -100,9 +100,9 @@ export default function ProtectedLayout({
       return;
     }
 
-    // Canceled workspaces are let in but confined to billing (the backend 403s
-    // every other route). Route them there so they land on a working page, not a
-    // wall of failed requests.
+    // Billing-confined workspaces — canceled, or awaiting a first payment — are
+    // let in but the backend 403s every other route. Route them to billing so
+    // they land on a working page, not a wall of failed requests.
     if (
       needsReactivation(subscription.data.entitlement) &&
       pathname !== "/dashboard/billing"

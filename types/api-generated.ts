@@ -10719,6 +10719,7 @@ export interface components {
             organizationId: string;
             planSlug?: string;
             planName?: string;
+            planGroup?: string;
             /** @enum {string} */
             interval?: "month" | "year" | "one_time";
             intervalCount?: number;
@@ -10740,6 +10741,7 @@ export interface components {
             currentPeriodEnd?: string | null;
             /** Format: date-time */
             trialEndsAt?: string | null;
+            trialUsed?: boolean;
             pendingPlanSlug?: string;
             /** Format: date-time */
             pendingPlanEffectiveAt?: string | null;
@@ -11312,6 +11314,7 @@ export interface components {
                 organizationId: string;
                 planSlug?: string;
                 planName?: string;
+                planGroup?: string;
                 /** @enum {string} */
                 interval?: "month" | "year" | "one_time";
                 intervalCount?: number;
@@ -11333,6 +11336,7 @@ export interface components {
                 currentPeriodEnd?: string | null;
                 /** Format: date-time */
                 trialEndsAt?: string | null;
+                trialUsed?: boolean;
                 pendingPlanSlug?: string;
                 /** Format: date-time */
                 pendingPlanEffectiveAt?: string | null;
