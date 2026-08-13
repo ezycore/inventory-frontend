@@ -13615,6 +13615,8 @@ export interface operations {
                     planName?: string;
                     planSlug?: string;
                     loadSampleData?: boolean;
+                    /** @enum {string} */
+                    locale?: "en" | "bn";
                 };
             };
         };
