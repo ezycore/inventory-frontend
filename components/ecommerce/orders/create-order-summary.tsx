@@ -9,7 +9,7 @@ import type { OrderQuote } from "@/services/api/modules/storefront-orders/api";
  * ordered.
  *
  * **Every figure here is server-quoted** (`POST /ecommerce/orders/quote`) and none
- * is computed in this file — see `useCreateOrderForm`. If you ever find yourself
+ * is computed in this file — see `useOrderForm`. If you ever find yourself
  * adding arithmetic to this component, the number you want belongs on the quote.
  */
 

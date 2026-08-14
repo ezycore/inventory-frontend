@@ -9,7 +9,9 @@ import { Button } from "@/ui/components/button";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
+import { OrderEditButton } from "./order-edit-button";
 import { OrderReturnDialog } from "./order-return-dialog";
+import { OrderReverseStatusDialog } from "./order-reverse-status-dialog";
 
 /**
  * The header action cluster — the order's forward controls. Reflects the
@@ -38,6 +40,11 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Corrections first, and visually quieter than the forward controls: they
+          are the exception, and a merchant reaching for one already knows it. Each
+          hides itself when the order is past the point of allowing it. */}
+      <OrderEditButton order={order} />
+      <OrderReverseStatusDialog order={order} />
       {order.status === "pending" && (
         <>
           <OrderCancelDialog

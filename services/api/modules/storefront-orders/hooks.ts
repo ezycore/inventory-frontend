@@ -4,7 +4,11 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
-import type { CreateAdminOrderInput, QuoteAdminOrderInput } from "./api";
+import type {
+  CreateAdminOrderInput,
+  EditAdminOrderInput,
+  QuoteAdminOrderInput,
+} from "./api";
 import {
   couriersApi,
   storefrontOrdersApi,
@@ -112,6 +116,26 @@ export const useCreateStorefrontOrder = () => {
   });
 };
 
+/**
+ * Correct an existing order.
+ *
+ * Dirties `order.changed` rather than a narrower key because an edit can move
+ * almost anything the lists and stats read — lines, totals, the stock hold and
+ * the address all at once.
+ */
+export const useEditStorefrontOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; body: EditAdminOrderInput }) =>
+      storefrontOrdersApi.edit(v.id, v.body),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order updated");
+      invalidate(qc, "order.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useConfirmOrder = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -127,8 +151,8 @@ export const useConfirmOrder = () => {
 export const useUpdateOrderStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; status: string }) =>
-      storefrontOrdersApi.updateStatus(v.id, v.status),
+    mutationFn: (v: { id: string; status: string; note?: string }) =>
+      storefrontOrdersApi.updateStatus(v.id, v.status, v.note),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Status updated");
       invalidate(qc, "order.changed");

@@ -7,9 +7,11 @@ import { NavGroup, NavItem } from "@/types/layout";
  *
  * Groups follow the money flow a shop owner works in — sell, buy, stock, money —
  * rather than object type, so the highest-frequency destinations sit near the top
- * and setup-only screens collect under Admin. A group with an empty `label`
- * renders without a heading (see `AppSidebar`); Dashboard uses that so the rail
- * doesn't spend a row labelling a single item.
+ * and setup-only screens collect under Admin. Online Store breaks that pattern on
+ * purpose: it is a sales *channel* the owner tends separately from the daily
+ * money flow, so it gets its own group instead of nesting under Sell. A group
+ * with an empty `label` renders without a heading (see `AppSidebar`); Dashboard
+ * uses that so the rail doesn't spend a row labelling a single item.
  */
 export const navGroups: NavGroup[] = [
   {
@@ -50,6 +52,16 @@ export const navGroups: NavGroup[] = [
             features: ["sales"],
           },
           {
+            // Online orders are sales, so they live with the ledger rather than
+            // with the storefront's setup screens. Still storefront-gated: a
+            // shop-only merchant has no online channel to take orders through.
+            title: "Online Orders",
+            url: "/ecommerce/orders",
+            icon: "receipt",
+            features: ["storefront"],
+            permissions: ["storefront.orders.view"],
+          },
+          {
             title: "Sales History",
             url: "/sales/history",
             icon: "clock",
@@ -67,6 +79,30 @@ export const navGroups: NavGroup[] = [
         ],
       },
       {
+        title: "Customers",
+        url: "/customers",
+        icon: "users",
+        isActive: false,
+        items: [],
+      },
+    ],
+  },
+
+  {
+    // The storefront is a channel, not a sub-section of Sell: its orders are
+    // sales (they live under Sales above) and what is left here is the channel
+    // itself — the shop window, its taxonomy, its promotions, its settings.
+    //
+    // Its own group, but collapsed behind one parent row: listing all eight
+    // storefront screens flat cost the rail eight permanent rows and pushed Buy
+    // and Stock below the fold, so Products needed a scroll.
+    //
+    // Headed "Store" rather than "Online Store" so the heading and the row it
+    // contains don't repeat the same words — the group names the channel, the
+    // row names the destination, the same way "Sell" heads "Sales".
+    label: "Store",
+    items: [
+      {
         title: "Online Store",
         url: "/ecommerce",
         icon: "store",
@@ -79,13 +115,6 @@ export const navGroups: NavGroup[] = [
             icon: "layout-dashboard",
             features: ["storefront"],
             permissions: ["storefront.view"],
-          },
-          {
-            title: "Online Orders",
-            url: "/ecommerce/orders",
-            icon: "receipt",
-            features: ["storefront"],
-            permissions: ["storefront.orders.view"],
           },
           {
             // The catalog's product listing moved to Products → Online: it
@@ -141,13 +170,6 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.view"],
           },
         ],
-      },
-      {
-        title: "Customers",
-        url: "/customers",
-        icon: "users",
-        isActive: false,
-        items: [],
       },
     ],
   },
