@@ -4,7 +4,7 @@ slug: storefront-catalog
 summary: Pick which products appear in your store, price them for online, and write your pages.
 order: 102
 covers_routes:
-  - /ecommerce/catalog
+  - /ecommerce/collections
   - /ecommerce/customize
   - /ecommerce/content
 features:
@@ -16,11 +16,14 @@ features:
 Your online store draws on the same products as your counter, but you decide which ones appear and
 what they cost there.
 
-## Catalog
+## Which products go online
 
-**Catalog** lets you *Control which products and collections appear in your online store.* Nothing
-goes online until you put it there, which is deliberate — plenty of what you stock is not worth
-listing.
+Go to **Products** and open the **Online** tab. It lists the same products you sell at the counter,
+with a switch for each one and the online price beside it — one set of product records, edited in
+one place, rather than a separate online catalogue to keep in step.
+
+Nothing goes online until you put it there, which is deliberate — plenty of what you stock is not
+worth listing.
 
 Online price works by inheritance: a product *Inherits the base price. Set an online price to
 override.* Leave it alone and your shop price applies everywhere. Set an override and only the store
@@ -31,6 +34,12 @@ online-only price, or matching a competitor without touching your counter.
 
 Worth listing well rather than exhaustively. A shopper judges your store on the products they can see,
 so a small catalogue with good images and real descriptions outsells a large one full of blanks.
+
+## Collections
+
+**Collections** groups listed products into the sets shoppers browse by — "Winter", "Under 500",
+"New in". It lives under Online Store because it exists only there: your counter has categories,
+your store has collections, and a product can sit in several at once.
 
 ## Customize
 

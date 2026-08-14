@@ -17319,7 +17319,7 @@ export interface operations {
         };
         responses: {
             /** @description Success */
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

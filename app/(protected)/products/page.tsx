@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations, useLocale } from 'next-intl'
+import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
@@ -50,7 +51,13 @@ export default function ProductsPage() {
   // (docs/plan/onboarding-workspace.md §6.3). It needs the storefront feature
   // AND the permission: a staff member without storefront access must not get a
   // tab that 403s on click.
-  const [tab, setTab] = useState<'all' | 'online'>('all')
+  //
+  // `?tab=online` makes it linkable: the ecommerce dashboard's "Online products
+  // live" tile points here, and there is no other route to the online listing
+  // since /ecommerce/catalog was removed. Read once as the initial value — the
+  // strip owns the tab after that, so switching tabs does not rewrite the URL.
+  const initialTab = useSearchParams().get('tab') === 'online' ? 'online' : 'all'
+  const [tab, setTab] = useState<'all' | 'online'>(initialTab)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [labelSheet, setLabelSheet] = useState<{ open: boolean; items: LabelItem[] }>({ open: false, items: [] })
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
