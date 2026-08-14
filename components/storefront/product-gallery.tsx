@@ -10,12 +10,20 @@
  *
  * The magnify is mouse-only by construction (`pointerType`), so a tap on a
  * touch screen can't leave the hero stuck zoomed with no way to leave it.
+ *
+ * The hero's crop follows the merchant's `useStoreImageFit()` choice like every
+ * other storefront photo. In canvas mode the zoom transform lands on `<Media>`'s
+ * wrapper div rather than a bare `<img>` — safe, because `zoomOrigin()` reads its
+ * percentage off `.sf-pdp-zoom`'s own bounding rect (the outer hover-tracking
+ * box), not the image element, and the wrapper fills that box identically to how
+ * the `<img>` used to.
  */
 import { useState, type CSSProperties, type PointerEvent } from "react";
 import { fullImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
+import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 /** How far the hero magnifies under the pointer. */
@@ -70,6 +78,7 @@ export function ProductGallery({
   onSelect: (index: number) => void;
 }) {
   const { t } = useStorefrontUI();
+  const fit = useStoreImageFit();
   const [zoomed, setZoomed] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
 
@@ -98,6 +107,7 @@ export function ProductGallery({
         label="product"
         ratio={layout === "top" ? "16 / 11" : "1 / 1"}
         radius={RADIUS}
+        fit={fit}
         className="sf-pdp-zoom-img"
         style={{
           display: "block",

@@ -38,6 +38,8 @@ interface SfPreviewState {
   cardStyle: string | null;
   /** Raw card CTA layout (add | add-buy | icons | buy-first | reveal | icon-only). */
   cardActions: string | null;
+  /** Raw image fit (fit | crop) the editor is drafting. */
+  imageFit: string | null;
   /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
   pagination: string | null;
   /** Raw collection-page layout (grid-3 | grid-4 | sidebar) the editor is drafting. */
@@ -120,6 +122,7 @@ interface SfPreviewState {
     header?: string;
     cardStyle?: string;
     cardActions?: string;
+    imageFit?: string;
     pagination?: string;
     collection?: string;
     product?: string;
@@ -157,6 +160,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   header: null,
   cardStyle: null,
   cardActions: null,
+  imageFit: null,
   pagination: null,
   collection: null,
   product: null,
@@ -191,6 +195,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
+      imageFit: patch.imageFit !== undefined ? patch.imageFit : s.imageFit,
       pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
       collection: patch.collection !== undefined ? patch.collection : s.collection,
       product: patch.product !== undefined ? patch.product : s.product,

@@ -289,6 +289,20 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
+  /* -------------------------------------------------------------- image fit */
+  "imageFit:fit": (
+    <Frame className="items-center justify-center p-2">
+      <span className="flex h-full w-full items-center justify-center rounded-[3px] border border-border bg-background p-1">
+        <span className={cn(IMG, "h-4/5 w-3/5")} />
+      </span>
+    </Frame>
+  ),
+  "imageFit:crop": (
+    <Frame className="p-2">
+      <span className={cn(IMG, "h-full w-full")} />
+    </Frame>
+  ),
+
   /* -------------------------------------------------------------- header */
   "header:classic": (
     <Frame className="justify-center">
