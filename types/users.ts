@@ -70,6 +70,12 @@ export interface UpdateUserDto {
   lastName?: string;
   phone?: string;
   role?: Role;
+  /**
+   * Locations to assign. The backend applies these after the role change, and a
+   * demotion off a `locations.all` role is rejected without them — so the edit
+   * form must send them in the same request, not a follow-up.
+   */
+  locationIds?: string[];
 }
 
 export interface RegisterUserDto {
