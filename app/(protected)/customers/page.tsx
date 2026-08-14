@@ -26,6 +26,11 @@ import {
   getCustomerFormConfig,
   defaultValues,
 } from "@/components/customers";
+import { StorefrontListPanel } from "@/components/customers/storefront-list-panel";
+import { PageTabs, type PageTab } from "@/ui/components/page-tabs";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+
+type CustomerTab = "all" | "accounts" | "subscribers";
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -33,8 +38,28 @@ export default function CustomersPage() {
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
+  // The storefront lists are a different collection, not a different filter, so
+  // they need both the feature AND the permission — a staff member without
+  // storefront access must not get a tab that 403s on click.
+  const showStorefrontTabs =
+    isFeatureEnabled(user?.organization?.features, "storefront") &&
+    (user?.permissions?.includes("storefront.view") ?? false);
+
+  const [tab, setTab] = useState<CustomerTab>("all");
   const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const tabs: readonly PageTab<CustomerTab>[] = useMemo(
+    () =>
+      showStorefrontTabs
+        ? ([
+            { key: "all", label: t("page.tabs.all") },
+            { key: "accounts", label: t("page.tabs.accounts") },
+            { key: "subscribers", label: t("page.tabs.subscribers") },
+          ] as const)
+        : ([{ key: "all", label: t("page.tabs.all") }] as const),
+    [showStorefrontTabs, t],
+  );
 
   const customActions: CustomAction[] = useMemo(() => [
     {
@@ -49,6 +74,13 @@ export default function CustomersPage() {
     },
   ], [t]);
 
+  // Hoisted out of the JSX: the table now sits in a ternary branch, and an
+  // object literal inside an unrendered branch never evaluates — which would
+  // make these conditional hook calls.
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
+  const deleteCustomer = useDeleteCustomer();
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -56,6 +88,16 @@ export default function CustomersPage() {
         subTitle={t("page.subtitle")}
       />
 
+      {/* Explicit type argument: inferring K from `onChange` would widen it to
+          `string`, because a setState dispatch also accepts a function updater. */}
+      <PageTabs<CustomerTab> tabs={tabs} active={tab} onChange={setTab} />
+
+      {tab !== "all" ? (
+        // Remount per kind so the search box and page cursor reset — page 3 of
+        // the accounts list means nothing in a subscriber list of 12. React
+        // Query still serves the second visit from cache, so no spinner.
+        <StorefrontListPanel key={tab} kind={tab} />
+      ) : (
       <DataTable
         cardTitle={(dataLength: number) => t("page.cardTitle", { count: dataLength })}
         defaultPageSize={10}
@@ -74,9 +116,9 @@ export default function CustomersPage() {
           formConfig: getCustomerFormConfig(t),
           defaultValues: defaultValues,
           getAllData: customersApi.getAll,
-          createMutation: useCreateCustomer(),
-          updateMutation: useUpdateCustomer(),
-          deleteMutation: useDeleteCustomer(),
+          createMutation: createCustomer,
+          updateMutation: updateCustomer,
+          deleteMutation: deleteCustomer,
           queryKey: queryKeys.customers.all(),
           entityName: t("page.entity"),
           isViewAvailable: false,
@@ -89,6 +131,7 @@ export default function CustomersPage() {
           }),
         }}
       />
+      )}
 
       <CustomerLedgerSheet
         open={ledgerSheetOpen}

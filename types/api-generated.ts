@@ -1145,12 +1145,12 @@ export interface paths {
         };
         /**
          * GET /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:39`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:40`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization"];
         /**
          * PUT /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:28`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:29`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization"];
         post?: never;
@@ -1172,7 +1172,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/demo-data
-         * @description Defined in `src/routes/organization.routes.ts:46`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:47`. Requires permission `organization.edit`.
          */
         delete: operations["delete_api_organization_demo_data"];
         options?: never;
@@ -1189,7 +1189,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:53`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:54`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications"];
         put?: never;
@@ -1199,7 +1199,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:60`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:61`. Requires permission `organization.manage`.
          */
         patch: operations["patch_api_organization_notifications"];
         trace?: never;
@@ -1213,7 +1213,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/log
-         * @description Defined in `src/routes/organization.routes.ts:68`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:69`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_log"];
         put?: never;
@@ -1235,7 +1235,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/log/:id/resend
-         * @description Defined in `src/routes/organization.routes.ts:77`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:78`. Requires permission `organization.manage`.
          */
         post: operations["post_api_organization_notifications_log_id_resend"];
         delete?: never;
@@ -1253,7 +1253,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/sms/usage
-         * @description Defined in `src/routes/organization.routes.ts:85`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:86`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_sms_usage"];
         put?: never;
@@ -1275,7 +1275,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/sms/test
-         * @description Defined in `src/routes/organization.routes.ts:95`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:96`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_notifications_sms_test"];
         delete?: never;
@@ -1293,7 +1293,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription
-         * @description Defined in `src/routes/organization.routes.ts:105`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:106`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_subscription"];
         put?: never;
@@ -1313,7 +1313,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/billing/pay-link
-         * @description Defined in `src/routes/organization.routes.ts:112`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:113`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_billing_pay_link"];
         put?: never;
@@ -1333,7 +1333,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/plans
-         * @description Defined in `src/routes/organization.routes.ts:119`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:120`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_plans"];
         put?: never;
@@ -1355,7 +1355,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change
-         * @description Defined in `src/routes/organization.routes.ts:126`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:127`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change"];
         delete?: never;
@@ -1375,7 +1375,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change/reconcile
-         * @description Defined in `src/routes/organization.routes.ts:133`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:134`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change_reconcile"];
         delete?: never;
@@ -1395,7 +1395,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/subscription/cancel
-         * @description Defined in `src/routes/organization.routes.ts:141`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:142`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_subscription_cancel"];
         delete?: never;
@@ -1414,7 +1414,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:149`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:150`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1433,15 +1433,55 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:160`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:161`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:168`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:178`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/features/impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/features/impact
+         * @description Defined in `src/routes/organization.routes.ts:170`. Requires permission `organization.view`.
+         */
+        get: operations["get_api_organization_features_impact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/onboarding
+         * @description Defined in `src/routes/organization.routes.ts:188`. Requires permission `organization.edit`.
+         */
+        post: operations["post_api_organization_onboarding"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1458,7 +1498,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:177`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:197`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1477,7 +1517,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:188`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:208`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1487,7 +1527,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:196`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:216`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1507,7 +1547,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:205`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:225`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1523,7 +1563,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:219`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:239`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1542,7 +1582,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:229`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:249`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -10755,11 +10795,30 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        FeatureImpact: {
+            storefront: {
+                pendingOnlineOrders: number;
+            };
+            expiryTracking: {
+                trackedBatches: number;
+            };
+            multiLocation: {
+                locations: number;
+            };
+            returns: {
+                salesReturns: number;
+            };
+        };
         HeroSlideImage: {
             url: string;
             mediumUrl: string;
             thumbnailUrl: string;
             publicId: string;
+        };
+        OnboardingState: {
+            /** Format: date-time */
+            completedAt: string | null;
+            step: number;
         };
         OrganizationColumnSettings: {
             excludedColumns: {
@@ -10856,6 +10915,7 @@ export interface components {
                 tax: boolean;
                 combo: boolean;
                 smsNotifications: boolean;
+                multiLocation: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -10890,6 +10950,7 @@ export interface components {
                 tax: boolean;
                 combo: boolean;
                 smsNotifications: boolean;
+                multiLocation: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -10904,6 +10965,9 @@ export interface components {
             lapsedAt?: string | null;
             /** @enum {string} */
             demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+            /** Format: date-time */
+            onboardingCompletedAt?: string | null;
+            onboardingStep?: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -10922,6 +10986,7 @@ export interface components {
                 tax: boolean;
                 combo: boolean;
                 smsNotifications: boolean;
+                multiLocation: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -10935,6 +11000,12 @@ export interface components {
                 tax: boolean;
                 combo: boolean;
                 smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            onboarding: {
+                /** Format: date-time */
+                completedAt: string | null;
+                step: number;
             };
         };
         OrganizationFeatures: {
@@ -10949,6 +11020,7 @@ export interface components {
             tax: boolean;
             combo: boolean;
             smsNotifications: boolean;
+            multiLocation: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -12627,6 +12699,7 @@ export interface components {
                     tax: boolean;
                     combo: boolean;
                     smsNotifications: boolean;
+                    multiLocation: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -12662,6 +12735,10 @@ export interface components {
                 };
                 /** @enum {string} */
                 demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                industry?: string;
+                /** Format: date-time */
+                onboardingCompletedAt?: string | null;
+                onboardingStep?: number;
             } | null;
             locations?: {
                 _id: string;
@@ -12742,6 +12819,7 @@ export interface components {
                     tax: boolean;
                     combo: boolean;
                     smsNotifications: boolean;
+                    multiLocation: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -12777,6 +12855,10 @@ export interface components {
                 };
                 /** @enum {string} */
                 demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                industry?: string;
+                /** Format: date-time */
+                onboardingCompletedAt?: string | null;
+                onboardingStep?: number;
             } | null;
             locations?: {
                 _id: string;
@@ -12860,6 +12942,7 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                         smsNotifications: boolean;
+                        multiLocation: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -12895,6 +12978,10 @@ export interface components {
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                    industry?: string;
+                    /** Format: date-time */
+                    onboardingCompletedAt?: string | null;
+                    onboardingStep?: number;
                 } | null;
                 locations?: {
                     _id: string;
@@ -12975,6 +13062,7 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                         smsNotifications: boolean;
+                        multiLocation: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13010,6 +13098,10 @@ export interface components {
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                    industry?: string;
+                    /** Format: date-time */
+                    onboardingCompletedAt?: string | null;
+                    onboardingStep?: number;
                 } | null;
                 locations?: {
                     _id: string;
@@ -13130,6 +13222,7 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                         smsNotifications: boolean;
+                        multiLocation: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13165,6 +13258,10 @@ export interface components {
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                    industry?: string;
+                    /** Format: date-time */
+                    onboardingCompletedAt?: string | null;
+                    onboardingStep?: number;
                 } | null;
                 locations?: {
                     _id: string;
@@ -13268,6 +13365,7 @@ export interface components {
                         tax: boolean;
                         combo: boolean;
                         smsNotifications: boolean;
+                        multiLocation: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13303,6 +13401,10 @@ export interface components {
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+                    industry?: string;
+                    /** Format: date-time */
+                    onboardingCompletedAt?: string | null;
+                    onboardingStep?: number;
                 } | null;
                 locations?: {
                     _id: string;
@@ -13611,7 +13713,7 @@ export interface operations {
                     country: string;
                     timezone: string;
                     currency: string;
-                    address?: string;
+                    address: string;
                     planName?: string;
                     planSlug?: string;
                     loadSampleData?: boolean;
@@ -17088,12 +17190,135 @@ export interface operations {
                     uomConversion?: boolean;
                     tax?: boolean;
                     combo?: boolean;
+                    storefront?: boolean;
+                    smsNotifications?: boolean;
+                    multiLocation?: boolean;
                 };
             };
         };
         responses: {
             /** @description Success */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrganizationFeatureState"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_features_impact: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["FeatureImpact"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_onboarding: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    step?: number;
+                    features?: {
+                        sales?: boolean;
+                        accounts?: boolean;
+                        expiryTracking?: boolean;
+                        barcodeSystem?: boolean;
+                        invoicePrinting?: boolean;
+                        returns?: boolean;
+                        uomConversion?: boolean;
+                        storefront?: boolean;
+                        smsNotifications?: boolean;
+                        multiLocation?: boolean;
+                        tax?: boolean;
+                        combo?: boolean;
+                    };
+                    vatRegistration?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                    };
+                    complete?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -23919,7 +24144,7 @@ export interface operations {
                     /** Format: email */
                     email: string;
                     firstName: string;
-                    lastName: string;
+                    lastName?: (unknown | string) | "";
                     /** @default staff */
                     role?: string;
                     phone?: string;
@@ -23984,7 +24209,7 @@ export interface operations {
             content: {
                 "application/json": {
                     firstName?: string;
-                    lastName?: string;
+                    lastName?: (unknown | string) | "";
                     phone?: string;
                     role?: string;
                     locationIds?: string[];

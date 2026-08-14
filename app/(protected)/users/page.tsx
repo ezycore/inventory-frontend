@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import {
   useCreateUser,
   useDeleteUser,
+  useLocations,
   useRoles,
   useToggleUserStatus,
   useUpdateUser,
@@ -57,6 +58,15 @@ export default function UsersPage() {
     [roles],
   );
 
+  // The first active location, used to pre-fill the (now required) Locations
+  // field. Same ordering the form's own `activeLocations` options use, so the
+  // pre-selected entry is the one sitting at the top of the list.
+  const { data: locationsData } = useLocations({ status: "active", limit: 1 });
+  const defaultLocationIds = useMemo(() => {
+    const first = locationsData?.items?.[0]?._id;
+    return first ? [first] : [];
+  }, [locationsData]);
+
   const allLocationRoleSlugs = useMemo(
     () =>
       new Set([
@@ -88,25 +98,51 @@ export default function UsersPage() {
   const roleAwareFormConfig = useMemo<DynamicFormConfig>(() => {
     const userFormConfig = getUserFormConfig(t);
     const fields = userFormConfig.fields.map((field) => {
-      if (field.name !== "role") return field;
-      return {
-        ...field,
-        options: assignableRoles,
-        defaultValue: assignableRoles[0]?.value || "",
-      };
+      if (field.name === "role") {
+        return {
+          ...field,
+          options: assignableRoles,
+          defaultValue: assignableRoles[0]?.value || "",
+        };
+      }
+      if (field.name === "locationIds") {
+        return {
+          ...field,
+          // Pre-select the first location so the common case — one shop, one
+          // new cashier — is already correct when the form opens, and the
+          // required field is never the thing that blocks a save.
+          defaultValue: defaultLocationIds,
+          // Roles carrying `locations.all` are org-wide by definition; the
+          // backend stores an empty list for them, so asking is misleading.
+          // Hidden values are stripped, so nothing is sent for those roles.
+          dependsOn: {
+            field: "role",
+            // `role` carries static options, so the form enriches its watched
+            // value into the whole `{ value, label }` option before comparing.
+            // Without this the check runs against an object, never matches a
+            // slug, and the field shows for every role including admins.
+            matchWithProp: "value",
+            condition: "notIn" as const,
+            value: [...allLocationRoleSlugs],
+            action: "show" as const,
+          },
+        };
+      }
+      return field;
     });
     return {
       ...userFormConfig,
       fields,
     };
-  }, [assignableRoles, t]);
+  }, [assignableRoles, allLocationRoleSlugs, defaultLocationIds, t]);
 
   const roleAwareDefaultValues = useMemo(
     () => ({
       ...userFormDefaultValues,
       role: assignableRoles[0]?.value || "",
+      locationIds: defaultLocationIds,
     }),
-    [assignableRoles],
+    [assignableRoles, defaultLocationIds],
   );
 
   // Custom actions for toggling user status

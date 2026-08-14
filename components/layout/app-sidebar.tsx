@@ -172,6 +172,10 @@ export default function AppSidebar() {
   const tUserMenu = useTranslations("layout.userMenu");
   const { itemLabel, groupLabel } = useNavLabels();
   const closeMobileNav = useCloseMobileNav();
+  // Same permission the page itself enforces — staff who cannot configure the
+  // org get no entry rather than an entry that redirects them away.
+  const canCustomizeWorkspace =
+    user?.permissions?.includes("organization.edit") ?? false;
 
   // The footer menu navigates imperatively, so it closes the mobile sheet the
   // same way the nav links do — see `useCloseMobileNav`.
@@ -244,6 +248,26 @@ export default function AppSidebar() {
       {isAuthenticated && user && (
         <SidebarFooter>
           <SidebarMenu>
+            {/* The way back from every hidden feature, so it is permanently
+                visible rather than filed under Settings. Hiding is only safe
+                when unhiding is obvious — a merchant who turned the online
+                store off during setup has to be able to find it again without
+                knowing what we called the page
+                (docs/plan/onboarding-workspace.md §7). */}
+            {canCustomizeWorkspace && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={itemLabel("Customize workspace")}
+                  isActive={pathname === "/settings/features"}
+                >
+                  <Link href="/settings/features">
+                    <NavIcon name="sliders-horizontal" />
+                    <span>{itemLabel("Customize workspace")}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

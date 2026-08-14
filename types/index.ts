@@ -54,22 +54,40 @@ export interface OrganizationFeatures {
   tax: boolean;
   /** Enable combo / bundle products (sell several products as one priced unit). */
   combo: boolean;
+  /**
+   * SMS notification channel. This key alone sends nothing — the org's own
+   * NotificationConfig.sms.enabled switch and a non-zero credit balance are two
+   * further, independent guards.
+   */
+  smsNotifications: boolean;
+  /**
+   * More than one shop or warehouse. Off hides Locations, Transfer Stock and
+   * Stock by Location; the org still runs on its single signup-created
+   * location. Turning it back on restores all three with data intact.
+   */
+  multiLocation: boolean;
 }
 
 /**
- * Default feature settings for new organizations
+ * Default feature settings for new organizations.
+ *
+ * Mirrors the backend `DEFAULT_ORGANIZATION_FEATURES` and must stay in step with
+ * it — all ON, so a fresh signup is fully populated and onboarding's job is to
+ * switch OFF what the business doesn't need (docs/plan/onboarding-workspace.md §1).
  */
 export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   sales: true,
-  accounts: false,
-  expiryTracking: false,
-  barcodeSystem: false,
-  invoicePrinting: false,
+  accounts: true,
+  expiryTracking: true,
+  barcodeSystem: true,
+  invoicePrinting: true,
   returns: true,
-  uomConversion: false,
+  uomConversion: true,
   storefront: true,
   tax: true,
-  combo: false,
+  combo: true,
+  smsNotifications: true,
+  multiLocation: true,
 };
 
 /**
@@ -1509,7 +1527,7 @@ export interface UseMutationOptions<
 
 export interface createOrganizationDto {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   phone?: string;

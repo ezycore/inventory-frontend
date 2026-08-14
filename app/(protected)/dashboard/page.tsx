@@ -28,6 +28,7 @@ import { LowStockAlerts } from '@/components/dashboard/low-stock-alerts'
 import { ActivitySection } from '@/components/dashboard/activity-section'
 import { FinancialInsights } from '@/components/dashboard/financial-insights'
 import { QuickActions } from '@/components/dashboard/quick-actions'
+import { ReportsRestricted } from '@/components/dashboard/reports-restricted'
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard.kpi')
@@ -44,8 +45,14 @@ export default function DashboardPage() {
   // Only build params when valid (custom needs both dates)
   const isCustomValid = period !== 'custom' || (!!customStart && !!customEnd)
 
+  // The whole dashboard aggregate is gated on `reports.view` (dashboard.route.ts).
+  // Without it every panel below rendered ৳0.00 and "No transaction data yet" off
+  // a silent 403 — which is not a missing panel, it is a wrong number: a cashier
+  // reads it as "the shop sold nothing today". Skip the fetch and say so instead.
+  const canViewReports = !!user?.permissions?.includes('reports.view')
+
   const overviewParams = useMemo<DashboardOverviewParams | undefined>(() => {
-    if (!isCustomValid) return undefined
+    if (!isCustomValid || !canViewReports) return undefined
     const params: DashboardOverviewParams = {
       period,
       weekStartDay: 1, // Monday default
@@ -55,7 +62,7 @@ export default function DashboardPage() {
       params.endDate = customEnd
     }
     return params
-  }, [period, customStart, customEnd, isCustomValid])
+  }, [period, customStart, customEnd, isCustomValid, canViewReports])
 
   const { data: overviewData, isFetching: overviewLoading } = useDashboardOverview(overviewParams)
   const { data: stockMovements, isLoading: movementsLoading } =
@@ -126,54 +133,70 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <DashboardHeader firstName={firstName} timezone={timezone} />
 
-      <PeriodFilter
-        period={period}
-        setPeriod={setPeriod}
-        customStart={customStart}
-        setCustomStart={setCustomStart}
-        customEnd={customEnd}
-        setCustomEnd={setCustomEnd}
-        periodInfo={overview?.period}
-      />
+      {canViewReports ? (
+        <>
+          <PeriodFilter
+            period={period}
+            setPeriod={setPeriod}
+            customStart={customStart}
+            setCustomStart={setCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={setCustomEnd}
+            periodInfo={overview?.period}
+          />
 
-      <StatsCard
-        data={kpiStats}
-        isLoading={overviewLoading}
-        columns={{ default: 2, lg: 4 }}
-      />
+          <StatsCard
+            data={kpiStats}
+            isLoading={overviewLoading}
+            columns={{ default: 2, lg: 4 }}
+          />
 
-      <ChartSection
-        overview={overview}
-        isLoading={overviewLoading}
-        formatCurrency={formatCurrency}
-      />
+          <ChartSection
+            overview={overview}
+            isLoading={overviewLoading}
+            formatCurrency={formatCurrency}
+          />
 
-      {overview && (
-        <SummaryCards overview={overview} formatCurrency={formatCurrency} />
+          {overview && (
+            <SummaryCards overview={overview} formatCurrency={formatCurrency} />
+          )}
+
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <TopSoldItems
+              items={overview?.topSoldItems}
+              isLoading={overviewLoading}
+              formatCurrency={formatCurrency}
+            />
+            <LowStockAlerts
+              lowStock={overview?.lowStock}
+              isLoading={overviewLoading}
+            />
+          </div>
+        </>
+      ) : (
+        <ReportsRestricted />
       )}
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <TopSoldItems
-          items={overview?.topSoldItems}
-          isLoading={overviewLoading}
-          formatCurrency={formatCurrency}
-        />
-        <LowStockAlerts
-          lowStock={overview?.lowStock}
-          isLoading={overviewLoading}
-        />
-      </div>
-
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      <div
+        className={
+          canViewReports
+            ? 'grid gap-6 grid-cols-1 lg:grid-cols-2'
+            : 'grid gap-6 grid-cols-1'
+        }
+      >
+        {/* Stock movements are gated on `stock.view`, which every role that can
+            reach this page already has — so this panel stays for everyone. */}
         <ActivitySection
           stockMovements={stockMovements}
           isLoading={movementsLoading}
         />
-        <FinancialInsights
-          overview={overview}
-          isLoading={overviewLoading}
-          formatCurrency={formatCurrency}
-        />
+        {canViewReports && (
+          <FinancialInsights
+            overview={overview}
+            isLoading={overviewLoading}
+            formatCurrency={formatCurrency}
+          />
+        )}
       </div>
 
       <QuickActions />

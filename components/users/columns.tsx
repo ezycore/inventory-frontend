@@ -11,6 +11,7 @@ import {
   MailCheck,
 } from "lucide-react";
 import type { Translator } from "@/i18n/config";
+import { fullName } from "@/utils/user-name";
 import { formatRoleName } from "./helpers";
 
 // Column definitions
@@ -28,7 +29,7 @@ export const getUserColumns = (
       return (
         <div className="flex items-center gap-2">
           <div>
-            <div className="font-medium">{`${firstName} ${lastName}`}</div>
+            <div className="font-medium">{fullName({ firstName, lastName })}</div>
             <div className="text-sm text-muted-foreground">
               {row.original.email}
             </div>

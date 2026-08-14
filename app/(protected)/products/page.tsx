@@ -5,7 +5,9 @@ import { useTranslations, useLocale } from 'next-intl'
 import PageHeader from '@/ui/components/header'
 import { useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
-import { isVatActive } from '@/lib/feature-utils'
+import { isFeatureEnabled, isVatActive } from '@/lib/feature-utils'
+import { PageTabs, type PageTab } from '@/ui/components/page-tabs'
+import { OnlineCatalogPanel } from '@/components/products/online-catalog-panel'
 import { queryKeys } from '@/services/api/query-keys'
 import { DataTable } from '@/ui/components/dataTable'
 import { DataCard } from '@/ui/components/dataCard'
@@ -43,6 +45,12 @@ export default function ProductsPage() {
     defaultSortBy: "createdAt",
     defaultSortOrder: "desc" as const,
   }
+  // The Online tab is a listing view over these same product records — not a
+  // second catalog — so it belongs here rather than as its own sidebar entry
+  // (docs/plan/onboarding-workspace.md §6.3). It needs the storefront feature
+  // AND the permission: a staff member without storefront access must not get a
+  // tab that 403s on click.
+  const [tab, setTab] = useState<'all' | 'online'>('all')
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [labelSheet, setLabelSheet] = useState<{ open: boolean; items: LabelItem[] }>({ open: false, items: [] })
   const [viewMode, setViewMode, isMounted] = useViewMode('products')
@@ -83,6 +91,21 @@ export default function ProductsPage() {
   }, [taxGatedFormConfig, comboEnabled]);
 
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
+
+  const showOnlineTab =
+    isFeatureEnabled(user?.organization?.features, 'storefront') &&
+    (user?.permissions?.includes('storefront.view') ?? false);
+
+  const productTabs: readonly PageTab<'all' | 'online'>[] = useMemo(
+    () =>
+      showOnlineTab
+        ? ([
+            { key: 'all', label: t('page.tabs.all') },
+            { key: 'online', label: t('page.tabs.online') },
+          ] as const)
+        : ([{ key: 'all', label: t('page.tabs.all') }] as const),
+    [showOnlineTab, t],
+  );
 
   const openLabelsFor = (rows: any[]) => {
     const items: LabelItem[] = [];
@@ -183,11 +206,15 @@ export default function ProductsPage() {
         subTitle={t("page.subtitle")}
         actions={
           <div className="flex items-center gap-3">
-            <ViewToggle
-              storageKey="products"
-              defaultView={viewMode}
-              onChange={setViewMode}
-            />
+            {/* Table/card is a choice about the product list; the Online tab has
+                its own single layout, so the toggle would do nothing there. */}
+            {tab === 'all' && (
+              <ViewToggle
+                storageKey="products"
+                defaultView={viewMode}
+                onChange={setViewMode}
+              />
+            )}
             <FieldSettingsLink module="product" />
           </div>
         }
@@ -200,10 +227,12 @@ export default function ProductsPage() {
         columns={{ default: 1, lg: productStats.length }}
       />
 
+      <PageTabs<'all' | 'online'> tabs={productTabs} active={tab} onChange={setTab} />
 
+      {tab === 'online' && <OnlineCatalogPanel />}
 
       {/* Table View */}
-      {viewMode === 'table' && (
+      {tab === 'all' && viewMode === 'table' && (
         <DataTable
           cardTitle={t("page.allProductsTitle")}
           columns={filteredColumns}
@@ -247,7 +276,7 @@ export default function ProductsPage() {
       )}
 
       {/* Card View */}
-      {viewMode === 'card' && (
+      {tab === 'all' && viewMode === 'card' && (
         <DataCard
           cardTitle={t("page.allProductsTitle")}
           defaultPageSize={12}

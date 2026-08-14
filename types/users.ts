@@ -28,7 +28,8 @@ export type Role = string;
 export interface User {
   _id: string;
   firstName: string;
-  lastName: string;
+  /** Optional on the backend model — compose names via `utils/user-name.ts`. */
+  lastName?: string;
   email: string;
   emailVerified: boolean;
   phone?: string;
@@ -55,7 +56,7 @@ export interface User {
 export interface CreateUserDto {
   email: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   role?: Role;
   phone?: string;
   /** Array of location IDs to assign to the user */
@@ -74,7 +75,7 @@ export interface UpdateUserDto {
 export interface RegisterUserDto {
   email: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   role?: Role;
   phone?: string;
   /** Array of location IDs to assign to the user */

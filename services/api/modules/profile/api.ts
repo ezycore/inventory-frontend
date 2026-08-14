@@ -69,7 +69,7 @@ export const profileApi = {
       Array<{
         _id: string;
         firstName: string;
-        lastName: string;
+        lastName?: string;
         email: string;
         role: string;
       }>
