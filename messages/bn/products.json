@@ -13,7 +13,11 @@
       "sortName": "নাম",
       "sortPrice": "মূল্য",
       "sortStatus": "স্ট্যাটাস",
-      "entity": "পণ্য"
+      "entity": "পণ্য",
+      "tabs": {
+        "all": "সব পণ্য",
+        "online": "অনলাইন"
+      }
     },
     "detailPage": {
       "back": "ফিরে যান"

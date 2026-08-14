@@ -185,6 +185,20 @@ export function getOwnerSetupFormConfig(t: Translator): DynamicFormConfig {
             options: CURRENCY_OPTIONS,
           },
           {
+            // Required, and collected here rather than in onboarding: this is
+            // the address of the location signup creates, it prints on receipts
+            // and invoices, and `Location.address` is required anyway — while
+            // this was optional the backend fell back to the literal string
+            // "Default Address" (docs/plan/onboarding-workspace.md §5.5).
+            name: "address",
+            type: "textarea",
+            label: t("addressLabel"),
+            columnSpan: 12,
+            placeholder: t("addressPlaceholder"),
+            required: true,
+            validation: { minLength: 5, maxLength: 300 },
+          },
+          {
             name: "loadSampleData",
             type: "custom",
             // Render as a rich toggle card while keeping a boolean in the schema.

@@ -13,7 +13,11 @@
       "sortName": "Name",
       "sortPrice": "Price",
       "sortStatus": "Status",
-      "entity": "Product"
+      "entity": "Product",
+      "tabs": {
+        "all": "All products",
+        "online": "Online"
+      }
     },
     "detailPage": {
       "back": "Back"

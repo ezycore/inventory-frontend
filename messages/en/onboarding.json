@@ -1,0 +1,57 @@
+{
+  "back": "Back",
+  "stepLabel": "Step {current} of {total}",
+  "unavailable": {
+    "title": "Setup isn't available right now",
+    "description": "We couldn't load your workspace settings. If your subscription is awaiting payment, settle it first and setup will continue from here.",
+    "action": "Go to billing"
+  },
+  "channel": {
+    "lead": "First, tell us how you sell.",
+    "question": "How do you sell to your customers?",
+    "shop": "At a shop",
+    "shopHint": "Customers buy at your counter",
+    "online": "Online",
+    "onlineHint": "Facebook, WhatsApp, or your own store",
+    "both": "Both"
+  },
+  "locations": {
+    "lead": "Got it.",
+    "question": "How many locations do you manage?",
+    "one": "One",
+    "many": "More than one",
+    "manyHint": "Shops or warehouses you move stock between"
+  },
+  "vat": {
+    "lead": "Now let's set up your tax information.",
+    "question": "Is your business VAT registered?",
+    "unregistered": "Not registered",
+    "standard15": "Standard rated (15%)",
+    "reduced": "Reduced rate",
+    "turnover4": "Turnover tax (4%)",
+    "turnover4Hint": "Your invoices carry no VAT line"
+  },
+  "expiry": {
+    "lead": "Shops like yours usually track expiry dates.",
+    "question": "Do you track expiry or batch dates on products?",
+    "yes": "Yes, track expiry dates",
+    "no": "No, skip it"
+  },
+  "barcode": {
+    "lead": "Shops like yours usually scan barcodes.",
+    "question": "Do you scan barcodes when selling?",
+    "yes": "Yes, we scan barcodes",
+    "no": "No, we don't"
+  },
+  "review": {
+    "title": "Here's your workspace",
+    "subtitle": "Turn on only the tools you need. You can change this any time.",
+    "fromYourAnswers": "From your answers",
+    "weAlsoRecommend": "We also recommend",
+    "confirm": "Start using Ezycore"
+  },
+  "waiting": {
+    "title": "Setup in progress",
+    "description": "Your administrator is still setting up this workspace. You'll be able to sign in once they finish."
+  }
+}

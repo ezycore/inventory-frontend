@@ -5,5 +5,5 @@ export interface Payment {
   createdAt: string;
   notes?: string;
   accountId?: { name: string };
-  createdBy?: { firstName: string; lastName: string };
+  createdBy?: { firstName: string; lastName?: string };
 }

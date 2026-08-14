@@ -38,7 +38,7 @@ import { useRouter } from "next/dist/client/components/navigation";
 interface OrganizationUser {
   _id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   role: string;
 }

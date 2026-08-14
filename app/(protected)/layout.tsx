@@ -1,6 +1,8 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
+
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
@@ -53,6 +55,7 @@ export default function ProtectedLayout({
   const subscription = useGetSubscription();
   const router = useRouter();
   const pathname = usePathname();
+  const tOnboarding = useTranslations("onboarding");
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const subscriptionLogoutHandled = useRef(false);
@@ -119,6 +122,41 @@ export default function ProtectedLayout({
     }
   }, [forceLogoutForSubscription, subscription.error, subscription.isError]);
 
+  // Setup wizard gate. An un-onboarded workspace opens onto the wizard and
+  // nothing else, so the merchant describes their business before meeting a
+  // sidebar built for every business at once.
+  //
+  // Only whoever can configure the org is sent there — an invited staff member
+  // must never define the workspace on the owner's behalf; they get the
+  // waiting state below instead.
+  //
+  // `onboardingCompletedAt` must be *loaded* before this runs: it arrives with
+  // the org on /me, and `undefined` (still fetching) is not the same answer as
+  // `null` (never onboarded). Waiting on the org object avoids bouncing a
+  // fully-onboarded merchant into the wizard for a frame.
+  const organization = useAuthStore((state) => state.user?.organization);
+  const canConfigureOrg =
+    useAuthStore((state) => state.user?.permissions)?.includes(
+      "organization.edit",
+    ) ?? false;
+  const needsOnboarding = !!organization && !organization.onboardingCompletedAt;
+
+  // Billing outranks setup. A workspace awaiting its first payment is confined
+  // to the billing routes by the backend, so sending it to the wizard produced a
+  // dead end: `/api/organization/features` is not on the reactivate allowlist,
+  // the wizard's own guard waits on features that will never arrive, and the
+  // merchant sits on a spinner with no route to the page that would fix it.
+  // Both redirects fire on the same render and this one is declared later, so
+  // without this check it silently wins.
+  const billingConfined = needsReactivation(subscription.data?.entitlement);
+
+  useEffect(() => {
+    if (billingConfined) return;
+    if (!needsOnboarding || !canConfigureOrg) return;
+    if (pathname === "/onboarding") return;
+    router.replace("/onboarding");
+  }, [billingConfined, needsOnboarding, canConfigureOrg, pathname, router]);
+
   // The org/user identity lives in the persisted auth store, which the server
   // can't read — SSR HTML would show brand defaults that visibly "blink" into
   // the real organization after hydration. Hold the shell behind a neutral
@@ -131,6 +169,36 @@ export default function ProtectedLayout({
         {workspaceTitle}
         <div className="flex min-h-screen items-center justify-center bg-background">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </>
+    );
+  }
+
+  // The wizard renders without the shell — a sidebar of features the merchant
+  // has not chosen yet is the exact thing onboarding exists to avoid, and it
+  // would offer navigation away from a gate that only bounces them back.
+  if (pathname === "/onboarding") {
+    return (
+      <>
+        {workspaceTitle}
+        <div className="min-h-screen bg-background">{children}</div>
+      </>
+    );
+  }
+
+  // Staff arriving before the owner has finished setup: the org's shape is not
+  // decided yet, so there is no meaningful workspace to show them.
+  if (needsOnboarding && !canConfigureOrg) {
+    return (
+      <>
+        {workspaceTitle}
+        <div className="flex min-h-screen items-center justify-center bg-background p-6">
+          <div className="max-w-sm space-y-2 text-center">
+            <h1 className="text-lg font-semibold">{tOnboarding("waiting.title")}</h1>
+            <p className="text-sm text-muted-foreground">
+              {tOnboarding("waiting.description")}
+            </p>
+          </div>
         </div>
       </>
     );

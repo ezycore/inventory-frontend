@@ -145,6 +145,8 @@ export const getFeatureDisplayNames = (t: Translator): Record<FeatureName, strin
   storefront: t("names.storefront"),
   tax: t("names.tax"),
   combo: t("names.combo"),
+  smsNotifications: t("names.smsNotifications"),
+  multiLocation: t("names.multiLocation"),
 });
 
 /**
@@ -161,6 +163,8 @@ export const getFeatureDescriptions = (t: Translator): Record<FeatureName, strin
   storefront: t("descriptions.storefront"),
   tax: t("descriptions.tax"),
   combo: t("descriptions.combo"),
+  smsNotifications: t("descriptions.smsNotifications"),
+  multiLocation: t("descriptions.multiLocation"),
 });
 
 /**
@@ -177,4 +181,6 @@ export const FEATURE_ICONS: Record<FeatureName, string> = {
   storefront: "store",
   tax: "percent",
   combo: "package",
+  smsNotifications: "message-square",
+  multiLocation: "map-pin",
 };

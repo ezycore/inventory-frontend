@@ -42,12 +42,11 @@
       "online-store": "অনলাইন স্টোর",
       "store-overview": "স্টোর ওভারভিউ",
       "online-orders": "অনলাইন অর্ডার",
-      "catalog": "ক্যাটালগ",
+      "collections": "কালেকশন",
       "campaigns": "ক্যাম্পেইন",
       "coupons": "কুপন",
       "customize": "কাস্টমাইজ",
       "content": "কনটেন্ট",
-      "storefront-accounts": "স্টোরফ্রন্ট অ্যাকাউন্ট",
       "abandoned-carts": "পরিত্যক্ত কার্ট",
       "store-settings": "স্টোর সেটিংস",
       "products": "পণ্য",
@@ -65,7 +64,6 @@
       "organization": "প্রতিষ্ঠান",
       "users": "ব্যবহারকারী",
       "roles": "রোল",
-      "feature-settings": "ফিচার সেটিংস",
       "field-settings": "ফিল্ড সেটিংস",
       "vat": "ভ্যাট",
       "receipt-print": "রসিদ ও প্রিন্ট",
@@ -73,7 +71,8 @@
       "billing": "বিলিং",
       "details": "বিস্তারিত",
       "profit-loss": "লাভ ও ক্ষতি",
-      "business-position": "ব্যবসার অবস্থান"
+      "business-position": "ব্যবসার অবস্থান",
+      "customize-workspace": "ওয়ার্কস্পেস কাস্টমাইজ"
     }
   },
   "brand": {
