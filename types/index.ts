@@ -61,9 +61,15 @@ export interface OrganizationFeatures {
    */
   smsNotifications: boolean;
   /**
-   * More than one shop or warehouse. Off hides Locations, Transfer Stock and
-   * Stock by Location; the org still runs on its single signup-created
-   * location. Turning it back on restores all three with data intact.
+   * More than one shop or warehouse — how many locations an org may have, not
+   * whether the Locations screen exists.
+   *
+   * Off hides Transfer Stock and Stock by Location, which are meaningless with
+   * one location. **Locations itself stays visible**: the signup-created
+   * location holds the address printed on every invoice and receipt, so hiding
+   * it would strand that behind a feature the merchant switched off. The Add
+   * button is hidden instead, with a backend guard to match
+   * (constants/navItem.ts, docs/plan/onboarding-workspace.md §3.1).
    */
   multiLocation: boolean;
 }

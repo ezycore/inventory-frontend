@@ -93,7 +93,8 @@ export interface FeatureImpact {
   storefront: { pendingOnlineOrders: number };
   expiryTracking: { trackedBatches: number };
   multiLocation: { locations: number };
-  returns: { salesReturns: number };
+  /** Both kinds — the `returns` feature gates purchase returns as well. */
+  returns: { salesReturns: number; purchaseReturns: number };
 }
 
 /** Shared by GET/PUT features and the onboarding endpoint — one shape, one DTO. */

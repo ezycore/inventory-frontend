@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,7 +45,19 @@ export default function CustomersPage() {
     isFeatureEnabled(user?.organization?.features, "storefront") &&
     (user?.permissions?.includes("storefront.view") ?? false);
 
-  const [tab, setTab] = useState<CustomerTab>("all");
+  // `/customers/online` redirects here with ?tab=accounts, so the deep link
+  // lands on the right tab instead of silently on "All customers".
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [tab, setTab] = useState<CustomerTab>(
+    requestedTab === "accounts" || requestedTab === "subscribers"
+      ? requestedTab
+      : "all",
+  );
+  // Same clamp as Products: PageTabs hides itself at one tab, so a merchant on
+  // an Online tab when the storefront is switched off would be stranded there
+  // with no strip to click back through.
+  const activeTab: CustomerTab = showStorefrontTabs ? tab : "all";
   const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -90,13 +102,13 @@ export default function CustomersPage() {
 
       {/* Explicit type argument: inferring K from `onChange` would widen it to
           `string`, because a setState dispatch also accepts a function updater. */}
-      <PageTabs<CustomerTab> tabs={tabs} active={tab} onChange={setTab} />
+      <PageTabs<CustomerTab> tabs={tabs} active={activeTab} onChange={setTab} />
 
-      {tab !== "all" ? (
+      {activeTab !== "all" ? (
         // Remount per kind so the search box and page cursor reset — page 3 of
         // the accounts list means nothing in a subscriber list of 12. React
         // Query still serves the second visit from cache, so no spinner.
-        <StorefrontListPanel key={tab} kind={tab} />
+        <StorefrontListPanel key={activeTab} kind={activeTab} />
       ) : (
       <DataTable
         cardTitle={(dataLength: number) => t("page.cardTitle", { count: dataLength })}

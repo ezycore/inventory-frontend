@@ -15,6 +15,7 @@ const NAMESPACES = [
   "auth",
   "layout",
   "dashboard",
+  "onboarding",
   "products",
   "inventory",
   "sales",

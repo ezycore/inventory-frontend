@@ -10807,6 +10807,7 @@ export interface components {
             };
             returns: {
                 salesReturns: number;
+                purchaseReturns: number;
             };
         };
         HeroSlideImage: {

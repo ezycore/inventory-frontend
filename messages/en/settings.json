@@ -43,7 +43,7 @@
       "storefront": "Your online store will go offline and stop accepting orders. You have {count} order(s) still being fulfilled — they will be hidden until you turn this back on.",
       "expiryTracking": "You are tracking expiry dates on {count} batch(es). Expiry alerts and reports will be hidden.",
       "multiLocation": "You have {count} locations. All but your main shop will be hidden, along with stock transfers.",
-      "returns": "You have recorded {count} sales return(s). Returns will be hidden from sales and reports.",
+      "returns": "You have recorded {count} return(s) — sales and purchase. Returns will be hidden from sales, purchases and reports.",
       "dataSafe": "Nothing is deleted. Turn it back on any time and everything reappears exactly as it was.",
       "confirm": "Turn it off",
       "cancel": "Keep it on"

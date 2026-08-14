@@ -3,7 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
+
+import { Button } from "@/ui/components/button";
 
 import { useApplyOnboardingStep, useGetFeatures, useUpdateFeatures } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -32,10 +35,11 @@ import {
  */
 export default function OnboardingPage() {
   const router = useRouter();
+  const t = useTranslations("onboarding");
   const user = useAuthStore((s) => s.user);
   const industry = user?.organization?.industry;
 
-  const { data: featuresData, isLoading } = useGetFeatures();
+  const { data: featuresData, isLoading, isError } = useGetFeatures();
   const applyStep = useApplyOnboardingStep();
   const { mutate: updateFeatures } = useUpdateFeatures();
 
@@ -73,6 +77,28 @@ export default function OnboardingPage() {
     value: OnboardingAnswers[K],
   ) => save(index + 1, { [key]: value } as OnboardingAnswers);
 
+  // A failed load must not read as a slow one. `/organization/features` 403s for
+  // a workspace confined to billing (an unpaid first invoice), and `isLoading`
+  // goes false while `features` stays undefined — so waiting on both left the
+  // merchant on a spinner that never resolved, with no way out of the wizard.
+  // The layout now routes them to billing before they get here; this is the
+  // backstop for a direct visit.
+  if (isError || (!isLoading && !features)) {
+    return (
+      <div className="flex min-h-svh items-center justify-center p-6">
+        <div className="max-w-sm space-y-3 text-center">
+          <h1 className="text-lg font-semibold">{t("unavailable.title")}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t("unavailable.description")}
+          </p>
+          <Button onClick={() => router.replace("/dashboard/billing")}>
+            {t("unavailable.action")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading || !features) {
     return (
       <div className="flex min-h-svh items-center justify-center">
@@ -81,13 +107,16 @@ export default function OnboardingPage() {
     );
   }
 
-  const stepLabel = `Step ${Math.min(index + 1, QUESTION_COUNT)} of ${QUESTION_COUNT}`;
+  const stepLabel = t("stepLabel", {
+    current: Math.min(index + 1, QUESTION_COUNT),
+    total: QUESTION_COUNT,
+  });
   const back = () => setLocalIndex(Math.max(0, index - 1));
 
   const channelOptions: ChoiceOption<ChannelAnswer>[] = [
-    { value: "shop", label: "At a shop", hint: "Customers buy at your counter" },
-    { value: "online", label: "Online", hint: "Facebook, WhatsApp, or your own store" },
-    { value: "both", label: "Both" },
+    { value: "shop", label: t("channel.shop"), hint: t("channel.shopHint") },
+    { value: "online", label: t("channel.online"), hint: t("channel.onlineHint") },
+    { value: "both", label: t("channel.both") },
   ];
 
   const yesNo = (yes: string, no: string): ChoiceOption<"yes" | "no">[] => [
@@ -96,21 +125,21 @@ export default function OnboardingPage() {
   ];
 
   const vatOptions: ChoiceOption<VatAnswer>[] = [
-    { value: "unregistered", label: "Not registered" },
-    { value: "standard_15", label: "Standard rated (15%)" },
-    { value: "reduced", label: "Reduced rate" },
+    { value: "unregistered", label: t("vat.unregistered") },
+    { value: "standard_15", label: t("vat.standard15") },
+    { value: "reduced", label: t("vat.reduced") },
     {
       value: "turnover_4",
-      label: "Turnover tax (4%)",
-      hint: "Your invoices carry no VAT line",
+      label: t("vat.turnover4"),
+      hint: t("vat.turnover4Hint"),
     },
   ];
 
   const screens = [
     <QuestionCard
       key="channel"
-      lead="First, tell us how you sell."
-      question="How do you sell to your customers?"
+      lead={t("channel.lead")}
+      question={t("channel.question")}
       options={channelOptions}
       value={answers.channel}
       onSelect={(v) => answer("channel", v)}
@@ -121,11 +150,11 @@ export default function OnboardingPage() {
     />,
     <QuestionCard
       key="locations"
-      lead="Got it."
-      question="How many locations do you manage?"
+      lead={t("locations.lead")}
+      question={t("locations.question")}
       options={[
-        { value: "one", label: "One" },
-        { value: "many", label: "More than one", hint: "Shops or warehouses you move stock between" },
+        { value: "one", label: t("locations.one") },
+        { value: "many", label: t("locations.many"), hint: t("locations.manyHint") },
       ]}
       value={
         answers.multiLocation === undefined
@@ -142,8 +171,8 @@ export default function OnboardingPage() {
     />,
     <QuestionCard
       key="vat"
-      lead="Now let's set up your tax information."
-      question="Is your business VAT registered?"
+      lead={t("vat.lead")}
+      question={t("vat.question")}
       options={vatOptions}
       value={answers.vat}
       onSelect={(v) => answer("vat", v)}
@@ -158,11 +187,11 @@ export default function OnboardingPage() {
       // clearest way to say "we understood your business" (§5.7).
       lead={
         isConfidentAbout(industry, "expiryTracking")
-          ? "Shops like yours usually track expiry dates."
+          ? t("expiry.lead")
           : undefined
       }
-      question="Do you track expiry or batch dates on products?"
-      options={yesNo("Yes, track expiry dates", "No, skip it")}
+      question={t("expiry.question")}
+      options={yesNo(t("expiry.yes"), t("expiry.no"))}
       value={
         (answers.expiryTracking ?? recommended.expiryTracking) ? "yes" : "no"
       }
@@ -176,11 +205,11 @@ export default function OnboardingPage() {
       key="barcode"
       lead={
         isConfidentAbout(industry, "barcodeSystem")
-          ? "Shops like yours usually scan barcodes."
+          ? t("barcode.lead")
           : undefined
       }
-      question="Do you scan barcodes when selling?"
-      options={yesNo("Yes, we scan barcodes", "No, we don't")}
+      question={t("barcode.question")}
+      options={yesNo(t("barcode.yes"), t("barcode.no"))}
       value={
         (answers.barcodeSystem ?? recommended.barcodeSystem) ? "yes" : "no"
       }

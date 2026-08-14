@@ -3,6 +3,7 @@
 
 import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 export interface ChoiceOption<V extends string> {
@@ -46,6 +47,8 @@ export function QuestionCard<V extends string>({
   stepLabel: string;
   isSaving?: boolean;
 }) {
+  const t = useTranslations("onboarding");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -57,7 +60,7 @@ export function QuestionCard<V extends string>({
             className="-ml-2 text-muted-foreground"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
+            {t("back")}
           </Button>
         ) : (
           <span />

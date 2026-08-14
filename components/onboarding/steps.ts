@@ -36,7 +36,11 @@ export const REVIEW_ONLY_FEATURES: (keyof OrganizationFeatures)[] = [
   "returns",
   "invoicePrinting",
   "uomConversion",
-  "smsNotifications",
+  // `smsNotifications` is deliberately NOT here. "Customize workspace" excludes
+  // it on purpose — it costs real money per message and is configured with its
+  // credit balance under Notifications — so a switch on this screen was a
+  // one-way door: a merchant who turned it off during setup had nowhere to turn
+  // it back on. Every other feature on this screen has a permanent home.
 ];
 
 /** Feature keys the questions decide, in the order they are asked. */

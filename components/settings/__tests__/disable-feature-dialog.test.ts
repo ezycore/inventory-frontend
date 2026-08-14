@@ -18,7 +18,7 @@ const impact = (over: Partial<FeatureImpact> = {}): FeatureImpact => ({
   storefront: { pendingOnlineOrders: 0 },
   expiryTracking: { trackedBatches: 0 },
   multiLocation: { locations: 1 },
-  returns: { salesReturns: 0 },
+  returns: { salesReturns: 0, purchaseReturns: 0 },
   ...over,
 });
 
@@ -61,11 +61,35 @@ describe("disableConsequence — count-dependent features", () => {
   it("warns once returns exist", () => {
     const result = disableConsequence(
       "returns",
-      impact({ returns: { salesReturns: 2 } }),
+      impact({ returns: { salesReturns: 2, purchaseReturns: 0 } }),
       t,
     );
 
     expect(result).toBe("disable.returns:2");
+  });
+
+  it("warns a merchant whose returns are all supplier-side", () => {
+    // The `returns` feature gates the purchase-return routes too. Counting only
+    // sales returns told a shop with 200 supplier returns and no customer
+    // returns that nothing would change — the confirm dialog's one job is to
+    // say what is about to disappear.
+    const result = disableConsequence(
+      "returns",
+      impact({ returns: { salesReturns: 0, purchaseReturns: 200 } }),
+      t,
+    );
+
+    expect(result).toBe("disable.returns:200");
+  });
+
+  it("counts both kinds together", () => {
+    const result = disableConsequence(
+      "returns",
+      impact({ returns: { salesReturns: 3, purchaseReturns: 4 } }),
+      t,
+    );
+
+    expect(result).toBe("disable.returns:7");
   });
 });
 

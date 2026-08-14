@@ -46,7 +46,10 @@ export function disableConsequence(
       return n > 1 ? t("disable.multiLocation", { count: n }) : null;
     }
     case "returns": {
-      const n = impact.returns.salesReturns;
+      // Both kinds: this feature gates the purchase-return routes as well as
+      // the sales ones, so a merchant whose returns are all supplier-side used
+      // to be told nothing would change.
+      const n = impact.returns.salesReturns + impact.returns.purchaseReturns;
       return n > 0 ? t("disable.returns", { count: n }) : null;
     }
     default:

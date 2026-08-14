@@ -96,6 +96,13 @@ export default function ProductsPage() {
     isFeatureEnabled(user?.organization?.features, 'storefront') &&
     (user?.permissions?.includes('storefront.view') ?? false);
 
+  // Clamp rather than trust the raw state: PageTabs renders nothing when it is
+  // down to one tab, so a merchant sitting on Online when the storefront is
+  // switched off would keep staring at the online panel with no tab strip left
+  // to click back through. Derived, not an effect — there is no frame showing
+  // the stranded panel.
+  const activeTab = showOnlineTab ? tab : 'all'
+
   const productTabs: readonly PageTab<'all' | 'online'>[] = useMemo(
     () =>
       showOnlineTab
@@ -208,7 +215,7 @@ export default function ProductsPage() {
           <div className="flex items-center gap-3">
             {/* Table/card is a choice about the product list; the Online tab has
                 its own single layout, so the toggle would do nothing there. */}
-            {tab === 'all' && (
+            {activeTab === 'all' && (
               <ViewToggle
                 storageKey="products"
                 defaultView={viewMode}
@@ -227,12 +234,12 @@ export default function ProductsPage() {
         columns={{ default: 1, lg: productStats.length }}
       />
 
-      <PageTabs<'all' | 'online'> tabs={productTabs} active={tab} onChange={setTab} />
+      <PageTabs<'all' | 'online'> tabs={productTabs} active={activeTab} onChange={setTab} />
 
-      {tab === 'online' && <OnlineCatalogPanel />}
+      {activeTab === 'online' && <OnlineCatalogPanel />}
 
       {/* Table View */}
-      {tab === 'all' && viewMode === 'table' && (
+      {activeTab === 'all' && viewMode === 'table' && (
         <DataTable
           cardTitle={t("page.allProductsTitle")}
           columns={filteredColumns}
@@ -276,7 +283,7 @@ export default function ProductsPage() {
       )}
 
       {/* Card View */}
-      {tab === 'all' && viewMode === 'card' && (
+      {activeTab === 'all' && viewMode === 'card' && (
         <DataCard
           cardTitle={t("page.allProductsTitle")}
           defaultPageSize={12}

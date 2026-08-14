@@ -36,6 +36,7 @@ export function ReviewStep({
   pendingFeature: FeatureName | null;
 }) {
   const t = useTranslations("settings.features");
+  const tOnboarding = useTranslations("onboarding");
   const names = getFeatureDisplayNames(t);
 
   const renderGroup = (heading: string, keys: FeatureName[]) => (
@@ -72,25 +73,25 @@ export function ReviewStep({
           className="-ml-2 text-muted-foreground"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
+          {tOnboarding("back")}
         </Button>
       </div>
 
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Here&apos;s your workspace
+          {tOnboarding("review.title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Turn on only the tools you need. You can change this any time.
+          {tOnboarding("review.subtitle")}
         </p>
       </div>
 
-      {renderGroup("From your answers", ANSWERED_FEATURES)}
-      {renderGroup("We also recommend", REVIEW_ONLY_FEATURES)}
+      {renderGroup(tOnboarding("review.fromYourAnswers"), ANSWERED_FEATURES)}
+      {renderGroup(tOnboarding("review.weAlsoRecommend"), REVIEW_ONLY_FEATURES)}
 
       <Button onClick={onConfirm} disabled={isSaving} className="w-full" size="lg">
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Start using Ezycore
+        {tOnboarding("review.confirm")}
       </Button>
     </div>
   );

@@ -1,6 +1,8 @@
 "use client";
 // coding-standard: maintained
 
+import { useTranslations } from "next-intl";
+
 import KBar from "@/components/kbar";
 import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
@@ -53,6 +55,7 @@ export default function ProtectedLayout({
   const subscription = useGetSubscription();
   const router = useRouter();
   const pathname = usePathname();
+  const tOnboarding = useTranslations("onboarding");
   const queryClient = useQueryClient();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const subscriptionLogoutHandled = useRef(false);
@@ -138,11 +141,21 @@ export default function ProtectedLayout({
     ) ?? false;
   const needsOnboarding = !!organization && !organization.onboardingCompletedAt;
 
+  // Billing outranks setup. A workspace awaiting its first payment is confined
+  // to the billing routes by the backend, so sending it to the wizard produced a
+  // dead end: `/api/organization/features` is not on the reactivate allowlist,
+  // the wizard's own guard waits on features that will never arrive, and the
+  // merchant sits on a spinner with no route to the page that would fix it.
+  // Both redirects fire on the same render and this one is declared later, so
+  // without this check it silently wins.
+  const billingConfined = needsReactivation(subscription.data?.entitlement);
+
   useEffect(() => {
+    if (billingConfined) return;
     if (!needsOnboarding || !canConfigureOrg) return;
     if (pathname === "/onboarding") return;
     router.replace("/onboarding");
-  }, [needsOnboarding, canConfigureOrg, pathname, router]);
+  }, [billingConfined, needsOnboarding, canConfigureOrg, pathname, router]);
 
   // The org/user identity lives in the persisted auth store, which the server
   // can't read — SSR HTML would show brand defaults that visibly "blink" into
@@ -181,10 +194,9 @@ export default function ProtectedLayout({
         {workspaceTitle}
         <div className="flex min-h-screen items-center justify-center bg-background p-6">
           <div className="max-w-sm space-y-2 text-center">
-            <h1 className="text-lg font-semibold">Setup in progress</h1>
+            <h1 className="text-lg font-semibold">{tOnboarding("waiting.title")}</h1>
             <p className="text-sm text-muted-foreground">
-              Your administrator is still setting up this workspace. You&apos;ll
-              be able to sign in once they finish.
+              {tOnboarding("waiting.description")}
             </p>
           </div>
         </div>
