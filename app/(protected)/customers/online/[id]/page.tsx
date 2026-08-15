@@ -48,7 +48,7 @@ export default function CustomerDetailPage() {
     return (
       <div className="space-y-2 p-6">
         <p className="text-sm text-muted-foreground">Customer not found.</p>
-        <Link href="/ecommerce/customers" className="text-sm underline">
+        <Link href="/customers" className="text-sm underline">
           ← Back to customers
         </Link>
       </div>
@@ -67,7 +67,7 @@ export default function CustomerDetailPage() {
         size="sm"
         className="h-auto gap-1.5 px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
       >
-        <Link href="/ecommerce/customers">
+        <Link href="/customers">
           <ArrowLeft className="h-4 w-4" /> Back to customers
         </Link>
       </Button>

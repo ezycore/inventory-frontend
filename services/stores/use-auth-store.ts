@@ -62,6 +62,21 @@ export interface User {
     vatRegistrationHistory?: VatRegistrationEntry[];
     /** Progress of background sample-data seeding; presence ⇒ workspace holds sample data. */
     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
+    /**
+     * Trade the merchant picked at signup. The setup wizard reads it to pre-fill
+     * its recommendations — never to decide them.
+     */
+    industry?: string;
+    /**
+     * Set when the owner finishes the setup wizard. Null/absent gates the whole
+     * workspace: the protected layout sends anyone who can configure the org to
+     * `/onboarding` until it is stamped. Must be listed in the backend's org
+     * populate select AND the auth DTO, or it silently arrives undefined and
+     * the gate never fires (docs/plan/onboarding-workspace.md §5.1).
+     */
+    onboardingCompletedAt?: string | null;
+    /** Resume point for the wizard; cannot be derived, since every feature starts ON. */
+    onboardingStep?: number;
   };
   defaultData?: {
     customerId?: string;
@@ -89,6 +104,8 @@ interface AuthActions {
   hydrateAuth: () => void;
   setActiveLocation: (locationId: string) => void;
   updateFeatures: (features: OrganizationFeatures) => void;
+  /** Mark the setup wizard finished so the workspace gate stops redirecting. */
+  setOnboardingCompleted: (completedAt: string) => void;
   updateTaxConfig: (config: {
     vatSettings?: VatSettings;
     vatRegistrationHistory?: VatRegistrationEntry[];
@@ -187,6 +204,29 @@ export const useAuthStore = create<AuthStore>()(
             };
             set({ user: updatedUser });
           }
+        },
+        /**
+         * Stamp the wizard as finished on the *client* too.
+         *
+         * The workspace gate reads `onboardingCompletedAt` from this store, not
+         * from the features query — so without this the merchant who just
+         * pressed "Start using Ezycore" is bounced straight back to
+         * `/onboarding` by a stale `null`, while the wizard reads the fresh
+         * value from its own cache and sends them to `/dashboard` again. That
+         * ping-pong is invisible in tests and immediate in a browser.
+         */
+        setOnboardingCompleted: (completedAt: string) => {
+          const currentUser = get().user;
+          if (!currentUser) return;
+          set({
+            user: {
+              ...currentUser,
+              organization: {
+                ...currentUser.organization,
+                onboardingCompletedAt: completedAt,
+              },
+            },
+          });
         },
         updateTaxConfig: ({ vatSettings, vatRegistrationHistory }) => {
           const currentUser = get().user;

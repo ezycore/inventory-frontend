@@ -88,6 +88,36 @@ export interface ExcludedColumnsSettings {
  * updateFeatures       → [Used for feature flags/toggles]
  * updateColumnSettings → [Used for table column visibility settings]
  */
+/** Counts behind each risky toggle — advisory input to the disable-confirm. */
+export interface FeatureImpact {
+  storefront: { pendingOnlineOrders: number };
+  expiryTracking: { trackedBatches: number };
+  multiLocation: { locations: number };
+  /** Both kinds — the `returns` feature gates purchase returns as well. */
+  returns: { salesReturns: number; purchaseReturns: number };
+}
+
+/** Shared by GET/PUT features and the onboarding endpoint — one shape, one DTO. */
+export interface OnboardingState {
+  completedAt: string | null;
+  step: number;
+}
+
+export interface FeatureState {
+  features: OrganizationFeatures;
+  planFeatures: OrganizationFeatures;
+  onboarding: OnboardingState;
+}
+
+/** One step of the setup wizard. Every field is optional because each step
+ *  writes a different thing; `complete` is what ends the wizard. */
+export interface OnboardingStepPayload {
+  step?: number;
+  features?: Partial<OrganizationFeatures>;
+  vatRegistration?: { type: VatRegistrationType };
+  complete?: boolean;
+}
+
 export const organizationApi = {
   // GET /api/organization - Get organization details
   // Used in: useGetOrganizationApi → organization-tab.tsx
@@ -151,22 +181,28 @@ export const organizationApi = {
   // Used in: settings/features page
   // `features` = enforced set; `planFeatures` = what the plan grants (ceiling).
   getFeatures: (): Promise<
-    ApiResponse<{
-      features: OrganizationFeatures;
-      planFeatures: OrganizationFeatures;
-    }>
+    ApiResponse<FeatureState>
   > => apiClient.get(`/organization/features`),
+
+  // GET /api/organization/features/impact - What switching a feature off hides
+  // Used in: the Customize workspace disable-confirm
+  getFeatureImpact: (): Promise<ApiResponse<FeatureImpact>> =>
+    apiClient.get(`/organization/features/impact`),
 
   // PUT /api/organization/features - Toggle features within the plan ceiling
   // Used in: settings/features page
   updateFeatures: (
     data: Partial<OrganizationFeatures>,
   ): Promise<
-    ApiResponse<{
-      features: OrganizationFeatures;
-      planFeatures: OrganizationFeatures;
-    }>
+    ApiResponse<FeatureState>
   > => apiClient.put(`/organization/features`, data),
+
+  // POST /api/organization/onboarding - Apply one step of the setup wizard
+  // Used in: the onboarding wizard
+  applyOnboardingStep: (
+    data: OnboardingStepPayload,
+  ): Promise<ApiResponse<FeatureState>> =>
+    apiClient.post(`/organization/onboarding`, data),
 
   // PUT /api/organization/column-settings - Update table column visibility
   // Used in: Column settings management components

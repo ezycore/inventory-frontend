@@ -515,6 +515,11 @@ z.object({
 | `custom` | — | `z.array(z.any()).optional()` |
 | `custom-fields` | — | `z.array(z.object({...})).optional()` |
 
+**`required` on a multi-select means at least one item** — the generator adds `.min(1, "<Label> is
+required")`, and an explicit `validation.min` overrides it. It did not until 2026-08-14: the shared
+required block only handles `ZodString`, so an empty array passed and the user's first sign that
+something was wrong was a 400 from the backend.
+
 Override the auto Zod type with `zodType`:
 ```ts
 { name: "quantity", type: "input", label: "Qty", zodType: "number" }

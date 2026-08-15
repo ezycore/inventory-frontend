@@ -108,6 +108,40 @@ export const EFFECTS = {
   ],
 
   /**
+   * An order was walked BACKWARD through its pipeline, releasing the stock hold it
+   * was carrying (`processing`/`confirmed` → `pending`).
+   *
+   * It spreads `STOCK` for the same reason `order.confirmed` does, in the opposite
+   * direction: `reservedQuantity` drops, so every screen that shows sellable stock
+   * — inventory, products, variants, the location stock report — is now wrong.
+   * Missing that is exactly the bug this file exists to prevent, and the status
+   * endpoint used to be stock-neutral, so `order.changed` was the honest event for
+   * it right up until reversal was added.
+   *
+   * No `MONEY`: a reversal is a correction, not a refund. Cancelling with a refund
+   * is `order.returned`; the advance paths are `order.settled`.
+   */
+  "order.reversed": union(
+    [k.storefrontOrders.all(), k.storefrontDashboard.all()],
+    STOCK,
+  ),
+
+  /**
+   * An order's CONTENT was edited before dispatch — lines, address, or agreed price.
+   *
+   * Spreads `STOCK` because editing the lines of a **confirmed** order adjusts its
+   * hold in the same transaction that writes the order. Declared unconditionally
+   * rather than only when the order was holding stock: the alternative is the
+   * mutation re-deriving a backend rule, and the cost of being wrong (a stock
+   * screen that disagrees with reality) is far higher than one refetch of pages the
+   * merchant is not currently looking at.
+   */
+  "order.edited": union(
+    [k.storefrontOrders.all(), k.storefrontDashboard.all(), k.storefrontCustomers.all()],
+    STOCK,
+  ),
+
+  /**
    * Order dispatched to a courier (API or manual). Dispatch is **commit-first**: it books the
    * order's Sale and consumes the stock reservation, so it dirties strictly more than
    * `order.changed` — the sales list, the customer, the ledger and stock all move with it.

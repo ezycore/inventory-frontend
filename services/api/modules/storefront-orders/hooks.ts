@@ -4,7 +4,11 @@ import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
-import type { CreateAdminOrderInput, QuoteAdminOrderInput } from "./api";
+import type {
+  CreateAdminOrderInput,
+  EditAdminOrderInput,
+  QuoteAdminOrderInput,
+} from "./api";
 import {
   couriersApi,
   storefrontOrdersApi,
@@ -112,6 +116,25 @@ export const useCreateStorefrontOrder = () => {
   });
 };
 
+/**
+ * Correct an existing order.
+ *
+ * `order.edited`, not `order.changed`: editing the lines of a confirmed order
+ * adjusts its stock hold, so the inventory screens move with it. See the event.
+ */
+export const useEditStorefrontOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; body: EditAdminOrderInput }) =>
+      storefrontOrdersApi.edit(v.id, v.body),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order updated");
+      invalidate(qc, "order.edited");
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useConfirmOrder = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -124,14 +147,34 @@ export const useConfirmOrder = () => {
   });
 };
 
+/**
+ * Move an order along its pipeline, forward or backward.
+ *
+ * **This endpoint is no longer stock-neutral, so the event is chosen per outcome.**
+ * Two transitions move inventory and one of them is new:
+ *
+ * - Reversing to `pending` releases the order's hold — `reservedQuantity` drops and
+ *   every sellable-stock screen is stale until `order.reversed` flushes it. This is
+ *   the case that shipped broken: a reversed order freed its stock while inventory
+ *   and products still showed it held.
+ * - Moving forward INTO the commit step (`shipped` / `ready_for_pickup`) books the
+ *   Sale and consumes the hold, which is `order.dispatched`'s whole meaning.
+ *
+ * Read off the RETURNED order rather than the requested status: the server owns
+ * what the transition actually did, and duplicating its rules here is how the two
+ * drift. Anything else is a label change and stays `order.changed`.
+ */
 export const useUpdateOrderStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; status: string }) =>
-      storefrontOrdersApi.updateStatus(v.id, v.status),
+    mutationFn: (v: { id: string; status: string; note?: string }) =>
+      storefrontOrdersApi.updateStatus(v.id, v.status, v.note),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Status updated");
-      invalidate(qc, "order.changed");
+      const order = res.data;
+      if (order?.saleId) invalidate(qc, "order.dispatched");
+      else if (order?.status === "pending") invalidate(qc, "order.reversed");
+      else invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });
@@ -362,24 +405,42 @@ export const useUpsertCourier = () => {
   });
 };
 
+/**
+ * Validate a provider's credentials. Pass `credentials`/`mode` to test what the
+ * settings form currently holds rather than what is stored — the only pre-save
+ * check Steadfast has, since it exposes no list to load.
+ */
 export const useTestCourier = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.test(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.test(provider, body),
     onSuccess: (res) => handleMutationSuccess(res.message || "Connection ok"),
     onError: handleMutationError,
   });
 
-// Button-triggered fetch of the merchant's provider stores (for the store picker).
+/**
+ * Button-triggered discovery of a provider's remote credential field (Pathao
+ * pickup stores, eCourier packages). `credentials`/`mode` carry what the settings
+ * form currently holds, so the picker works on a first-time connect — before
+ * anything has been saved — and unsaved credentials get validated by the call.
+ */
+interface CourierDiscoveryVars {
+  provider: string;
+  credentials?: Record<string, string>;
+  mode?: string;
+}
+
 export const useCourierStores = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.stores(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.stores(provider, body),
     onError: handleMutationError,
   });
 
-// Button-triggered fetch of the merchant's provider packages (eCourier picker).
 export const useCourierPackages = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.packages(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.packages(provider, body),
     onError: handleMutationError,
   });
 

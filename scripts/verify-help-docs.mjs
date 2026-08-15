@@ -52,6 +52,17 @@ const SCOPE_EXEMPT = [
   "/dashboard/billing",
 ];
 
+/**
+ * Live screens a help page may claim even though the sidebar does not list them.
+ *
+ * The phantom check assumes the nav is the full inventory of screens, and it nearly is. "Customize
+ * workspace" is the exception by design: it is the way back from every hidden feature, so it sits in
+ * the sidebar footer rather than in a nav group (see `AppSidebar`). Dropping it from `covers_routes`
+ * to satisfy the gate would cost the screen its contextual help — the opposite of what this file is
+ * for. Add a route here only when it is genuinely reachable and genuinely not a nav item.
+ */
+const NON_NAV_ROUTES = ["/settings/features"];
+
 const errors = [];
 const warnings = [];
 
@@ -209,6 +220,7 @@ for (const { file, data, body } of pages) {
   // 3 + 4 — the routes claimed must exist, and be gated the way the page says they are.
   for (const route of data.covers_routes ?? []) {
     claimed.add(route);
+    if (NON_NAV_ROUTES.includes(route)) continue;
     if (!navRoutes.has(route)) {
       errors.push(`${where}: PHANTOM ROUTE — \`${route}\` is not a route in constants/navItem.ts`);
       continue;
@@ -238,7 +250,9 @@ for (const [route] of navRoutes) {
   );
 }
 
-const documented = claimed.size;
+// Counted against the nav, so a claim on a non-nav screen is not a documented *nav* route — leaving
+// it in printed 58/57.
+const documented = [...claimed].filter((route) => !NON_NAV_ROUTES.includes(route)).length;
 const total = navRoutes.size - SCOPE_EXEMPT.filter((r) => navRoutes.has(r)).length;
 
 console.log(`help:verify — ${pages.length} pages, ${documented}/${total} routes documented`);

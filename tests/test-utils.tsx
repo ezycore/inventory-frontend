@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from "next-intl";
 
 import commonMessages from "@/messages/en/common.json";
 import authMessages from "@/messages/en/auth.json";
+import dashboardMessages from "@/messages/en/dashboard.json";
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -26,7 +27,14 @@ export function TestProviders({ children, client }: WrapperProps) {
   return (
     // Tests always run in English so getByText("...") assertions stay stable
     // (docs/I18N.md). Add namespaces here as tests need them.
-    <NextIntlClientProvider locale="en" messages={{ common: commonMessages, auth: authMessages }}>
+    <NextIntlClientProvider
+      locale="en"
+      messages={{
+        common: commonMessages,
+        auth: authMessages,
+        dashboard: dashboardMessages,
+      }}
+    >
       <QueryClientProvider client={qc}>{children}</QueryClientProvider>
     </NextIntlClientProvider>
   );

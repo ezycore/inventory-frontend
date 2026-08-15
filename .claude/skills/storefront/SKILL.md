@@ -680,6 +680,51 @@ resolved **per request from the host**, never baked.
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+  - **`<Media fit>`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it" box:
+    `fit="canvas"` shows the full photo at `object-fit: contain` over a blurred, scaled copy of the
+    same `src` filling the frame behind it; `fit="cover"` (default) crops to fill, as before. Which
+    one a card-sized-or-larger slot gets is now a **merchant setting**, not hardcoded
+    (Customize → Product cards → "Image fit", `templates.imageFit: "fit" | "crop"`, default `"fit"` —
+    added 2026-08-12 after 2026-08-11 shipped `fit="canvas"` hardcoded and a merchant reasonably
+    preferred the tighter cropped look on their own store). **Never hardcode `fit="canvas"` or
+    `fit="cover"` on a card-sized surface again** — read **`useStoreImageFit()`**
+    (`services/storefront/use-image-fit.ts`, zero-arg, draft-first, mirrors `useStoreLogoStyle()`) and
+    pass its result straight through. Current call sites: `product-card.tsx`'s grid image,
+    `home-minimal.tsx`'s product tiles, `home-classic.tsx`'s hero banner (4:3),
+    `wishlist-section.tsx`'s saved-item grid, `product-gallery.tsx`'s PDP hero, and the hero
+    carousel (below) — all read the hook independently, so nothing threads it as a prop through
+    `TplProps` or anywhere else.
+    Leave small row thumbs (cart drawer + cart page, search results, tracking, quick-buy sheet,
+    header search, the PDP thumbnail rail, `thumbImageUrl` call sites generally) hardcoded on
+    `fit="cover"` — a uniform crop reads as intentional at that size and a blurred halo around a
+    48–76px thumbnail is visual noise, not a fix; the merchant setting doesn't reach these on purpose.
+    **The PDP hero** (`product-gallery.tsx`) also reads `useStoreImageFit()` (added 2026-08-12,
+    after initially being held out over its hover-to-magnify transform — the transform lands on
+    `<Media>`'s wrapper in canvas mode rather than a bare `<img>`, which is safe because
+    `zoomOrigin()` reads its percentage off `.sf-pdp-zoom`'s own bounding rect, not the image
+    element, and the wrapper fills that box identically). One deliberate holdout remains:
+    `home-hero-split.tsx`'s banner already opts out via `ratio="auto"` (no forced ratio at all, so
+    nothing to crop) — don't layer the setting on top of that, the two solve the same problem
+    differently on purpose. The hero
+    carousel uses the same two-layer idea directly in CSS (`.sf-hero-art-bg`/`-fg` vs the classic
+    single-layer `.sf-hero-art`, branched on `useStoreImageFit()`, see the hero bullet above) since it
+    paints via `background-image`, not an `<img>`.
+    **Contract wiring, if the field ever needs a third value:** `templates.imageFit` is a plain
+    trimmed string at the backend model/validator/DTO layer (no Mongoose/Zod enum — same convention
+    as `productCard`/`cardActions`/`headerMenu`); the real validation is `lib/storefront-templates.ts`'s
+    `resolveTemplates`/`pick()`, and `mediaFitFor()` right beside it is the **only** place the
+    `"fit"→"canvas"` / `"crop"→"cover"` translation happens. Customize plumbing follows the
+    `productCard` pattern exactly: `TEMPLATE_OPTIONS.imageFit` (admin picker options — `"fit"` must
+    stay first, `seedTemplates` falls back to `options[0].value`), `template-sketch.tsx`'s
+    `"imageFit:fit"`/`"imageFit:crop"` wireframes, one more line each in `toPreviewPayload` and
+    `preview-bridge.tsx`'s `apply({...})` (both hand-enumerate `templates`, unlike the save payload
+    which spreads it wholesale — miss these two and live preview silently never sees the draft even
+    though Save works), and `use-sf-preview-store.ts`'s `imageFit` field (state + initial + patch type
+    + reducer, four touch points). Backend: adding the field to
+    `src/dtos/organization.dto.ts`'s `storefrontSettingsDto.templates` in the **same commit** as the
+    model/validator/types is mandatory — omit it and it's silently stripped from the admin response
+    under `API_CONTRACT_MODE=enforce`, the exact `headerMenu` bug documented at that file's `templates`
+    block.
 - **PDP gallery** — `components/storefront/product-gallery.tsx` owns the thumb rail + hero for both
   product templates (`layout="top" | "side"`) **and** the hover-to-magnify. The page passes raw
   `images` + the selected index; clamping lives in the gallery (a variant switch can swap in a
@@ -793,8 +838,20 @@ resolved **per request from the host**, never baked.
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
-## Work log (what was built, newest first — as of 2026-08-11)
+## Work log (what was built, newest first — as of 2026-08-12)
 
+- **Image fit became a merchant setting (FE + BE)** (2026-08-12): the prior day's `fit="canvas"`
+  blurred-fill fix (see the `<Media fit>` bullet above) shipped hardcoded — cropped-vs-full-photo
+  turned out to be a taste call, not a universally right answer, so it became
+  `templates.imageFit: "fit" | "crop"` (Customize → Product cards → "Image fit", default `"fit"` = the
+  new behavior, so no existing shop changes silently). Followed the `productCard` pattern exactly at
+  every layer (see the `<Media fit>` bullet's "Contract wiring" paragraph for the file list) and added
+  one new hook, `useStoreImageFit()`, mirroring `useStoreLogoStyle()` — zero-arg, self-fetching, so all
+  consuming surfaces (product card, wishlist grid, Minimal tiles, Classic banner, hero carousel) read
+  it independently with no prop threading anywhere. The PDP hero (`product-gallery.tsx`) was held out
+  at first over its hover-to-magnify transform, then wired in the same day once re-examined: the zoom
+  reads its origin off the outer `.sf-pdp-zoom` box, not the `<img>` itself, so it tracks correctly
+  whether `<Media>` renders a bare image (`cover`) or the two-layer canvas wrapper (`fit`).
 - **Footer rebuilt: five layouts, no fixed copy (FE + BE)** (2026-08-11): the Columns footer left a
   wide gap on its right and the whole thing read thin. **The cause was the grid, not the styling** —
   see the Footer bullet above for the `auto-fit minmax(132px, 1fr)` diagnosis and the degradation
@@ -1667,8 +1724,10 @@ resolved **per request from the host**, never baked.
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
   subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
   (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
-  swipe, reduced-motion; imageless = brand-tinted panel, image = scrim; CTA has a white border for
-  near-black brands). Renders on Classic + Hero Split when slides exist (Minimal keeps its hero;
+  swipe, reduced-motion; imageless = brand-tinted panel, image = blurred-canvas fit (`.sf-hero-art-bg`
+  blurred cover behind, `.sf-hero-art-fg` full photo at `contain` on top — a slide never loses its
+  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands). Renders on
+  Classic + Hero Split when slides exist (Minimal keeps its hero;
   empty = static hero). Admin: Customize → Theme → `hero-slides-editor.tsx`; slide image upload =
   `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
   cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.

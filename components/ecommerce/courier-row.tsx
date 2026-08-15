@@ -67,7 +67,7 @@ export function CourierRow({
 
   const configured = !!entry?.configured;
   const enabled = !!entry?.enabled;
-  const mode = entry?.mode ?? "sandbox";
+  const mode = entry?.mode ?? "live";
   const meta = PROVIDER_META[provider] ?? {
     label: provider,
     initial: provider.charAt(0).toUpperCase(),
@@ -176,7 +176,7 @@ export function CourierRow({
               tested={test.isSuccess}
               failed={test.isError}
               removing={remove.isPending}
-              onTest={() => test.mutate(provider)}
+              onTest={() => test.mutate({ provider })}
               onEdit={() => setEditing(true)}
               onRemove={handleRemove}
             />

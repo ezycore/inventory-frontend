@@ -3,8 +3,8 @@
     "noPermission": "You don't have permission to access this page"
   },
   "features": {
-    "title": "Feature Settings",
-    "subtitle": "Your subscription plan decides which features are available. Enable or disable any included feature below — disabled features are hidden from the navigation and cannot be accessed. Features not in your plan are locked.",
+    "title": "Customize workspace",
+    "subtitle": "Turn on only the tools you need. You can change this any time — switching something off hides it, and never deletes your data.",
     "notIncluded": "Not included in your plan.",
     "upgrade": "Upgrade",
     "toEnable": "to enable.",
@@ -20,7 +20,9 @@
       "uomConversion": "Unit Conversion",
       "storefront": "Ecommerce Storefront",
       "tax": "VAT",
-      "combo": "Combo Products"
+      "combo": "Combo Products",
+      "smsNotifications": "SMS Notifications",
+      "multiLocation": "Multiple Locations"
     },
     "descriptions": {
       "sales": "Enable sales orders, customer invoices, and sales history tracking",
@@ -32,7 +34,19 @@
       "uomConversion": "Enable unit of measure conversion for products",
       "storefront": "Enable a public online store with shopper accounts, online orders, and courier delivery",
       "tax": "Enable VAT rates and apply VAT on purchases and sales",
-      "combo": "Sell several products bundled together as one priced unit"
+      "combo": "Sell several products bundled together as one priced unit",
+      "smsNotifications": "Send order and payment updates to customers by SMS (uses SMS credits)",
+      "multiLocation": "Run more than one shop or warehouse, with stock transfers between them"
+    },
+    "disable": {
+      "title": "Turn off {feature}?",
+      "storefront": "Your online store will go offline and stop accepting orders. You have {count} order(s) still being fulfilled — they will be hidden until you turn this back on.",
+      "expiryTracking": "You are tracking expiry dates on {count} batch(es). Expiry alerts and reports will be hidden.",
+      "multiLocation": "You have {count} locations. All but your main shop will be hidden, along with stock transfers.",
+      "returns": "You have recorded {count} return(s) — sales and purchase. Returns will be hidden from sales, purchases and reports.",
+      "dataSafe": "Nothing is deleted. Turn it back on any time and everything reappears exactly as it was.",
+      "confirm": "Turn it off",
+      "cancel": "Keep it on"
     }
   },
   "organization": {
@@ -673,6 +687,10 @@
       "miniQty": "Qty",
       "miniLow": "Low",
       "miniOut": "Out"
+    },
+    "singleLocation": {
+      "notice": "Your workspace is set up for a single shop.",
+      "enable": "Manage more than one location"
     }
   },
   "taxRates": {

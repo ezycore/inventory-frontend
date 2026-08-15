@@ -12,6 +12,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
+import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
@@ -52,6 +53,7 @@ export function ProductCard({
   const { data: store } = useStore(slug);
   const previewCardStyle = useSfPreview((s) => s.cardStyle);
   const previewCardActions = useSfPreview((s) => s.cardActions);
+  const imageFit = useStoreImageFit();
 
   const templates = resolveTemplates(store);
   // Admin card density (live draft wins). "compact" forces the dense layout
@@ -158,7 +160,7 @@ export function ProductCard({
           The wrapper carries the positioning context for both. */}
       <div style={{ position: "relative" }}>
         <Link href={href} style={{ position: "relative", display: "block" }}>
-          <Media src={thumb} alt={product.name} label="product" radius={0} />
+          <Media src={thumb} alt={product.name} label="product" radius={0} fit={imageFit} />
           {pct > 0 ? (
             <span
               style={{

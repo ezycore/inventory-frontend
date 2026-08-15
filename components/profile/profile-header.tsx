@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { fullName, initials } from "@/utils/user-name";
 
 export function ProfileHeader() {
   const t = useTranslations("settings.profile.header");
@@ -54,9 +55,7 @@ export function ProfileHeader() {
   const updateAvatar = useUpdateAvatar();
   const removeAvatar = useRemoveAvatar();
 
-  const getInitials = () => {
-    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
-  };
+  const getInitials = () => initials(user);
 
   const getRoleBadgeVariant = () => {
     switch (user.role) {
@@ -123,7 +122,7 @@ export function ProfileHeader() {
                 <AvatarImage
                   key={user.avatar?.url || "no-avatar"}
                   src={user.avatar?.url}
-                  alt={`${user.firstName} ${user.lastName}`}
+                  alt={fullName(user)}
                   className="object-cover"
                 />
                 <AvatarFallback className="text-2xl sm:text-3xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-semibold">

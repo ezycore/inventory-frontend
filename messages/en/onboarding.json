@@ -1,0 +1,80 @@
+{
+  "back": "Back",
+  "stepLabel": "Step {current} of {total}",
+  "unavailable": {
+    "title": "Setup isn't available right now",
+    "description": "We couldn't load your workspace settings. If your subscription is awaiting payment, settle it first and setup will continue from here.",
+    "action": "Go to billing"
+  },
+  "welcome": {
+    "badge": "Workspace setup",
+    "title": "Let's get your workspace ready",
+    "subtitle": "{count} quick questions about how {organization} works — we'll switch on only the tools you need.",
+    "yourBusiness": "your business",
+    "topics": {
+      "channelTitle": "How you sell",
+      "channelDescription": "At your counter, online, or both",
+      "taxTitle": "Your VAT position",
+      "taxDescription": "So your invoices carry the right tax — or none at all",
+      "toolsTitle": "The tools you need",
+      "toolsDescription": "Expiry dates, barcodes, more than one location"
+    },
+    "start": "Get started",
+    "reassurance": "Takes about a minute. Everything here can be changed later in Settings."
+  },
+  "channel": {
+    "lead": "First, tell us how you sell.",
+    "question": "How do you sell to your customers?",
+    "shop": "At a shop",
+    "shopHint": "Customers buy at your counter",
+    "online": "Online",
+    "onlineHint": "Facebook, WhatsApp, or your own store",
+    "both": "Both"
+  },
+  "locations": {
+    "lead": "Got it.",
+    "question": "How many locations do you manage?",
+    "one": "One",
+    "many": "More than one",
+    "manyHint": "Shops or warehouses you move stock between"
+  },
+  "vat": {
+    "lead": "Now let's set up your tax information.",
+    "question": "Is your business VAT registered?",
+    "unregistered": "Not registered",
+    "standard15": "Standard rated (15%)",
+    "reduced": "Reduced rate",
+    "turnover4": "Turnover tax (4%)",
+    "turnover4Hint": "Your invoices carry no VAT line"
+  },
+  "expiry": {
+    "lead": "Shops like yours usually track expiry dates.",
+    "question": "Do you track expiry or batch dates on products?",
+    "yes": "Yes, track expiry dates",
+    "no": "No, skip it"
+  },
+  "barcode": {
+    "lead": "Shops like yours usually scan barcodes.",
+    "question": "Do you scan barcodes when selling?",
+    "yes": "Yes, we scan barcodes",
+    "no": "No, we don't"
+  },
+  "review": {
+    "stepLabel": "Review",
+    "title": "Here's your workspace",
+    "subtitle": "Turn on only the tools you need. You can change this any time.",
+    "fromYourAnswers": "From your answers",
+    "weAlsoRecommend": "We also recommend",
+    "confirm": "Start using EzyCore"
+  },
+  "done": {
+    "title": "Your workspace is ready",
+    "titleNamed": "{organization} is ready",
+    "description": "We've turned on only what you asked for. Add your first products and you can start selling.",
+    "action": "Go to dashboard"
+  },
+  "waiting": {
+    "title": "Setup in progress",
+    "description": "Your administrator is still setting up this workspace. You'll be able to sign in once they finish."
+  }
+}
