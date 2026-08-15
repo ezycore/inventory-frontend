@@ -163,6 +163,22 @@ export interface StorefrontHomeSection {
   type: string;
 }
 
+/**
+ * Per-instance config for one homepage section, joined on `key`.
+ *
+ * A SIBLING of `theme`, never a field inside it: applying a ready-made theme
+ * replaces `theme.homepageSections` outright, so a merchant's chosen collection
+ * stored in there would be erased on every apply.
+ */
+export interface StorefrontSectionConfig {
+  key: string;
+  source?: "featured" | "newest" | "category";
+  categoryId?: string;
+  title?: string;
+  /** 4–12. Unset ⇒ the section's own default. */
+  limit?: number;
+}
+
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
@@ -378,6 +394,8 @@ export interface StorefrontSettings {
   theme?: StorefrontTheme;
   /** Merchant-written words — never touched by a theme. See `StorefrontCopy`. */
   copy?: StorefrontCopy;
+  /** Per-section homepage config — the half a theme must never overwrite. */
+  sectionConfig?: StorefrontSectionConfig[];
   nav?: StorefrontNav;
   checkout?: StorefrontCheckout;
   notifications?: StorefrontNotifications;

@@ -267,6 +267,18 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
     // touching a word the merchant typed. Each field is `undefined`, never `""`:
     // empty means "use the storefront's localized wording", and an empty string
     // would print a blank line.
+    // Per-section config, sent as its OWN block for the same reason `copy` is:
+    // a ready-made theme replaces `theme` wholesale, and the collection a
+    // merchant pointed a row at must survive that.
+    //
+    // Entries whose section has been removed are dropped here rather than left
+    // to the server — the API keeps orphans deliberately (a PATCH may carry one
+    // array without the other), but this payload always carries BOTH, so an
+    // orphan reaching it means the merchant deleted the section and there is
+    // nothing to preserve.
+    sectionConfig: draft.sectionConfig.filter((c) =>
+      draft.homepageSections.some((s) => s.key === c.key),
+    ),
     copy: {
       footerText: draft.footerText.trim() || undefined,
       footerNote: draft.footerNote.trim() || undefined,
@@ -311,6 +323,7 @@ export function toPreviewPayload(
       design: draft.design,
       homepageSections: draft.homepageSections,
     },
+    sectionConfig: draft.sectionConfig,
     templates: {
       home: draft.templates.home,
       footer: draft.templates.footer,

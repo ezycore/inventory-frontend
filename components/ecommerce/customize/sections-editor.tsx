@@ -9,7 +9,15 @@ import {
   type SectionId,
 } from "@/components/storefront/home/home-sections";
 import { sectionInstances } from "@/lib/storefront-templates";
-import type { StoreHomeSection } from "@/lib/storefront-client";
+import {
+  DEFAULT_SECTION_LIMIT,
+  MAX_SECTION_LIMIT,
+  MIN_SECTION_LIMIT,
+  configFor,
+  isConfigurableSection,
+} from "@/lib/storefront-sections";
+import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
+import type { CollectionRowValue } from "@/components/ecommerce/collections/collection-row";
 import { Button } from "@/ui/components/button";
 import { PartHint } from "@/components/ecommerce/customize/part-group";
 
@@ -29,13 +37,21 @@ import { PartHint } from "@/components/ecommerce/customize/part-group";
  */
 export function SectionsEditor({
   sections,
+  config,
+  collections,
   homeTemplate,
   onChange,
+  onConfigChange,
 }: {
   sections: StoreHomeSection[];
+  /** Per-section config, joined on `key`. Product sections only. */
+  config: StoreSectionConfig[];
+  /** The merchant's own collections — the only ones a row may point at. */
+  collections: CollectionRowValue[];
   /** Drives the "reset" affordance — the default list this template implies. */
   homeTemplate: string;
   onChange: (next: StoreHomeSection[]) => void;
+  onConfigChange: (next: StoreSectionConfig[]) => void;
 }) {
   // Empty means "never customised", and the storefront falls back to the home
   // template's default list. Showing that list here (rather than an empty box)
@@ -49,12 +65,33 @@ export function SectionsEditor({
         HOME_PRESET_SECTIONS[homeTemplate] ?? HOME_PRESET_SECTIONS.classic,
       );
 
-  // One instance per type, for now. The model allows repeats — that is what
-  // `key` is for — but a second copy of a section is only useful once it can be
-  // pointed at different content, so the affordance arrives with per-section
-  // config rather than offering two identical rows in the meantime.
+  // A product section may be added MORE THAN ONCE — that is what `key` is for,
+  // and what makes "here is the skin care, here are the devices" expressible.
+  // Everything else stays one-per-page: two heroes or two footers is a mistake,
+  // not an intent, and there is no config that would tell them apart.
   const used = new Set(effective.map((s) => s.type));
-  const available = SECTION_IDS.filter((id) => !used.has(id));
+  const available = SECTION_IDS.filter((id) => isConfigurableSection(id) || !used.has(id));
+
+  const setConfig = (key: string, patch: Partial<StoreSectionConfig> | null) => {
+    if (patch === null) {
+      onConfigChange(config.filter((c) => c.key !== key));
+      return;
+    }
+    const existing = configFor(config, key);
+    onConfigChange(
+      existing
+        ? config.map((c) => (c.key === key ? { ...c, ...patch } : c))
+        : [...config, { key, source: "featured", ...patch }],
+    );
+  };
+
+  /** A unique key for a newly added instance — the API refuses a duplicate. */
+  const mintKey = (type: string) => {
+    let n = effective.length;
+    let key = `${type}-${n}`;
+    while (effective.some((s) => s.key === key)) key = `${type}-${++n}`;
+    return key;
+  };
 
   const move = (index: number, delta: number) => {
     const next = [...effective];
@@ -68,10 +105,8 @@ export function SectionsEditor({
     <div className="space-y-3">
       <ol className="space-y-1.5">
         {effective.map((section, i) => (
-          <li
-            key={section.key}
-            className="flex items-center gap-2 rounded-lg border bg-card px-2.5 py-2"
-          >
+          <li key={section.key} className="rounded-lg border bg-card">
+          <div className="flex items-center gap-2 px-2.5 py-2">
             <span className="min-w-0 flex-1 truncate text-xs font-medium">
               {SECTION_LABELS[section.type as SectionId] ?? section.type}
             </span>
@@ -103,12 +138,27 @@ export function SectionsEditor({
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7 text-muted-foreground"
-                onClick={() => onChange(effective.filter((s) => s.key !== section.key))}
+                onClick={() => {
+                  onChange(effective.filter((s) => s.key !== section.key));
+                  // Drop the config with the section. Keeping it would be an
+                  // orphan the server tolerates but the merchant cannot see or
+                  // reach — and it would silently reappear if they re-added a
+                  // section that happened to mint the same key.
+                  setConfig(section.key, null);
+                }}
                 aria-label={`Remove ${SECTION_LABELS[section.type as SectionId] ?? section.type}`}
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
             </div>
+          </div>
+          {isConfigurableSection(section.type) ? (
+            <RowConfig
+              config={configFor(config, section.key)}
+              collections={collections}
+              onChange={(patch) => setConfig(section.key, patch)}
+            />
+          ) : null}
           </li>
         ))}
       </ol>
@@ -132,11 +182,10 @@ export function SectionsEditor({
                 variant="outline"
                 className="h-7 gap-1 text-xs"
                 onClick={() =>
-                  // Key minted off the type plus the current length, so it
-                  // cannot collide with an instance already in the list — the
-                  // API refuses a duplicate key, and a collision here would
-                  // surface as a save failure the merchant cannot act on.
-                  onChange([...effective, { key: `${id}-${effective.length}`, type: id }])
+                  // The API refuses a duplicate key, and a collision here would
+                  // surface as a save failure the merchant cannot act on — so
+                  // the key is minted against the list, not just its length.
+                  onChange([...effective, { key: mintKey(id), type: id }])
                 }
               >
                 <Plus className="h-3 w-3" />
@@ -151,6 +200,100 @@ export function SectionsEditor({
         A section that has nothing to show hides itself — a campaign strip with no
         live campaign, or your promises band before you have written any.
       </PartHint>
+    </div>
+  );
+}
+
+/**
+ * The four questions a product row answers: where its products come from,
+ * which collection, what the heading says, and how many to show.
+ *
+ * Absent config is a real state and the default one — the row renders its
+ * built-in source, exactly as it did before any of this existed. "Choose" is
+ * therefore a real option, not a placeholder: picking it removes the config
+ * rather than storing a source that happens to match.
+ */
+function RowConfig({
+  config,
+  collections,
+  onChange,
+}: {
+  config: StoreSectionConfig | undefined;
+  collections: CollectionRowValue[];
+  onChange: (patch: Partial<StoreSectionConfig> | null) => void;
+}) {
+  const source = config?.source;
+  return (
+    <div className="space-y-2 border-t px-2.5 py-2">
+      <div className="flex items-center gap-2">
+        <label className="w-16 flex-none text-[11px] text-muted-foreground">Products</label>
+        <select
+          className="h-7 min-w-0 flex-1 rounded-md border bg-background px-1.5 text-xs"
+          value={config ? source : ""}
+          onChange={(e) =>
+            e.target.value
+              ? onChange({ source: e.target.value as StoreSectionConfig["source"] })
+              : onChange(null)
+          }
+        >
+          <option value="">Default for this section</option>
+          <option value="featured">Featured products</option>
+          <option value="newest">New arrivals</option>
+          <option value="category">One collection</option>
+        </select>
+      </div>
+
+      {source === "category" ? (
+        <div className="flex items-center gap-2">
+          <label className="w-16 flex-none text-[11px] text-muted-foreground">Collection</label>
+          <select
+            className="h-7 min-w-0 flex-1 rounded-md border bg-background px-1.5 text-xs"
+            value={config?.categoryId ?? ""}
+            onChange={(e) => onChange({ categoryId: e.target.value || undefined })}
+          >
+            {/* Empty is a half-finished row the API refuses on save. Offered
+                anyway, because the merchant picks the source before they pick
+                the collection and the alternative is auto-selecting one they
+                did not choose. */}
+            <option value="">Pick a collection…</option>
+            {collections.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.displayName || c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
+      {config ? (
+        <>
+          <div className="flex items-center gap-2">
+            <label className="w-16 flex-none text-[11px] text-muted-foreground">Heading</label>
+            <input
+              className="h-7 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs"
+              /* Blank is the BETTER default, not an empty field to fill in: the
+                 shop's own wording follows the shopper's language, and a typed
+                 heading is one string that cannot be translated. */
+              placeholder="Your shop's own wording"
+              maxLength={60}
+              value={config.title ?? ""}
+              onChange={(e) => onChange({ title: e.target.value || undefined })}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-16 flex-none text-[11px] text-muted-foreground">Show</label>
+            <input
+              type="number"
+              className="h-7 w-20 rounded-md border bg-background px-2 text-xs"
+              min={MIN_SECTION_LIMIT}
+              max={MAX_SECTION_LIMIT}
+              value={config.limit ?? DEFAULT_SECTION_LIMIT}
+              onChange={(e) => onChange({ limit: Number(e.target.value) || undefined })}
+            />
+            <span className="text-[11px] text-muted-foreground">products</span>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

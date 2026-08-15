@@ -116,6 +116,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   homeCollections: {},
   design: DEFAULT_DESIGN,
   homepageSections: [],
+  sectionConfig: [],
   templates: {},
   badges: [],
   heroSlides: [],

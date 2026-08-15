@@ -11,7 +11,7 @@ import {
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
 import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
-import type { StoreHomeSection } from "@/lib/storefront-client";
+import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
   Image,
@@ -141,6 +141,15 @@ export interface CustomizeDraft {
    */
   homepageSections: StoreHomeSection[];
   /**
+   * Per-section config, joined to `homepageSections[].key`.
+   *
+   * A sibling of the section list, not a field on it, and NOT touched by
+   * `applyThemeToDraft` — that is the whole reason it lives outside `theme` on
+   * the wire. A merchant who tries three themes must still have the collections
+   * they pointed their rows at.
+   */
+  sectionConfig: StoreSectionConfig[];
+  /**
    * Carried, never edited. The Save payload rebuilds `theme` as a whole object
    * and the backend replaces the sub-document with it, so a field the draft does
    * not hold is a field Save deletes. Nothing in the editor writes this — a
@@ -183,7 +192,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => [d.templates.home, d.homepageSections],
+  home: (d) => [d.templates.home, d.homepageSections, d.sectionConfig],
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
@@ -303,6 +312,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     // Seeded from the saved list, else empty so the storefront falls back to the
     // section list implied by the home template.
     homepageSections: t.homepageSections ?? [],
+    sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
     templates: seedTemplates(settings),
     // Three fixed slots seeded by index — an empty slot keeps its default badge.

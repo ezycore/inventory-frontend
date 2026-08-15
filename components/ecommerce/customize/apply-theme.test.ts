@@ -26,7 +26,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     logoStyle: { height: 44 },
     homeCollections: { layout: "grid" },
     design: DEFAULT_DESIGN,
-  homepageSections: [],
+    homepageSections: [],
+    sectionConfig: [],
     templates: { hero: "banner", headerMenu: "custom", checkout: "multi-step" },
     badges: [{ text: "Free delivery over ৳1000", icon: "truck" }],
     heroSlides: [{ title: "Eid sale" }],
@@ -245,5 +246,43 @@ describe("isThemeModified", () => {
   it("ignores merchant wording", () => {
     expect(isThemeModified({ ...applied, footerText: "Something else" })).toBe(false);
     expect(isThemeModified({ ...applied, footerNote: "Chittagong" })).toBe(false);
+  });
+});
+
+/**
+ * The regression this whole split exists to prevent.
+ *
+ * `applyThemeToDraft` replaces `homepageSections` outright — a theme's page is
+ * an ordered whole. If per-row config lived inside those entries, applying a
+ * theme would delete every collection the merchant pointed a row at. It lives
+ * in a sibling block instead, so the rule is structural rather than remembered.
+ */
+describe("applyThemeToDraft — sectionConfig", () => {
+  const theme = getReadyMadeTheme("muslin")!;
+
+  it("does not touch a merchant's per-section config", () => {
+    const configured = draft({
+      sectionConfig: [
+        { key: "r1", source: "category", categoryId: "cat-skin", title: "Skin care", limit: 6 },
+      ],
+    });
+    const patch = applyThemeToDraft(configured, theme);
+
+    // Not "unchanged" by luck — absent from the patch entirely, so there is no
+    // value a future edit to this function could accidentally overwrite it with.
+    expect(patch).not.toHaveProperty("sectionConfig");
+  });
+
+  it("leaves the config intact through three applies in a row", () => {
+    // A merchant trying themes must still have every collection they chose.
+    let current = draft({
+      sectionConfig: [{ key: "r1", source: "category", categoryId: "cat-skin" }],
+    });
+    for (const id of ["classic", "muslin", "classic"]) {
+      current = { ...current, ...applyThemeToDraft(current, getReadyMadeTheme(id)!) };
+    }
+    expect(current.sectionConfig).toEqual([
+      { key: "r1", source: "category", categoryId: "cat-skin" },
+    ]);
   });
 });

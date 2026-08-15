@@ -271,8 +271,11 @@ export function PartsRail({
                 >
                   <SectionsEditor
                     sections={draft.homepageSections}
+                    config={draft.sectionConfig}
+                    collections={draft.collections}
                     homeTemplate={draft.templates.home}
                     onChange={(homepageSections) => patch({ homepageSections })}
+                    onConfigChange={(sectionConfig) => patch({ sectionConfig })}
                   />
                 </PartBlock>
               </>

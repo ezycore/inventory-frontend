@@ -116,6 +116,25 @@ Your homepage is a list of blocks, top to bottom, and **Sections** is where you 
 up or down, remove one, or add one from the list underneath — the preview follows every change
 before you save.
 
+**Product blocks can be pointed at your own collections.** Open a product block and you can choose
+where its products come from — Featured, New arrivals, or one collection — give it a heading, and
+say how many products to show (4 to 12). You can add the same product block twice and point each one
+somewhere different, so a shop can run "Skin care" above "Devices" on its front page.
+
+Leave a block's **heading** blank and your shop writes its own, translated for each shopper. Type one
+and it is used exactly as you wrote it, in every language — worth it for something like "Eid picks",
+not worth it for "New arrivals".
+
+Two things worth knowing:
+
+- **Out-of-stock products never appear in these blocks.** The home page is your shop window, and a
+  card nobody can buy takes a slot from one they can. Products you sell on backorder still show.
+- **Applying a ready-made theme never changes what a block is pointed at.** A theme changes the look
+  and the order of your page; the collections you chose, and the headings you wrote, are yours.
+
+If a block looks empty on your shop, the collection behind it has nothing in stock right now — the
+block hides itself rather than printing an empty heading.
+
 Applying a theme fills this list with that theme's blocks, so what you see here always matches the
 shop you have. Change any of it afterwards; it stays yours.
 

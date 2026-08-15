@@ -32,6 +32,10 @@ export function StorePreviewBridge() {
         homeCollections: p.theme?.homeCollections,
         design: p.theme?.design,
         homepageSections: p.theme?.homepageSections,
+        // Sent beside the section list, never inside it — the preview has to
+        // show a re-pointed row's real products, and the row's collection lives
+        // in this block precisely so a theme cannot reach it.
+        sectionConfig: p.sectionConfig,
         home: p.templates?.home,
         footer: p.templates?.footer,
         header: p.templates?.header,
