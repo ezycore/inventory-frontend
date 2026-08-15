@@ -303,6 +303,55 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
+  /* --------------------------------------------------------- image ratio */
+  /* Each sketch is drawn at its real aspect ratio, so the tile shows the shape
+     it names rather than a label for it. */
+  "imageRatio:square": (
+    <Frame className="items-center justify-center p-2">
+      <span className={cn(IMG, "aspect-square h-full")} />
+    </Frame>
+  ),
+  "imageRatio:portrait": (
+    <Frame className="items-center justify-center p-2">
+      <span className={cn(IMG, "aspect-[3/4] h-full")} />
+    </Frame>
+  ),
+  "imageRatio:landscape": (
+    <Frame className="items-center justify-center p-2">
+      <span className={cn(IMG, "aspect-[4/3] w-full")} />
+    </Frame>
+  ),
+  "imageRatio:tall": (
+    <Frame className="items-center justify-center p-2">
+      <span className={cn(IMG, "aspect-[2/3] h-full")} />
+    </Frame>
+  ),
+
+  /* ------------------------------------------------------- category tiles */
+  "categoryTiles:tile": (
+    <Frame className="items-center justify-center">
+      <span className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="flex flex-col items-center gap-1">
+            <span className={cn(IMG, "size-5")} />
+            <span className={cn(BAR, "h-1 w-4")} />
+          </span>
+        ))}
+      </span>
+    </Frame>
+  ),
+  "categoryTiles:overlay": (
+    <Frame className="items-center justify-center">
+      <span className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(IMG, "flex h-7 w-5 items-end p-0.5")}>
+            <span className={cn(BAR, "h-1 w-full bg-muted-foreground/60")} />
+          </span>
+        ))}
+      </span>
+    </Frame>
+  ),
+
   /* -------------------------------------------------------------- header */
   "header:classic": (
     <Frame className="justify-center">
@@ -336,6 +385,33 @@ const SKETCHES: Record<string, ReactNode> = {
       <span className="flex flex-col items-center gap-1 rounded-[2px] border border-border bg-background p-1.5">
         <span className={cn(BAR, "h-1.5 w-6 bg-muted-foreground/60")} />
         <span className="flex gap-1">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className={cn(BAR, "h-1 w-3")} />
+          ))}
+        </span>
+      </span>
+    </Frame>
+  ),
+  /* The search field is the subject of both of these, so it is what the sketch
+     draws at full width — a pill for one, a rule for the other. */
+  "header:search-first": (
+    <Frame className="justify-center">
+      <span className="flex items-center gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
+        <span className={cn(BAR, "h-1.5 w-4 bg-muted-foreground/60")} />
+        <span className={cn(BOX, "h-2.5 flex-1 rounded-full")} />
+        <span className={cn(CTA, "h-2.5 w-4 rounded-full")} />
+      </span>
+    </Frame>
+  ),
+  "header:boutique": (
+    <Frame className="justify-center">
+      <span className="flex flex-col gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
+        <span className="flex items-center gap-1.5">
+          <span className={cn(BAR, "h-1.5 w-5 bg-muted-foreground/60")} />
+          <span className="flex-1 border-b border-border pb-1" />
+          <span className={cn(BAR, "h-1.5 w-1.5 rounded-full")} />
+        </span>
+        <span className="flex gap-1.5">
           {[0, 1, 2, 3].map((i) => (
             <span key={i} className={cn(BAR, "h-1 w-3")} />
           ))}

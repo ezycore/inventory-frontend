@@ -36,6 +36,15 @@ Two traps carried from the backend:
 ⚠️ `vatRegistrationOf` has a **temporary bridge**: feature ON + no declared history ⇒
 `standard_15`. The backend has the identical branch. **Delete both together**, never one.
 
+⚠️ **The history it reads lives in the auth store, and only two things write it there.** Both
+`useUpdateVatSettings` (Settings → VAT, via the page's `updateTaxConfig` call) and
+`useApplyOnboardingStep` (the setup wizard) push the *server's* returned
+`vatRegistrationHistory` into the store — a client that writes `features.tax` without it falls
+straight through the bridge and previews VAT for a turnover-tax merchant until a hard reload.
+There is no query to invalidate here: `useMe` is a **mutation**, so `invalidate(…, "org.changed")`
+cannot refresh the org. Any new endpoint that changes the registration must return the history and
+write it the same way (`docs/plan/onboarding-workspace.md` §8.7b in the backend repo).
+
 When the gate is off: hide VAT UI and columns, and neutralize VAT in previews — do not just grey it.
 
 **Form fields go through one gate: `useVatGatedFormConfig(config, module)`**

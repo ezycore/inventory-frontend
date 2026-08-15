@@ -235,11 +235,52 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       preset: draft.preset,
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
-      footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      // `undefined`, never `""` — an empty field means "use the storefront's
-      // localized wording", and an empty string would print a blank line.
+      design: draft.design,
+      // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
+      // shop shows no sections at all", where unset means "use the default the
+      // home template implies" — the difference between a blank page and a
+      // normal one for any merchant who switches every section off.
+      homepageSections: draft.homepageSections.length
+        ? draft.homepageSections
+        : undefined,
+      // ⚠ Not editable here, and listed anyway: this object literal is the whole
+      // `theme` the merchant is saving, and a field left out of it is a field
+      // this editor has no opinion about — which is not the same as one it wants
+      // preserved. Sending it keeps the payload a complete picture rather than
+      // one that depends on how the server merges.
+      //
+      // What the server actually does, because the wrong version of this note
+      // stood here and would have misled the next reader: `theme` is a Mongoose
+      // NESTED PATH, so `Object.assign(settings, dto)` MERGES it — an omitted
+      // key keeps its stored value and an explicit `undefined` is a no-op, not
+      // an unset. The practical consequence is the opposite of "omitted fields
+      // are deleted": a merchant who CLEARS a field cannot clear it, because
+      // `undefined` never reaches the document. `shippingZones` in
+      // `storefront-settings.service.ts` is the one place that works around it,
+      // with an explicit `settings.set(path, undefined)`.
+      appliedThemeId: draft.appliedThemeId,
+    },
+    // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
+    // is what lets a ready-made theme replace the look wholesale without
+    // touching a word the merchant typed. Each field is `undefined`, never `""`:
+    // empty means "use the storefront's localized wording", and an empty string
+    // would print a blank line.
+    // Per-section config, sent as its OWN block for the same reason `copy` is:
+    // a ready-made theme replaces `theme` wholesale, and the collection a
+    // merchant pointed a row at must survive that.
+    //
+    // Entries whose section has been removed are dropped here rather than left
+    // to the server — the API keeps orphans deliberately (a PATCH may carry one
+    // array without the other), but this payload always carries BOTH, so an
+    // orphan reaching it means the merchant deleted the section and there is
+    // nothing to preserve.
+    sectionConfig: draft.sectionConfig.filter((c) =>
+      draft.homepageSections.some((s) => s.key === c.key),
+    ),
+    copy: {
+      footerText: draft.footerText.trim() || undefined,
       footerNote: draft.footerNote.trim() || undefined,
       footerContactHeading: draft.footerContactHeading.trim() || undefined,
       footerNewsletter: trimNewsletter(draft.footerNewsletter),
@@ -279,7 +320,10 @@ export function toPreviewPayload(
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
+      design: draft.design,
+      homepageSections: draft.homepageSections,
     },
+    sectionConfig: draft.sectionConfig,
     templates: {
       home: draft.templates.home,
       footer: draft.templates.footer,
@@ -288,6 +332,12 @@ export function toPreviewPayload(
       cardActions: draft.templates.cardActions,
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
+      imageRatio: draft.templates.imageRatio,
+      categoryTiles: draft.templates.categoryTiles,
+      accountLayout: draft.templates.accountLayout,
+      contentLayout: draft.templates.contentLayout,
+      cartLayout: draft.templates.cartLayout,
+      shell: draft.templates.shell,
       // Reached through the preview's page switcher; each is read by exactly one
       // storefront page, via `useStoreTemplate`.
       collection: draft.templates.collection,

@@ -24,6 +24,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
+import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 /** How far the hero magnifies under the pointer. */
@@ -79,6 +80,7 @@ export function ProductGallery({
 }) {
   const { t } = useStorefrontUI();
   const fit = useStoreImageFit();
+  const imageRatio = useStoreImageRatio();
   const [zoomed, setZoomed] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
 
@@ -105,7 +107,13 @@ export function ProductGallery({
         src={main}
         alt={alt}
         label="product"
-        ratio={layout === "top" ? "16 / 11" : "1 / 1"}
+        ratio={
+          // `top` keeps its own 16/11 letterbox: that layout runs the photo the
+          // full width of the page, where a 3:4 portrait would stand taller than
+          // the viewport. The merchant's shape applies to the side-by-side
+          // layout, which is the one framed like a product grid card.
+          layout === "top" ? "16 / 11" : imageRatio
+        }
         radius={RADIUS}
         fit={fit}
         className="sf-pdp-zoom-img"

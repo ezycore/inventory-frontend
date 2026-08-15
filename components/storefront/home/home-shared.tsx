@@ -9,9 +9,12 @@ import type {
   StoreCampaign,
   StoreHeroBanner,
   StoreHeroSlide,
+  StoreSectionConfig,
+  StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
-import { storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { findSectionCategory, sectionTitle } from "@/lib/storefront-sections";
 import { ProductCard } from "@/components/storefront/product-card";
 import { money } from "@/components/storefront/format";
 
@@ -21,8 +24,16 @@ export const wrap: CSSProperties = {
   width: "100%",
 };
 
-/** Data every homepage template receives from the `StoreHome` dispatcher. */
-export interface TplProps {
+/**
+ * Data every homepage SECTION receives from `StoreHome`.
+ *
+ * One shape for all of them on purpose: the page is a list of section ids the
+ * merchant (or their theme) ordered, so `StoreHome` cannot know which props any
+ * given entry needs. It hands every section everything the page fetched — which
+ * costs nothing, since `shop/page.tsx` already loads the lot in one parallel
+ * batch precisely so sections can be reordered without a round-trip.
+ */
+export interface SectionProps {
   base: string;
   currency?: string;
   featured: CatalogProduct[];
@@ -35,13 +46,68 @@ export interface TplProps {
   heroSlides?: StoreHeroSlide[];
   /** Owner overrides for the static banner hero's copy; unset → template copy. */
   heroBanner?: StoreHeroBanner;
+  /** The whole store — sections that read `trustBadges`, `social` or `name`. */
+  store: StorefrontStore;
+  /**
+   * This INSTANCE's config, when the merchant has given it one. Absent means
+   * "render your built-in source", which is what every section did before
+   * `sectionConfig` existed — so an unconfigured page is unchanged.
+   */
+  config?: StoreSectionConfig;
+  /**
+   * This instance's server-fetched products. Present only alongside `config`,
+   * and only for a product section: the page fetches one query per configured
+   * section in parallel, so a page with two collection rows stays one round of
+   * SSR rather than a waterfall.
+   */
+  items?: CatalogProduct[];
+}
+
+/**
+ * What one product section actually renders: its products, its heading and
+ * where "View all" goes.
+ *
+ * **Every product section resolves through here, and that is the point.** A
+ * section that read `config` itself would be a section that could disagree with
+ * the others about what a limit means or when a title falls back — five copies
+ * of one rule, four of which drift. A section supplies only what it shows when
+ * nobody has configured it.
+ *
+ * `items ?? []` rather than `items ?? fallback`: once a section IS configured,
+ * an empty result is a real answer (a collection with nothing in stock) and the
+ * section hides itself. Falling back to the catalogue-wide list there would
+ * print the merchant's chosen heading over products they did not choose.
+ */
+export function sectionRow(
+  props: SectionProps,
+  fallback: { products: CatalogProduct[]; title: string },
+): { products: CatalogProduct[]; title: string; href: string } {
+  const { config, items, categories, base, t } = props;
+  if (!config) {
+    return {
+      products: fallback.products,
+      title: fallback.title,
+      href: storeHref(base, "/products"),
+    };
+  }
+  const found =
+    config.source === "category"
+      ? findSectionCategory(categories, config.categoryId)
+      : null;
+  return {
+    products: items ?? [],
+    title: sectionTitle(config, t, categories, fallback.title),
+    // "View all" goes where the row's own products live — the collection page
+    // for a category row, the full catalogue for the two catalogue-wide sources.
+    href: found ? collectionHref(base, found.category) : storeHref(base, "/products"),
+  };
 }
 
 /**
  * Hero badge text from the live campaign ("test · 2% off"), so the homepage
  * never claims a sale that isn't running; null falls back to template copy.
  */
-export function campaignBadge(props: TplProps): string | null {
+export function campaignBadge(props: SectionProps): string | null {
   const c =
     props.campaigns.find((x) => x.scope === "storewide") ?? props.campaigns[0];
   if (!c) return null;

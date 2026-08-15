@@ -53,17 +53,17 @@ export interface FooterProps {
   footerContentPages?: StoreFooterContentPages;
   infoPages: ContentPageLink[];
   /**
-   * The brand paragraph, **already resolved** — `theme.footerText` if the
+   * The brand paragraph, **already resolved** — `copy.footerText` if the
    * merchant wrote one, the localized default otherwise. Resolved in
    * `StoreFooter` rather than here because the live Customize draft has to win
    * over the saved value, and only that component sees the draft.
    */
   blurb: string;
-  /** `theme.footerNote` — the bottom bar's right side. Blank ⇒ currency only. */
+  /** `copy.footerNote` — the bottom bar's right side. Blank ⇒ currency only. */
   note?: string;
-  /** `theme.footerContactHeading` — Contact-first heading. Blank ⇒ localized. */
+  /** `copy.footerContactHeading` — Contact-first heading. Blank ⇒ localized. */
   contactHeading?: string;
-  /** `theme.footerNewsletter` — sign-up copy. Blank fields ⇒ localized. */
+  /** `copy.footerNewsletter` — sign-up copy. Blank fields ⇒ localized. */
   newsletter?: { heading?: string; blurb?: string; buttonLabel?: string };
 }
 
@@ -316,7 +316,7 @@ export function FooterShell({
  * navigation — and putting them in the columns region is what forced the extra
  * track that left the gap `FooterColumns` describes.
  *
- * The right-hand side is `theme.footerNote`. It used to be the hardcoded string
+ * The right-hand side is `copy.footerNote`. It used to be the hardcoded string
  * `"Bangladesh · <currency>"`, which is a claim about the merchant's business
  * that the platform has no standing to make; unset, it now prints the store's
  * currency and nothing more.

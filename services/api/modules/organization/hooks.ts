@@ -439,6 +439,7 @@ export const useFeatureImpact = () =>
 export const useApplyOnboardingStep = () => {
   const queryClient = useQueryClient();
   const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
+  const updateTaxConfig = useAuthStore((state) => state.updateTaxConfig);
   const setOnboardingCompleted = useAuthStore(
     (state) => state.setOnboardingCompleted,
   );
@@ -449,6 +450,18 @@ export const useApplyOnboardingStep = () => {
     onSuccess: (result) => {
       if (result.data?.features) {
         updateFeaturesStore(result.data.features);
+      }
+      // The VAT answer, into the same store the POS reads. `features.tax` alone
+      // cannot carry it — it is true for standard, reduced and turnover alike —
+      // so a merchant who answers "turnover tax" and is left with an empty
+      // history hits the undeclared-registration bridge in `vatRegistrationOf`,
+      // is treated as standard-rated, and gets VAT previewed on every line the
+      // backend posts none on. It survived until a hard reload, because `useMe`
+      // is a mutation and no invalidation can refetch it.
+      if (result.data?.vatRegistrationHistory) {
+        updateTaxConfig({
+          vatRegistrationHistory: result.data.vatRegistrationHistory,
+        });
       }
       // The workspace gate reads completion from the auth store, so it has to
       // learn about it here — otherwise finishing the wizard bounces the

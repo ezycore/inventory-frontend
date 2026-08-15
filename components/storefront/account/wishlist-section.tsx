@@ -15,6 +15,7 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
+import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 
 /**
  * Wishlist section — products saved via the PDP heart. "Move to cart" adds and
@@ -27,6 +28,7 @@ export function WishlistSection() {
   const { data: store } = useStore(slug);
   const currency = store?.currency;
   const imageFit = useStoreImageFit();
+  const imageRatio = useStoreImageRatio();
 
   const storeSlug = useWishlistStore((s) => s.storeSlug);
   const allItems = useWishlistStore((s) => s.items);
@@ -89,7 +91,7 @@ export function WishlistSection() {
           return (
             <div key={p.productId} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <Link href={pdp} style={{ position: "relative", display: "block" }}>
-                <Media src={p.image} alt={p.name} label="product" radius={0} fit={imageFit} />
+                <Media src={p.image} alt={p.name} label="product" radius={0} fit={imageFit} ratio={imageRatio} />
                 <button
                   type="button"
                   aria-label={t.removeLabel}

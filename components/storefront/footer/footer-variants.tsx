@@ -172,6 +172,15 @@ export function ContactFooter(props: FooterProps) {
  * **Stay in touch** — the wide left side earns its width by asking for
  * something. The sign-up posts to this store's public `/subscribe` endpoint;
  * addresses land in Online Store → Storefront Accounts → Subscribers.
+ *
+ * It leads with `FooterBrand` (mark **and** blurb). **All five layouts draw the
+ * blurb** — `columns`/`rich`/`contact` through `BrandLead`, `simple` through its
+ * own centred `<p>` — and this one was the sole exception until 2026-08-12,
+ * rendering the bare mark. So the merchant's "About your shop" line silently
+ * vanished the moment they chose this footer: safe in `copy.footerText`, never
+ * drawn. That reads as data loss to whoever typed it, and it is exactly what a
+ * merchant must be able to trust when trying a theme (Fashion Shine selects this
+ * layout). The ask is not weakened by a line of context above it.
  */
 export function NewsletterFooter(props: FooterProps) {
   const copy = props.newsletter;
@@ -180,7 +189,7 @@ export function NewsletterFooter(props: FooterProps) {
       <FooterColumns
         lead={
           <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start" }}>
-            <Brand name={props.name} logo={props.logo} markSize={31} nameSize={16} />
+            <FooterBrand name={props.name} logo={props.logo} blurb={props.blurb} />
             <FooterNewsletter
               slug={props.slug}
               t={props.t}
