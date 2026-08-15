@@ -1,4 +1,4 @@
-import type { OrganizationFeatures } from "@/types";
+import type { OrganizationFeatures, VatRegistrationType } from "@/types";
 import type { OnboardingStepPayload } from "@/services/api/modules/organization/api";
 
 /**
@@ -131,3 +131,64 @@ export function payloadForStep(
 
 /** How many questions precede the review screen. */
 export const QUESTION_COUNT = 5;
+
+/**
+ * The four registrations the wizard offers. `exempt` exists in
+ * `VatRegistrationType` but is not asked here, so a workspace already carrying
+ * it has no answer to re-select — better an unselected question than a wrong
+ * one pre-filled.
+ */
+const WIZARD_VAT_TYPES = [
+  "unregistered",
+  "standard_15",
+  "reduced",
+  "turnover_4",
+] as const satisfies readonly VatAnswer[];
+
+export function toVatAnswer(
+  type: VatRegistrationType | undefined,
+): VatAnswer | undefined {
+  return WIZARD_VAT_TYPES.find((candidate) => candidate === type);
+}
+
+/**
+ * The answers a resumed wizard already gave, read back off the workspace.
+ *
+ * Without this, `answers` starts empty on a resume and every question *behind*
+ * the resume point renders with nothing selected — so a merchant who presses
+ * Back sees their own answer missing and has to give it again.
+ *
+ * `step` is the gate, not the feature values: every feature starts ON, so
+ * `storefront: true` is ambiguous between "answered both" and "never asked".
+ * Only a question the server counted as answered may be read back, which is
+ * exactly what `onboardingStep` records.
+ */
+export function answersFromProgress(
+  features: OrganizationFeatures | undefined,
+  step: number,
+  vat: VatAnswer | undefined,
+): OnboardingAnswers {
+  if (!features) return {};
+
+  const answers: OnboardingAnswers = {};
+
+  if (step > 0) {
+    answers.channel = features.sales
+      ? features.storefront
+        ? "both"
+        : "shop"
+      : "online";
+  }
+  if (step > 1) answers.multiLocation = !!features.multiLocation;
+  if (step > 2) {
+    // The registration is the answer; the `tax` flag only says whether one was
+    // declared at all. Reading the flag alone would show "Standard rated" to a
+    // turnover-tax merchant.
+    const declared = features.tax ? vat : "unregistered";
+    if (declared) answers.vat = declared;
+  }
+  if (step > 3) answers.expiryTracking = !!features.expiryTracking;
+  if (step > 4) answers.barcodeSystem = !!features.barcodeSystem;
+
+  return answers;
+}
