@@ -2,6 +2,7 @@
   "nav": {
     "groups": {
       "sell": "Sell",
+      "store": "Store",
       "buy": "Buy",
       "stock": "Stock",
       "money": "Money",

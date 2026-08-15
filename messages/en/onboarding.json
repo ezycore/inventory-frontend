@@ -6,6 +6,22 @@
     "description": "We couldn't load your workspace settings. If your subscription is awaiting payment, settle it first and setup will continue from here.",
     "action": "Go to billing"
   },
+  "welcome": {
+    "badge": "Workspace setup",
+    "title": "Let's get your workspace ready",
+    "subtitle": "{count} quick questions about how {organization} works — we'll switch on only the tools you need.",
+    "yourBusiness": "your business",
+    "topics": {
+      "channelTitle": "How you sell",
+      "channelDescription": "At your counter, online, or both",
+      "taxTitle": "Your VAT position",
+      "taxDescription": "So your invoices carry the right tax — or none at all",
+      "toolsTitle": "The tools you need",
+      "toolsDescription": "Expiry dates, barcodes, more than one location"
+    },
+    "start": "Get started",
+    "reassurance": "Takes about a minute. Everything here can be changed later in Settings."
+  },
   "channel": {
     "lead": "First, tell us how you sell.",
     "question": "How do you sell to your customers?",
@@ -44,11 +60,18 @@
     "no": "No, we don't"
   },
   "review": {
+    "stepLabel": "Review",
     "title": "Here's your workspace",
     "subtitle": "Turn on only the tools you need. You can change this any time.",
     "fromYourAnswers": "From your answers",
     "weAlsoRecommend": "We also recommend",
-    "confirm": "Start using Ezycore"
+    "confirm": "Start using EzyCore"
+  },
+  "done": {
+    "title": "Your workspace is ready",
+    "titleNamed": "{organization} is ready",
+    "description": "We've turned on only what you asked for. Add your first products and you can start selling.",
+    "action": "Go to dashboard"
   },
   "waiting": {
     "title": "Setup in progress",

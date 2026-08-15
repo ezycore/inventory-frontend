@@ -6,6 +6,7 @@ import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Spinner } from "@/ui/components/spinner";
+import { NO_AUTOFILL } from "./courier-no-autofill";
 
 /**
  * A credential field whose value is chosen from a list the provider serves on
@@ -49,6 +50,8 @@ export function CourierRemoteField({
     <div className="flex gap-2">
       <Input
         id={id}
+        name={`cred-${id}`}
+        {...NO_AUTOFILL}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}

@@ -25,13 +25,43 @@ const withFeatures = (
   overrides: Partial<OrganizationFeatures>
 ): OrganizationFeatures => ({ ...DEFAULT_ORGANIZATION_FEATURES, ...overrides });
 
+/** navGroups as AppSidebar renders them: filtered, empty groups dropped. */
+function visibleGroups(features: OrganizationFeatures) {
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: filterNavItems(group.items, "admin", ALL_PERMISSIONS, features),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
 /** Every visible nav title for a given feature set, flattened. */
 function visibleTitles(features: OrganizationFeatures): string[] {
-  const groups = navGroups.map((group) => ({
-    ...group,
-    items: filterNavItems(group.items, "admin", ALL_PERMISSIONS, features),
-  }));
-  return flattenNavItems(groups.flatMap((g) => g.items)).map((i) => i.title);
+  return flattenNavItems(visibleGroups(features).flatMap((g) => g.items)).map(
+    (i) => i.title
+  );
+}
+
+/** Titles of the top-level (always-visible) rows, across every group. */
+function topLevelTitles(features: OrganizationFeatures): string[] {
+  return visibleGroups(features)
+    .flatMap((g) => g.items)
+    .map((item) => item.title);
+}
+
+/** Child titles of a top-level nav item, wherever it sits. */
+function childrenOf(features: OrganizationFeatures, title: string): string[] {
+  const parent = visibleGroups(features)
+    .flatMap((g) => g.items)
+    .find((item) => item.title === title);
+  return (parent?.items ?? []).map((child) => child.title);
+}
+
+/** The group a top-level item belongs to. */
+function groupOf(features: OrganizationFeatures, title: string) {
+  return visibleGroups(features).find((group) =>
+    group.items.some((item) => item.title === title)
+  );
 }
 
 const SHOP_ONLY = withFeatures({ sales: true, storefront: false });
@@ -45,7 +75,13 @@ describe("navGroups — shop-only merchant", () => {
     expect(titles).toContain("New Sale");
     expect(titles).toContain("Sales History");
     expect(titles).not.toContain("Online Store");
-    expect(titles).not.toContain("Online Orders");
+    expect(titles).not.toContain("Store Overview");
+  });
+
+  it("hides Online Orders, which now lives under Sales", () => {
+    // Moving it into Sales must not leak the online channel into a shop that
+    // has none — the entry keeps its own `storefront` gate.
+    expect(childrenOf(SHOP_ONLY, "Sales")).not.toContain("Online Orders");
   });
 });
 
@@ -77,8 +113,70 @@ describe("navGroups — online-only merchant", () => {
     expect(titles).toContain("Sales History");
   });
 
-  it("still shows the Online Store group", () => {
+  it("still shows Online Store", () => {
     expect(visibleTitles(ONLINE_ONLY)).toContain("Online Store");
+    expect(visibleTitles(ONLINE_ONLY)).toContain("Store Overview");
+  });
+
+  it("lists Online Orders under Sales, not under Online Store", () => {
+    // Online orders are sales: they belong with the ledger the merchant reads,
+    // while Online Store keeps only the channel's own screens.
+    expect(childrenOf(ONLINE_ONLY, "Sales")).toContain("Online Orders");
+    expect(childrenOf(ONLINE_ONLY, "Online Store")).not.toContain(
+      "Online Orders"
+    );
+  });
+});
+
+describe("navGroups — Online Store as its own group", () => {
+  it("sits in its own headed group, not in Sell", () => {
+    expect(groupOf(BOTH, "Online Store")?.label).toBe("Store");
+    expect(groupOf(BOTH, "Sales")?.label).toBe("Sell");
+  });
+
+  it("keeps every group label unique — AppSidebar keys groups by label", () => {
+    // Two groups sharing a label (both "" while this group was unlabelled) gave
+    // React duplicate keys, which reconciles into stale/duplicated rows in dev.
+    for (const features of [SHOP_ONLY, ONLINE_ONLY, BOTH]) {
+      const labels = visibleGroups(features).map((g) => g.label);
+      expect(new Set(labels).size).toBe(labels.length);
+    }
+  });
+
+  it("leaves exactly one Dashboard row in the rail", () => {
+    for (const features of [SHOP_ONLY, ONLINE_ONLY, BOTH]) {
+      const dashboards = visibleTitles(features).filter(
+        (t) => t === "Dashboard"
+      );
+      expect(dashboards).toHaveLength(1);
+    }
+  });
+
+  it("costs the rail exactly one always-visible row", () => {
+    // The regression this guards: listing the eight storefront screens flat
+    // pushed Buy and Stock below the fold, so Products needed a scroll.
+    const group = groupOf(BOTH, "Online Store");
+
+    expect(group?.items).toHaveLength(1);
+    expect(childrenOf(BOTH, "Online Store").length).toBeGreaterThan(1);
+  });
+
+  it("keeps every storefront screen reachable under that one row", () => {
+    expect(childrenOf(BOTH, "Online Store")).toEqual([
+      "Store Overview",
+      "Collections",
+      "Campaigns",
+      "Coupons",
+      "Customize",
+      "Content",
+      "Abandoned Carts",
+      "Store Settings",
+    ]);
+  });
+
+  it("takes the whole Store group away from a shop-only merchant", () => {
+    expect(topLevelTitles(SHOP_ONLY)).not.toContain("Online Store");
+    expect(visibleGroups(SHOP_ONLY).map((g) => g.label)).not.toContain("Store");
   });
 });
 
