@@ -106,7 +106,12 @@ export function getOwnerSetupFormConfig(t: Translator): DynamicFormConfig {
             columnSpan: 6,
             placeholder: t("organizationNamePlaceholder"),
             required: true,
-            validation: { minLength: 2, maxLength: 200 },
+            // 100 to match the backend: signup names the workspace's first
+            // location with this exact string, and `Location.name` caps at 100.
+            // A longer name failed validation *inside* the signup transaction —
+            // the merchant lost the whole form to an error about a field that
+            // isn't on it.
+            validation: { minLength: 2, maxLength: 100 },
           },
           {
             name: "organizationSlug",
