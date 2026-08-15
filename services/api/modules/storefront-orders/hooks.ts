@@ -119,9 +119,8 @@ export const useCreateStorefrontOrder = () => {
 /**
  * Correct an existing order.
  *
- * Dirties `order.changed` rather than a narrower key because an edit can move
- * almost anything the lists and stats read — lines, totals, the stock hold and
- * the address all at once.
+ * `order.edited`, not `order.changed`: editing the lines of a confirmed order
+ * adjusts its stock hold, so the inventory screens move with it. See the event.
  */
 export const useEditStorefrontOrder = () => {
   const qc = useQueryClient();
@@ -130,7 +129,7 @@ export const useEditStorefrontOrder = () => {
       storefrontOrdersApi.edit(v.id, v.body),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order updated");
-      invalidate(qc, "order.changed");
+      invalidate(qc, "order.edited");
     },
     onError: handleMutationError,
   });
@@ -148,6 +147,23 @@ export const useConfirmOrder = () => {
   });
 };
 
+/**
+ * Move an order along its pipeline, forward or backward.
+ *
+ * **This endpoint is no longer stock-neutral, so the event is chosen per outcome.**
+ * Two transitions move inventory and one of them is new:
+ *
+ * - Reversing to `pending` releases the order's hold — `reservedQuantity` drops and
+ *   every sellable-stock screen is stale until `order.reversed` flushes it. This is
+ *   the case that shipped broken: a reversed order freed its stock while inventory
+ *   and products still showed it held.
+ * - Moving forward INTO the commit step (`shipped` / `ready_for_pickup`) books the
+ *   Sale and consumes the hold, which is `order.dispatched`'s whole meaning.
+ *
+ * Read off the RETURNED order rather than the requested status: the server owns
+ * what the transition actually did, and duplicating its rules here is how the two
+ * drift. Anything else is a label change and stays `order.changed`.
+ */
 export const useUpdateOrderStatus = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -155,7 +171,10 @@ export const useUpdateOrderStatus = () => {
       storefrontOrdersApi.updateStatus(v.id, v.status, v.note),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Status updated");
-      invalidate(qc, "order.changed");
+      const order = res.data;
+      if (order?.saleId) invalidate(qc, "order.dispatched");
+      else if (order?.status === "pending") invalidate(qc, "order.reversed");
+      else invalidate(qc, "order.changed");
     },
     onError: handleMutationError,
   });

@@ -26,10 +26,18 @@ export function useOrderEditInitial(
   order: AdminStorefrontOrder | undefined,
   enabled: boolean,
 ): { initial?: OrderFormInitial; loading: boolean } {
-  const { data: orderable = [], isLoading } = useOrderableProducts(enabled);
+  const { data: orderable, isLoading } = useOrderableProducts(enabled);
 
   const initial = useMemo<OrderFormInitial | undefined>(() => {
     if (!order) return undefined;
+    // **Wait for the catalogue, do not seed without it.** `useOrderForm` seeds its
+    // state with `useState`, which reads the seed once and ignores every later
+    // one — so a seed built before the picker arrived is the seed the form keeps.
+    // With no catalogue every line's `availableQuantity` collapses to its own
+    // quantity, that becomes the quantity field's `max`, and the field silently
+    // clamps back to the current value on blur. The line then cannot be increased
+    // at all, and the unchanged quantity is what the save sends.
+    if (!orderable) return undefined;
 
     const stockByKey = new Map(
       orderable.map((row) => [
