@@ -4,7 +4,6 @@ slug: storefront-catalog
 summary: Pick which products appear in your store, price them for online, and write your pages.
 order: 102
 covers_routes:
-  - /ecommerce/catalog
   - /ecommerce/collections
   - /ecommerce/themes
   - /ecommerce/customize

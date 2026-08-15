@@ -4,7 +4,6 @@ slug: storefront-catalog
 summary: কোন পণ্য দোকানে দেখাবে, অনলাইনের দাম কত, আর পাতাগুলোতে কী লিখবেন।
 order: 102
 covers_routes:
-  - /ecommerce/catalog
   - /ecommerce/collections
   - /ecommerce/themes
   - /ecommerce/customize
