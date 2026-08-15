@@ -142,6 +142,13 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.manage"],
           },
           {
+            title: "Themes",
+            url: "/ecommerce/themes",
+            icon: "sparkles",
+            features: ["storefront"],
+            permissions: ["storefront.manage"],
+          },
+          {
             title: "Customize",
             url: "/ecommerce/customize",
             icon: "palette",

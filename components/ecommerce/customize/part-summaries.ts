@@ -1,6 +1,13 @@
 // coding-standard: maintained
 
-import { getPreset } from "@/lib/storefront-theme";
+import {
+  DESIGN_DENSITIES,
+  DESIGN_FONTS,
+  DESIGN_RADII,
+  DESIGN_SCALES,
+  DESIGN_SURFACES,
+  getPreset,
+} from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
@@ -44,6 +51,14 @@ export function partSummary(
           : "no logo";
       return `${preset.label}${tuned ? " (tuned)" : ""} · ${draft.brandColor} · ${logo}`;
     }
+    case "design": {
+      const font = DESIGN_FONTS.find((o) => o.id === draft.design.font);
+      const surface = DESIGN_SURFACES.find((o) => o.id === draft.design.surface);
+      const scale = DESIGN_SCALES.find((o) => o.id === draft.design.scale);
+      const density = DESIGN_DENSITIES.find((o) => o.id === draft.design.density);
+      const radius = DESIGN_RADII.find((o) => o.id === draft.design.radius);
+      return `${font?.label ?? draft.design.font} · ${surface?.label ?? draft.design.surface} · ${scale?.label ?? draft.design.scale} headings · ${density?.label ?? draft.design.density} spacing · ${radius?.label ?? draft.design.radius} corners`;
+    }
     case "announcement":
       if (!draft.announcement.enabled) return "Off";
       return draft.announcement.text.trim()
@@ -68,16 +83,13 @@ export function partSummary(
     }
     case "home": {
       const option = TEMPLATE_OPTIONS.home.find((o) => o.value === draft.templates.home);
-      const layout = option?.label ?? draft.templates.home;
-      // The row count replaces the layout's one-line description here: the
-      // description repeats what the open part's own picker already says, while
-      // "3 product rows" is the thing a merchant cannot see while collapsed.
-      // Classic is the only layout that renders more than the first row.
-      const rows = draft.homeRows.length;
-      if (rows === 0) return `${layout} · no product rows`;
-      return draft.templates.home === "classic"
-        ? `${layout} · ${count(rows, "product row")}`
-        : `${layout} · first of ${count(rows, "product row")}`;
+      const label = option?.label ?? draft.templates.home;
+      // Once a theme or the merchant has composed the page, the section count is
+      // the honest summary — the starting layout is only where it began.
+      if (draft.homepageSections.length) {
+        return `${label} · ${count(draft.homepageSections.length, "section")}`;
+      }
+      return option ? `${label} — ${option.description}` : label;
     }
     case "cards":
       return `${labelOf("productCard", draft.templates.productCard)} · ${labelOf(
@@ -113,5 +125,18 @@ export function partSummary(
     }
     case "checkout":
       return labelOf("checkout", draft.templates.checkout);
+    /* The four whole-page layouts. They shipped after this switch was written
+       and were never added to it, so each rendered a BLANK line in the rail —
+       which quietly broke the promise in this file's own docstring, that all
+       parts collapsed read as an audit of the shop. `shell` is the one worth
+       having most: it is the axis that decides what kind of site this is. */
+    case "account":
+      return labelOf("accountLayout", draft.templates.accountLayout);
+    case "cart":
+      return labelOf("cartLayout", draft.templates.cartLayout);
+    case "content":
+      return labelOf("contentLayout", draft.templates.contentLayout);
+    case "shell":
+      return labelOf("shell", draft.templates.shell);
   }
 }

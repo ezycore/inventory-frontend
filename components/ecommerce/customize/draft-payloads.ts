@@ -9,12 +9,10 @@ import type {
   StorefrontContactButton,
   StorefrontFooterGroup,
   StorefrontHeroSlide,
-  StorefrontHomeRow,
   StorefrontMenuItem,
   StorefrontNav,
   UpdateStorefrontSettingsDto,
 } from "@/types";
-import { MAX_HOME_ROWS } from "@/lib/storefront-home-rows";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
 import type {
   CustomizeDraft,
@@ -94,48 +92,6 @@ const trimNewsletter = (n: CustomizeDraft["footerNewsletter"]) => {
   };
   return Object.values(block).some(Boolean) ? block : undefined;
 };
-
-/**
- * Homepage product rows, ready to ship.
- *
- * **Two kinds of category row are dropped, and the second is the load-bearing
- * one.** A row with no collection chosen is simply half-finished — the merchant
- * added it and has not picked yet. A row whose collection is no longer in the
- * store's list is *stale*: the merchant deleted that category months later, and
- * the row has been quietly pointing at nothing since.
- *
- * Both are dropped rather than sent, and both would otherwise be **rejected by
- * the backend** — the validator refuses a `category` row with no `categoryId`,
- * and `assertHomeRowCategories` refuses one naming a collection the workspace
- * does not own. Sending either would fail the merchant's whole Save over a row
- * they are not editing: the trap here is the merchant who opens Customize to
- * change one line of footer text and cannot save at all because of a category
- * they deleted long ago.
- *
- * `categoryId` is cleared on the other two sources so a row re-pointed away
- * from a collection cannot carry a stale id back.
- */
-export const trimHomeRows = (
-  rows: StorefrontHomeRow[],
-  collections: CustomizeDraft["collections"],
-): StorefrontHomeRow[] =>
-  rows
-    .filter(
-      (r) =>
-        r.source !== "category" ||
-        (!!r.categoryId && collections.some((c) => c._id === r.categoryId)),
-    )
-    .slice(0, MAX_HOME_ROWS)
-    .map((r) => ({
-      id: r.id,
-      source: r.source,
-      categoryId: r.source === "category" ? r.categoryId : undefined,
-      // Blank ⇒ the storefront's own localized heading, so `undefined` rather
-      // than an empty string — see `homeRowTitle`.
-      title: r.title?.trim() || undefined,
-      limit: r.limit,
-      layout: r.layout,
-    }));
 
 const trimBadges = (badges: CustomizeDraft["badges"]) =>
   // All three slots are kept (empty = the storefront's default copy) so their
@@ -279,12 +235,40 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       preset: draft.preset,
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
-      footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      homeRows: trimHomeRows(draft.homeRows, draft.collections),
-      // `undefined`, never `""` — an empty field means "use the storefront's
-      // localized wording", and an empty string would print a blank line.
+      design: draft.design,
+      // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
+      // shop shows no sections at all", where unset means "use the default the
+      // home template implies" — the difference between a blank page and a
+      // normal one for any merchant who switches every section off.
+      homepageSections: draft.homepageSections.length
+        ? draft.homepageSections
+        : undefined,
+      // ⚠ Not editable here, and listed anyway: this object literal is the whole
+      // `theme` the merchant is saving, and a field left out of it is a field
+      // this editor has no opinion about — which is not the same as one it wants
+      // preserved. Sending it keeps the payload a complete picture rather than
+      // one that depends on how the server merges.
+      //
+      // What the server actually does, because the wrong version of this note
+      // stood here and would have misled the next reader: `theme` is a Mongoose
+      // NESTED PATH, so `Object.assign(settings, dto)` MERGES it — an omitted
+      // key keeps its stored value and an explicit `undefined` is a no-op, not
+      // an unset. The practical consequence is the opposite of "omitted fields
+      // are deleted": a merchant who CLEARS a field cannot clear it, because
+      // `undefined` never reaches the document. `shippingZones` in
+      // `storefront-settings.service.ts` is the one place that works around it,
+      // with an explicit `settings.set(path, undefined)`.
+      appliedThemeId: draft.appliedThemeId,
+    },
+    // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
+    // is what lets a ready-made theme replace the look wholesale without
+    // touching a word the merchant typed. Each field is `undefined`, never `""`:
+    // empty means "use the storefront's localized wording", and an empty string
+    // would print a blank line.
+    copy: {
+      footerText: draft.footerText.trim() || undefined,
       footerNote: draft.footerNote.trim() || undefined,
       footerContactHeading: draft.footerContactHeading.trim() || undefined,
       footerNewsletter: trimNewsletter(draft.footerNewsletter),
@@ -324,7 +308,8 @@ export function toPreviewPayload(
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      homeRows: trimHomeRows(draft.homeRows, draft.collections),
+      design: draft.design,
+      homepageSections: draft.homepageSections,
     },
     templates: {
       home: draft.templates.home,
@@ -334,6 +319,12 @@ export function toPreviewPayload(
       cardActions: draft.templates.cardActions,
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
+      imageRatio: draft.templates.imageRatio,
+      categoryTiles: draft.templates.categoryTiles,
+      accountLayout: draft.templates.accountLayout,
+      contentLayout: draft.templates.contentLayout,
+      cartLayout: draft.templates.cartLayout,
+      shell: draft.templates.shell,
       // Reached through the preview's page switcher; each is read by exactly one
       // storefront page, via `useStoreTemplate`.
       collection: draft.templates.collection,

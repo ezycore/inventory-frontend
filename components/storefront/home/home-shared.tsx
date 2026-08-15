@@ -9,7 +9,7 @@ import type {
   StoreCampaign,
   StoreHeroBanner,
   StoreHeroSlide,
-  StoreHomeRow,
+  StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
@@ -23,23 +23,19 @@ export const wrap: CSSProperties = {
 };
 
 /**
- * One homepage product row: the merchant's configuration plus the products the
- * server fetched for it. They travel together so a template can reorder or drop
- * rows without re-deriving which fetch belonged to which row. `items` is absent
- * only in the Customize preview, for a row too new to have been server-rendered
- * — see `home-product-row.tsx`.
+ * Data every homepage SECTION receives from `StoreHome`.
+ *
+ * One shape for all of them on purpose: the page is a list of section ids the
+ * merchant (or their theme) ordered, so `StoreHome` cannot know which props any
+ * given entry needs. It hands every section everything the page fetched — which
+ * costs nothing, since `shop/page.tsx` already loads the lot in one parallel
+ * batch precisely so sections can be reordered without a round-trip.
  */
-export interface HomeRowData {
-  row: StoreHomeRow;
-  items?: CatalogProduct[];
-}
-
-/** Data every homepage template receives from the `StoreHome` dispatcher. */
-export interface TplProps {
+export interface SectionProps {
   base: string;
   currency?: string;
-  /** Merchant-configured product rows, in render order (Customize → Home rows). */
-  rows: HomeRowData[];
+  featured: CatalogProduct[];
+  latest: CatalogProduct[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
   t: Dict;
@@ -48,13 +44,15 @@ export interface TplProps {
   heroSlides?: StoreHeroSlide[];
   /** Owner overrides for the static banner hero's copy; unset → template copy. */
   heroBanner?: StoreHeroBanner;
+  /** The whole store — sections that read `trustBadges`, `social` or `name`. */
+  store: StorefrontStore;
 }
 
 /**
  * Hero badge text from the live campaign ("test · 2% off"), so the homepage
  * never claims a sale that isn't running; null falls back to template copy.
  */
-export function campaignBadge(props: TplProps): string | null {
+export function campaignBadge(props: SectionProps): string | null {
   const c =
     props.campaigns.find((x) => x.scope === "storewide") ?? props.campaigns[0];
   if (!c) return null;

@@ -149,45 +149,78 @@ export interface StorefrontFooterNewsletter {
   buttonLabel?: string;
 }
 
-/** Where one homepage product row draws its products from. */
-export type StorefrontHomeRowSource = "featured" | "newest" | "category";
-
 /**
- * One product row on the storefront homepage (Customize → Home rows).
+ * One homepage section INSTANCE — mirrors `StorefrontHomeSection` on the
+ * backend.
  *
- * The homepage used to hard-code Featured + New arrivals, so a shop whose
- * selling story is "here is the skin care, here are the devices" had nowhere to
- * tell it. The LIST is the render order and the two built-ins are simply the
- * rows a store starts with — the merchant may rename, reorder or remove them.
+ * `key` is the stable instance identity: it survives a reorder and is what
+ * per-section config will join on. `type` is the registry id, resolved through
+ * `SECTION_COMPONENTS`; an unknown one is dropped by `resolveSections` rather
+ * than reaching the dispatch.
  */
-export interface StorefrontHomeRow {
-  /** Stable key that survives a reorder — never the index, never the title. */
-  id: string;
-  source: StorefrontHomeRowSource;
-  /** The collection to draw from. Required by (and only read for) `category`. */
-  categoryId?: string;
-  /** Heading override; blank ⇒ the storefront's own localized wording. */
-  title?: string;
-  /** Products requested (4–12). Unset ⇒ 8. */
-  limit?: number;
-  /** Card size: `full` = the larger card, `compact` = the denser one. */
-  layout?: "full" | "compact";
+export interface StorefrontHomeSection {
+  key: string;
+  type: string;
 }
 
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
-  footerText?: string;
-  /** Homepage product rows in render order; unset ⇒ the built-in pair. */
-  homeRows?: StorefrontHomeRow[];
+  homepageSections?: StorefrontHomeSection[];
   logo?: StorefrontLogoStyle;
   homeCollections?: StorefrontHomeCollections;
+  /**
+   * Type family + spatial rhythm (Customize → Design). Ids only — the catalogue
+   * and the resolver live in `lib/storefront-theme.ts`, and `storefront.css` owns
+   * what each id renders as.
+   */
+  design?: StorefrontDesign;
+  /**
+   * Which ready-made theme was last applied. **Provenance, not config:** applying
+   * a theme stamps its values into `theme`/`templates`, so nothing renders from
+   * this. It exists so the editor can name the current theme and show what has
+   * drifted since. Carried through the Customize save payload untouched — see the
+   * note in `draft-payloads.ts`.
+   */
+  appliedThemeId?: string;
+}
+
+/**
+ * Words the merchant wrote — the half of the storefront a theme must never
+ * overwrite.
+ *
+ * These four lived inside `StorefrontTheme` until 2026-08-12, beside
+ * `brandColor` and `design`. That put a merchant's own sentences in the object a
+ * ready-made theme replaces wholesale, so applying one would erase their footer
+ * copy. Splitting them makes the rule structural: **theme + templates = the
+ * look; copy + nav + trustBadges + heroSlides = the merchant's.**
+ *
+ * Named `copy` rather than `content` because "Content" is already the CMS-pages
+ * section of the admin.
+ */
+export interface StorefrontCopy {
+  /** Free text in the storefront footer (copyright / tagline). */
+  footerText?: string;
   /** Right-hand side of the footer's bottom bar; unset ⇒ the store's currency. */
   footerNote?: string;
   /** Heading over the Contact-first footer's phone block. */
   footerContactHeading?: string;
   footerNewsletter?: StorefrontFooterNewsletter;
+}
+
+/**
+ * The design axes — type family, surface palette, heading ramp, spacing rhythm,
+ * corner radius. Ids only; `resolveDesign` (lib/storefront-theme.ts) is the one
+ * place that validates them.
+ */
+export interface StorefrontDesign {
+  font?: string;
+  /** The ground the shop prints on — page, cards, panels, hairlines, ink. */
+  surface?: string;
+  scale?: string;
+  density?: string;
+  radius?: string;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";
@@ -343,6 +376,8 @@ export interface StorefrontSettings {
   cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
   bankInstructions?: string;
   theme?: StorefrontTheme;
+  /** Merchant-written words — never touched by a theme. See `StorefrontCopy`. */
+  copy?: StorefrontCopy;
   nav?: StorefrontNav;
   checkout?: StorefrontCheckout;
   notifications?: StorefrontNotifications;

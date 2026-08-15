@@ -16,7 +16,7 @@ import type { FooterT } from "@/components/storefront/footer/footer-pieces";
  * the thing most likely to convert rather than merely tightening the grid.
  *
  * **Every element is the merchant's own configuration**, and each is optional:
- * the heading is `theme.footerContactHeading`, the number is
+ * the heading is `copy.footerContactHeading`, the number is
  * `contact.phone` (Settings → General), the chat buttons and the hours note come
  * from the floating launcher's config (`contactButton`) via `useContactLink` —
  * the *same* resolver the launcher uses, so the two can never offer a channel
@@ -55,6 +55,17 @@ export function FooterContactCard({
   const hours = contact?.hours?.enabled ? contact.hours : undefined;
   const window = hours?.from && hours?.to ? `${hours.from}–${hours.to}` : "";
 
+  /* With a published number the card is built around it: 21px, bold, filling the
+     width, with chat offered beside it as a smaller second option. With NO
+     number the chat button is the only thing a shopper can act on, and left as
+     an inline pill it sat in the corner of a card sized for a phone number —
+     most of the card was empty. So it takes the width instead. The card's shape
+     is unchanged; what fills it follows what the merchant actually published. */
+  const chatIsSoleCta = !number;
+  const chatStyle: CSSProperties = chatIsSoleCta
+    ? { ...chatButton, alignSelf: "stretch", justifyContent: "center", padding: "11px 13px", fontSize: 13.5 }
+    : chatButton;
+
   return (
     <div style={card}>
       <div style={label}>{heading?.trim() || t.footerOrderByPhone}</div>
@@ -73,7 +84,7 @@ export function FooterContactCard({
           href={contact!.hrefFor(channel)}
           target="_blank"
           rel="noopener noreferrer"
-          style={chatButton}
+          style={chatStyle}
         >
           <Icon name={channel.spec.icon} size={15} />
           {channel.label}

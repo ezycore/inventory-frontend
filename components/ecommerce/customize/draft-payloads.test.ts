@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   publicCollections,
-  trimHomeRows,
+  toSettingsPayload,
 } from "@/components/ecommerce/customize/draft-payloads";
+import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
@@ -101,62 +102,126 @@ describe("publicCollections (the preview's category payload)", () => {
 });
 
 /**
- * The homepage rows on the way out. Both payloads run this, so a rule that
- * differed between them would preview a row the shop would never render.
+ * The save payload rebuilds `theme` as a whole object literal, and the backend
+ * applies it with `Object.assign` — "each provided sub-field replaces the
+ * existing one". So a theme field the draft does not carry is a theme field the
+ * next Save DELETES, silently, from a surface nothing else validates.
  */
-describe("trimHomeRows (what a homepage row ships as)", () => {
-  const skin = row({ _id: "skin", name: "Skin care", slugPath: "care/skin" });
-  const owned = [skin];
+const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
+  preset: "default",
+  brandColor: "#111827",
+  accentColor: "#2563eb",
+  footerText: "",
+  logoStyle: {},
+  homeCollections: {},
+  design: DEFAULT_DESIGN,
+  homepageSections: [],
+  templates: {},
+  badges: [],
+  heroSlides: [],
+  heroBanner: {},
+  navHeader: [],
+  announcement: {
+    enabled: false,
+    text: "",
+    link: "",
+    bgColor: "#2563eb",
+    textColor: "",
+    icon: "",
+    ctaLabel: "",
+    dismissible: false,
+    size: "sm",
+    bgImage: null,
+    overlay: "#000000",
+    overlayOpacity: 40,
+    bgFit: "cover",
+  },
+  contactButton: {
+    enabled: false,
+    label: "",
+    greeting: "",
+    position: "right",
+    showOn: [],
+    hoursEnabled: false,
+    hoursFrom: "10:00",
+    hoursTo: "20:00",
+    offlineNote: "",
+    nudgeEnabled: false,
+    nudgeText: "",
+    nudgeDelay: 8,
+  },
+  footerGroups: [],
+  footerContentPages: { show: true, title: "" },
+  footerNote: "",
+  footerContactHeading: "",
+  footerNewsletter: { heading: "", blurb: "", buttonLabel: "" },
+  collections: [],
+  ...over,
+});
 
-  it("drops a category row with no collection picked", () => {
-    // Half-finished in the panel. The backend validator rejects it, and one
-    // unfinished row must not fail the whole page's Save.
-    const out = trimHomeRows(
-      [
-        { id: "a", source: "category" },
-        { id: "b", source: "newest" },
-      ],
-      owned,
-    );
-    expect(out.map((r) => r.id)).toEqual(["b"]);
+describe("toSettingsPayload (theme fields must survive a Save)", () => {
+  it("carries the design tokens", () => {
+    const design = {
+      font: "serif",
+      surface: "parchment",
+      scale: "lg",
+      density: "airy",
+      radius: "sharp",
+    };
+    expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
   });
 
-  it("drops a row whose collection no longer exists", () => {
-    // The trap this closes: the merchant deleted that category months ago and
-    // is now editing footer text. The backend's ownership check would 400 the
-    // whole Save over a row they are not touching.
-    const out = trimHomeRows(
-      [
-        { id: "gone", source: "category", categoryId: "deleted" },
-        { id: "ok", source: "category", categoryId: "skin" },
-      ],
-      owned,
-    );
-    expect(out.map((r) => r.id)).toEqual(["ok"]);
+  // Nothing in the editor writes `appliedThemeId` — a ready-made theme does.
+  // Without it in the literal, the first unrelated edit a merchant saved would
+  // erase which theme their store is on while the store kept rendering it.
+  it("carries appliedThemeId even though no control edits it", () => {
+    expect(
+      toSettingsPayload(draft({ appliedThemeId: "grocery-modern" })).theme
+        ?.appliedThemeId,
+    ).toBe("grocery-modern");
   });
 
-  it("clears a stale collection off a re-pointed row", () => {
-    const [out] = trimHomeRows(
-      [{ id: "a", source: "featured", categoryId: "skin" }],
-      owned,
-    );
-    expect(out.categoryId).toBeUndefined();
+  it("leaves appliedThemeId absent for a store that never applied one", () => {
+    expect(toSettingsPayload(draft()).theme?.appliedThemeId).toBeUndefined();
+  });
+});
+
+/**
+ * The look/content split (2026-08-12). `theme` is what a ready-made theme
+ * replaces wholesale; `copy` is what the merchant wrote. If a word the merchant
+ * typed ever appears under `theme` again, applying a theme silently erases it.
+ */
+describe("toSettingsPayload — theme owns the look, copy owns the words", () => {
+  const withCopy = draft({
+    footerText: "  Family run since 1998  ",
+    footerNote: "Dhaka, Bangladesh",
+    footerContactHeading: "Order by phone",
+    footerNewsletter: { heading: "Stay in touch", blurb: "", buttonLabel: "" },
   });
 
-  it("sends a blank heading as unset, not as an empty string", () => {
-    // "" would print a blank line; undefined means "use the localized wording".
-    const [out] = trimHomeRows(
-      [{ id: "a", source: "featured", title: "   " }],
-      owned,
-    );
-    expect(out.title).toBeUndefined();
+  it("sends merchant wording under copy, trimmed", () => {
+    expect(toSettingsPayload(withCopy).copy).toEqual({
+      footerText: "Family run since 1998",
+      footerNote: "Dhaka, Bangladesh",
+      footerContactHeading: "Order by phone",
+      footerNewsletter: { heading: "Stay in touch", blurb: undefined, buttonLabel: undefined },
+    });
   });
 
-  it("caps the list at the backend's maximum", () => {
-    const many = Array.from({ length: 8 }, (_, i) => ({
-      id: `r${i}`,
-      source: "featured" as const,
-    }));
-    expect(trimHomeRows(many, owned)).toHaveLength(6);
+  it("keeps every merchant word OUT of theme", () => {
+    const theme = toSettingsPayload(withCopy).theme as Record<string, unknown>;
+    for (const key of ["footerText", "footerNote", "footerContactHeading", "footerNewsletter"]) {
+      expect(theme).not.toHaveProperty(key);
+    }
+  });
+
+  // Blank ⇒ "use the storefront's localized wording", so it must not ship as "".
+  it("omits a blank field rather than sending an empty string", () => {
+    expect(toSettingsPayload(draft()).copy).toEqual({
+      footerText: undefined,
+      footerNote: undefined,
+      footerContactHeading: undefined,
+      footerNewsletter: undefined,
+    });
   });
 });

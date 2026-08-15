@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
@@ -11,7 +11,6 @@ import {
 } from "@/components/ecommerce/customize/browser-preview";
 import { CollectionsPanel } from "@/components/ecommerce/customize/collections-panel";
 import { HeroSlidesPanel } from "@/components/ecommerce/customize/hero-slides-panel";
-import { HomeRowsPanel } from "@/components/ecommerce/customize/home-rows-panel";
 import {
   PartsRail,
   asPartId,
@@ -41,10 +40,25 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
 
   // ?part= deep-links a part open — the retired /ecommerce/navigation route and
   // the catalog's collections tab both point here.
-  const partParam = useSearchParams().get("part");
+  const params = useSearchParams();
+  const partParam = params.get("part");
+  // ?theme= stages a ready-made theme from Online Store → Themes as an UNSAVED
+  // edit, which is the whole apply flow: the preview repaints, the save bar
+  // lists what changed, Discard undoes it and Save confirms.
+  //
+  // Staged during render via STATE — the same "adjust state on prop change"
+  // pattern `useCustomizeDraft` uses to re-seed, and it must stage exactly once
+  // per id or it would re-stamp over the merchant's own edits on every render.
+  // Not an effect (it would paint the old look for a frame first) and not a ref
+  // (`react-hooks` rejects reading or writing one during render).
+  const themeParam = params.get("theme");
+  const [stagedTheme, setStagedTheme] = useState<string | null>(null);
+  if (themeParam && stagedTheme !== themeParam) {
+    setStagedTheme(themeParam);
+    api.applyTheme(themeParam);
+  }
   const [slidesPanel, setSlidesPanel] = useState<number | null>(null);
   const [collectionsPanel, setCollectionsPanel] = useState(false);
-  const [homeRowsPanel, setHomeRowsPanel] = useState(false);
   // Which part is open lives here, not in the rail: the panels replace the rail
   // entirely, and a merchant who edits their slides should come back to the Hero
   // part still open rather than to a collapsed list.
@@ -52,6 +66,27 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   const [page, setPage] = useState<PreviewPage>(() =>
     openPart ? previewPageForPart(openPart) : "home",
   );
+
+  // Drop `?theme=` once it has been staged, so reloading after a Discard does
+  // not silently re-stage the theme the merchant just rejected. In an effect
+  // because it mutates the URL — `history.replaceState` rather than
+  // `router.replace`, since this is a tidy-up and not a navigation.
+  //
+  // Only that one param: this used to rewrite to `location.pathname`, which
+  // dropped every other key. Nothing links here with both today, but `?part=`
+  // is a documented deep link and "the theme link silently closed the panel you
+  // asked for" is not a bug anyone would think to look for here.
+  useEffect(() => {
+    if (!stagedTheme) return;
+    const next = new URLSearchParams(window.location.search);
+    next.delete("theme");
+    const query = next.toString();
+    window.history.replaceState(
+      null,
+      "",
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    );
+  }, [stagedTheme]);
 
   const togglePart = (id: PartId) => {
     const next = openPart === id ? null : id;
@@ -78,16 +113,6 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
             setCollections={(collections) => api.patch({ collections })}
             onClose={() => setCollectionsPanel(false)}
           />
-        ) : homeRowsPanel ? (
-          <HomeRowsPanel
-            rows={api.draft.homeRows}
-            setRows={(homeRows) => api.patch({ homeRows })}
-            // The draft's collections, not a fresh fetch: a row picked here must
-            // offer the same list (and the same renames) the merchant is editing
-            // one part above, unsaved changes included.
-            collections={api.draft.collections}
-            onClose={() => setHomeRowsPanel(false)}
-          />
         ) : (
           <PartsRail
             settings={settings}
@@ -95,14 +120,6 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
             open={openPart}
             onToggle={togglePart}
             onManageCollections={() => setCollectionsPanel(true)}
-            onManageHomeRows={() => {
-              // The rows only exist on the home page, and the preview may be
-              // parked on a collection or a product from an earlier part —
-              // editing rows against a page that cannot show them reads as
-              // nothing happening.
-              setPage("home");
-              setHomeRowsPanel(true);
-            }}
             onEditSlide={(index) => setSlidesPanel(index)}
           />
         )}

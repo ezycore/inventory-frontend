@@ -6,7 +6,6 @@ import {
   getStoreCategories,
   getStoreProducts,
 } from "@/lib/storefront-server";
-import { homeRowQuery, resolveHomeRows } from "@/lib/storefront-home-rows";
 import { getStoreContext } from "@/lib/storefront-host";
 import { storeJsonLd } from "@/lib/storefront-jsonld";
 import { canonicalTarget } from "@/lib/storefront-canonical";
@@ -79,36 +78,32 @@ export default async function StoreHomePage() {
   // owner's discreet sign-in link) — this only decides the status.
   if (!slug) notFound();
 
-  // The store and the category tree come first, and the product rows can only
-  // follow: the merchant's `theme.homeRows` says which rows exist, and the tree
-  // says whether a row's collection is a top-level one (filter `categoryId`,
-  // sweeping in its children) or a child (filter `subcategoryId`). Both are
-  // cached for 5 minutes and tag-flushed on save, so the extra hop is a cache
-  // read on all but the first render after a change.
-  const [store, categories, campaigns] = await Promise.all([
+  // Fetch everything the homepage might render (server-side, in parallel) so the
+  // preview can toggle/reorder any section without a round-trip.
+  const [store, featured, latest, categories, campaigns] = await Promise.all([
     getStore(slug),
+    // `inStock` on both rows: the homepage is a shop window, and a card nobody
+    // can buy is dead space in the eight slots that decide whether a visitor
+    // goes any further. Collection and search pages deliberately keep listing
+    // sold-out products (with the sold-out treatment on the card, and ranked
+    // last) — there the shopper is browsing a catalogue, not being sold to.
+    //
+    // `inStock` means "what a shopper can buy", so it KEEPS `backorder`
+    // products — they sit at zero stock on purpose and still sell. That is the
+    // behaviour this row wants; see the validator's note on why there is only
+    // one flag for it.
+    getStoreProducts(slug, { featured: "true", limit: 8, inStock: "1" }),
+    // `sort: "newest"` is REQUIRED, not a tidy-up. The catalogue's default sort
+    // is `{ storefront.featured: -1, createdAt: -1 }` — featured first — which
+    // is right for a collection page and wrong for a row headed "New arrivals":
+    // omitting it made this section open with the same products, in the same
+    // order, as the Featured row directly above it.
+    getStoreProducts(slug, { limit: 8, sort: "newest", inStock: "1" }),
     getStoreCategories(slug),
     getStoreCampaigns(slug),
   ]);
 
   if (!store) notFound();
-
-  // Every row the homepage might render, fetched in parallel and carried WITH
-  // its config, so a template can reorder or drop rows without a round-trip and
-  // without having to re-derive which fetch belonged to which row. A row whose
-  // query is null (a collection deleted since it was configured) is dropped
-  // here rather than rendered as an empty heading — see `homeRowQuery`.
-  const rowConfigs = resolveHomeRows(store.theme);
-  const rows = (
-    await Promise.all(
-      rowConfigs.map(async (row) => {
-        const params = homeRowQuery(row, categories ?? []);
-        if (!params) return null;
-        const res = await getStoreProducts(slug, params);
-        return { row, items: res?.items ?? [] };
-      }),
-    )
-  ).filter((r) => r !== null);
 
   // JSON-LD `url` must agree with the canonical, or the Organization node claims
   // a different home page than the <link rel="canonical"> on the same document.
@@ -128,7 +123,8 @@ export default async function StoreHomePage() {
       <StoreHome
         base={base}
         store={store}
-        rows={rows}
+        featured={featured?.items ?? []}
+        latest={latest?.items ?? []}
         categories={categories ?? []}
         campaigns={campaigns ?? []}
       />
