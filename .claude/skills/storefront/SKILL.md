@@ -635,6 +635,14 @@ resolved **per request from the host**, never baked.
     editorial layouts: they take `rows[0]` through `useHomeRowProducts` and keep their own headings
     ("Weekly picks", "Selected"). The Home part in the editor says so, and marks the other rows
     "not shown", or the merchant reads their absence as a bug.
+  - **A stale row must never block an unrelated save.** The backend rejects a `category` row
+    naming a collection the workspace does not own (`assertHomeRowCategories`, the only DB read
+    in the settings PATCH — feedback, not safety: the storefront already drops what it cannot
+    resolve). That check turns a category deleted months ago into a wall in front of every
+    future save, so `trimHomeRows` drops a row whose collection is not in the store's current
+    list — exactly as it drops one with no collection at all — and the panel says *which* of the
+    two happened. **If you add a rule to one side, add it to the other**, or the merchant hits a
+    400 for a row they are not editing.
   - **The preview fetches; the shop does not.** Every saved row is server-rendered so the homepage
     stays crawlable HTML. A row the merchant just added has no SSR products, so `HomeRowData.items`
     is absent and `useHomeRowProducts` fetches client-side — preview only. `StoreHome` matches

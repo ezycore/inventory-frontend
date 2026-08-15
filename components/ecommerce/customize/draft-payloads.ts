@@ -98,15 +98,33 @@ const trimNewsletter = (n: CustomizeDraft["footerNewsletter"]) => {
 /**
  * Homepage product rows, ready to ship.
  *
- * A `category` row with no collection chosen is a half-finished row — the
- * merchant added it and has not picked yet — so it is dropped rather than sent;
- * the backend validator rejects it anyway, and one unfinished row must not fail
- * the whole page's Save. `categoryId` is cleared on the other two sources so a
- * row re-pointed away from a collection cannot carry a stale id back.
+ * **Two kinds of category row are dropped, and the second is the load-bearing
+ * one.** A row with no collection chosen is simply half-finished — the merchant
+ * added it and has not picked yet. A row whose collection is no longer in the
+ * store's list is *stale*: the merchant deleted that category months later, and
+ * the row has been quietly pointing at nothing since.
+ *
+ * Both are dropped rather than sent, and both would otherwise be **rejected by
+ * the backend** — the validator refuses a `category` row with no `categoryId`,
+ * and `assertHomeRowCategories` refuses one naming a collection the workspace
+ * does not own. Sending either would fail the merchant's whole Save over a row
+ * they are not editing: the trap here is the merchant who opens Customize to
+ * change one line of footer text and cannot save at all because of a category
+ * they deleted long ago.
+ *
+ * `categoryId` is cleared on the other two sources so a row re-pointed away
+ * from a collection cannot carry a stale id back.
  */
-export const trimHomeRows = (rows: StorefrontHomeRow[]): StorefrontHomeRow[] =>
+export const trimHomeRows = (
+  rows: StorefrontHomeRow[],
+  collections: CustomizeDraft["collections"],
+): StorefrontHomeRow[] =>
   rows
-    .filter((r) => r.source !== "category" || !!r.categoryId)
+    .filter(
+      (r) =>
+        r.source !== "category" ||
+        (!!r.categoryId && collections.some((c) => c._id === r.categoryId)),
+    )
     .slice(0, MAX_HOME_ROWS)
     .map((r) => ({
       id: r.id,
@@ -264,7 +282,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      homeRows: trimHomeRows(draft.homeRows),
+      homeRows: trimHomeRows(draft.homeRows, draft.collections),
       // `undefined`, never `""` — an empty field means "use the storefront's
       // localized wording", and an empty string would print a blank line.
       footerNote: draft.footerNote.trim() || undefined,
@@ -306,7 +324,7 @@ export function toPreviewPayload(
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      homeRows: trimHomeRows(draft.homeRows),
+      homeRows: trimHomeRows(draft.homeRows, draft.collections),
     },
     templates: {
       home: draft.templates.home,

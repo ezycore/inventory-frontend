@@ -212,12 +212,20 @@ export function HomeRowsPanel({
                         placeholder="Pick a collection"
                         emptyMessage="No categories yet — create them under Products → Categories"
                       />
+                      {/* Said here rather than only at Save: either row is
+                          dropped on the way out, and a merchant who never sees
+                          why reads it as the row silently not saving. The two
+                          cases need different words — "pick one" is useless
+                          advice to someone who did pick one, and then deleted
+                          the category months later. */}
                       {!row.categoryId ? (
-                        // Said here rather than only at Save: an unfinished row is
-                        // dropped on the way out, and a merchant who never sees why
-                        // reads that as the row silently not saving.
                         <p className="text-xs text-amber-600 dark:text-amber-500">
                           Pick a collection — this row won&apos;t be saved without one.
+                        </p>
+                      ) : !collections.some((c) => c._id === row.categoryId) ? (
+                        <p className="text-xs text-amber-600 dark:text-amber-500">
+                          That collection no longer exists. Pick another, or remove
+                          the row — it won&apos;t be saved as it is.
                         </p>
                       ) : null}
                     </div>

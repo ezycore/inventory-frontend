@@ -105,26 +105,50 @@ describe("publicCollections (the preview's category payload)", () => {
  * differed between them would preview a row the shop would never render.
  */
 describe("trimHomeRows (what a homepage row ships as)", () => {
+  const skin = row({ _id: "skin", name: "Skin care", slugPath: "care/skin" });
+  const owned = [skin];
+
   it("drops a category row with no collection picked", () => {
-    // Half-finished in the panel. The backend rejects it, and one unfinished
-    // row must not fail the whole page's Save.
-    const out = trimHomeRows([
-      { id: "a", source: "category" },
-      { id: "b", source: "newest" },
-    ]);
+    // Half-finished in the panel. The backend validator rejects it, and one
+    // unfinished row must not fail the whole page's Save.
+    const out = trimHomeRows(
+      [
+        { id: "a", source: "category" },
+        { id: "b", source: "newest" },
+      ],
+      owned,
+    );
     expect(out.map((r) => r.id)).toEqual(["b"]);
   });
 
+  it("drops a row whose collection no longer exists", () => {
+    // The trap this closes: the merchant deleted that category months ago and
+    // is now editing footer text. The backend's ownership check would 400 the
+    // whole Save over a row they are not touching.
+    const out = trimHomeRows(
+      [
+        { id: "gone", source: "category", categoryId: "deleted" },
+        { id: "ok", source: "category", categoryId: "skin" },
+      ],
+      owned,
+    );
+    expect(out.map((r) => r.id)).toEqual(["ok"]);
+  });
+
   it("clears a stale collection off a re-pointed row", () => {
-    const [out] = trimHomeRows([
-      { id: "a", source: "featured", categoryId: "skin" },
-    ]);
+    const [out] = trimHomeRows(
+      [{ id: "a", source: "featured", categoryId: "skin" }],
+      owned,
+    );
     expect(out.categoryId).toBeUndefined();
   });
 
   it("sends a blank heading as unset, not as an empty string", () => {
     // "" would print a blank line; undefined means "use the localized wording".
-    const [out] = trimHomeRows([{ id: "a", source: "featured", title: "   " }]);
+    const [out] = trimHomeRows(
+      [{ id: "a", source: "featured", title: "   " }],
+      owned,
+    );
     expect(out.title).toBeUndefined();
   });
 
@@ -133,6 +157,6 @@ describe("trimHomeRows (what a homepage row ships as)", () => {
       id: `r${i}`,
       source: "featured" as const,
     }));
-    expect(trimHomeRows(many)).toHaveLength(6);
+    expect(trimHomeRows(many, owned)).toHaveLength(6);
   });
 });
