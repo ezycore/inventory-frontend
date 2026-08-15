@@ -63,10 +63,14 @@ export function ProfileInfoTab() {
     updateProfile.mutate(data);
   };
 
+  // Compare against `initialFormData`, not `user`: the optional fields
+  // (lastName, phone) are normalized to "" there, so comparing to the raw
+  // `undefined` on the user marked the form permanently dirty for anyone
+  // without a last name.
   const hasChanges =
-    formData.firstName !== user?.firstName ||
-    formData.lastName !== user?.lastName ||
-    formData.phone !== user?.phone;
+    formData.firstName !== initialFormData.firstName ||
+    formData.lastName !== initialFormData.lastName ||
+    formData.phone !== initialFormData.phone;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

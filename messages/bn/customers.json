@@ -8,7 +8,12 @@
     "deleteTooltip": "গ্রাহক মুছুন",
     "viewTooltip": "গ্রাহকের বিস্তারিত দেখুন",
     "viewLedgerTooltip": "লেজার দেখুন",
-    "openingInvoiceMessage": "বিক্রয়ের ইতিহাসে {invoice} খোলা হচ্ছে…"
+    "openingInvoiceMessage": "বিক্রয়ের ইতিহাসে {invoice} খোলা হচ্ছে…",
+    "tabs": {
+      "all": "সব গ্রাহক",
+      "accounts": "অনলাইন অ্যাকাউন্ট",
+      "subscribers": "সাবস্ক্রাইবার"
+    }
   },
   "filters": {
     "searchCustomer": "গ্রাহক খুঁজুন",

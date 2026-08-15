@@ -160,7 +160,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
   home: (d) => d.templates.home,
-  cards: (d) => [d.templates.productCard, d.templates.cardActions],
+  cards: (d) => [d.templates.productCard, d.templates.cardActions, d.templates.imageFit],
   collections: (d) => [
     d.collections,
     d.templates.collection,

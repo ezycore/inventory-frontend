@@ -35,6 +35,7 @@ export function StorePreviewBridge() {
         cardStyle: p.templates?.productCard,
         cardActions: p.templates?.cardActions,
         pagination: p.templates?.pagination,
+        imageFit: p.templates?.imageFit,
         collection: p.templates?.collection,
         product: p.templates?.product,
         checkout: p.templates?.checkout,

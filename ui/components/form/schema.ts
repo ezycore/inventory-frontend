@@ -131,8 +131,9 @@ export const generateSchemaFromConfig = (
       case "select":
         if (field.mode === "multiple") {
           // Multi-select should be array of strings
+          let multiSchema: z.ZodArray<any>;
           if (field.enumValues) {
-            fieldSchema = z.array(
+            multiSchema = z.array(
               z.enum(field.enumValues as [string, ...string[]]),
             );
           } else if (field.options) {
@@ -140,10 +141,31 @@ export const generateSchemaFromConfig = (
               string,
               ...string[],
             ];
-            fieldSchema = z.array(z.enum(values));
+            multiSchema = z.array(z.enum(values));
           } else {
-            fieldSchema = z.array(z.string());
+            multiSchema = z.array(z.string());
           }
+          // A required multi-select means "pick at least one". Nothing below
+          // adds that: the shared required block only touches `ZodString`, so an
+          // empty array sailed through every required multi-select in the app —
+          // Assign Locations on the users form among them, where the backend
+          // then answered DEFAULT_LOCATION_REQUIRED. An explicit
+          // `validation.min` wins over the implicit 1.
+          if (field.validation?.min !== undefined) {
+            multiSchema = multiSchema.min(
+              field.validation.min,
+              `Minimum ${field.validation.min} items required`,
+            );
+          } else if (field.required) {
+            multiSchema = multiSchema.min(1, `${field.label} is required`);
+          }
+          if (field.validation?.max !== undefined) {
+            multiSchema = multiSchema.max(
+              field.validation.max,
+              `Maximum ${field.validation.max} items allowed`,
+            );
+          }
+          fieldSchema = multiSchema;
         } else if (field.labelInValue) {
           // labelInValue: true — form stores the full option object, not a plain ID string.
           // Validate that a selection was made by checking the nested .value property.

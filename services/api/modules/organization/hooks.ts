@@ -7,6 +7,7 @@ import {
 } from "@/services/api";
 import type {
   NotificationLogParams,
+  OnboardingStepPayload,
   UpdateNotificationSettingsDto,
 } from "./api";
 import type {
@@ -400,7 +401,71 @@ export const useUpdateFeatures = () => {
       // and the just-toggled one — briefly render stale (the blink).
       queryClient.setQueryData(queryKeys.organization.features(), result);
       invalidate(queryClient, "org.changed");
+      // Turning `storefront` off takes the public shop offline, and the confirm
+      // dialog promises exactly that — but the shop's server-side cache is only
+      // tagged, so without this flush it keeps serving for up to the 5-minute
+      // `getStore` window while the API already 404s. A merchant who pulls their
+      // shop down (wrong prices, a mistaken launch) watches it stay up, and
+      // orders can still land in that gap. Media and theme saves already flush;
+      // this is the change that matters most and was the one missing it.
+      void revalidateStorefront();
     },
+    onError: handleMutationError,
+  });
+};
+
+/**
+ * GET /api/organization/features/impact — counts behind each risky toggle.
+ *
+ * Fetched once for the whole page rather than per-switch: the confirm dialog
+ * needs the number the instant it opens, and a spinner inside a "are you sure"
+ * is worse than a slightly stale count.
+ */
+export const useFeatureImpact = () =>
+  useQuery({
+    queryKey: queryKeys.organization.featureImpact(),
+    queryFn: () => organizationApi.getFeatureImpact(),
+    staleTime: 60 * 1000,
+  });
+
+/**
+ * POST /api/organization/onboarding — save one step of the setup wizard.
+ *
+ * Writes through the same path as the settings toggles, so the auth store and
+ * the features cache are refreshed the same way: the sidebar reflects each
+ * answer immediately, and the workspace gate sees `completedAt` the moment the
+ * final step lands.
+ */
+export const useApplyOnboardingStep = () => {
+  const queryClient = useQueryClient();
+  const updateFeaturesStore = useAuthStore((state) => state.updateFeatures);
+  const setOnboardingCompleted = useAuthStore(
+    (state) => state.setOnboardingCompleted,
+  );
+
+  return useMutation({
+    mutationFn: (data: OnboardingStepPayload) =>
+      organizationApi.applyOnboardingStep(data),
+    onSuccess: (result) => {
+      if (result.data?.features) {
+        updateFeaturesStore(result.data.features);
+      }
+      // The workspace gate reads completion from the auth store, so it has to
+      // learn about it here — otherwise finishing the wizard bounces the
+      // merchant straight back into it off a stale `null`.
+      const completedAt = result.data?.onboarding?.completedAt;
+      if (completedAt) {
+        setOnboardingCompleted(completedAt);
+      }
+      queryClient.setQueryData(queryKeys.organization.features(), result);
+      invalidate(queryClient, "org.changed");
+      // Same reason as `useUpdateFeatures`: answering "shop only" in the wizard
+      // disables `storefront`, and a shop seeded with demo data is already
+      // published — so the public store must go dark now, not in five minutes.
+      void revalidateStorefront();
+    },
+    // Deliberately no success toast: the wizard advances a step on every save,
+    // and a toast per question would stack six deep by the review screen.
     onError: handleMutationError,
   });
 };

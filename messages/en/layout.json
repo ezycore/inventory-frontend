@@ -2,6 +2,7 @@
   "nav": {
     "groups": {
       "sell": "Sell",
+      "store": "Store",
       "buy": "Buy",
       "stock": "Stock",
       "money": "Money",
@@ -42,12 +43,11 @@
       "online-store": "Online Store",
       "store-overview": "Store Overview",
       "online-orders": "Online Orders",
-      "catalog": "Catalog",
+      "collections": "Collections",
       "campaigns": "Campaigns",
       "coupons": "Coupons",
       "customize": "Customize",
       "content": "Content",
-      "storefront-accounts": "Storefront Accounts",
       "abandoned-carts": "Abandoned Carts",
       "store-settings": "Store Settings",
       "products": "Products",
@@ -65,7 +65,6 @@
       "organization": "Organization",
       "users": "Users",
       "roles": "Roles",
-      "feature-settings": "Feature Settings",
       "field-settings": "Field Settings",
       "vat": "VAT",
       "receipt-print": "Receipt & Print",
@@ -73,7 +72,8 @@
       "billing": "Billing",
       "details": "Details",
       "profit-loss": "Profit & Loss",
-      "business-position": "Business Position"
+      "business-position": "Business Position",
+      "customize-workspace": "Customize workspace"
     }
   },
   "brand": {

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ArrowRight, Loader2, ShieldAlert } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { getOwnerSetupFormConfig } from "@/components/setup/owner/owner-setup-form-config";
@@ -41,6 +41,7 @@ function getSignupPlanFromUrl() {
 
 export default function Signup() {
   const t = useTranslations("auth.signup");
+  const locale = useLocale();
   const createOwnerMutation = useSignupAPi();
   // Memoized on `t`: `useDynamicForm` keys its schema, resolver and default
   // values off the config's identity, so an unstable config would rebuild the
@@ -135,6 +136,10 @@ export default function Signup() {
 
     createOwnerMutation.mutate({
       ...data,
+      // The language this form was filled in. The backend stores it on the new
+      // owner and sends the verification email in it — a merchant who signs up
+      // in Bangla should not get their first email from us in English.
+      locale,
       ...getSignupPlanFromUrl(),
     });
   };

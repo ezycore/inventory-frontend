@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import type { StoreHeroSlide } from "@/lib/storefront-client";
 import { Icon } from "@/components/storefront/sf-icons";
 import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
+import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 
 const INTERVAL_MS = 5000;
 
@@ -44,8 +45,12 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
  * Home hero carousel — owner-managed slides (Customize → Hero).
  * Crossfade + staggered text rise, 5s autoplay (paused on hover/press, skipped
  * for reduced-motion), dots with a time-to-next fill, arrows, and swipe.
- * Slides without an image get a brand-tinted panel; with an image, a scrim
- * keeps the white text readable. Classes live in storefront.css (.sf-hero-*).
+ * Slides without an image get a brand-tinted panel. With an image, the fill is
+ * the merchant's choice (Customize → Product cards → Image fit, `useStoreImageFit`):
+ * a blurred fill (`.sf-hero-art-bg`) behind the full photo at `contain`
+ * (`.sf-hero-art-fg`, default, so a slide never loses its edges to a crop) or the
+ * classic `.sf-hero-art` cover crop. Either way a scrim keeps the white text
+ * readable. Classes live in storefront.css (.sf-hero-*).
  */
 export function HeroCarousel({
   slides,
@@ -54,6 +59,7 @@ export function HeroCarousel({
   slides: StoreHeroSlide[];
   base: string;
 }) {
+  const fit = useStoreImageFit();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   // Bumped to restart the active dot's fill animation when the timer resets.
@@ -110,14 +116,18 @@ export function HeroCarousel({
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== current}
             >
-              <div
-                className="sf-hero-art"
-                style={
-                  img
-                    ? { backgroundImage: `url("${img}")` }
-                    : { background: TINTS[i % TINTS.length] }
-                }
-              />
+              {img ? (
+                fit === "cover" ? (
+                  <div className="sf-hero-art" style={{ backgroundImage: `url("${img}")` }} />
+                ) : (
+                  <>
+                    <div className="sf-hero-art-bg" style={{ backgroundImage: `url("${img}")` }} />
+                    <div className="sf-hero-art-fg" style={{ backgroundImage: `url("${img}")` }} />
+                  </>
+                )
+              ) : (
+                <div className="sf-hero-art" style={{ background: TINTS[i % TINTS.length] }} />
+              )}
               <div className="sf-hero-scrim" />
               <div className="sf-hero-copy">
                 {slide.badge?.trim() ? (

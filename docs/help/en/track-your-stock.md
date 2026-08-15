@@ -9,6 +9,8 @@ covers_routes:
   - /inventory/adjust
   - /inventory/movements
   - /inventory/transfers
+features:
+  - multiLocation
 ui_labels:
   - inventory:stock.title
   - inventory:stock.subtitle
@@ -87,8 +89,8 @@ reports.
 ## Transfer Stock
 
 **Transfer Stock** lets you *Move stock from one location to another.* The sending location goes down, the
-receiving location goes up, and your total is unchanged. Only relevant if you have more than one
-location.
+receiving location goes up, and your total is unchanged. It only appears once **Multiple Locations**
+is switched on under Customize workspace — with a single location there is nowhere to transfer to.
 
 ## Stock History
 

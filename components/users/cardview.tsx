@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { bn as bnDateLocale } from "date-fns/locale";
+import { fullName, initials } from "@/utils/user-name";
 
 const roleConfig: Record<string, { color: string; icon: string }> = {
   admin: {
@@ -88,9 +89,9 @@ const UserCardView = (
   },
 ) => {
   const { t, locale } = options;
-  const fullName = `${item.firstName} ${item.lastName}`;
-  const initials = `${item.firstName?.charAt(0) || ""}${item.lastName?.charAt(0) || ""}`.toUpperCase();
-  const gradient = getAvatarGradient(fullName);
+  const name = fullName(item);
+  const userInitials = initials(item);
+  const gradient = getAvatarGradient(name);
   const isActive = item.status === "active";
   const role = roleConfig[item.role] || roleConfig.viewer;
   const hasAllLocationAccess =
@@ -114,7 +115,7 @@ const UserCardView = (
             <div
               className={`h-12 w-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shadow-sm`}
             >
-              {initials}
+              {userInitials}
             </div>
             {/* Online status dot */}
             <span
@@ -124,7 +125,7 @@ const UserCardView = (
 
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm leading-tight truncate">
-              {fullName}
+              {name}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1">
               <Mail className="h-3 w-3 shrink-0" />

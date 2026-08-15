@@ -8,7 +8,12 @@
     "deleteTooltip": "Delete Customer",
     "viewTooltip": "View Customer Details",
     "viewLedgerTooltip": "View Ledger",
-    "openingInvoiceMessage": "Opening {invoice} in Sales History…"
+    "openingInvoiceMessage": "Opening {invoice} in Sales History…",
+    "tabs": {
+      "all": "All customers",
+      "accounts": "Online accounts",
+      "subscribers": "Subscribers"
+    }
   },
   "filters": {
     "searchCustomer": "Search customer",

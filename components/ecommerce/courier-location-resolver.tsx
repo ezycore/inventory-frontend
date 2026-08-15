@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { useEffect, useState } from "react";
+import { AlertCircle } from "lucide-react";
+import { getErrorMessage } from "@/lib/error-handling";
 import { Button } from "@/ui/components/button";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Input } from "@/ui/components/input";
@@ -65,6 +67,13 @@ export function CourierLocationResolver({
   const [names, setNames] = useState<Record<string, string>>({});
   const [options, setOptions] = useState<Record<string, CourierLocation[]>>({});
   const [busy, setBusy] = useState(false);
+  // Why the top level is empty, when it is empty for a reason. Without this an
+  // unreachable courier renders exactly like "this provider has no cities": a
+  // dead dropdown, a disabled button and nothing to act on.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // Bumped by Retry to re-run the prefill effect. A courier outage is usually
+  // transient, so the fix is one click rather than a page reload.
+  const [reloadKey, setReloadKey] = useState(0);
 
   const fetchLevel = async (key: string, parent?: string | number) => {
     try {
@@ -72,8 +81,11 @@ export function CourierLocationResolver({
       const opts = res.data ?? [];
       setOptions((o) => ({ ...o, [key]: opts }));
       return opts;
-    } catch {
+    } catch (e) {
       setOptions((o) => ({ ...o, [key]: [] }));
+      // The api client throws a plain `ApiError` object, not an Error instance —
+      // `getErrorMessage` is the helper that unwraps both.
+      setLoadError(getErrorMessage(e));
       return [];
     }
   };
@@ -85,6 +97,7 @@ export function CourierLocationResolver({
     setValues({});
     setNames({});
     setOptions({});
+    setLoadError(null);
     (async () => {
       setBusy(true);
       const v: Record<string, string | number> = {};
@@ -116,7 +129,7 @@ export function CourierLocationResolver({
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provider, order._id]);
+  }, [provider, order._id, reloadKey]);
 
   const clearBelow = (
     key: string,
@@ -164,6 +177,21 @@ export function CourierLocationResolver({
         </span>{" "}
         to {provider === "pathao" ? "Pathao" : "eCourier"} — pre-filled, confirm or adjust.
       </p>
+      {loadError && (
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
+          <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          <div className="space-y-1">
+            <p>{loadError}</p>
+            <button
+              type="button"
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="font-medium underline underline-offset-2"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
       {levels.map((lvl) => {
         const parentReady = !lvl.dependsOn || !!values[lvl.dependsOn];
         if (lvl.input === "text") {

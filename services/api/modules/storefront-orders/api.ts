@@ -137,6 +137,50 @@ export interface QuoteAdminOrderInput {
   couponCode?: string;
   discount?: ManualDiscountInput;
   shippingCharged?: number;
+  /**
+   * Present ⇒ this quote prices an EDIT of that order rather than a new one.
+   *
+   * **Send it on every quote in edit mode.** Both effects are server-derived and
+   * both are wrong without it: the order stops being counted against its own
+   * coupon limits (otherwise a `perShopperLimit: 1` code is rejected the moment
+   * the form opens and the discount vanishes), and lines already on the order keep
+   * the price the buyer agreed instead of being re-quoted at today's catalogue.
+   */
+  orderId?: string;
+  /** Ignored without `orderId`. Drops the price hold — see `EditAdminOrderInput`. */
+  reprice?: boolean;
+}
+
+/**
+ * Body of `PATCH /api/ecommerce/orders/:id`.
+ *
+ * `CreateAdminOrderInput` minus `channel` and `confirmImmediately`. `channel`
+ * records where the order came from and must not be rewritten — a `website` order
+ * was placed by the shopper, and overwriting that corrupts the channel report.
+ * Confirming is its own endpoint, so an edit never moves the order's status.
+ */
+export interface EditAdminOrderInput {
+  items: { productId: string; variantId?: string; quantity: number }[];
+  shippingAddress: {
+    name: string;
+    phone: string;
+    address?: string;
+    district?: string;
+    area?: string;
+    notes?: string;
+  };
+  fulfillmentType?: "delivery" | "pickup";
+  paymentMethod?: "cod" | "bank" | "manual";
+  notes?: string;
+  couponCode?: string;
+  discount?: ManualDiscountInput;
+  shippingCharged?: number;
+  /**
+   * Re-price every line at today's price instead of holding the prices already
+   * agreed. Off by default: editing one line must not silently reprice the others
+   * against a total the buyer already accepted.
+   */
+  reprice?: boolean;
 }
 
 /** Where an order came from. Reporting only — never drives money or fulfilment. */
@@ -232,11 +276,26 @@ export const storefrontOrdersApi = {
     apiClient.get(`${base}/products`),
   confirm: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/confirm`, {}),
+  /**
+   * Move an order along its pipeline. `note` is optional going forward and
+   * REQUIRED going backward — the server rejects a reversal without one, because
+   * on a backward step the reason is the whole value of the history entry.
+   */
   updateStatus: (
     id: string,
     status: string,
+    note?: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
-    apiClient.patch(`${base}/${id}/status`, { status }),
+    apiClient.patch(`${base}/${id}/status`, { status, note }),
+  /**
+   * Correct an order that already exists — same form as `create`, against an
+   * order rather than a blank. Allowed until the parcel reaches the courier.
+   */
+  edit: (
+    id: string,
+    body: EditAdminOrderInput,
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.patch(`${base}/${id}`, body),
   // Cancel/reject a pre-commit order (no Sale yet). `refundAdvance` returns a
   // recorded COD delivery-charge advance to the shopper (books the reversing
   // expense); `accountId` overrides the account it's refunded from.
@@ -329,12 +388,26 @@ export const couriersApi = {
     apiClient.put(`${couriersBase}/${provider}`, body),
   remove: (provider: string): Promise<ApiResponse<CourierRemoved>> =>
     apiClient.delete(`${couriersBase}/${provider}`),
-  test: (provider: string): Promise<ApiResponse<CourierTest>> =>
-    apiClient.post(`${couriersBase}/${provider}/test`, {}),
-  stores: (provider: string): Promise<ApiResponse<CourierStore[]>> =>
-    apiClient.get(`${couriersBase}/${provider}/stores`),
-  packages: (provider: string): Promise<ApiResponse<CourierPackage[]>> =>
-    apiClient.get(`${couriersBase}/${provider}/packages`),
+  test: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierTest>> =>
+    apiClient.post(`${couriersBase}/${provider}/test`, body),
+  // Remote-field discovery. POST, not GET: the body carries the credentials the
+  // merchant has typed but not saved yet (patched over the stored blob server
+  // side), so the store/package picker fills before anything is committed — and
+  // a wrong credential fails here instead of being persisted. Omit `body` to run
+  // against the stored configuration.
+  stores: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierStore[]>> =>
+    apiClient.post(`${couriersBase}/${provider}/stores`, body),
+  packages: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierPackage[]>> =>
+    apiClient.post(`${couriersBase}/${provider}/packages`, body),
   locations: (
     provider: string,
     level: string,

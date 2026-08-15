@@ -9,7 +9,11 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useGetFeatures, useUpdateFeatures } from "@/services/api";
+import { useFeatureImpact, useGetFeatures, useUpdateFeatures } from "@/services/api";
+import {
+  DisableFeatureDialog,
+  disableConsequence,
+} from "@/components/settings/disable-feature-dialog";
 import {
   Card,
   CardContent,
@@ -27,6 +31,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // Define feature order for display
+// `smsNotifications` is deliberately absent: it costs real money per message and
+// is configured (with its credit balance) under Notifications, so a bare switch
+// here would be a second, weaker control over the same thing.
 const FEATURE_ORDER: FeatureName[] = [
   "sales",
   "accounts",
@@ -36,6 +43,7 @@ const FEATURE_ORDER: FeatureName[] = [
   "invoicePrinting",
   "uomConversion",
   "storefront",
+  "multiLocation",
   "tax",
   "combo"
 ];
@@ -54,6 +62,12 @@ export default function FeatureSettingsPage() {
   // switch — disabling them all (via the shared mutation isPending) makes every
   // switch blink on each toggle.
   const [pendingFeature, setPendingFeature] = useState<FeatureName | null>(null);
+  const [confirming, setConfirming] = useState<{
+    feature: FeatureName;
+    consequence: string;
+  } | null>(null);
+
+  const { data: impactData } = useFeatureImpact();
 
   // Effective (enforced) set drives the toggle state; plan ceiling decides which
   // toggles are available vs. locked behind an upgrade.
@@ -92,12 +106,29 @@ export default function FeatureSettingsPage() {
     );
   }
 
-  const handleToggle = (feature: FeatureName, next: boolean) => {
+  const applyToggle = (feature: FeatureName, next: boolean) => {
     setPendingFeature(feature);
     updateFeatures(
       { [feature]: next },
       { onSettled: () => setPendingFeature(null) },
     );
+  };
+
+  // Turning something ON is always cheap, so it goes straight through. Turning
+  // it OFF once data exists is the direction worth a beat — but only where
+  // there is something concrete to say. A confirm on every switch trains people
+  // to click through the one that matters.
+  const handleToggle = (feature: FeatureName, next: boolean) => {
+    if (next) {
+      applyToggle(feature, true);
+      return;
+    }
+    const consequence = disableConsequence(feature, impactData?.data, t);
+    if (!consequence) {
+      applyToggle(feature, false);
+      return;
+    }
+    setConfirming({ feature, consequence });
   };
 
   const featureNames = getFeatureDisplayNames(t);
@@ -182,6 +213,17 @@ export default function FeatureSettingsPage() {
           );
         })}
       </div>
+
+      <DisableFeatureDialog
+        open={!!confirming}
+        onOpenChange={(open) => !open && setConfirming(null)}
+        featureName={confirming ? featureNames[confirming.feature] : ""}
+        consequence={confirming?.consequence ?? null}
+        onConfirm={() => {
+          if (confirming) applyToggle(confirming.feature, false);
+          setConfirming(null);
+        }}
+      />
 
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="flex items-start gap-3 py-4">

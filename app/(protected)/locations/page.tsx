@@ -32,11 +32,14 @@ import {
 import { locationsApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { isFeatureEnabled } from "@/lib/feature-utils";
+import Link from "next/link";
 import { FilterConfig } from "@/types/DataTable";
 import type { Translator } from "@/i18n/config";
 import type { AppLocale } from "@/i18n/config";
 import PageHeader from "@/ui/components/header";
 import { sanitize } from "@/utils";
+import { fullName } from "@/utils/user-name";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { cn } from "@/ui/lib/utils";
 import {
@@ -258,7 +261,7 @@ const getLocationFormConfig = (t: Translator): DynamicFormConfig => ({
         return items
           .map((item) => ({
             value: item._id,
-            label: `${item.firstName} ${item.lastName} <${item.email}> - ${item.role}`,
+            label: `${fullName(item)} <${item.email}> - ${item.role}`,
           }));
       },
     },
@@ -315,6 +318,14 @@ export default function LocationsPage() {
   const t = useTranslations("settings.locations");
   const locale = useLocale() as AppLocale;
   const currentUser = useAuthStore((state) => state.user);
+  // This page stays reachable with `multiLocation` off — the org's single
+  // location carries the shop address, and this is where it is edited. What the
+  // feature controls is whether a SECOND location may be added; the backend
+  // enforces the same rule on create (docs/plan/onboarding-workspace.md §3.1).
+  const canAddLocation = isFeatureEnabled(
+    currentUser?.organization?.features,
+    "multiLocation",
+  );
   const [viewMode, setViewMode] = useViewMode("locations", 'card');
   const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
   const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
@@ -352,7 +363,7 @@ export default function LocationsPage() {
             .filter((item) => !allLocationRoleSlugs.has(item.role))
             .map((item) => ({
               value: item._id,
-              label: `${item.firstName} ${item.lastName} <${item.email}> - ${
+              label: `${fullName(item)} <${item.email}> - ${
                 roleLabels.get(item.role) || formatRoleName(item.role)
               }`,
             }));
@@ -369,11 +380,16 @@ export default function LocationsPage() {
   const columns = useMemo(() => getColumns(t), [t]);
   const locationFilterConfig = useMemo(() => getLocationFilterConfig(t), [t]);
 
+  // Hooks must run unconditionally; only whether the table receives the
+  // mutation is conditional — DataTable/DataCard render their "Add" action if
+  // and only if `createMutation` is present.
+  const createLocation = useCreateLocation();
+
   const sharedOperations = {
     formConfig: roleAwareLocationFormConfig,
     defaultValues: defaultValues,
     getAllData: locationsApi.getAll,
-    createMutation: useCreateLocation(),
+    createMutation: canAddLocation ? createLocation : undefined,
     updateMutation: useUpdateLocation(),
     deleteMutation: useDeleteLocation(),
     queryKey: queryKeys.locations.all(),
@@ -411,6 +427,21 @@ export default function LocationsPage() {
         stats={getLocationStats(statsData, t)}
         isLoading={statsLoading}
       />
+
+      {/* The switch belongs where the need appears: a merchant wanting a second
+          shop comes here, not to a settings page they have no reason to open. */}
+      {!canAddLocation && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 shrink-0" />
+          <span>{t("singleLocation.notice")}</span>
+          <Link
+            href="/settings/features"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {t("singleLocation.enable")}
+          </Link>
+        </div>
+      )}
 
       {/* Table View */}
       {viewMode === "table" && (

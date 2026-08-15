@@ -14,7 +14,7 @@ import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleTable } from "@/ui/components/simple-table";
-import type { Line } from "./use-create-order-form";
+import type { Line } from "./use-order-form";
 
 /**
  * The product picker and line table on the create-order dialog.

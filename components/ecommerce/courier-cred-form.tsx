@@ -6,6 +6,7 @@ import { Lock, Package, Store } from "lucide-react";
 import {
   useCourierPackages,
   useCourierStores,
+  useTestCourier,
   type CourierCredField,
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
@@ -16,11 +17,13 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { Spinner } from "@/ui/components/spinner";
 import { Switch } from "@/ui/components/switch";
 import { cn } from "@/ui/lib/utils";
+import { NO_AUTOFILL } from "./courier-no-autofill";
 import { CourierRemoteField } from "./courier-remote-field";
 
+// Live first — it is the default, and the overwhelmingly common choice.
 const MODE_OPTIONS = [
-  { label: "Sandbox", value: "sandbox" },
   { label: "Live", value: "live" },
+  { label: "Sandbox", value: "sandbox" },
 ];
 
 interface CourierCredFormProps {
@@ -59,6 +62,7 @@ export function CourierCredForm({
 }: CourierCredFormProps) {
   const stores = useCourierStores();
   const packages = useCourierPackages();
+  const test = useTestCourier();
   const [creds, setCreds] = useState<Record<string, string>>({});
   const [mode, setMode] = useState(defaultMode);
   const [enabled, setEnabled] = useState(defaultEnabled);
@@ -66,12 +70,18 @@ export function CourierCredForm({
   const setField = (key: string, value: string) =>
     setCreds((c) => ({ ...c, [key]: value }));
 
+  // Send what the form currently holds, so the picker works on a first-time
+  // connect (nothing saved yet) and a wrong credential fails on this click
+  // instead of being persisted. The server patches these over the stored blob,
+  // so an untouched form still resolves to the saved credentials.
+  const discoveryVars = { provider, credentials: creds, mode };
+
   // A credential field the provider can populate from a list (Pathao pickup
   // stores, eCourier packages) — rendered as a load-then-pick dropdown.
   const remoteFieldFor = (key: string) => {
     if (provider === "pathao" && key === "storeId") {
       return {
-        onLoad: () => stores.mutate(provider),
+        onLoad: () => stores.mutate(discoveryVars),
         loading: stores.isPending,
         placeholder: configured ? "Store ID (unchanged)" : "Select a pickup store",
         loadLabel: "Load stores",
@@ -84,7 +94,7 @@ export function CourierCredForm({
     }
     if (provider === "ecourier" && key === "packageCode") {
       return {
-        onLoad: () => packages.mutate(provider),
+        onLoad: () => packages.mutate(discoveryVars),
         loading: packages.isPending,
         placeholder: configured ? "Package (unchanged)" : "Select a package",
         loadLabel: "Load packages",
@@ -118,12 +128,16 @@ export function CourierCredForm({
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {fields.map((f) => {
+        {fields.map((f, i) => {
           const remote = remoteFieldFor(f.key);
           const id = `${provider}-${f.key}`;
           // Shared by both branches below — a secret only differs by masking.
           const fieldProps = {
             id,
+            // Deliberately non-semantic: with no `name`, autofill classifiers
+            // fall back to the id (`pathao-username`) and match a login form.
+            name: `cred-${provider}-${i}`,
+            ...NO_AUTOFILL,
             value: creds[f.key] ?? "",
             placeholder: configured
               ? f.secret
@@ -156,7 +170,7 @@ export function CourierCredForm({
                   icon={remote.icon}
                 />
               ) : f.secret ? (
-                <Password {...fieldProps} autoComplete="off" />
+                <Password {...fieldProps} />
               ) : (
                 <Input {...fieldProps} type="text" />
               )}
@@ -195,6 +209,18 @@ export function CourierCredForm({
           </Label>
         </div>
         <span className="flex-1" />
+        {/* Validate before saving. Pathao/eCourier also prove their credentials
+            via Load stores/packages; for Steadfast this is the only pre-save
+            check there is. */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => test.mutate(discoveryVars)}
+          disabled={saving || test.isPending}
+        >
+          {test.isPending && <Spinner />}
+          Test connection
+        </Button>
         {onCancel && (
           <Button variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
             Cancel

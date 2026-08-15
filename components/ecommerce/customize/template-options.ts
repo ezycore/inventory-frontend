@@ -65,6 +65,10 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "single-page", label: "Single page", description: "Everything on one screen" },
     { value: "multi-step", label: "Multi-step", description: "Address, then delivery, then payment" },
   ],
+  imageFit: [
+    { value: "fit", label: "Full photo", description: "Shows the whole photo; fills extra space with a soft blur of itself" },
+    { value: "crop", label: "Cropped", description: "Fills the frame edge-to-edge; trims whatever doesn't fit" },
+  ],
 };
 
 /** Keys the settings PATCH carries but no picker owns (retired or derived). */

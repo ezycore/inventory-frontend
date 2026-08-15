@@ -5,7 +5,6 @@ summary: Work through orders from confirmation to delivery, and see who is buyin
 order: 104
 covers_routes:
   - /ecommerce/orders
-  - /ecommerce/customers
 features:
   - storefront
 ---
@@ -48,9 +47,10 @@ settled will quietly distort your cash figures. Reconcile with your courier regu
 
 ## Store customers
 
-**Customers** lists the shoppers who have accounts on your store, with their order history. It is
-separate from the customer list your counter uses — the same person buying both ways may appear in
-both.
+Shoppers with a store account live on the **Customers** page, under its **Online** tab — one place
+for everyone who buys from you, however they buy. The tab lists the shoppers who have accounts on
+your store, with their order history. It stays separate from your counter's customer list, so the
+same person buying both ways may appear in both.
 
 Use it to see who buys repeatedly and what they buy. Repeat online buyers are the cheapest sales you
 will ever make.

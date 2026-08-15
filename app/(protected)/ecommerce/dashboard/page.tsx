@@ -82,11 +82,13 @@ export default function EcommerceDashboardPage() {
           href="/ecommerce/orders?status=pending"
           highlight={!!data && data.stats.pendingCount > 0}
         />
+        {/* The online listing is a tab on Products now — /ecommerce/catalog was
+            removed with the sidebar entry, so this deep-links the tab. */}
         <StatCard
           icon={<Package className="h-4 w-4" />}
           label="Online products live"
           value={isLoading ? null : String(data?.stats.liveProducts ?? 0)}
-          href="/ecommerce/catalog"
+          href="/products?tab=online"
         />
         {/* Carts built and left. Links to the full funnel, which computes these
             same numbers from the same aggregate — the tile and the page cannot
