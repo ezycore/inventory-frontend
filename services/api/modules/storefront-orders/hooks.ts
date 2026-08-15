@@ -386,24 +386,42 @@ export const useUpsertCourier = () => {
   });
 };
 
+/**
+ * Validate a provider's credentials. Pass `credentials`/`mode` to test what the
+ * settings form currently holds rather than what is stored — the only pre-save
+ * check Steadfast has, since it exposes no list to load.
+ */
 export const useTestCourier = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.test(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.test(provider, body),
     onSuccess: (res) => handleMutationSuccess(res.message || "Connection ok"),
     onError: handleMutationError,
   });
 
-// Button-triggered fetch of the merchant's provider stores (for the store picker).
+/**
+ * Button-triggered discovery of a provider's remote credential field (Pathao
+ * pickup stores, eCourier packages). `credentials`/`mode` carry what the settings
+ * form currently holds, so the picker works on a first-time connect — before
+ * anything has been saved — and unsaved credentials get validated by the call.
+ */
+interface CourierDiscoveryVars {
+  provider: string;
+  credentials?: Record<string, string>;
+  mode?: string;
+}
+
 export const useCourierStores = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.stores(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.stores(provider, body),
     onError: handleMutationError,
   });
 
-// Button-triggered fetch of the merchant's provider packages (eCourier picker).
 export const useCourierPackages = () =>
   useMutation({
-    mutationFn: (provider: string) => couriersApi.packages(provider),
+    mutationFn: ({ provider, ...body }: CourierDiscoveryVars) =>
+      couriersApi.packages(provider, body),
     onError: handleMutationError,
   });
 

@@ -6273,7 +6273,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/couriers
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:24`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:25`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_couriers"];
         put?: never;
@@ -6293,7 +6293,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/couriers/webhook
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:30`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:31`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_couriers_webhook"];
         put?: never;
@@ -6315,7 +6315,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/couriers/webhook/regenerate
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:35`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:36`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_couriers_webhook_regenerate"];
         delete?: never;
@@ -6333,13 +6333,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/couriers/custom
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:42`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:43`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_couriers_custom"];
         put?: never;
         /**
          * POST /api/ecommerce/couriers/custom
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:47`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:48`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_couriers_custom"];
         delete?: never;
@@ -6358,13 +6358,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/couriers/custom/:id
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:53`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:54`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_couriers_custom_id"];
         post?: never;
         /**
          * DELETE /api/ecommerce/couriers/custom/:id
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:59`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:60`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_couriers_custom_id"];
         options?: never;
@@ -6382,13 +6382,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/couriers/:provider
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:65`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:66`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_couriers_provider"];
         post?: never;
         /**
          * DELETE /api/ecommerce/couriers/:provider
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:96`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:100`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_couriers_provider"];
         options?: never;
@@ -6407,7 +6407,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/couriers/:provider/test
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:71`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:72`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_couriers_provider_test"];
         delete?: never;
@@ -6423,13 +6423,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * GET /api/ecommerce/couriers/:provider/stores
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:77`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        get: operations["get_api_ecommerce_couriers_provider_stores"];
+        get?: never;
         put?: never;
-        post?: never;
+        /**
+         * POST /api/ecommerce/couriers/:provider/stores
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:81`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_couriers_provider_stores"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6443,13 +6443,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * GET /api/ecommerce/couriers/:provider/packages
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:83`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        get: operations["get_api_ecommerce_couriers_provider_packages"];
+        get?: never;
         put?: never;
-        post?: never;
+        /**
+         * POST /api/ecommerce/couriers/:provider/packages
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:87`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_couriers_provider_packages"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6465,7 +6465,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/couriers/:provider/locations
-         * @description Defined in `src/routes/storefront-couriers.routes.ts:90`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-couriers.routes.ts:94`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_couriers_provider_locations"];
         put?: never;
@@ -10245,6 +10245,17 @@ export interface components {
                     /** Format: date-time */
                     at?: string;
                     by?: string;
+                    note?: string;
+                }[];
+                editHistory?: {
+                    /** Format: date-time */
+                    at?: string;
+                    by?: string;
+                    changes: {
+                        field: string;
+                        from?: string;
+                        to?: string;
+                    }[];
                 }[];
                 trackToken?: string;
                 trackUrl?: string;
@@ -10368,6 +10379,17 @@ export interface components {
                 /** Format: date-time */
                 at?: string;
                 by?: string;
+                note?: string;
+            }[];
+            editHistory?: {
+                /** Format: date-time */
+                at?: string;
+                by?: string;
+                changes: {
+                    field: string;
+                    from?: string;
+                    to?: string;
+                }[];
             }[];
             trackToken?: string;
             trackUrl?: string;
@@ -10475,6 +10497,17 @@ export interface components {
                     /** Format: date-time */
                     at?: string;
                     by?: string;
+                    note?: string;
+                }[];
+                editHistory?: {
+                    /** Format: date-time */
+                    at?: string;
+                    by?: string;
+                    changes: {
+                        field: string;
+                        from?: string;
+                        to?: string;
+                    }[];
                 }[];
                 trackToken?: string;
                 trackUrl?: string;
@@ -35925,7 +35958,17 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    credentials?: {
+                        [key: string]: string;
+                    };
+                    /** @enum {string} */
+                    mode?: "live" | "sandbox";
+                };
+            };
+        };
         responses: {
             /** @description Success */
             200: {
@@ -35976,7 +36019,7 @@ export interface operations {
             };
         };
     };
-    get_api_ecommerce_couriers_provider_stores: {
+    post_api_ecommerce_couriers_provider_stores: {
         parameters: {
             query?: never;
             header?: {
@@ -35988,10 +36031,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    credentials?: {
+                        [key: string]: string;
+                    };
+                    /** @enum {string} */
+                    mode?: "live" | "sandbox";
+                };
+            };
+        };
         responses: {
             /** @description Success */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -36039,7 +36092,7 @@ export interface operations {
             };
         };
     };
-    get_api_ecommerce_couriers_provider_packages: {
+    post_api_ecommerce_couriers_provider_packages: {
         parameters: {
             query?: never;
             header?: {
@@ -36051,10 +36104,20 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    credentials?: {
+                        [key: string]: string;
+                    };
+                    /** @enum {string} */
+                    mode?: "live" | "sandbox";
+                };
+            };
+        };
         responses: {
             /** @description Success */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

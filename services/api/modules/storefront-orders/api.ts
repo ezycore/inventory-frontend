@@ -388,12 +388,26 @@ export const couriersApi = {
     apiClient.put(`${couriersBase}/${provider}`, body),
   remove: (provider: string): Promise<ApiResponse<CourierRemoved>> =>
     apiClient.delete(`${couriersBase}/${provider}`),
-  test: (provider: string): Promise<ApiResponse<CourierTest>> =>
-    apiClient.post(`${couriersBase}/${provider}/test`, {}),
-  stores: (provider: string): Promise<ApiResponse<CourierStore[]>> =>
-    apiClient.get(`${couriersBase}/${provider}/stores`),
-  packages: (provider: string): Promise<ApiResponse<CourierPackage[]>> =>
-    apiClient.get(`${couriersBase}/${provider}/packages`),
+  test: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierTest>> =>
+    apiClient.post(`${couriersBase}/${provider}/test`, body),
+  // Remote-field discovery. POST, not GET: the body carries the credentials the
+  // merchant has typed but not saved yet (patched over the stored blob server
+  // side), so the store/package picker fills before anything is committed — and
+  // a wrong credential fails here instead of being persisted. Omit `body` to run
+  // against the stored configuration.
+  stores: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierStore[]>> =>
+    apiClient.post(`${couriersBase}/${provider}/stores`, body),
+  packages: (
+    provider: string,
+    body: { credentials?: Record<string, string>; mode?: string } = {},
+  ): Promise<ApiResponse<CourierPackage[]>> =>
+    apiClient.post(`${couriersBase}/${provider}/packages`, body),
   locations: (
     provider: string,
     level: string,
