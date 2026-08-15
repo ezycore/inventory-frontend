@@ -9,6 +9,7 @@ import type {
   StoreCampaign,
   StoreHeroBanner,
   StoreHeroSlide,
+  StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
@@ -21,8 +22,16 @@ export const wrap: CSSProperties = {
   width: "100%",
 };
 
-/** Data every homepage template receives from the `StoreHome` dispatcher. */
-export interface TplProps {
+/**
+ * Data every homepage SECTION receives from `StoreHome`.
+ *
+ * One shape for all of them on purpose: the page is a list of section ids the
+ * merchant (or their theme) ordered, so `StoreHome` cannot know which props any
+ * given entry needs. It hands every section everything the page fetched — which
+ * costs nothing, since `shop/page.tsx` already loads the lot in one parallel
+ * batch precisely so sections can be reordered without a round-trip.
+ */
+export interface SectionProps {
   base: string;
   currency?: string;
   featured: CatalogProduct[];
@@ -35,13 +44,15 @@ export interface TplProps {
   heroSlides?: StoreHeroSlide[];
   /** Owner overrides for the static banner hero's copy; unset → template copy. */
   heroBanner?: StoreHeroBanner;
+  /** The whole store — sections that read `trustBadges`, `social` or `name`. */
+  store: StorefrontStore;
 }
 
 /**
  * Hero badge text from the live campaign ("test · 2% off"), so the homepage
  * never claims a sale that isn't running; null falls back to template copy.
  */
-export function campaignBadge(props: TplProps): string | null {
+export function campaignBadge(props: SectionProps): string | null {
   const c =
     props.campaigns.find((x) => x.scope === "storewide") ?? props.campaigns[0];
   if (!c) return null;

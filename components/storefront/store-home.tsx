@@ -7,25 +7,30 @@ import type {
   StoreCampaign,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
 import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { Classic } from "@/components/storefront/home/home-classic";
-import { HeroSplit } from "@/components/storefront/home/home-hero-split";
-import { Minimal } from "@/components/storefront/home/home-minimal";
-
-type TplName = "classic" | "hero-split" | "minimal";
-const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
+import {
+  HOME_PRESET_SECTIONS,
+  SECTION_COMPONENTS,
+  isSectionId,
+  type SectionId,
+} from "@/components/storefront/home/home-sections";
 
 /**
- * Storefront homepage — renders one of three admin-selectable templates
- * (Classic / Hero Split / Minimal, in `components/storefront/home/`) from
- * `templates.home`, server-rendered for SEO. Live brand-colour preview is
- * handled globally by the shell (it reads the preview store), so the whole
- * page — not just this content — repaints.
+ * Storefront homepage — **a list of sections, not a template.**
+ *
+ * Which sections and in what order comes from `resolveSections` (draft → the
+ * merchant's saved `theme.homepageSections` → their `templates.home` default),
+ * and each id resolves through the registry in `home/home-sections.tsx`. That is
+ * what lets a theme produce a structurally different page rather than a
+ * repainted one — see the note in that file before adding anything here.
+ *
+ * Server-rendered for SEO. Live brand-colour preview is handled globally by the
+ * shell (it reads the preview store), so the whole page repaints, not just this.
  */
 export function StoreHome({
   store,
@@ -44,18 +49,15 @@ export function StoreHome({
 }) {
   const { t } = useStorefrontUI();
   const currency = store.currency;
-  // Live draft from the admin Customize editor (only set under ?preview=1) wins,
-  // so picking Classic/Hero-Split/Minimal repaints the homepage instantly.
+  // Live drafts from the admin Customize editor (only set under ?preview=1).
   const previewHome = useSfPreview((s) => s.home);
+  const previewSections = useSfPreview((s) => s.homepageSections);
   const previewSlides = useSfPreview((s) => s.heroSlides);
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
-  const tpl = HOME_VARIANTS.includes(previewHome ?? "")
-    ? (previewHome as TplName)
-    : resolved.home;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
@@ -75,6 +77,18 @@ export function StoreHome({
     image: pc.image ?? categories.find((c) => c._id === pc._id)?.image,
   }));
 
+  // A drafted `templates.home` has to reach the resolver as the store's own
+  // value, since the preset it selects IS the fallback section list — passing
+  // only the saved store would leave the preview on the old composition.
+  const previewStore = previewHome
+    ? { ...store, templates: { ...store.templates, home: previewHome } }
+    : store;
+  const sections = resolveSections(previewStore, {
+    draft: previewSections,
+    isSectionId,
+    presets: HOME_PRESET_SECTIONS,
+  }) as SectionId[];
+
   const shared = {
     base,
     currency,
@@ -86,9 +100,17 @@ export function StoreHome({
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
+    store,
   };
 
-  if (tpl === "hero-split") return <HeroSplit {...shared} />;
-  if (tpl === "minimal") return <Minimal {...shared} />;
-  return <Classic {...shared} />;
+  return (
+    <div>
+      {sections.map((id) => {
+        const Section = SECTION_COMPONENTS[id];
+        // Keyed by id: a section appears at most once on a page, and keying by
+        // index would re-mount every section below one that got reordered.
+        return <Section key={id} {...shared} />;
+      })}
+    </div>
+  );
 }

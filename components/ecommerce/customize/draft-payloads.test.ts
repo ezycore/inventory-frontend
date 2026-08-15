@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { publicCollections } from "@/components/ecommerce/customize/draft-payloads";
+import {
+  publicCollections,
+  toSettingsPayload,
+} from "@/components/ecommerce/customize/draft-payloads";
+import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
@@ -94,5 +98,130 @@ describe("publicCollections (the preview's category payload)", () => {
       row({ _id: "a", slugPath: "a" }),
     ]);
     expect(out.map((c) => c._id)).toEqual(["b", "a"]);
+  });
+});
+
+/**
+ * The save payload rebuilds `theme` as a whole object literal, and the backend
+ * applies it with `Object.assign` — "each provided sub-field replaces the
+ * existing one". So a theme field the draft does not carry is a theme field the
+ * next Save DELETES, silently, from a surface nothing else validates.
+ */
+const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
+  preset: "default",
+  brandColor: "#111827",
+  accentColor: "#2563eb",
+  footerText: "",
+  logoStyle: {},
+  homeCollections: {},
+  design: DEFAULT_DESIGN,
+  homepageSections: [],
+  templates: {},
+  badges: [],
+  heroSlides: [],
+  heroBanner: {},
+  navHeader: [],
+  announcement: {
+    enabled: false,
+    text: "",
+    link: "",
+    bgColor: "#2563eb",
+    textColor: "",
+    icon: "",
+    ctaLabel: "",
+    dismissible: false,
+    size: "sm",
+    bgImage: null,
+    overlay: "#000000",
+    overlayOpacity: 40,
+    bgFit: "cover",
+  },
+  contactButton: {
+    enabled: false,
+    label: "",
+    greeting: "",
+    position: "right",
+    showOn: [],
+    hoursEnabled: false,
+    hoursFrom: "10:00",
+    hoursTo: "20:00",
+    offlineNote: "",
+    nudgeEnabled: false,
+    nudgeText: "",
+    nudgeDelay: 8,
+  },
+  footerGroups: [],
+  footerContentPages: { show: true, title: "" },
+  footerNote: "",
+  footerContactHeading: "",
+  footerNewsletter: { heading: "", blurb: "", buttonLabel: "" },
+  collections: [],
+  ...over,
+});
+
+describe("toSettingsPayload (theme fields must survive a Save)", () => {
+  it("carries the design tokens", () => {
+    const design = {
+      font: "serif",
+      surface: "parchment",
+      scale: "lg",
+      density: "airy",
+      radius: "sharp",
+    };
+    expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
+  });
+
+  // Nothing in the editor writes `appliedThemeId` — a ready-made theme does.
+  // Without it in the literal, the first unrelated edit a merchant saved would
+  // erase which theme their store is on while the store kept rendering it.
+  it("carries appliedThemeId even though no control edits it", () => {
+    expect(
+      toSettingsPayload(draft({ appliedThemeId: "grocery-modern" })).theme
+        ?.appliedThemeId,
+    ).toBe("grocery-modern");
+  });
+
+  it("leaves appliedThemeId absent for a store that never applied one", () => {
+    expect(toSettingsPayload(draft()).theme?.appliedThemeId).toBeUndefined();
+  });
+});
+
+/**
+ * The look/content split (2026-08-12). `theme` is what a ready-made theme
+ * replaces wholesale; `copy` is what the merchant wrote. If a word the merchant
+ * typed ever appears under `theme` again, applying a theme silently erases it.
+ */
+describe("toSettingsPayload — theme owns the look, copy owns the words", () => {
+  const withCopy = draft({
+    footerText: "  Family run since 1998  ",
+    footerNote: "Dhaka, Bangladesh",
+    footerContactHeading: "Order by phone",
+    footerNewsletter: { heading: "Stay in touch", blurb: "", buttonLabel: "" },
+  });
+
+  it("sends merchant wording under copy, trimmed", () => {
+    expect(toSettingsPayload(withCopy).copy).toEqual({
+      footerText: "Family run since 1998",
+      footerNote: "Dhaka, Bangladesh",
+      footerContactHeading: "Order by phone",
+      footerNewsletter: { heading: "Stay in touch", blurb: undefined, buttonLabel: undefined },
+    });
+  });
+
+  it("keeps every merchant word OUT of theme", () => {
+    const theme = toSettingsPayload(withCopy).theme as Record<string, unknown>;
+    for (const key of ["footerText", "footerNote", "footerContactHeading", "footerNewsletter"]) {
+      expect(theme).not.toHaveProperty(key);
+    }
+  });
+
+  // Blank ⇒ "use the storefront's localized wording", so it must not ship as "".
+  it("omits a blank field rather than sending an empty string", () => {
+    expect(toSettingsPayload(draft()).copy).toEqual({
+      footerText: undefined,
+      footerNote: undefined,
+      footerContactHeading: undefined,
+      footerNewsletter: undefined,
+    });
   });
 });

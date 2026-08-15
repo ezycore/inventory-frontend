@@ -144,7 +144,7 @@ export function CardSoldOutOverlay({ label }: { label: string }) {
  * as a control the shopper failed to activate, which is exactly how a disabled
  * button reads.
  */
-function soldOutStatus(bold: boolean | undefined, inline: boolean): CSSProperties {
+function soldOutStatus(inline: boolean): CSSProperties {
   return {
     display: "flex",
     alignItems: "center",
@@ -152,7 +152,10 @@ function soldOutStatus(bold: boolean | undefined, inline: boolean): CSSPropertie
     flex: inline ? "none" : 1,
     minHeight: 40,
     padding: "10px 12px",
-    borderRadius: bold ? 9 : 7,
+    // The controls step of the merchant's radius scale, not a literal — a card
+    // CTA is the single most visible control in the shop, and hardcoding it here
+    // is what kept the Corners setting from reaching the buy button at all.
+    borderRadius: "var(--radius-sm)",
     background: "var(--surface)",
     color: "var(--muted)",
     fontSize: 12.5,
@@ -194,7 +197,7 @@ export function CardCtaRow({
     return (
       <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8 }}>
         {actions === "iconOnly" ? <span style={{ flex: 1, minWidth: 0 }}>{price}</span> : null}
-        <span style={soldOutStatus(bold, actions === "iconOnly")}>{t.outOfStock}</span>
+        <span style={soldOutStatus(actions === "iconOnly")}>{t.outOfStock}</span>
       </div>
     );
   }
@@ -316,7 +319,10 @@ function cta(
     border: primary ? "1px solid var(--primary)" : "1px solid var(--border-strong)",
     padding: bold ? "12px 8px" : "10px 8px",
     minHeight: 40,
-    borderRadius: bold ? 9 : 7,
+    // The controls step of the merchant's radius scale, not a literal — a card
+    // CTA is the single most visible control in the shop, and hardcoding it here
+    // is what kept the Corners setting from reaching the buy button at all.
+    borderRadius: "var(--radius-sm)",
     fontFamily: "inherit",
     fontSize: bold ? 13 : 12.5,
     fontWeight: bold ? 700 : 600,

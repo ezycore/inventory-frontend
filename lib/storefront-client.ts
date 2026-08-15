@@ -135,17 +135,35 @@ export interface StorefrontStore {
     preset?: string;
     brandColor?: string;
     accentColor?: string;
-    footerText?: string;
     homepageSections?: string[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */
     homeCollections?: StoreHomeCollections;
     /**
-     * Footer copy the merchant owns. Every one of these has a localized
-     * fallback in the storefront dictionary, so unset means "use the built-in
-     * wording" — never "render an empty line".
+     * Type family, surface palette, spatial rhythm and corner radius — see
+     * `resolveDesign` in `lib/storefront-theme.ts`, which is the only thing that
+     * should read these raw (unknown ids must not reach the DOM). Unset ⇒ the
+     * storefront's built-in look.
      */
+    design?: {
+      font?: string;
+      surface?: string;
+      scale?: string;
+      density?: string;
+      radius?: string;
+    };
+  };
+  /**
+   * Words the merchant wrote — a SIBLING of `theme`, not part of it.
+   *
+   * A ready-made theme stamps `theme`/`templates` wholesale, so a merchant's own
+   * sentences cannot live in there or applying one would erase them. Every field
+   * has a localized fallback in the storefront dictionary, so unset means "use
+   * the built-in wording" — never "render an empty line".
+   */
+  copy?: {
+    footerText?: string;
     footerNote?: string;
     footerContactHeading?: string;
     footerNewsletter?: StoreFooterNewsletter;
@@ -212,6 +230,12 @@ export interface StoreTemplatesRaw {
   headerMenu?: string;
   pagination?: string;
   imageFit?: string;
+  imageRatio?: string;
+  categoryTiles?: string;
+  accountLayout?: string;
+  contentLayout?: string;
+  cartLayout?: string;
+  shell?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -222,7 +246,11 @@ export interface StoreTemplates {
   home: "classic" | "hero-split" | "minimal";
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
-  checkout: "single" | "multi";
+  /**
+   * The WHOLE checkout layout — four separate page components, not variations
+   * within one. See app/(storefront)/shop/checkout/view.tsx.
+   */
+  checkout: "single" | "multi" | "guided" | "editorial";
   /**
    * `contact` leads with the merchant's phone/WhatsApp and `newsletter` with a
    * sign-up form, so both **degrade** rather than render an empty block: with no
@@ -230,8 +258,8 @@ export interface StoreTemplates {
    * anchored body that `columns` renders. See `StoreFooter`.
    */
   footer: "columns" | "simple" | "rich" | "contact" | "newsletter";
-  header: "classic" | "minimal" | "centered";
-  productCard: "standard" | "compact" | "bold";
+  header: "classic" | "minimal" | "centered" | "search-first" | "clinical" | "boutique";
+  productCard: "standard" | "compact" | "bold" | "editorial";
   /**
    * Which actions the product card offers, and in what form. Independent of
    * `productCard`, which controls density only — a compact card can still want
@@ -250,6 +278,36 @@ export interface StoreTemplates {
   pagination: "pages" | "infinite" | "loadMore";
   /** How a photo fills a box it doesn't match: full photo w/ blurred fill, or cropped. */
   imageFit: "fit" | "crop";
+  imageRatio: "square" | "portrait" | "landscape" | "tall";
+  /**
+   * How the homepage `category-tiles` section presents a department: a photo on
+   * a tinted card with the name underneath, a taller photo with the name over it
+   * behind a scrim, or a lettered disc with no photograph at all.
+   *
+   * A presentation, not a theme — a grocery shop's departments and a fashion
+   * shop's occasions are the same section, and which mode reads better depends
+   * on whether the merchant's category images are product shots, scenes, or not
+   * worth showing.
+   */
+  categoryTiles: "tile" | "overlay" | "disc";
+  /**
+   * Which WHOLE LAYOUT the signed-in account area renders in. Unlike every other
+   * key here this selects a page-level component rather than a variation within
+   * one — see components/storefront/account/account-area.tsx.
+   */
+  accountLayout: "sidebar" | "tabs" | "panel" | "editorial";
+  /**
+   * The frame around a titled body — the CMS content pages and the order-tracking
+   * page. Four whole frames; see components/storefront/content-frame.tsx.
+   */
+  contentLayout: "centered" | "banner" | "panel" | "editorial";
+  /** The whole cart page — four layouts; see components/storefront/cart/. */
+  cartLayout: "panel" | "compact" | "cards" | "editorial";
+  /**
+   * The page SKELETON, applied to every page. The only axis that changes what
+   * KIND of site a shop is rather than what it contains — see store-shell.tsx.
+   */
+  shell: "stacked" | "rail";
 }
 
 /** A header menu link target (category slug, page slug, or URL). */
@@ -357,6 +415,13 @@ export interface CatalogProduct {
   productType: string;
   hasVariants?: boolean;
   availableQuantity: number;
+  /**
+   * How the product is sold — "kg", "pcs". **Absent when the merchant set no
+   * sale unit**, which is why every consumer must treat it as optional rather
+   * than printing an empty line: a shop that never configured units would grow a
+   * blank row under every product name.
+   */
+  unitLabel?: string;
   /** "show"/"hide" cap at stock; "backorder" stays buyable past zero. */
   outOfStockBehavior?: "hide" | "show" | "backorder";
   /** Merchant SEO overrides for the product page (absent when unset). */
@@ -417,6 +482,12 @@ export interface CatalogCategory {
   slugPath?: string;
   /** Collection thumbnail (single image); absent when the merchant set none. */
   image?: StorefrontImage | null;
+  /**
+   * The merchant one-line "what is in here", printed under the name on the
+   * homepage category tiles. Absent when they wrote none — the tile then draws
+   * no line at all rather than reserving its height.
+   */
+  description?: string;
   /**
    * Sub-categories. Present on top-level nodes only — the tree is exactly two
    * levels deep, and a hidden parent takes its children with it, so anything

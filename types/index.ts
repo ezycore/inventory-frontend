@@ -129,15 +129,60 @@ export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
-  footerText?: string;
   homepageSections?: string[];
   logo?: StorefrontLogoStyle;
   homeCollections?: StorefrontHomeCollections;
+  /**
+   * Type family + spatial rhythm (Customize → Design). Ids only — the catalogue
+   * and the resolver live in `lib/storefront-theme.ts`, and `storefront.css` owns
+   * what each id renders as.
+   */
+  design?: StorefrontDesign;
+  /**
+   * Which ready-made theme was last applied. **Provenance, not config:** applying
+   * a theme stamps its values into `theme`/`templates`, so nothing renders from
+   * this. It exists so the editor can name the current theme and show what has
+   * drifted since. Carried through the Customize save payload untouched — see the
+   * note in `draft-payloads.ts`.
+   */
+  appliedThemeId?: string;
+}
+
+/**
+ * Words the merchant wrote — the half of the storefront a theme must never
+ * overwrite.
+ *
+ * These four lived inside `StorefrontTheme` until 2026-08-12, beside
+ * `brandColor` and `design`. That put a merchant's own sentences in the object a
+ * ready-made theme replaces wholesale, so applying one would erase their footer
+ * copy. Splitting them makes the rule structural: **theme + templates = the
+ * look; copy + nav + trustBadges + heroSlides = the merchant's.**
+ *
+ * Named `copy` rather than `content` because "Content" is already the CMS-pages
+ * section of the admin.
+ */
+export interface StorefrontCopy {
+  /** Free text in the storefront footer (copyright / tagline). */
+  footerText?: string;
   /** Right-hand side of the footer's bottom bar; unset ⇒ the store's currency. */
   footerNote?: string;
   /** Heading over the Contact-first footer's phone block. */
   footerContactHeading?: string;
   footerNewsletter?: StorefrontFooterNewsletter;
+}
+
+/**
+ * The design axes — type family, surface palette, heading ramp, spacing rhythm,
+ * corner radius. Ids only; `resolveDesign` (lib/storefront-theme.ts) is the one
+ * place that validates them.
+ */
+export interface StorefrontDesign {
+  font?: string;
+  /** The ground the shop prints on — page, cards, panels, hairlines, ink. */
+  surface?: string;
+  scale?: string;
+  density?: string;
+  radius?: string;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";
@@ -293,6 +338,8 @@ export interface StorefrontSettings {
   cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
   bankInstructions?: string;
   theme?: StorefrontTheme;
+  /** Merchant-written words — never touched by a theme. See `StorefrontCopy`. */
+  copy?: StorefrontCopy;
   nav?: StorefrontNav;
   checkout?: StorefrontCheckout;
   notifications?: StorefrontNotifications;

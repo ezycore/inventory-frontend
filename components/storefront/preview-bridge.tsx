@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useEffect } from "react";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
@@ -29,6 +30,8 @@ export function StorePreviewBridge() {
         accent: p.theme?.accentColor,
         logoStyle: p.theme?.logo,
         homeCollections: p.theme?.homeCollections,
+        design: p.theme?.design,
+        homepageSections: p.theme?.homepageSections,
         home: p.templates?.home,
         footer: p.templates?.footer,
         header: p.templates?.header,
@@ -36,6 +39,12 @@ export function StorePreviewBridge() {
         cardActions: p.templates?.cardActions,
         pagination: p.templates?.pagination,
         imageFit: p.templates?.imageFit,
+        imageRatio: p.templates?.imageRatio,
+        categoryTiles: p.templates?.categoryTiles,
+        accountLayout: p.templates?.accountLayout,
+        contentLayout: p.templates?.contentLayout,
+        cartLayout: p.templates?.cartLayout,
+        shell: p.templates?.shell,
         collection: p.templates?.collection,
         product: p.templates?.product,
         checkout: p.templates?.checkout,
@@ -63,6 +72,13 @@ export function StorePreviewBridge() {
         logo: p.logo,
         banner: p.banner,
       });
+      /* Tell the editor the draft is IN. Without this the editor has no way to
+         know when the page stopped showing the merchant's saved theme, so it
+         cannot hide the moment in between — and that moment is visible: the
+         iframe server-renders the SAVED store, paints it, and only then does
+         `ezycore-preview-ready` → post → apply run. Previewing a theme flashed
+         the currently-active one first, every time. */
+      window.parent?.postMessage({ type: "ezycore-preview-applied" }, "*");
     };
     window.addEventListener("message", onMsg);
     // Tell the editor we're ready so it pushes the current draft immediately.

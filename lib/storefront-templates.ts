@@ -21,6 +21,12 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   hero: "slides",
   pagination: "pages",
   imageFit: "fit",
+  imageRatio: "square",
+  categoryTiles: "tile",
+  accountLayout: "sidebar",
+  contentLayout: "centered",
+  cartLayout: "panel",
+  shell: "stacked",
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -28,7 +34,14 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
 const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal" } as const;
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
-const CHECKOUT = { "single-page": "single", "multi-step": "multi" } as const;
+// Whole checkout layouts. The first two ids predate the layout registry and are
+// unchanged, so every store that already picked one keeps its checkout exactly.
+const CHECKOUT = {
+  "single-page": "single",
+  "multi-step": "multi",
+  guided: "guided",
+  editorial: "editorial",
+} as const;
 // `columns` / `simple` / `rich` are the three that have always existed; their
 // LAYOUTS were rebuilt on 2026-08-11 but the ids are unchanged on purpose, so
 // every existing store picks up the repair without its owner choosing again.
@@ -39,8 +52,21 @@ const FOOTER = {
   contact: "contact",
   newsletter: "newsletter",
 } as const;
-const HEADER = { classic: "classic", minimal: "minimal", centered: "centered" } as const;
-const PRODUCTCARD = { standard: "standard", compact: "compact", bold: "bold" } as const;
+const HEADER = {
+  classic: "classic",
+  minimal: "minimal",
+  centered: "centered",
+  "search-first": "search-first",
+  clinical: "clinical",
+  boutique: "boutique",
+} as const;
+// `editorial` is the chrome-less card — no border, no background, no buttons.
+const PRODUCTCARD = {
+  standard: "standard",
+  compact: "compact",
+  bold: "bold",
+  editorial: "editorial",
+} as const;
 // Card CTA layout. Separate from PRODUCTCARD on purpose: density and actions are
 // orthogonal, and folding them together would need one id per combination.
 const CARDACTIONS = {
@@ -58,13 +84,60 @@ const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // paginated crawl path in the HTML without help.
 const PAGINATION = { pages: "pages", infinite: "infinite", "load-more": "loadMore" } as const;
 const IMAGEFIT = { fit: "fit", crop: "crop" } as const;
+// The FRAME a product photo sits in, orthogonal to IMAGEFIT (which decides what
+// happens to a photo that doesn't match the frame). `square` stays the default:
+// it is what every store rendered before this existed.
+const IMAGERATIO = {
+  square: "square",
+  portrait: "portrait",
+  landscape: "landscape",
+  tall: "tall",
+} as const;
+// How `category-tiles` presents one department. `tile` is the default because it
+// is what the section has always rendered; `overlay` needs real photographs on
+// every category, so making it the fallback would put a scrim over a grid of
+// letter placeholders.
+const CATEGORYTILES = { tile: "tile", overlay: "overlay", disc: "disc" } as const;
+// Whole account-area layouts. `sidebar` is the default because it is what the
+// account area has always been; the other three are separate page components,
+// not restyles of it.
+const ACCOUNTLAYOUT = {
+  sidebar: "sidebar",
+  tabs: "tabs",
+  panel: "panel",
+  editorial: "editorial",
+} as const;
+// Whole frames for the CMS pages + order tracking. `centered` is the default —
+// it is the prose column those pages have always been.
+const CARTLAYOUT = {
+  panel: "panel",
+  compact: "compact",
+  cards: "cards",
+  editorial: "editorial",
+} as const;
+// The page skeleton. `stacked` is the default because it is the only shape the
+// storefront had; `rail` puts a department column on every page.
+const SHELL = { stacked: "stacked", rail: "rail" } as const;
+const CONTENTLAYOUT = {
+  centered: "centered",
+  banner: "banner",
+  panel: "panel",
+  editorial: "editorial",
+} as const;
 
+/**
+ * `Object.hasOwn`, not `map[raw]` — these maps are plain objects, so a stored id
+ * of `"constructor"` or `"toString"` hits `Object.prototype`, reads as truthy,
+ * and returns a **function** where every caller expects a variant name. The
+ * values are merchant-controlled strings the backend only length-checks, so this
+ * is reachable from stored data rather than theoretical.
+ */
 function pick<M extends Record<string, string>>(
   map: M,
   raw: string | undefined,
   fallback: M[keyof M],
 ): M[keyof M] {
-  return (raw && map[raw]) ? (map[raw] as M[keyof M]) : fallback;
+  return raw && Object.hasOwn(map, raw) ? (map[raw] as M[keyof M]) : fallback;
 }
 
 /** Resolve a store's raw template ids into the storefront's variant names. */
@@ -89,12 +162,96 @@ export function resolveTemplates(
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
     imageFit: pick(IMAGEFIT, t.imageFit, DEFAULT_TEMPLATES.imageFit),
+    imageRatio: pick(IMAGERATIO, t.imageRatio, DEFAULT_TEMPLATES.imageRatio),
+    categoryTiles: pick(
+      CATEGORYTILES,
+      t.categoryTiles,
+      DEFAULT_TEMPLATES.categoryTiles,
+    ),
+    accountLayout: pick(
+      ACCOUNTLAYOUT,
+      t.accountLayout,
+      DEFAULT_TEMPLATES.accountLayout,
+    ),
+    contentLayout: pick(
+      CONTENTLAYOUT,
+      t.contentLayout,
+      DEFAULT_TEMPLATES.contentLayout,
+    ),
+    cartLayout: pick(CARTLAYOUT, t.cartLayout, DEFAULT_TEMPLATES.cartLayout),
+    shell: pick(SHELL, t.shell, DEFAULT_TEMPLATES.shell),
   };
 }
 
 /** `templates.imageFit` → the `<Media fit>` value it drives. */
 export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "canvas" {
   return imageFit === "crop" ? "cover" : "canvas";
+}
+
+/**
+ * `templates.imageRatio` → the `<Media ratio>` CSS value it drives. The ONLY
+ * place this translation happens, mirroring `mediaFitFor` beside it.
+ *
+ * Aspect ratio is the strongest per-vertical signal a storefront has — portrait
+ * reads as fashion, square as grocery — so it is deliberately a merchant choice
+ * rather than something each surface hardcodes.
+ */
+/**
+ * The homepage's section list, in render order.
+ *
+ * Precedence: the Customize draft (live preview) → the merchant's saved
+ * `theme.homepageSections` → the default composition for their `templates.home`
+ * → Classic. So a store that has never touched Sections renders exactly the page
+ * its home template always produced, and one that has reordered them keeps that
+ * order even after switching template.
+ *
+ * Unknown ids are dropped rather than rendered: a retired section, or one from a
+ * newer build, must not reach `SECTION_COMPONENTS[id]` and blow up the page. The
+ * caller passes the registry's guard so this module stays free of component
+ * imports — `lib/` must not depend on `components/`.
+ */
+export function resolveSections(
+  store: Pick<StorefrontStore, "theme" | "templates"> | null | undefined,
+  options: {
+    draft?: string[] | null;
+    isSectionId: (value: unknown) => boolean;
+    presets: Record<string, string[]>;
+  },
+): string[] {
+  const { draft, isSectionId, presets } = options;
+  const saved = store?.theme?.homepageSections;
+  const home = pick(HOME, store?.templates?.home, DEFAULT_TEMPLATES.home);
+  const fallback = presets[home] ?? presets.classic ?? [];
+  const chosen =
+    (draft?.length ? draft : undefined) ??
+    (saved?.length ? saved : undefined) ??
+    fallback;
+  const known = chosen.filter(isSectionId);
+  // ⚠ If NOTHING survives the filter, fall back rather than returning `[]` — an
+  // empty list renders a blank homepage. This is not theoretical: every seeded
+  // store carried four ids from the pre-registry catalogue (`banner`,
+  // `featured`, `categories`, `products`) that no section ever answered to, so
+  // the strict version would have blanked the homepage of every demo shop while
+  // leaving stores with an unset value working perfectly.
+  return known.length ? known : fallback.filter(isSectionId);
+}
+
+/** Narrows a raw/draft id to a known ratio — the guard `useStoreImageRatio` uses. */
+export function isImageRatio(value: unknown): value is StoreTemplates["imageRatio"] {
+  return typeof value === "string" && Object.hasOwn(IMAGERATIO, value);
+}
+
+export function mediaRatioFor(imageRatio: StoreTemplates["imageRatio"]): string {
+  switch (imageRatio) {
+    case "portrait":
+      return "3 / 4";
+    case "landscape":
+      return "4 / 3";
+    case "tall":
+      return "2 / 3";
+    default:
+      return "1 / 1";
+  }
 }
 
 /**

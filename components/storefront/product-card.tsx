@@ -13,6 +13,7 @@ import { cardImageUrl } from "@/lib/storefront-image";
 import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
+import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/components/storefront/card-buy-actions";
 import { QuickBuySheet } from "@/components/storefront/quick-buy-sheet";
 
-const CARD_STYLES: readonly string[] = ["standard", "compact", "bold"];
+const CARD_STYLES: readonly string[] = ["standard", "compact", "bold", "editorial"];
 
 /**
  * Storefront product card. `full` shows the Add-to-cart / Buy-now pair
@@ -54,6 +55,7 @@ export function ProductCard({
   const previewCardStyle = useSfPreview((s) => s.cardStyle);
   const previewCardActions = useSfPreview((s) => s.cardActions);
   const imageFit = useStoreImageFit();
+  const imageRatio = useStoreImageRatio();
 
   const templates = resolveTemplates(store);
   // Admin card density (live draft wins). "compact" forces the dense layout
@@ -64,6 +66,10 @@ export function ProductCard({
   const compactLayout =
     cardStyle === "compact" || (cardStyle === "standard" && variant === "compact");
   const bold = cardStyle === "bold";
+  // Editorial: no card at all. The photograph does the selling, so the border,
+  // the fill and the buttons all come off — a boutique grid stops reading as one
+  // the moment its products sit in boxes.
+  const editorial = cardStyle === "editorial";
 
   // Which CTA the card offers — a separate axis from density, so a compact card
   // can carry two buttons and a bold one a single icon.
@@ -114,8 +120,11 @@ export function ProductCard({
         display: "flex",
         alignItems: "baseline",
         flexWrap: "wrap",
+        // The editorial card centres its type, and `text-align` does not reach
+        // flex children — the row has to centre itself.
+        justifyContent: editorial ? "center" : undefined,
         gap: compactLayout ? "0 6px" : "2px 7px",
-        marginBottom: actions === "iconOnly" ? 0 : 11,
+        marginBottom: editorial || actions === "iconOnly" ? 0 : 11,
         minWidth: 0,
       }}
     >
@@ -146,10 +155,12 @@ export function ProductCard({
       onPointerEnter={qb.onPointerEnter}
       onPointerLeave={qb.onPointerLeave}
       style={{
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: 12,
-        overflow: "hidden",
+        background: editorial ? "transparent" : "var(--card)",
+        border: editorial ? "none" : "1px solid var(--border)",
+        borderRadius: "var(--radius-md)",
+        // The editorial card must NOT clip: with no fill or border there is
+        // nothing to clip to, and hiding overflow would cut the hover flyout.
+        overflow: editorial ? "visible" : "hidden",
         display: "flex",
         flexDirection: "column",
         boxShadow: bold ? "0 8px 24px -16px rgba(0,0,0,0.35)" : undefined,
@@ -160,7 +171,7 @@ export function ProductCard({
           The wrapper carries the positioning context for both. */}
       <div style={{ position: "relative" }}>
         <Link href={href} style={{ position: "relative", display: "block" }}>
-          <Media src={thumb} alt={product.name} label="product" radius={0} fit={imageFit} />
+          <Media src={thumb} alt={product.name} label="product" radius={0} fit={imageFit} ratio={imageRatio} />
           {pct > 0 ? (
             <span
               style={{
@@ -204,7 +215,15 @@ export function ProductCard({
             `layoutOwnsImage` sends `reveal` products to the sheet instead. */}
         {ctaOwnsImage ? <CardRevealActions qb={qb} /> : <CardVariantFlyout qb={qb} />}
       </div>
-      <div style={{ padding: "12px 13px 14px", display: "flex", flexDirection: "column", flex: 1 }}>
+      <div
+        style={{
+          padding: editorial ? "14px 0 0" : "12px 13px 14px",
+          textAlign: editorial ? "center" : undefined,
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
+      >
         <Link
           href={href}
           style={{
@@ -212,17 +231,29 @@ export function ProductCard({
             fontWeight: 500,
             color: "var(--text)",
             lineHeight: 1.3,
-            margin: "0 0 8px",
+            margin: product.unitLabel ? "0 0 3px" : "0 0 8px",
             minHeight: 35,
           }}
         >
           {product.name}
         </Link>
 
+        {/* Pack size — "kg", "pcs". The one thing a grocery or pharmacy shopper
+            compares before price, since "৳62" says nothing until you know
+            whether it buys a kilo or a piece. Rendered only when the merchant
+            set a sale unit, so a shop without units keeps its old spacing. */}
+        {product.unitLabel ? (
+          <span style={{ fontSize: 11.5, color: "var(--muted)", margin: "0 0 7px", lineHeight: 1.2 }}>
+            {product.unitLabel}
+          </span>
+        ) : null}
+
         {/* `iconOnly` has no room for a price row of its own — the price sits
             inline beside the button, which is the shape the compact density has
             always rendered. Every other layout keeps the price on its own line. */}
-        {actions === "iconOnly" ? (
+        {editorial ? (
+          priceRow
+        ) : actions === "iconOnly" ? (
           <CardCtaRow qb={qb} actions={actions} bold={bold} price={priceRow} />
         ) : (
           <>

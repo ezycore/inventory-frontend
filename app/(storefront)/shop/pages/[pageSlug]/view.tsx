@@ -9,6 +9,7 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { ContentBodyView } from "@/components/storefront/content-body-view";
+import { ContentFrame } from "@/components/storefront/content-frame";
 import { SkeletonLine } from "@/components/storefront/sf-skeleton";
 import type { ContentPageView } from "@/lib/storefront-client";
 
@@ -68,24 +69,22 @@ export default function StoreContentPage({
     );
   }
 
+  // The FRAME is the theme's (four of them, see ContentFrame); the body is
+  // always the merchant's markdown through the one renderer.
   return (
-    <article style={wrapStyle}>
-      <header style={{ paddingBottom: 18, marginBottom: 20, borderBottom: "1px solid var(--border)" }}>
-        <h1 style={{ fontSize: "clamp(26px, 4vw, 34px)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>
-          {page.title}
-        </h1>
-        {page.updatedAt ? (
-          <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--faint)" }}>
-            {t.lastUpdated}:{" "}
-            {new Date(page.updatedAt).toLocaleDateString(t.langCode, {
+    <ContentFrame
+      title={page.title}
+      meta={
+        page.updatedAt
+          ? `${t.lastUpdated}: ${new Date(page.updatedAt).toLocaleDateString(t.langCode, {
               day: "2-digit",
               month: "short",
               year: "numeric",
-            })}
-          </div>
-        ) : null}
-      </header>
+            })}`
+          : undefined
+      }
+    >
       <ContentBodyView body={page.body} />
-    </article>
+    </ContentFrame>
   );
 }

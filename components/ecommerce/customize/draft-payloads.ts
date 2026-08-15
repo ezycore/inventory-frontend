@@ -235,11 +235,31 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       preset: draft.preset,
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
-      footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
-      // `undefined`, never `""` — an empty field means "use the storefront's
-      // localized wording", and an empty string would print a blank line.
+      design: draft.design,
+      // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
+      // shop shows no sections at all", where unset means "use the default the
+      // home template implies" — the difference between a blank page and a
+      // normal one for any merchant who switches every section off.
+      homepageSections: draft.homepageSections.length
+        ? draft.homepageSections
+        : undefined,
+      // ⚠ Not editable here, and that is exactly why it must be listed. This
+      // object literal IS the new `theme`: the backend does `Object.assign` with
+      // documented "each provided sub-field replaces the existing one" semantics,
+      // so anything the draft omits is deleted on the next Save. A ready-made
+      // theme writes this field; without this line the first unrelated edit a
+      // merchant made would silently forget which theme their store is on.
+      appliedThemeId: draft.appliedThemeId,
+    },
+    // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
+    // is what lets a ready-made theme replace the look wholesale without
+    // touching a word the merchant typed. Each field is `undefined`, never `""`:
+    // empty means "use the storefront's localized wording", and an empty string
+    // would print a blank line.
+    copy: {
+      footerText: draft.footerText.trim() || undefined,
       footerNote: draft.footerNote.trim() || undefined,
       footerContactHeading: draft.footerContactHeading.trim() || undefined,
       footerNewsletter: trimNewsletter(draft.footerNewsletter),
@@ -279,6 +299,8 @@ export function toPreviewPayload(
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
+      design: draft.design,
+      homepageSections: draft.homepageSections,
     },
     templates: {
       home: draft.templates.home,
@@ -288,6 +310,12 @@ export function toPreviewPayload(
       cardActions: draft.templates.cardActions,
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
+      imageRatio: draft.templates.imageRatio,
+      categoryTiles: draft.templates.categoryTiles,
+      accountLayout: draft.templates.accountLayout,
+      contentLayout: draft.templates.contentLayout,
+      cartLayout: draft.templates.cartLayout,
+      shell: draft.templates.shell,
       // Reached through the preview's page switcher; each is read by exactly one
       // storefront page, via `useStoreTemplate`.
       collection: draft.templates.collection,

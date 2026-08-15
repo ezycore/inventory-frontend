@@ -11141,7 +11141,6 @@ export interface components {
                 preset: string;
                 brandColor?: string;
                 accentColor?: string;
-                footerText?: string;
                 homepageSections?: string[];
                 logo?: {
                     background?: string;
@@ -11156,6 +11155,17 @@ export interface components {
                     /** @enum {string} */
                     align?: "left" | "center" | "right";
                 };
+                design?: {
+                    font?: string;
+                    surface?: string;
+                    scale?: string;
+                    density?: string;
+                    radius?: string;
+                };
+                appliedThemeId?: string;
+            };
+            copy?: {
+                footerText?: string;
                 footerNote?: string;
                 footerContactHeading?: string;
                 footerNewsletter?: {
@@ -11231,6 +11241,12 @@ export interface components {
                 headerMenu?: string;
                 pagination?: string;
                 imageFit?: string;
+                imageRatio?: string;
+                categoryTiles?: string;
+                accountLayout?: string;
+                contentLayout?: string;
+                cartLayout?: string;
+                shell?: string;
             };
             customersConfig?: {
                 allowAccounts?: boolean;
@@ -11508,6 +11524,7 @@ export interface components {
             };
             seo?: unknown;
             theme?: unknown;
+            copy?: unknown;
             heroSlides?: unknown;
             heroBanner?: unknown;
             printable?: unknown;
@@ -11563,6 +11580,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
             } | null;
+            description?: string;
             children: {
                 _id: string;
                 name: string;
@@ -11574,6 +11592,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                 } | null;
+                description?: string;
             }[];
         };
         StorefrontCategoryResolve: {
@@ -11625,6 +11644,7 @@ export interface components {
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
+            unitLabel?: string;
             /** @enum {string} */
             outOfStockBehavior?: "hide" | "show" | "backorder";
             seo?: {
@@ -11675,6 +11695,7 @@ export interface components {
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;
+                unitLabel?: string;
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
                 seo?: {
@@ -17297,7 +17318,6 @@ export interface operations {
                         preset?: string;
                         brandColor?: string;
                         accentColor?: string;
-                        footerText?: string;
                         homepageSections?: string[];
                         logo?: {
                             background?: string;
@@ -17312,6 +17332,17 @@ export interface operations {
                             /** @enum {string} */
                             align?: "left" | "center" | "right";
                         };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                        };
+                        appliedThemeId?: string;
+                    };
+                    copy?: {
+                        footerText?: string;
                         footerNote?: string;
                         footerContactHeading?: string;
                         footerNewsletter?: {
@@ -17387,6 +17418,12 @@ export interface operations {
                         headerMenu?: string;
                         pagination?: string;
                         imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
                     };
                     customersConfig?: {
                         allowAccounts?: boolean;

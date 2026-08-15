@@ -8,7 +8,8 @@ import {
   useUpdateCollection,
   useUpdateStorefrontSettings,
 } from "@/services/api";
-import { getPreset } from "@/lib/storefront-theme";
+import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
+import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
   ContactButtonPage,
@@ -130,6 +131,22 @@ export interface CustomizeDraft {
   /** Contact-first heading; empty ⇒ the localized "Order by phone". */
   footerContactHeading: string;
   footerNewsletter: FooterNewsletterDraft;
+  /** Type family + spatial rhythm (Customize → Design). Always complete. */
+  design: StoreDesign;
+  /**
+   * The homepage as an ordered section list (Customize → Home page → Sections).
+   * Empty means "the merchant switched everything off", which the storefront
+   * resolver treats as unset rather than rendering a blank page.
+   */
+  homepageSections: string[];
+  /**
+   * Carried, never edited. The Save payload rebuilds `theme` as a whole object
+   * and the backend replaces the sub-document with it, so a field the draft does
+   * not hold is a field Save deletes. Nothing in the editor writes this — a
+   * ready-made theme does — and dropping it would erase which theme a store is
+   * on the first time its owner changed anything else.
+   */
+  appliedThemeId?: string;
   /** Category docs, not settings — saved through their own mutations. */
   collections: CollectionRowValue[];
 }
@@ -137,6 +154,7 @@ export interface CustomizeDraft {
 /** One row of the rail. Order = the order a shopper meets the part. */
 export type PartId =
   | "brand"
+  | "design"
   | "announcement"
   | "header"
   | "hero"
@@ -146,6 +164,10 @@ export type PartId =
   | "product"
   | "contact"
   | "footer"
+  | "account"
+  | "shell"
+  | "cart"
+  | "content"
   | "checkout";
 
 /**
@@ -156,16 +178,23 @@ export type PartId =
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   brand: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle],
+  design: (d) => d.design,
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => d.templates.home,
-  cards: (d) => [d.templates.productCard, d.templates.cardActions, d.templates.imageFit],
+  home: (d) => [d.templates.home, d.homepageSections],
+  cards: (d) => [
+    d.templates.productCard,
+    d.templates.cardActions,
+    d.templates.imageFit,
+    d.templates.imageRatio,
+  ],
   collections: (d) => [
     d.collections,
     d.templates.collection,
     d.templates.pagination,
     d.homeCollections,
+    d.templates.categoryTiles,
   ],
   product: (d) => d.templates.product,
   contact: (d) => d.contactButton,
@@ -179,6 +208,10 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerGroups,
     d.footerContentPages,
   ],
+  account: (d) => d.templates.accountLayout,
+  shell: (d) => d.templates.shell,
+  cart: (d) => d.templates.cartLayout,
+  content: (d) => d.templates.contentLayout,
   checkout: (d) => d.templates.checkout,
 };
 
@@ -238,19 +271,38 @@ function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
   };
 }
 
-function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collections"> {
+/**
+ * Saved settings → the draft shape.
+ *
+ * Exported for the theme store's Preview, which needs a throwaway draft to feed
+ * `BrowserPreview` — the merchant's real shop, with a theme laid over it, and
+ * nothing editable. Building that by hand would be a second, drifting answer to
+ * "what does a draft look like"; the whole point of the live preview is that it
+ * runs the same path the Customize page does.
+ */
+export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collections"> {
   const t = settings.theme ?? {};
+  // Merchant-written wording is a SIBLING of theme now — see StorefrontCopy.
+  const c = settings.copy ?? {};
   const presetDefaults = getPreset(t.preset);
   const a = settings.nav?.announcement;
   return {
     preset: t.preset ?? "default",
     brandColor: t.brandColor ?? presetDefaults.brandColor,
     accentColor: t.accentColor ?? presetDefaults.accentColor,
-    footerText: t.footerText ?? "",
+    footerText: c.footerText ?? "",
     // Seeded as the saved object, empty when unset — an absent field means
     // "leave it as it was", which is exactly what the resolvers default to.
     logoStyle: t.logo ?? {},
     homeCollections: t.homeCollections ?? {},
+    // Resolved, not raw: the pickers are controlled inputs, so an unset (or
+    // retired) axis has to arrive as a concrete id or its tile shows nothing
+    // selected while the storefront happily renders the default.
+    design: resolveDesign(t.design),
+    // Seeded from the saved list, else empty so the storefront falls back to the
+    // section list implied by the home template.
+    homepageSections: t.homepageSections ?? [],
+    appliedThemeId: t.appliedThemeId,
     templates: seedTemplates(settings),
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     badges: DEFAULT_BADGES.map((d, i) => ({
@@ -283,17 +335,74 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
       show: settings.nav?.footerContentPages?.show ?? true,
       title: settings.nav?.footerContentPages?.title ?? "",
     },
-    footerNote: t.footerNote ?? "",
-    footerContactHeading: t.footerContactHeading ?? "",
+    footerNote: c.footerNote ?? "",
+    footerContactHeading: c.footerContactHeading ?? "",
     footerNewsletter: {
-      heading: t.footerNewsletter?.heading ?? "",
-      blurb: t.footerNewsletter?.blurb ?? "",
-      buttonLabel: t.footerNewsletter?.buttonLabel ?? "",
+      heading: c.footerNewsletter?.heading ?? "",
+      blurb: c.footerNewsletter?.blurb ?? "",
+      buttonLabel: c.footerNewsletter?.buttonLabel ?? "",
     },
   };
 }
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * Stamp a ready-made theme into a draft — **the one place that decides what a
+ * theme is allowed to write.**
+ *
+ * It returns a patch rather than saving, so applying a theme is an ordinary
+ * unsaved edit: the live preview repaints instantly, the save bar reports the
+ * parts that changed, **Discard is the undo** and **Save is the confirm**. No
+ * snapshot table, no "are you sure" modal, no second code path that could
+ * persist something the preview never showed.
+ *
+ * Everything it touches is look. `footerText`, `footerNote`, the newsletter
+ * copy, `navHeader`, `footerGroups`, `badges`, `heroSlides`, `heroBanner` and
+ * the collections are **absent on purpose** — that is the `theme`-vs-`copy`
+ * split (see `StorefrontCopy`) expressed as code. A merchant who tries three
+ * themes must still have every word they wrote.
+ *
+ * `templates` is SPREAD over the current ones, never replaced: the bundle
+ * deliberately omits `hero`, `headerMenu` and `checkout` (they depend on what
+ * content a shop actually has), and a wholesale replace would blank them.
+ */
+export function applyThemeToDraft(
+  draft: CustomizeDraft,
+  theme: ReadyMadeTheme,
+): Partial<CustomizeDraft> {
+  return {
+    preset: "default",
+    brandColor: theme.brandColor,
+    accentColor: theme.accentColor,
+    design: resolveDesign(theme.design),
+    templates: { ...draft.templates, ...theme.templates },
+    // The homepage composition — the half that makes themes structurally
+    // different rather than repainted. Replaced outright, not merged: a theme's
+    // page is an ordered whole, and spreading the previous list over it would
+    // leave a grocery shop's search hero sitting above a fashion editorial.
+    homepageSections: [...theme.sections],
+    appliedThemeId: theme.id,
+  };
+}
+
+/**
+ * Has the merchant edited the look since applying `appliedThemeId`? Compares
+ * only what a theme writes, so changing footer wording — which a theme cannot
+ * touch — must never read as "modified".
+ */
+export function isThemeModified(draft: CustomizeDraft): boolean {
+  const theme = getReadyMadeTheme(draft.appliedThemeId);
+  if (!theme) return false;
+  const applied = applyThemeToDraft(draft, theme);
+  return (
+    draft.brandColor !== applied.brandColor ||
+    draft.accentColor !== applied.accentColor ||
+    !same(draft.design, applied.design) ||
+    !same(draft.templates, applied.templates) ||
+    !same(draft.homepageSections, applied.homepageSections)
+  );
+}
 
 export interface CustomizeDraftApi {
   draft: CustomizeDraft;
@@ -302,6 +411,11 @@ export interface CustomizeDraftApi {
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
+  /**
+   * Stage a ready-made theme as an unsaved edit — the preview repaints, Discard
+   * undoes it, Save confirms. Returns false for an unknown id.
+   */
+  applyTheme: (themeId: string) => boolean;
   /** Parts whose values differ from what the server last confirmed. */
   dirtyParts: PartId[];
   isDirty: boolean;
@@ -374,6 +488,12 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
       setDraft((d) => ({ ...d, templates: { ...d.templates, [key]: value } })),
     [],
   );
+  const applyTheme = useCallback((themeId: string) => {
+    const theme = getReadyMadeTheme(themeId);
+    if (!theme) return false;
+    setDraft((d) => ({ ...d, ...applyThemeToDraft(d, theme) }));
+    return true;
+  }, []);
   const patchAnnouncement = useCallback(
     (p: Partial<AnnouncementDraft>) =>
       setDraft((d) => ({ ...d, announcement: { ...d.announcement, ...p } })),
@@ -455,6 +575,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patchAnnouncement,
     patchContactButton,
     patchContentPages,
+    applyTheme,
     dirtyParts,
     isDirty,
     discard,

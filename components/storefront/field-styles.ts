@@ -17,7 +17,7 @@ export const sfInput: CSSProperties = {
   border: "1px solid var(--border-strong)",
   background: "var(--surface)",
   color: "var(--text)",
-  borderRadius: 8,
+  borderRadius: "var(--radius-sm)",
   padding: "11px 13px",
   fontFamily: "inherit",
   fontSize: 16,

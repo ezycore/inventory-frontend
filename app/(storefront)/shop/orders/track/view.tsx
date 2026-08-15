@@ -7,6 +7,7 @@ import { storefrontApi } from "@/lib/storefront-client";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import { storeHref } from "@/lib/storefront-links";
+import { ContentFrame } from "@/components/storefront/content-frame";
 
 /**
  * The recovery path for a buyer who lost their tracking link.
@@ -19,13 +20,6 @@ import { storeHref } from "@/lib/storefront-links";
  * Deliberately linked from the footer rather than the main flow: the tracking link
  * is the primary surface, and this exists for the case where it was deleted.
  */
-
-const wrap: CSSProperties = {
-  maxWidth: 460,
-  margin: "0 auto",
-  width: "100%",
-  padding: "28px var(--pad) 40px",
-};
 
 const input: CSSProperties = {
   width: "100%",
@@ -69,12 +63,10 @@ export default function View() {
 
   const ready = orderNumber.trim().length > 0 && isValidBdPhone(phone);
 
+  // The frame is the theme's (four of them, see ContentFrame); the form is not.
   return (
-    <div style={wrap}>
-      <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>
-        Look up your order
-      </h1>
-      <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 18 }}>
+    <ContentFrame title="Look up your order">
+      <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 18, marginTop: 0 }}>
         Enter your order number and the phone number you ordered with.
       </p>
       <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -111,6 +103,6 @@ export default function View() {
           {busy ? "…" : "Find my order"}
         </button>
       </form>
-    </div>
+    </ContentFrame>
   );
 }

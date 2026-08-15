@@ -127,6 +127,128 @@ reads as two filters at once.
   unprefixed, e.g. `sf-search-view`). The org's `brandColor` overrides `--primary`
   inline, and **may be near-black — never rely on `var(--primary)` being visible on dark cards**
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
+- **Design tokens (`theme.design`) — the merchant's typeface, ground + rhythm.** Five axes —
+  `font` (6 curated Latin+Bengali pairs), `surface` (`--page/--card/--surface/--text/--border`),
+  `scale` (`--h1/--h1m/--h2`), `density`
+  (`--pad/--gap/--cols`) and `radius` (`--radius-sm/md/lg`) — catalogued with their resolver in `lib/storefront-theme.ts`
+  (`DESIGN_FONTS`/`DESIGN_SURFACES`/`DESIGN_SCALES`/`DESIGN_DENSITIES`, `resolveDesign`, `designAttrs`), edited in
+  Customize → **Design**, and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
+  `storefront.css`. Six rules, and the first two are the ones that bite:
+  - **Never stamp these as inline style vars.** `--pad/--gap/--cols/--h1/--h1m/--h2` are redefined
+    at `680px` and `1000px`; an inline var outranks every media query and freezes a themed store at
+    its phone spacing. They are `data-*` attributes for exactly this reason — the same mechanism
+    `[data-brand]` already used, and `StoreShell` stamps both together.
+  - **A scale/density option needs its block in all THREE places** (base + both `@media` blocks) or
+    it silently loses its responsive ramp — which typechecks, lints and tests clean.
+  - **`designAttrs` omits an axis left at its default**, so `.sf-root` stays the single definition
+    of the built-in look and there is no `[data-density="cozy"]` block to drift from it. An
+    untouched store renders byte-identical to before the feature existed.
+  - **`font-family` is re-declared on the bare `.sf-shell` rule** and must stay there: `.sf-root`
+    already computed its own from `--font-storefront`, and descendants inherit that *computed*
+    value, so redefining the variable lower down does nothing on its own. Fonts are declared in
+    `app/(storefront)/fonts.ts` (all preloaded families off except the default pair) — and every
+    option pairs a Latin face with a **Bengali** one, since a Latin-only choice renders half the
+    market's copy in the browser fallback and no gate can see it.
+  - **`radius` is the one axis with no `@media` repeats** — a corner does not grow with the
+    viewport, so `--radius-sm/md/lg` have exactly one definition each. ⚠ **`999px` and `50%` are
+    NOT part of that scale and must never be tokenised**: they mean "pill" and "circle", so
+    swapping them would turn badges and avatars into squares on the sharp setting — a different
+    *shape*, not a different radius. Same for the deliberate `0`s and the chat-bubble tails.
+    Migration is partial by design: the look-carrying surfaces (`.sf-hero`, `.sf-account-nav`,
+    `.sf-acct-tab`, `.sf-pdp-zoom`, `.sf-qb-panel`, `.sf-footer-trustbar`, `product-card.tsx`,
+    `sfInput`) are on the tokens; the long tail of ~130 inline `borderRadius` values still isn't,
+    and moves over file-by-file under the `// coding-standard: maintained` convention. **When you
+    touch a storefront file, swap its radii for the tokens** — sm = controls, md = cards/panels,
+    lg = big surfaces.
+  - **`surface` is the ground, NOT the brand.** It owns `--page`, `--card`, `--surface`,
+    `--surface-2`, `--text`, `--muted`, `--faint`, `--border`, `--border-strong`, `--header` and the
+    `--discount` pair. It must never set `--primary`, `--primary-hover` or `--primary-soft`: those
+    resolve from the merchant's own colour in the `.sf-shell[data-brand]` block, and `--primary-soft`
+    is a `color-mix` against `transparent` precisely so it picks up whichever ground sits behind it.
+    A surface that set a brand colour would make picking a *paper* silently repaint a shop's *mark*.
+    ⚠ **Every surface needs a dark block too** (`.sf-root[data-theme="dark"] .sf-shell[data-surface=…]`).
+    Dark is a shopper toggle, not a theme choice, so a surface with no dark variant drops the shopper
+    back onto the default near-black mid-session. ⚠ And it needs listing in the `@media print` reset —
+    those rules sit on a **descendant** of `.sf-root`, so a themed shop otherwise inherits its tint
+    straight past the reset and prints a full-bleed ground on the merchant's paper.
+    This axis is why the themes finally read as different shops. Four of them had four brand hues,
+    four typefaces and four page skeletons and still looked related, because all four were white
+    cards on a near-white page — the first thing a shopper's eye registers, and the last thing any
+    other axis could touch.
+  - ⚠ **`surface` is the ONE axis declared on `.sf-root`, not `.sf-shell`** — keyed off the shell with
+    `:has()` (`.sf-root:has(.sf-shell[data-surface="parchment"])`). Every other axis sets tokens only
+    its own descendants read, so the shell is the right home for them. `--page` is different:
+    **`.sf-root` paints it too**, and `.sf-root` is a shared route-group div with no store data, so it
+    cannot carry an attribute of its own. Declared on the shell, the tokens sat one level too deep and
+    `.sf-root` went on painting the default `#f8fafc` behind a cream shop — invisible while the shell
+    covers the viewport, and plainly wrong the instant it does not. `.sf-shell` inherits them by
+    ordinary cascade, so nothing downstream changed.
+  - ⚠ **And `body` needs its own rule per surface, per theme.** The browser takes the OVERSCROLL
+    CANVAS colour from `<body>`, which belongs to the admin's root layout and carries its near-black
+    `bg-background` — so a cream shop flashed black on a rubber-band scroll and showed black under any
+    page shorter than the viewport. `body:has(.sf-shell…)` scopes the fix to storefront pages. The
+    values there are **literal repeats** of that surface's `--page`, because body sits outside
+    `.sf-root` and cannot read its custom properties — a `var(--page)` on body silently resolves to
+    the fallback, always. Change the two together. (The plain `body:has(.sf-shell)` pair is not
+    new-feature scaffolding: the default surface had the same defect from the start.)
+  - **Both of these were found by sampling PAINTED PIXELS, not by reading tokens.** `getComputedStyle`
+    on `.sf-shell` reported the correct `--page` the whole time. Walking up from
+    `document.elementFromPoint(x, y)` to the first ancestor with a non-transparent background is what
+    exposed the layer above it still painting slate-white. When a colour "looks wrong" but the token
+  - ⚠ **`hero-card`, `hero-split` and `search-hero` all paint `--card`, so on a themed ground the
+    FIRST SCREEN is near-white.** That is the loudest defect a `surface` can have: the ground never
+    gets to introduce itself. `hero-open` exists for this — copy on the page, picture in an
+    `--accent-soft` panel, no frame at all. **Pick it whenever the page's own colour is meant to be
+    seen.**
+  - **Probe the middle of the page, not the gutters.** This bug survived four rounds of "the
+    background is wrong" because every check sampled `x=20`/`x=40` — the margin *beside* the hero
+    card, which was correctly `--page` the whole time. Screenshot the page, draw it into a canvas and
+    read `getImageData`; a full-frame histogram plus a horizontal strip across the top would have
+    found it in one pass. `getComputedStyle` and `elementFromPoint` both report a DECLARED colour and
+    neither can see what is covering it.
+  - ⚠ **Every desktop header anatomy MUST render `<ThemeBtn>`** (directly, or via `<UtilityBar>`).
+    The shopper's light/dark choice is persisted to `localStorage['ezy-sf-theme']` and re-applied
+    before paint by the script in `app/(storefront)/layout.tsx` — so an anatomy without the toggle
+    does not hide a preference, it **strands** the shopper in whichever theme they last picked, on
+    every future visit, with no way back. `minimal`, `search-first` and `boutique` all shipped that
+    way. `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component, so the
+    two cannot drift. `components/storefront/header/desktop-variants.test.tsx` discovers every
+    exported `*Desktop` from the source and fails if one has no exit.
+  - **When a colour looks wrong to the owner but right to you, compare PERSISTED STATE before
+    anything else.** A fresh QA profile has no `ezy-sf-theme`, so it always renders light; the
+    owner's browser had `dark` from an earlier visit and no control to undo it. Four rounds of
+    "the background does not match" were two people correctly describing two different renderings.
+    `localStorage.getItem('ezy-sf-theme')` is the first thing to print in any storefront colour QA.
+    is right, something else is painting — probe the point, don't re-read the variable.
+  - **`--font-display` is a second font variable, spent only on `h1`–`h4` and `.sf-display`.** It is
+    declared on the bare `.sf-shell` rule as `var(--font-storefront)`, so it equals the body face on
+    every option but `market` and the whole mechanism is invisible until a shop asks for it. It has
+    to be declared *there* and not on `.sf-root`: a custom property that references another one is
+    substituted on the element that declares it, so on `.sf-root` it would resolve against
+    `.sf-root`'s own `--font-storefront` and freeze every shop's headings to the default family,
+    ignoring `[data-font]` entirely. ⚠ **Never widen it to product names, prices, buttons or form
+    labels.** The reason the storefront had no display option before 2026-08-14 is that one variable
+    set all of them at once, and a display face drawn for 40px is illegible at 13px.
+  - **`--accent` / `--accent-soft` / `--on-accent` are the SECOND colour, and they default to the
+    brand.** `theme.accentColor` had been a stored field that rendered nowhere — `--sf-accent` was a
+    plain alias of `--primary` — so every shop was single-hued no matter what the merchant picked.
+    `StoreShell` now stamps `[data-accent]` beside `[data-brand]`, **only when the accent actually
+    differs from the brand** (an accent equal to the brand is not a second colour, and the fallback
+    already covers it). Spend it on the QUIET informational tint — hero badge chips, the trust band,
+    provenance/promise rows. ⚠ **Never on a call to action:** an accent that competes with the buy
+    button is a second primary. Measuring the Fresh Market mockup against the shop is what found
+    this — the design painted 6 elements in its brand and 9 in its second colour, while the shop
+    painted 26 in the brand, because it had nothing else to paint with.
+  - **`radius: "pill"` is the step where `--radius-sm` stops being a radius and becomes a shape**
+    (999px controls over 20/28px panels). It is its own option rather than bigger numbers on `round`
+    because it is a different decision. ⚠ It does not contradict the "999px is a shape constant"
+    rule above: that rule protects avatars and badges, which are circles at *every* setting and
+    hardcode their own; here only the controls step moves, so nothing holding a paragraph becomes a
+    lozenge.
+  - **A hardcoded `borderRadius` on a control is a bug, not a detail.** The card CTA carried a
+    literal `7px`, which meant the merchant's Corners setting never reached the single most visible
+    button in the shop — invisible to typecheck, lint and tests, and only found by measuring the
+    rendered page against a design.
 - **Mobile rules — the storefront is phone-first, and inline styles can't hold a media query.**
   Anything that must change at a breakpoint goes in `storefront.css` behind a class (that is why
   `.sf-pdp-*` and `.sf-footer-*` exist), never into a `style={{…}}`. Four standing rules, each
@@ -366,6 +488,389 @@ Four files, in payload order:
   header instead of reverting to the org mark.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+
+### The homepage is a SECTION LIST, not a template (2026-08-12)
+
+`components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
+over `resolveSections(store, { draft, isSectionId, presets })`. **`home-classic.tsx`,
+`home-hero-split.tsx` and `home-minimal.tsx` are gone** — `templates.home` now selects a *default
+section list* (`HOME_PRESET_SECTIONS`), not a component.
+
+**Why it changed, and the rule it leaves behind.** Those three components each hardcoded a sequence
+of the same five ingredients, so a theme could pick one of three arrangements and repaint it — which
+is exactly why three "completely different" themes still read as one website. `theme.homepageSections`
+had been modelled on the backend since the beginning and was **read by nothing**.
+
+> **To make shops look more different, add a SECTION — never a branch inside a component, and never a
+> per-theme component.** A section is shared code any theme may compose, so a fix lands once. A
+> per-theme component multiplies every future feature by the number of themes, which is the trap the
+> whole design exists to avoid. Same rule as the design tokens, applied to structure instead of style.
+
+- Sections take one prop shape (`SectionProps` in `home-shared.tsx`) and get *everything* the page
+  fetched — `shop/page.tsx` already loads it all in one parallel batch for exactly this reason.
+- **Every section returns `null` when its own data is empty.** A reordered page must not grow holes,
+  and this is what lets `deal-strip` (no live campaign) or `trust-band` (no badges written) sit in a
+  theme harmlessly.
+- ⚠ **`resolveSections` falls back when NOTHING survives its id filter.** Not defensive padding: every
+  seeded store carried four ids from the pre-registry catalogue (`banner`/`featured`/`categories`/
+  `products`) that no section answers to, so a strict filter blanked the homepage of every demo shop
+  while stores with an unset value worked perfectly. `DEFAULT_HOMEPAGE_SECTIONS` on the backend was
+  corrected in the same change; the two guards are independent on purpose. The frontend's own copy
+  of that list (`HOMEPAGE_SECTIONS` / `DEFAULT_HOMEPAGE_SECTIONS` in `lib/storefront-theme.ts`) had
+  no callers left and was **deleted** — a second, wrong answer to "what sections exist" is worse
+  than none.
+- Header anatomies live in `components/storefront/header/desktop-variants.tsx` (extracted from
+  `store-header.tsx` when it passed 400 lines). Five: `classic`, `minimal`, `centered`,
+  `search-first` and `boutique`. **Mobile deliberately has no per-variant version** — below 680px
+  they would all collapse to the same bar, and five copies is five places to fix the next
+  touch-target bug.
+  - `search-first` is a **white** bar — pill search, a filled brand-coloured cart pill, and an
+    optional delivery chip. It was a solid brand-coloured band until 2026-08-13, and that band is
+    precisely what made the first grocery theme look cheap: using the brand as a *surface* makes the
+    loudest thing on the page a rectangle and flattens the merchant's own logo against it.
+  - `clinical` is the **sixth**, added 2026-08-14 for Meridian Care: logo, one wide plain search
+    field, icons. No utility bar, no category row, no fill. It exists because `classic` was standing
+    in for it and made the pharmacy theme read as Classic-with-teal — a shopper here arrives with a
+    name to type, so search must be the widest thing on the bar, but the shop opens on a trust band
+    that already does the wayfinding, which makes a category row redundant and a utility strip
+    noise. Distinct from `search-first`, the other search-led bar, by being plainer and taller:
+    that one is a pill with a filled cart button and a delivery chip for someone assembling thirty
+    lines; this is for someone reading carefully.
+  - `boutique` **replaced `editorial`** in the same change. Same anatomy — wordmark, icons, nav on
+    its own row — but it carries a real search field, styled as a hairline rule rather than a box.
+    Editorial hid search behind an icon because that is the luxury-brand convention; for a BD shop
+    with two hundred sarees whose customers type "jamdani" that is a bad trade. **The
+    differentiation is the treatment, not the absence of a control someone needs.** Pre-launch, so
+    the id was renamed outright rather than kept as an alias.
+  - The two shapes are CSS wrappers (`.sf-search-pill`, `.sf-search-rule` in `storefront.css`), not
+    a forked search component. They need `!important`: `SearchInput` sets its box geometry inline —
+    storefront components style against CSS vars, not classes — and an inline style outranks every
+    selector.
+- **The `search-first` cart pill carries count AND subtotal** (`2 · BDT 12.00`), not a bare count.
+  A shopper filling a weekly basket watches that number. `useCartNav` exposes `cartSubtotal`,
+  selected separately from `cartCount` so the five headers that ignore it re-render no more often
+  than before. **Subtotal, never total** — shipping needs a district the shopper has not picked, so
+  anything larger here is contradicted at checkout.
+- **The delivery chip has no field of its own, on purpose.** `search-first` reads
+  `trustBadges[0].text`, which is the sentence a merchant already writes ("Delivery inside Dhaka in
+  24h"). No new field, no new empty state. It reads the **preview draft first** like everything else
+  in `store-header.tsx` — reading only the saved store left the chip frozen while the footer beside
+  it repainted.
+- `productCard: "editorial"` is unaffected by the header rename — the chrome-less **card** keeps its
+  id. Two different axes that happened to share a word.
+  It must **not** clip (`overflow: visible`): with no fill there is nothing to clip to, and hiding
+  overflow cuts the hover flyout.
+- **`category-tiles` has two presentations, chosen by `templates.categoryTiles`, never by theme.**
+  `tile` (photo on a `--primary-soft` card, name underneath) and `overlay` (a 3:4 photo with the
+  name across it behind a scrim). Which reads better is a question about the merchant's own
+  pictures — product shots vs scenes — so it is a setting they own, and it is the model for how to
+  widen a section rather than branching it.
+  - The no-image fallback's ground **depends on what it sits on**: `--card` inside `tile` (the card
+    is already tinted, so a tinted fallback merged card and photo-slot into one flat blob of brand
+    colour), `--primary-soft` in `overlay` (no card behind it).
+  - ⚠ **There is a THIRD shape, and it is decided per SECTION, not per tile.** If no category has a
+    photo, every tile drops the reserved 1:1 photo slot and becomes a 42px initial disc over the
+    name — about a third the height. Reserving space for a photograph that is never coming is what
+    made a shop with seven unphotographed departments open on seven ~200px blocks each containing
+    one letter, filling the whole first screen. Asked once for the section because a grid mixing
+    tall and short tiles stretches every row to the tallest.
+  - ⚠ **A FOURTH shape: a described tile is a ROW.** When the merchant has written
+    `category.description`, the compact tile turns on its side — disc left, name over the line — and
+    the track widens to 210–330px. That is the pharmacy's "shop by concern" card ("Diabetes /
+    Strips, meters, insulin"), and it is the same component reading the same field, decided by
+    whether the merchant actually wrote anything. `overlay` never draws the line: the name already
+    sits on a photograph behind a scrim, and a second line of type over an image we have never seen
+    is where legibility runs out.
+  - **`description` had to be added to the LIST payload** (`storefront-taxonomy.listCategories` +
+    `storefrontCategoryNodeShape`). It was already stored and already served on the collection PAGE;
+    the list simply never selected it, so a tile had nothing but a name. The list DTO declares it
+    `.optional()` and the service omits it when blank — the resolve DTO keeps `.nullable()` because
+    there a null is a meaningful "nothing written".
+  - ⚠ **The grid lives in `.sf-cat-tiles` (storefront.css), not inline, because it needs a
+    breakpoint** — and the two halves are different rules. Phone: `1fr` as the track max so tiles
+    share the row. Desktop: a px cap, or seven departments stretch to ~150px and the wayfinding row
+    outweighs the products. **A definite px max is what makes `auto-fit` count tracks at the MAX
+    rather than the min**, which is why a 132px cap put only *two* tiles on a 358px phone row. The
+    component supplies `--tile-min` / `--tile-max`; the media query is the CSS's.
+
+### The SHELL axis — what makes two shops different KINDS of site (2026-08-14)
+
+Read this before adding another header, section or page layout to "make the themes more different".
+It probably will not work, and here is why.
+
+Until now every theme shared **one page skeleton**: announcement → header → campaign strip →
+breadcrumb → `<main>` → footer. Six header anatomies, eighteen home sections and four layouts each
+for cart/checkout/account all varied what sits INSIDE `<main>`. That is why four themes still read as
+one kind of website — a full-width bar over a vertical stack of full-width blocks is *a* kind of
+ecommerce site, and it was the only one on offer.
+
+`templates.shell` picks the skeleton itself, and it is the only axis that changes every page at once:
+
+| Shell | Shape | Stamped by |
+|---|---|---|
+| `stacked` | the original — header on top, one column beneath | all four bundled themes |
+| `rail` | a persistent department sidebar down the left of **every** page | nothing bundled — see below |
+
+`store-shell.tsx` is now a registry over `shells/`. **A shell owns only where the announcement,
+header, rail, content and footer sit relative to one another** — everything it arranges comes from
+`shells/shell-parts.tsx`, so a footer fix is not a fix to repeat in each skeleton.
+
+⚠ **A new shell means auditing every section for duplication.** The rail lists departments on every
+page, so `category-tiles` drew the same seven names twice on the home screen — the FOURTH time this
+storefront has shipped that bug (trust badges twice, the hero photograph twice, the promises twice).
+Two guards now exist and both are load-bearing:
+
+- `CategoryRow` returns null when `ctx.hideCategoryRow`, which the `rail` shell sets — the shell is
+  the half that knows there is a rail, so the header stays free to be any anatomy.
+- `CategoryTiles` returns null under `rail`. Suppressed rather than dropped from the bundle, because
+  a merchant can switch back to `stacked` and then the tiles are the home page's only category nav.
+
+The rule this generalises: **a section renders nothing when it has nothing to ADD** — and "nothing to
+add" now includes "the shell is already saying it".
+
+⚠ **The rail is `sf-desktop-only`, not a collapsible drawer.** A 218px column on a 390px screen is
+not navigation, and the mobile bottom nav plus the header search already cover the job. A second
+mobile nav competing with the bottom bar is how a shopper ends up with two half-answers.
+
+⚠ **No bundled theme stamps `rail` today** — Fresh Market did for a few hours on 2026-08-14 and was
+moved back to `stacked` the same day, when the merchant's own Claude Design mockup answered the
+department question differently (a disc strip on the home page, and the left column spent on FILTERS
+on the collection page). The shell is still registered, still offered in Customize → **Page layout**,
+and its two duplication guards are still live and still correct — do not delete them as dead code on
+the strength of "nothing uses it". The moment any theme or merchant picks `rail`, `CategoryRow` and
+`CategoryTiles` have to keep quiet or the departments print twice again.
+
+**Adding a shell:** write it in `shells/`, compose it from `shell-parts.tsx`, register it in `SHELLS`,
+add the id to the `StoreTemplates["shell"]` union, the `SHELL` map, and `TEMPLATE_OPTIONS.shell` —
+then audit every section that could now be saying the same thing twice.
+
+### The theme store is a picker beside one live preview (2026-08-15)
+
+`app/(protected)/ecommerce/themes/page.tsx` is a two-column page: `ThemeList` (a row per theme) on
+the left, `ThemeStage` (the merchant's own shop, rendered in the selected theme) on the right.
+Selecting a row swaps the draft streamed into **one** long-lived `BrowserPreview`.
+
+It replaced a grid of four equal cards with the preview behind a modal. Three things were wrong with
+that, and the third is the one that could not be patched:
+
+- Nothing marked the theme the shop was actually running — the live one looked like the three it
+  was not.
+- The only thing that answers *what will my shop look like* took two clicks and could never sit
+  beside a second theme to be compared with.
+- **The modal mounted a fresh iframe per open**, so every preview server-rendered the merchant's
+  SAVED theme, painted it, and only then applied the draft. Opening a preview flashed the
+  currently-active theme first, every single time. One frame that never reloads has no such moment.
+
+⚠ **Do not give the list rows a picture of the theme.** A drawn thumbnail beside a live render of
+the same theme is the same claim made twice, and the drawing is the one that can be wrong. A row
+carries the ground, the panel and the brand as a three-colour chip (`surfaceSwatch` + `brandColor`,
+the same values the storefront resolves) and nothing else — enough to tell two rows apart, not enough
+to compete with the answer next to it. `theme-sketch.tsx`, which drew each theme's whole section list
+in miniature, was deleted for exactly this reason hours after being written: it was the right answer
+to a card grid and redundant the moment the real shop was permanently on screen.
+
+⚠ **`ThemeStage` writes nothing.** Apply routes to `/ecommerce/customize?theme=<id>`, the unchanged
+staging flow where Save and Discard live. The page has no mutation of its own.
+
+**Selection resolves, it is not seeded.** `picked ?? activeId` — rather than an effect that copies
+`activeId` into state once the settings query lands, which would fight a merchant who clicked a row
+while the request was still in flight.
+
+### Per-theme PAGE LAYOUTS (the layout registry, 2026-08-14)
+
+Until now a theme could only vary a page *within* one component. That left the
+cart, the account area and checkout looking identical in every theme apart from
+colour and radius — roughly half a shopper's session — and the owner rejected it
+twice. So some pages now have **four whole layouts**, and the storefront picks
+one at runtime.
+
+**Five surfaces now have layout registries**, and they all follow the same shape:
+
+| Surface | Key | Layouts (default first) | Logic lives in |
+|---|---|---|---|
+| Account area | `accountLayout` | `sidebar` · `tabs` · `panel` · `editorial` | `account/use-account-area.ts` |
+| Checkout | `checkout` | `single` · `multi` · `guided` · `editorial` | `checkout/use-checkout.ts` |
+| Cart | `cartLayout` | `panel` · `compact` · `cards` · `editorial` | `cart/use-cart-page.ts` |
+| CMS pages + order tracking | `contentLayout` | `centered` · `banner` · `panel` · `editorial` | (no state — `ContentFrame` is chrome only) |
+| Home page | `theme.homepageSections` | a section LIST, not a registry | — |
+
+`checkout` was **widened from two values to four** rather than gaining a parallel
+`checkoutLayout` key: merchants already have `single-page`/`multi-step` saved and
+the two new ids are purely additive. Every other surface got a new key.
+
+**The account area was the first, and it is the template for the rest.** Three
+files, and the split between them is the whole point:
+
+| File | Owns | Rule |
+|---|---|---|
+| `account/use-account-area.ts` | every behaviour — session refresh, `?tab=&order=` deep link, logout-and-evict, scroll-into-view | **one implementation, four consumers** |
+| `account/account-content.tsx` | which section is on screen | shared; sections are the same job in every shop |
+| `account/layouts/*.tsx` | the shell only — nav shape, where identity and logout sit, how many screens there are | may differ without limit |
+
+> **A layout may not own behaviour.** The moment a layout does its own fetching,
+> URL writing or session handling, the four drift and the bug the owner was
+> warned about arrives. `panel` is allowed its own `drilled` state because no
+> other layout has that screen — that is presentation, not behaviour.
+
+**Keyed on a LAYOUT id, never a theme id.** `templates.accountLayout` is an
+ordinary template value a theme stamps like any other, so:
+
+- the live preview repaints (the layout reads the preview store first),
+- the Customize picker works (Account area part → `PART_TEMPLATE_KEY`),
+- Classic's reset restores it,
+- and a merchant can keep Muslin's shop with Classic's account area.
+
+Reading `appliedThemeId` in a component breaks all four. Don't.
+
+⚠ **The fallback in `resolveTemplates` is load-bearing here in a way it is not
+elsewhere.** An unresolved `productCard` renders a slightly wrong card; an
+unresolved `accountLayout` would index the registry with `undefined` and render a
+**blank page** to a signed-in shopper. `account-area.tsx` therefore falls back
+twice — `resolveTemplates` clamps the value and `?? SidebarAccount` catches a
+registry miss — and `storefront-templates.test.ts` pins both.
+
+⚠ **Checkout's gates stay in `view.tsx`, never in a layout.** Hydration, the
+email-verification gate, the placed-order card and the empty cart all answer
+"should a checkout render at all" — a layout that got one wrong would take an
+order it should have refused. Same for the cart's hydration + empty state.
+
+⚠ **A layout may not compute money.** `useCheckout` owns the shipping zone, the
+coupon quote and the total; `useCartPage` owns the "From ৳X" delivery estimate
+(the zone is only known at checkout, so the cart quotes the *cheapest* possible
+fee — flattening that into one number understates delivery, which is the largest
+single cause of abandonment). A layout that recomputed either would be reported
+as "the price changed at the last step".
+
+**Adding a layout to an existing surface:** add the file, add it to that
+surface's registry map, its `StoreTemplates` union, its map in
+`storefront-templates.ts`, and its `TEMPLATE_OPTIONS` entry.
+
+**Adding a whole new surface:** extract a `use<Surface>` hook first, then the
+shared blocks, then the layouts — in that order. Writing the layouts first is how
+the logic ends up copied four times. Then wire the key through: backend
+types/validator/model/`organization.dto`, `StoreTemplatesRaw`, `StoreTemplates`,
+`DEFAULT_TEMPLATES`, the `pick()` map, `TEMPLATE_OPTIONS`, `draft-payloads`,
+`preview-bridge`, `use-sf-preview-store` (4 places), `PART_SLICE`, `PARTS` +
+`PART_TEMPLATE_KEY`, and all four theme bundles. The backend stores a loose
+string, so the OpenAPI contract only changes because the DTO gained a field.
+
+### Ready-made themes (Online Store → Themes)
+
+**A theme is DATA, never code** — `lib/storefront-themes.ts` is a catalogue of bundles that get
+*stamped* into the merchant's own `theme` + `templates`. The storefront renders from their settings
+and never learns a theme was involved. That is what keeps one codebase serving every tenant: a new
+theme is a row in that file, so a checkout fix is written once, not once per theme.
+
+**Making themes look more different means widening the token vocabulary, not adding branches.** If a
+look cannot be expressed by `theme.design` + `templates.*`, add an axis — never special-case a theme
+id in a component. `apply-theme.test.ts` fails if a bundle names a template value no picker offers.
+
+**Preview is the merchant's REAL shop, not a drawing** (2026-08-13, moved out of a modal 2026-08-15).
+`ThemeStage` renders the same `BrowserPreview` the Customize page does, fed a **throwaway** draft:
+`seedDraft(settings)` (exported for this) with `applyThemeToDraft` laid over it. It replaced a
+sketch composed from the theme's own `sections` list — structurally honest, and still the wrong
+thing, because the question a merchant is asking is "would MY shop look good like this" and a grey
+rectangle where their photographs go cannot answer it. Nothing here writes: Apply routes to the same
+`?theme=` staging flow. `BrowserPreview` takes a `viewportHeight` prop because its default is derived
+from `100vh` and overflows any container that caps its own height.
+
+**The apply flow has no bespoke machinery**, and that is the design:
+`/ecommerce/customize?theme=<id>` stages the bundle into the draft as an ordinary unsaved edit, so
+the existing live preview *is* the preview, the save bar lists what changed, **Discard is the undo
+and Save is the confirm**. There is no snapshot table and no confirmation modal — and therefore no
+second code path that could persist something the preview never showed. The param is staged during
+render via **state** (the `seededSettings` pattern), not an effect (which would flash the old look
+for a frame) and not a ref (`react-hooks` rejects reading a ref during render). It is stripped from
+the URL in an effect so a reload after Discard cannot silently re-stage a rejected theme.
+
+**`applyThemeToDraft` is the one place that decides what a theme may write** — it returns only look
+fields, and `apply-theme.test.ts` asserts that none of `footerText`/`footerNote`/`badges`/
+`heroSlides`/`navHeader`/`footerGroups`/`collections` appear in the patch. `templates` is **spread**,
+never replaced: the bundles deliberately omit `hero`, `headerMenu` and `checkout` because those
+depend on what content a shop actually has (forcing `hero: "slides"` on a shop with no slides shows
+the placeholder hero), and a wholesale replace would blank them.
+
+**The catalogue is four bundles, Classic first** (2026-08-13): **Classic**, **Fresh Market**,
+**Meridian Care**, **Muslin**. They replaced Grocery Modern / Pharmacy Lite / Fashion Shine, which
+were structurally distinct but visually unrefined.
+
+⚠ **Classic doubles as "reset to default", so its bundle MUST equal the built-in defaults.** That is
+five assertions in `apply-theme.test.ts` (design tokens, colour preset, `HOME_PRESET_SECTIONS.classic`,
+every key resolving to `DEFAULT_TEMPLATES`, and the same key SET as every other bundle). If it
+drifts, applying Classic silently restyles a shop that was already on the stock look — the one
+failure mode where the merchant did nothing and the shop changed anyway. The templates comparison
+goes through `resolveTemplates`, because bundles store RAW admin ids (`"grid-4"`) and the storefront
+consumes resolved names (`"grid4"`); comparing the strings would pass while the vocabularies drifted.
+
+⚠ **Every bundle must open on something.** A homepage whose first block is a grid of category tiles
+reads as a directory, not a shop — it was the first thing the owner said on seeing the build. Each
+bundle's first section is therefore deliberate and is the theme's "banner": `hero-card` (Classic),
+`promo-tiles` (Fresh Market — the offer pair *is* its banner), `trust-band` (Meridian Care — the
+promises are structural in a pharmacy, not a footer afterthought), `editorial-split` (Muslin).
+
+⚠ **Two sections can print the same merchant content — compose bundles, don't just stack sections.**
+Browser QA (and only browser QA) caught all three:
+- Fresh Market paired `footer: "rich"` with the `trust-band` section. Both read `trustBadges`, so
+  the merchant's three promises appeared twice, a hundred pixels apart. Now `footer: "columns"`.
+- Meridian Care stacked `trust-band` under `search-hero`, which already prints the badges as a tick
+  row *inside its own tinted block* — two tinted bands running together, promises written twice.
+  `search-hero` is gone; the band leads the page and the `classic` header carries the search.
+- Muslin led with `hero-fullbleed` **and** `editorial-split` — both render the same `banner` image,
+  so the merchant's one photograph appeared twice, a screen apart.
+
+⚠ **`meridian-care` and `classic` deliberately share the `classic` header.** A pharmacy shopper
+arrives with a name to type ("Napa", "omeprazole"), so the bar has to carry a real search field, and
+`centered`'s search is an icon. Header uniqueness across the catalogue is a nice-to-have; hiding the
+one control a trade needs is not. Don't "fix" it by switching Meridian to `centered`.
+
+⚠ **A theme changes the footer LAYOUT, so check that every layout still draws the merchant's
+words.** Muslin (formerly Fashion Shine) selects `footer: "newsletter"`, and that layout used to lead with the bare
+brand mark — so `copy.footerText` stayed perfectly intact in the data and was simply never drawn.
+"Safe in the payload" is not good enough here: to the person who typed the sentence it reads as data
+loss, and the promise a theme has to keep is that their words survive *visibly*. **All five layouts
+draw the blurb** — `columns`/`rich`/`contact` via `BrandLead`, `simple` via its own centred `<p>` —
+and `newsletter` was the sole exception until it was fixed to lead with `FooterBrand`. **Adding a
+footer variant means deciding where the blurb goes**; omitting it is the bug, not the default.
+
+### The look/content split — what a theme may and may not write
+
+**`theme` + `templates` = the look. `copy` + `nav` + `trustBadges` + `promoTiles` + `heroSlides` +
+`heroBanner` = the merchant's.** A ready-made theme stamps the first group wholesale and must never
+touch the second.
+
+That is why `footerText` / `footerNote` / `footerContactHeading` / `footerNewsletter` moved out of
+`theme` into a sibling **`copy`** block on 2026-08-12. Inside `theme` they sat in the same object a
+theme replaces, so applying one would either erase a merchant's own sentences or need a
+hand-maintained skip-list that drifts the first time someone adds a field. The split makes the rule
+structural instead of remembered.
+
+- Named **`copy`, not `content`** — "Content" is already the CMS-pages section of the admin, and two
+  different things called content is how a page body ends up in here.
+- The storefront reads **`store.copy.*`**, never `store.theme.*`, for wording (`store-footer.tsx`).
+- `draft-payloads.ts` sends `copy` as its own block; `draft-payloads.test.ts` asserts both halves —
+  that the words arrive under `copy` **and** that none of them appear under `theme`.
+- **Adding a merchant-editable string? It goes in `copy`.** If you find yourself putting a sentence
+  next to `brandColor`, that is the bug this split exists to prevent.
+
+### ⚠ `toSettingsPayload` deletes every `theme` field it does not list
+
+The save payload rebuilds `theme` as a **whole object literal**, and the backend applies it with
+`Object.assign(settings, dto)` under documented "each provided sub-field replaces the existing one"
+semantics (`storefront-settings.service.ts`). So a `theme.*` field the draft does not carry is a
+field the **next unrelated Save silently deletes** — no error, no failing test, and the live shop
+keeps rendering the old value until the cache lapses.
+
+Two consequences, both load-bearing:
+
+- **A `theme` field that no control edits must still be in the draft and in the payload.**
+  `appliedThemeId` is the standing example: nothing in Customize writes it (a ready-made theme
+  does), and it is carried purely so that saving an unrelated part cannot erase which theme a store
+  is on. `draft-payloads.test.ts` covers it — extend that test, don't just add the line.
+- **Adding a `theme` field is four places, not one**: the backend model/validator, the **admin**
+  `organization.dto.ts` `storefrontSettingsDto.theme` (the public storefront DTO is
+  `theme: z.unknown()` and needs nothing — but omit the admin one and `enforce` strips it from the
+  editor's own response, so it saves correctly and reads back as default), `CustomizeDraft` +
+  `seedDraft`, and `toSettingsPayload`. This is the `headerMenu` bug wearing a different hat.
 
 ## Backend (../inventory-backend)
 
@@ -709,6 +1214,18 @@ resolved **per request from the host**, never baked.
     carousel uses the same two-layer idea directly in CSS (`.sf-hero-art-bg`/`-fg` vs the classic
     single-layer `.sf-hero-art`, branched on `useStoreImageFit()`, see the hero bullet above) since it
     paints via `background-image`, not an `<img>`.
+    **`templates.imageRatio` is its sibling, and the two are orthogonal** (2026-08-12): ratio is
+    the FRAME (`square` default / `portrait` 3:4 / `landscape` 4:3 / `tall` 2:3), fit is what
+    happens to a photo that doesn't match it. `mediaRatioFor()` beside `mediaFitFor()` is the only
+    id→CSS translation, and `useStoreImageRatio()` (beside `useStoreImageFit()`) is how surfaces
+    read it. **Only the product GRIDS and the `side` PDP gallery honour it** — the fixed-px
+    thumbnails (cart, search list rows, tracking, quick-buy) and the home banner/hero keep their own
+    shapes, because those are sized in px inside horizontal rows and a 3:4 frame would stretch the
+    row rather than restyle the shop. `gallery-top` also keeps its 16/11: it runs full-width, where
+    a portrait photo would stand taller than the viewport.
+    ⚠ When measuring a frame in browser QA, read the element with `aspect-ratio` — **not the
+    `<img>`**. In canvas (`fit`) mode `<Media>` paints a blurred backdrop img at `inset: -8%;
+    height: 116%`, so measuring the image reports every ratio 16% too tall.
     **Contract wiring, if the field ever needs a third value:** `templates.imageFit` is a plain
     trimmed string at the backend model/validator/DTO layer (no Mongoose/Zod enum — same convention
     as `productCard`/`cardActions`/`headerMenu`); the real validation is `lib/storefront-templates.ts`'s
