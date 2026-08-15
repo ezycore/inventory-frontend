@@ -22,7 +22,7 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { Textarea } from "@/ui/components/textarea";
 import { CreateOrderLines } from "./create-order-lines";
 import { CreateOrderSummary } from "./create-order-summary";
-import { useCreateOrderForm } from "./use-create-order-form";
+import { useOrderForm, type OrderFormInitial } from "./use-order-form";
 
 /**
  * Record an order the merchant took off the website.
@@ -37,7 +37,7 @@ import { useCreateOrderForm } from "./use-create-order-form";
  * order as `website` and quietly make the channel report — the number that tells
  * the merchant whether Messenger orders are worth their courier fees — a lie.
  *
- * State and pricing live in `useCreateOrderForm`; the lines table and the money
+ * State and pricing live in `useOrderForm`; the lines table and the money
  * summary are their own components. This file is the shell and the field grid.
  */
 
@@ -65,12 +65,15 @@ const DISCOUNT_TYPES = [
 export function CreateOrderDialog({
   open,
   onOpenChange,
+  initial,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Present ⇒ the dialog edits that order instead of creating a new one. */
+  initial?: OrderFormInitial;
 }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const form = useCreateOrderForm(() => onOpenChange(false));
+  const form = useOrderForm(() => onOpenChange(false), initial);
   const areas = useMemo(() => upazilasOf(form.district), [form.district]);
 
   return (
@@ -83,11 +86,11 @@ export function CreateOrderDialog({
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create order</DialogTitle>
+          <DialogTitle>{form.isEdit ? "Edit order" : "Create order"}</DialogTitle>
           <DialogDescription>
-            For an order taken on Messenger, WhatsApp, a post comment or the phone.
-            It runs the same pipeline as a website order — courier, tracking and
-            COD included.
+            {form.isEdit
+              ? "Change the lines, address or price before the order goes to the courier. Prices already agreed stay as they are unless you re-price."
+              : "For an order taken on Messenger, WhatsApp, a post comment or the phone. It runs the same pipeline as a website order — courier, tracking and COD included."}
           </DialogDescription>
         </DialogHeader>
 
@@ -139,7 +142,17 @@ export function CreateOrderDialog({
                 onValueChange={(v) => form.setChannel(v as AdminOrderChannel)}
                 options={CHANNELS}
                 placeholder="Select a channel"
+                // Where an order came from is a fact about the past. A website
+                // order was placed by the shopper, and rewriting that would make
+                // the channel report — which tells the merchant whether Messenger
+                // orders are worth their courier fees — a lie.
+                disabled={form.isEdit}
               />
+              {form.isEdit ? (
+                <p className="text-xs text-muted-foreground">
+                  Where an order came from can&apos;t be changed.
+                </p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label>Payment</Label>
@@ -281,18 +294,37 @@ export function CreateOrderDialog({
             </div>
           </div>
 
-          <label className="flex items-start gap-2 text-sm">
-            <Checkbox
-              checked={form.confirmImmediately}
-              onCheckedChange={(c) => form.setConfirmImmediately(c === true)}
-            />
-            <span>
-              Confirm and reserve stock now
-              <span className="block text-xs text-muted-foreground">
-                A chat order is already agreed, so this saves a second click.
+          {/* Editing never moves the order's status — confirming is its own
+              action, and a save that also reserved stock would hide that. What an
+              edit offers instead is the escape hatch from the price hold. */}
+          {form.isEdit ? (
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox
+                checked={form.reprice}
+                onCheckedChange={(c) => form.setReprice(c === true)}
+              />
+              <span>
+                Re-price everything at today&apos;s prices
+                <span className="block text-xs text-muted-foreground">
+                  Off by default, so changing one line never quietly reprices the
+                  rest against a total the customer already agreed.
+                </span>
               </span>
-            </span>
-          </label>
+            </label>
+          ) : (
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox
+                checked={form.confirmImmediately}
+                onCheckedChange={(c) => form.setConfirmImmediately(c === true)}
+              />
+              <span>
+                Confirm and reserve stock now
+                <span className="block text-xs text-muted-foreground">
+                  A chat order is already agreed, so this saves a second click.
+                </span>
+              </span>
+            </label>
+          )}
 
           <CreateOrderSummary
             quote={form.lines.length ? form.quote : undefined}
@@ -315,7 +347,13 @@ export function CreateOrderDialog({
             onClick={form.submit}
             disabled={!form.canSubmit || form.submitting}
           >
-            {form.submitting ? "Creating…" : "Create order"}
+            {form.isEdit
+              ? form.submitting
+                ? "Saving…"
+                : "Save changes"
+              : form.submitting
+                ? "Creating…"
+                : "Create order"}
           </Button>
         </DialogFooter>
       </DialogContent>

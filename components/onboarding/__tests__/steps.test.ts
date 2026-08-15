@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { OrganizationFeatures } from "@/types";
 import {
   QUESTION_COUNT,
+  answersFromProgress,
   isConfidentAbout,
   payloadForStep,
   recommendationsFor,
+  toVatAnswer,
   type OnboardingAnswers,
 } from "../steps";
 
@@ -129,5 +132,95 @@ describe("industry recommendations", () => {
     expect(isConfidentAbout("PHARMACY", "expiryTracking")).toBe(true);
     expect(isConfidentAbout("ELECTRONICS_STORE", "expiryTracking")).toBe(false);
     expect(isConfidentAbout("ELECTRONICS_STORE", "barcodeSystem")).toBe(true);
+  });
+});
+
+/**
+ * Reading a resumed wizard's answers back off the workspace. The gate is the
+ * step count, never the feature values — every feature starts ON, so a `true`
+ * that no question produced must not be shown as an answer the merchant gave.
+ */
+const featuresWith = (
+  overrides: Partial<OrganizationFeatures>,
+): OrganizationFeatures => ({
+  sales: true,
+  accounts: true,
+  expiryTracking: true,
+  barcodeSystem: true,
+  invoicePrinting: true,
+  returns: true,
+  uomConversion: true,
+  storefront: true,
+  tax: true,
+  combo: true,
+  smsNotifications: true,
+  multiLocation: true,
+  ...overrides,
+});
+
+describe("restoring a resumed wizard's answers", () => {
+  it("restores nothing at step 0 — every feature is still at its default", () => {
+    expect(answersFromProgress(featuresWith({}), 0, "standard_15")).toEqual({});
+  });
+
+  it("restores only the questions the server counted as answered", () => {
+    const restored = answersFromProgress(
+      featuresWith({ storefront: false, multiLocation: false }),
+      2,
+      "standard_15",
+    );
+
+    expect(restored).toEqual({ channel: "shop", multiLocation: false });
+    expect(restored.vat).toBeUndefined();
+  });
+
+  it("reads the channel back off both features it wrote", () => {
+    const channelAt = (sales: boolean, storefront: boolean) =>
+      answersFromProgress(featuresWith({ sales, storefront }), 1, undefined)
+        .channel;
+
+    expect(channelAt(true, false)).toBe("shop");
+    expect(channelAt(false, true)).toBe("online");
+    expect(channelAt(true, true)).toBe("both");
+  });
+
+  it("restores the VAT registration, not the tax flag", () => {
+    // The flag says a registration was declared; only the registration itself
+    // says which of the four it was.
+    expect(
+      answersFromProgress(featuresWith({}), 3, "turnover_4").vat,
+    ).toBe("turnover_4");
+    expect(
+      answersFromProgress(featuresWith({ tax: false }), 3, "standard_15").vat,
+    ).toBe("unregistered");
+  });
+
+  it("leaves VAT unanswered for a registration the wizard cannot offer", () => {
+    // `exempt` is a real registration with no option on that screen — better an
+    // unselected question than a wrong answer pre-filled.
+    expect(toVatAnswer("exempt")).toBeUndefined();
+    expect(
+      answersFromProgress(featuresWith({}), 3, toVatAnswer("exempt")).vat,
+    ).toBeUndefined();
+  });
+
+  it("restores every answer once the run is complete", () => {
+    expect(
+      answersFromProgress(
+        featuresWith({ expiryTracking: false, barcodeSystem: false }),
+        QUESTION_COUNT,
+        "reduced",
+      ),
+    ).toEqual({
+      channel: "both",
+      multiLocation: true,
+      vat: "reduced",
+      expiryTracking: false,
+      barcodeSystem: false,
+    });
+  });
+
+  it("restores nothing while the features are still loading", () => {
+    expect(answersFromProgress(undefined, 4, "standard_15")).toEqual({});
   });
 });

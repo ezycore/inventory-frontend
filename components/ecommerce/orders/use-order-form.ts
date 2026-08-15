@@ -2,7 +2,11 @@
 // coding-standard: maintained
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useCreateStorefrontOrder, useOrderQuote } from "@/services/api";
+import {
+  useCreateStorefrontOrder,
+  useEditStorefrontOrder,
+  useOrderQuote,
+} from "@/services/api";
 import type {
   AdminOrderChannel,
   ManualDiscountInput,
@@ -15,7 +19,7 @@ import { zoneForDistrict } from "@/lib/storefront-shipping";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 
 /**
- * State, pricing and submit for the merchant's create-order dialog.
+ * State, pricing and submit for the merchant's order dialog — create AND edit.
  *
  * Split out of the dialog because the component was doing three jobs at once and
  * had grown past the repo's size ceiling. The dialog now renders; this decides.
@@ -25,6 +29,13 @@ import { isValidBdPhone } from "@/services/storefront/bd-phone";
  * `storefront.onlinePrice ?? price` repriced by any live campaign — so every
  * total comes from `useOrderQuote`, which runs the server's own order-pricing
  * code. Summing lines locally is the bug this hook was built to remove.
+ *
+ * **Edit is the same form against a different verb**, and it is safe to share
+ * precisely BECAUSE of that rule: the server re-prices the whole draft on every
+ * keystroke either way, so an edit cannot drift from what it will be charged. The
+ * one thing edit adds to the quote is `orderId` — without it the order is counted
+ * against its own coupon limit and its agreed line prices are re-quoted at today's
+ * catalogue. See docs/features/order-edit.md in the backend repo.
  */
 
 /** One picked product. `price` is the POS price — display only, never a total. */
@@ -37,44 +48,89 @@ export interface Line {
   availableQuantity: number;
 }
 
+/**
+ * The existing order an edit seeds from.
+ *
+ * Built by the detail page, which pairs the order's own lines with a picker fetch
+ * for their products — `availableQuantity` is not stored on an order, and without
+ * it the quantity stepper has no ceiling on exactly the lines most likely to be
+ * edited.
+ */
+export interface OrderFormInitial {
+  orderId: string;
+  lines: Line[];
+  channel: AdminOrderChannel;
+  paymentMethod: string;
+  name: string;
+  phone: string;
+  address: string;
+  district: string;
+  area: string;
+  notes: string;
+  shippingCharged: number | null;
+  coupon: string;
+  discountType: "fixed" | "percentage";
+  discountValue: number | null;
+}
+
 const lineKey = (l: { productId: string; variantId?: string | null }) =>
   `${l.productId}:${l.variantId ?? ""}`;
 
-export function useCreateOrderForm(onDone: () => void) {
+export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
+  const isEdit = !!initial;
   const createOrder = useCreateStorefrontOrder();
+  const editOrder = useEditStorefrontOrder();
 
-  const [lines, setLines] = useState<Line[]>([]);
-  const [channel, setChannel] = useState<AdminOrderChannel | "">("");
-  const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("");
-  const [area, setArea] = useState("");
-  const [notes, setNotes] = useState("");
-  const [shippingCharged, setShippingCharged] = useState<number | null>(null);
-  const [confirmImmediately, setConfirmImmediately] = useState(true);
+  const [lines, setLines] = useState<Line[]>(initial?.lines ?? []);
+  const [channel, setChannel] = useState<AdminOrderChannel | "">(
+    initial?.channel ?? "",
+  );
+  const [paymentMethod, setPaymentMethod] = useState(initial?.paymentMethod ?? "cod");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [phone, setPhone] = useState(initial?.phone ?? "");
+  const [address, setAddress] = useState(initial?.address ?? "");
+  const [district, setDistrict] = useState(initial?.district ?? "");
+  const [area, setArea] = useState(initial?.area ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [shippingCharged, setShippingCharged] = useState<number | null>(
+    initial?.shippingCharged ?? null,
+  );
+  // Create defaults ON — a chat order is already agreed by the conversation that
+  // produced it. An edit has no such step: confirming is its own action, and an
+  // edit that also reserved stock would hide that inside a "save".
+  const [confirmImmediately, setConfirmImmediately] = useState(!initial);
   const [pasted, setPasted] = useState("");
-  const [coupon, setCoupon] = useState("");
-  const [discountType, setDiscountType] = useState<"fixed" | "percentage">("fixed");
-  const [discountValue, setDiscountValue] = useState<number | null>(null);
+  const [coupon, setCoupon] = useState(initial?.coupon ?? "");
+  const [discountType, setDiscountType] = useState<"fixed" | "percentage">(
+    initial?.discountType ?? "fixed",
+  );
+  const [discountValue, setDiscountValue] = useState<number | null>(
+    initial?.discountValue ?? null,
+  );
+  /** Merchant explicitly dropped the price hold for this session. */
+  const [reprice, setReprice] = useState(false);
 
+  /**
+   * Back to the starting point — empty when creating, the ORDER when editing.
+   * A cancelled edit must restore what the order says, not blank the form.
+   */
   const reset = () => {
-    setLines([]);
-    setChannel("");
-    setPaymentMethod("cod");
-    setName("");
-    setPhone("");
-    setAddress("");
-    setDistrict("");
-    setArea("");
-    setNotes("");
-    setShippingCharged(null);
-    setConfirmImmediately(true);
+    setLines(initial?.lines ?? []);
+    setChannel(initial?.channel ?? "");
+    setPaymentMethod(initial?.paymentMethod ?? "cod");
+    setName(initial?.name ?? "");
+    setPhone(initial?.phone ?? "");
+    setAddress(initial?.address ?? "");
+    setDistrict(initial?.district ?? "");
+    setArea(initial?.area ?? "");
+    setNotes(initial?.notes ?? "");
+    setShippingCharged(initial?.shippingCharged ?? null);
+    setConfirmImmediately(!initial);
     setPasted("");
-    setCoupon("");
-    setDiscountType("fixed");
-    setDiscountValue(null);
+    setCoupon(initial?.coupon ?? "");
+    setDiscountType(initial?.discountType ?? "fixed");
+    setDiscountValue(initial?.discountValue ?? null);
+    setReprice(false);
   };
 
   /**
@@ -190,9 +246,22 @@ export function useCreateOrderForm(onDone: () => void) {
             couponCode: coupon.trim() || undefined,
             discount: manualDiscount,
             shippingCharged: shippingCharged ?? undefined,
+            // Edit only, and required on EVERY quote: it stops the order counting
+            // against its own coupon limit and holds the prices already agreed.
+            orderId: initial?.orderId,
+            reprice: reprice || undefined,
           }
         : null,
-    [lines, phone, district, coupon, manualDiscount, shippingCharged],
+    [
+      lines,
+      phone,
+      district,
+      coupon,
+      manualDiscount,
+      shippingCharged,
+      initial?.orderId,
+      reprice,
+    ],
   );
 
   // Debounced so typing a coupon or a discount is one request, not one per key.
@@ -207,35 +276,48 @@ export function useCreateOrderForm(onDone: () => void) {
     a.productId === l.productId && (a.variantId ?? null) === l.variantId;
 
   const submit = () => {
-    if (!canSubmit || !channel) return;
-    createOrder.mutate(
-      {
-        items: lines.map((l) => ({
-          productId: l.productId,
-          variantId: l.variantId ?? undefined,
-          quantity: l.quantity,
-        })),
-        shippingAddress: {
-          name: name.trim(),
-          phone: phone.trim(),
-          address: address.trim() || undefined,
-          district: district || undefined,
-          area: area || undefined,
-        },
-        paymentMethod: paymentMethod as "cod" | "bank" | "manual",
-        channel,
-        notes: notes.trim() || undefined,
-        // Sent only if it actually applied — a code the quote rejected must not
-        // reach the order, where the same rejection would be a 400 instead.
-        couponCode: quote?.couponCode,
-        // Type + value, never the resolved amount: the server applies a
-        // percentage to its own subtotal, which is the one being charged.
-        discount: manualDiscount,
-        // Only send an override when the merchant actually typed one — otherwise
-        // the store's own shipping rule prices the order, same as a web order.
-        shippingCharged: shippingCharged ?? undefined,
-        confirmImmediately,
+    if (!canSubmit) return;
+
+    /** Everything both verbs send. Built once so they cannot disagree. */
+    const shared = {
+      items: lines.map((l) => ({
+        productId: l.productId,
+        variantId: l.variantId ?? undefined,
+        quantity: l.quantity,
+      })),
+      shippingAddress: {
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address.trim() || undefined,
+        district: district || undefined,
+        area: area || undefined,
       },
+      paymentMethod: paymentMethod as "cod" | "bank" | "manual",
+      notes: notes.trim() || undefined,
+      // Sent only if it actually applied — a code the quote rejected must not
+      // reach the order, where the same rejection would be a 400 instead.
+      couponCode: quote?.couponCode,
+      // Type + value, never the resolved amount: the server applies a
+      // percentage to its own subtotal, which is the one being charged.
+      discount: manualDiscount,
+      // Only send an override when the merchant actually typed one — otherwise
+      // the store's own shipping rule prices the order, same as a web order.
+      shippingCharged: shippingCharged ?? undefined,
+    };
+
+    if (initial) {
+      editOrder.mutate(
+        { id: initial.orderId, body: { ...shared, reprice: reprice || undefined } },
+        // No `reset()`: the dialog closes and the detail page re-renders from the
+        // response, so resetting would only flash the pre-edit values.
+        { onSuccess: onDone },
+      );
+      return;
+    }
+
+    if (!channel) return;
+    createOrder.mutate(
+      { ...shared, channel, confirmImmediately },
       {
         onSuccess: (res) => {
           // The server confirms best-effort: a stock shortfall leaves the order
@@ -256,12 +338,15 @@ export function useCreateOrderForm(onDone: () => void) {
   const phoneInvalid = !!phone.trim() && !isValidBdPhone(phone);
   const canSubmit =
     lines.length > 0 &&
-    !!channel &&
+    // Edit locks `channel` (it is provenance, not a preference), so it is already
+    // set and there is nothing for the merchant to answer.
+    (isEdit || !!channel) &&
     !!name.trim() &&
     isValidBdPhone(phone) &&
     rejected.length === 0;
 
   return {
+    isEdit,
     // lines
     lines,
     addLine,
@@ -297,6 +382,8 @@ export function useCreateOrderForm(onDone: () => void) {
     setDiscountType,
     discountValue,
     setDiscountValue,
+    reprice,
+    setReprice,
     // server-quoted money
     quote,
     quoting,
@@ -306,7 +393,7 @@ export function useCreateOrderForm(onDone: () => void) {
     // submit
     phoneInvalid,
     canSubmit,
-    submitting: createOrder.isPending,
+    submitting: createOrder.isPending || editOrder.isPending,
     submit,
     reset,
   };
