@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { Entitlement, ScheduledPlanChange } from "@/types";
 
 /**
@@ -6,11 +7,13 @@ import type { Entitlement, ScheduledPlanChange } from "@/types";
  *  - `active`     → full access (active / trialing).
  *  - `read_only`  → overdue but recoverable (past_due / read_only): keep the user
  *    in with the overdue banner + "Pay now" instead of logging them out.
- *  - `reactivate` → subscription CANCELED but data retained: let the user in but
- *    route them to billing to re-subscribe (backend confines them to billing
- *    routes). Not a logout, not "Pay now".
- *  - `blocked`    → terminated / never provisioned (missing / inactive /
- *    incomplete): force logout → login.
+ *  - `reactivate` → data retained, but the user is routed to billing to subscribe
+ *    or re-subscribe (the backend confines them to billing routes). Not a logout,
+ *    not "Pay now". Two states land here, and both need to reach checkout:
+ *    CANCELED (a deliberate cancel — cancel never deletes) and INCOMPLETE
+ *    (awaiting a first payment: a paid signup, or a trial that ended unpaid).
+ *  - `blocked`    → terminated / never provisioned (missing entitlement, or
+ *    `inactive` with no recoverable subscription state): force logout → login.
  *
  * Mirrors the backend classifier `entitlementAccess` in
  * `easystock-backend/src/utils/subscription-status.ts` — keep the two in sync.
@@ -22,9 +25,14 @@ export function classifyEntitlementAccess(
 ): SubscriptionAccess {
   if (!entitlement) return "blocked";
   const sub = entitlement.subscriptionStatus;
-  if (sub === "canceled") return "reactivate";
+  // Both billing-only states are resolved BEFORE the inactive→blocked branch.
+  // MC derives the mirror's `status` from the subscription status, so a canceled
+  // sub arrives as `status:inactive` + `subscriptionStatus:canceled` and an
+  // incomplete one as `status:inactive` + `subscriptionStatus:incomplete`.
+  // Reading `status` first would send both to `blocked` and lock the customer
+  // out of the checkout they need to reach.
+  if (sub === "canceled" || sub === "incomplete") return "reactivate";
   if (entitlement.status === "inactive") return "blocked";
-  if (sub === "incomplete") return "blocked";
   if (sub === "past_due" || entitlement.status === "read_only") {
     return "read_only";
   }
@@ -42,9 +50,9 @@ export function isPaymentOverdue(entitlement?: Entitlement | null) {
 }
 
 /**
- * Whether the subscription is canceled and awaiting reactivation — the user is
- * let into the app but should be routed to billing to re-subscribe. Their data
- * is retained; cancel never deletes.
+ * Whether the workspace is confined to billing — canceled, or awaiting a first
+ * payment. The user is let into the app but should be routed to billing to
+ * subscribe or re-subscribe. Their data is retained either way.
  */
 export function needsReactivation(entitlement?: Entitlement | null) {
   return classifyEntitlementAccess(entitlement) === "reactivate";

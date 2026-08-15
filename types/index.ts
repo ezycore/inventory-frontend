@@ -54,22 +54,46 @@ export interface OrganizationFeatures {
   tax: boolean;
   /** Enable combo / bundle products (sell several products as one priced unit). */
   combo: boolean;
+  /**
+   * SMS notification channel. This key alone sends nothing — the org's own
+   * NotificationConfig.sms.enabled switch and a non-zero credit balance are two
+   * further, independent guards.
+   */
+  smsNotifications: boolean;
+  /**
+   * More than one shop or warehouse — how many locations an org may have, not
+   * whether the Locations screen exists.
+   *
+   * Off hides Transfer Stock and Stock by Location, which are meaningless with
+   * one location. **Locations itself stays visible**: the signup-created
+   * location holds the address printed on every invoice and receipt, so hiding
+   * it would strand that behind a feature the merchant switched off. The Add
+   * button is hidden instead, with a backend guard to match
+   * (constants/navItem.ts, docs/plan/onboarding-workspace.md §3.1).
+   */
+  multiLocation: boolean;
 }
 
 /**
- * Default feature settings for new organizations
+ * Default feature settings for new organizations.
+ *
+ * Mirrors the backend `DEFAULT_ORGANIZATION_FEATURES` and must stay in step with
+ * it — all ON, so a fresh signup is fully populated and onboarding's job is to
+ * switch OFF what the business doesn't need (docs/plan/onboarding-workspace.md §1).
  */
 export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   sales: true,
-  accounts: false,
-  expiryTracking: false,
-  barcodeSystem: false,
-  invoicePrinting: false,
+  accounts: true,
+  expiryTracking: true,
+  barcodeSystem: true,
+  invoicePrinting: true,
   returns: true,
-  uomConversion: false,
+  uomConversion: true,
   storefront: true,
   tax: true,
-  combo: false,
+  combo: true,
+  smsNotifications: true,
+  multiLocation: true,
 };
 
 /**
@@ -523,6 +547,10 @@ export interface Entitlement {
   organizationId: string;
   planSlug?: string;
   planName?: string;
+  /** Package identity shared by every billing cadence of one tier — "start"
+   * covers `start-monthly` and `start-yearly`. Lets the billing page pre-select
+   * the current cadence in its Monthly/Yearly toggle. Absent on ungrouped plans. */
+  planGroup?: string;
   interval?: "month" | "year" | "one_time";
   /** Billing period = `intervalCount × interval` (e.g. month × 6). Missing = 1. */
   intervalCount?: number;
@@ -540,6 +568,11 @@ export interface Entitlement {
   gateway?: "stripe" | "sslcommerz" | "paystation" | "manual";
   currentPeriodEnd?: string | null;
   trialEndsAt?: string | null;
+  /** Whether this workspace has ever used its one-time free trial. Drives the
+   * choice between offering a trial and saying it is already spent. Cannot be
+   * derived from `trialEndsAt`, which is blanked the moment a trial ends.
+   * Absent on mirrors written before the field existed — treat as `false`. */
+  trialUsed?: boolean;
   pendingPlanChange?: ScheduledPlanChange | null;
   scheduledPlanChange?: ScheduledPlanChange | null;
   scheduledChange?: ScheduledPlanChange | null;
@@ -598,6 +631,13 @@ export interface AvailablePlan {
   compareAtAmount?: number;
   /** Limited-time-offer end date (ISO). Display-only. */
   offerEndsAt?: string;
+  /** Package identity shared by every billing cadence of one tier — "start"
+   * covers `start-monthly` and `start-yearly`. Absent on ungrouped plans, which
+   * then render as a card of their own. */
+  group?: string;
+  /** Tier position (1 = entry), identical on every plan in a `group`. Decides
+   * upgrade vs downgrade before cadence does — see `utils/plan-groups.ts`. */
+  groupRank?: number;
   trialDays?: number;
   modules: string[];
   features: string[];
@@ -1540,7 +1580,7 @@ export interface UseMutationOptions<
 
 export interface createOrganizationDto {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   phone?: string;

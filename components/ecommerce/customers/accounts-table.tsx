@@ -56,7 +56,7 @@ export function AccountsTable({
               customers.map((c) => (
                 <tr
                   key={c._id}
-                  onClick={() => router.push(`/ecommerce/customers/${c._id}`)}
+                  onClick={() => router.push(`/customers/online/${c._id}`)}
                   className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
                 >
                   <td className="px-4 py-3">

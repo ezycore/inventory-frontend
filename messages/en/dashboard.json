@@ -97,5 +97,9 @@
     "transferStock": "Transfer Stock",
     "adjustStock": "Adjust Stock",
     "viewReports": "View Reports"
+  },
+  "restricted": {
+    "title": "Sales figures aren't shown for your role",
+    "description": "Your account can manage stock and products, but not view sales or financial reports. Ask an administrator if you need access."
   }
 }

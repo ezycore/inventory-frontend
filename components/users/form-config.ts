@@ -21,11 +21,12 @@ export const getUserFormConfig = (t: Translator): DynamicFormConfig => ({
     {
       name: "lastName",
       type: "input",
+      // Optional — the model does not require it and neither does signup, so a
+      // staff invite must not be the one place that demands one.
       label: t("form.lastName"),
       placeholder: t("form.lastNamePlaceholder"),
-      required: true,
       columnSpan: 6,
-      validation: { minLength: 1, maxLength: 50 },
+      validation: { maxLength: 100 },
     },
     {
       name: "email",
@@ -56,13 +57,18 @@ export const getUserFormConfig = (t: Translator): DynamicFormConfig => ({
       options: [],
     },
     {
+      // Required, because a role without `locations.all` scopes every query by
+      // the active location: a user saved with none can sign in and read
+      // nothing, while the sidebar still renders normally. The page injects
+      // `dependsOn` (roles carrying `locations.all` don't need one) and a
+      // first-location default — see `roleAwareFormConfig` in users/page.tsx.
       name: "locationIds",
       type: "select",
       label: t("form.locations"),
       optionsApi: selectOptions("activeLocations"),
       mode: "multiple",
       columnSpan: 12,
-      required: false,
+      required: true,
       description: t("form.locationsDescription"),
       itemsCreateCallback: (response: ApiResponse<PaginatedResponse<Location>>) => {
         const items = sanitize(response?.data?.items, 'array');

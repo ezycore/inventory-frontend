@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ArrowRight, Loader2, ShieldAlert } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { getOwnerSetupFormConfig } from "@/components/setup/owner/owner-setup-form-config";
@@ -30,14 +30,18 @@ function getSignupPlanFromUrl() {
     params.get("planName") || params.get("plan") || params.get("planSlug");
   const planSlug = params.get("planSlug") || undefined;
 
+  // Send nothing when no plan was chosen — Mission Control then picks the entry
+  // plan (first public + active by sort order). Defaulting to a hardcoded slug
+  // here would break every direct signup the day that plan is renamed.
   return {
-    planName: planName?.trim() || "free",
+    ...(planName?.trim() && { planName: planName.trim() }),
     ...(planSlug && { planSlug }),
   };
 }
 
 export default function Signup() {
   const t = useTranslations("auth.signup");
+  const locale = useLocale();
   const createOwnerMutation = useSignupAPi();
   // Memoized on `t`: `useDynamicForm` keys its schema, resolver and default
   // values off the config's identity, so an unstable config would rebuild the
@@ -132,6 +136,10 @@ export default function Signup() {
 
     createOwnerMutation.mutate({
       ...data,
+      // The language this form was filled in. The backend stores it on the new
+      // owner and sends the verification email in it — a merchant who signs up
+      // in Bangla should not get their first email from us in English.
+      locale,
       ...getSignupPlanFromUrl(),
     });
   };

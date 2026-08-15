@@ -30,11 +30,18 @@ export const navGroups: NavGroup[] = [
     label: "Sell",
     items: [
       {
+        // `sales` is the POS capability — the counter, not the ledger. An
+        // online-only shop runs with `sales: false` and still records sales:
+        // committing a storefront order writes a Sale with channel "online"
+        // (storefront-order-lifecycle.service.ts). So everything that reads the
+        // ledger is gated on `anyFeatures`, and only New Sale — the POS screen
+        // itself — requires `sales`. Gating this parent on `sales` alone would
+        // hide an online seller's entire sales history.
         title: "Sales",
         url: "/sales",
         icon: "shopping-cart",
         isActive: false,
-        features: ["sales"],
+        anyFeatures: ["sales", "storefront"],
         items: [
           {
             title: "New Sale",
@@ -46,13 +53,16 @@ export const navGroups: NavGroup[] = [
             title: "Sales History",
             url: "/sales/history",
             icon: "clock",
-            features: ["sales"],
+            anyFeatures: ["sales", "storefront"],
           },
           {
+            // Needs returns AND (sales OR storefront): `features` is all-of,
+            // `anyFeatures` is any-of, and filterNavItems applies both.
             title: "Sales Returns",
             url: "/sales/returns",
             icon: "corner-up-left",
-            features: ["sales", "returns"],
+            features: ["returns"],
+            anyFeatures: ["sales", "storefront"],
           },
         ],
       },
@@ -78,9 +88,13 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.orders.view"],
           },
           {
-            title: "Catalog",
-            url: "/ecommerce/catalog",
-            icon: "package",
+            // The catalog's product listing moved to Products → Online: it
+            // edits the same product records, so two sidebar entries for one
+            // set of records was pure overhead. Collections stayed behind —
+            // storefront-only taxonomy with no Products equivalent.
+            title: "Collections",
+            url: "/ecommerce/collections",
+            icon: "layers",
             features: ["storefront"],
             permissions: ["storefront.view"],
           },
@@ -118,17 +132,6 @@ export const navGroups: NavGroup[] = [
             icon: "file-text",
             features: ["storefront"],
             permissions: ["storefront.manage"],
-          },
-          {
-            // Lists Shoppers (storefront login accounts), NOT the Customer
-            // ledger — a buyer with no account never appears here. Named
-            // "Customers" it read as a subset of the main Customers page, which
-            // it is not: they are different collections.
-            title: "Storefront Accounts",
-            url: "/ecommerce/customers",
-            icon: "users",
-            features: ["storefront"],
-            permissions: ["storefront.view"],
           },
           {
             title: "Abandoned Carts",
@@ -215,9 +218,11 @@ export const navGroups: NavGroup[] = [
           },
           { title: "Adjust Stock", url: "/inventory/adjust", icon: "edit" },
           {
+            // Nothing to transfer between when there is one location.
             title: "Transfer Stock",
             url: "/inventory/transfers",
             icon: "truck",
+            features: ["multiLocation"],
           },
           {
             title: "Stock History",
@@ -353,11 +358,18 @@ export const navGroups: NavGroup[] = [
         icon: "map-pin",
         isActive: false,
         items: [
+          // Deliberately ungated. With `multiLocation` off this list holds the
+          // org's single signup-created location, which carries the shop's own
+          // address — hiding it would strand that address with no edit path.
+          // The page hides its "Add location" button instead, and the backend
+          // refuses a second location (docs/plan/onboarding-workspace.md §3.1).
           { title: "Locations", url: "/locations", icon: "list" },
           {
+            // A per-location breakdown of one location is just Current Stock.
             title: "Stock by Location",
             url: "/locations/stock-report",
             icon: "bar-chart-2",
+            features: ["multiLocation"],
           },
         ],
       },
@@ -401,12 +413,12 @@ export const navGroups: NavGroup[] = [
             icon: "shield",
             permissions: ["users.manage"],
           },
-          {
-            title: "Feature Settings",
-            url: "/settings/features",
-            icon: "toggle-left",
-            permissions: ["organization.edit"],
-          },
+          // "Customize workspace" deliberately does NOT live here any more. It
+          // is the way back from every hidden feature, so burying it under
+          // Settings — where you have to already know it exists to find it —
+          // made the hiding unsafe. It renders in the sidebar footer instead
+          // (see AppSidebar), permanently visible
+          // (docs/plan/onboarding-workspace.md §7).
           {
             title: "Field Settings",
             url: "/settings/fields",

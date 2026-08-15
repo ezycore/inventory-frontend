@@ -60,12 +60,19 @@ describe("shouldBlockWorkspaceAccess (force logout gate)", () => {
     ).toBe(false);
   });
 
-  it("blocks incomplete subscriptions", () => {
+  it("does not block an incomplete subscription — it must reach checkout", () => {
     expect(
       shouldBlockWorkspaceAccess(
         ent({ status: "active", subscriptionStatus: "incomplete" }),
       ),
-    ).toBe(true);
+    ).toBe(false);
+    // MC derives the mirror's status from the sub status, so every incomplete
+    // sub arrives as status:inactive — the incomplete check must win over it.
+    expect(
+      shouldBlockWorkspaceAccess(
+        ent({ status: "inactive", subscriptionStatus: "incomplete" }),
+      ),
+    ).toBe(false);
   });
 
   it("blocks a missing entitlement", () => {
@@ -104,8 +111,8 @@ describe("isPaymentOverdue (overdue banner gate)", () => {
   });
 });
 
-describe("needsReactivation (canceled → billing gate)", () => {
-  it("is true only for a canceled subscription", () => {
+describe("needsReactivation (canceled / unpaid → billing gate)", () => {
+  it("is true for a canceled subscription", () => {
     expect(
       needsReactivation(ent({ status: "active", subscriptionStatus: "canceled" })),
     ).toBe(true);
@@ -114,15 +121,21 @@ describe("needsReactivation (canceled → billing gate)", () => {
     ).toBe(true);
   });
 
-  it("is false for active / past_due / incomplete / missing", () => {
+  it("is true for an incomplete subscription awaiting its first payment", () => {
+    expect(
+      needsReactivation(ent({ status: "active", subscriptionStatus: "incomplete" })),
+    ).toBe(true);
+    expect(
+      needsReactivation(ent({ status: "inactive", subscriptionStatus: "incomplete" })),
+    ).toBe(true);
+  });
+
+  it("is false for active / past_due / missing", () => {
     expect(
       needsReactivation(ent({ status: "active", subscriptionStatus: "active" })),
     ).toBe(false);
     expect(
       needsReactivation(ent({ status: "read_only", subscriptionStatus: "past_due" })),
-    ).toBe(false);
-    expect(
-      needsReactivation(ent({ status: "active", subscriptionStatus: "incomplete" })),
     ).toBe(false);
     expect(needsReactivation(null)).toBe(false);
   });

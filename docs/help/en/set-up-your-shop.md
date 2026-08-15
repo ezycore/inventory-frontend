@@ -8,6 +8,8 @@ covers_routes:
   - /settings/features
   - /locations
   - /locations/stock-report
+features:
+  - multiLocation
 ui_labels:
   - settings:organization.tab.faviconSectionLabel
   - settings:features.title
@@ -55,12 +57,16 @@ Locations matter more than they first appear:
   top bar — check it before recording anything.
 - Stock by Location shows every product across every location on one screen.
 
-If you only ever have one location, you can safely ignore all of this.
+If you only ever have one location, you can safely ignore all of this — and the app hides it for
+you. Stock by Location and Transfer Stock appear once **Multiple Locations** is switched on under
+Customize workspace; with one location there is nothing to compare or transfer between.
 
 ## Turn features on and off
 
-**Feature Settings** controls how much of EzyCore you see. Turning a feature off hides it from the
-menu entirely, which is the fastest way to make the app simpler for your staff.
+**Customize workspace** controls how much of EzyCore you see. It sits at the bottom of the sidebar,
+always visible, so you can always find your way back to something you switched off. *Turn on only
+the tools you need. You can change this any time — switching something off hides it, and never
+deletes your data.*
 
 Features worth deciding on early:
 

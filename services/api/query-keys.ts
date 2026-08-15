@@ -43,6 +43,7 @@ export const queryKeys = {
   organization: {
     all: () => ["organization"] as const,
     features: () => ["organization", "features"] as const,
+    featureImpact: () => ["organization", "features", "impact"] as const,
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
     storefront: () => ["organization", "storefront"] as const,

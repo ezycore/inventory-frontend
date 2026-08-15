@@ -60,26 +60,26 @@ export function filterNavItems(
 
       return true;
     })
-    .map((item) => {
-      // Recursively filter nested items
-      if (item.items && item.items.length > 0) {
-        return {
-          ...item,
-          items: filterNavItems(item.items, userRole, userPermissions, features),
-        };
-      }
-      return item;
-    })
-    .filter((item) => {
-      // Remove parent items that have no children after filtering
-      // (only if they originally had children)
-      if (item.items !== undefined && item.items.length === 0) {
-        // Check if the parent itself has a valid URL (not just '#')
-        if (item.url === "#") {
-          return false;
-        }
-      }
-      return true;
+    .flatMap((item) => {
+      // Leaves pass through untouched. `items: []` in the source means "leaf"
+      // (Dashboard, Customers, Suppliers all declare it) — only a list that
+      // *had* entries and lost them all is an emptied parent.
+      if (!item.items || item.items.length === 0) return [item];
+
+      const children = filterNavItems(
+        item.items,
+        userRole,
+        userPermissions,
+        features
+      );
+
+      // Every child denied → the parent is a row leading somewhere the user
+      // cannot use, so drop it. This used to apply only when the parent's url
+      // was "#", which left real-URL parents (e.g. "Cash & Bank" → /accounts)
+      // rendering as dead rows once their children were gated off.
+      if (children.length === 0) return [];
+
+      return [{ ...item, items: children }];
     });
 }
 
