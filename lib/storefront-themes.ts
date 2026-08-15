@@ -36,7 +36,7 @@
  */
 
 import type { StoreDesign } from "@/lib/storefront-theme";
-import type { SectionId } from "@/components/storefront/home/home-sections";
+import type { SectionId } from "@/lib/storefront-section-ids";
 
 export interface ReadyMadeTheme {
   id: string;

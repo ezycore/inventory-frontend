@@ -7,7 +7,7 @@ import {
   SECTION_IDS,
   SECTION_LABELS,
   type SectionId,
-} from "@/components/storefront/home/home-sections";
+} from "@/lib/storefront-section-ids";
 import { sectionInstances } from "@/lib/storefront-templates";
 import {
   DEFAULT_SECTION_LIMIT,
