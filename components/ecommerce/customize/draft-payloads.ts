@@ -245,12 +245,21 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       homepageSections: draft.homepageSections.length
         ? draft.homepageSections
         : undefined,
-      // ⚠ Not editable here, and that is exactly why it must be listed. This
-      // object literal IS the new `theme`: the backend does `Object.assign` with
-      // documented "each provided sub-field replaces the existing one" semantics,
-      // so anything the draft omits is deleted on the next Save. A ready-made
-      // theme writes this field; without this line the first unrelated edit a
-      // merchant made would silently forget which theme their store is on.
+      // ⚠ Not editable here, and listed anyway: this object literal is the whole
+      // `theme` the merchant is saving, and a field left out of it is a field
+      // this editor has no opinion about — which is not the same as one it wants
+      // preserved. Sending it keeps the payload a complete picture rather than
+      // one that depends on how the server merges.
+      //
+      // What the server actually does, because the wrong version of this note
+      // stood here and would have misled the next reader: `theme` is a Mongoose
+      // NESTED PATH, so `Object.assign(settings, dto)` MERGES it — an omitted
+      // key keeps its stored value and an explicit `undefined` is a no-op, not
+      // an unset. The practical consequence is the opposite of "omitted fields
+      // are deleted": a merchant who CLEARS a field cannot clear it, because
+      // `undefined` never reaches the document. `shippingZones` in
+      // `storefront-settings.service.ts` is the one place that works around it,
+      // with an explicit `settings.set(path, undefined)`.
       appliedThemeId: draft.appliedThemeId,
     },
     // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`

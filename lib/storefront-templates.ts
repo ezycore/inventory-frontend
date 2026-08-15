@@ -2,6 +2,7 @@
 import type {
   HeaderMenuSource,
   StoreHomeCollections,
+  StoreHomeSection,
   StoreLogoStyle,
   StoreTemplates,
   StoreTemplatesRaw,
@@ -107,8 +108,8 @@ const ACCOUNTLAYOUT = {
   panel: "panel",
   editorial: "editorial",
 } as const;
-// Whole frames for the CMS pages + order tracking. `centered` is the default —
-// it is the prose column those pages have always been.
+// Whole cart pages. `panel` is the default — lines on a card beside a summary,
+// which is the cart the storefront has always had.
 const CARTLAYOUT = {
   panel: "panel",
   compact: "compact",
@@ -118,6 +119,8 @@ const CARTLAYOUT = {
 // The page skeleton. `stacked` is the default because it is the only shape the
 // storefront had; `rail` puts a department column on every page.
 const SHELL = { stacked: "stacked", rail: "rail" } as const;
+// Whole frames for the CMS pages + order tracking. `centered` is the default —
+// it is the prose column those pages have always been.
 const CONTENTLAYOUT = {
   centered: "centered",
   banner: "banner",
@@ -189,15 +192,23 @@ export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "ca
 }
 
 /**
- * `templates.imageRatio` → the `<Media ratio>` CSS value it drives. The ONLY
- * place this translation happens, mirroring `mediaFitFor` beside it.
+ * Turn a preset's bare section ids into instances, minting keys from the id and
+ * its position.
  *
- * Aspect ratio is the strongest per-vertical signal a storefront has — portrait
- * reads as fashion, square as grocery — so it is deliberately a merchant choice
- * rather than something each surface hardcodes.
+ * **Deterministic, never random.** The same preset must mint the same keys every
+ * time: keys are what per-section config joins on, and what `isThemeModified`
+ * compares. A `crypto.randomUUID()` here would re-key on every render, so a
+ * merchant's config would detach from its section and a freshly applied theme
+ * would report itself as edited one second later.
+ *
+ * The index is in the key because a preset may legitimately repeat a type.
  */
+export function sectionInstances(types: readonly string[]): StoreHomeSection[] {
+  return types.map((type, i) => ({ key: `${type}-${i}`, type }));
+}
+
 /**
- * The homepage's section list, in render order.
+ * The homepage's sections, in render order.
  *
  * Precedence: the Customize draft (live preview) → the merchant's saved
  * `theme.homepageSections` → the default composition for their `templates.home`
@@ -205,35 +216,40 @@ export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "ca
  * its home template always produced, and one that has reordered them keeps that
  * order even after switching template.
  *
- * Unknown ids are dropped rather than rendered: a retired section, or one from a
- * newer build, must not reach `SECTION_COMPONENTS[id]` and blow up the page. The
- * caller passes the registry's guard so this module stays free of component
+ * Unknown TYPES are dropped rather than rendered: a retired section, or one from
+ * a newer build, must not reach `SECTION_COMPONENTS[type]` and blow up the page.
+ * The caller passes the registry's guard so this module stays free of component
  * imports — `lib/` must not depend on `components/`.
  */
 export function resolveSections(
   store: Pick<StorefrontStore, "theme" | "templates"> | null | undefined,
   options: {
-    draft?: string[] | null;
+    draft?: StoreHomeSection[] | null;
     isSectionId: (value: unknown) => boolean;
-    presets: Record<string, string[]>;
+    presets: Record<string, readonly string[]>;
   },
-): string[] {
+): StoreHomeSection[] {
   const { draft, isSectionId, presets } = options;
   const saved = store?.theme?.homepageSections;
   const home = pick(HOME, store?.templates?.home, DEFAULT_TEMPLATES.home);
-  const fallback = presets[home] ?? presets.classic ?? [];
+  const fallback = sectionInstances(presets[home] ?? presets.classic ?? []);
   const chosen =
     (draft?.length ? draft : undefined) ??
     (saved?.length ? saved : undefined) ??
     fallback;
-  const known = chosen.filter(isSectionId);
+  // `entry?.type` rather than `entry.type`: `chosen` comes off a stored document
+  // and a store written before instances holds bare strings, where `.type` is
+  // `undefined` — dropped by the guard, which is what makes the fallback below
+  // catch the whole legacy shape instead of throwing on it.
+  const known = chosen.filter((entry) => isSectionId(entry?.type));
   // ⚠ If NOTHING survives the filter, fall back rather than returning `[]` — an
   // empty list renders a blank homepage. This is not theoretical: every seeded
   // store carried four ids from the pre-registry catalogue (`banner`,
   // `featured`, `categories`, `products`) that no section ever answered to, so
   // the strict version would have blanked the homepage of every demo shop while
-  // leaving stores with an unset value working perfectly.
-  return known.length ? known : fallback.filter(isSectionId);
+  // leaving stores with an unset value working perfectly. The same guard now
+  // absorbs a store still holding the pre-instance `string[]`.
+  return known.length ? known : fallback.filter((entry) => isSectionId(entry.type));
 }
 
 /** Narrows a raw/draft id to a known ratio — the guard `useStoreImageRatio` uses. */
@@ -241,6 +257,14 @@ export function isImageRatio(value: unknown): value is StoreTemplates["imageRati
   return typeof value === "string" && Object.hasOwn(IMAGERATIO, value);
 }
 
+/**
+ * `templates.imageRatio` → the `<Media ratio>` CSS value it drives. The ONLY
+ * place this translation happens, mirroring `mediaFitFor` beside it.
+ *
+ * Aspect ratio is the strongest per-vertical signal a storefront has — portrait
+ * reads as fashion, square as grocery — so it is deliberately a merchant choice
+ * rather than something each surface hardcodes.
+ */
 export function mediaRatioFor(imageRatio: StoreTemplates["imageRatio"]): string {
   switch (imageRatio) {
     case "portrait":

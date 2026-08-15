@@ -163,7 +163,19 @@ describe("applyThemeToDraft", () => {
     expect(patch.design).toEqual(theme.design);
     expect(patch.appliedThemeId).toBe("muslin");
     expect(patch.templates).toMatchObject(theme.templates);
-    expect(patch.homepageSections).toEqual(theme.sections);
+    // The bundle stays a list of TYPES; the patch is a list of instances. A
+    // theme has no business inventing instance identity — minting is one place.
+    expect(patch.homepageSections?.map((s) => s.type)).toEqual(theme.sections);
+  });
+
+  // Deterministic minting, and it matters twice over: per-section config joins
+  // on `key`, so a re-key detaches a merchant's configured row from its section;
+  // and `isThemeModified` compares against a freshly applied patch, so a random
+  // key would badge an untouched theme as "Edited" the instant it was applied.
+  it("mints the same section keys every time it is applied", () => {
+    expect(applyThemeToDraft(draft(), theme).homepageSections).toEqual(
+      applyThemeToDraft(draft(), theme).homepageSections,
+    );
   });
 
   // The reason `copy` was split out of `theme` in the first place. Applying a

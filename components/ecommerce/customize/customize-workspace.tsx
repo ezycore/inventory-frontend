@@ -71,8 +71,21 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   // not silently re-stage the theme the merchant just rejected. In an effect
   // because it mutates the URL — `history.replaceState` rather than
   // `router.replace`, since this is a tidy-up and not a navigation.
+  //
+  // Only that one param: this used to rewrite to `location.pathname`, which
+  // dropped every other key. Nothing links here with both today, but `?part=`
+  // is a documented deep link and "the theme link silently closed the panel you
+  // asked for" is not a bug anyone would think to look for here.
   useEffect(() => {
-    if (stagedTheme) window.history.replaceState(null, "", window.location.pathname);
+    if (!stagedTheme) return;
+    const next = new URLSearchParams(window.location.search);
+    next.delete("theme");
+    const query = next.toString();
+    window.history.replaceState(
+      null,
+      "",
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    );
   }, [stagedTheme]);
 
   const togglePart = (id: PartId) => {

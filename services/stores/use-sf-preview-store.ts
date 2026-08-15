@@ -12,6 +12,7 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
   StoreHomeCollections,
+  StoreHomeSection,
   StoreLogoStyle,
   StoreMenuItem,
   StoreTemplates,
@@ -37,7 +38,7 @@ interface SfPreviewState {
    * array is NOT a draft — it means "the merchant turned everything off", which
    * the resolver treats as unset so the page never goes blank mid-edit.
    */
-  homepageSections: string[] | null;
+  homepageSections: StoreHomeSection[] | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
@@ -144,7 +145,7 @@ interface SfPreviewState {
     brand?: string;
     accent?: string;
     home?: string;
-    homepageSections?: string[];
+    homepageSections?: StoreHomeSection[];
     footer?: string;
     header?: string;
     cardStyle?: string;

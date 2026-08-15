@@ -10,7 +10,8 @@ import {
 } from "@/services/api";
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
-import { resolveHeaderMenu } from "@/lib/storefront-templates";
+import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
+import type { StoreHomeSection } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
   Image,
@@ -138,7 +139,7 @@ export interface CustomizeDraft {
    * Empty means "the merchant switched everything off", which the storefront
    * resolver treats as unset rather than rendering a blank page.
    */
-  homepageSections: string[];
+  homepageSections: StoreHomeSection[];
   /**
    * Carried, never edited. The Save payload rebuilds `theme` as a whole object
    * and the backend replaces the sub-document with it, so a field the draft does
@@ -347,6 +348,10 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
+/** A section list reduced to what a theme actually decides — its composition. */
+const sectionTypes = (sections: StoreHomeSection[] | undefined) =>
+  (sections ?? []).map((s) => s.type);
+
 /**
  * Stamp a ready-made theme into a draft — **the one place that decides what a
  * theme is allowed to write.**
@@ -381,7 +386,14 @@ export function applyThemeToDraft(
     // different rather than repainted. Replaced outright, not merged: a theme's
     // page is an ordered whole, and spreading the previous list over it would
     // leave a grocery shop's search hero sitting above a fashion editorial.
-    homepageSections: [...theme.sections],
+    //
+    // Instances are minted DETERMINISTICALLY (`sectionInstances`) so applying
+    // the same theme twice produces the same keys. Random keys would detach any
+    // per-section config from its section on every apply, and would make
+    // `isThemeModified` below report a theme as edited the instant it was
+    // applied. A theme bundle stays a list of TYPES — it has no business
+    // inventing instance identity.
+    homepageSections: sectionInstances(theme.sections),
     appliedThemeId: theme.id,
   };
 }
@@ -400,7 +412,12 @@ export function isThemeModified(draft: CustomizeDraft): boolean {
     draft.accentColor !== applied.accentColor ||
     !same(draft.design, applied.design) ||
     !same(draft.templates, applied.templates) ||
-    !same(draft.homepageSections, applied.homepageSections)
+    // TYPE sequence, not the instances: a key is identity plumbing, not look.
+    // Two pages composed of the same sections in the same order ARE the theme,
+    // even if a key was minted at a different index because the merchant added
+    // a section and removed it again. Comparing keys would light the "Edited"
+    // badge on a page that is visually identical to the theme.
+    !same(sectionTypes(draft.homepageSections), sectionTypes(applied.homepageSections))
   );
 }
 

@@ -18,6 +18,19 @@ export interface StorefrontImage {
 }
 
 /**
+ * One homepage section instance on the public payload.
+ *
+ * A bare section id until 2026-08-15. It carries identity now because a flat id
+ * list cannot hold two instances of one section with different content — two
+ * product rows drawing from different collections is the case — and because
+ * per-section config joins on `key`.
+ */
+export interface StoreHomeSection {
+  key: string;
+  type: string;
+}
+
+/**
  * Owner overrides for how the uploaded logo is drawn (Customize → Brand).
  *
  * A transparent wordmark is one ink colour and the storefront has two
@@ -135,7 +148,12 @@ export interface StorefrontStore {
     preset?: string;
     brandColor?: string;
     accentColor?: string;
-    homepageSections?: string[];
+    /**
+     * The homepage's sections, in render order. `{ key, type }` rather than a
+     * bare id: `key` is the instance identity a repeated section is told apart
+     * by, and what per-section config joins on.
+     */
+    homepageSections?: StoreHomeSection[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */

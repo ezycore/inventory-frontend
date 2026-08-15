@@ -2,7 +2,6 @@
 // coding-standard: maintained
 
 import type { ReactNode } from "react";
-import { Icon } from "@/components/storefront/sf-icons";
 import {
   AddressBlock,
   CouponRow,
@@ -99,15 +98,5 @@ function Step({
       </div>
       {children}
     </section>
-  );
-}
-
-/** Kept out of the section header so an icon change is one edit, not four. */
-function GuidedLockNote({ label }: { label: string }) {
-  return (
-    <p style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: 12, color: "var(--faint)", marginTop: 18 }}>
-      <Icon name="lock" size={13} />
-      {label}
-    </p>
   );
 }

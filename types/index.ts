@@ -149,11 +149,25 @@ export interface StorefrontFooterNewsletter {
   buttonLabel?: string;
 }
 
+/**
+ * One homepage section INSTANCE — mirrors `StorefrontHomeSection` on the
+ * backend.
+ *
+ * `key` is the stable instance identity: it survives a reorder and is what
+ * per-section config will join on. `type` is the registry id, resolved through
+ * `SECTION_COMPONENTS`; an unknown one is dropped by `resolveSections` rather
+ * than reaching the dispatch.
+ */
+export interface StorefrontHomeSection {
+  key: string;
+  type: string;
+}
+
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
-  homepageSections?: string[];
+  homepageSections?: StorefrontHomeSection[];
   logo?: StorefrontLogoStyle;
   homeCollections?: StorefrontHomeCollections;
   /**

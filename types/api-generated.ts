@@ -11268,7 +11268,10 @@ export interface components {
                 preset: string;
                 brandColor?: string;
                 accentColor?: string;
-                homepageSections?: string[];
+                homepageSections?: {
+                    key: string;
+                    type: string;
+                }[];
                 logo?: {
                     background?: string;
                     height?: number;
@@ -17602,7 +17605,10 @@ export interface operations {
                         preset?: string;
                         brandColor?: string;
                         accentColor?: string;
-                        homepageSections?: string[];
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                        }[];
                         logo?: {
                             background?: string;
                             height?: number;

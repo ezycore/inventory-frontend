@@ -87,7 +87,7 @@ export function StoreHome({
     draft: previewSections,
     isSectionId,
     presets: HOME_PRESET_SECTIONS,
-  }) as SectionId[];
+  });
 
   const shared = {
     base,
@@ -105,11 +105,12 @@ export function StoreHome({
 
   return (
     <div>
-      {sections.map((id) => {
-        const Section = SECTION_COMPONENTS[id];
-        // Keyed by id: a section appears at most once on a page, and keying by
-        // index would re-mount every section below one that got reordered.
-        return <Section key={id} {...shared} />;
+      {sections.map((section) => {
+        const Section = SECTION_COMPONENTS[section.type as SectionId];
+        // Keyed by the INSTANCE key, not the type: a page may carry the same
+        // section twice, and keying by type would collide the pair into one.
+        // Not the index either — that re-mounts every section below a reorder.
+        return <Section key={section.key} {...shared} />;
       })}
     </div>
   );
