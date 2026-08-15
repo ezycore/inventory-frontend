@@ -1,28 +1,29 @@
 "use client";
 // coding-standard: maintained
 
-import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
-import { Media, SectionTitle } from "@/components/storefront/sf-bits";
+import { Media } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
+import { HomeProductRows } from "@/components/storefront/home/home-product-row";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import {
-  Grid,
-  ViewAll,
   campaignBadge,
   heroBtns,
   wrap,
   type TplProps,
 } from "@/components/storefront/home/home-shared";
 
-/** Homepage template A: Classic — hero card, category chips, featured + latest. */
+/**
+ * Homepage template A: Classic — hero card, category chips, then the merchant's
+ * product rows. It is the only template that renders the whole row list; Hero
+ * Split and Minimal are single-row editorial layouts and take the first.
+ */
 export function Classic(props: TplProps) {
   const {
     base,
     currency,
-    featured,
-    latest,
+    rows,
     categories,
     t,
     banner,
@@ -102,23 +103,15 @@ export function Classic(props: TplProps) {
         </div>
       ) : null}
 
-      {featured.length > 0 ? (
-        <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-          <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-            {t.featured}
-          </SectionTitle>
-          <Grid products={featured} currency={currency} variant="full" />
-        </div>
-      ) : null}
-
-      {latest.length > 0 ? (
-        <div style={{ ...wrap, padding: "22px var(--pad) 10px" }}>
-          <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-            {t.newArrivals}
-          </SectionTitle>
-          <Grid products={latest} currency={currency} variant="compact" />
-        </div>
-      ) : null}
+      {/* The merchant's rows, in their order — Classic is the only template
+          that renders more than one; see `home-product-row.tsx`. */}
+      <HomeProductRows
+        rows={rows}
+        base={base}
+        currency={currency}
+        categories={categories}
+        t={t}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
+import { useHomeRowProducts } from "@/components/storefront/home/home-product-row";
 import {
   Grid,
   ViewAll,
@@ -14,16 +15,26 @@ import {
   type TplProps,
 } from "@/components/storefront/home/home-shared";
 
-/** Homepage template B: Hero Split — split hero, trust row, picks, promo tiles. */
+/**
+ * Homepage template B: Hero Split — split hero, trust row, picks, promo tiles.
+ *
+ * Deliberately a ONE-row layout: the picks strip sits between a split hero and
+ * the promo tiles, and stacking the merchant's whole row list there would push
+ * the tiles off the fold and undo the composition. So it shows the FIRST
+ * configured row's products under its own "Weekly picks" heading — the row
+ * order still decides what a shopper meets, which is the control that matters.
+ */
 export function HeroSplit({
   base,
   currency,
-  featured,
+  rows,
+  categories,
   t,
   banner,
   heroSlides,
   heroBanner: hb,
 }: TplProps) {
+  const picks = useHomeRowProducts(rows[0], categories);
   const trust: { icon: IconName; t1: string; t2: string }[] = [
     { icon: "truck", t1: t.trust1t, t2: t.trust1s },
     { icon: "shield", t1: t.trust2t, t2: t.trust2s },
@@ -86,12 +97,12 @@ export function HeroSplit({
         </div>
       </div>
 
-      {featured.length > 0 ? (
+      {picks.length > 0 ? (
         <div style={{ ...wrap, padding: "22px var(--pad)" }}>
           <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
             {t.weeklyPicks}
           </SectionTitle>
-          <Grid products={featured} currency={currency} variant="compact" />
+          <Grid products={picks} currency={currency} variant="compact" />
         </div>
       ) : null}
 

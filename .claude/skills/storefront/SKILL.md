@@ -357,6 +357,11 @@ Four files, in payload order:
   draft (it lives in Settings → General), so `socialWhatsapp` is threaded in from the workspace.
 - **An empty array is a real draft** ("all groups removed"), so `previewGroups ?? saved` — never a
   truthiness check.
+- **`homeRows` is the one draft the preview cannot render on its own** — it is config, and a row
+  needs products the server never fetched for it. So it streams as config and the row fetches
+  client-side when it has no server-rendered products, matched by `rowSignature` rather than by row
+  id; see the homepage-product-rows bullet under "Other storefront subsystems" for why both halves
+  of that are load-bearing. It is also why this is the one preview path that costs a request.
 - **Media (logo/banner) is not a draft** — its PATCH saves on upload, so it streams from `settings`,
   which the mutation has already refreshed in the query cache.
 - **Stream the EFFECTIVE logo, not the store's own.** A store with no logo inherits the
@@ -602,8 +607,40 @@ resolved **per request from the host**, never baked.
   query must pass `sort: "newest"` explicitly.** The homepage's New-arrivals row did not, so it
   opened with the merchant's featured products in the same order as the Featured row directly above
   it — the two sections looked identical, and got more identical the more the owner featured (fixed
-  2026-08-09, `app/(storefront)/shop/page.tsx`). Nothing fails when you forget: you get a plausible
-  list of the wrong products.
+  2026-08-09; the rule now lives in `homeRowQuery`). Nothing fails when you forget: you get a
+  plausible list of the wrong products.
+
+- **Homepage product rows** — `lib/storefront-home-rows.ts` (resolver + query + heading) and
+  `components/storefront/home/home-product-row.tsx` (the chrome). `theme.homeRows` is a merchant
+  list (Customize → Home page → Product rows), each row `{ id, source, categoryId?, title?, limit?,
+  layout? }` with `source ∈ featured | newest | category`, capped at **6** rows of **4–12**
+  products. It replaced the two rows the homepage used to hard-code, and the vestigial
+  `theme.homepageSections` (declared, seeded, validated on both sides — and rendered by nothing)
+  was deleted with it.
+
+  Five rules, each of which fails silently rather than loudly:
+
+  - **Absent ≠ empty.** `homeRows: undefined` is "never opened the panel" ⇒ `DEFAULT_HOME_ROWS`
+    (Featured + New arrivals, mirroring the backend seed). `homeRows: []` is "cleared every row" ⇒
+    no product rows. Collapsing the two resurrects rows a merchant deliberately deleted.
+  - **A category row filters on the LEVEL of its collection.** Products denormalize `categoryId` to
+    the top-level category and `subcategoryId` to the child, so a top-level row filters
+    `categoryId` (and sweeps in every child's products) while a sub-collection row must filter
+    `subcategoryId`. Sending a child's id as `categoryId` matches nothing and renders an empty row.
+    `findRowCategory` resolves the level off the category tree the page already fetched.
+  - **The store and the tree are fetched BEFORE the rows.** The rows cannot be known until
+    `theme.homeRows` is read, and the filter field cannot be chosen until the tree is. Both are
+    cached 300s and tag-flushed on save, so the serial hop is a cache read in the normal case.
+  - **Classic is the only template that renders the list.** Hero Split and Minimal are single-row
+    editorial layouts: they take `rows[0]` through `useHomeRowProducts` and keep their own headings
+    ("Weekly picks", "Selected"). The Home part in the editor says so, and marks the other rows
+    "not shown", or the merchant reads their absence as a bug.
+  - **The preview fetches; the shop does not.** Every saved row is server-rendered so the homepage
+    stays crawlable HTML. A row the merchant just added has no SSR products, so `HomeRowData.items`
+    is absent and `useHomeRowProducts` fetches client-side — preview only. `StoreHome` matches
+    draft rows to server-rendered ones by **`rowSignature`** (source + category + limit), never by
+    `id`: a re-pointed row keeps its id, and matching on id would go on showing the old row's
+    products under the new heading, while matching on the whole row would blank a row over a rename.
 
 - **Homepage collections row** — `components/storefront/home/home-collections.tsx`, rendered by the
   Classic template (the only one with a tile row; Minimal keeps its text links). Layout is the
@@ -838,8 +875,23 @@ resolved **per request from the host**, never baked.
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
-## Work log (what was built, newest first — as of 2026-08-12)
+## Work log (what was built, newest first — as of 2026-08-15)
 
+- **The homepage's product rows became merchant-owned (FE + BE)** (2026-08-15): the homepage
+  hard-coded exactly two rows — Featured, then New arrivals — so a shop whose selling story is
+  "here is the skin care, here are the devices" had nowhere to tell it. `theme.homeRows` is now a
+  list of up to 6 rows, each drawing from `featured` / `newest` / a collection, with its own
+  heading, product count and card size (Customize → Home page → Product rows, a rail takeover like
+  the slides and collections panels). The two built-ins are simply the rows a store is **seeded**
+  with (`DEFAULT_HOME_ROWS`, mirrored on both sides), so every existing homepage renders
+  identically until its owner touches it.
+  No new endpoint: `/storefront/:slug/products` already filtered by `categoryId` / `subcategoryId` /
+  `featured` / `sort` / `inStock`. What it did need was for the store and the category tree to be
+  fetched **before** the rows, since neither the row list nor the level a category row filters on is
+  known until then. Deleted on the way past: `theme.homepageSections`, declared/seeded/validated on
+  both sides since E-something and rendered by nothing.
+  See the homepage-product-rows bullet above for the five rules; the two that will bite are
+  **absent ≠ empty** and **a sub-collection filters `subcategoryId`, not `categoryId`**.
 - **Image fit became a merchant setting (FE + BE)** (2026-08-12): the prior day's `fit="canvas"`
   blurred-fill fix (see the `<Media fit>` bullet above) shipped hardcoded — cropped-vs-full-photo
   turned out to be a taste call, not a universally right answer, so it became

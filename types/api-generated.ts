@@ -10873,6 +10873,50 @@ export interface components {
             completedAt: string | null;
             step: number;
         };
+        OnboardingStepResult: {
+            features: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            planFeatures: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            onboarding: {
+                /** Format: date-time */
+                completedAt: string | null;
+                step: number;
+            };
+            vatRegistrationHistory: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                /** Format: date-time */
+                effectiveFrom: string;
+                changedBy?: string;
+                /** Format: date-time */
+                changedAt: string;
+            }[];
+        };
         OrganizationColumnSettings: {
             excludedColumns: {
                 [key: string]: string[];
@@ -11269,7 +11313,16 @@ export interface components {
                 brandColor?: string;
                 accentColor?: string;
                 footerText?: string;
-                homepageSections?: string[];
+                homeRows?: {
+                    id: string;
+                    /** @enum {string} */
+                    source: "featured" | "newest" | "category";
+                    categoryId?: string;
+                    title?: string;
+                    limit?: number;
+                    /** @enum {string} */
+                    layout?: "full" | "compact";
+                }[];
                 logo?: {
                     background?: string;
                     height?: number;
@@ -17378,7 +17431,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["OrganizationFeatureState"];
+                        data?: components["schemas"]["OnboardingStepResult"];
                     };
                 };
             };
@@ -17582,7 +17635,16 @@ export interface operations {
                         brandColor?: string;
                         accentColor?: string;
                         footerText?: string;
-                        homepageSections?: string[];
+                        homeRows?: {
+                            id: string;
+                            /** @enum {string} */
+                            source: "featured" | "newest" | "category";
+                            categoryId?: string;
+                            title?: string;
+                            limit?: number;
+                            /** @enum {string} */
+                            layout?: "full" | "compact";
+                        }[];
                         logo?: {
                             background?: string;
                             height?: number;

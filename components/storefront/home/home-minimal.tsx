@@ -7,14 +7,22 @@ import { cardImageUrl } from "@/lib/storefront-image";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
+import { useHomeRowProducts } from "@/components/storefront/home/home-product-row";
 import {
   ViewAll,
   type TplProps,
 } from "@/components/storefront/home/home-shared";
 
-/** Homepage template C: Minimal — centered manifesto, category strip, picks. */
-export function Minimal({ base, currency, featured, categories, t }: TplProps) {
-  const picks = featured.slice(0, 6);
+/**
+ * Homepage template C: Minimal — centered manifesto, category strip, picks.
+ *
+ * Deliberately a ONE-row layout, and a short one: the whole template is an
+ * argument for restraint, and six products is the most that can sit under a
+ * centred manifesto without becoming a catalogue. It shows the FIRST configured
+ * row, so the merchant's row order still decides which products lead the shop.
+ */
+export function Minimal({ base, currency, rows, categories, t }: TplProps) {
+  const picks = useHomeRowProducts(rows[0], categories).slice(0, 6);
   const imageFit = useStoreImageFit();
   return (
     <div>

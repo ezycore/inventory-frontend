@@ -9,6 +9,7 @@ import type {
   StoreCampaign,
   StoreHeroBanner,
   StoreHeroSlide,
+  StoreHomeRow,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
@@ -21,12 +22,24 @@ export const wrap: CSSProperties = {
   width: "100%",
 };
 
+/**
+ * One homepage product row: the merchant's configuration plus the products the
+ * server fetched for it. They travel together so a template can reorder or drop
+ * rows without re-deriving which fetch belonged to which row. `items` is absent
+ * only in the Customize preview, for a row too new to have been server-rendered
+ * — see `home-product-row.tsx`.
+ */
+export interface HomeRowData {
+  row: StoreHomeRow;
+  items?: CatalogProduct[];
+}
+
 /** Data every homepage template receives from the `StoreHome` dispatcher. */
 export interface TplProps {
   base: string;
   currency?: string;
-  featured: CatalogProduct[];
-  latest: CatalogProduct[];
+  /** Merchant-configured product rows, in render order (Customize → Home rows). */
+  rows: HomeRowData[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
   t: Dict;

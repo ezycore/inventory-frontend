@@ -10,6 +10,7 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
   StoreHomeCollections,
+  StoreHomeRow,
   StoreLogoStyle,
   StoreMenuItem,
   StoreTemplates,
@@ -113,6 +114,13 @@ interface SfPreviewState {
   logoStyle: StoreLogoStyle | null;
   /** Draft homepage collections layout (Customize → Collections). */
   homeCollections: StoreHomeCollections | null;
+  /**
+   * Draft homepage product rows (Customize → Home rows) — CONFIG only, never
+   * products. A row the merchant just added has never been server-rendered, so
+   * the homepage matches these back to the rows it already has and fetches only
+   * what genuinely changed; see `components/storefront/store-home.tsx`.
+   */
+  homeRows: StoreHomeRow[] | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -148,6 +156,7 @@ interface SfPreviewState {
     banner?: StorefrontImage | null;
     logoStyle?: StoreLogoStyle;
     homeCollections?: StoreHomeCollections;
+    homeRows?: StoreHomeRow[];
   }) => void;
 }
 
@@ -184,6 +193,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   banner: undefined,
   logoStyle: null,
   homeCollections: null,
+  homeRows: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -238,6 +248,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.homeCollections !== undefined
           ? patch.homeCollections
           : s.homeCollections,
+      homeRows: patch.homeRows !== undefined ? patch.homeRows : s.homeRows,
     })),
 }));
 

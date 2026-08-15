@@ -3,10 +3,10 @@
 
 import type {
   CatalogCategory,
-  CatalogProduct,
   StoreCampaign,
   StorefrontStore,
 } from "@/lib/storefront-client";
+import { resolveHomeRows, rowSignature } from "@/lib/storefront-home-rows";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import {
   useSfPreview,
@@ -16,6 +16,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Classic } from "@/components/storefront/home/home-classic";
 import { HeroSplit } from "@/components/storefront/home/home-hero-split";
 import { Minimal } from "@/components/storefront/home/home-minimal";
+import type { HomeRowData } from "@/components/storefront/home/home-shared";
 
 type TplName = "classic" | "hero-split" | "minimal";
 const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
@@ -30,15 +31,14 @@ const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
 export function StoreHome({
   store,
   base,
-  featured,
-  latest,
+  rows,
   categories,
   campaigns,
 }: {
   store: StorefrontStore;
   base: string;
-  featured: CatalogProduct[];
-  latest: CatalogProduct[];
+  /** Server-fetched product rows, in the merchant's saved order. */
+  rows: HomeRowData[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
 }) {
@@ -51,6 +51,7 @@ export function StoreHome({
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewRows = useSfPreview((s) => s.homeRows);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
   const tpl = HOME_VARIANTS.includes(previewHome ?? "")
@@ -75,11 +76,24 @@ export function StoreHome({
     image: pc.image ?? categories.find((c) => c._id === pc._id)?.image,
   }));
 
+  // Product rows follow the Home-rows panel's unsaved draft under preview. The
+  // draft is CONFIG only — no server render knows about a row the merchant just
+  // added — so each draft row is matched back to a server-rendered one by what
+  // it asks the catalogue for (`rowSignature`), keeping the products already on
+  // screen for the rows that did not change. Whatever finds no match comes back
+  // without items, and the row fetches its own; see `home-product-row.tsx`.
+  const ssrBySignature = new Map(rows.map((r) => [rowSignature(r.row), r.items]));
+  const previewRowData = previewRows
+    ? resolveHomeRows({ homeRows: previewRows }).map((row) => ({
+        row,
+        items: ssrBySignature.get(rowSignature(row)),
+      }))
+    : null;
+
   const shared = {
     base,
     currency,
-    featured,
-    latest,
+    rows: previewRowData ?? rows,
     categories: previewCategories ?? categories,
     campaigns,
     t,

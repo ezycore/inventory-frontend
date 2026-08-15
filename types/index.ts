@@ -149,12 +149,38 @@ export interface StorefrontFooterNewsletter {
   buttonLabel?: string;
 }
 
+/** Where one homepage product row draws its products from. */
+export type StorefrontHomeRowSource = "featured" | "newest" | "category";
+
+/**
+ * One product row on the storefront homepage (Customize → Home rows).
+ *
+ * The homepage used to hard-code Featured + New arrivals, so a shop whose
+ * selling story is "here is the skin care, here are the devices" had nowhere to
+ * tell it. The LIST is the render order and the two built-ins are simply the
+ * rows a store starts with — the merchant may rename, reorder or remove them.
+ */
+export interface StorefrontHomeRow {
+  /** Stable key that survives a reorder — never the index, never the title. */
+  id: string;
+  source: StorefrontHomeRowSource;
+  /** The collection to draw from. Required by (and only read for) `category`. */
+  categoryId?: string;
+  /** Heading override; blank ⇒ the storefront's own localized wording. */
+  title?: string;
+  /** Products requested (4–12). Unset ⇒ 8. */
+  limit?: number;
+  /** Card size: `full` = the larger card, `compact` = the denser one. */
+  layout?: "full" | "compact";
+}
+
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
   footerText?: string;
-  homepageSections?: string[];
+  /** Homepage product rows in render order; unset ⇒ the built-in pair. */
+  homeRows?: StorefrontHomeRow[];
   logo?: StorefrontLogoStyle;
   homeCollections?: StorefrontHomeCollections;
   /** Right-hand side of the footer's bottom bar; unset ⇒ the store's currency. */

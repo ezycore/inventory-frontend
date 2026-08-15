@@ -11,6 +11,7 @@ import {
 } from "@/components/ecommerce/customize/browser-preview";
 import { CollectionsPanel } from "@/components/ecommerce/customize/collections-panel";
 import { HeroSlidesPanel } from "@/components/ecommerce/customize/hero-slides-panel";
+import { HomeRowsPanel } from "@/components/ecommerce/customize/home-rows-panel";
 import {
   PartsRail,
   asPartId,
@@ -43,6 +44,7 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   const partParam = useSearchParams().get("part");
   const [slidesPanel, setSlidesPanel] = useState<number | null>(null);
   const [collectionsPanel, setCollectionsPanel] = useState(false);
+  const [homeRowsPanel, setHomeRowsPanel] = useState(false);
   // Which part is open lives here, not in the rail: the panels replace the rail
   // entirely, and a merchant who edits their slides should come back to the Hero
   // part still open rather than to a collapsed list.
@@ -76,6 +78,16 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
             setCollections={(collections) => api.patch({ collections })}
             onClose={() => setCollectionsPanel(false)}
           />
+        ) : homeRowsPanel ? (
+          <HomeRowsPanel
+            rows={api.draft.homeRows}
+            setRows={(homeRows) => api.patch({ homeRows })}
+            // The draft's collections, not a fresh fetch: a row picked here must
+            // offer the same list (and the same renames) the merchant is editing
+            // one part above, unsaved changes included.
+            collections={api.draft.collections}
+            onClose={() => setHomeRowsPanel(false)}
+          />
         ) : (
           <PartsRail
             settings={settings}
@@ -83,6 +95,14 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
             open={openPart}
             onToggle={togglePart}
             onManageCollections={() => setCollectionsPanel(true)}
+            onManageHomeRows={() => {
+              // The rows only exist on the home page, and the preview may be
+              // parked on a collection or a product from an earlier part —
+              // editing rows against a page that cannot show them reads as
+              // nothing happening.
+              setPage("home");
+              setHomeRowsPanel(true);
+            }}
             onEditSlide={(index) => setSlidesPanel(index)}
           />
         )}

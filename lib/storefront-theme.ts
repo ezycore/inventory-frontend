@@ -1,5 +1,6 @@
+// coding-standard: maintained
 /**
- * Storefront theme catalog (frontend). Mirrors the backend preset/section ids
+ * Storefront theme catalog (frontend). Mirrors the backend preset ids
  * (src/constants/storefront-theme.ts) and adds the visual swatch each preset
  * maps to. The merchant picks a preset and may override brand/accent colors.
  */
@@ -20,21 +21,6 @@ export const THEME_PRESETS: ThemePreset[] = [
 
 export const getPreset = (id?: string): ThemePreset =>
   THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];
-
-/** Configurable homepage sections (label + default order). */
-export const HOMEPAGE_SECTIONS: { id: string; label: string }[] = [
-  { id: "banner", label: "Hero banner" },
-  { id: "categories", label: "Category chips" },
-  { id: "featured", label: "Featured products" },
-  { id: "products", label: "All products" },
-];
-
-export const DEFAULT_HOMEPAGE_SECTIONS = [
-  "banner",
-  "categories",
-  "featured",
-  "products",
-];
 
 /** Resolve the effective brand/accent colors from a theme (preset + overrides). */
 export function resolveThemeColors(theme?: {

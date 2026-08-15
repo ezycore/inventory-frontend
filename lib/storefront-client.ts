@@ -42,6 +42,26 @@ export interface StoreHomeCollections {
   align?: "left" | "center" | "right";
 }
 
+/** Where one homepage product row draws its products from. */
+export type StoreHomeRowSource = "featured" | "newest" | "category";
+
+/**
+ * One homepage product row (Customize → Home rows). Rendered by the Classic
+ * template; Hero Split and Minimal are single-row layouts and take the first.
+ */
+export interface StoreHomeRow {
+  /** Stable key that survives a reorder — never the index, never the title. */
+  id: string;
+  source: StoreHomeRowSource;
+  /** The collection to draw from. Read for `category` rows only. */
+  categoryId?: string;
+  /** Heading override; blank ⇒ the storefront's own localized wording. */
+  title?: string;
+  /** Products requested (4–12). Unset ⇒ 8. */
+  limit?: number;
+  layout?: "full" | "compact";
+}
+
 /** One home-page hero slide (owner-managed carousel). */
 export interface StoreHeroSlide {
   image?: StorefrontImage | null;
@@ -136,7 +156,13 @@ export interface StorefrontStore {
     brandColor?: string;
     accentColor?: string;
     footerText?: string;
-    homepageSections?: string[];
+    /**
+     * The homepage's product rows, in render order (Customize → Home rows).
+     * Absent ⇒ the merchant has never opened the panel, and the storefront
+     * falls back to the built-in Featured + New arrivals pair — which is not
+     * the same as an empty array, meaning "I cleared every row".
+     */
+    homeRows?: StoreHomeRow[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */

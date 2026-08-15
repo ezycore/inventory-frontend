@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { publicCollections } from "@/components/ecommerce/customize/draft-payloads";
+import {
+  publicCollections,
+  trimHomeRows,
+} from "@/components/ecommerce/customize/draft-payloads";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
@@ -94,5 +97,42 @@ describe("publicCollections (the preview's category payload)", () => {
       row({ _id: "a", slugPath: "a" }),
     ]);
     expect(out.map((c) => c._id)).toEqual(["b", "a"]);
+  });
+});
+
+/**
+ * The homepage rows on the way out. Both payloads run this, so a rule that
+ * differed between them would preview a row the shop would never render.
+ */
+describe("trimHomeRows (what a homepage row ships as)", () => {
+  it("drops a category row with no collection picked", () => {
+    // Half-finished in the panel. The backend rejects it, and one unfinished
+    // row must not fail the whole page's Save.
+    const out = trimHomeRows([
+      { id: "a", source: "category" },
+      { id: "b", source: "newest" },
+    ]);
+    expect(out.map((r) => r.id)).toEqual(["b"]);
+  });
+
+  it("clears a stale collection off a re-pointed row", () => {
+    const [out] = trimHomeRows([
+      { id: "a", source: "featured", categoryId: "skin" },
+    ]);
+    expect(out.categoryId).toBeUndefined();
+  });
+
+  it("sends a blank heading as unset, not as an empty string", () => {
+    // "" would print a blank line; undefined means "use the localized wording".
+    const [out] = trimHomeRows([{ id: "a", source: "featured", title: "   " }]);
+    expect(out.title).toBeUndefined();
+  });
+
+  it("caps the list at the backend's maximum", () => {
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      id: `r${i}`,
+      source: "featured" as const,
+    }));
+    expect(trimHomeRows(many)).toHaveLength(6);
   });
 });

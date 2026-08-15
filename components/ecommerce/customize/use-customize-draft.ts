@@ -8,6 +8,7 @@ import {
   useUpdateCollection,
   useUpdateStorefrontSettings,
 } from "@/services/api";
+import { DEFAULT_HOME_ROWS } from "@/lib/storefront-home-rows";
 import { getPreset } from "@/lib/storefront-theme";
 import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import type {
@@ -17,6 +18,7 @@ import type {
   StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontHomeCollections,
+  StorefrontHomeRow,
   StorefrontLogoStyle,
   StorefrontMenuItem,
   StorefrontSettings,
@@ -115,6 +117,16 @@ export interface CustomizeDraft {
   logoStyle: StorefrontLogoStyle;
   /** Homepage collections row layout (Customize → Collections). */
   homeCollections: StorefrontHomeCollections;
+  /**
+   * The homepage's product rows, in render order (Customize → Home page).
+   *
+   * Always a real array here, never `undefined`: a store that has never been
+   * customized is seeded with the two built-in rows so the panel opens on the
+   * layout the shopper is already seeing. The absent-vs-empty distinction the
+   * storefront cares about is made on the way OUT — an empty draft ships as an
+   * empty array, which is a merchant who cleared every row.
+   */
+  homeRows: StorefrontHomeRow[];
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
   badges: StorefrontTrustBadge[];
@@ -159,7 +171,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => d.templates.home,
+  home: (d) => [d.templates.home, d.homeRows],
   cards: (d) => [d.templates.productCard, d.templates.cardActions, d.templates.imageFit],
   collections: (d) => [
     d.collections,
@@ -251,6 +263,10 @@ function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collecti
     // "leave it as it was", which is exactly what the resolvers default to.
     logoStyle: t.logo ?? {},
     homeCollections: t.homeCollections ?? {},
+    // `?? DEFAULT_HOME_ROWS` mirrors the storefront's own fallback, so the panel
+    // lists exactly the rows the shop is rendering rather than opening empty on
+    // a homepage that visibly has products.
+    homeRows: t.homeRows ?? DEFAULT_HOME_ROWS,
     templates: seedTemplates(settings),
     // Three fixed slots seeded by index — an empty slot keeps its default badge.
     badges: DEFAULT_BADGES.map((d, i) => ({

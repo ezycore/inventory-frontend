@@ -59,6 +59,38 @@ your logo, banner, slide and announcement pictures — save the moment you uploa
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 
+### Home page
+
+**Home page** holds two things: the layout, and the rows of products under it.
+
+The **product rows** are how your home page sells. Each row shows one set of products with a heading
+above it, and you decide what goes in it:
+
+- **Featured** — the products you have marked featured in your catalogue.
+- **New arrivals** — your newest products first.
+- **A collection** — everything in one collection, so you can give "Skin care" or "Devices" a row of
+  its own.
+
+Add up to six rows and drag them into the order you want a shopper to meet them. For each row you
+choose how many products it shows (4 to 12) and whether the cards are large or compact. A new store
+starts with Featured and New arrivals, which is what your home page has always shown — change them,
+reorder them, or remove them as you like.
+
+Leave a row's **heading** blank and your shop writes its own, translated for each shopper. Type one
+and it is used exactly as you wrote it, in every language — so a heading you type is worth it for
+something like "Eid picks", and not worth it for "New arrivals".
+
+Two things worth knowing:
+
+- **Out-of-stock products never appear in these rows.** The home page is your shop window, and a card
+  nobody can buy takes a slot from one they can. Products you sell on backorder still show.
+- **The layout decides how many rows appear.** Classic shows all of them. Hero Split and Minimal are
+  built around a single row of products, so they show your first row only — the panel marks the rest
+  "not shown" so you are not left wondering.
+
+If a row looks empty on your shop, the collection behind it has no products in stock right now; the
+row hides itself rather than printing an empty heading.
+
 ### Footer
 
 **Footer** is the last thing a shopper reads and the place a hesitant one looks for proof that a real

@@ -29,6 +29,7 @@ export function StorePreviewBridge() {
         accent: p.theme?.accentColor,
         logoStyle: p.theme?.logo,
         homeCollections: p.theme?.homeCollections,
+        homeRows: p.theme?.homeRows,
         home: p.templates?.home,
         footer: p.templates?.footer,
         header: p.templates?.header,

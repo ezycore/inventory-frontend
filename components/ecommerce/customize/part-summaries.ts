@@ -68,7 +68,16 @@ export function partSummary(
     }
     case "home": {
       const option = TEMPLATE_OPTIONS.home.find((o) => o.value === draft.templates.home);
-      return option ? `${option.label} — ${option.description}` : draft.templates.home;
+      const layout = option?.label ?? draft.templates.home;
+      // The row count replaces the layout's one-line description here: the
+      // description repeats what the open part's own picker already says, while
+      // "3 product rows" is the thing a merchant cannot see while collapsed.
+      // Classic is the only layout that renders more than the first row.
+      const rows = draft.homeRows.length;
+      if (rows === 0) return `${layout} · no product rows`;
+      return draft.templates.home === "classic"
+        ? `${layout} · ${count(rows, "product row")}`
+        : `${layout} · first of ${count(rows, "product row")}`;
     }
     case "cards":
       return `${labelOf("productCard", draft.templates.productCard)} · ${labelOf(

@@ -27,6 +27,7 @@ import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
+import { HomePart } from "@/components/ecommerce/customize/parts/home-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
@@ -77,6 +78,7 @@ export function PartsRail({
   open,
   onToggle,
   onManageCollections,
+  onManageHomeRows,
   onEditSlide,
 }: {
   settings: StorefrontSettings;
@@ -85,6 +87,7 @@ export function PartsRail({
   open: PartId | null;
   onToggle: (id: PartId) => void;
   onManageCollections: () => void;
+  onManageHomeRows: () => void;
   onEditSlide: (index: number) => void;
 }) {
   const { draft, patch, patchTemplate, dirtyParts, isDirty, discard, save, saving } =
@@ -167,6 +170,12 @@ export function PartsRail({
                 patchTemplate={patchTemplate}
                 onEditSlide={onEditSlide}
               />
+            ) : part.id === "home" ? (
+              <HomePart
+                draft={draft}
+                patchTemplate={patchTemplate}
+                onManageRows={onManageHomeRows}
+              />
             ) : part.id === "collections" ? (
               <CollectionsPart
                 draft={draft}
@@ -221,8 +230,9 @@ export function PartsRail({
                 </PartBlock>
               </>
             ) : (
-              // home / product / checkout are a single layout choice each, so
-              // the part IS its picker and its id IS the template key.
+              // product / checkout are a single layout choice each, so the part
+              // IS its picker and its id IS the template key. (Home used to be
+              // one of them, until its product rows became merchant-owned.)
               <TemplatePicker
                 templateKey={part.id}
                 value={draft.templates[part.id]}

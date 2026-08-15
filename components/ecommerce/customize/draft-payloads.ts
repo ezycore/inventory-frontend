@@ -9,10 +9,12 @@ import type {
   StorefrontContactButton,
   StorefrontFooterGroup,
   StorefrontHeroSlide,
+  StorefrontHomeRow,
   StorefrontMenuItem,
   StorefrontNav,
   UpdateStorefrontSettingsDto,
 } from "@/types";
+import { MAX_HOME_ROWS } from "@/lib/storefront-home-rows";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
 import type {
   CustomizeDraft,
@@ -92,6 +94,30 @@ const trimNewsletter = (n: CustomizeDraft["footerNewsletter"]) => {
   };
   return Object.values(block).some(Boolean) ? block : undefined;
 };
+
+/**
+ * Homepage product rows, ready to ship.
+ *
+ * A `category` row with no collection chosen is a half-finished row — the
+ * merchant added it and has not picked yet — so it is dropped rather than sent;
+ * the backend validator rejects it anyway, and one unfinished row must not fail
+ * the whole page's Save. `categoryId` is cleared on the other two sources so a
+ * row re-pointed away from a collection cannot carry a stale id back.
+ */
+export const trimHomeRows = (rows: StorefrontHomeRow[]): StorefrontHomeRow[] =>
+  rows
+    .filter((r) => r.source !== "category" || !!r.categoryId)
+    .slice(0, MAX_HOME_ROWS)
+    .map((r) => ({
+      id: r.id,
+      source: r.source,
+      categoryId: r.source === "category" ? r.categoryId : undefined,
+      // Blank ⇒ the storefront's own localized heading, so `undefined` rather
+      // than an empty string — see `homeRowTitle`.
+      title: r.title?.trim() || undefined,
+      limit: r.limit,
+      layout: r.layout,
+    }));
 
 const trimBadges = (badges: CustomizeDraft["badges"]) =>
   // All three slots are kept (empty = the storefront's default copy) so their
@@ -238,6 +264,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       footerText: draft.footerText.trim() || undefined,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
+      homeRows: trimHomeRows(draft.homeRows),
       // `undefined`, never `""` — an empty field means "use the storefront's
       // localized wording", and an empty string would print a blank line.
       footerNote: draft.footerNote.trim() || undefined,
@@ -279,6 +306,7 @@ export function toPreviewPayload(
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
+      homeRows: trimHomeRows(draft.homeRows),
     },
     templates: {
       home: draft.templates.home,
