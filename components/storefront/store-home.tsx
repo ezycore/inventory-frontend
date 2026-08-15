@@ -8,6 +8,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
+import { configFor, sectionSignature } from "@/lib/storefront-sections";
 import {
   useSfPreview,
   useSfPreviewImage,
@@ -37,6 +38,7 @@ export function StoreHome({
   base,
   featured,
   latest,
+  rows,
   categories,
   campaigns,
 }: {
@@ -44,6 +46,13 @@ export function StoreHome({
   base: string;
   featured: CatalogProduct[];
   latest: CatalogProduct[];
+  /**
+   * Server-fetched products for the CONFIGURED sections, one entry per distinct
+   * query. Keyed by signature rather than by section key so two sections asking
+   * the catalogue the same thing share one fetch — and so a preview can match a
+   * re-pointed row back to a render it already has.
+   */
+  rows?: { signature: string; items: CatalogProduct[] }[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
 }) {
@@ -56,8 +65,10 @@ export function StoreHome({
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
+  const sectionConfig = previewSectionConfig ?? store.sectionConfig;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
@@ -89,6 +100,21 @@ export function StoreHome({
     presets: HOME_PRESET_SECTIONS,
   });
 
+  // Per-section products. The server fetched one query per CONFIGURED section
+  // (see `shop/page.tsx`); under preview a section the merchant just re-pointed
+  // has no server render, so it is matched back by what it ASKS FOR rather than
+  // by key — re-pointing a row keeps its key, and matching on key alone would
+  // go on showing the old row's products under the new heading.
+  const ssrBySignature = new Map(
+    (rows ?? []).map((r) => [r.signature, r.items] as const),
+  );
+  const rowItems = new Map<string, typeof featured>();
+  for (const section of sections) {
+    const config = configFor(sectionConfig, section.key);
+    if (!config) continue;
+    rowItems.set(section.key, ssrBySignature.get(sectionSignature(config)) ?? []);
+  }
+
   const shared = {
     base,
     currency,
@@ -107,10 +133,18 @@ export function StoreHome({
     <div>
       {sections.map((section) => {
         const Section = SECTION_COMPONENTS[section.type as SectionId];
+        const config = configFor(sectionConfig, section.key);
         // Keyed by the INSTANCE key, not the type: a page may carry the same
         // section twice, and keying by type would collide the pair into one.
         // Not the index either — that re-mounts every section below a reorder.
-        return <Section key={section.key} {...shared} />;
+        return (
+          <Section
+            key={section.key}
+            {...shared}
+            config={config}
+            items={config ? rowItems.get(section.key) : undefined}
+          />
+        );
       })}
     </div>
   );

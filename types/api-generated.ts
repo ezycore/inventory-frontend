@@ -10873,6 +10873,50 @@ export interface components {
             completedAt: string | null;
             step: number;
         };
+        OnboardingStepResult: {
+            features: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            planFeatures: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            onboarding: {
+                /** Format: date-time */
+                completedAt: string | null;
+                step: number;
+            };
+            vatRegistrationHistory: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                /** Format: date-time */
+                effectiveFrom: string;
+                changedBy?: string;
+                /** Format: date-time */
+                changedAt: string;
+            }[];
+        };
         OrganizationColumnSettings: {
             excludedColumns: {
                 [key: string]: string[];
@@ -11294,6 +11338,14 @@ export interface components {
                 };
                 appliedThemeId?: string;
             };
+            sectionConfig?: {
+                key: string;
+                /** @enum {string} */
+                source?: "featured" | "newest" | "category";
+                categoryId?: string;
+                title?: string;
+                limit?: number;
+            }[];
             copy?: {
                 footerText?: string;
                 footerNote?: string;
@@ -11657,6 +11709,7 @@ export interface components {
             seo?: unknown;
             theme?: unknown;
             copy?: unknown;
+            sectionConfig?: unknown;
             heroSlides?: unknown;
             heroBanner?: unknown;
             printable?: unknown;
@@ -17402,7 +17455,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["OrganizationFeatureState"];
+                        data?: components["schemas"]["OnboardingStepResult"];
                     };
                 };
             };
@@ -17641,6 +17694,14 @@ export interface operations {
                             buttonLabel?: string;
                         };
                     };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category";
+                        categoryId?: string;
+                        title?: string;
+                        limit?: number;
+                    }[];
                     nav?: {
                         header?: {
                             label: string;

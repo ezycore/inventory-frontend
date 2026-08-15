@@ -12,6 +12,7 @@ import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import {
   Grid,
   ViewAll,
+  sectionRow,
   wrap,
   type SectionProps,
 } from "@/components/storefront/home/home-shared";
@@ -26,38 +27,44 @@ import {
  */
 
 /** Featured, full cards. */
-export function FeaturedGrid({ base, currency, featured, t }: SectionProps) {
-  if (!featured.length) return null;
+export function FeaturedGrid(props: SectionProps) {
+  const { currency, featured, t } = props;
+  const row = sectionRow(props, { products: featured, title: t.featured });
+  if (!row.products.length) return null;
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-        {t.featured}
+      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+        {row.title}
       </SectionTitle>
-      <Grid products={featured} currency={currency} variant="full" />
+      <Grid products={row.products} currency={currency} variant="full" />
     </div>
   );
 }
 
 /** New arrivals, dense cards. */
-export function LatestGrid({ base, currency, latest, t }: SectionProps) {
-  if (!latest.length) return null;
+export function LatestGrid(props: SectionProps) {
+  const { currency, latest, t } = props;
+  const row = sectionRow(props, { products: latest, title: t.newArrivals });
+  if (!row.products.length) return null;
   return (
     <div style={{ ...wrap, padding: "22px var(--pad) 10px" }}>
-      <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-        {t.newArrivals}
+      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+        {row.title}
       </SectionTitle>
-      <Grid products={latest} currency={currency} variant="compact" />
+      <Grid products={row.products} currency={currency} variant="compact" />
     </div>
   );
 }
 
 /** "Weekly picks" — featured products under the edit's own heading. */
-export function PicksGrid({ base, currency, featured, t }: SectionProps) {
-  if (!featured.length) return null;
+export function PicksGrid(props: SectionProps) {
+  const { currency, featured, t } = props;
+  const row = sectionRow(props, { products: featured, title: t.weeklyPicks });
+  if (!row.products.length) return null;
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-        {t.weeklyPicks}
+      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+        {row.title}
       </SectionTitle>
       <Grid products={featured} currency={currency} variant="compact" />
     </div>
@@ -81,13 +88,15 @@ export function PicksGrid({ base, currency, featured, t }: SectionProps) {
  * bands and the shop spent 0.5%, which is most of why the same palette read as a
  * flat sheet on one and a layered page on the other.
  */
-export function ProductRail({ base, currency, latest, t }: SectionProps) {
-  if (!latest.length) return null;
+export function ProductRail(props: SectionProps) {
+  const { currency, latest, t } = props;
+  const row = sectionRow(props, { products: latest, title: t.newArrivals });
+  if (!row.products.length) return null;
   return (
     <section style={{ background: "var(--surface)" }}>
     <div style={{ ...wrap, padding: "clamp(20px,3vw,32px) var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={storeHref(base, "/products")} label={t.viewAll} />}>
-        {t.newArrivals}
+      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+        {row.title}
       </SectionTitle>
       {/* `grid-auto-flow: column` + an explicit track width, because a flex row
           of `flex: 1` cards would divide the viewport instead of overflowing. */}
@@ -104,7 +113,7 @@ export function ProductRail({ base, currency, latest, t }: SectionProps) {
           scrollbarWidth: "thin",
         }}
       >
-        {latest.map((p) => (
+        {row.products.map((p) => (
           <div key={p._id} style={{ scrollSnapAlign: "start" }}>
             <ProductCard product={p} currency={currency} variant="compact" />
           </div>
@@ -122,16 +131,21 @@ export function ProductRail({ base, currency, latest, t }: SectionProps) {
  * gutters. A boutique grid sells by photograph, and card chrome is what stops it
  * looking like one. Capped at six because the point is an edit, not a catalogue.
  */
-export function MinimalPicks({ base, currency, featured, t }: SectionProps) {
-  const picks = featured.slice(0, 6);
+export function MinimalPicks(props: SectionProps) {
+  const { base, currency, featured, t } = props;
+  const row = sectionRow(props, { products: featured, title: t.selected });
+  // Still capped at six even when configured: the point of this section is an
+  // edit, and a merchant who asks for twelve here has picked the wrong section
+  // rather than expressed an intent this one should honour.
+  const picks = row.products.slice(0, 6);
   const imageFit = useStoreImageFit();
   const imageRatio = useStoreImageRatio();
   if (!picks.length) return null;
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(48px,7vw,80px)" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 28 }}>
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{t.selected}</h2>
-        <ViewAll href={storeHref(base, "/products")} label={t.viewAll} />
+        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{row.title}</h2>
+        <ViewAll href={row.href} label={t.viewAll} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--mincols), minmax(0,1fr))", gap: "clamp(20px,3vw,40px)" }}>
         {picks.map((p) => (

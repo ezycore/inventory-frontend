@@ -31,6 +31,21 @@ export interface StoreHomeSection {
 }
 
 /**
+ * Per-instance config for one homepage section, joined on `key`.
+ *
+ * A SIBLING of `theme` on the payload, never inside it — a ready-made theme
+ * replaces `theme` wholesale, and the collection a merchant chose for their
+ * front page is content, not look. See `lib/storefront-sections.ts`.
+ */
+export interface StoreSectionConfig {
+  key: string;
+  source?: "featured" | "newest" | "category";
+  categoryId?: string;
+  title?: string;
+  limit?: number;
+}
+
+/**
  * Owner overrides for how the uploaded logo is drawn (Customize → Brand).
  *
  * A transparent wordmark is one ink colour and the storefront has two
@@ -180,6 +195,8 @@ export interface StorefrontStore {
    * has a localized fallback in the storefront dictionary, so unset means "use
    * the built-in wording" — never "render an empty line".
    */
+  /** Per-section homepage config, joined to `theme.homepageSections[].key`. */
+  sectionConfig?: StoreSectionConfig[];
   copy?: {
     footerText?: string;
     footerNote?: string;
