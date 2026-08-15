@@ -116,10 +116,12 @@ Your homepage is a list of blocks, top to bottom, and **Sections** is where you 
 up or down, remove one, or add one from the list underneath — the preview follows every change
 before you save.
 
-**Product blocks can be pointed at your own collections.** Open a product block and you can choose
-where its products come from — Featured, New arrivals, or one collection — give it a heading, and
-say how many products to show (4 to 12). You can add the same product block twice and point each one
-somewhere different, so a shop can run "Skin care" above "Devices" on its front page.
+**Give a collection its own row.** Press **Add a collection row**, pick the collection, and it
+appears on your home page with its own heading. Add as many as you want — "Skin care" above
+"Devices" is two rows pointed at two collections.
+
+Any product block can be re-pointed the same way: open it and change **Products** to Featured, New
+arrivals, or one collection, then set the heading and how many products to show (4 to 12).
 
 Leave a block's **heading** blank and your shop writes its own, translated for each shopper. Type one
 and it is used exactly as you wrote it, in every language — worth it for something like "Eid picks",
