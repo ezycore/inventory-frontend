@@ -13,6 +13,7 @@ import type {
   StoreHeroSlide,
   StoreHomeCollections,
   StoreHomeSection,
+  StoreSectionConfig,
   StoreLogoStyle,
   StoreMenuItem,
   StoreTemplates,
@@ -39,6 +40,13 @@ interface SfPreviewState {
    * the resolver treats as unset so the page never goes blank mid-edit.
    */
   homepageSections: StoreHomeSection[] | null;
+  /**
+   * Draft per-section config (Customize → Home page → Sections) — CONFIG only,
+   * never products. A row the merchant just re-pointed has never been
+   * server-rendered, so the homepage matches these back to the renders it
+   * already has by signature; see `components/storefront/store-home.tsx`.
+   */
+  sectionConfig: StoreSectionConfig[] | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
@@ -146,6 +154,7 @@ interface SfPreviewState {
     accent?: string;
     home?: string;
     homepageSections?: StoreHomeSection[];
+    sectionConfig?: StoreSectionConfig[];
     footer?: string;
     header?: string;
     cardStyle?: string;
@@ -192,6 +201,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   accent: null,
   home: null,
   homepageSections: null,
+  sectionConfig: null,
   footer: null,
   header: null,
   cardStyle: null,
@@ -237,6 +247,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.homepageSections !== undefined
           ? patch.homepageSections
           : s.homepageSections,
+      sectionConfig:
+        patch.sectionConfig !== undefined ? patch.sectionConfig : s.sectionConfig,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
