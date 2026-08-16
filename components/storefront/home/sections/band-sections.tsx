@@ -46,8 +46,26 @@ export function TrustRow({ t }: SectionProps) {
               gap: 12,
             }}
           >
-            <div style={{ color: "var(--primary)" }}>
-              <Icon name={tr.icon} size={22} />
+            {/* The ACCENT on a soft disc, not a bare `--primary` glyph. These
+                are reassurances, and reassurance is exactly what a second colour
+                is for — a shop whose promises are painted in the same hue as its
+                buy button has one colour doing two jobs. Falls back to the brand
+                pair for a merchant who has set no accent, so nothing changes for
+                them. */}
+            <div
+              style={{
+                flex: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 38,
+                height: 38,
+                borderRadius: "var(--radius-sm)",
+                background: "var(--accent-soft)",
+                color: "var(--accent)",
+              }}
+            >
+              <Icon name={tr.icon} size={20} />
             </div>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>{tr.t1}</div>

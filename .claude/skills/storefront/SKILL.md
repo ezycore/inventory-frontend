@@ -497,9 +497,19 @@ Four files, in payload order:
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
 `components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
-over `resolveSections(store, { draft, isSectionId, presets })`. **`home-classic.tsx`,
-`home-hero-split.tsx` and `home-minimal.tsx` are gone** — `templates.home` now selects a *default
-section list* (`HOME_PRESET_SECTIONS`), not a component.
+over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.home` now selects a
+*default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+
+`home-classic.tsx`, `home-hero-split.tsx` and `home-minimal.tsx` are **gone** — removed by the owner's
+decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
+`HOME_PRESET_SECTIONS` keys, so `templates.home: "classic"` still resolves; it just names a starting
+section list now instead of a component.
+
+⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
+correct and their second was not, because between the two a colleague had committed them back on
+purpose in a commit that also carried unrelated work. A file returning after you removed it is a
+signal that someone else has an opinion about it, not that git made a mistake. `git log --follow` on
+the path names the author and the date in one command.
 
 **Why it changed, and the rule it leaves behind.** Those three components each hardcoded a sequence
 of the same five ingredients, so a theme could pick one of three arrangements and repaint it — which
@@ -648,6 +658,42 @@ the strength of "nothing uses it". The moment any theme or merchant picks `rail`
 **Adding a shell:** write it in `shells/`, compose it from `shell-parts.tsx`, register it in `SHELLS`,
 add the id to the `StoreTemplates["shell"]` union, the `SHELL` map, and `TEMPLATE_OPTIONS.shell` —
 then audit every section that could now be saying the same thing twice.
+
+### The `mist` surface, and the rail finally being used (2026-08-16)
+
+Meridian Care was rebuilt from the axes nothing else spent. The old bundle was `surface: default`,
+`radius: soft`, `shell: stacked`, card grid, teal — which is **Classic with a different hue**, and it
+shared its ground with two other themes. Hue was never what separated them.
+
+**`mist` inverts the card/page relationship.** `default` and `parchment` both float a card slightly
+lighter than a page that is nearly the same colour; `mist` pushes the page down to `#eef2f5` and the
+card up to pure white, so each card reads as a separate physical object. Measured: the home page is
+**62.5% card, 22.9% panel** where Fresh Market is **72% page** — the inverse composition, from one
+axis. Right for a shop whose unit is a sealed box, and the fastest way to look unlike the others
+without touching a hue.
+
+Its other four axes were also unused: `font: grotesk`, `density: compact`, `scale: sm`,
+`pagination: load-more`, `checkout: multi-step`, `cartLayout: compact`.
+
+⚠ **`shell: "rail"` — the first bundled theme to stamp it.** It had been registered and offered in
+Customize since 2026-08-14 with nothing using it, and its two duplication guards were live but
+untested by any theme. They hold: `CategoryRow` returns null on `ctx.hideCategoryRow`, `CategoryTiles`
+returns null under `rail`, and the rail is `sf-desktop-only` (verified hidden at 390px).
+
+**The composition rule this theme is built on.** With a rail carrying departments and a `clinical`
+header carrying the search, a hero could only repeat one of them — so the theme has **no hero and no
+category section**. Its five sections are the ones the shell cannot say: `trust-row` (promises),
+`deal-strip` (a live campaign), `featured-grid`, `product-rail`, `promo-tiles`. Two constraints ride
+with that and must not be undone:
+
+- `trust-row` reads `trustBadges`, so **`trust-band` must never join it** and the footer must not be
+  `rich` — both print the same three promises.
+- The `clinical` header carries the only search, so **no `search-hero`**. The first draft of this
+  theme had both, which is the fifth time this storefront has shipped that class of bug.
+
+`TrustRow`'s icon moved from a bare `--primary` glyph to `--accent` on an `--accent-soft` disc.
+Reassurance is what a second colour is *for*; a shop whose promises are painted in the same hue as its
+buy button has one colour doing two jobs. It falls back to the brand pair when no accent is set.
 
 ### The theme store is a picker beside one live preview (2026-08-15)
 

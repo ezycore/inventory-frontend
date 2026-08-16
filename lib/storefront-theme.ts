@@ -109,6 +109,10 @@ export const DESIGN_FONTS: DesignOption[] = [
 export const DESIGN_SURFACES: DesignOption[] = [
   { id: "default", label: "Clean white", description: "White cards on a near-white page — the default" },
   { id: "parchment", label: "Warm parchment", description: "Cream ground with tan panels — grocery, food, craft" },
+  // The inverse of the other two: the PAGE is tinted and the card is pure white,
+  // so every card reads as a separate object rather than a slightly lighter
+  // patch of the same sheet.
+  { id: "mist", label: "Cool mist", description: "White cards on a soft grey-blue page — pharmacy, clinical, technical" },
 ];
 
 /**
@@ -129,6 +133,7 @@ export const DESIGN_SURFACES: DesignOption[] = [
 const SURFACE_SWATCH: Record<string, [string, string, string]> = {
   default: ["#f8fafc", "#ffffff", "#f1f5f9"],
   parchment: ["#f5ead8", "#f9f4ed", "#ebddc5"],
+  mist: ["#eef2f5", "#ffffff", "#e2e9ee"],
 };
 
 /** The swatch for a surface id, falling back to the built-in look. */

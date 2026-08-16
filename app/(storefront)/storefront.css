@@ -302,6 +302,42 @@
   --discount: #a33a1f;
   --discount-soft: #f6ddd0;
 }
+/* MIST — a tinted ground with WHITE cards, which is the inverse of every other
+   surface here: `default` and `parchment` both float a card that is lighter than
+   nothing much on a page that is nearly the same colour. Pushing the page down
+   and the card up to pure white makes each card read as a separate physical
+   object — right for a shop where the unit being bought is a sealed box, and the
+   fastest way to look unlike the other themes without touching a hue.
+   Cool and desaturated on purpose: this is the clinical end of the catalogue. */
+.sf-root:has(.sf-shell[data-surface="mist"]) {
+  --page: #eef2f5;
+  --card: #ffffff;
+  --surface: #e2e9ee;
+  --surface-2: #d3dde4;
+  --text: #10222c;
+  --muted: #5c6e79;
+  --faint: #8598a3;
+  --border: #d6e0e6;
+  --border-strong: #b9c8d1;
+  --header: rgba(255, 255, 255, 0.92);
+  --discount: #b3261e;
+  --discount-soft: #fbe4e2;
+}
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="mist"]) {
+  --page: #0b1116;
+  --card: #131c23;
+  --surface: #1a252d;
+  --surface-2: #24323b;
+  --text: #e3edf3;
+  --muted: #94a7b3;
+  --faint: #6d818e;
+  --border: #1f2b34;
+  --border-strong: #33434f;
+  --header: rgba(11, 17, 22, 0.88);
+  --discount: #f19a94;
+  --discount-soft: #3d1f1d;
+}
+
 /* Warm dark — roasted rather than the default's neutral zinc, so switching the
    theme toggle stays the same shop with the lights off. */
 .sf-root[data-theme="dark"]:has(.sf-shell[data-surface="parchment"]) {
@@ -344,6 +380,12 @@ body:has(.sf-shell[data-surface="parchment"]) {
 }
 body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   background: #17140f;
+}
+body:has(.sf-shell[data-surface="mist"]) {
+  background: #eef2f5;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
+  background: #0b1116;
 }
 
 /* Heading ramp (mobile base — see both @media blocks for the rest). */

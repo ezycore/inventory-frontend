@@ -56,8 +56,10 @@ different set of blocks in a different order, a different kind of product card:
   the way it shipped, whatever you have tried since.
 - **Fresh Market** — a big search box across a white top bar with your delivery promise beside it,
   then your two offer banners, then a wall of department tiles. For grocery, food and daily needs.
-- **Meridian Care** — your promises in a band directly under the header, before any products, then
-  the departments. Filters stay on screen. For pharmacy, health and personal care.
+- **Meridian Care** — your categories stay in a column down the left of **every** page, so a shopper
+  never has to go back to find them. One search box in the header, your promises as three cards, then
+  a tight grid of products on a soft grey-blue background. Built for shops with a long list where
+  people arrive knowing the name of what they want. For pharmacy, health and personal care.
 - **Muslin** — a photograph beside your headline and one button, then your departments with their
   names over the pictures, then a short edit of products with no boxes around them. For clothing,
   footwear and gifts.
