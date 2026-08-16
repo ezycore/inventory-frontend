@@ -43,6 +43,7 @@ export function BrowserPreview({
   forceHeroSlides,
   forceCollectionsMenu,
   socialWhatsapp,
+  viewportHeight = "calc(100vh - 11rem)",
 }: {
   slug?: string;
   draft: CustomizeDraft;
@@ -55,6 +56,12 @@ export function BrowserPreview({
   forceCollectionsMenu: boolean;
   /** Settings → General number, so the preview mirrors the blank-number fallback. */
   socialWhatsapp?: string;
+  /**
+   * Viewport height. The default fills the Customize page below its header; the
+   * theme store's Preview dialog passes its own, because a `100vh`-derived
+   * height inside a modal that is itself capped at `90vh` overflows the dialog.
+   */
+  viewportHeight?: string;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -105,14 +112,39 @@ export function BrowserPreview({
     post();
   }, [post]);
 
+  /* **The frame stays hidden until the draft has actually landed in it.**
+     It server-renders the merchant's SAVED store, paints that, and only then
+     runs ready → post → apply — so previewing a theme flashed the
+     currently-active one first, every time, and switching the preview page in
+     Customize did the same because that reloads the frame too.
+
+     Tracked as "which frame has been painted" rather than a boolean reset in an
+     effect: the identity of the loaded frame IS the state, so a reload re-arms
+     the cover by simply not matching, with nothing to reset and no render blink
+     on an ordinary draft edit. */
+  const frameKey = `${url}#${reloadKey}`;
+  const [paintedKey, setPaintedKey] = useState<string | null>(null);
+  const painted = paintedKey === frameKey;
+
   // …and whenever the storefront (re)loads and announces it's ready.
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       if (e.data?.type === "ezycore-preview-ready") post();
+      if (e.data?.type === "ezycore-preview-applied") setPaintedKey(frameKey);
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [post]);
+  }, [post, frameKey]);
+
+  /* Safety net. If the ack never arrives — an older storefront build, a frame
+     that failed to boot, `preview=1` stripped by a redirect — the preview must
+     still appear. A moment of the saved theme is a blemish; a permanently blank
+     preview is a broken page. */
+  useEffect(() => {
+    if (painted) return;
+    const t = setTimeout(() => setPaintedKey(frameKey), 1500);
+    return () => clearTimeout(t);
+  }, [painted, frameKey]);
 
   if (!slug) {
     return (
@@ -214,8 +246,8 @@ export function BrowserPreview({
 
       {/* Viewport — switching device only resizes the same iframe (no reload) */}
       <div
-        className="flex justify-center overflow-auto bg-muted/20"
-        style={{ height: "calc(100vh - 11rem)", minHeight: 560 }}
+        className="relative flex justify-center overflow-auto bg-muted/20"
+        style={{ height: viewportHeight, minHeight: 560 }}
       >
         <div
           className={cn(
@@ -227,6 +259,9 @@ export function BrowserPreview({
               : "h-full w-full",
           )}
         >
+          {/* `visibility`, not conditional mounting: the frame has to load and
+              run to send the ack that reveals it. Opacity alone would still let
+              the saved theme paint through the transition. */}
           <iframe
             key={reloadKey}
             ref={ref}
@@ -234,8 +269,14 @@ export function BrowserPreview({
             title="Storefront preview"
             onLoad={post}
             className="h-full w-full border-0 bg-white"
+            style={{ visibility: painted ? "visible" : "hidden" }}
           />
         </div>
+        {!painted ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
+            Loading preview…
+          </div>
+        ) : null}
       </div>
     </div>
   );

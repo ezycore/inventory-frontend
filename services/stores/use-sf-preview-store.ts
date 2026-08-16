@@ -1,5 +1,7 @@
+// coding-standard: maintained
 import { create } from "zustand";
 import { resolveTemplates } from "@/lib/storefront-templates";
+import type { StoreDesign } from "@/lib/storefront-theme";
 import type {
   CatalogCategory,
   StoreAnnouncement,
@@ -10,6 +12,8 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
   StoreHomeCollections,
+  StoreHomeSection,
+  StoreSectionConfig,
   StoreLogoStyle,
   StoreMenuItem,
   StoreTemplates,
@@ -30,6 +34,19 @@ interface SfPreviewState {
   accent: string | null;
   /** Raw home-template id (classic | hero-split | minimal) the editor is drafting. */
   home: string | null;
+  /**
+   * Draft homepage SECTION list (Customize → Home page → Sections). Empty
+   * array is NOT a draft — it means "the merchant turned everything off", which
+   * the resolver treats as unset so the page never goes blank mid-edit.
+   */
+  homepageSections: StoreHomeSection[] | null;
+  /**
+   * Draft per-section config (Customize → Home page → Sections) — CONFIG only,
+   * never products. A row the merchant just re-pointed has never been
+   * server-rendered, so the homepage matches these back to the renders it
+   * already has by signature; see `components/storefront/store-home.tsx`.
+   */
+  sectionConfig: StoreSectionConfig[] | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
@@ -40,6 +57,18 @@ interface SfPreviewState {
   cardActions: string | null;
   /** Raw image fit (fit | crop) the editor is drafting. */
   imageFit: string | null;
+  /** Raw product-photo frame (square | portrait | landscape | tall). */
+  imageRatio: string | null;
+  /** Raw category-tiles presentation (tile | overlay) the editor is drafting. */
+  categoryTiles: string | null;
+  /** Raw account-area layout (sidebar | tabs | panel | editorial). */
+  accountLayout: string | null;
+  /** Raw content frame (centered | banner | panel | editorial) for CMS + tracking. */
+  contentLayout: string | null;
+  /** Raw cart layout (panel | compact | cards | editorial). */
+  cartLayout: string | null;
+  /** Raw page skeleton (stacked | rail) the editor is drafting. */
+  shell: string | null;
   /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
   pagination: string | null;
   /** Raw collection-page layout (grid-3 | grid-4 | sidebar) the editor is drafting. */
@@ -113,16 +142,30 @@ interface SfPreviewState {
   logoStyle: StoreLogoStyle | null;
   /** Draft homepage collections layout (Customize → Collections). */
   homeCollections: StoreHomeCollections | null;
+  /**
+   * Draft type family + rhythm (Customize → Design). Complete rather than
+   * partial: the editor seeds every axis from `DEFAULT_DESIGN`, so a half-filled
+   * object here would mean the shell had to re-resolve what the editor already knows.
+   */
+  design: StoreDesign | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
     accent?: string;
     home?: string;
+    homepageSections?: StoreHomeSection[];
+    sectionConfig?: StoreSectionConfig[];
     footer?: string;
     header?: string;
     cardStyle?: string;
     cardActions?: string;
     imageFit?: string;
+    imageRatio?: string;
+    categoryTiles?: string;
+    accountLayout?: string;
+    contentLayout?: string;
+    cartLayout?: string;
+    shell?: string;
     pagination?: string;
     collection?: string;
     product?: string;
@@ -148,6 +191,7 @@ interface SfPreviewState {
     banner?: StorefrontImage | null;
     logoStyle?: StoreLogoStyle;
     homeCollections?: StoreHomeCollections;
+    design?: StoreDesign;
   }) => void;
 }
 
@@ -156,11 +200,19 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   brand: null,
   accent: null,
   home: null,
+  homepageSections: null,
+  sectionConfig: null,
   footer: null,
   header: null,
   cardStyle: null,
   cardActions: null,
   imageFit: null,
+  imageRatio: null,
+  categoryTiles: null,
+  accountLayout: null,
+  contentLayout: null,
+  cartLayout: null,
+  shell: null,
   pagination: null,
   collection: null,
   product: null,
@@ -184,18 +236,36 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   banner: undefined,
   logoStyle: null,
   homeCollections: null,
+  design: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
       brand: patch.brand !== undefined ? patch.brand : s.brand,
       accent: patch.accent !== undefined ? patch.accent : s.accent,
       home: patch.home !== undefined ? patch.home : s.home,
+      homepageSections:
+        patch.homepageSections !== undefined
+          ? patch.homepageSections
+          : s.homepageSections,
+      sectionConfig:
+        patch.sectionConfig !== undefined ? patch.sectionConfig : s.sectionConfig,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
       imageFit: patch.imageFit !== undefined ? patch.imageFit : s.imageFit,
+      imageRatio:
+        patch.imageRatio !== undefined ? patch.imageRatio : s.imageRatio,
+      categoryTiles:
+        patch.categoryTiles !== undefined ? patch.categoryTiles : s.categoryTiles,
+      accountLayout:
+        patch.accountLayout !== undefined ? patch.accountLayout : s.accountLayout,
+      contentLayout:
+        patch.contentLayout !== undefined ? patch.contentLayout : s.contentLayout,
+      cartLayout:
+        patch.cartLayout !== undefined ? patch.cartLayout : s.cartLayout,
+      shell: patch.shell !== undefined ? patch.shell : s.shell,
       pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
       collection: patch.collection !== undefined ? patch.collection : s.collection,
       product: patch.product !== undefined ? patch.product : s.product,
@@ -238,6 +308,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.homeCollections !== undefined
           ? patch.homeCollections
           : s.homeCollections,
+      design: patch.design !== undefined ? patch.design : s.design,
     })),
 }));
 

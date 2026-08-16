@@ -10873,6 +10873,50 @@ export interface components {
             completedAt: string | null;
             step: number;
         };
+        OnboardingStepResult: {
+            features: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            planFeatures: {
+                sales: boolean;
+                accounts: boolean;
+                expiryTracking: boolean;
+                barcodeSystem: boolean;
+                invoicePrinting: boolean;
+                returns: boolean;
+                uomConversion: boolean;
+                storefront: boolean;
+                tax: boolean;
+                combo: boolean;
+                smsNotifications: boolean;
+                multiLocation: boolean;
+            };
+            onboarding: {
+                /** Format: date-time */
+                completedAt: string | null;
+                step: number;
+            };
+            vatRegistrationHistory: {
+                /** @enum {string} */
+                type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                /** Format: date-time */
+                effectiveFrom: string;
+                changedBy?: string;
+                /** Format: date-time */
+                changedAt: string;
+            }[];
+        };
         OrganizationColumnSettings: {
             excludedColumns: {
                 [key: string]: string[];
@@ -11268,8 +11312,10 @@ export interface components {
                 preset: string;
                 brandColor?: string;
                 accentColor?: string;
-                footerText?: string;
-                homepageSections?: string[];
+                homepageSections?: {
+                    key: string;
+                    type: string;
+                }[];
                 logo?: {
                     background?: string;
                     height?: number;
@@ -11283,6 +11329,25 @@ export interface components {
                     /** @enum {string} */
                     align?: "left" | "center" | "right";
                 };
+                design?: {
+                    font?: string;
+                    surface?: string;
+                    scale?: string;
+                    density?: string;
+                    radius?: string;
+                };
+                appliedThemeId?: string;
+            };
+            sectionConfig?: {
+                key: string;
+                /** @enum {string} */
+                source?: "featured" | "newest" | "category";
+                categoryId?: string;
+                title?: string;
+                limit?: number;
+            }[];
+            copy?: {
+                footerText?: string;
                 footerNote?: string;
                 footerContactHeading?: string;
                 footerNewsletter?: {
@@ -11358,6 +11423,12 @@ export interface components {
                 headerMenu?: string;
                 pagination?: string;
                 imageFit?: string;
+                imageRatio?: string;
+                categoryTiles?: string;
+                accountLayout?: string;
+                contentLayout?: string;
+                cartLayout?: string;
+                shell?: string;
             };
             customersConfig?: {
                 allowAccounts?: boolean;
@@ -11637,6 +11708,8 @@ export interface components {
             };
             seo?: unknown;
             theme?: unknown;
+            copy?: unknown;
+            sectionConfig?: unknown;
             heroSlides?: unknown;
             heroBanner?: unknown;
             printable?: unknown;
@@ -11692,6 +11765,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
             } | null;
+            description?: string;
             children: {
                 _id: string;
                 name: string;
@@ -11703,6 +11777,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                 } | null;
+                description?: string;
             }[];
         };
         StorefrontCategoryResolve: {
@@ -11754,6 +11829,7 @@ export interface components {
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
+            unitLabel?: string;
             /** @enum {string} */
             outOfStockBehavior?: "hide" | "show" | "backorder";
             seo?: {
@@ -11804,6 +11880,7 @@ export interface components {
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;
+                unitLabel?: string;
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
                 seo?: {
@@ -17378,7 +17455,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["OrganizationFeatureState"];
+                        data?: components["schemas"]["OnboardingStepResult"];
                     };
                 };
             };
@@ -17581,8 +17658,10 @@ export interface operations {
                         preset?: string;
                         brandColor?: string;
                         accentColor?: string;
-                        footerText?: string;
-                        homepageSections?: string[];
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                        }[];
                         logo?: {
                             background?: string;
                             height?: number;
@@ -17596,6 +17675,17 @@ export interface operations {
                             /** @enum {string} */
                             align?: "left" | "center" | "right";
                         };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                        };
+                        appliedThemeId?: string;
+                    };
+                    copy?: {
+                        footerText?: string;
                         footerNote?: string;
                         footerContactHeading?: string;
                         footerNewsletter?: {
@@ -17604,6 +17694,14 @@ export interface operations {
                             buttonLabel?: string;
                         };
                     };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category";
+                        categoryId?: string;
+                        title?: string;
+                        limit?: number;
+                    }[];
                     nav?: {
                         header?: {
                             label: string;
@@ -17671,6 +17769,12 @@ export interface operations {
                         headerMenu?: string;
                         pagination?: string;
                         imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
                     };
                     customersConfig?: {
                         allowAccounts?: boolean;

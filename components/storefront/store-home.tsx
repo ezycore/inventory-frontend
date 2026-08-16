@@ -7,31 +7,38 @@ import type {
   StoreCampaign,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
+import { configFor, sectionSignature } from "@/lib/storefront-sections";
 import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { Classic } from "@/components/storefront/home/home-classic";
-import { HeroSplit } from "@/components/storefront/home/home-hero-split";
-import { Minimal } from "@/components/storefront/home/home-minimal";
-
-type TplName = "classic" | "hero-split" | "minimal";
-const HOME_VARIANTS: readonly string[] = ["classic", "hero-split", "minimal"];
+import { SECTION_COMPONENTS } from "@/components/storefront/home/home-sections";
+import {
+  HOME_PRESET_SECTIONS,
+  isSectionId,
+  type SectionId,
+} from "@/lib/storefront-section-ids";
 
 /**
- * Storefront homepage — renders one of three admin-selectable templates
- * (Classic / Hero Split / Minimal, in `components/storefront/home/`) from
- * `templates.home`, server-rendered for SEO. Live brand-colour preview is
- * handled globally by the shell (it reads the preview store), so the whole
- * page — not just this content — repaints.
+ * Storefront homepage — **a list of sections, not a template.**
+ *
+ * Which sections and in what order comes from `resolveSections` (draft → the
+ * merchant's saved `theme.homepageSections` → their `templates.home` default),
+ * and each id resolves through the registry in `home/home-sections.tsx`. That is
+ * what lets a theme produce a structurally different page rather than a
+ * repainted one — see the note in that file before adding anything here.
+ *
+ * Server-rendered for SEO. Live brand-colour preview is handled globally by the
+ * shell (it reads the preview store), so the whole page repaints, not just this.
  */
 export function StoreHome({
   store,
   base,
   featured,
   latest,
+  rows,
   categories,
   campaigns,
 }: {
@@ -39,23 +46,29 @@ export function StoreHome({
   base: string;
   featured: CatalogProduct[];
   latest: CatalogProduct[];
+  /**
+   * Server-fetched products for the CONFIGURED sections, one entry per distinct
+   * query. Keyed by signature rather than by section key so two sections asking
+   * the catalogue the same thing share one fetch — and so a preview can match a
+   * re-pointed row back to a render it already has.
+   */
+  rows?: { signature: string; items: CatalogProduct[] }[];
   categories: CatalogCategory[];
   campaigns: StoreCampaign[];
 }) {
   const { t } = useStorefrontUI();
   const currency = store.currency;
-  // Live draft from the admin Customize editor (only set under ?preview=1) wins,
-  // so picking Classic/Hero-Split/Minimal repaints the homepage instantly.
+  // Live drafts from the admin Customize editor (only set under ?preview=1).
   const previewHome = useSfPreview((s) => s.home);
+  const previewSections = useSfPreview((s) => s.homepageSections);
   const previewSlides = useSfPreview((s) => s.heroSlides);
   const previewHeroSrc = useSfPreview((s) => s.heroSrc);
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
-  const tpl = HOME_VARIANTS.includes(previewHome ?? "")
-    ? (previewHome as TplName)
-    : resolved.home;
+  const sectionConfig = previewSectionConfig ?? store.sectionConfig;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
@@ -75,6 +88,33 @@ export function StoreHome({
     image: pc.image ?? categories.find((c) => c._id === pc._id)?.image,
   }));
 
+  // A drafted `templates.home` has to reach the resolver as the store's own
+  // value, since the preset it selects IS the fallback section list — passing
+  // only the saved store would leave the preview on the old composition.
+  const previewStore = previewHome
+    ? { ...store, templates: { ...store.templates, home: previewHome } }
+    : store;
+  const sections = resolveSections(previewStore, {
+    draft: previewSections,
+    isSectionId,
+    presets: HOME_PRESET_SECTIONS,
+  });
+
+  // Per-section products. The server fetched one query per CONFIGURED section
+  // (see `shop/page.tsx`); under preview a section the merchant just re-pointed
+  // has no server render, so it is matched back by what it ASKS FOR rather than
+  // by key — re-pointing a row keeps its key, and matching on key alone would
+  // go on showing the old row's products under the new heading.
+  const ssrBySignature = new Map(
+    (rows ?? []).map((r) => [r.signature, r.items] as const),
+  );
+  const rowItems = new Map<string, typeof featured>();
+  for (const section of sections) {
+    const config = configFor(sectionConfig, section.key);
+    if (!config) continue;
+    rowItems.set(section.key, ssrBySignature.get(sectionSignature(config)) ?? []);
+  }
+
   const shared = {
     base,
     currency,
@@ -86,9 +126,26 @@ export function StoreHome({
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
+    store,
   };
 
-  if (tpl === "hero-split") return <HeroSplit {...shared} />;
-  if (tpl === "minimal") return <Minimal {...shared} />;
-  return <Classic {...shared} />;
+  return (
+    <div>
+      {sections.map((section) => {
+        const Section = SECTION_COMPONENTS[section.type as SectionId];
+        const config = configFor(sectionConfig, section.key);
+        // Keyed by the INSTANCE key, not the type: a page may carry the same
+        // section twice, and keying by type would collide the pair into one.
+        // Not the index either — that re-mounts every section below a reorder.
+        return (
+          <Section
+            key={section.key}
+            {...shared}
+            config={config}
+            items={config ? rowItems.get(section.key) : undefined}
+          />
+        );
+      })}
+    </div>
+  );
 }

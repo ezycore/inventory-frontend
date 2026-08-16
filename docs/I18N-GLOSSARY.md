@@ -94,6 +94,15 @@ sidebar must say which one it is opening.
 | Campaign | ক্যাম্পেইন | transliterate | |
 | Coupon | কুপন | transliterate | |
 | Customize | কাস্টমাইজ | transliterate | storefront theme editor |
+| Theme (ready-made) | থিম | transliterate | the one-click look; distinct from ডিজাইন, which is the individual axes |
+| Design (Customize part) | ডিজাইন | transliterate | typeface + spacing, not colour — colour lives under ব্র্যান্ড |
+| Typeface | ফন্ট | transliterate | say ফন্ট, not টাইপফেস — the latter is unused in BD trade speech |
+| Heading size | হেডিং সাইজ | transliterate | হেডিং matches হেডার already used for the store header |
+| Spacing | স্পেসিং | transliterate | ফাঁক reads as a gap/defect, not a layout setting |
+| Corners (radius) | কর্নার | transliterate | কোণা is the plain word but reads as "angle"; কর্নার is what shop owners say |
+| Photo shape (aspect ratio) | ছবির আকৃতি | translate | the frame, not the crop; আকার would read as file size |
+| Section (homepage block) | সেকশন | transliterate | one block of the homepage; অংশ is already the Customize "part" |
+| Preview | প্রিভিউ | transliterate | the theme-store modal and the live editor pane |
 | Content | কনটেন্ট | transliterate | CMS pages |
 | Courier | কুরিয়ার | transliterate | Pathao / Steadfast / eCourier |
 | Cash on Delivery (COD) | ক্যাশ অন ডেলিভারি | transliterate | universally said in full or as "COD" |

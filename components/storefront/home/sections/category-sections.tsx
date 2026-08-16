@@ -1,0 +1,398 @@
+"use client";
+// coding-standard: maintained
+
+import type { CSSProperties } from "react";
+import Link from "next/link";
+import type { StoreTemplates } from "@/lib/storefront-client";
+import { collectionHref } from "@/lib/storefront-links";
+import { cardImageUrl } from "@/lib/storefront-image";
+import { resolveTemplates } from "@/lib/storefront-templates";
+import { Media } from "@/components/storefront/sf-bits";
+import { HomeCollections } from "@/components/storefront/home/home-collections";
+import { useStoreImageFit } from "@/services/storefront/use-image-fit";
+import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import { wrap, type SectionProps } from "@/components/storefront/home/home-shared";
+
+/**
+ * The category family — three genuinely different answers to "how does a
+ * shopper get into the catalogue", not three skins of one.
+ *
+ * All three render nothing without categories. That rule is per-section rather
+ * than in the registry: a section knowing when it has nothing to say is what
+ * keeps a reordered page from growing holes.
+ */
+
+/** Chips row — the merchant's own layout (Customize → Collections). */
+export function CategoryChips({ base, categories }: SectionProps) {
+  if (!categories.length) return null;
+  return (
+    <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
+      {/* Layout is the merchant's, so the row itself owns it — home-collections.tsx. */}
+      <HomeCollections base={base} categories={categories} />
+    </div>
+  );
+}
+
+/** Quiet centred text links between hairlines — the editorial answer. */
+export function CategoryLinks({ base, categories }: SectionProps) {
+  if (!categories.length) return null;
+  return (
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(40px,6vw,64px)" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 26,
+          justifyContent: "center",
+          flexWrap: "wrap",
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+          padding: "18px 0",
+        }}
+      >
+        {categories.map((c) => (
+          <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+            {c.name}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Image tiles — a picture per category, in a grid, in one of two presentations.
+ *
+ * The quick-commerce pattern (rice, oil, medicine): a shopper recognises a
+ * photograph faster than they read a word, and a grocery catalogue has too many
+ * departments for a chip row to stay scannable.
+ *
+ * **Three modes, one section, chosen by `templates.categoryTiles` — never by
+ * theme.** `tile` puts the photo on a tinted card with the name beneath;
+ * `overlay` runs a taller photo with the name across the bottom of it; `disc`
+ * skips photographs entirely for a strip of lettered discs. Which reads better
+ * is a question about the merchant's own pictures (product shots vs scenes vs
+ * none worth showing), not about which theme they picked, so it is a setting
+ * they own.
+ *
+ * The tint is what stopped this looking like a wireframe. Bare photos on the
+ * page background sat in a grid of nothing; `--primary-soft` behind them makes
+ * the row read as a deliberate band, and it means the no-image fallback (the
+ * category's initial) is a quieter version of the same tile rather than a
+ * visibly different object.
+ */
+export function CategoryTiles(props: SectionProps) {
+  const { base, categories, store } = props;
+  const imageFit = useStoreImageFit();
+  const draftMode = useSfPreview((s) => s.categoryTiles);
+  const draftShell = useSfPreview((s) => s.shell);
+  const mode = isTilesMode(draftMode)
+    ? draftMode
+    : resolveTemplates(store).categoryTiles;
+  const overlay = mode === "overlay";
+
+  /* ⚠ **The `rail` shell already lists every department, permanently, down the
+     left of this very page.** Drawing them again here put the same seven names
+     twice on one screen — the fourth time this storefront has shipped that bug
+     (the trust badges twice, the hero photograph twice, the promises twice).
+     So the section suppresses itself, which is the existing "a section renders
+     nothing when it has nothing to add" rule extended one step: nothing to add
+     includes "the shell is already saying it".
+
+     Suppressed rather than removed from the bundle, because the merchant can
+     switch the shell back to `stacked` — and then the tiles are the only
+     category navigation the home page has. */
+  const shell = isShellId(draftShell) ? draftShell : resolveTemplates(store).shell;
+  if (shell === "rail") return null;
+
+  /* **Has the merchant photographed their departments at all?**
+     This decides the row's whole shape, and it is asked ONCE for the section
+     rather than per tile — a grid mixing tall photo tiles with short lettered
+     ones stretches every row to the tallest and leaves the short ones sitting in
+     dead space.
+
+     With photos: a square picture, the name beneath. Without: a small initial
+     disc and the name — about a third the height. That second shape is the fix
+     for the worst thing this section did, which was to render seven ~200px
+     blocks each containing one letter floating in an empty white square, filling
+     the entire first screen of a shop that had simply never uploaded a category
+     picture. A wayfinding target should not outweigh the products.
+
+     `disc` is that same shape asked for DELIBERATELY rather than fallen back to.
+     A marketplace wants a scannable strip of departments above its products even
+     when every one of them has a photograph — so the mode wins over the
+     photographs rather than the other way round. */
+  const photographed = categories.some((c) => !!cardImageUrl(c.image));
+  const disc = mode === "disc";
+  const compact = disc || (!photographed && !overlay);
+  /* A compact tile carrying a sentence is a ROW, and a 132px track cannot hold
+     one. Asked per section for the same reason `photographed` is: one ragged
+     grid of mixed shapes is worse than either shape used consistently. */
+  /* ⚠ `disc` never turns into a row, even when the merchant HAS written
+     descriptions. It is chosen as a scannable strip of departments above the
+     products — eight across, a word each — and a sentence per tile turns that
+     strip into a stack of three-wide cards that fills the first screen, which is
+     the exact failure the compact shape was introduced to fix. The descriptions
+     are not lost: they head the collection page each disc leads to. */
+  const described =
+    !overlay && !disc && categories.some((c) => !!c.description?.trim());
+
+  if (!categories.length) return null;
+  return (
+    <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad)" }}>
+      {/* A department tile is a wayfinding target, not a product — sized off
+          the four-column product grid it became a 275px square, and left to
+          stretch it filled the first screen. The cap that fixes that is
+          desktop-only, so the grid itself lives in `.sf-cat-tiles`
+          (storefront.css); this only supplies the two numbers per presentation.
+
+          `overlay` is widest — a 96px tile has no room for a name written across
+          it. `compact` is narrowest: it is a disc and a word, and any wider just
+          spreads them out. */}
+      <div
+        className="sf-cat-tiles"
+        style={
+          {
+            /* `disc` runs a little wider than the fallback — its circle is 68px
+               rather than 42, and a 96px track puts a seven-letter department
+               name on two lines. But only a little: the row's whole job is to be
+               ONE scannable strip, and a max wide enough to push the eighth
+               department onto a second line costs more than a snug name does.
+               150px holds seven or eight across a 1200px page. */
+            "--tile-min": `${
+              overlay ? 150 : disc ? 100 : compact && described ? 210 : 96
+            }px`,
+            "--tile-max": `${
+              overlay ? 210 : disc ? 150 : compact ? (described ? 330 : 132) : 148
+            }px`,
+          } as CSSProperties
+        }
+      >
+        {categories.map((c) => (
+          <CategoryTile
+            key={c._id}
+            href={collectionHref(base, c)}
+            name={c.name}
+            /* The merchant's own one-liner. `overlay` is the one mode that must
+               not draw it — the name already sits on a photograph behind a
+               scrim, and a second line of type over an image the merchant chose
+               and we have never seen is where legibility runs out. */
+            description={overlay || disc ? undefined : c.description}
+            image={cardImageUrl(c.image)}
+            imageFit={imageFit}
+            overlay={overlay}
+            compact={compact}
+            disc={disc}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function isTilesMode(value: unknown): value is StoreTemplates["categoryTiles"] {
+  return value === "tile" || value === "overlay" || value === "disc";
+}
+
+function isShellId(value: unknown): value is StoreTemplates["shell"] {
+  return value === "stacked" || value === "rail";
+}
+
+/**
+ * The initial on a plain ground — a half-photographed catalogue still looks
+ * deliberate.
+ *
+ * The ground depends on what it sits ON, and getting that wrong is visible from
+ * across the room: inside `tile` mode the card is already `--primary-soft`, so a
+ * `--primary-soft` fallback made card and photo-slot merge into one flat blob of
+ * brand colour with a letter floating in it. There it takes `--card`, standing
+ * in for the white space a photograph would occupy. `overlay` has no card behind
+ * it, so the tint is the tile.
+ */
+function TileFallback({
+  name,
+  ratio,
+  onCard,
+}: {
+  name: string;
+  ratio: string;
+  onCard: boolean;
+}) {
+  return (
+    <span
+      style={{
+        aspectRatio: ratio,
+        borderRadius: "var(--radius-md)",
+        background: onCard ? "var(--card)" : "var(--primary-soft)",
+        color: "var(--primary)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "var(--h2)",
+        fontWeight: 700,
+      }}
+    >
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+function CategoryTile({
+  href,
+  name,
+  description,
+  image,
+  imageFit,
+  overlay,
+  compact,
+  disc,
+}: {
+  href: string;
+  name: string;
+  /** The merchant's one-liner; absent ⇒ the tile draws no second line. */
+  description?: string;
+  image?: string;
+  imageFit: "cover" | "canvas";
+  overlay: boolean;
+  /** No category in this section has a photo — see `CategoryTiles`. */
+  compact?: boolean;
+  /**
+   * The merchant CHOSE the disc row (`categoryTiles: "disc"`), rather than it
+   * being the fallback for an unphotographed catalogue. Same disc, quieter
+   * dress: no card behind it, and the circle takes the neutral panel tint
+   * instead of full brand — eight saturated brand pills in a row above the
+   * products out-shout the products, which is the opposite of wayfinding.
+   */
+  disc?: boolean;
+}) {
+  /* A disc and a word. No square, no reserved photo slot: there is no photograph
+     coming, so holding space for one is what made this section look broken.
+
+     With a description it turns on its side — disc left, name over the line —
+     because that is the only shape the sentence fits in, and it is exactly the
+     "shop by concern" card a pharmacy wants ("Diabetes / Strips, meters,
+     insulin"). Same component, same data, decided by whether the merchant
+     actually wrote anything. */
+  if (compact) {
+    const row = !!description;
+    return (
+      <Link
+        href={href}
+        style={{
+          display: "flex",
+          flexDirection: row ? "row" : "column",
+          alignItems: "center",
+          gap: row ? 13 : 9,
+          textAlign: row ? "start" : "center",
+          // Chosen disc rows sit on the page itself; the fallback keeps its card,
+          // because there it is standing in for a photograph that never came.
+          background: disc ? "transparent" : "var(--primary-soft)",
+          borderRadius: "var(--radius-lg)",
+          padding: row ? "14px 15px" : "14px 8px 12px",
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: disc ? 68 : 42,
+            height: disc ? 68 : 42,
+            flex: "none",
+            borderRadius: 999,
+            background: disc ? "var(--surface)" : "var(--primary)",
+            /* A deep shade of the brand, mixed toward the page's own ink rather
+               than a literal — so it darkens correctly on any surface and in
+               dark mode, where a fixed rust would go muddy. */
+            color: disc
+              ? "color-mix(in srgb, var(--primary) 76%, var(--text))"
+              : "var(--on-primary)",
+            fontSize: disc ? 26 : 17,
+            fontWeight: 700,
+            fontFamily: disc ? "var(--font-display)" : undefined,
+          }}
+        >
+          {name.charAt(0).toUpperCase()}
+        </span>
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: row ? 14 : 12.5, fontWeight: row ? 600 : 500, color: "var(--text)", lineHeight: 1.25 }}>
+            {name}
+          </span>
+          {description ? (
+            <span style={{ display: "block", fontSize: 12, color: "var(--muted)", lineHeight: 1.35, marginTop: 2 }}>
+              {description}
+            </span>
+          ) : null}
+        </span>
+      </Link>
+    );
+  }
+
+  const ratio = overlay ? "3 / 4" : "1 / 1";
+  const media = image ? (
+    <Media
+      src={image}
+      alt={name}
+      label="category"
+      radius={0}
+      fit={imageFit}
+      ratio={ratio}
+      style={{ borderRadius: "var(--radius-md)" }}
+    />
+  ) : (
+    <TileFallback name={name} ratio={ratio} onCard={!overlay} />
+  );
+
+  if (overlay) {
+    return (
+      <Link href={href} style={{ position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+        {media}
+        {/* A scrim, not a translucent bar: the name has to stay legible over a
+            photograph the merchant chose and we have never seen, and a gradient
+            does that without hiding the third of the picture a solid strip
+            would. */}
+        <span
+          style={{
+            position: "absolute",
+            inset: "auto 0 0 0",
+            display: "block",
+            padding: "26px 12px 11px",
+            background: "linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0))",
+            color: "#fff",
+            fontSize: 13.5,
+            fontWeight: 600,
+            lineHeight: 1.25,
+          }}
+        >
+          {name}
+        </span>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        textAlign: "center",
+        background: "var(--primary-soft)",
+        borderRadius: "var(--radius-lg)",
+        padding: 8,
+      }}
+    >
+      {media}
+      <span style={{ paddingBottom: 2 }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text)", lineHeight: 1.3 }}>
+          {name}
+        </span>
+        {description ? (
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3, marginTop: 3 }}>
+            {description}
+          </span>
+        ) : null}
+      </span>
+    </Link>
+  );
+}

@@ -13,6 +13,13 @@ import { JsonLd } from "@/components/storefront/json-ld";
 import { storeHref } from "@/lib/storefront-links";
 import { fullImageUrl } from "@/lib/storefront-image";
 import { StoreHome } from "@/components/storefront/store-home";
+import { resolveSections } from "@/lib/storefront-templates";
+import {
+  configFor,
+  configuredSections,
+  sectionSignature,
+} from "@/lib/storefront-sections";
+import { HOME_PRESET_SECTIONS, isSectionId } from "@/lib/storefront-section-ids";
 
 // Host-resolved (dynamic render); product/store data is cached via the
 // fetch-level `revalidate` in lib/storefront-server.ts.
@@ -105,6 +112,31 @@ export default async function StoreHomePage() {
 
   if (!store) notFound();
 
+  // Configured sections fetch their own products — one query per DISTINCT
+  // request, in one parallel round rather than a waterfall. Deduplicated by
+  // signature, so two sections asking the catalogue the same thing (the same
+  // collection at the same count) cost one fetch, and so the Customize preview
+  // can match a re-pointed row back to a render the page already has.
+  //
+  // This runs after `store`/`categories` and cannot be folded into the batch
+  // above: which queries to make is read off the merchant's own settings and
+  // resolved against their category tree, neither of which exists yet up there.
+  const sections = resolveSections(store, {
+    isSectionId,
+    presets: HOME_PRESET_SECTIONS,
+  });
+  const signatures = new Map<string, Record<string, string | number>>();
+  for (const { key, query } of configuredSections(sections, store, categories ?? [])) {
+    const config = configFor(store.sectionConfig, key);
+    if (config) signatures.set(sectionSignature(config), query);
+  }
+  const rows = await Promise.all(
+    [...signatures].map(async ([signature, query]) => ({
+      signature,
+      items: (await getStoreProducts(slug, query))?.items ?? [],
+    })),
+  );
+
   // JSON-LD `url` must agree with the canonical, or the Organization node claims
   // a different home page than the <link rel="canonical"> on the same document.
   const home = canonicalTarget(store, { origin, base });
@@ -125,6 +157,7 @@ export default async function StoreHomePage() {
         store={store}
         featured={featured?.items ?? []}
         latest={latest?.items ?? []}
+        rows={rows}
         categories={categories ?? []}
         campaigns={campaigns ?? []}
       />

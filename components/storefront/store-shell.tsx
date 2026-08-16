@@ -8,6 +8,7 @@ import type {
   CatalogCategory,
   ContentPageLink,
   StoreCampaign,
+  StoreTemplates,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
@@ -19,13 +20,12 @@ import {
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
-import { storeHref } from "@/lib/storefront-links";
+import { resolveTemplates } from "@/lib/storefront-templates";
+import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
-import { AnnouncementBar } from "@/components/storefront/announcement-bar";
-import { CampaignStrip } from "@/components/storefront/campaign-strip";
-import { StoreHeader } from "@/components/storefront/store-header";
-import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
-import { StoreFooter } from "@/components/storefront/store-footer";
+import { ShellBottomNav } from "@/components/storefront/shells/shell-parts";
+import { StackedShell } from "@/components/storefront/shells/stacked-shell";
+import { RailShell } from "@/components/storefront/shells/rail-shell";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -62,8 +62,14 @@ export function StoreShell({
   const { data: store, isError } = useStore(slug, initialStore);
   const { data: fetchedCategories } = useStoreCategories(slug, initialCategories);
   const previewBrand = useSfPreview((s) => s.brand);
+  const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewAnnouncement = useSfPreview((s) => s.announcement);
+  // Which SKELETON. Draft first, like every other look value, so switching it in
+  // Customize repaints without a save. Declared with the other preview hooks
+  // because the `isError` early return below is a conditional — a hook after it
+  // would not run on every render.
+  const previewShell = useSfPreview((s) => s.shell);
   const logo = useSfPreviewImage("logo", store?.logo);
 
   // The admin's Collections panel streams its unsaved draft; prefer it so
@@ -98,27 +104,70 @@ export function StoreShell({
   // a dark brand is auto-lifted on the dark theme and stays readable.
   const brandColor = previewBrand ?? store?.theme?.brandColor;
   const darkBrand = brandColor ? brightenForDark(brandColor) : undefined;
-  const shellVars = (brandColor
-    ? {
-        "--sf-brand-light": brandColor,
-        "--sf-brand-dark": darkBrand,
-        "--sf-brand-on-light": readableTextOn(brandColor),
-        "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
-      }
-    : {}) as CSSProperties;
+
+  /* The merchant's SECOND colour, published the same way and for the same
+     reason. Only when it actually differs from the brand: an accent equal to
+     the brand is not a second colour, and `--accent*` already falls back to the
+     primary pair in storefront.css, so stamping it would be a no-op that costs
+     two attributes and a stack of vars.
+     ⚠ Read from the saved theme only — the Customize editor has no live accent
+     preview to prefer, unlike `previewBrand`. If one is ever added, it belongs
+     here beside its brand counterpart. */
+  const accentColor = store?.theme?.accentColor;
+  const accent =
+    accentColor && accentColor.toLowerCase() !== brandColor?.toLowerCase()
+      ? accentColor
+      : undefined;
+  const darkAccent = accent ? brightenForDark(accent) : undefined;
+
+  const shellVars = {
+    ...(brandColor
+      ? {
+          "--sf-brand-light": brandColor,
+          "--sf-brand-dark": darkBrand,
+          "--sf-brand-on-light": readableTextOn(brandColor),
+          "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
+        }
+      : {}),
+    ...(accent
+      ? {
+          "--sf-accent-light": accent,
+          "--sf-accent-dark": darkAccent,
+          "--sf-accent-on-light": readableTextOn(accent),
+          "--sf-accent-on-dark": readableTextOn(darkAccent ?? accent),
+        }
+      : {}),
+  } as CSSProperties;
+
+  // Type family + spatial rhythm. Stamped as data attributes rather than inline
+  // style vars ON PURPOSE: --pad/--gap/--cols/--h1/--h2 are redefined at two
+  // breakpoints in storefront.css, and an inline var would outrank every media
+  // query and freeze a themed store at its phone spacing. Same live-preview-wins
+  // rule as the brand colour above; `designAttrs` omits an axis left at default.
+  const designAttributes = designAttrs(
+    resolveDesign(previewDesign ?? store?.theme?.design),
+  );
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.
   const announcement = previewAnnouncement ?? store?.nav?.announcement;
 
+  const shell = isShell(previewShell)
+    ? previewShell
+    : resolveTemplates(store).shell;
+
   const onHome = pathname === base || pathname === `${base}/` || pathname === "/";
   const crumb = !onHome ? crumbLabel(pathname, t) : "";
+
+  const Shell = SHELLS[shell] ?? StackedShell;
 
   return (
     <StoreContextProvider slug={slug} base={base}>
       <div
         className="sf-shell"
         data-brand={brandColor ? "" : undefined}
+        data-accent={accent ? "" : undefined}
+        {...designAttributes}
         style={{
           ...shellVars,
           minHeight: "100vh",
@@ -128,62 +177,24 @@ export function StoreShell({
           color: "var(--text)",
         }}
       >
-        {/* Announcement bar — admin Navigation tab (icon, CTA, dismissible). */}
-        <AnnouncementBar announcement={announcement} base={base} slug={slug} />
-
-        {/* Header — admin-selectable variant (templates.header). */}
-        <StoreHeader
+        <Shell
           slug={slug}
           base={base}
           store={store}
           categories={categories ?? []}
-        />
-
-        {/* Running-campaign promo strip (only when a campaign window is live). */}
-        <CampaignStrip
-          slug={slug}
-          base={base}
-          currency={store?.currency}
-          initialCampaigns={initialCampaigns}
-        />
-
-        {/* Breadcrumb */}
-        {crumb ? (
-          <div
-            className="sf-noprint"
-            style={{
-              maxWidth: "var(--maxw)",
-              margin: "0 auto",
-              width: "100%",
-              padding: "5px var(--pad) 0",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              fontSize: 12.5,
-            }}
-          >
-            {/* Vertical padding (offset by the wrapper's reduced top padding)
-                gives the only interactive crumb a tappable height. */}
-            <Link href={storeHref(base)} style={{ color: "var(--muted)", padding: "9px 0" }}>
-              {t.navHome}
-            </Link>
-            <span style={{ color: "var(--faint)" }}>/</span>
-            <span style={{ color: "var(--text)", fontWeight: 600 }}>{crumb}</span>
-          </div>
-        ) : null}
-
-        <main style={{ flex: 1 }}>{children}</main>
-
-        {/* Footer — admin-selectable variant (templates.footer). */}
-        <StoreFooter
-          slug={slug}
-          base={base}
-          store={store}
           initialPages={initialPages}
-        />
+          initialCampaigns={initialCampaigns}
+          crumb={crumb}
+          announcement={announcement}
+          t={t}
+        >
+          {children}
+        </Shell>
 
-        {/* Mobile bottom tab bar (hidden ≥680px). */}
-        <StoreBottomNav
+        {/* Mobile bottom tab bar (hidden ≥680px). Outside the shell because
+            every skeleton wants it in the same place — pinned to the viewport,
+            not to a layout. */}
+        <ShellBottomNav
           slug={slug}
           base={base}
           store={store}
@@ -191,11 +202,10 @@ export function StoreShell({
         />
 
         {/* Floating chat launcher — renders nothing unless the merchant has it
-            on (Customize → WhatsApp button). Mounted AFTER the `isError` early
+            on (Customize → WhatsApp button). Mounted AFTER the  early
             return above, so an unpublished store never exposes its owner's
             phone number. */}
         <ContactLauncher base={base} store={store} />
-
         <CartDrawer />
         <OwnerAdminBar />
         <StorePreviewBridge />
@@ -207,6 +217,27 @@ export function StoreShell({
       </div>
     </StoreContextProvider>
   );
+}
+
+/**
+ * The page SKELETONS. One entry per `templates.shell`.
+ *
+ * A shell owns where the announcement, header, rail, content and footer sit
+ * relative to one another — and nothing else. Everything they arrange comes from
+ * `shell-parts.tsx`, so a fix to the footer is not a fix to be repeated in
+ * every skeleton that places it differently.
+ *
+ * **This is the axis that makes two shops different KINDS of site.** Headers,
+ * sections and page layouts all vary what sits inside `<main>`; only a shell
+ * changes the building around it, on every page at once.
+ */
+const SHELLS: Record<StoreTemplates["shell"], typeof StackedShell> = {
+  stacked: StackedShell,
+  rail: RailShell,
+};
+
+function isShell(v: unknown): v is StoreTemplates["shell"] {
+  return v === "stacked" || v === "rail";
 }
 
 function crumbLabel(pathname: string, t: Dict): string {

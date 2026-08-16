@@ -7,6 +7,8 @@ import { NextIntlClientProvider } from "next-intl";
 import commonMessages from "@/messages/en/common.json";
 import authMessages from "@/messages/en/auth.json";
 import dashboardMessages from "@/messages/en/dashboard.json";
+import onboardingMessages from "@/messages/en/onboarding.json";
+import settingsMessages from "@/messages/en/settings.json";
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -33,6 +35,8 @@ export function TestProviders({ children, client }: WrapperProps) {
         common: commonMessages,
         auth: authMessages,
         dashboard: dashboardMessages,
+        onboarding: onboardingMessages,
+        settings: settingsMessages,
       }}
     >
       <QueryClientProvider client={qc}>{children}</QueryClientProvider>

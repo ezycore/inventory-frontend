@@ -84,6 +84,10 @@ export default function OnboardingPage() {
   const [completingHere, setCompletingHere] = useState(false);
 
   const features = featuresData?.data?.features;
+  // The plan ceiling rides along in the same response. The review screen needs
+  // it: every switch it renders writes through `updateFeatures`, which 403s on a
+  // feature the plan does not grant.
+  const planFeatures = featuresData?.data?.planFeatures;
   const onboarding = featuresData?.data?.onboarding;
   const serverStep = onboarding?.step ?? 0;
 
@@ -325,6 +329,7 @@ export default function OnboardingPage() {
       ) : (
         <ReviewStep
           features={features}
+          planFeatures={planFeatures}
           pendingFeature={pendingFeature}
           isSaving={applyStep.isPending}
           onBack={back}

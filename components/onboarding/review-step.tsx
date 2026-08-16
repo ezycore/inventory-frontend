@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Lock } from "lucide-react";
 import type { FeatureName, OrganizationFeatures } from "@/types";
 import {
   getFeatureDescriptions,
@@ -26,6 +26,7 @@ import { ANSWERED_FEATURES, REVIEW_ONLY_FEATURES } from "./steps";
  */
 export function ReviewStep({
   features,
+  planFeatures,
   onToggle,
   onBack,
   onConfirm,
@@ -33,6 +34,8 @@ export function ReviewStep({
   pendingFeature,
 }: {
   features: OrganizationFeatures;
+  /** The plan ceiling. Undefined only while it loads — see `inPlan` below. */
+  planFeatures: OrganizationFeatures | undefined;
   onToggle: (feature: FeatureName, next: boolean) => void;
   onBack: () => void;
   onConfirm: () => void;
@@ -54,28 +57,53 @@ export function ReviewStep({
         {heading}
       </h2>
       <div className="divide-y rounded-xl border bg-card">
-        {keys.map((key) => (
-          <div key={key} className="flex items-start gap-3 px-4 py-3.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <NavIcon
-                name={FEATURE_ICONS[key]}
-                className="h-4 w-4 text-muted-foreground"
-              />
-            </span>
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <p className="text-sm font-medium">{names[key]}</p>
-              <p className="text-xs text-muted-foreground">
-                {descriptions[key]}
-              </p>
+        {keys.map((key) => {
+          // A feature is available only where the plan grants it, exactly as on
+          // Settings → Customize workspace. A live switch over a locked feature
+          // is a switch that 403s (`FEATURE_NOT_IN_PLAN`) the moment it is
+          // touched. While the ceiling loads, fall back to the effective set.
+          const inPlan = planFeatures
+            ? planFeatures[key] === true
+            : (features[key] ?? false);
+
+          return (
+            <div
+              key={key}
+              className={`flex items-start gap-3 px-4 py-3.5 ${
+                inPlan ? "" : "opacity-75"
+              }`}
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <NavIcon
+                  name={FEATURE_ICONS[key]}
+                  className="h-4 w-4 text-muted-foreground"
+                />
+              </span>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-sm font-medium">{names[key]}</p>
+                <p className="text-xs text-muted-foreground">
+                  {/* The locked reason replaces the description: on a screen
+                      whose job is confirming decisions, "why can't I turn this
+                      on" outranks "what is it". */}
+                  {inPlan ? descriptions[key] : t("notIncluded")}
+                </p>
+              </div>
+              {inPlan ? (
+                <Switch
+                  className="mt-0.5"
+                  checked={features[key] ?? false}
+                  disabled={pendingFeature === key}
+                  onCheckedChange={(next) => onToggle(key, next)}
+                />
+              ) : (
+                // No upgrade link, unlike the settings page: the workspace is
+                // pinned to this wizard until it completes, so /dashboard/billing
+                // would bounce straight back here.
+                <Lock className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
             </div>
-            <Switch
-              className="mt-0.5"
-              checked={features[key] ?? false}
-              disabled={pendingFeature === key}
-              onCheckedChange={(next) => onToggle(key, next)}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

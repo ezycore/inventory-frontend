@@ -1,0 +1,266 @@
+"use client";
+// coding-standard: maintained
+
+import type { CSSProperties } from "react";
+import Link from "next/link";
+import type {
+  CatalogCategory,
+  HeaderMenuSource,
+  StoreMenuItem,
+} from "@/lib/storefront-client";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { Icon } from "@/components/storefront/sf-icons";
+import {
+  HeaderNav,
+  expandHeaderMenu,
+  menuHref,
+} from "@/components/storefront/header-nav";
+
+/**
+ * The header's shared vocabulary — the context every variant reads and the
+ * pieces they compose from.
+ *
+ * Split out of `store-header.tsx` when the fourth and fifth desktop anatomies
+ * arrived (2026-08-12): five variants plus seven shared pieces in one file was
+ * past the repo's ~400-line smell, and the variants are the half that keeps
+ * growing. One direction of import only — variants import from here, never back.
+ */
+
+type T = ReturnType<typeof useStorefrontUI>["t"];
+
+export interface HeaderCtx {
+  base: string;
+  name: string;
+  logo?: string;
+  phone: string;
+  t: T;
+  theme: "light" | "dark";
+  lang: "en" | "bn";
+  toggleTheme: () => void;
+  toggleLang: () => void;
+  shopperName?: string;
+  /** False until the persisted shopper store hydrates (guest vs member unknown). */
+  sessionKnown: boolean;
+  cartCount: number;
+  /** Basket subtotal — only `search-first` draws it. See `useCartNav`. */
+  cartSubtotal: number;
+  /** Store currency, for the subtotal above. */
+  currency?: string;
+  goCart: () => void;
+  headerMenu: StoreMenuItem[];
+  /** Where the top links come from — owner-chosen, never inferred from length. */
+  menuSource: HeaderMenuSource;
+  cats: CatalogCategory[];
+  /** The `rail` shell lists departments itself; suppress the header row. */
+  hideCategoryRow?: boolean;
+  /**
+   * The merchant first promise ("Same-day delivery"), shown as a chip by the
+   * search-first bar. Sourced from trustBadges rather than its own field: the
+   * owner already writes those, so there is no new empty state to design.
+   */
+  deliveryPromise?: string;
+}
+
+export const headerBar: CSSProperties = {
+  position: "sticky",
+  top: 0,
+  zIndex: 30,
+  background: "var(--header)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  borderBottom: "1px solid var(--border)",
+};
+
+/** Reset for icon/text buttons in the header bars (real buttons for keyboard). */
+export const bareBtn: CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  cursor: "pointer",
+};
+
+/** Grows a `bareBtn` icon/label to a comfortable touch target while leaving it
+ *  optically where it sits — the negative margin cancels the padding, so
+ *  surrounding gaps and alignment are unchanged. Mobile header only; the
+ *  desktop bars are pointer-driven and densely packed by design. */
+export const tapPad: CSSProperties = { padding: 12, margin: -12 };
+
+/** Top links for the compact header variants, per the resolved menu source. */
+export function headerLinks(ctx: HeaderCtx): { key: string; label: string; href: string }[] {
+  const { base, headerMenu, menuSource, cats } = ctx;
+  return menuSource === "custom"
+    ? headerMenu.map((m) => ({
+        key: m.label,
+        label: m.label,
+        href: menuHref(m, base, cats),
+      }))
+    : cats.map((c) => ({
+        key: c._id,
+        label: c.name,
+        href: collectionHref(base, c),
+      }));
+}
+
+export function UtilityBar({ ctx }: { ctx: HeaderCtx }) {
+  const { base, phone, t } = ctx;
+  return (
+    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "6px var(--pad)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
+      {/* Merchant's real phone only — never a placeholder number. */}
+      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        {phone ? (
+          <>
+            <Icon name="phone" size={15} /> {phone}
+          </>
+        ) : null}
+      </span>
+      <span style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>{t.trackOrder}</Link>
+        <LangBtn ctx={ctx} />
+        <ThemeBtn ctx={ctx} />
+      </span>
+    </div>
+  );
+}
+
+export function LangBtn({ ctx }: { ctx: HeaderCtx }) {
+  return (
+    <button type="button" onClick={ctx.toggleLang} style={{ ...bareBtn, fontWeight: 600, color: "var(--text)" }}>
+      {ctx.lang === "en" ? "বাংলা" : "English"}
+    </button>
+  );
+}
+
+/**
+ * The light/dark switch. **Every desktop anatomy must render one.**
+ *
+ * The choice is persisted to `localStorage` and re-applied before paint by the
+ * script in the storefront layout, so an anatomy that omits this control does
+ * not merely hide a preference — it STRANDS the shopper in whichever theme they
+ * last chose, on every future visit, with no way back. Three of the six
+ * anatomies shipped without it (`minimal`, `search-first`, `boutique`), which is
+ * how a shopper could end up looking at a permanently dark shop and reasonably
+ * conclude the theme was broken.
+ *
+ * `compact` is for the icon rows that have no room for a word; it is a prop
+ * rather than a second component so the two can never drift on what they toggle
+ * or how they label themselves to a screen reader.
+ */
+export function ThemeBtn({ ctx, compact }: { ctx: HeaderCtx; compact?: boolean }) {
+  const { theme, toggleTheme, t } = ctx;
+  const label = theme === "dark" ? t.lightMode : t.darkMode;
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={label}
+      title={compact ? label : undefined}
+      style={{
+        ...bareBtn,
+        display: "flex",
+        alignItems: "center",
+        gap: 5,
+        color: compact ? "var(--text)" : "inherit",
+      }}
+    >
+      <Icon name={theme === "dark" ? "sun" : "moon"} size={compact ? 18 : 14} />
+      {compact ? null : label}
+    </button>
+  );
+}
+
+export function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
+  const { base, shopperName, sessionKnown, t } = ctx;
+  // Until the persisted session hydrates we don't know guest vs member — show a
+  // shimmer chip instead of flashing "Sign in" at signed-in shoppers on reload.
+  const label = !sessionKnown ? (
+    <span className="sf-skeleton" aria-hidden style={{ width: 40, height: 11, borderRadius: 6 }} />
+  ) : (
+    <span>{shopperName ? shopperName.split(" ")[0] : t.signIn}</span>
+  );
+  return (
+    <Link href={storeHref(base, "/account")} aria-label={t.myAccount} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
+      <Icon name="user" size={18} />
+      {withLabel ? label : null}
+    </Link>
+  );
+}
+
+export function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
+  const { goCart, cartCount, t } = ctx;
+  return (
+    <button type="button" onClick={goCart} aria-label={t.cart} style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, color: "var(--text)" }}>
+      <Icon name="cart" size={22} />
+      {withLabel ? <span style={{ fontSize: 13, fontWeight: 600 }}>{t.cart}</span> : null}
+      {cartCount > 0 ? <CartBadge count={cartCount} compact={!withLabel} /> : null}
+    </button>
+  );
+}
+
+/**
+ * The whole category tree as a menu: one `collections` block, which
+ * `expandHeaderMenu` turns into a top-level link per parent carrying its
+ * sub-categories as dropdown children.
+ */
+const COLLECTIONS_MENU: StoreMenuItem[] = [
+  { label: "", type: "collections", value: "" },
+];
+
+export function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
+  const { base, headerMenu, menuSource, cats } = ctx;
+  // The rail shell already lists every department down the left of the page;
+  // drawing the same list again here is the duplication that has bitten this
+  // storefront twice already (the trust badges, and the hero photograph).
+  if (ctx.hideCategoryRow) return null;
+  if (menuSource === "custom") {
+    if (headerMenu.length === 0) return null;
+    return <HeaderNav base={base} menu={headerMenu} categories={cats} center={center} />;
+  }
+  if (cats.length === 0) return null;
+  // Collections mode goes through the SAME component as a custom menu, so a
+  // sub-category gets the same hover/focus dropdown under its parent. This was a
+  // bare link row until now, which meant the default store — the one whose owner
+  // never opened Customize — surfaced no sub-categories in the header at all.
+  //
+  // It also has to stop being an `overflowX: auto` strip: a scroll container
+  // establishes a clipping box on BOTH axes, so the absolutely-positioned
+  // dropdown panel would be cut off at the row's bottom edge. `HeaderNav` wraps
+  // instead, which is what lets the panel escape.
+  return (
+    <HeaderNav
+      base={base}
+      menu={expandHeaderMenu(COLLECTIONS_MENU, cats)}
+      categories={cats}
+      center={center}
+    />
+  );
+}
+
+function CartBadge({ count, compact }: { count: number; compact?: boolean }) {
+  return (
+    <span
+      className="sf-mono"
+      style={{
+        position: "absolute",
+        top: compact ? -7 : -8,
+        right: compact ? -9 : undefined,
+        left: compact ? undefined : 14,
+        background: "var(--primary)",
+        color: "var(--on-primary)",
+        fontSize: 11,
+        fontWeight: 700,
+        minWidth: compact ? 18 : 19,
+        height: compact ? 18 : 19,
+        borderRadius: 10,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 4px",
+      }}
+    >
+      {count}
+    </span>
+  );
+}

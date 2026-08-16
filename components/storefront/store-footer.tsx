@@ -86,10 +86,12 @@ export function StoreFooter({
     infoPages: pages ?? [],
     // Drafted-empty must reach the localized default, not the saved text — so
     // the `??` picks the source and the `||` applies the fallback, in that order.
-    blurb: (previewText ?? store?.theme?.footerText)?.trim() || t.storeInfo,
-    note: previewNote ?? store?.theme?.footerNote,
-    contactHeading: previewContactHeading ?? store?.theme?.footerContactHeading,
-    newsletter: previewNewsletter ?? store?.theme?.footerNewsletter,
+    // `store.copy`, not `store.theme` — merchant-written wording is a sibling of
+    // the theme so a ready-made theme can replace the look without erasing it.
+    blurb: (previewText ?? store?.copy?.footerText)?.trim() || t.storeInfo,
+    note: previewNote ?? store?.copy?.footerNote,
+    contactHeading: previewContactHeading ?? store?.copy?.footerContactHeading,
+    newsletter: previewNewsletter ?? store?.copy?.footerNewsletter,
   };
 
   if (variant === "simple") return <SimpleFooter {...props} />;

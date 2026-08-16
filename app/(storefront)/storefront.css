@@ -23,6 +23,17 @@
   --primary-hover: #1d4ed8;
   --primary-soft: #eff6ff;
   --on-primary: #ffffff;
+  /* ---- The SECOND colour (`theme.accentColor`) ----
+     Defaults to the brand, so a shop that has never set one is unchanged and
+     every `--accent*` call site is safe to write today. A merchant's accent
+     resolves in the .sf-shell[data-accent] block below.
+     What it is FOR: the quiet informational tint — badge chips, "in season"
+     pills, provenance rows, image placeholder grounds. Calls to action stay
+     `--primary`; an accent that competes for the buy button is a second primary,
+     not an accent. */
+  --accent: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --on-accent: var(--on-primary);
   --discount: #b91c1c;
   --discount-soft: #fee2e2;
   --header: rgba(255, 255, 255, 0.85);
@@ -64,6 +75,22 @@
    */
   --sf-buybar-h: 0px;
 
+  /* ---- Corner radius (the `theme.design.radius` axis) ----
+     Three steps, and three is the whole scale: `sm` for controls (inputs, chips,
+     tabs), `md` for cards and panels, `lg` for the big surfaces (hero, sheets).
+     Unlike the spacing/heading tokens these are NOT responsive — a corner does
+     not need to grow with the viewport — so each has exactly one definition and
+     the `[data-radius]` blocks below need no `@media` repeats.
+
+     ⚠ `999px` and `50%` are NOT part of this scale and must never be swapped for
+     a token: they are shape constants meaning "pill" and "circle". Tokenising
+     them would turn avatars into squares on the sharp setting, which is a
+     different shape, not a different radius. Same for the deliberate `0`s and
+     the chat-bubble tails (`12px 12px 3px 12px`). */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
   /* ---- Type ---- */
   --font-storefront: var(--font-inter), var(--font-noto-bengali),
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -77,7 +104,7 @@
   --sf-faint: var(--faint);
   --sf-border: var(--border);
   --sf-brand: var(--primary);
-  --sf-accent: var(--primary);
+  --sf-accent: var(--accent);
 
   color-scheme: light;
   background: var(--page);
@@ -102,6 +129,9 @@
   --primary-hover: #60a5fa;
   --primary-soft: #172554;
   --on-primary: #ffffff;
+  --accent: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --on-accent: var(--on-primary);
   --discount: #f87171;
   --discount-soft: #3f1d1d;
   --header: rgba(9, 9, 11, 0.82);
@@ -125,6 +155,246 @@
   --primary-hover: var(--sf-brand-dark);
   --on-primary: var(--sf-brand-on-dark);
   --primary-soft: color-mix(in srgb, var(--sf-brand-dark) 16%, transparent);
+}
+
+/* ---- Merchant accent colour ----
+   Same mechanism as [data-brand] above, and stamped by the same component. Only
+   present when the merchant's accent actually DIFFERS from their brand: an
+   accent equal to the brand is not a second colour, and stamping it would spend
+   a whole token pair saying nothing.
+
+   ⚠ `--accent-soft` mixes toward `transparent`, not toward white, so it sits
+   correctly on any `[data-surface]` ground — a sage over cream, the same sage
+   over near-black. Mixing to a literal would have parchment's chips glowing
+   white in dark mode. */
+.sf-shell[data-accent] {
+  --accent: var(--sf-accent-light);
+  --on-accent: var(--sf-accent-on-light);
+  --accent-soft: color-mix(in srgb, var(--sf-accent-light) 26%, transparent);
+}
+.sf-root[data-theme="dark"] .sf-shell[data-accent] {
+  --accent: var(--sf-accent-dark);
+  --on-accent: var(--sf-accent-on-dark);
+  --accent-soft: color-mix(in srgb, var(--sf-accent-dark) 22%, transparent);
+}
+
+/* ---- Design tokens (`theme.design`) ----
+   The merchant's type family and spatial rhythm — what actually makes two shops
+   read as different businesses, where brand colour alone does not. StoreShell
+   stamps the ids as data attributes on .sf-shell (the same mechanism as
+   [data-brand] above) and they resolve to concrete values HERE.
+
+   Why attributes and not inline style vars: --pad/--gap/--cols/--h1/--h2 are
+   RESPONSIVE (the two @media blocks below). An inline style on the shell wins
+   over every media query, so a store that picked a density would keep its phone
+   spacing on a 27" monitor.
+
+   ⚠ Only NON-DEFAULT values get a block, and StoreShell omits the attribute
+   entirely for a default — so the .sf-root values above remain the single
+   definition of "unstyled", and an untouched store is byte-identical to before.
+   ⚠ The scale/density blocks are REPEATED inside BOTH @media blocks below.
+   Adding an option means adding it in all three places or its ramp is lost. */
+
+/* `font-family` is re-declared here deliberately: .sf-root already computed its
+   own from --font-storefront and descendants inherit that COMPUTED value, so
+   redefining the variable further down would otherwise change nothing at all. */
+.sf-shell {
+  font-family: var(--font-storefront);
+  /* The heading face. Declared HERE and not on .sf-root because a custom
+     property that references another one is substituted on the element that
+     declares it — on .sf-root it would resolve against .sf-root's own
+     --font-storefront and freeze every store's headings to the default family,
+     ignoring [data-font] entirely.
+     Equal to the body face on every option but `market`, so this whole
+     mechanism is invisible until a shop asks for it. */
+  --font-display: var(--font-storefront);
+}
+.sf-shell[data-font="serif"] {
+  --font-storefront: var(--font-lora), var(--font-noto-serif-bengali), ui-serif,
+    Georgia, "Times New Roman", serif;
+}
+.sf-shell[data-font="grotesk"] {
+  --font-storefront: var(--font-space-grotesk), var(--font-anek-bangla),
+    ui-sans-serif, system-ui, sans-serif;
+}
+.sf-shell[data-font="rounded"] {
+  --font-storefront: var(--font-nunito), var(--font-baloo-da), ui-rounded,
+    ui-sans-serif, system-ui, sans-serif;
+}
+.sf-shell[data-font="humanist"] {
+  --font-storefront: var(--font-manrope), var(--font-hind-siliguri),
+    ui-sans-serif, system-ui, sans-serif;
+}
+/* The one option whose headings and text are different families. */
+.sf-shell[data-font="market"] {
+  --font-storefront: var(--font-figtree), var(--font-noto-bengali),
+    ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-caprasimo), var(--font-baloo-da), ui-serif, Georgia,
+    serif;
+}
+
+/* Where --font-display is spent.
+   h1–h4 rather than a class, because the storefront already marks its real
+   headings up as headings — SectionTitle is an <h2>, every page title an <h1> —
+   so this reaches section headings, cart, checkout and the account area with no
+   component change and no prop to thread. `.sf-display` is the escape hatch for
+   the handful of headings that are legitimately not heading elements (a hero
+   headline inside a slide, a price that leads a card).
+
+   ⚠ Deliberately NOT applied to product names, prices, buttons or form labels.
+   A display face is drawn for one size; the reason the storefront had no display
+   option before today is that one variable set all of them at once. */
+.sf-shell h1,
+.sf-shell h2,
+.sf-shell h3,
+.sf-shell h4,
+.sf-shell .sf-display {
+  font-family: var(--font-display);
+}
+
+/* ---- Surface (`theme.design.surface`) ----
+   The ground the shop is printed on: page, cards, panels, hairlines, text.
+
+   This is the axis that finally separated the themes. Four of them had four
+   brand hues, four typefaces and four page skeletons and STILL read as one
+   family, because all four were white cards on a near-white page — which is the
+   first thing a shopper's eye registers and the last thing any of the other
+   axes could change.
+
+   ⚠ A surface owns grounds and ink. It must never set --primary, --primary-hover
+   or --primary-soft: those are the merchant's brand, resolved in the
+   .sf-shell[data-brand] block above, and --primary-soft is a color-mix against
+   `transparent` precisely so it picks up whatever ground sits behind it. Setting
+   a brand colour here would make picking a surface silently repaint a shop's
+   own mark.
+
+   ⚠ Every surface needs BOTH blocks. Dark mode is a shopper toggle, not a theme
+   choice, so a surface with no dark variant drops the shopper back onto the
+   default near-black the moment they hit the switch — a different shop, mid
+   session. */
+/* ⚠ Keyed off the shell with `:has()`, but declared on `.sf-root` — NOT on
+   `.sf-shell` like every other design axis. The other axes set tokens their own
+   descendants read, so living on the shell is correct for them. `--page` is
+   different: **`.sf-root` paints it too** (`background: var(--page)` at the top
+   of this file), and `.sf-root` is a shared route-group div with no store data,
+   so it cannot be stamped with an attribute.
+   Declared on the shell, the tokens were one level too deep and `.sf-root` kept
+   painting the default `#f8fafc` behind a themed shop — invisible while the
+   shell covers the viewport, and plainly wrong the moment it does not: a short
+   page, an overscroll bounce, any gap. `:has()` lets the ancestor follow the
+   descendant with no JS and no first-paint flash; `.sf-shell` then inherits
+   these by ordinary cascade, so nothing downstream changes.
+   `body` needs its own rule below for the same reason one step further out —
+   the browser takes the overscroll canvas colour from there, not from us. */
+.sf-root:has(.sf-shell[data-surface="parchment"]) {
+  --page: #f5ead8;
+  --card: #f9f4ed;
+  --surface: #ebddc5;
+  --surface-2: #dcd3c4;
+  --text: #201e1d;
+  --muted: #82796a;
+  --faint: #a1998b;
+  --border: #dcd3c4;
+  --border-strong: #c0b6a5;
+  --header: rgba(245, 234, 216, 0.88);
+  /* The default red is a cool crimson and turns pink on cream; these are the
+     same two roles mixed warm so a sale price still reads as a sale price. */
+  --discount: #a33a1f;
+  --discount-soft: #f6ddd0;
+}
+/* Warm dark — roasted rather than the default's neutral zinc, so switching the
+   theme toggle stays the same shop with the lights off. */
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="parchment"]) {
+  --page: #17140f;
+  --card: #221d16;
+  --surface: #2e281f;
+  --surface-2: #3d362b;
+  --text: #f3e9d8;
+  --muted: #b0a48e;
+  --faint: #8a7f6c;
+  --border: #2e281f;
+  --border-strong: #453d31;
+  --header: rgba(23, 20, 15, 0.85);
+  --discount: #f0a58a;
+  --discount-soft: #452b1f;
+}
+
+/* The OVERSCROLL CANVAS. The browser paints the area past the top and bottom of
+   the document from `<body>` (or `<html>`), and neither is ours — the root
+   layout is the admin app's, so `body` carries its near-black `bg-background`.
+   Result: a cream shop that flashes black on a rubber-band scroll, and shows
+   black on any page shorter than the viewport. `:has()` scopes this to a page
+   that actually contains a themed storefront shell, so the admin is untouched.
+   ⚠ Every value here is a LITERAL repeat of that surface's `--page`, because
+   body sits OUTSIDE `.sf-root` and so cannot read its custom properties — a
+   `var(--page)` here silently resolves to the fallback, always. Change the two
+   together.
+   The default pair comes first and is not new-feature scaffolding: a storefront
+   shorter than the viewport has always shown the admin's ground beneath it.
+   Ordering is not what makes parchment win — `:has()` takes the specificity of
+   its argument, so the surface rules outrank the plain ones by construction. */
+body:has(.sf-shell) {
+  background: #f8fafc;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell) {
+  background: #09090b;
+}
+body:has(.sf-shell[data-surface="parchment"]) {
+  background: #f5ead8;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
+  background: #17140f;
+}
+
+/* Heading ramp (mobile base — see both @media blocks for the rest). */
+.sf-shell[data-scale="sm"] {
+  --h1: 25px;
+  --h1m: 28px;
+  --h2: 17px;
+}
+.sf-shell[data-scale="lg"] {
+  --h1: 34px;
+  --h1m: 39px;
+  --h2: 23px;
+}
+
+/* Spacing rhythm + grid width (mobile base). `--cols` stays 2 on phones for
+   both: one product per row reads as an empty shop, three is unusable. */
+.sf-shell[data-density="compact"] {
+  --pad: 12px;
+  --gap: 8px;
+}
+.sf-shell[data-density="airy"] {
+  --pad: 20px;
+  --gap: 18px;
+}
+
+/* Corner radius. No `@media` repeats needed — see the note beside the tokens. */
+.sf-shell[data-radius="sharp"] {
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+.sf-shell[data-radius="round"] {
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+}
+/* The one step where `sm` leaves the scale and becomes a shape: controls —
+   buttons, chips, tabs, inputs — are fully rounded, while panels and cards stay
+   on real radii. That is not a bigger `round`; it is a different decision, and
+   it is why it is its own option rather than a nudge to the numbers above.
+
+   ⚠ This does NOT contradict the "999px is a shape constant, never tokenise it"
+   rule at the top of this file. That rule protects avatars and badges, which are
+   circles at EVERY setting and therefore hardcode their own 999px/50%. Here the
+   merchant is choosing pill controls on purpose, and only `--radius-sm` — the
+   controls step — is affected. `md`/`lg` stay finite, so nothing that holds a
+   paragraph turns into a lozenge. */
+.sf-shell[data-radius="pill"] {
+  --radius-sm: 999px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
 }
 
 /* ---- Responsive layout tokens ---- */
@@ -153,6 +423,27 @@
     --profcols: 1fr 1fr;
     --invcols: 1.2fr 1fr;
   }
+  /* Design-token ramp — see the ⚠ note beside the base blocks above. */
+  .sf-shell[data-scale="sm"] {
+    --h1: 30px;
+    --h1m: 34px;
+    --h2: 19px;
+  }
+  .sf-shell[data-scale="lg"] {
+    --h1: 46px;
+    --h1m: 54px;
+    --h2: 27px;
+  }
+  .sf-shell[data-density="compact"] {
+    --pad: 20px;
+    --gap: 12px;
+    --cols: 4;
+  }
+  .sf-shell[data-density="airy"] {
+    --pad: 36px;
+    --gap: 24px;
+    --cols: 2;
+  }
 }
 @media (min-width: 1000px) {
   .sf-root {
@@ -163,6 +454,25 @@
     --h2: 26px;
     --colcols: 4;
     --searchcols: 4;
+  }
+  /* Design-token ramp — see the ⚠ note beside the base blocks above. */
+  .sf-shell[data-scale="sm"] {
+    --h1: 34px;
+    --h1m: 38px;
+    --h2: 21px;
+  }
+  .sf-shell[data-scale="lg"] {
+    --h1: 58px;
+    --h1m: 66px;
+    --h2: 32px;
+  }
+  .sf-shell[data-density="compact"] {
+    --pad: 28px;
+    --cols: 5;
+  }
+  .sf-shell[data-density="airy"] {
+    --pad: 56px;
+    --cols: 3;
   }
 }
 
@@ -177,9 +487,15 @@
   .tsqd-parent-container /* TanStack Query devtools float (dev only) */ {
     display: none !important;
   }
-  /* Pages always print on white, whatever the on-screen theme. */
+  /* Pages always print on white, whatever the on-screen theme.
+     The `:has()` forms are listed too, and not for tidiness: a themed shop
+     resolves its palette through `.sf-root:has(…)`, which is MORE specific than
+     a bare `.sf-root`, so without them the cream ground survives this reset and
+     prints full-bleed on the merchant's paper. */
   .sf-root,
-  .sf-root[data-theme="dark"] {
+  .sf-root[data-theme="dark"],
+  .sf-root:has(.sf-shell[data-surface]),
+  .sf-root[data-theme="dark"]:has(.sf-shell[data-surface]) {
     --page: #ffffff;
     --card: #ffffff;
     --surface: #f1f5f9;
@@ -582,6 +898,146 @@
   background: var(--card);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
+/* ---- Rail shell (shells/rail-shell.tsx) ----
+   The department column is a SHELL, not a section: it is on every page, so its
+   width is what sets the content's measure everywhere. Below 680px it is gone
+   entirely — a 220px column on a 390px screen is not navigation, and the mobile
+   bottom nav already covers the job. */
+.sf-rail-grid {
+  display: block;
+}
+.sf-rail {
+  display: none;
+}
+@media (min-width: 681px) {
+  .sf-rail-grid {
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    gap: var(--gap);
+    align-items: start;
+    padding-inline: var(--pad);
+  }
+  /* The rail's own padding replaces the page's, so the content column keeps its
+     normal `--pad` from the sections inside it. */
+  .sf-rail-grid > :last-child {
+    margin-inline: calc(var(--pad) * -1);
+  }
+  .sf-rail {
+    display: block;
+    position: sticky;
+    /* Clears the sticky header; the rail scrolls internally past that. */
+    top: 76px;
+    align-self: start;
+    padding-block: 16px;
+  }
+  .sf-rail-inner {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 0 6px;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
+.sf-rail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  border-inline-start: 2px solid transparent;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.sf-rail-link:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.sf-rail-link.is-on {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+  border-inline-start-color: var(--primary);
+}
+.sf-rail-link--child {
+  padding-inline-start: 26px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.sf-rail-all {
+  display: block;
+  margin: 6px 12px 8px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ---- Category tiles (home/sections/category-sections.tsx) ----
+   The grid lives here rather than inline because it needs a BREAKPOINT, and the
+   two halves are not the same rule:
+
+   - Phone: `1fr` as the max, so the tiles share the row. A definite px max makes
+     `auto-fit` size every track at that MAX when counting how many fit — which
+     is why a 132px cap put only two tiles on a 358px row and turned seven
+     departments into four rows of half-empty width.
+   - Desktop: the px cap is the whole point, or seven departments stretch to
+     ~150px each and a wayfinding row outweighs the products under it.
+
+   `--tile-min` / `--tile-max` come from the component, which owns the numbers
+   per presentation (compact / photo / overlay). */
+.sf-cat-tiles {
+  display: grid;
+  gap: var(--gap);
+  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(var(--tile-min, 96px), 1fr));
+}
+@media (min-width: 681px) {
+  .sf-cat-tiles {
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(var(--tile-min, 96px), var(--tile-max, 148px))
+    );
+  }
+}
+
+/* Two header anatomies reshape that one search field rather than forking it —
+   Search-first wants a pill, Boutique wants a hairline rule. `!important` is
+   unavoidable and deliberate: `SearchInput` sets its box geometry inline
+   (storefront components style against CSS vars, not classes), and an inline
+   style outranks every selector. The alternative was a `shape` prop threaded
+   through three components for two callers. */
+.sf-search-pill .sf-search-box {
+  border-radius: 999px !important;
+  height: 46px !important;
+  padding: 0 18px !important;
+  /* `--card`, not the shared `--surface`. This pill is the widest object in the
+     header and sits on the header's own ground, so it wants to read as a raised
+     field — one step LIGHTER than what is behind it. `--surface` is one step
+     darker, which is right for a small field on a white page and wrong here: on
+     a tinted surface it turns the search box into a dark stripe across the top
+     of the shop. Scoped to this anatomy rather than changed in `SearchInput`,
+     because the default header's field is still correct as it is. */
+  background: var(--card) !important;
+}
+.sf-search-rule .sf-search-box {
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 2px !important;
+}
+/* The 3px focus ring belongs to a box; on a hairline it reads as a bug. The
+   underline takes the brand colour instead. */
+.sf-search-rule .sf-search-box:focus-within {
+  border-bottom-color: var(--primary) !important;
+  box-shadow: none;
+}
 .sf-search-pop {
   animation: sfSearchPop 0.15s ease;
 }
@@ -637,7 +1093,7 @@
 .sf-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
   /* The 70svh cap only bites on short viewports — a landscape phone is past the
@@ -895,7 +1351,7 @@
 .sf-account-nav {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
@@ -958,7 +1414,7 @@
   gap: 4px;
   min-width: 66px;
   padding: 8px 11px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--muted);
@@ -1108,7 +1564,7 @@
 .sf-pdp-zoom {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
 }
 .sf-pdp-zoom-img {
   transition: transform 0.25s ease;
@@ -1268,7 +1724,7 @@
   max-height: 92svh;
   overflow-y: auto;
   background: var(--card);
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   /* Bottom-anchored, so without the inset the CTAs land under the iPhone home
      indicator — same rule as SideDrawer's footer. */
   padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px));
@@ -1343,7 +1799,7 @@
   gap: var(--gap);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 16px 18px;
   margin-bottom: 26px;
 }
