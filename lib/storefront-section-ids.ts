@@ -1,0 +1,108 @@
+// coding-standard: maintained
+/**
+ * The homepage section VOCABULARY — every id, its merchant-facing label, and
+ * the default composition each `templates.home` implies.
+ *
+ * **Split from the component registry so the SERVER can read it.**
+ * `home-sections.tsx` is a `"use client"` module because it imports the section
+ * components; importing anything from it on the server throws
+ * `Attempted to call isSectionId() from the server but isSectionId is on the
+ * client`. The homepage's server render legitimately needs to know which
+ * sections a page has — it fetches one query per configured product section
+ * before rendering anything — so the ids live here, in a module with no client
+ * boundary and no component imports.
+ *
+ * The two cannot drift: `SECTION_COMPONENTS` is declared as
+ * `Record<SectionId, FC<SectionProps>>`, so an id without a component (or a
+ * component without an id) is a type error rather than a blank homepage.
+ *
+ * This also keeps the `lib/` → `components/` direction clean, which
+ * `resolveSections` depends on: `lib/` must not import from `components/`.
+ */
+
+/**
+ * Every section a homepage may compose, in catalogue order.
+ *
+ * **Adding a section means adding an id here AND a component in
+ * `SECTION_COMPONENTS`** — the compiler will not let you do one without the
+ * other. Never add a branch inside an existing section instead: a section is
+ * shared code any theme may compose, so a fix lands once, while a per-theme
+ * variant multiplies every future change by the number of themes.
+ */
+export const SECTION_IDS = [
+  // Heroes — a page uses one.
+  "hero-card",
+  // Frameless — the copy sits on the page itself. The only hero that lets a
+  // themed ground be seen on the first screen.
+  "hero-open",
+  "hero-split",
+  "hero-manifesto",
+  "hero-fullbleed",
+  "search-hero",
+  // Ways into the catalogue.
+  "category-chips",
+  "category-links",
+  "category-tiles",
+  // Product rows.
+  "featured-grid",
+  "latest-grid",
+  "picks-grid",
+  "product-rail",
+  "minimal-picks",
+  // Full-width bands.
+  "trust-row",
+  "trust-band",
+  "promo-tiles",
+  "deal-strip",
+  "editorial-split",
+] as const;
+
+export type SectionId = (typeof SECTION_IDS)[number];
+
+const SECTION_ID_SET: ReadonlySet<string> = new Set(SECTION_IDS);
+
+/**
+ * Is this a section this build can render?
+ *
+ * The guard `resolveSections` filters on. A retired id, or one from a newer
+ * build, is dropped rather than reaching the dispatch and blowing up the page.
+ */
+export const isSectionId = (value: unknown): value is SectionId =>
+  typeof value === "string" && SECTION_ID_SET.has(value);
+
+/**
+ * The section list each legacy `templates.home` value produces.
+ *
+ * These three reproduce the pre-registry pages exactly, so a store that has
+ * never opened Themes renders as it always did. `templates.home` therefore
+ * survives as "which default composition", not as a component switch — and a
+ * merchant who reorders sections simply stops using the default.
+ */
+export const HOME_PRESET_SECTIONS: Record<string, SectionId[]> = {
+  classic: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
+  "hero-split": ["hero-split", "trust-row", "picks-grid", "promo-tiles"],
+  minimal: ["hero-manifesto", "category-links", "minimal-picks"],
+};
+
+/** Merchant-facing names for the Customize → Sections editor. */
+export const SECTION_LABELS: Record<SectionId, string> = {
+  "hero-card": "Hero card",
+  "hero-open": "Open hero (no card)",
+  "hero-split": "Split hero",
+  "hero-manifesto": "Centred statement",
+  "hero-fullbleed": "Full-width photo hero",
+  "search-hero": "Search bar hero",
+  "category-chips": "Category chips",
+  "category-links": "Category links",
+  "category-tiles": "Category photo tiles",
+  "featured-grid": "Featured products",
+  "latest-grid": "New arrivals",
+  "picks-grid": "Weekly picks",
+  "product-rail": "Product rail (side-scroll)",
+  "minimal-picks": "Selected products",
+  "trust-row": "Promise cards",
+  "trust-band": "Your promises band",
+  "promo-tiles": "Promo tiles",
+  "deal-strip": "Live campaign strip",
+  "editorial-split": "Editorial split",
+};

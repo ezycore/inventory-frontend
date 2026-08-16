@@ -7,7 +7,7 @@ import {
   SECTION_IDS,
   SECTION_LABELS,
   type SectionId,
-} from "@/components/storefront/home/home-sections";
+} from "@/lib/storefront-section-ids";
 import { sectionInstances } from "@/lib/storefront-templates";
 import {
   DEFAULT_SECTION_LIMIT,
@@ -108,7 +108,7 @@ export function SectionsEditor({
           <li key={section.key} className="rounded-lg border bg-card">
           <div className="flex items-center gap-2 px-2.5 py-2">
             <span className="min-w-0 flex-1 truncate text-xs font-medium">
-              {SECTION_LABELS[section.type as SectionId] ?? section.type}
+              {sectionLabel(section, config, collections)}
             </span>
             <div className="flex flex-none items-center gap-0.5">
               <Button
@@ -169,6 +169,33 @@ export function SectionsEditor({
           an empty page.
         </PartHint>
       ) : null}
+
+      {/* The affordance the generic chips below do NOT provide. A collection row
+          is built by adding a product section and re-pointing it, which nobody
+          discovers: "Featured products" does not read as "an empty row you can
+          aim at Skin care". So the common intent gets its own button, and it
+          arrives already set to `category` with the picker open. */}
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-7 gap-1 text-xs"
+        disabled={!collections.length}
+        onClick={() => {
+          const key = mintKey("featured-grid");
+          onChange([...effective, { key, type: "featured-grid" }]);
+          onConfigChange([...config, { key, source: "category" }]);
+        }}
+      >
+        <Plus className="h-3 w-3" />
+        Add a collection row
+      </Button>
+      {collections.length ? null : (
+        <PartHint>
+          You have no collections yet — add one under Collections and it can have
+          its own row here.
+        </PartHint>
+      )}
 
       {available.length ? (
         <div>
@@ -244,25 +271,41 @@ function RowConfig({
       </div>
 
       {source === "category" ? (
-        <div className="flex items-center gap-2">
-          <label className="w-16 flex-none text-[11px] text-muted-foreground">Collection</label>
-          <select
-            className="h-7 min-w-0 flex-1 rounded-md border bg-background px-1.5 text-xs"
-            value={config?.categoryId ?? ""}
-            onChange={(e) => onChange({ categoryId: e.target.value || undefined })}
-          >
-            {/* Empty is a half-finished row the API refuses on save. Offered
-                anyway, because the merchant picks the source before they pick
-                the collection and the alternative is auto-selecting one they
-                did not choose. */}
-            <option value="">Pick a collection…</option>
-            {collections.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.displayName || c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <>
+          <div className="flex items-center gap-2">
+            <label className="w-16 flex-none text-[11px] text-muted-foreground">Collection</label>
+            <select
+              className="h-7 min-w-0 flex-1 rounded-md border bg-background px-1.5 text-xs"
+              value={config?.categoryId ?? ""}
+              onChange={(e) => onChange({ categoryId: e.target.value || undefined })}
+            >
+              {/* Empty is a half-finished row the API refuses on save. Offered
+                  anyway, because the merchant picks the source before they pick
+                  the collection and the alternative is auto-selecting one they
+                  did not choose. */}
+              <option value="">Pick a collection…</option>
+              {/* Parent, then ITS children indented — not a flat list. The two
+                  levels filter on different fields (`categoryId` vs
+                  `subcategoryId`), and a merchant choosing a sub-collection
+                  should be able to see that is what they are doing. */}
+              {orderCollections(collections).map(({ collection, isChild }) => (
+                <option key={collection._id} value={collection._id}>
+                  {isChild ? "\u2014 " : ""}
+                  {collection.displayName || collection.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {config?.categoryId && !collections.some((c) => c._id === config.categoryId) ? (
+            // A collection deleted since the row was set up. The row would save
+            // (the id is well-formed) and then render nothing, with no clue why —
+            // and the server rejects a foreign id with an error the merchant
+            // cannot act on either. Say it here, where it can be fixed.
+            <p className="text-[11px] text-destructive">
+              This collection no longer exists. Pick another, or remove the row.
+            </p>
+          ) : null}
+        </>
       ) : null}
 
       {config ? (
@@ -296,4 +339,49 @@ function RowConfig({
       ) : null}
     </div>
   );
+}
+
+/**
+ * Collections as the picker shows them: each top-level one followed by its own
+ * children. The storefront filters a top-level row on `categoryId` and a child
+ * row on `subcategoryId`, so the two are not interchangeable — a flat
+ * alphabetical list hides which is which and invites picking the wrong one.
+ */
+function orderCollections(collections: CollectionRowValue[]) {
+  return collections
+    .filter((c) => !c.parentId)
+    .flatMap((parent) => [
+      { collection: parent, isChild: false },
+      ...collections
+        .filter((c) => c.parentId === parent._id)
+        .map((child) => ({ collection: child, isChild: true })),
+    ]);
+}
+
+/**
+ * What a row is called in the list.
+ *
+ * A configured row is named by its CONTENT, not by the section it happens to be
+ * built from: a `featured-grid` pointed at Skin care is "Skin care", because
+ * reading "Featured products" three times down a list of three different
+ * collection rows tells the merchant nothing about which is which.
+ *
+ * The section's own label is kept as a suffix so the merchant can still see
+ * what shape the row is, which is the one thing the content name loses.
+ */
+function sectionLabel(
+  section: StoreHomeSection,
+  config: StoreSectionConfig[],
+  collections: CollectionRowValue[],
+): string {
+  const base = SECTION_LABELS[section.type as SectionId] ?? section.type;
+  const own = configFor(config, section.key);
+  if (!own) return base;
+  const title = own.title?.trim();
+  if (title) return `${title} · ${base}`;
+  if (own.source === "category") {
+    const picked = collections.find((c) => c._id === own.categoryId);
+    return picked ? `${picked.displayName || picked.name} · ${base}` : `Pick a collection · ${base}`;
+  }
+  return base;
 }

@@ -14,12 +14,12 @@ import {
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { SECTION_COMPONENTS } from "@/components/storefront/home/home-sections";
 import {
   HOME_PRESET_SECTIONS,
-  SECTION_COMPONENTS,
   isSectionId,
   type SectionId,
-} from "@/components/storefront/home/home-sections";
+} from "@/lib/storefront-section-ids";
 
 /**
  * Storefront homepage — **a list of sections, not a template.**
