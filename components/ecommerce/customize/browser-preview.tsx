@@ -9,6 +9,11 @@ import type { Image } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { toPreviewPayload } from "@/components/ecommerce/customize/draft-payloads";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import {
+  DESKTOP_PREVIEW_WIDTH,
+  usePreviewScale,
+} from "@/components/ecommerce/customize/use-preview-scale";
 
 /** Which storefront page the preview is pointed at. */
 export type PreviewPage = "home" | "collection" | "product";
@@ -44,6 +49,7 @@ export function BrowserPreview({
   forceCollectionsMenu,
   socialWhatsapp,
   hasCollections = true,
+  samples,
   viewportHeight = "calc(100vh - 11rem)",
 }: {
   slug?: string;
@@ -59,6 +65,8 @@ export function BrowserPreview({
   socialWhatsapp?: string;
   /** False when the caller runs no collections query — see toPreviewPayload. */
   hasCollections?: boolean;
+  /** Sample stock for the theme picker — see `toPreviewPayload`. */
+  samples?: ThemeSample;
   /**
    * Viewport height. The default fills the Customize page below its header; the
    * theme store's Preview dialog passes its own, because a `100vh`-derived
@@ -68,6 +76,7 @@ export function BrowserPreview({
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const { hostRef, scale, ready } = usePreviewScale(device === "desktop");
   const [reloadKey, setReloadKey] = useState(0);
 
   // One listed product is enough to preview the product page; without one the
@@ -77,7 +86,11 @@ export function BrowserPreview({
   // DTO only carries `storefront.slug` when an owner has typed a custom one, so
   // a normal store returns nothing and the tab would never enable. The public
   // payload always carries the resolved slug — it is the one the shop links to.
-  const { data: storeProducts } = useStoreProducts(slug ?? "", { limit: 1 }, !!slug);
+  const { data: storeProducts } = useStoreProducts(
+    slug ?? "",
+    { limit: 1 },
+    !!slug,
+  );
   const productSlug = storeProducts?.items?.[0]?.slug;
 
   const path =
@@ -100,8 +113,18 @@ export function BrowserPreview({
         forceCollectionsMenu,
         socialWhatsapp,
         hasCollections,
+        samples,
       }),
-    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu, socialWhatsapp, hasCollections],
+    [
+      draft,
+      logo,
+      banner,
+      forceHeroSlides,
+      forceCollectionsMenu,
+      socialWhatsapp,
+      hasCollections,
+      samples,
+    ],
   );
 
   const post = useCallback(() => {
@@ -254,6 +277,7 @@ export function BrowserPreview({
         style={{ height: viewportHeight, minHeight: 560 }}
       >
         <div
+          ref={device === "desktop" ? hostRef : undefined}
           className={cn(
             "flex-none overflow-hidden bg-white",
             device === "mobile"
@@ -265,16 +289,34 @@ export function BrowserPreview({
         >
           {/* `visibility`, not conditional mounting: the frame has to load and
               run to send the ack that reveals it. Opacity alone would still let
-              the saved theme paint through the transition. */}
-          <iframe
-            key={reloadKey}
-            ref={ref}
-            src={url}
-            title="Storefront preview"
-            onLoad={post}
-            className="h-full w-full border-0 bg-white"
-            style={{ visibility: painted ? "visible" : "hidden" }}
-          />
+              the saved theme paint through the transition.
+
+              On desktop the frame is laid out at a real desktop width and scaled
+              down to fit, rather than laid out at the panel's own width — see
+              `usePreviewScale` for why a rail theme was previewing with no rail. */}
+          {ready ? (
+            <iframe
+              key={reloadKey}
+              ref={ref}
+              src={url}
+              title="Storefront preview"
+              onLoad={post}
+              className="border-0 bg-white"
+              style={{
+                visibility: painted ? "visible" : "hidden",
+                ...(device === "desktop"
+                  ? {
+                      width: DESKTOP_PREVIEW_WIDTH,
+                      // Percentages resolve against the host, so dividing by the
+                      // scale makes the shrunk frame fill it exactly.
+                      height: `${100 / scale}%`,
+                      transform: `scale(${scale})`,
+                      transformOrigin: "top left",
+                    }
+                  : { width: "100%", height: "100%" }),
+              }}
+            />
+          ) : null}
         </div>
         {!painted ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">

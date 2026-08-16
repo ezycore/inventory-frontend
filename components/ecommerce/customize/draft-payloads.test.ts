@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   publicCollections,
+  toPreviewPayload,
   toSettingsPayload,
 } from "@/components/ecommerce/customize/draft-payloads";
+import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
@@ -224,5 +226,23 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
       footerContactHeading: undefined,
       footerNewsletter: undefined,
     });
+  });
+});
+
+describe("toPreviewPayload — sample content reaches the storefront", () => {
+  const wire = { logo: null, banner: null, forceHeroSlides: false, forceCollectionsMenu: false };
+
+  // The Themes page is the only caller that sends these, and the storefront
+  // cannot invent them: without this key an empty shop previews as four blank
+  // shells, which is the bug the samples exist to close.
+  it("carries the previewed theme's samples when the picker sends them", () => {
+    const payload = toPreviewPayload(draft(), { ...wire, samples: PHARMACY_SAMPLE });
+    expect(payload.samples).toBe(PHARMACY_SAMPLE);
+  });
+
+  // Customize previews a REAL shop. Padding it would show the merchant stock
+  // they do not have while they are editing the shop they do.
+  it("sends none when the caller has a real shop to show", () => {
+    expect(toPreviewPayload(draft(), wire).samples).toBeUndefined();
   });
 });

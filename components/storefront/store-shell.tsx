@@ -66,6 +66,7 @@ export function StoreShell({
   const previewBrand = useSfPreview((s) => s.brand);
   const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewSamples = useSfPreview((s) => s.samples);
   const previewAnnouncement = useSfPreview((s) => s.announcement);
   // Which SKELETON. Draft first, like every other look value, so switching it in
   // Customize repaints without a save. Declared with the other preview hooks
@@ -85,7 +86,7 @@ export function StoreShell({
      to pick that one. */
   const resolvedCategories = previewCollections ?? fetchedCategories;
   const categories = previewActive
-    ? padCategoriesForPreview(resolvedCategories)
+    ? padCategoriesForPreview(resolvedCategories, previewSamples)
     : resolvedCategories;
 
   // Tab icon = the store's favicon, swapped in place so router-integrated

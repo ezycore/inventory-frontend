@@ -18,6 +18,7 @@ import type {
   CustomizeDraft,
   FooterContentPagesDraft,
 } from "@/components/ecommerce/customize/use-customize-draft";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -304,6 +305,7 @@ export function toPreviewPayload(
     forceCollectionsMenu,
     socialWhatsapp,
     hasCollections = true,
+    samples,
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
@@ -327,6 +329,13 @@ export function toPreviewPayload(
      * falls back to the categories it fetched itself.
      */
     hasCollections?: boolean;
+    /**
+     * Sample stock for the theme PICKER, where the shop being previewed may have
+     * nothing to draw. Sent only by the Themes page, which knows which theme it
+     * is staging; Customize previews a real shop and omits it, so the storefront
+     * keeps showing the merchant's own catalogue exactly as it is.
+     */
+    samples?: ThemeSample;
   },
 ) {
   return {
@@ -383,6 +392,7 @@ export function toPreviewPayload(
     ...(hasCollections
       ? { collections: publicCollections(draft.collections) }
       : {}),
+    samples,
     // `null` (not undefined) is what tells the preview store "removed" apart
     // from "not sent yet".
     logo,

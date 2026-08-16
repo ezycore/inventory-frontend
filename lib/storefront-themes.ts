@@ -37,6 +37,13 @@
 
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { SectionId } from "@/lib/storefront-section-ids";
+import {
+  APPAREL_SAMPLE,
+  GROCERY_SAMPLE,
+  NEUTRAL_SAMPLE,
+  PHARMACY_SAMPLE,
+  type ThemeSample,
+} from "@/lib/storefront-theme-samples";
 
 export interface ReadyMadeTheme {
   id: string;
@@ -55,6 +62,13 @@ export interface ReadyMadeTheme {
    * different sections, not different arrangements of the same four.
    */
   sections: SectionId[];
+  /**
+   * What the PREVIEW fills a merchant's empty shop with — see
+   * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
+   * without one would preview another trade's stock, which is the bug this
+   * field exists to close.
+   */
+  sample: ThemeSample;
   /** Only keys a theme is allowed to own — see the note above. */
   templates: {
     home: string;
@@ -89,6 +103,7 @@ export interface ReadyMadeTheme {
 export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   {
     id: "classic",
+    sample: NEUTRAL_SAMPLE,
     label: "Classic",
     tagline: "The shop as it ships — a clear grid, a simple hero, nothing loud.",
     bestFor: "Any catalogue, and anyone who wants to start over",
@@ -135,6 +150,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   },
   {
     id: "fresh-market",
+    sample: GROCERY_SAMPLE,
     label: "Fresh Market",
     tagline: "A warm cream market on printed paper — big type, round corners, everything to hand.",
     bestFor: "Grocery, food, household, daily needs",
@@ -256,6 +272,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   },
   {
     id: "meridian-care",
+    sample: PHARMACY_SAMPLE,
     label: "Meridian Care",
     tagline: "A dispensary counter — search by name, departments always to hand.",
     bestFor: "Pharmacy, health, clinics, personal care",
@@ -356,6 +373,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   },
   {
     id: "muslin",
+    sample: APPAREL_SAMPLE,
     label: "Muslin",
     tagline: "Big imagery and quiet type — the photography does the selling.",
     bestFor: "Fashion, footwear, jewellery, gifts",

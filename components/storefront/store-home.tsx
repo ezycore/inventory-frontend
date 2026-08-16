@@ -72,6 +72,8 @@ export function StoreHome({
   const previewCollections = useSfPreview((s) => s.collections);
   const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
   const previewActive = useSfPreview((s) => s.active);
+  // Sent only by the Themes page; null in Customize, where the shop is real.
+  const previewSamples = useSfPreview((s) => s.samples);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
   const sectionConfig = previewSectionConfig ?? store.sectionConfig;
@@ -128,15 +130,15 @@ export function StoreHome({
   const shared = {
     base,
     currency,
-    featured: previewActive ? padForPreview(featured) : featured,
-    latest: previewActive ? padForPreview(latest) : latest,
+    featured: previewActive ? padForPreview(featured, previewSamples) : featured,
+    latest: previewActive ? padForPreview(latest, previewSamples) : latest,
     categories: previewCategories ?? categories,
     campaigns: previewActive ? padCampaignsForPreview(campaigns) : campaigns,
     t,
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
-    store: previewActive ? padStoreForPreview(store) : store,
+    store: previewActive ? padStoreForPreview(store, previewSamples) : store,
   };
 
   return (

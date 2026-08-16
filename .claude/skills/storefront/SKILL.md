@@ -751,6 +751,57 @@ staging flow where Save and Discard live. The page has no mutation of its own.
 `activeId` into state once the settings query lands, which would fight a merchant who clicked a row
 while the request was still in flight.
 
+### An empty shop must still show what a theme IS (2026-08-16)
+
+A merchant choosing their first theme is, by definition, a merchant with nothing in the shop — and
+every section that distinguishes one theme from another hides itself on no data. `RailShell` returns
+null without categories; so do `category-tiles`, `-chips` and `-links`. `deal-strip` returns null
+with no live campaign, `trust-band` with no `trustBadges`. So the four themes rendered as four
+near-identical empty shells at exactly the moment the choice is made, and Meridian Care lost the
+department rail that is the whole reason to pick it.
+
+`lib/storefront-preview-samples.ts` fills those gaps, and `lib/storefront-theme-samples.ts` decides
+**with what** — a `ThemeSample` (categories, products, promises) carried by each bundle, so Meridian
+previews as a pharmacy and Fresh Market as a grocery. Sample illustrations live in `public/samples/`.
+
+Four rules, none of them optional:
+
+- **Preview only.** Gated on the preview store's `active` flag, which is set only under `?preview=1`.
+- **Fills gaps, never replaces.** Real products, categories, campaigns and badges always win, and
+  padding is appended AFTER the merchant's own so nothing is displaced or reordered.
+- **Only the Themes page sends samples.** `toPreviewPayload` takes them as an option and Customize
+  omits it — that page previews a *real* shop being edited, and padding it would show a merchant
+  stock they do not have.
+- **It is data on a bundle, never a branch on `themeId`.** Samples ride the existing preview bridge
+  exactly as `badges` and `collections` do. A fifth theme adds a fifth sample set and changes no
+  component.
+
+Sample product names are prefixed "Sample", which is what lets the rest of the content be realistic;
+departments and promises are not, because prefixing every rail entry would wreck the layout being
+judged. The disclosure is made once, in `ThemeStage`'s admin chrome — **not** as a banner inside the
+preview, which would paint over the very thing the merchant is trying to look at.
+
+### ⚠ The preview iframe must be laid out at a REAL desktop width (2026-08-16)
+
+`usePreviewScale` renders the desktop preview at a fixed 1280px and CSS-scales it down to fit the
+panel. Two hard-won reasons, both invisible to typecheck, lint and tests:
+
+1. **The panel is not a desktop.** On a 1440px window the frame measures **860px** — under the
+   1000px breakpoint where `.sf-rail-grid` reserves its column. Meridian Care therefore previewed
+   with *no rail at all* on the most common laptop size: the merchant was comparing a different
+   theme from the one they would get. Lowering the breakpoint would have been backwards — that
+   changes what real shoppers see to fix an artefact of the admin chrome.
+2. **A cross-origin iframe does not repaint when its transform changes after load.** The storefront
+   is on its own subdomain, so it is an OOPIF. Mounting the frame at scale 1 and correcting it a tick
+   later left the Customize preview **blank white** until the device toggle forced a relayout —
+   while every measurement looked perfect: right width, right transform, `visibility: visible`, a
+   2005px scroll height and a fully built DOM inside. Hence `ready`: the frame does not mount until
+   the host has been measured, so its first paint already carries its final transform. **Do not
+   render the frame before the measurement**, and be suspicious of any change that moves the
+   transform after load.
+
+Mobile is deliberately unscaled — 390px is a real phone width, so that preview is already honest.
+
 ### Per-theme PAGE LAYOUTS (the layout registry, 2026-08-14)
 
 Until now a theme could only vary a page *within* one component. That left the

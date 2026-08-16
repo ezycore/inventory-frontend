@@ -91,6 +91,11 @@ export function ThemeStage({
           forceHeroSlides={false}
           forceCollectionsMenu={false}
           hasCollections={false}
+          // What an empty shop is previewed WITH — this theme's own trade, so a
+          // merchant with no catalogue yet still sees a pharmacy in Meridian and
+          // a grocery in Fresh Market rather than four blank shells. Their real
+          // products, categories and badges win wherever they have any.
+          samples={theme.sample}
           socialWhatsapp={settings?.social?.whatsapp}
           logo={settings?.logo ?? orgLogo ?? null}
           banner={settings?.banner ?? null}
@@ -101,6 +106,19 @@ export function ThemeStage({
           Loading your store…
         </div>
       )}
+
+      {/* The honesty line for the sample content, and it belongs HERE rather
+          than inside the preview: a banner painted over the shop would obscure
+          the very thing the merchant is trying to judge. Sample product names
+          are prefixed "Sample" for the same reason this exists, but departments
+          and promises are not — prefixing every rail entry would wreck the
+          layout being assessed, so the disclosure is made once, in the admin
+          chrome, where it cannot be mistaken for part of the design. */}
+      <p className="text-xs text-muted-foreground">
+        Sections your shop has no data for are filled with sample content so you
+        can see the layout. Your own products, collections and badges are shown
+        wherever you have them, and nothing here is saved.
+      </p>
 
       {/* The running order in words, under the shop. The preview shows what the
           page looks like; this says what it is MADE of, which is what separates
