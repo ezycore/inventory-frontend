@@ -9,7 +9,11 @@ import type {
 } from "@/lib/storefront-client";
 import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
 import { configFor, sectionSignature } from "@/lib/storefront-sections";
-import { padForPreview } from "@/lib/storefront-preview-samples";
+import {
+  padCampaignsForPreview,
+  padForPreview,
+  padStoreForPreview,
+} from "@/lib/storefront-preview-samples";
 import {
   useSfPreview,
   useSfPreviewImage,
@@ -127,12 +131,12 @@ export function StoreHome({
     featured: previewActive ? padForPreview(featured) : featured,
     latest: previewActive ? padForPreview(latest) : latest,
     categories: previewCategories ?? categories,
-    campaigns,
+    campaigns: previewActive ? padCampaignsForPreview(campaigns) : campaigns,
     t,
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
-    store,
+    store: previewActive ? padStoreForPreview(store) : store,
   };
 
   return (

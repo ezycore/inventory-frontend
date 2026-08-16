@@ -22,6 +22,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
+import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
 import { ShellBottomNav } from "@/components/storefront/shells/shell-parts";
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
@@ -61,6 +62,7 @@ export function StoreShell({
 
   const { data: store, isError } = useStore(slug, initialStore);
   const { data: fetchedCategories } = useStoreCategories(slug, initialCategories);
+  const previewActive = useSfPreview((s) => s.active);
   const previewBrand = useSfPreview((s) => s.brand);
   const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
@@ -72,9 +74,19 @@ export function StoreShell({
   const previewShell = useSfPreview((s) => s.shell);
   const logo = useSfPreviewImage("logo", store?.logo);
 
-  // The admin's Collections panel streams its unsaved draft; prefer it so
-  // reordering/hiding previews live instead of waiting on a save + refetch.
-  const categories = previewCollections ?? fetchedCategories;
+  /* The admin's Collections panel streams its unsaved draft; prefer it so
+     reordering/hiding previews live instead of waiting on a save + refetch.
+
+     In the theme preview, a store with NO categories falls back to samples.
+     This is the single most load-bearing fallback of the set: the `rail` shell
+     returns null without categories, so a merchant who has not built their
+     taxonomy yet — i.e. every merchant choosing their first theme — compared
+     four themes with the department rail invisible, which is the whole reason
+     to pick that one. */
+  const resolvedCategories = previewCollections ?? fetchedCategories;
+  const categories = previewActive
+    ? padCategoriesForPreview(resolvedCategories)
+    : resolvedCategories;
 
   // Tab icon = the store's favicon, swapped in place so router-integrated
   // navigations (page changes AND the account tab switch's replaceState) don't

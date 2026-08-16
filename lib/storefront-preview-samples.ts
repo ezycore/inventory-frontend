@@ -1,6 +1,11 @@
 // coding-standard: maintained
 
-import type { CatalogProduct } from "@/lib/storefront-client";
+import type {
+  CatalogCategory,
+  CatalogProduct,
+  StoreCampaign,
+  StorefrontStore,
+} from "@/lib/storefront-client";
 
 /**
  * Filler products for the theme PREVIEW, and nowhere else.
@@ -64,4 +69,82 @@ export function padForPreview(
   })) as CatalogProduct[];
 
   return [...products, ...filler];
+}
+
+/**
+ * Sample DEPARTMENTS, and this is the one that matters most.
+ *
+ * A theme's biggest structural differences hang off the taxonomy: the `rail`
+ * shell renders nothing without categories (`RailShell` returns null), and so do
+ * `category-tiles`, `category-chips` and `category-links`. A merchant who has
+ * not built their catalogue yet therefore compares four themes with their most
+ * distinguishing feature switched off — Meridian Care loses the department rail
+ * that is the entire reason to choose it.
+ *
+ * Neutral names on purpose: this is shown to a grocer and a pharmacist alike, so
+ * "Department one" would be useless and "Medicines" would be a lie. These read
+ * as the shape of a taxonomy without claiming to be anyone's.
+ */
+const SAMPLE_CATEGORIES = [
+  "New arrivals",
+  "Best sellers",
+  "Offers",
+  "Everyday",
+  "Gifts",
+  "Clearance",
+];
+
+export function padCategoriesForPreview(
+  categories: CatalogCategory[],
+): CatalogCategory[] {
+  if (categories.length) return categories;
+  return SAMPLE_CATEGORIES.map((name, i) => ({
+    _id: `preview-cat-${i}`,
+    name,
+    slug: `preview-cat-${i}`,
+    slugPath: `preview-cat-${i}`,
+    children: [],
+  })) as unknown as CatalogCategory[];
+}
+
+/**
+ * A sample running campaign, so `deal-strip` has something to draw.
+ *
+ * Only when the merchant has none. A real campaign is never replaced — a
+ * preview that overwrote a live discount with a fake one would be worse than a
+ * blank strip.
+ */
+export function padCampaignsForPreview(
+  campaigns: StoreCampaign[],
+): StoreCampaign[] {
+  if (campaigns.length) return campaigns;
+  return [
+    {
+      _id: "preview-campaign",
+      name: "Sample campaign",
+      scope: "storewide",
+      type: "percentage",
+      value: 10,
+    },
+  ] as unknown as StoreCampaign[];
+}
+
+/**
+ * Sample promises, so `trust-band` has something to draw.
+ *
+ * `trust-row` needs no help — it falls back to the storefront dictionary — but
+ * the band reads `store.trustBadges` and hides itself when they are unset, which
+ * silently removes a whole section from two of the four themes.
+ */
+export function padStoreForPreview(store: StorefrontStore): StorefrontStore {
+  const badges = (store.trustBadges ?? []).filter((b) => b.text?.trim());
+  if (badges.length) return store;
+  return {
+    ...store,
+    trustBadges: [
+      { text: "Sample promise — delivery", icon: "truck" },
+      { text: "Sample promise — genuine", icon: "shield" },
+      { text: "Sample promise — support", icon: "tag" },
+    ],
+  } as StorefrontStore;
 }
