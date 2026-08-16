@@ -494,7 +494,19 @@ export function useSellPage() {
       const creditApplied = useCreditBalance
         ? Math.min(creditBalanceAmount, customerCreditBalance, totalSalePrice)
         : 0;
-      const dueAmount = Math.max(totalSalePrice - formPaidAmount - creditApplied, 0);
+      // The Paid Amount box is what the cashier was HANDED, not what the invoice
+      // absorbs — the summary computes "Change" from it (order-summary-sidebar).
+      // Send only what the sale can take: `paidAmount` on a Sale is the amount
+      // applied to the invoice, and the backend rightly rejects more
+      // (`PAID_AMOUNT_EXCEEDS_TOTAL`) because the excess is change, not revenue.
+      // Until 2026-08-16 the raw figure was posted, so the one thing a counter
+      // does constantly — ৳200 handed over for a ৳120 basket — showed the
+      // cashier "Change ৳80" and then failed with a 400 after they hit Confirm.
+      const settledPaidAmount = Math.min(
+        formPaidAmount,
+        Math.max(totalSalePrice - creditApplied, 0),
+      );
+      const dueAmount = Math.max(totalSalePrice - settledPaidAmount - creditApplied, 0);
       const orderData: CreateSalesOrderData = {
         customerId: updatedCustomerId as string,
         items: items.map(toSaleItemPayload),
@@ -503,8 +515,8 @@ export function useSellPage() {
         costPrice: totalCostPrice,
         notes,
       };
-      if (isAccountsEnabled && accountId && formPaidAmount > 0) {
-        orderData.payment = { paidAmount: formPaidAmount, accountId };
+      if (isAccountsEnabled && accountId && settledPaidAmount > 0) {
+        orderData.payment = { paidAmount: settledPaidAmount, accountId };
         orderData.dueAmount = dueAmount;
       }
       if (isAccountsEnabled && creditApplied > 0) {
