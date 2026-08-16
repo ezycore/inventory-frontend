@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react";
 import type { ReadyMadeTheme } from "@/lib/storefront-themes";
 import type { StorefrontSettings } from "@/types";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { SECTION_LABELS } from "@/components/storefront/home/home-sections";
+import { SECTION_LABELS } from "@/lib/storefront-section-ids";
 import {
   BrowserPreview,
   type PreviewPage,

@@ -10,10 +10,7 @@ import {
   resolveTemplates,
 } from "@/lib/storefront-templates";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
-import {
-  HOME_PRESET_SECTIONS,
-  SECTION_IDS,
-} from "@/components/storefront/home/home-sections";
+import { HOME_PRESET_SECTIONS, SECTION_IDS } from "@/lib/storefront-section-ids";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /** A draft carrying merchant-written content a theme must never reach. */

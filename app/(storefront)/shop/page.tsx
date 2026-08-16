@@ -19,10 +19,7 @@ import {
   configuredSections,
   sectionSignature,
 } from "@/lib/storefront-sections";
-import {
-  HOME_PRESET_SECTIONS,
-  isSectionId,
-} from "@/components/storefront/home/home-sections";
+import { HOME_PRESET_SECTIONS, isSectionId } from "@/lib/storefront-section-ids";
 
 // Host-resolved (dynamic render); product/store data is cached via the
 // fetch-level `revalidate` in lib/storefront-server.ts.
