@@ -303,6 +303,7 @@ export function toPreviewPayload(
     forceHeroSlides,
     forceCollectionsMenu,
     socialWhatsapp,
+    hasCollections = true,
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
@@ -312,6 +313,20 @@ export function toPreviewPayload(
     forceCollectionsMenu: boolean;
     /** Settings → General's number, so the preview can mirror the blank-number fallback. */
     socialWhatsapp?: string;
+    /**
+     * Whether the caller actually HAS the merchant's collections.
+     *
+     * `seedDraft` deliberately omits them — in Customize they arrive from their
+     * own query — so a caller without that query holds `[]`, which is not
+     * "this shop has none" but "I did not look". Sending it as a draft made the
+     * storefront believe the taxonomy was empty: the category row vanished and,
+     * under the `rail` shell, the aside stopped rendering entirely and the whole
+     * page collapsed into the rail's 218px track.
+     *
+     * Omitting the key instead leaves `previewCollections` null, and `StoreShell`
+     * falls back to the categories it fetched itself.
+     */
+    hasCollections?: boolean;
   },
 ) {
   return {
@@ -363,7 +378,11 @@ export function toPreviewPayload(
     // `null` (not undefined) is what tells the preview store the launcher is
     // switched off, as opposed to "nothing drafted yet" — see the store's note.
     contactButton: toPreviewContactButton(draft, socialWhatsapp),
-    collections: publicCollections(draft.collections),
+    // Omitted entirely when the caller has no collections query — see
+    // `hasCollections`. An absent key means "not drafted"; `[]` means "none".
+    ...(hasCollections
+      ? { collections: publicCollections(draft.collections) }
+      : {}),
     // `null` (not undefined) is what tells the preview store "removed" apart
     // from "not sent yet".
     logo,

@@ -951,16 +951,54 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
 .sf-rail {
   display: none;
 }
-@media (min-width: 681px) {
+/* ⚠ **1000px, not 681px.** The rail is a fixed 218px column, but `--cols` is
+   resolved from the VIEWPORT — the density axis was written when the content
+   column and the viewport were the same thing. So between 681 and 1000 the page
+   kept asking for four product columns inside ~580px of content and rendered
+   124px cards with one word per line. The band where a rail costs more than it
+   gives starts well above the phone breakpoint, and a shopper on a small laptop
+   is better served by the full width plus the header search.
+   Measured before the change: 820px viewport → 580px content → 124px cards;
+   after → no rail, 3 columns, 266px cards. */
+@media (min-width: 1000px) {
+  /* ⚠ **The two-column template only applies when a rail is actually there.**
+     `RailShell` returns null for the aside when the store has no categories, and
+     a grid whose rail child is missing puts the CONTENT into the first track —
+     so the whole page rendered inside 218px, with 44px product cards. A shop
+     with an empty taxonomy hit this, and so did the theme-store preview.
+     `:has()` makes the layout follow what was rendered rather than what was
+     assumed. */
   .sf-rail-grid {
     display: grid;
-    grid-template-columns: 218px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--gap);
     align-items: start;
     padding-inline: var(--pad);
   }
-  /* The rail's own padding replaces the page's, so the content column keeps its
-     normal `--pad` from the sections inside it. */
+  .sf-rail-grid:has(> .sf-rail) {
+    grid-template-columns: 218px minmax(0, 1fr);
+  }
+
+  /* **The rail spends 218px, so the content column takes one fewer product
+     column than the viewport alone would suggest** — cozy 4→3, compact 5→4,
+     airy 3→2. Without this the widest breakpoint fits five compact columns into
+     970px and renders 172px cards, narrower than the same theme draws on a
+     phone. `--cols` is redefined on the content column rather than on the grid
+     because the sections inside are what read it.
+
+     The rail's own padding also replaces the page's here, so those sections keep
+     their normal `--pad`. */
+  .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 3;
+  }
+  .sf-shell[data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+  .sf-shell[data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 2;
+  }
+  /* The rail's own padding replaces the page's, so the sections inside the
+     content column keep their normal `--pad`. Applies with or without a rail. */
   .sf-rail-grid > :last-child {
     margin-inline: calc(var(--pad) * -1);
   }

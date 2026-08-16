@@ -52,6 +52,13 @@ export function ThemeStage({
 
   const draft = useMemo<CustomizeDraft | null>(() => {
     if (!settings) return null;
+    /* `collections: []` satisfies the type — `seedDraft` omits them because in
+       Customize they come from their own query, which this page does not run.
+       It is NOT a claim that the shop has none: `hasCollections={false}` below
+       stops it reaching the preview, so the storefront keeps the categories it
+       fetched itself. Sent as a draft, it emptied the taxonomy — which under the
+       `rail` shell removed the aside and collapsed the page into its 218px
+       track. */
     const base = { ...seedDraft(settings), collections: [] } as CustomizeDraft;
     return { ...base, ...applyThemeToDraft(base, theme) };
   }, [theme, settings]);
@@ -83,6 +90,7 @@ export function ThemeStage({
           // preview must show the hero source and menu the merchant really has.
           forceHeroSlides={false}
           forceCollectionsMenu={false}
+          hasCollections={false}
           socialWhatsapp={settings?.social?.whatsapp}
           logo={settings?.logo ?? orgLogo ?? null}
           banner={settings?.banner ?? null}

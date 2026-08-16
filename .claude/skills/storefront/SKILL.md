@@ -646,6 +646,30 @@ add" now includes "the shell is already saying it".
 ⚠ **The rail is `sf-desktop-only`, not a collapsible drawer.** A 218px column on a 390px screen is
 not navigation, and the mobile bottom nav plus the header search already cover the job. A second
 mobile nav competing with the bottom bar is how a shopper ends up with two half-answers.
+  - ⚠ **`.sf-rail-grid` must only claim two columns when a rail is actually rendered.**
+    `RailShell` returns `null` for the aside when the store has no categories, and a grid whose first
+    child is missing puts the CONTENT into the first track — the whole page rendered inside 218px,
+    with 44px product cards. `:has(> .sf-rail)` gates both the template and the `--cols` step-down, so
+    the layout follows what was rendered rather than what was assumed. Any shop with an empty taxonomy
+    hit this, not just the preview.
+  - ⚠ **The rail costs 218px, so the content column takes one fewer product column** — cozy 4→3,
+    compact 5→4, airy 3→2. `--cols` is resolved from the VIEWPORT (the density axis predates the
+    rail), so without the step-down the widest breakpoint fitted five compact columns into 970px and
+    drew 172px cards — narrower than the same theme draws on a phone.
+  - ⚠ **The rail's breakpoint is 1000px, not 680px.** Between the two it left ~580px of content and
+    124px cards. A rail is worth its width only once there is width to spare; below that the header
+    search does the job.
+  - ⚠ **A caller with no collections query must pass `hasCollections={false}`** to `BrowserPreview` /
+    `toPreviewPayload`. `seedDraft` omits collections (in Customize they arrive from their own query),
+    so such a caller holds `[]` — which is not "this shop has none" but "I did not look". Sent as a
+    draft it emptied the taxonomy, and under `rail` that removed the aside and triggered the collapse
+    above. Omitting the key leaves `previewCollections` null and `StoreShell` uses the categories it
+    fetched itself.
+  - **Measuring a cross-origin iframe needs its OWN CDP target.** The storefront preview runs
+    out-of-process (`rmc.localhost` vs `localhost`), so it is absent from `Page.getFrameTree` and
+    unreachable via `contentDocument`. It appears in `/json/list` as `type: "iframe"` — attach a second
+    WebSocket to it. Measuring the same URL in the top-level tab does NOT reproduce the preview: the
+    draft that only exists inside the frame is exactly what broke it.
 
 ⚠ **No bundled theme stamps `rail` today** — Fresh Market did for a few hours on 2026-08-14 and was
 moved back to `stacked` the same day, when the merchant's own Claude Design mockup answered the

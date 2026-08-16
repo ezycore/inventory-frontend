@@ -43,6 +43,7 @@ export function BrowserPreview({
   forceHeroSlides,
   forceCollectionsMenu,
   socialWhatsapp,
+  hasCollections = true,
   viewportHeight = "calc(100vh - 11rem)",
 }: {
   slug?: string;
@@ -56,6 +57,8 @@ export function BrowserPreview({
   forceCollectionsMenu: boolean;
   /** Settings → General number, so the preview mirrors the blank-number fallback. */
   socialWhatsapp?: string;
+  /** False when the caller runs no collections query — see toPreviewPayload. */
+  hasCollections?: boolean;
   /**
    * Viewport height. The default fills the Customize page below its header; the
    * theme store's Preview dialog passes its own, because a `100vh`-derived
@@ -96,8 +99,9 @@ export function BrowserPreview({
         forceHeroSlides,
         forceCollectionsMenu,
         socialWhatsapp,
+        hasCollections,
       }),
-    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu, socialWhatsapp],
+    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu, socialWhatsapp, hasCollections],
   );
 
   const post = useCallback(() => {
