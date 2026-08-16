@@ -29,7 +29,12 @@ function Frame({
   return (
     <span
       className={cn(
-        "flex h-16 w-full flex-col gap-1 rounded-md border bg-muted/30 p-1.5",
+        // `overflow-hidden` is a GUARD, not styling. These sketches are hand-sized
+        // against a 64px frame, and one that mis-sizes itself used to paint over
+        // the options above it rather than being clipped — a wireframe that
+        // breaks the page it is describing. Clipping keeps that a small visual
+        // bug in one tile instead of a broken panel.
+        "flex h-16 w-full flex-col gap-1 overflow-hidden rounded-md border bg-muted/30 p-1.5",
         className,
       )}
     >
@@ -62,6 +67,15 @@ function TopBar() {
   );
 }
 
+/**
+ * Every option that has a wireframe, keyed `<templateKey>:<value>`.
+ *
+ * ⚠ **A missing key is not a missing decoration — it is an unusable control.**
+ * The lookup falls back to a bare `<Frame />`, so an option with no entry renders
+ * an empty box, and a panel where every option is an empty box gives a merchant
+ * nothing to choose between. `template-sketch.test.ts` guards the gap and lists
+ * the ones still outstanding.
+ */
 const SKETCHES: Record<string, ReactNode> = {
   /* ---------------------------------------------------------------- home */
   "home:classic": (
@@ -224,6 +238,16 @@ const SKETCHES: Record<string, ReactNode> = {
       <span className={cn(BAR, "h-0.5 w-1/3")} />
     </Frame>
   ),
+  /* No card and no button — the photo carries it, with the name and price set
+     centred beneath. Drawn without a CTA on purpose: that absence IS the option,
+     and it is the only thing separating this from `compact` at a glance. */
+  "productCard:editorial": (
+    <Frame className="items-center p-2">
+      <span className={cn(IMG, "h-9 w-full")} />
+      <span className={cn(BAR, "h-1 w-1/2")} />
+      <span className={cn(BAR, "h-1 w-1/4")} />
+    </Frame>
+  ),
   "productCard:bold": (
     <Frame className="p-2">
       <span className={cn(IMG, "h-5 w-full")} />
@@ -318,7 +342,12 @@ const SKETCHES: Record<string, ReactNode> = {
   ),
   "imageRatio:landscape": (
     <Frame className="items-center justify-center p-2">
-      <span className={cn(IMG, "aspect-[4/3] w-full")} />
+      {/* `h-full`, like its three siblings — NOT `w-full`. An aspect-ratio box
+          sized by width takes the card's full ~230px and computes a ~172px
+          height inside a 64px frame, so it escaped the tile and painted over the
+          options above it. Height is the dimension the frame actually fixes,
+          which is why every ratio sketch must be driven by it. */}
+      <span className={cn(IMG, "aspect-[4/3] h-full")} />
     </Frame>
   ),
   "imageRatio:tall": (
@@ -550,6 +579,9 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 };
+
+/** Which options have a wireframe — for the coverage guard. See `SKETCHES`. */
+export const SKETCH_KEYS = Object.keys(SKETCHES);
 
 export function TemplateSketch({
   templateKey,
