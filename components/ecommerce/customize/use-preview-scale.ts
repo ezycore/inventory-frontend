@@ -27,7 +27,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const DESKTOP_PREVIEW_WIDTH = 1280;
 
 export function usePreviewScale(enabled: boolean) {
-  const [width, setWidth] = useState(0);
+  const [box, setBox] = useState({ width: 0, height: 0 });
   const observer = useRef<ResizeObserver | null>(null);
 
   // A callback ref, not `useRef` + `useEffect`: the host element is swapped when
@@ -36,9 +36,13 @@ export function usePreviewScale(enabled: boolean) {
   const hostRef = useCallback((node: HTMLDivElement | null) => {
     observer.current?.disconnect();
     if (!node) return;
-    setWidth(node.getBoundingClientRect().width);
+    const r = node.getBoundingClientRect();
+    setBox({ width: r.width, height: r.height });
     observer.current = new ResizeObserver(([entry]) => {
-      setWidth(entry.contentRect.width);
+      setBox({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
     });
     observer.current.observe(node);
   }, []);
@@ -48,24 +52,28 @@ export function usePreviewScale(enabled: boolean) {
   // Never scale UP: on a wide monitor the panel can exceed 1280, and stretching
   // the shop past its own layout width would misreport the spacing.
   const scale =
-    enabled && width > 0 ? Math.min(1, width / DESKTOP_PREVIEW_WIDTH) : 1;
+    enabled && box.width > 0
+      ? Math.min(1, box.width / DESKTOP_PREVIEW_WIDTH)
+      : 1;
+
+  /**
+   * The frame's own height in its UNZOOMED coordinates, so that height × zoom
+   * lands exactly on the host. A percentage cannot do this: under `zoom` it
+   * resolves in the zoomed space and the frame comes up short.
+   */
+  const height = box.height > 0 ? box.height / scale : 0;
 
   /**
    * Whether the frame may mount yet.
    *
-   * ⚠ Load-bearing, and it cost a round of browser QA to find. A cross-origin
-   * iframe — which this is, the storefront being on its own subdomain — does
-   * **not repaint when its transform changes after load**. Chrome keeps showing
-   * the stale (blank) layer until something forces a relayout, so mounting the
-   * frame at scale 1 and correcting it a tick later left the Customize preview
-   * white until the device toggle was clicked. Everything measured fine while it
-   * was invisible: correct width, correct transform, `visibility: visible`, a
-   * 2005px scroll height and a fully built DOM inside.
-   *
-   * Waiting one frame for the measurement means the frame's FIRST paint already
-   * carries its final transform, so there is nothing to correct.
+   * Kept from the transform era, and still worth having: the frame mounts only
+   * once the host has been measured, so it is laid out at its final size from
+   * the first paint rather than at 1:1 and corrected a tick later. The blank-
+   * preview bug that motivated it is now fixed properly by using `zoom` instead
+   * of `transform` (see browser-preview.tsx), but there is no reason to render
+   * a frame at the wrong size for one frame.
    */
-  const ready = !enabled || width > 0;
+  const ready = !enabled || box.width > 0;
 
-  return { hostRef, scale, ready };
+  return { hostRef, scale, ready, frameHeight: height };
 }

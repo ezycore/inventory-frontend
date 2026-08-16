@@ -76,7 +76,9 @@ export function BrowserPreview({
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
-  const { hostRef, scale, ready } = usePreviewScale(device === "desktop");
+  const { hostRef, scale, ready, frameHeight } = usePreviewScale(
+    device === "desktop",
+  );
   const [reloadKey, setReloadKey] = useState(0);
 
   // One listed product is enough to preview the product page; without one the
@@ -306,12 +308,22 @@ export function BrowserPreview({
                 visibility: painted ? "visible" : "hidden",
                 ...(device === "desktop"
                   ? {
+                      /* `zoom`, NOT `transform: scale()`. The storefront is on
+                         its own subdomain, so this frame is an OOPIF, and a
+                         transformed OOPIF does not repaint — Chrome keeps showing
+                         a stale blank layer while the DOM inside is fully built.
+                         Proven directly in the browser: setting `transform: none`
+                         on the live element made it paint instantly. Neither
+                         `will-change` nor deferring the mount until the host was
+                         measured fixed it, because both leave it a compositing
+                         problem. `zoom` scales through LAYOUT, so the frame is
+                         laid out at its final size and paints like any other. */
+                      zoom: scale,
                       width: DESKTOP_PREVIEW_WIDTH,
-                      // Percentages resolve against the host, so dividing by the
-                      // scale makes the shrunk frame fill it exactly.
-                      height: `${100 / scale}%`,
-                      transform: `scale(${scale})`,
-                      transformOrigin: "top left",
+                      // In the frame's own unzoomed coordinates — height × zoom
+                      // lands on the host exactly. A percentage resolves in the
+                      // zoomed space and comes up short.
+                      height: frameHeight || "100%",
                     }
                   : { width: "100%", height: "100%" }),
               }}

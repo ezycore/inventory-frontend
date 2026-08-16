@@ -822,14 +822,16 @@ panel. Two hard-won reasons, both invisible to typecheck, lint and tests:
    with *no rail at all* on the most common laptop size: the merchant was comparing a different
    theme from the one they would get. Lowering the breakpoint would have been backwards — that
    changes what real shoppers see to fix an artefact of the admin chrome.
-2. **A cross-origin iframe does not repaint when its transform changes after load.** The storefront
-   is on its own subdomain, so it is an OOPIF. Mounting the frame at scale 1 and correcting it a tick
-   later left the Customize preview **blank white** until the device toggle forced a relayout —
-   while every measurement looked perfect: right width, right transform, `visibility: visible`, a
-   2005px scroll height and a fully built DOM inside. Hence `ready`: the frame does not mount until
-   the host has been measured, so its first paint already carries its final transform. **Do not
-   render the frame before the measurement**, and be suspicious of any change that moves the
-   transform after load.
+2. **⚠ Scale it with `zoom`, NEVER `transform: scale()`.** The storefront is on its own subdomain,
+   so this frame is an OOPIF — and a transformed OOPIF does not repaint. The Customize preview came
+   up **blank white** while every measurement looked perfect: right width, right transform,
+   `visibility: visible`, 2072px of scroll height and a fully built DOM inside. Proven directly by
+   setting `transform: none` on the live element, which made it paint instantly. Neither
+   `will-change: transform` nor deferring the mount until the host was measured fixed it — both
+   leave it a compositing problem. `zoom` scales through **layout**, so the frame is laid out at its
+   final size and paints like anything else. Its height must then be given in the frame's own
+   unzoomed pixels (host height ÷ zoom); a percentage resolves in the zoomed space and comes up
+   short. **If this preview is ever blank again, check whether something reintroduced a transform.**
 
 Mobile is deliberately unscaled — 390px is a real phone width, so that preview is already honest.
 

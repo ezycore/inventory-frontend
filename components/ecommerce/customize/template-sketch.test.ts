@@ -14,33 +14,15 @@ import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-opti
  */
 
 /**
- * Options still waiting for a wireframe. **This list may only ever shrink.**
+ * Options still waiting for a wireframe. **Empty, and it should stay that way.**
  *
- * It exists so the guard can be added now, with the gap recorded honestly,
- * rather than waiting until all of them are drawn — a test that cannot be turned
- * on until a backlog is cleared is a test that never gets added. Delete an entry
- * as you draw it; the second assertion below fails if a stale one lingers.
+ * It held eighteen entries for about an hour — the backlog this guard was added
+ * to record — and they are all drawn now. It survives as the escape hatch for a
+ * new option landing before its sketch, on one condition: an entry here is a
+ * blank tile in front of a merchant, so it is a note to finish something, never
+ * a place to leave one.
  */
-const NOT_YET_DRAWN = [
-  "header:clinical",
-  "checkout:guided",
-  "checkout:editorial",
-  "categoryTiles:disc",
-  "shell:stacked",
-  "shell:rail",
-  "cartLayout:panel",
-  "cartLayout:compact",
-  "cartLayout:cards",
-  "cartLayout:editorial",
-  "contentLayout:centered",
-  "contentLayout:banner",
-  "contentLayout:panel",
-  "contentLayout:editorial",
-  "accountLayout:sidebar",
-  "accountLayout:tabs",
-  "accountLayout:panel",
-  "accountLayout:editorial",
-];
+const NOT_YET_DRAWN: string[] = [];
 
 const everyOption = Object.entries(TEMPLATE_OPTIONS).flatMap(([key, options]) =>
   options.map((o) => `${key}:${o.value}`),

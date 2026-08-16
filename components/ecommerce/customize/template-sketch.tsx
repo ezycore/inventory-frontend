@@ -380,15 +380,33 @@ const SKETCHES: Record<string, ReactNode> = {
       </span>
     </Frame>
   ),
+  /* Discs, not squares — the shape IS the option, since this is the one tile
+     style that carries a letter instead of a photograph. */
+  "categoryTiles:disc": (
+    <Frame className="items-center justify-center">
+      <span className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="flex flex-col items-center gap-1">
+            <span className={cn(IMG, "size-5 rounded-full")} />
+            <span className={cn(BAR, "h-1 w-4")} />
+          </span>
+        ))}
+      </span>
+    </Frame>
+  ),
 
   /* -------------------------------------------------------------- header */
   "header:classic": (
     <Frame className="justify-center">
-      <span className="flex items-center gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
-        <span className={cn(BAR, "h-1.5 w-5 bg-muted-foreground/60")} />
-        <span className="ml-2 flex gap-1">
+      {/* Widths trimmed to FIT. The logo, three menu dashes and the icon pair
+          together ran ~6px past the tile, and `ml-auto` pushed the overflow onto
+          the icons — so with the frame now clipping, the option that is defined
+          by having icons was the one drawn with them cut in half. */}
+      <span className="flex items-center gap-1 rounded-[2px] border border-border bg-background p-1.5">
+        <span className={cn(BAR, "h-1.5 w-4 bg-muted-foreground/60")} />
+        <span className="ml-1 flex gap-1">
           {[0, 1, 2].map((i) => (
-            <span key={i} className={cn(BAR, "h-1 w-3")} />
+            <span key={i} className={cn(BAR, "h-1 w-2.5")} />
           ))}
         </span>
         <span className="ml-auto flex gap-1">
@@ -445,6 +463,17 @@ const SKETCHES: Record<string, ReactNode> = {
             <span key={i} className={cn(BAR, "h-1 w-3")} />
           ))}
         </span>
+      </span>
+    </Frame>
+  ),
+  /* The counterpart to `search-first`: the field is PLAIN, not a pill, and there
+     is nothing else on the bar — no menu row, no icon cluster. Drawing the
+     absences is what separates the two at a glance. */
+  "header:clinical": (
+    <Frame className="justify-center">
+      <span className="flex items-center gap-1.5 rounded-[2px] border border-border bg-background p-1.5">
+        <span className={cn(BAR, "h-1.5 w-4 bg-muted-foreground/60")} />
+        <span className={cn(BOX, "h-2.5 flex-1")} />
       </span>
     </Frame>
   ),
@@ -576,6 +605,194 @@ const SKETCHES: Record<string, ReactNode> = {
         <span className={cn(BOX, "h-2 w-full")} />
         <span className={cn(CTA, "h-2 w-1/2")} />
       </span>
+    </Frame>
+  ),
+  /* The opposite of multi-step: nothing is hidden behind a step, so every
+     section is on screen at once, numbered, over large fields. */
+  "checkout:guided": (
+    <Frame className="justify-center gap-1.5 p-2">
+      {[0, 1, 2].map((i) => (
+        <span key={i} className="flex items-center gap-1">
+          <span className={cn(BAR, "size-1.5 flex-none rounded-full bg-muted-foreground/60")} />
+          <span className={cn(BOX, "h-2 flex-1")} />
+        </span>
+      ))}
+    </Frame>
+  ),
+  /* Two columns and NO boxes — the order on the left, the form on the right,
+     separated by nothing but space. */
+  "checkout:editorial": (
+    <Frame className="flex-row items-stretch gap-2 p-2">
+      <span className="flex w-2/5 flex-col gap-1">
+        <span className={cn(IMG, "h-5 w-full")} />
+        <span className={cn(BAR, "h-1 w-3/4")} />
+      </span>
+      <span className="flex flex-1 flex-col justify-center gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="block h-px w-full bg-border" />
+        ))}
+        <span className={cn(CTA, "h-2 w-2/3")} />
+      </span>
+    </Frame>
+  ),
+
+  /* --------------------------------------------------------------- shell
+     The only axis that changes the building rather than what is inside it, so
+     both sketches show the whole PAGE — header included — not a component. */
+  "shell:stacked": (
+    <Frame>
+      <TopBar />
+      <Cards n={3} tall />
+    </Frame>
+  ),
+  "shell:rail": (
+    <Frame>
+      <TopBar />
+      <span className="flex flex-1 gap-1">
+        <span className="flex w-1/4 flex-col gap-1 border-r border-border pr-1">
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} className={cn(BAR, "h-1 w-full")} />
+          ))}
+        </span>
+        <Cards n={2} tall />
+      </span>
+    </Frame>
+  ),
+
+  /* ----------------------------------------------------------- cart layout */
+  "cartLayout:panel": (
+    <Frame className="flex-row gap-1.5 p-2">
+      <span className={cn(BOX, "flex flex-1 flex-col justify-center gap-1 p-1")}>
+        {[0, 1].map((i) => (
+          <span key={i} className="flex items-center gap-1">
+            <span className={cn(IMG, "size-3 flex-none")} />
+            <span className={cn(BAR, "h-1 flex-1")} />
+          </span>
+        ))}
+      </span>
+      <span className={cn(BOX, "flex w-1/3 flex-col justify-end gap-1 p-1")}>
+        <span className={cn(BAR, "h-1 w-full")} />
+        <span className={cn(CTA, "h-2 w-full")} />
+      </span>
+    </Frame>
+  ),
+  // Thin rows, and the total pinned along the bottom rather than beside them.
+  "cartLayout:compact": (
+    <Frame className="gap-1 p-2">
+      {[0, 1, 2].map((i) => (
+        <span key={i} className="flex items-center gap-1">
+          <span className={cn(IMG, "size-2 flex-none")} />
+          <span className={cn(BAR, "h-0.5 flex-1")} />
+        </span>
+      ))}
+      <span className={cn(CTA, "mt-auto h-2 w-full")} />
+    </Frame>
+  ),
+  "cartLayout:cards": (
+    <Frame className="gap-1.5 p-2">
+      {[0, 1].map((i) => (
+        <span key={i} className={cn(BOX, "flex flex-1 items-center gap-1.5 p-1")}>
+          <span className={cn(IMG, "h-full w-5 flex-none")} />
+          <span className={cn(BAR, "h-1 flex-1")} />
+        </span>
+      ))}
+    </Frame>
+  ),
+  // Large photos with hairlines between them and no boxes anywhere.
+  "cartLayout:editorial": (
+    <Frame className="gap-0 p-2">
+      {[0, 1].map((i) => (
+        <span
+          key={i}
+          className={cn(
+            "flex flex-1 items-center gap-1.5 py-1",
+            i === 0 && "border-b border-border",
+          )}
+        >
+          <span className={cn(IMG, "h-full w-6 flex-none")} />
+          <span className={cn(BAR, "h-1 flex-1")} />
+        </span>
+      ))}
+    </Frame>
+  ),
+
+  /* -------------------------------------------------------- content layout */
+  "contentLayout:centered": (
+    <Frame className="items-center justify-center gap-1 p-2">
+      <span className={cn(BAR, "h-1.5 w-1/2 bg-muted-foreground/60")} />
+      <span className="block h-px w-2/3 bg-border" />
+      <span className={cn(BAR, "h-0.5 w-3/5")} />
+      <span className={cn(BAR, "h-0.5 w-2/5")} />
+    </Frame>
+  ),
+  "contentLayout:banner": (
+    <Frame className="gap-1.5 p-2">
+      <span className={cn(CTA, "h-3 w-full")} />
+      <span className={cn(BOX, "flex flex-1 flex-col justify-center gap-1 p-1")}>
+        <span className={cn(BAR, "h-0.5 w-full")} />
+        <span className={cn(BAR, "h-0.5 w-2/3")} />
+      </span>
+    </Frame>
+  ),
+  // Tinted block, not the brand band — the difference from `banner` is the
+  // weight of that header, so one is `IMG` and the other `CTA`.
+  "contentLayout:panel": (
+    <Frame className="gap-1.5 p-2">
+      <span className={cn(IMG, "flex h-3 items-center px-1")}>
+        <span className={cn(BAR, "h-1 w-1/3")} />
+      </span>
+      <span className={cn(BOX, "flex flex-1 flex-col justify-center gap-1 p-1")}>
+        <span className={cn(BAR, "h-0.5 w-full")} />
+        <span className={cn(BAR, "h-0.5 w-2/3")} />
+      </span>
+    </Frame>
+  ),
+  "contentLayout:editorial": (
+    <Frame className="justify-center gap-1.5 p-2">
+      <span className={cn(BAR, "h-2 w-3/4 bg-muted-foreground/25")} />
+      <span className={cn(BAR, "h-0.5 w-full")} />
+      <span className={cn(BAR, "h-0.5 w-5/6")} />
+      <span className={cn(BAR, "h-0.5 w-2/3")} />
+    </Frame>
+  ),
+
+  /* -------------------------------------------------------- account layout */
+  "accountLayout:sidebar": (
+    <Frame className="flex-row gap-1.5 p-2">
+      <span className="flex w-1/3 flex-col gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(BAR, "h-1 w-full")} />
+        ))}
+      </span>
+      <span className={cn(BOX, "flex-1")} />
+    </Frame>
+  ),
+  "accountLayout:tabs": (
+    <Frame className="gap-1 p-2">
+      <span className={cn(CTA, "h-2.5 w-full")} />
+      <span className="flex gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(BAR, "h-1 flex-1")} />
+        ))}
+      </span>
+      <span className={cn(BOX, "flex-1")} />
+    </Frame>
+  ),
+  "accountLayout:panel": (
+    <Frame className="p-2">
+      <span className="grid flex-1 grid-cols-2 gap-1">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={cn(BOX, "h-full w-full")} />
+        ))}
+      </span>
+    </Frame>
+  ),
+  // No cards and no icons — a quiet list, which is the entire option.
+  "accountLayout:editorial": (
+    <Frame className="justify-center gap-1.5 p-2">
+      {[0, 1, 2, 3].map((i) => (
+        <span key={i} className={cn(BAR, "h-1 w-2/3")} />
+      ))}
     </Frame>
   ),
 };
