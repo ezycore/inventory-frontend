@@ -1010,10 +1010,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
     align-self: start;
     padding-block: 16px;
   }
+  /* **Bare, not a card.** The rail is navigation, not content — boxing it makes
+     a white panel that competes with the product cards beside it, and on a
+     tinted surface it stacks card-on-card. Letting the page show through keeps
+     the eye on the goods and matches the approved design, which drew it as a
+     plain column of names. */
   .sf-rail-inner {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     padding: 12px 0 6px;
     max-height: calc(100vh - 104px);
     overflow-y: auto;
