@@ -14,7 +14,7 @@ import { useAuthStore } from '@/services/stores/use-auth-store'
 import { useCurrency } from '@/lib/currency'
 import {
   DollarSign,
-  AlertTriangle,
+  TrendingUp,
   ShoppingCart,
   ArrowDownToLine,
 } from 'lucide-react'
@@ -74,7 +74,12 @@ export default function DashboardPage() {
   // ── KPI Stats (period-based) ──
   const salesChange = overview ? calcChange(overview.sales.total, overview.sales.previousTotal) : null
   const purchasesChange = overview ? calcChange(overview.purchases.total, overview.purchases.previousTotal) : null
-  const dueTotal = (overview?.sales.due || 0) + (overview?.purchases.due || 0)
+  // Gross profit headlines here rather than inside Financial Insights: it is the
+  // number a merchant opens the page for. The panel keeps the rates and averages.
+  const grossProfit = overview?.grossProfit || 0
+  const grossMargin = overview && overview.sales.total > 0
+    ? Math.round((grossProfit / overview.sales.total) * 100)
+    : 0
 
   const kpiStats: StatData[] = [
     {
@@ -104,16 +109,11 @@ export default function DashboardPage() {
         : undefined,
     },
     {
-      label: t('totalDue'),
-      value: formatCurrency(dueTotal),
-      icon: AlertTriangle,
-      variant: dueTotal > 0 ? 'warning' : 'success',
-      description: overview
-        ? t('salesPurchaseDue', {
-            sales: formatCurrency(overview.sales.due),
-            purchase: formatCurrency(overview.purchases.due),
-          })
-        : undefined,
+      label: t('grossProfit'),
+      value: formatCurrency(grossProfit),
+      icon: TrendingUp,
+      variant: grossProfit >= 0 ? 'success' : 'warning',
+      description: overview ? t('marginOfSales', { margin: grossMargin }) : undefined,
     },
     {
       label: t('transactions'),

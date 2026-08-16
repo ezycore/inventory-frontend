@@ -12319,6 +12319,16 @@ export interface components {
                 count: number;
                 previousTotal: number;
                 previousCount: number;
+                byChannel: {
+                    pos: {
+                        total: number;
+                        count: number;
+                    };
+                    online: {
+                        total: number;
+                        count: number;
+                    };
+                };
             };
             purchases: {
                 total: number;
@@ -12327,6 +12337,10 @@ export interface components {
                 count: number;
                 previousTotal: number;
                 previousCount: number;
+            };
+            outstanding: {
+                receivable: number;
+                payable: number;
             };
             chartData: {
                 label: string;
