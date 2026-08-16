@@ -174,20 +174,14 @@ export default function ProtectedLayout({
     );
   }
 
-  // The wizard renders without the shell — a sidebar of features the merchant
-  // has not chosen yet is the exact thing onboarding exists to avoid, and it
-  // would offer navigation away from a gate that only bounces them back.
-  if (pathname === "/onboarding") {
-    return (
-      <>
-        {workspaceTitle}
-        <div className="min-h-screen bg-background">{children}</div>
-      </>
-    );
-  }
-
   // Staff arriving before the owner has finished setup: the org's shape is not
   // decided yet, so there is no meaningful workspace to show them.
+  //
+  // Checked BEFORE the wizard branch, and the order is the whole point. Nothing
+  // routes staff to /onboarding, but typing the URL used to hand them a
+  // working-looking wizard whose every answer 403s — the endpoint carries
+  // `checkPermission("organization.edit")`, which is exactly the permission this
+  // branch tests for.
   if (needsOnboarding && !canConfigureOrg) {
     return (
       <>
@@ -200,6 +194,18 @@ export default function ProtectedLayout({
             </p>
           </div>
         </div>
+      </>
+    );
+  }
+
+  // The wizard renders without the shell — a sidebar of features the merchant
+  // has not chosen yet is the exact thing onboarding exists to avoid, and it
+  // would offer navigation away from a gate that only bounces them back.
+  if (pathname === "/onboarding") {
+    return (
+      <>
+        {workspaceTitle}
+        <div className="min-h-screen bg-background">{children}</div>
       </>
     );
   }

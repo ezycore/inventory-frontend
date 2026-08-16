@@ -109,6 +109,19 @@ export interface FeatureState {
   onboarding: OnboardingState;
 }
 
+/**
+ * What one wizard step answers with: the feature state, plus the dated VAT
+ * registration.
+ *
+ * The registration cannot be inferred from the flags — `features.tax` is true
+ * for standard, reduced and turnover alike — and the wizard writes the auth
+ * store from this response, so without it a turnover-tax merchant leaves setup
+ * with an empty history and `vatRegistrationOf` resolves them to standard-rated.
+ */
+export interface OnboardingStepResult extends FeatureState {
+  vatRegistrationHistory: VatRegistrationEntry[];
+}
+
 /** One step of the setup wizard. Every field is optional because each step
  *  writes a different thing; `complete` is what ends the wizard. */
 export interface OnboardingStepPayload {
@@ -201,7 +214,7 @@ export const organizationApi = {
   // Used in: the onboarding wizard
   applyOnboardingStep: (
     data: OnboardingStepPayload,
-  ): Promise<ApiResponse<FeatureState>> =>
+  ): Promise<ApiResponse<OnboardingStepResult>> =>
     apiClient.post(`/organization/onboarding`, data),
 
   // PUT /api/organization/column-settings - Update table column visibility

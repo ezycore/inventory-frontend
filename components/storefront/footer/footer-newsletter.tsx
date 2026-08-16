@@ -17,7 +17,7 @@ import type { FooterT } from "@/components/storefront/footer/footer-pieces";
  * what happened either way.
  *
  * Every string is the merchant's or a localized default (`heading`, `blurb`,
- * `buttonLabel` come from `theme.footerNewsletter`) — nothing here is fixed copy.
+ * `buttonLabel` come from `copy.footerNewsletter`) — nothing here is fixed copy.
  *
  * The success message is the same whether the address was new or already on the
  * list: the server refuses to tell an anonymous caller which, because that would

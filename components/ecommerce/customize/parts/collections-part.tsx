@@ -104,6 +104,21 @@ export function CollectionsPart({
           onChange={(homeCollections) => patch({ homeCollections })}
         />
       </PartBlock>
+
+      {/* The tiles section is a different homepage row from the collections
+          strip above — it only renders if "Category tiles" is in Home →
+          Sections, which is why the hint says so rather than leaving an owner
+          to wonder why nothing moved. */}
+      <PartBlock
+        label="Category tiles"
+        hint="Used by the Category tiles section on the homepage. Over the photo needs a picture on every category — without one it falls back to a letter tile."
+      >
+        <TemplatePicker
+          templateKey="categoryTiles"
+          value={draft.templates.categoryTiles}
+          onChange={(v) => patchTemplate("categoryTiles", v)}
+        />
+      </PartBlock>
     </>
   );
 }

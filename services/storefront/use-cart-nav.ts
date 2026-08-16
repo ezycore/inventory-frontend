@@ -17,9 +17,24 @@ export function useCartNav(slug: string) {
   const cartCount = useCartStore((s) =>
     s.storeSlug === slug ? s.items.reduce((n, i) => n + i.quantity, 0) : 0,
   );
+  /**
+   * The basket's running subtotal. Only the `search-first` header draws it —
+   * a shopper filling a weekly basket watches this number, and a bare count
+   * ("2") answers a question nobody asked. Selected separately from `cartCount`
+   * so the headers that ignore it re-render no more often than before.
+   *
+   * Subtotal, NOT the order total: shipping needs a district the shopper has
+   * not picked yet, so anything larger here would be a number the cart itself
+   * contradicts two clicks later.
+   */
+  const cartSubtotal = useCartStore((s) =>
+    s.storeSlug === slug
+      ? s.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+      : 0,
+  );
   const openCart = useCartUI((s) => s.openCart);
 
   const goCart = () => openCart();
 
-  return { cartCount, goCart };
+  return { cartCount, cartSubtotal, goCart };
 }

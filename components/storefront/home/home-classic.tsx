@@ -6,7 +6,6 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
-import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import {
   Grid,
   ViewAll,
@@ -29,7 +28,6 @@ export function Classic(props: TplProps) {
     heroSlides,
     heroBanner: hb,
   } = props;
-  const imageFit = useStoreImageFit();
   return (
     <div>
       {heroSlides?.length ? (
@@ -89,7 +87,7 @@ export function Classic(props: TplProps) {
               ))}
             </div>
           </div>
-          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" fit={imageFit} />
+          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" />
         </div>
       </div>
       )}

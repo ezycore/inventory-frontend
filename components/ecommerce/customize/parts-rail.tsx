@@ -3,7 +3,9 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+  Columns2,
   CreditCard,
+  FileText,
   GalleryHorizontalEnd,
   Home,
   LayoutGrid,
@@ -13,6 +15,9 @@ import {
   Package,
   PanelBottom,
   PanelTop,
+  ShoppingCart,
+  Type,
+  UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
@@ -24,6 +29,8 @@ import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announc
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
+import { DesignPart } from "@/components/ecommerce/customize/parts/design-part";
+import { SectionsEditor } from "@/components/ecommerce/customize/sections-editor";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
@@ -45,6 +52,7 @@ import type {
  */
 const PARTS: { id: PartId; title: string; icon?: LucideIcon }[] = [
   { id: "brand", title: "Brand" },
+  { id: "design", title: "Design", icon: Type },
   { id: "announcement", title: "Announcement bar", icon: Megaphone },
   { id: "header", title: "Header", icon: PanelTop },
   { id: "hero", title: "Hero", icon: GalleryHorizontalEnd },
@@ -54,6 +62,10 @@ const PARTS: { id: PartId; title: string; icon?: LucideIcon }[] = [
   { id: "product", title: "Product page", icon: Package },
   { id: "contact", title: "WhatsApp button", icon: MessageCircle },
   { id: "footer", title: "Footer", icon: PanelBottom },
+  { id: "account", title: "Account area", icon: UserRound },
+  { id: "shell", title: "Page layout", icon: Columns2 },
+  { id: "cart", title: "Cart", icon: ShoppingCart },
+  { id: "content", title: "Content pages", icon: FileText },
   { id: "checkout", title: "Checkout", icon: CreditCard },
 ];
 
@@ -62,6 +74,13 @@ const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
   collections: "collection",
   product: "product",
+};
+
+/** Parts whose `templates.*` key is not simply their own id. */
+const PART_TEMPLATE_KEY: Partial<Record<PartId, string>> = {
+  account: "accountLayout",
+  cart: "cartLayout",
+  content: "contentLayout",
 };
 
 export const previewPageForPart = (id: PartId): PreviewPage =>
@@ -150,6 +169,8 @@ export function PartsRail({
           >
             {part.id === "brand" ? (
               <BrandPart settings={settings} draft={draft} patch={patch} />
+            ) : part.id === "design" ? (
+              <DesignPart draft={draft} patch={patch} />
             ) : part.id === "announcement" ? (
               <AnnouncementPart draft={draft} patchAnnouncement={api.patchAnnouncement} />
             ) : part.id === "header" ? (
@@ -210,8 +231,19 @@ export function PartsRail({
                   />
                 </PartBlock>
                 <PartBlock
+                  label="Photo shape"
+                  hint="The frame your product photos sit in. Cart and search thumbnails stay square so their rows keep their shape."
+                >
+                  <TemplatePicker
+                    templateKey="imageRatio"
+                    value={draft.templates.imageRatio}
+                    onChange={(v) => patchTemplate("imageRatio", v)}
+                    columns={2}
+                  />
+                </PartBlock>
+                <PartBlock
                   label="Image fit"
-                  hint="Applies everywhere a photo is shown — cards, home, hero, wishlist."
+                  hint="What happens to a photo that doesn't match the shape above — show all of it, or fill the frame."
                 >
                   <TemplatePicker
                     templateKey="imageFit"
@@ -220,14 +252,46 @@ export function PartsRail({
                   />
                 </PartBlock>
               </>
+            ) : part.id === "home" ? (
+              // The home page is two questions: which starting layout, and then
+              // the sections themselves. The picker seeds the list; the editor
+              // owns it from then on — which is what makes these controls follow
+              // whatever theme was applied rather than a fixed six rows.
+              <>
+                <PartBlock label="Starting layout">
+                  <TemplatePicker
+                    templateKey="home"
+                    value={draft.templates.home}
+                    onChange={(v) => patchTemplate("home", v)}
+                  />
+                </PartBlock>
+                <PartBlock
+                  label="Sections"
+                  hint="Your homepage, top to bottom. Reorder, remove, or add — the preview follows."
+                >
+                  <SectionsEditor
+                    sections={draft.homepageSections}
+                    config={draft.sectionConfig}
+                    collections={draft.collections}
+                    homeTemplate={draft.templates.home}
+                    onChange={(homepageSections) => patch({ homepageSections })}
+                    onConfigChange={(sectionConfig) => patch({ sectionConfig })}
+                  />
+                </PartBlock>
+              </>
             ) : (
-              // home / product / checkout are a single layout choice each, so
-              // the part IS its picker and its id IS the template key.
+              // product / account / checkout are a single layout choice each, so
+              // the part IS its picker. Its id is usually the template key too —
+              // `account` is the one that is not, because the key it writes
+              // (`accountLayout`) selects a whole page component rather than a
+              // variation, and naming it plainly is worth one map entry.
               <TemplatePicker
-                templateKey={part.id}
-                value={draft.templates[part.id]}
-                onChange={(v) => patchTemplate(part.id, v)}
-                columns={part.id === "checkout" ? 2 : 3}
+                templateKey={PART_TEMPLATE_KEY[part.id] ?? part.id}
+                value={draft.templates[PART_TEMPLATE_KEY[part.id] ?? part.id]}
+                onChange={(v) =>
+                  patchTemplate(PART_TEMPLATE_KEY[part.id] ?? part.id, v)
+                }
+                columns={part.id === "product" ? 3 : 2}
               />
             )}
           </PartGroup>

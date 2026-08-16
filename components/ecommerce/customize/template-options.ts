@@ -40,6 +40,7 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "standard", label: "Standard", description: "Photo, name, price, button" },
     { value: "compact", label: "Compact", description: "Tighter cards — more per screen" },
     { value: "bold", label: "Bold", description: "Large name and a full-width button" },
+    { value: "editorial", label: "Editorial", description: "No card, no buttons — just the photo, name and price" },
   ],
   cardActions: [
     { value: "add-buy", label: "Add + Buy now", description: "Two buttons on every card" },
@@ -53,6 +54,9 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "classic", label: "Classic", description: "Logo left, menu beside it" },
     { value: "minimal", label: "Minimal", description: "Logo and icons only — no menu row" },
     { value: "centered", label: "Centered", description: "Logo centred, menu underneath" },
+    { value: "search-first", label: "Search first", description: "White bar built around a big search box — for large everyday catalogues" },
+    { value: "clinical", label: "Search led", description: "A wide plain search field and nothing else — no menu row, no top strip" },
+    { value: "boutique", label: "Boutique", description: "Wordmark and an underlined search field, menu on its own row" },
   ],
   footer: [
     { value: "columns", label: "Columns", description: "Brand and contact left, link groups right" },
@@ -61,13 +65,71 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "contact", label: "Contact first", description: "Your phone and chat lead the footer" },
     { value: "newsletter", label: "Stay in touch", description: "An email sign-up beside your links" },
   ],
+  // Four separate page components. The first two ids predate the layout registry
+  // and keep their exact behaviour, so no existing store's checkout moves.
   checkout: [
-    { value: "single-page", label: "Single page", description: "Everything on one screen" },
-    { value: "multi-step", label: "Multi-step", description: "Address, then delivery, then payment" },
+    { value: "single-page", label: "Single page", description: "Everything on one screen, with the total in a side panel" },
+    { value: "multi-step", label: "Multi-step", description: "One step at a time over a running total that follows the shopper — best for big baskets" },
+    { value: "guided", label: "One column", description: "Every section open and numbered, large fields, nothing hidden" },
+    { value: "editorial", label: "Order first", description: "What they're buying on the left, the form on the right, no boxes" },
   ],
   imageFit: [
     { value: "fit", label: "Full photo", description: "Shows the whole photo; fills extra space with a soft blur of itself" },
     { value: "crop", label: "Cropped", description: "Fills the frame edge-to-edge; trims whatever doesn't fit" },
+  ],
+  // The FRAME, where `imageFit` decides what happens to a photo that doesn't
+  // match it. Square stays first (and so the default) — it is what every store
+  // rendered before this existed.
+  imageRatio: [
+    { value: "square", label: "Square", description: "Equal sides — the safe choice for a mixed catalogue" },
+    { value: "portrait", label: "Portrait", description: "Taller than wide — clothing, shoes, bottles" },
+    { value: "landscape", label: "Landscape", description: "Wider than tall — furniture, electronics" },
+    { value: "tall", label: "Extra tall", description: "Full-length shots — dresses, sarees" },
+  ],
+  // How the homepage's Category tiles section presents one department. `tile`
+  // stays first (and so the default) — `overlay` needs a real photograph on
+  // every category, and on a half-photographed catalogue it puts a scrim over a
+  // grid of letters.
+  categoryTiles: [
+    { value: "tile", label: "Name below", description: "Photo on a tinted card with the name underneath" },
+    { value: "overlay", label: "Name over photo", description: "Taller photo with the name across the bottom of it" },
+    // `tile` already falls back to this shape when NO category has a photo. As
+    // an option it is the same row chosen on purpose — a department is a
+    // wayfinding target, and a shop with a hundred of them wants a scannable
+    // strip of discs above the products rather than seven photographs competing
+    // with them.
+    { value: "disc", label: "Round icons", description: "A lettered disc per department, name underneath — no photos" },
+  ],
+  /* The four keys below are WHOLE PAGE LAYOUTS, not variations within one page:
+     each id selects a different component. The first option of each is its
+     default, and in every case that default is the page the storefront has
+     always rendered — so a store that never opens Themes is untouched. */
+  // The page SKELETON — the only axis that changes what KIND of site a shop is
+  // rather than what it contains. Applies to every page.
+  shell: [
+    { value: "stacked", label: "Stacked", description: "Header on top, everything in one column beneath it" },
+    { value: "rail", label: "Category sidebar", description: "Your departments down the left of every page — for big catalogues" },
+  ],
+  // The whole cart page.
+  cartLayout: [
+    { value: "panel", label: "List + panel", description: "Your items on a card with the total in a side panel" },
+    { value: "compact", label: "Dense list", description: "Small rows and a total bar that follows the shopper — best for big baskets" },
+    { value: "cards", label: "One per card", description: "Each item in its own block with a large photo" },
+    { value: "editorial", label: "Big photos", description: "Large photos separated by lines, no boxes" },
+  ],
+  // Frames for the CMS pages and order tracking.
+  contentLayout: [
+    { value: "centered", label: "Prose column", description: "A narrow centred column with the title over a line" },
+    { value: "banner", label: "Coloured header", description: "A full-width brand banner with the page on a card below" },
+    { value: "panel", label: "Two blocks", description: "Title on a tinted block, the page on a card beneath" },
+    { value: "editorial", label: "Magazine", description: "A large light title and plain text, no boxes" },
+  ],
+  // The signed-in account area (components/storefront/account/layouts/).
+  accountLayout: [
+    { value: "sidebar", label: "Side menu", description: "A sticky column of sections beside the content" },
+    { value: "tabs", label: "Tabs", description: "A coloured banner over full-width tabs — best if shoppers reorder often" },
+    { value: "panel", label: "Big buttons", description: "Large cards your customer taps into, with a back link — easiest on a phone" },
+    { value: "editorial", label: "Plain", description: "A quiet line of links, no cards or icons" },
   ],
 };
 

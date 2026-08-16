@@ -5,6 +5,7 @@
  * hook, the print renderer, and the receipt-settings builder so the shape can't drift.
  */
 import type { Translator } from "@/i18n/config";
+import { newLocalId } from "@/utils/local-id";
 
 export type ReceiptPaperSize = "a4" | "thermal80" | "thermal58";
 export type ReceiptHeaderAlign = "left" | "center" | "right";
@@ -102,11 +103,8 @@ export const DEFAULT_META_FIELDS: Record<ReceiptMetaKey, boolean> = {
 export const DEFAULT_WATERMARK_OPACITY = 0.08;
 export const DEFAULT_AMOUNT_IN_WORDS_LABEL = "In words:";
 
-/** Fresh id for a header line (browser crypto; falls back to a random string). */
-export const newLineId = (): string =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `line-${Math.random().toString(36).slice(2)}`;
+/** Fresh id for a header line — see `utils/local-id.ts` for why it isn't inline. */
+export const newLineId = (): string => newLocalId("line");
 
 /**
  * Seed the ordered identity lines from the classic fixed order — used the first

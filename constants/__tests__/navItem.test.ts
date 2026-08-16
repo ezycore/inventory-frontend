@@ -167,6 +167,11 @@ describe("navGroups — Online Store as its own group", () => {
       "Collections",
       "Campaigns",
       "Coupons",
+      // Themes sits directly above Customize on purpose: a merchant picks a
+      // whole look first and only then adjusts its parts, and the two pages
+      // hand off to each other (Apply routes into Customize with the theme
+      // staged as an unsaved edit).
+      "Themes",
       "Customize",
       "Content",
       "Abandoned Carts",
