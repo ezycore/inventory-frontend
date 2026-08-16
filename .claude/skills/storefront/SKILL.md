@@ -761,8 +761,10 @@ near-identical empty shells at exactly the moment the choice is made, and Meridi
 department rail that is the whole reason to pick it.
 
 `lib/storefront-preview-samples.ts` fills those gaps, and `lib/storefront-theme-samples.ts` decides
-**with what** — a `ThemeSample` (categories, products, promises) carried by each bundle, so Meridian
-previews as a pharmacy and Fresh Market as a grocery. Sample illustrations live in `public/samples/`.
+**with what** — a `ThemeSample` (categories, products, promises, campaign) carried by each bundle, so
+Meridian previews as a pharmacy and Fresh Market as a grocery. Illustrations live in `public/samples/`.
+The campaign's `endsAt` is computed at render, never stored: a date baked into a bundle would preview
+an offer that expired months ago.
 
 Four rules, none of them optional:
 

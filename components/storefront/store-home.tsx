@@ -133,7 +133,9 @@ export function StoreHome({
     featured: previewActive ? padForPreview(featured, previewSamples) : featured,
     latest: previewActive ? padForPreview(latest, previewSamples) : latest,
     categories: previewCategories ?? categories,
-    campaigns: previewActive ? padCampaignsForPreview(campaigns) : campaigns,
+    campaigns: previewActive
+      ? padCampaignsForPreview(campaigns, previewSamples)
+      : campaigns,
     t,
     banner,
     heroSlides,

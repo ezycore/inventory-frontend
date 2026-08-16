@@ -35,6 +35,13 @@ export interface ThemeSample {
   products: { name: string; price: number; image: string }[];
   /** Promises for `trust-band`, which renders nothing without them. */
   promises: string[];
+  /**
+   * A running offer for `deal-strip`, which renders nothing without one.
+   *
+   * `endsAt` is deliberately absent here and computed at render — a date baked
+   * into a bundle would go stale and preview an offer that expired months ago.
+   */
+  campaign: { name: string; type: "percentage" | "fixed"; value: number };
 }
 
 /**
@@ -64,6 +71,7 @@ export const NEUTRAL_SAMPLE: ThemeSample = {
     { name: "Sample item eight", price: 275, image: "/samples/neutral/8.svg" },
   ],
   promises: ["Fast delivery", "Easy returns", "Secure payment"],
+  campaign: { name: "Sample offer — this week", type: "percentage", value: 10 },
 };
 
 /** Fresh Market. Prices spread the way a grocery basket really does. */
@@ -87,6 +95,11 @@ export const GROCERY_SAMPLE: ThemeSample = {
     { name: "Sample soap — 3 bars", price: 180, image: "/samples/grocery/8.svg" },
   ],
   promises: ["Delivered same day", "Freshness guaranteed", "Cash on delivery"],
+  campaign: {
+    name: "Sample offer — weekly grocery deal",
+    type: "percentage",
+    value: 15,
+  },
 };
 
 /**
@@ -117,6 +130,11 @@ export const PHARMACY_SAMPLE: ThemeSample = {
     { name: "Sample baby lotion — 200 ml", price: 310, image: "/samples/pharmacy/8.svg" },
   ],
   promises: ["Licensed pharmacy", "Genuine medicines", "Discreet delivery"],
+  campaign: {
+    name: "Sample offer — 10% off vitamins",
+    type: "percentage",
+    value: 10,
+  },
 };
 
 /** Muslin. A boutique's spread — fewer, dearer, and shown large. */
@@ -140,4 +158,9 @@ export const APPAREL_SAMPLE: ThemeSample = {
     { name: "Sample festive dupatta", price: 1900, image: "/samples/apparel/8.svg" },
   ],
   promises: ["Handmade in Bangladesh", "7-day exchange", "Free delivery over ৳3000"],
+  campaign: {
+    name: "Sample offer — end of season",
+    type: "percentage",
+    value: 20,
+  },
 };

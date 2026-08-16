@@ -129,6 +129,17 @@ describe("padCampaignsForPreview", () => {
     expect(padCampaignsForPreview([])).toHaveLength(1);
   });
 
+  it("words the offer to suit the previewed theme", () => {
+    expect(padCampaignsForPreview([], PHARMACY_SAMPLE)[0]?.name).toMatch(/vitamins/i);
+    expect(padCampaignsForPreview([], APPAREL_SAMPLE)[0]?.name).toMatch(/season/i);
+  });
+
+  // A baked-in date would preview an offer that expired months ago.
+  it("always ends in the future", () => {
+    const endsAt = padCampaignsForPreview([])[0]?.endsAt;
+    expect(new Date(endsAt as string).getTime()).toBeGreaterThan(Date.now());
+  });
+
   // Overwriting a live discount with a fake one would be worse than a blank strip.
   it("never replaces a real campaign", () => {
     const real = [{ _id: "x", name: "Eid Sale" }] as unknown as StoreCampaign[];

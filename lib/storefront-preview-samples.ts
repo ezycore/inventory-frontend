@@ -117,18 +117,31 @@ export function padCategoriesForPreview(
   })) as unknown as CatalogCategory[];
 }
 
-/** A sample running campaign, so `deal-strip` has something to draw. */
+/**
+ * A sample running campaign, so `deal-strip` has something to draw.
+ *
+ * Its wording comes from the theme like everything else here — this was the last
+ * sample left generic, and being the loudest band on the page it was also the
+ * most obviously wrong one: the same "Sample campaign, 10% off" appeared in a
+ * pharmacy, a grocery and a boutique alike.
+ */
 export function padCampaignsForPreview(
   campaigns: StoreCampaign[],
+  sample: ThemeSample | null = NEUTRAL_SAMPLE,
 ): StoreCampaign[] {
   if (campaigns.length) return campaigns;
+  const { name, type, value } = (sample ?? NEUTRAL_SAMPLE).campaign;
   return [
     {
       _id: "preview-campaign",
-      name: "Sample campaign",
+      name,
       scope: "storewide",
-      type: "percentage",
-      value: 10,
+      type,
+      value,
+      // Computed, never stored: `DealStrip` prints an end date when one is
+      // present, and a date baked into a bundle would preview an offer that
+      // expired months ago.
+      endsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     },
   ] as unknown as StoreCampaign[];
 }
