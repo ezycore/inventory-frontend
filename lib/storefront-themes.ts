@@ -121,6 +121,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "md",
       density: "cozy",
       radius: "soft",
+      width: "contained",
     },
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
     sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
@@ -179,6 +180,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "lg",
       density: "cozy",
       radius: "pill",
+      width: "contained",
     },
     /* The mockup's page, top to bottom: a typographic hero, a strip of
        department discs, the seasonal grid, the buy-again rail, then a pair of
@@ -299,6 +301,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "sm",
       density: "compact",
       radius: "soft",
+      width: "contained",
     },
     /* **No hero, and no category section.** The `rail` shell puts the conditions
        down the left of every page and the `clinical` header carries the search,
@@ -396,6 +399,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "lg",
       density: "airy",
       radius: "sharp",
+      width: "contained",
     },
     // A magazine, not a shop window: a **split** hero — photograph beside the
     // eyebrow, serif headline and one CTA — then "shop by occasion" as overlay

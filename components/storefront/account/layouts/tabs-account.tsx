@@ -34,7 +34,7 @@ export function TabsAccount({
           than a card's border, which is what makes this read as a different
           site from the sidebar even before the nav shape registers. */}
       <div style={{ background: "var(--primary)", color: "var(--on-primary)" }}>
-        <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "clamp(18px,3vw,30px) var(--pad)", display: "flex", alignItems: "center", gap: 15 }}>
+        <div style={{ maxWidth: "var(--maxw-read)", margin: "0 auto", padding: "clamp(18px,3vw,30px) var(--pad)", display: "flex", alignItems: "center", gap: 15 }}>
           <div
             style={{
               width: 54,
@@ -93,7 +93,7 @@ export function TabsAccount({
           ref={tabsRef}
           aria-label={t.myAccount}
           className="sf-acct-tabbar"
-          style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "0 var(--pad)", display: "flex", gap: 4, overflowX: "auto" }}
+          style={{ maxWidth: "var(--maxw-read)", margin: "0 auto", padding: "0 var(--pad)", display: "flex", gap: 4, overflowX: "auto" }}
         >
           {ACCOUNT_TABS.map((item) => {
             const on = item.key === activeKey;
@@ -129,7 +129,7 @@ export function TabsAccount({
         </nav>
       </div>
 
-      <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", width: "100%", padding: "20px var(--pad) 40px" }}>
+      <div style={{ maxWidth: "var(--maxw-read)", margin: "0 auto", width: "100%", padding: "20px var(--pad) 40px" }}>
         {!shopper.emailVerified ? <VerifyEmailBanner /> : null}
         <AccountContent api={api} shopper={shopper} />
       </div>

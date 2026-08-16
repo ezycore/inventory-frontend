@@ -170,6 +170,7 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       scale: "lg",
       density: "airy",
       radius: "sharp",
+      width: "wide",
     };
     expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
   });

@@ -683,6 +683,35 @@ the strength of "nothing uses it". The moment any theme or merchant picks `rail`
 add the id to the `StoreTemplates["shell"]` union, the `SHELL` map, and `TEMPLATE_OPTIONS.shell` —
 then audit every section that could now be saying the same thing twice.
 
+### The `width` axis — and why it can never move `--maxw` alone (2026-08-16)
+
+The sixth design axis: `contained` (1200px, the default and unchanged), `wide` (1600px), `full`
+(uncapped). Cheap to add because `--maxw` was already ONE token on `.sf-root`, consumed by every
+wrapper — all five header variants, the footer, the content frame, both account layouts, and the
+shared home-section wrapper in `home/home-shared.tsx`. No component changed.
+
+⚠ **A width step must always move `--cols` with it.** `--cols` is a fixed count, not a function of
+available space — 4 at desktop, 5 compact, 3 airy. So widening the page on its own does not show more
+products, it inflates the ones already there: an uncapped page at four columns renders ~600px cards
+on a 27" monitor, the opposite of what "full width" is asked for. Each width therefore ships a column
+count per density, and `full` gains one more at `min-width: 1600px` where `wide` has already capped.
+
+⚠ **The `[data-width]` blocks must stay BELOW the `[data-density]` blocks.** Both selectors have
+identical specificity, so source order is the only thing deciding which owns `--cols`. Move them up
+and a wide shop silently reverts to its density's column count, with nothing failing.
+
+**`--maxw-read` is the deliberate exception.** The account area (profile, addresses, order history) is
+read and filled in, not browsed, so it caps while the catalogue widens. It is declared as
+`--maxw-read: var(--maxw)` on `.sf-root`, and that resolves to 1200px *permanently* — `var()` inside a
+custom-property declaration is substituted on the element that declares it, so a `--maxw` override on
+`.sf-shell` cannot reach back into it. That is the intended behaviour, written that way to say so.
+Content pages need no equivalent: their prose is already capped at fixed 680–860px measures in
+`content-frame.tsx`, and their banner strip is meant to span.
+
+**All four themes stay `contained`.** Widening an approved theme is a design decision, not a side
+effect of adding the control — and Classic in particular MUST equal the defaults or applying it would
+restyle every shop already on it (`apply-theme.test.ts` asserts this field by field).
+
 ### The `mist` surface, and the rail finally being used (2026-08-16)
 
 Meridian Care was rebuilt from the axes nothing else spent. The old bundle was `surface: default`,

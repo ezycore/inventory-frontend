@@ -7,6 +7,7 @@ import {
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
+  DESIGN_WIDTHS,
   surfaceSwatch,
   type StoreDesign,
 } from "@/lib/storefront-theme";
@@ -122,7 +123,43 @@ export function DesignPart({
           ))}
         </div>
       </PartBlock>
+
+      <PartBlock
+        label="Page width"
+        hint="Wider settings add a column of products rather than stretching the ones you have. Your account pages stay a comfortable width to read."
+      >
+        <div className="grid grid-cols-3 gap-2">
+          {DESIGN_WIDTHS.map((width) => (
+            <OptionCard
+              key={width.id}
+              selected={draft.design.width === width.id}
+              onSelect={() => set({ width: width.id })}
+              label={width.label}
+              description={width.description}
+              media={<WidthSketch id={width.id} />}
+            />
+          ))}
+        </div>
+      </PartBlock>
     </>
+  );
+}
+
+/**
+ * The page inside the screen, at a glance: a fixed outer frame with the content
+ * block growing to fill it. Drawn rather than described because "wide" and
+ * "full" are a spatial difference, and the two words alone leave a merchant
+ * guessing which one still has margins.
+ */
+function WidthSketch({ id }: { id: string }) {
+  const inset = id === "full" ? "0%" : id === "wide" ? "8%" : "18%";
+  return (
+    <span className="flex h-10 w-full items-center rounded-md border bg-muted/40 p-1">
+      <span
+        className="h-full rounded-sm bg-foreground/25"
+        style={{ marginInline: inset, width: "100%" }}
+      />
+    </span>
   );
 }
 

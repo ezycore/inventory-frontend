@@ -40,6 +40,20 @@
 
   /* ---- Layout tokens (mobile-first base; widen at breakpoints below) ---- */
   --maxw: 1200px;
+  /* The cap for surfaces meant to be READ or FILLED IN rather than browsed —
+     the account area's profile, addresses and order history. It starts from the
+     page width and then stops following it: the `width` design axis is about
+     merchandising space, and a 2400px-wide form field or order table is worse at
+     every size than a comfortable one. Content pages need no help here — their
+     prose is already capped at fixed 680–860px measures in `content-frame.tsx`.
+
+     ⚠ It stays at 1200px under every width setting for a subtle reason worth
+     knowing: `var()` inside a custom-property declaration is substituted on the
+     element that DECLARES it, so this computes to 1200px here on `.sf-root` and
+     inherits down as that literal. A `--maxw` override on `.sf-shell` therefore
+     cannot reach back into it. That is the behaviour we want — it is written as
+     `var(--maxw)` rather than `1200px` to say so, not by accident. */
+  --maxw-read: var(--maxw);
   --pad: 16px;
   --gap: 12px;
   --cols: 2;
@@ -515,6 +529,58 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   .sf-shell[data-density="airy"] {
     --pad: 56px;
     --cols: 3;
+  }
+
+  /* ---- The `width` axis ----
+     ⚠ **Must stay below the `[data-density]` blocks above.** `.sf-shell[data-width]`
+     and `.sf-shell[data-density]` have identical specificity, so source order is
+     the only thing deciding which owns `--cols` — move these up and a wide shop
+     silently reverts to its density's column count.
+
+     ⚠ **Width always moves `--cols`, never `--maxw` alone.** The column count is
+     a fixed number, not a function of available space, so widening the page on
+     its own does not add products — it inflates the ones already there. An
+     uncapped page at four columns renders ~600px cards on a 27" monitor, which
+     is the opposite of what "full width" is asked for. The pairs below keep a
+     card roughly the size it is today and spend the extra room on more of them.
+
+     The density combinations are spelled out rather than computed: CSS cannot
+     add to a custom property without a second token to bump (`--cols` cannot
+     reference itself), and six explicit rules read better than the indirection
+     that would avoid them. */
+  .sf-shell[data-width="wide"] {
+    --maxw: 1600px;
+    --cols: 5;
+  }
+  .sf-shell[data-width="wide"][data-density="compact"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="wide"][data-density="airy"] {
+    --cols: 4;
+  }
+  .sf-shell[data-width="full"] {
+    --maxw: none;
+    --cols: 5;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] {
+    --cols: 4;
+  }
+}
+
+/* Only `full` keeps growing past this point — `wide` has reached its 1600px cap
+   and would just centre itself, so a further column would shrink its cards. */
+@media (min-width: 1600px) {
+  .sf-shell[data-width="full"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] {
+    --cols: 7;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] {
+    --cols: 5;
   }
 }
 

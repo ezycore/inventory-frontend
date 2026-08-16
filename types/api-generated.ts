@@ -11335,6 +11335,7 @@ export interface components {
                     scale?: string;
                     density?: string;
                     radius?: string;
+                    width?: string;
                 };
                 appliedThemeId?: string;
             };
@@ -17681,6 +17682,7 @@ export interface operations {
                             scale?: string;
                             density?: string;
                             radius?: string;
+                            width?: string;
                         };
                         appliedThemeId?: string;
                     };
