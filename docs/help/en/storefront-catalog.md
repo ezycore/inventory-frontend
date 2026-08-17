@@ -178,11 +178,15 @@ an empty page.
 **Design** is what makes your shop look like *your* business rather than a recoloured version of
 everyone else's. Colour alone does surprisingly little; type and spacing do most of the work.
 
-- **Typeface** — five choices, each picked to suit a kind of shop: a clean sans for anything, an
-  elegant serif for fashion and gifts, a techy grotesk for electronics, a friendly rounded face for
-  grocery and food, and a clear humanist one for pharmacy and health. Every option pairs a Latin
-  face with a Bengali one, so your shop reads properly in both languages. The tiles show the names
-  only — look at the preview to see the actual lettering.
+- **Typeface** — six choices in a dropdown, each picked to suit a kind of shop: a clean sans for
+  anything, an elegant serif for fashion and gifts, a techy grotesk for electronics, a friendly
+  rounded face for grocery and food, a clear humanist one for pharmacy and health, and a display
+  face over plain body text for markets and bakeries. Every option pairs a Latin face with a Bengali
+  one, so your shop reads properly in both languages. The list shows the names only — look at the
+  preview to see the actual lettering.
+- **Surface** — the ground your shop is printed on: white cards on a near-white page, a warm
+  parchment, or white cards on a cool grey-blue. Your brand colour sits on top of whichever you
+  pick and is not changed by it.
 - **Heading size** — how loudly your headings speak. **Statement** leads with big type; understated
   headings let the products do the talking.
 - **Spacing** — how tightly everything is packed, which also decides how many products sit side by
@@ -191,6 +195,12 @@ everyone else's. Colour alone does surprisingly little; type and spacing do most
 - **Corners** — how rounded your cards, panels and form fields are. **Sharp** reads as precise and
   technical, **Round** as friendly and informal. Round badges like "Best Seller" and any circular
   picture keep their shape whatever you pick here — those are shapes, not corners.
+- **Page width** — how much of a large screen your shop occupies. A wider setting adds a column of
+  products rather than stretching the ones you have; your account pages stay a comfortable reading
+  width whatever you choose.
+
+Corners and page width sit under **More options**, since most shops set them once and leave them.
+If you have already changed either one, that group opens for you.
 
 Everything here applies to the whole shop at once, and none of it touches your products, pages or
 wording — you can try every combination and change your mind without losing any work.

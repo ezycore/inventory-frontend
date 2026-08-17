@@ -916,6 +916,30 @@ as "the price changed at the last step".
 surface's registry map, its `StoreTemplates` union, its map in
 `storefront-templates.ts`, and its `TEMPLATE_OPTIONS` entry.
 
+**Rendering a `TEMPLATE_OPTIONS` key in Customize — pick the control, don't
+default to tiles.** `parts/template-picker.tsx` exports three, all reading the
+same catalogue so an option's id, label and wording exist exactly once:
+
+| Use | Component | For a key whose options are |
+|---|---|---|
+| Sketch tiles | `TemplatePicker` | **spatial** — `home`, `product`, `header`, `footer`, `shell`, `cartLayout`, `accountLayout`, `contentLayout`, `checkout`, `categoryTiles` |
+| One track of steps | `TemplateSegmented` | a **ramp** — `imageRatio`, `imageFit`, `collection`, `pagination` |
+| Dropdown, descriptions inside | `TemplateSelect` | a **list of 5–6** told apart by what they do, not their shape — `cardActions` |
+
+⚠ **`TemplatePicker` defaults to `caption` mode** — one line under the grid for
+the selected option, not a line under every tile. Do not pass `caption={false}`
+to "restore" the old look: a per-tile description is read at ~95px inside the
+380px rail and wraps to four lines, which is what made the Design part open to
+~1,870px and Product cards to ~1,240px before this split. `SegmentedField` and
+`SwatchField` (`ui/components/`) follow the same rule.
+
+The Design part is the worked example: six axes in **one** `PartGroup` slot
+(`PartField`, not six `PartBlock`s — that alone was 192px of block padding),
+typeface as a described `SimpleSelect`, surface as a `SwatchField`, the four
+ramps as `SegmentedField`s with the glyphs in `parts/design-glyphs.tsx`, and
+corners + page width folded behind **More options** — opened automatically when
+either is already off its default, so the fold never hides a merchant's own answer.
+
 **Adding a whole new surface:** extract a `use<Surface>` hook first, then the
 shared blocks, then the layouts — in that order. Writing the layouts first is how
 the logic ends up copied four times. Then wire the key through: backend

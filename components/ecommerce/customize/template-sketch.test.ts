@@ -11,6 +11,15 @@ import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-opti
  * Found the hard way: `productCard:editorial` shipped with no sketch and drew an
  * empty tile beside three drawn ones, and four whole panels — Shell, Cart
  * layout, Content layout and Account area — had no sketches at all.
+ *
+ * **Four keys no longer render as tiles and are still covered on purpose.**
+ * `collection`, `pagination`, `imageRatio` and `imageFit` moved to
+ * `TemplateSegmented`, which draws its own 28×16 glyphs, so their 64px sketches
+ * are currently unrendered. Coverage is kept rather than deleted because it is
+ * what makes the choice of control reversible: any of the three renderers in
+ * `parts/template-picker.tsx` can be swapped for another without a key silently
+ * becoming a panel of blank boxes. Drop a key's sketches only when its options
+ * are deleted.
  */
 
 /**
