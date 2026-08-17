@@ -193,7 +193,17 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => [d.templates.home, d.homepageSections, d.sectionConfig],
+  // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
+  // belong to this slice — they moved here from `collections` with their
+  // controls on 2026-08-18. A setting left in the wrong slice marks the wrong
+  // part dirty, which is the save bar naming a part the merchant never opened.
+  home: (d) => [
+    d.templates.home,
+    d.homepageSections,
+    d.sectionConfig,
+    d.homeCollections,
+    d.templates.categoryTiles,
+  ],
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
@@ -204,8 +214,6 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.collections,
     d.templates.collection,
     d.templates.pagination,
-    d.homeCollections,
-    d.templates.categoryTiles,
   ],
   product: (d) => d.templates.product,
   contact: (d) => d.contactButton,

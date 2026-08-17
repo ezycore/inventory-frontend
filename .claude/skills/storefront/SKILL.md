@@ -505,6 +505,16 @@ Four files, in payload order:
   header instead of reverting to the org mark.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+- **A control belongs to the part whose PREVIEW PAGE renders it** (browser QA, 2026-08-18).
+  Opening a part points the preview at one page (`PART_PAGE` in `parts-rail.tsx`), so a block whose
+  subject lives on a different page can never be judged from the part holding it. Collections points
+  at the collection page and used to carry the homepage collections row and the category-tile style;
+  both styled the home page, so a merchant changed them while watching a page that does not contain
+  either — indistinguishable from a dead control, and read as exactly that in QA. They now live in
+  the Home page part (`parts/home-part.tsx`) beside the section list they style. Before adding a
+  block to a part, check `PART_PAGE` for that part and confirm the preview will actually show it.
+  When a setting moves parts, its `PART_SLICE` entry moves with it, or the save bar names a part the
+  merchant never opened.
 - **A payload key nothing READS is the same bug as one nothing sends** (browser QA, 2026-08-17).
   `theme.accentColor` was sent by `toPreviewPayload`, mapped by `preview-bridge`, and stored by
   `use-sf-preview-store` — and then read by no component, so the Brand part's accent field repainted
