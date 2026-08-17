@@ -100,6 +100,9 @@ sidebar must say which one it is opening.
 | Heading size | হেডিং সাইজ | transliterate | হেডিং matches হেডার already used for the store header |
 | Spacing | স্পেসিং | transliterate | ফাঁক reads as a gap/defect, not a layout setting |
 | Corners (radius) | কর্নার | transliterate | কোণা is the plain word but reads as "angle"; কর্নার is what shop owners say |
+| Surface (Design axis) | সারফেস | transliterate | the page/card ground, not a photo background — পটভূমি would read as the latter |
+| Page width | পেজের প্রস্থ | translate | প্রস্থ is the plain, understood word for width; উইড্‌থ adds nothing |
+| More options | আরও অপশন | mixed | the disclosure holding the rarely-changed Design axes |
 | Photo shape (aspect ratio) | ছবির আকৃতি | translate | the frame, not the crop; আকার would read as file size |
 | Section (homepage block) | সেকশন | transliterate | one block of the homepage; অংশ is already the Customize "part" |
 | Preview | প্রিভিউ | transliterate | the theme-store modal and the live editor pane |

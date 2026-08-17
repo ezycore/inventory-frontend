@@ -206,7 +206,7 @@ export function WorkspaceChooser({
                   <Input
                     id="workspace-email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="rahim@rahimstore.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoFocus

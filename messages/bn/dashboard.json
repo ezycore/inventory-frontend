@@ -13,10 +13,10 @@
   "kpi": {
     "salesRevenue": "বিক্রয় আয়",
     "purchaseCost": "ক্রয় খরচ",
-    "totalDue": "মোট বাকি",
+    "grossProfit": "মোট মুনাফা",
+    "marginOfSales": "বিক্রয়ের উপর {margin}% মার্জিন",
     "transactions": "লেনদেন",
     "vsPrevious": "আগের তুলনায়",
-    "salesPurchaseDue": "বিক্রয় {sales} · ক্রয় {purchase}",
     "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়"
   },
   "chart": {
@@ -32,14 +32,15 @@
     "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে"
   },
   "summary": {
-    "periodSales": "এই সময়ের বিক্রয়",
-    "transactionsCollected": "{count, plural, one {#টি লেনদেন} other {#টি লেনদেন}} · সংগৃহীত {amount}",
-    "periodPurchases": "এই সময়ের ক্রয়",
-    "ordersPaid": "{count, plural, one {#টি অর্ডার} other {#টি অর্ডার}} · পরিশোধিত {amount}",
+    "receivable": "পাওনা",
+    "owedByCustomers": "ক্রেতাদের কাছে পাওনা · সর্বমোট",
+    "payable": "দেনা",
+    "owedToSuppliers": "সরবরাহকারীদের দেনা · সর্বমোট",
     "inventoryValueCost": "ইনভেন্টরির মূল্য (ক্রয়মূল্যে)",
     "itemsInStock": "{count}টি আইটেম স্টকে আছে",
-    "periodDue": "এই সময়ের বাকি",
-    "salesPurchaseDue": "বিক্রয় {sales} · ক্রয় {purchase}"
+    "salesChannels": "অনলাইন বনাম দোকান",
+    "shareOnline": "{share}% অনলাইন",
+    "onlineCounterSplit": "অনলাইন {online} · দোকান {counter}"
   },
   "topSold": {
     "title": "সর্বাধিক বিক্রিত আইটেম",
@@ -77,8 +78,6 @@
     "subtitle": "এই সময়ের কার্যক্ষমতার পরিমাপ",
     "emptyTitle": "এখনও কোনো ডেটা নেই",
     "emptyDescription": "লেনদেনের সাথে আর্থিক অন্তর্দৃষ্টি দেখা যাবে",
-    "grossProfit": "গ্রস মুনাফা",
-    "marginSuffix": "% মার্জিন",
     "avgSaleValue": "গড় বিক্রয় মূল্য",
     "salesCount": "{count, plural, one {#টি বিক্রয়} other {#টি বিক্রয়}}",
     "avgPurchaseValue": "গড় ক্রয় মূল্য",

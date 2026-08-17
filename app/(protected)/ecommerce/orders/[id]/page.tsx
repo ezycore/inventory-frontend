@@ -25,7 +25,6 @@ import { OrderPaymentPanel } from "@/components/ecommerce/orders/order-payment-p
 import { OrderStepper } from "@/components/ecommerce/orders/order-stepper";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
-import { Textarea } from "@/ui/components/textarea";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
 
@@ -200,22 +199,12 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
 
           <OrderPaymentPanel order={order} />
 
-          {/* Internal notes */}
-          <Card className="p-5 shadow-none">
-            <h3 className="mb-2.5 text-sm font-semibold">
-              Internal notes{" "}
-              <span className="text-xs font-normal text-muted-foreground">
-                (merchant only)
-              </span>
-            </h3>
-            <Textarea
-              placeholder="Add a private note…"
-              className="min-h-16 resize-y"
-            />
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Notes are not yet persisted — coming with the order-notes endpoint.
-            </p>
-          </Card>
+          {/* Internal notes lived here until 2026-08-16: a textarea captioned
+              "Notes are not yet persisted — coming with the order-notes
+              endpoint." A merchant typing a note about a real order and losing
+              it is worse than not offering the field, and the caption reads as
+              unfinished software on a page they use daily (QA-042). Bring it
+              back with the endpoint, not before. */}
         </div>
       </div>
     </div>

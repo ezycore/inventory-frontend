@@ -284,6 +284,16 @@
     "txnPayment": "Payment",
     "txnCashRefund": "Cash refund",
     "txnReturn": "Return",
-    "txnCreditApplied": "Credit applied"
+    "txnCreditApplied": "Credit applied",
+    "creditApplied": "Credit applied"
+  },
+  "access": {
+    "restrictedTitle": "Access restricted",
+    "restrictedDescription": "You do not have permission to view this page. Ask an administrator if you need access."
+  },
+  "copy": {
+    "done": "Copied!",
+    "failed": "Couldn't copy",
+    "label": "Copy to clipboard"
   }
 }

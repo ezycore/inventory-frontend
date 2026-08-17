@@ -6,8 +6,8 @@ import { storeHref } from "@/lib/storefront-links";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
-import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import {
+  bannerPhoto,
   campaignBadge,
   heroBtns,
   wrap,
@@ -46,8 +46,26 @@ export function TrustRow({ t }: SectionProps) {
               gap: 12,
             }}
           >
-            <div style={{ color: "var(--primary)" }}>
-              <Icon name={tr.icon} size={22} />
+            {/* The ACCENT on a soft disc, not a bare `--primary` glyph. These
+                are reassurances, and reassurance is exactly what a second colour
+                is for — a shop whose promises are painted in the same hue as its
+                buy button has one colour doing two jobs. Falls back to the brand
+                pair for a merchant who has set no accent, so nothing changes for
+                them. */}
+            <div
+              style={{
+                flex: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 38,
+                height: 38,
+                borderRadius: "var(--radius-sm)",
+                background: "var(--accent-soft)",
+                color: "var(--accent)",
+              }}
+            >
+              <Icon name={tr.icon} size={20} />
             </div>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>{tr.t1}</div>
@@ -332,7 +350,6 @@ function DealCard({
  */
 export function EditorialSplit(props: SectionProps) {
   const { base, t, banner, heroBanner: hb } = props;
-  const imageFit = useStoreImageFit();
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,56px) var(--pad)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "var(--splitcols)", gap: "clamp(20px,4vw,52px)", alignItems: "center" }}>
@@ -342,8 +359,8 @@ export function EditorialSplit(props: SectionProps) {
           label="lifestyle shot"
           ratio="4 / 5"
           radius={0}
-          fit={imageFit}
           style={{ borderRadius: "var(--radius-lg)" }}
+          {...bannerPhoto(hb)}
         />
         <div>
           <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>

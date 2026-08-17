@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
+import { useFeatureLabel } from "@/hooks/use-feature-label";
 import { formatCurrency } from "@/lib/currency";
 import {
   Card,
@@ -55,6 +56,7 @@ export function PlanCard({
 }) {
   const tPlans = useTranslations("settings.billing.plans");
   const tInterval = useTranslations("settings.billing.interval");
+  const featureLabel = useFeatureLabel();
 
   // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
   const intervalSuffix = () => {
@@ -107,12 +109,16 @@ export function PlanCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        <PlanLimits limits={plan.limits} />
+
         {plan.features.length > 0 && (
           <ul className="space-y-1.5">
             {plan.features.map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Check className="size-4 text-emerald-500" />
-                <span className="capitalize">{f.replace(/([A-Z])/g, " $1")}</span>
+                {/* Was `capitalize` over a camelCase split, which rendered
+                    "Uom Conversion" and "Sms Notifications" (QA-049). */}
+                <span>{featureLabel(f)}</span>
               </li>
             ))}
           </ul>
@@ -121,6 +127,49 @@ export function PlanCard({
         <PlanCardAction state={state} onChoose={onChoose} />
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * The tier ladder, on the card.
+ *
+ * Every plan grants **every** feature by design, so the features list below is
+ * identical on all three cards — which left a merchant comparing ৳399, ৳599 and
+ * ৳999 with nothing to compare. The limits ARE the ladder, and until 2026-08-16
+ * they appeared nowhere in-app even though the public pricing page has shown
+ * them all along.
+ *
+ * `0` (or a missing key) means unlimited — the same convention `plan-limits.ts`
+ * enforces backend-side with `value > 0`.
+ */
+function PlanLimits({ limits }: { limits: Record<string, number> }) {
+  const tPlans = useTranslations("settings.billing.plans");
+  const tUsage = useTranslations("settings.billing.usage");
+
+  const rows: Array<[string, number | undefined]> = [
+    [tUsage("locations"), limits?.maxLocations],
+    [tUsage("users"), limits?.maxUsers],
+    [tUsage("inventory"), limits?.maxInventoryProducts],
+    [tUsage("storage"), limits?.storageGb],
+  ];
+  if (rows.every(([, v]) => v === undefined)) return null;
+
+  return (
+    <div className="space-y-1.5 rounded-md bg-muted/40 p-3">
+      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        {tPlans("limitsTitle")}
+      </p>
+      {rows.map(([label, value]) =>
+        value === undefined ? null : (
+          <div key={label} className="flex items-baseline justify-between text-sm">
+            <span className="text-muted-foreground">{label}</span>
+            <span className="font-medium tabular-nums">
+              {value > 0 ? value.toLocaleString() : tUsage("unlimited")}
+            </span>
+          </div>
+        ),
+      )}
+    </div>
   );
 }
 

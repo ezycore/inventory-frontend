@@ -95,6 +95,24 @@ export default function UsersPage() {
     [roles],
   );
 
+  /**
+   * The role a brand-new hire gets before anyone chooses: the **least**
+   * privileged one on offer.
+   *
+   * This used to be `assignableRoles[0]`, i.e. whichever role sorted first —
+   * which is alphabetically `admin`. Add a cashier, tab past the Role field, and
+   * they arrived holding all 85 permissions, billing and user management
+   * included. Counting permissions rather than hard-coding a slug means a
+   * merchant's own custom roles are ranked too.
+   */
+  const leastPrivilegedRole = useMemo(() => {
+    const ranked = roles
+      .filter((role) => role.assignable)
+      .slice()
+      .sort((a, b) => a.permissions.length - b.permissions.length);
+    return ranked[0]?.slug ?? "";
+  }, [roles]);
+
   const roleAwareFormConfig = useMemo<DynamicFormConfig>(() => {
     const userFormConfig = getUserFormConfig(t);
     const fields = userFormConfig.fields.map((field) => {
@@ -102,7 +120,7 @@ export default function UsersPage() {
         return {
           ...field,
           options: assignableRoles,
-          defaultValue: assignableRoles[0]?.value || "",
+          defaultValue: leastPrivilegedRole,
         };
       }
       if (field.name === "locationIds") {
@@ -134,15 +152,15 @@ export default function UsersPage() {
       ...userFormConfig,
       fields,
     };
-  }, [assignableRoles, allLocationRoleSlugs, defaultLocationIds, t]);
+  }, [assignableRoles, leastPrivilegedRole, allLocationRoleSlugs, defaultLocationIds, t]);
 
   const roleAwareDefaultValues = useMemo(
     () => ({
       ...userFormDefaultValues,
-      role: assignableRoles[0]?.value || "",
+      role: leastPrivilegedRole,
       locationIds: defaultLocationIds,
     }),
-    [assignableRoles, defaultLocationIds],
+    [leastPrivilegedRole, defaultLocationIds],
   );
 
   // Custom actions for toggling user status
@@ -206,7 +224,11 @@ export default function UsersPage() {
       {canManageUsers ? (
         <>
           <StatsCard
-            data={getUserStats(statsData?.data, t)}
+            // `useStats` already unwraps the envelope (`select: (d) => d.data`),
+            // so reading `.data` again yielded undefined and every card fell to
+            // its `|| 0` — "Total Users 0" above a list of two. Every sibling
+            // stats page passes `statsData` directly; this was the outlier.
+            data={getUserStats(statsData, t)}
             isLoading={statsLoading}
           />
 

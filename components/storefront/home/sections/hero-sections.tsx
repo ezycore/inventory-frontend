@@ -7,8 +7,8 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
 import { HeaderSearchBar } from "@/components/storefront/header-search";
-import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import {
+  bannerPhoto,
   campaignBadge,
   heroBtns,
   wrap,
@@ -35,73 +35,71 @@ import {
  * slides differently (see below).
  */
 
-/** Classic — bordered hero card, copy left, photo right. */
+/**
+ * Classic — bordered hero card, copy left and photo right on a desktop; on a
+ * phone the photo leads and the trust badges become the card's footer.
+ *
+ * **The only static hero styled by CLASS rather than inline**, because the phone
+ * layout reorders its own children and no inline style can express that. The
+ * rules, and why the mobile version had to change at all, are beside
+ * `.sf-herocard` in storefront.css; the DOM order here (copy, photo, badges) is
+ * the desktop reading order, which the phone re-points with `order`.
+ */
 export function HeroCard(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb } = props;
-  const imageFit = useStoreImageFit();
   if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "var(--herocols)",
-          gap: 26,
-          alignItems: "center",
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-lg)",
-          padding: "clamp(20px,4vw,40px)",
-          overflow: "hidden",
-        }}
-      >
-        <div>
+      <div className="sf-herocard">
+        <div className="sf-herocard-copy">
           {/* The ACCENT, not the brand. A hero badge is the storefront's most
               purely informational chip — "Week 33 · harvest in", a campaign
               name — sitting directly above the buttons that are the brand
               colour. Painting both in `--primary` was the loudest reason a shop
               read as one hue rather than a palette. Falls back to the brand pair
               when the merchant has set no accent, so nothing changes for them. */}
-          <span
-            style={{
-              display: "inline-block",
-              background: "var(--accent-soft)",
-              color: "var(--accent)",
-              fontSize: 11.5,
-              fontWeight: 600,
-              padding: "5px 11px",
-              borderRadius: 999,
-              marginBottom: 16,
-            }}
-          >
+          <span className="sf-herocard-badge">
             {/* Owner copy wins; else the live campaign; else template copy. */}
             {hb?.badge || campaignBadge(props) || t.eidBadge}
           </span>
-          <h1
-            style={{
-              fontSize: "var(--h1)",
-              lineHeight: 1.08,
-              fontWeight: 700,
-              margin: "0 0 14px",
-              letterSpacing: "-0.03em",
-              whiteSpace: "pre-line",
-            }}
-          >
-            {hb?.title || t.heroAt}
-          </h1>
-          <p style={{ fontSize: 15, color: "var(--muted)", lineHeight: 1.55, margin: "0 0 22px", maxWidth: 420 }}>
-            {hb?.subtitle || t.heroAs}
-          </p>
+          <h1 className="sf-herocard-title">{hb?.title || t.heroAt}</h1>
+          <p className="sf-herocard-sub">{hb?.subtitle || t.heroAs}</p>
           {heroBtns(base, t, t.shopNow, hb)}
-          <div style={{ display: "flex", gap: 18, marginTop: 24, flexWrap: "wrap" }}>
-            {[t.genuine, t.fastDelivery, t.codBadge].map((label) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>
-                <Icon name="check" size={15} /> {label}
-              </div>
-            ))}
-          </div>
         </div>
-        <Media src={banner} alt="" label="hero banner" ratio="4 / 3" fit={imageFit} />
+        {/* Only when there IS one. The striped `Placeholder` exists so missing
+            PRODUCT art stays honest rather than faked — but above the fold, on a
+            shop that has simply not uploaded a banner yet (which is every shop on
+            day one), a box captioned "hero banner" reads as a broken page, not as
+            an empty slot. Rendering nothing and letting the copy run full width is
+            a finished-looking default; the merchant's own banner still takes over
+            the moment they add one.
+
+            The card is a `grid-template-areas` layout on a desktop, so dropping
+            this child is not enough on its own — `.sf-herocard` carries a
+            `:has()` rule that collapses to one column when it is absent.
+
+            Wrapped rather than styled directly: `<Media>` sets its own radius
+            inline, and the corner differs per breakpoint (the card's own
+            `overflow: hidden` clips the full-bleed phone version). */}
+        {banner && (
+          <div className="sf-herocard-media">
+            <Media
+              src={banner}
+              alt=""
+              label="hero banner"
+              ratio="var(--herocard-ratio)"
+              radius={0}
+              {...bannerPhoto(hb)}
+            />
+          </div>
+        )}
+        <div className="sf-herocard-trust">
+          {[t.genuine, t.fastDelivery, t.codBadge].map((label) => (
+            <span key={label}>
+              <Icon name="check" size={15} /> {label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -115,7 +113,8 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "var(--splitcols)",
+          // No banner → the copy panel takes the full width (see HeroCard).
+          gridTemplateColumns: banner ? "var(--splitcols)" : "1fr",
           border: "1px solid var(--border)",
           borderRadius: "var(--radius-lg)",
           overflow: "hidden",
@@ -135,14 +134,16 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
           </p>
           {heroBtns(base, t, t.shopWeekly, hb)}
         </div>
-        <Media
-          src={banner}
-          alt=""
-          label="lifestyle shot"
-          ratio="auto"
-          radius={0}
-          style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
-        />
+        {banner && (
+          <Media
+            src={banner}
+            alt=""
+            label="lifestyle shot"
+            ratio="auto"
+            radius={0}
+            style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
+          />
+        )}
       </div>
     </div>
   );
@@ -166,14 +167,14 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
  */
 export function HeroOpen(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb } = props;
-  const imageFit = useStoreImageFit();
   if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "var(--herocols)",
+          // No banner → the copy panel takes the full width (see HeroCard).
+          gridTemplateColumns: banner ? "var(--herocols)" : "1fr",
           gap: "clamp(24px,4vw,48px)",
           alignItems: "center",
         }}
@@ -225,7 +226,9 @@ export function HeroOpen(props: SectionProps) {
         {/* A tinted panel rather than a bare photo: the picture needs an edge to
             sit against once there is no card providing one, and `--accent-soft`
             gives it one without introducing a second near-white surface beside
-            the page. */}
+            the page. Dropped entirely with no banner — an empty tinted block is
+            worse than none (see HeroCard). */}
+        {banner && (
         <div
           style={{
             background: "var(--accent-soft)",
@@ -239,11 +242,12 @@ export function HeroOpen(props: SectionProps) {
             alt=""
             label="lifestyle shot"
             ratio="4 / 3"
-            fit={imageFit}
             radius={0}
             style={{ borderRadius: "var(--radius-md)" }}
+            {...bannerPhoto(hb)}
           />
         </div>
+        )}
       </div>
     </div>
   );

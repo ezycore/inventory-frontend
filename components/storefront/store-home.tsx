@@ -10,6 +10,11 @@ import type {
 import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
 import { configFor, sectionSignature } from "@/lib/storefront-sections";
 import {
+  padCampaignsForPreview,
+  padForPreview,
+  padStoreForPreview,
+} from "@/lib/storefront-preview-samples";
+import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
@@ -66,6 +71,9 @@ export function StoreHome({
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
+  // Sent only by the Themes page; null in Customize, where the shop is real —
+  // and null is what switches the padding below off. See the note there.
+  const previewSamples = useSfPreview((s) => s.samples);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
   const sectionConfig = previewSectionConfig ?? store.sectionConfig;
@@ -115,18 +123,28 @@ export function StoreHome({
     rowItems.set(section.key, ssrBySignature.get(sectionSignature(config)) ?? []);
   }
 
+  /* On the THEME PICKER only, pad a thin catalogue so a grid can show its own
+     shape. A shop with three products renders three cards in every theme, which
+     is exactly when the choice is being made and least visible.
+
+     ⚠ The gate is `previewSamples` being non-null — NOT the preview store's
+     `active` flag. `active` is true for the Customize editor's iframe too, and
+     for anyone who appends `?preview=1` to a live shop, so gating on it put
+     invented products and a fabricated campaign in front of both. Only the
+     Themes page sends samples; everywhere else these four calls return their
+     input untouched. */
   const shared = {
     base,
     currency,
-    featured,
-    latest,
+    featured: padForPreview(featured, previewSamples),
+    latest: padForPreview(latest, previewSamples),
     categories: previewCategories ?? categories,
-    campaigns,
+    campaigns: padCampaignsForPreview(campaigns, previewSamples),
     t,
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
-    store,
+    store: padStoreForPreview(store, previewSamples),
   };
 
   return (

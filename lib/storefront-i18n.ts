@@ -653,7 +653,12 @@ const en: Dict = {
   orderStatus: "Status",
   payStatus: "Payment",
   payStatusPending: "Pending",
-  storeInfo: "Your neighbourhood mart, online. Authentic brands, fair prices, delivered across Bangladesh — pay cash on delivery or by bank transfer.",
+  // Industry-neutral on purpose: this is the fallback for EVERY store, so it
+  // must not presume a shop type. It read "Your neighbourhood mart, online.
+  // Authentic brands, fair prices…" — wrong for a fashion or pharmacy shop, and
+  // it made a quality claim on the merchant's behalf that they never wrote
+  // (QA-034). What is left is only what is true of any store on the platform.
+  storeInfo: "Shop online with confidence. Delivered across Bangladesh — pay cash on delivery or by bank transfer.",
   weAccept: "We accept",
   callUs: "Call us",
   poweredBy: "Powered by",
@@ -1045,7 +1050,7 @@ const bn: Dict = {
   orderStatus: "স্ট্যাটাস",
   payStatus: "পেমেন্ট",
   payStatusPending: "বাকি",
-  storeInfo: "আপনার পাড়ার মার্ট, অনলাইনে। আসল ব্র্যান্ড, সঠিক দাম, সারা বাংলাদেশে ডেলিভারি — ক্যাশ অন ডেলিভারি বা ব্যাংক ট্রান্সফারে পেমেন্ট।",
+  storeInfo: "নিশ্চিন্তে অনলাইনে কেনাকাটা করুন। সারা বাংলাদেশে ডেলিভারি — ক্যাশ অন ডেলিভারি বা ব্যাংক ট্রান্সফারে পেমেন্ট।",
   weAccept: "আমরা গ্রহণ করি",
   callUs: "কল করুন",
   poweredBy: "পরিচালিত",

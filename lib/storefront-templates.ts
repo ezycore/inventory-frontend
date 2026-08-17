@@ -192,6 +192,18 @@ export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "ca
 }
 
 /**
+ * Narrows a raw id to a known fit — the twin of `isImageRatio` below, and what
+ * a PER-PHOTO override needs. A hero slide and the static banner each carry
+ * their own `imageFit`, arriving as the same loose string the templates ids do,
+ * so it must reach `mediaFitFor` through a guard rather than a cast. Anything
+ * unknown falls through to the caller's default (`"fit"` for both), never to
+ * `templates.imageFit` — a hero does not follow a *Product cards* control.
+ */
+export function isImageFit(value: unknown): value is StoreTemplates["imageFit"] {
+  return typeof value === "string" && Object.hasOwn(IMAGEFIT, value);
+}
+
+/**
  * Turn a preset's bare section ids into instances, minting keys from the id and
  * its position.
  *

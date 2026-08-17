@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { navGroups } from "../navItem";
 import { filterNavItems, flattenNavItems } from "@/lib/nav-utils";
+import { NavItem } from "@/types/layout";
 import { DEFAULT_ORGANIZATION_FEATURES, OrganizationFeatures } from "@/types";
 
 /**
@@ -9,16 +10,32 @@ import { DEFAULT_ORGANIZATION_FEATURES, OrganizationFeatures } from "@/types";
  * up in, so a regression here is a regression a customer would see.
  */
 
+/**
+ * Every permission the nav table asks for — **derived, never listed by hand.**
+ *
+ * These tests are about feature gating, so they run as someone who holds every
+ * permission; the permission axis is covered by `nav-utils.test.ts`. This was a
+ * hardcoded array of nine strings, which was fine while only the storefront and
+ * tax entries declared `permissions`. When the other 47 entries gained theirs on
+ * 2026-08-17 the fixture silently became a *partial* grant, so eight tests
+ * started failing on rows the merchant can see perfectly well — New Sale,
+ * Current Stock, Customers, Locations. The list was wrong, not the nav.
+ *
+ * Deriving it means adding a nav entry can never break this file again.
+ */
+const collectPermissions = (items: NavItem[], into: Set<string>): Set<string> => {
+  for (const item of items) {
+    item.permissions?.forEach((permission) => into.add(permission));
+    if (item.items?.length) collectPermissions(item.items, into);
+  }
+  return into;
+};
+
 const ALL_PERMISSIONS = [
-  "storefront.view",
-  "storefront.orders.view",
-  "storefront.manage",
-  "taxes.view",
-  "organization.view",
-  "organization.edit",
-  "organization.manage",
-  "users.view",
-  "users.manage",
+  ...navGroups.reduce(
+    (acc, group) => collectPermissions(group.items, acc),
+    new Set<string>(),
+  ),
 ];
 
 const withFeatures = (
@@ -281,5 +298,54 @@ describe("navGroups — other feature gates still hold", () => {
     expect(visibleTitles(withFeatures({ expiryTracking: false }))).not.toContain(
       "Expiry Report"
     );
+  });
+});
+
+/**
+ * The union rule, enforced rather than documented.
+ *
+ * `filterNavItems` tests a parent BEFORE recursing into its children, so a
+ * parent gated more narrowly than a child hides that child outright — the child
+ * never gets asked. `Reports` (`reports.view`) did exactly this to `Expiry
+ * Report` (`stock.view`), which is the one report deliberately written for the
+ * shop floor: `staff` holds `stock.view`, holds no `reports.view`, and so lost
+ * the whole Reports section including the screen the exception exists for.
+ *
+ * A parent is allowed to declare MORE than its children (a container may be
+ * admin-only on purpose). It may never declare less.
+ */
+describe("navGroups — a parent never gates out its own children", () => {
+  const offenders: string[] = [];
+
+  const walk = (items: NavItem[], trail: string[]) => {
+    for (const item of items) {
+      if (!item.items?.length) continue;
+      const parentPerms = item.permissions ?? [];
+      if (parentPerms.length > 0) {
+        for (const child of item.items) {
+          const childPerms = child.permissions ?? [];
+          // An ungated child under a gated parent inherits the parent's gate,
+          // which is intentional. Only a child asking for something the parent
+          // does not offer is unreachable.
+          if (childPerms.length === 0) continue;
+          const unreachable = childPerms.every((p) => !parentPerms.includes(p));
+          if (unreachable) {
+            offenders.push(
+              `${[...trail, item.title].join(" › ")} [${parentPerms.join(", ")}] ` +
+                `hides "${child.title}" [${childPerms.join(", ")}]`,
+            );
+          }
+        }
+      }
+      walk(item.items, [...trail, item.title]);
+    }
+  };
+  for (const group of navGroups) walk(group.items, [group.label || "(root)"]);
+
+  it("every gated parent admits every gated child", () => {
+    expect(
+      offenders,
+      `these parents are narrower than a child, so the child is unreachable:\n  ${offenders.join("\n  ")}`,
+    ).toEqual([]);
   });
 });

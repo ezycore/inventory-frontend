@@ -119,7 +119,7 @@ export const EFFECTS = {
    * it right up until reversal was added.
    *
    * No `MONEY`: a reversal is a correction, not a refund. Cancelling with a refund
-   * is `order.returned`; the advance paths are `order.settled`.
+   * is `order.returned`; the prepayment paths are `order.settled`.
    */
   "order.reversed": union(
     [k.storefrontOrders.all(), k.storefrontDashboard.all()],
@@ -168,7 +168,7 @@ export const EFFECTS = {
     STOCK,
   ),
 
-  /** Money moved on an order: COD advance, mark-paid, courier cost, refund. Mark-paid posts a Sale. */
+  /** Money moved on an order: prepayment, mark-paid, courier cost, refund. Mark-paid posts a Sale. */
   "order.settled": union(
     [
       k.storefrontOrders.all(),

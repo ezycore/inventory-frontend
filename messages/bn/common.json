@@ -269,7 +269,7 @@
     "reason": "কারণ",
     "deduction": "কর্তন",
     "totalRefund": "মোট রিফান্ড",
-    "refunded": "রিফান্ড হয়েছে",
+    "refunded": "ফেরত দেওয়া",
     "receivedFrom": "প্রদানকারী",
     "paidTo": "প্রাপক",
     "method": "পদ্ধতি",
@@ -284,6 +284,16 @@
     "txnPayment": "পেমেন্ট",
     "txnCashRefund": "নগদ রিফান্ড",
     "txnReturn": "ফেরত",
-    "txnCreditApplied": "ক্রেডিট প্রয়োগ"
+    "txnCreditApplied": "ক্রেডিট প্রয়োগ",
+    "creditApplied": "ক্রেডিট সমন্বয়"
+  },
+  "access": {
+    "restrictedTitle": "প্রবেশাধিকার সীমিত",
+    "restrictedDescription": "এই পৃষ্ঠা দেখার অনুমতি আপনার নেই। প্রয়োজন হলে একজন অ্যাডমিনের সাথে যোগাযোগ করুন।"
+  },
+  "copy": {
+    "done": "কপি হয়েছে!",
+    "failed": "কপি করা যায়নি",
+    "label": "ক্লিপবোর্ডে কপি করুন"
   }
 }

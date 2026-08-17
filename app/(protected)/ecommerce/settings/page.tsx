@@ -14,6 +14,7 @@ import {
   useUpdateStorefrontSettings,
 } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
+import { StorePublishedDialog } from "@/components/ecommerce/store-published-dialog";
 import type {
   ShippingRuleMode,
   StorefrontPaymentMethod,
@@ -144,7 +145,10 @@ function SaveBar({
 function useSave() {
   const m = useUpdateStorefrontSettings();
   return {
-    save: (dto: UpdateStorefrontSettingsDto) => m.mutate(dto),
+    // `onSuccess` is threaded through so a tab can react to its own save — the
+    // publish tab celebrates going live; every other caller ignores it.
+    save: (dto: UpdateStorefrontSettingsDto, onSuccess?: () => void) =>
+      m.mutate(dto, onSuccess ? { onSuccess } : undefined),
     pending: m.isPending,
   };
 }
@@ -294,10 +298,19 @@ function GeneralTab({ settings }: { settings: StorefrontSettings }) {
 function PublishTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useSave();
   const [published, setPublished] = useState(settings.published);
+  const [celebrating, setCelebrating] = useState(false);
   const slug = useAuthStore((s) => s.user?.organization?.slug);
+  const orgName = useAuthStore((s) => s.user?.organization?.name);
   const hasFavicon = useAuthStore((s) => !!s.user?.organization?.favicon);
   const liveUrl = slug ? storefrontUrl(slug) : null;
   const locationSet = !!settings.storefrontLocationId;
+
+  // Only the false → true transition is a launch. Saving an already-live store
+  // (to fix a typo elsewhere on the tab) must not re-throw confetti.
+  const handleSave = () =>
+    save({ published }, () => {
+      if (published && !settings.published && liveUrl) setCelebrating(true);
+    });
 
   const copy = async () => {
     if (!liveUrl) return;
@@ -366,7 +379,16 @@ function PublishTab({ settings }: { settings: StorefrontSettings }) {
           </div>
         )}
       </Card>
-      <SaveBar pending={pending} onSave={() => save({ published })} />
+      <SaveBar pending={pending} onSave={handleSave} />
+
+      {liveUrl && (
+        <StorePublishedDialog
+          open={celebrating}
+          onOpenChange={setCelebrating}
+          url={liveUrl}
+          storeName={settings.displayName || orgName}
+        />
+      )}
     </div>
   );
 }

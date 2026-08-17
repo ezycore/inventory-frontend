@@ -186,12 +186,12 @@ export const useCancelOrder = () => {
     mutationFn: (v: {
       id: string;
       reject?: boolean;
-      refundAdvance?: boolean;
+      refundPrepayment?: boolean;
       accountId?: string;
     }) =>
       storefrontOrdersApi.cancel(v.id, {
         reject: v.reject,
-        refundAdvance: v.refundAdvance,
+        refundPrepayment: v.refundPrepayment,
         accountId: v.accountId,
       }),
     onSuccess: (res) => {
@@ -202,14 +202,14 @@ export const useCancelOrder = () => {
   });
 };
 
-/** Record a COD delivery-charge advance (collected before shipping). */
-export const useRecordAdvance = () => {
+/** Record money collected before shipping (advance, or a full bank transfer). */
+export const useRecordPrepayment = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (v: { id: string; amount: number; accountId?: string }) =>
-      storefrontOrdersApi.recordAdvance(v.id, v.amount, v.accountId),
+      storefrontOrdersApi.recordPrepayment(v.id, v.amount, v.accountId),
     onSuccess: (res) => {
-      handleMutationSuccess(res.message || "Advance recorded");
+      handleMutationSuccess(res.message || "Prepayment recorded");
       invalidate(qc, "order.settled");
     },
     onError: handleMutationError,

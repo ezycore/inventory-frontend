@@ -30,6 +30,28 @@ export const useCustomersSummary = () => {
   })
 }
 
+/**
+ * Org-wide receivable + store-credit totals for the customers page header.
+ *
+ * Reads them off the **list** endpoint (`limit: 1`, so it is a cheap request)
+ * rather than `/sales/customers/summary`. That is deliberate: the summary sums
+ * `Sale.dueAmount` while the list's `Due` column sums `CustomerDue.currentAmount`,
+ * and those are a document and its mirror — they can drift. A header that
+ * disagreed with the column beneath it would be worse than no header at all,
+ * which is what this screen had (QA-063).
+ */
+export const useCustomerTotals = () => {
+  return useQuery({
+    queryKey: queryKeys.customers.totals(),
+    queryFn: () => customersApi.getAll({ limit: 1 }),
+    select: (res) =>
+      (res?.data as unknown as {
+        totals?: { receivable: number; debtorCount: number; creditBalance: number }
+      })?.totals,
+    staleTime: 60 * 1000,
+  })
+}
+
 // Get customer ledger
 export const useCustomerLedger = (customerId: string | null, filters: CustomerLedgerFilters = {}) => {
   return useQuery({

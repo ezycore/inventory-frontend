@@ -37,6 +37,13 @@
 
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { SectionId } from "@/lib/storefront-section-ids";
+import {
+  APPAREL_SAMPLE,
+  GROCERY_SAMPLE,
+  NEUTRAL_SAMPLE,
+  PHARMACY_SAMPLE,
+  type ThemeSample,
+} from "@/lib/storefront-theme-samples";
 
 export interface ReadyMadeTheme {
   id: string;
@@ -55,6 +62,13 @@ export interface ReadyMadeTheme {
    * different sections, not different arrangements of the same four.
    */
   sections: SectionId[];
+  /**
+   * What the PREVIEW fills a merchant's empty shop with — see
+   * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
+   * without one would preview another trade's stock, which is the bug this
+   * field exists to close.
+   */
+  sample: ThemeSample;
   /** Only keys a theme is allowed to own — see the note above. */
   templates: {
     home: string;
@@ -89,6 +103,7 @@ export interface ReadyMadeTheme {
 export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   {
     id: "classic",
+    sample: NEUTRAL_SAMPLE,
     label: "Classic",
     tagline: "The shop as it ships — a clear grid, a simple hero, nothing loud.",
     bestFor: "Any catalogue, and anyone who wants to start over",
@@ -106,6 +121,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "md",
       density: "cozy",
       radius: "soft",
+      width: "contained",
     },
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
     sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
@@ -135,6 +151,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   },
   {
     id: "fresh-market",
+    sample: GROCERY_SAMPLE,
     label: "Fresh Market",
     tagline: "A warm cream market on printed paper — big type, round corners, everything to hand.",
     bestFor: "Grocery, food, household, daily needs",
@@ -163,6 +180,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "lg",
       density: "cozy",
       radius: "pill",
+      width: "contained",
     },
     /* The mockup's page, top to bottom: a typographic hero, a strip of
        department discs, the seasonal grid, the buy-again rail, then a pair of
@@ -256,75 +274,109 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
   },
   {
     id: "meridian-care",
+    sample: PHARMACY_SAMPLE,
     label: "Meridian Care",
-    tagline: "Calm, legible and easy to search — trust before decoration.",
+    tagline: "A dispensary counter — search by name, departments always to hand.",
     bestFor: "Pharmacy, health, clinics, personal care",
-    // The exact swatches from the approved design — deep teal + sky.
-    brandColor: "#0e5f66",
-    accentColor: "#2b7fd4",
-    // Clinical white is the point of this one — a pharmacy that tints its page
-    // stops reading as a pharmacy.
+    /* Ink-navy with a signal green. NOT the old teal + sky, which sat one hue
+       away from Classic's blue and made the two read as the same shop twice.
+       The green is spent on one job only — "in stock", "sealed", "verified" —
+       so it works as a status colour rather than a second brand. */
+    brandColor: "#1b3a5c",
+    accentColor: "#1a8f5e",
+    /* The old bundle said "clinical white is the point of this one — a pharmacy
+       that tints its page stops reading as a pharmacy", and that was wrong in a
+       way worth recording: it left this theme sharing a ground with Classic AND
+       Muslin, so the only thing separating three of the four themes was a hue.
+       `mist` inverts the relationship instead — a tinted page with pure white
+       cards — which reads as MORE clinical, not less, because each sealed box
+       now sits on the page as its own object.
+
+       `grotesk`, `compact` and `sm` are the other three axes nothing else uses.
+       Together they make a dense, technical page: a pharmacy is a shop with
+       eight thousand lines, and it should feel stocked rather than curated. */
     design: {
-      font: "humanist",
-      surface: "default",
+      font: "grotesk",
+      surface: "mist",
       scale: "sm",
-      density: "cozy",
+      density: "compact",
       radius: "soft",
+      width: "contained",
     },
-    // **`trust-band` opens the page, directly under the header.** Trust comes
-    // BEFORE the catalogue: a shopper buying medicine decides whether to believe
-    // the shop before they decide what to buy, so the band is structural here
-    // rather than a footer afterthought. Then departments ("shop by concern"),
-    // then products. No deal strip — discounting is the wrong note for a
-    // pharmacy.
-    //
-    // It carried a `search-hero` instead until 2026-08-13, which was a
-    // double mistake: the hero prints `trustBadges` as a tick row inside its own
-    // tinted block, so adding the band under it printed the promises twice, and
-    // the whole arrangement was not the design that was approved.
+    /* **No hero, and no category section.** The `rail` shell puts the conditions
+       down the left of every page and the `clinical` header carries the search,
+       so a hero could only repeat one of the two — which is exactly the bug this
+       storefront has now shipped five times (trust badges twice, promises twice,
+       the hero photograph twice, departments twice, and a search box twice in
+       the first draft of this very theme).
+
+       What is left is a page made only of things the shell cannot say:
+
+       - `trust-row` — the merchant's promises as CARDS, not a strip. For a
+         pharmacy the guarantee is the product; licence, seal and pharmacist
+         hours earn real estate. ⚠ It reads `trustBadges`, so `trust-band` must
+         never join it and the footer must not be `rich`.
+       - `deal-strip` — a live campaign, and only when one is running.
+       - `featured-grid` — what people actually buy.
+       - `product-rail` — what just arrived. A different question from the grid,
+         which is why both belong.
+       - `promo-tiles` — the merchant's own two offers. */
     sections: [
-      "trust-band",
-      "category-tiles",
+      "trust-row",
+      "deal-strip",
       "featured-grid",
-      "latest-grid",
+      "product-rail",
+      "promo-tiles",
     ],
     templates: {
       home: "classic",
-      // `classic`, and it **shares that anatomy with the Classic theme on
-      // purpose**. A pharmacy shopper arrives with a name to type — "Napa",
-      // "omeprazole" — so the header has to carry a real search field, and the
-      // `centered` anatomy's search is an icon. Sharing a bar costs less than
-      // hiding the one control this trade needs; the two themes are still
-      // unmistakable on colour, type, density and page composition.
+      /* Logo, one wide search, icons. It is the only search on the page and it
+         is on EVERY page, which is what a shop selling by product name needs —
+         a hero search vanishes the moment the shopper scrolls or opens a box. */
       header: "clinical",
-      // People phone a pharmacy. The contact-first footer leads with the number.
+      /* `contact`, and deliberately NOT `rich`: the rich footer prints
+         `trustBadges` as its own strip, and `trust-row` above already spends
+         them. People phone a pharmacy, so the footer leads with the number. */
       footer: "contact",
-      // Shoppers arrive knowing what they need, so filters stay on screen.
+      /* The rail carries departments; the collection page's own left column is
+         free to carry FILTERS, which is where a shopper narrows by strength,
+         form or brand. */
       collection: "sidebar",
       product: "gallery-left",
       productCard: "standard",
       cardActions: "add",
-      pagination: "pages",
+      /* `load-more`, not numbered pages: a shopper scanning for one medicine
+         reads down, and paging resets that scan. */
+      pagination: "load-more",
       // A box shot must never be cropped — the strength is printed on it.
       imageFit: "fit",
       imageRatio: "square",
+      // Unused by this theme (no category section), kept at the default so a
+      // merchant who adds one back gets the ordinary photo tile.
       categoryTiles: "tile",
-      // One decision per screen, targets big enough to hit without aiming —
-      // the same reasoning that put the trust band above the catalogue.
+      // One decision per screen, targets big enough to hit without aiming.
       accountLayout: "panel",
-      // Nothing hidden behind a Continue button: a cautious buyer abandons a
-      // checkout they cannot see the whole of.
-      checkout: "guided",
+      /* `multi-step`. A pharmacy basket is long and the shopper is cautious;
+         one question at a time over a running total beats a single tall form. */
+      checkout: "multi-step",
       // Nothing full-bleed, nothing loud, separated by space rather than rules.
       contentLayout: "panel",
-      // One item per block, nothing sharing an edge — the same trade as its
-      // account area and its checkout.
-      cartLayout: "cards",
-      shell: "stacked",
+      /* A thirty-line basket of small boxes: dense rows with the total following
+         the shopper down, rather than a card per item. */
+      cartLayout: "compact",
+      /* ⚠ **THE structural move, and the first bundled theme to use it.**
+         Conditions — diabetes, blood pressure, gastric — down the left of every
+         page, not just the home page. A pharmacy shopper's next click is nearly
+         always another condition, and no arrangement of home-page blocks can put
+         that on the product page or in the cart.
+         `rail` has been registered and offered in Customize since 2026-08-14
+         with nothing stamping it; this is what it was built for. */
+      shell: "rail",
     },
   },
   {
     id: "muslin",
+    sample: APPAREL_SAMPLE,
     label: "Muslin",
     tagline: "Big imagery and quiet type — the photography does the selling.",
     bestFor: "Fashion, footwear, jewellery, gifts",
@@ -347,6 +399,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       scale: "lg",
       density: "airy",
       radius: "sharp",
+      width: "contained",
     },
     // A magazine, not a shop window: a **split** hero — photograph beside the
     // eyebrow, serif headline and one CTA — then "shop by occasion" as overlay

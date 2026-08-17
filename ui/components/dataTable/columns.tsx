@@ -87,31 +87,42 @@ export function useEnhancedColumns<TData, TValue>({
           const rowData = row.original;
           return (
             <div className="flex items-center gap-2">
-              {actions?.viewable && (
+              {actions?.viewable && (() => {
+                // One label for the tooltip AND the accessible name. These
+                // buttons are icon-only and were labelled by the tooltip alone,
+                // which is `aria-describedby` when open — never a name. A
+                // screen reader announced "button", on every list in the app.
+                const label =
+                  typeof actions?.viewable === "object" && actions?.viewable?.tooltip
+                    ? actions.viewable.tooltip
+                    : t("actions.viewDetails");
+                return (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={label}
                         onClick={() => onView?.(rowData)}
                         className="h-8 w-8 p-0"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      {typeof actions?.viewable === "object" && actions?.viewable?.tooltip
-                        ? actions.viewable.tooltip
-                        : t("actions.viewDetails")}
-                    </TooltipContent>
+                    <TooltipContent>{label}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              )}
+                );
+              })()}
               
               {(() => {
                 const customEdit = customActions?.find(a => a.type === 'edit');
-        
+                const label =
+                  typeof actions?.editable === "object" && actions?.editable?.tooltip
+                    ? actions.editable.tooltip
+                    : customEdit?.tooltip || t("actions.edit");
+
                 return (actions?.editable || customEdit) ? (
                   <TooltipProvider>
                     <Tooltip>
@@ -119,43 +130,43 @@ export function useEnhancedColumns<TData, TValue>({
                         <Button
                           variant="ghost"
                           size="sm"
+                          aria-label={label}
                           onClick={() => customEdit?.onClick ? customEdit.onClick(rowData) : onEdit?.(rowData)}
                           className="h-8 w-8 p-0"
                         >
                           {customEdit?.icon || <Edit className="h-4 w-4" />}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        {typeof actions?.editable === "object" && actions?.editable?.tooltip
-                          ? actions.editable.tooltip
-                          : customEdit?.tooltip || t("actions.edit")}
-                      </TooltipContent>
+                      <TooltipContent>{label}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 ) : null;
               })()}
               
-              {actions?.deletable && (
+              {actions?.deletable && (() => {
+                const label =
+                  typeof actions?.deletable === "object" && actions?.deletable?.tooltip
+                    ? actions.deletable.tooltip
+                    : t("actions.delete");
+                return (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={label}
                         onClick={() => openDeleteDialog?.(rowData)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      {typeof actions?.deletable === "object" && actions?.deletable?.tooltip
-                        ? actions.deletable.tooltip
-                        : t("actions.delete")}
-                    </TooltipContent>
+                    <TooltipContent>{label}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              )}
+                );
+              })()}
               
               {actions?.custom?.map((action, index) => (
                 <TooltipProvider key={index}>
@@ -164,6 +175,10 @@ export function useEnhancedColumns<TData, TValue>({
                       <Button
                         variant={action.variant || "ghost"}
                         size="sm"
+                        // `label` is the declared name; `tooltip` is the hover
+                        // text. Either serves as the accessible name — an
+                        // icon-only button must have one.
+                        aria-label={action.label || action.tooltip}
                         onClick={() => action.onClick(rowData)}
                         className="h-8 w-8 p-0"
                       >
@@ -200,6 +215,7 @@ export function useEnhancedColumns<TData, TValue>({
                   <Button
                     variant={action.variant || "ghost"}
                     size="sm"
+                    aria-label={action.label || action.tooltip}
                     onClick={action.onClick ? () => action.onClick?.(rowData) : undefined}
                     disabled={isDisabled}
                     className="h-8 w-8 p-0"

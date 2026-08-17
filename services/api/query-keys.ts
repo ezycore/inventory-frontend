@@ -179,6 +179,12 @@ export const queryKeys = {
     /** Open invoices behind the "Receive Payment" allocation table. */
     outstanding: (customerId: string) =>
       ["customers", "outstanding", customerId] as const,
+    /**
+     * Org-wide receivable / credit totals, served on the customer list response.
+     * Starts with "customers" like every other key here, so one
+     * `invalidateQueries({ queryKey: queryKeys.customers.all() })` still flushes it.
+     */
+    totals: () => ["customers", "totals"] as const,
   },
 
   suppliers: {

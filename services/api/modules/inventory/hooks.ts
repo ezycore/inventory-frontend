@@ -118,6 +118,58 @@ export const useBulkAdjustStock = () => {
     },
   })
 }
+/** One expired lot, as the expiry report knows it. */
+export interface ExpiredBatchWriteOff {
+  batchId: string
+  productId: string
+  variantId?: string | null
+  locationId: string
+  /** Units left in the lot — the whole of it goes. */
+  remainingQuantity: number
+  /** On-hand across all lots, from the report row. Guards against a stale view. */
+  inventoryQuantity: number
+}
+
+/**
+ * Write off one expired lot, straight from the expiry report (QA-070).
+ *
+ * A decrease of exactly that lot's remaining units, which lands in the stock
+ * history as `MovementReason.EXPIRY` rather than an anonymous adjustment — the
+ * merchant's stock-loss history should say what happened.
+ *
+ * That reason is **not** set by the `"expiry"` argument below, which the adjust
+ * service ignores. It is derived per-draw from the lot itself: `buildDrawMovements`
+ * books `EXPIRY` when `draw.isExpired`, `ADJUSTMENT` otherwise
+ * (`inventory-adjust.service.ts`). Naming a lot that is genuinely past its date
+ * in `batchDraws` is therefore what earns the reason; the string is passed for
+ * the movement note only. Don't "fix" a future reason mismatch here.
+ *
+ * `expectedQuantity` is the on-hand figure the report rendered, so if stock moved
+ * since the page loaded the backend refuses the write-off (`ADJUST_QUANTITY_STALE`)
+ * instead of applying an absolute `newQuantity` computed from a stale number.
+ */
+export const useWriteOffExpiredBatch = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (lot: ExpiredBatchWriteOff) =>
+      inventoryApi.bulkAdjustStock(
+        [
+          {
+            productId: lot.productId,
+            variantId: lot.variantId ?? null,
+            locationId: lot.locationId,
+            expectedQuantity: lot.inventoryQuantity,
+            newQuantity: Math.max(0, lot.inventoryQuantity - lot.remainingQuantity),
+            batchDraws: [{ batchId: lot.batchId, quantity: lot.remainingQuantity }],
+          } satisfies BulkAdjustmentItem,
+        ],
+        "expiry",
+      ),
+    onSuccess: () => invalidate(queryClient, "stock.moved"),
+  })
+}
+
 export const useBulkReceiveStock = () => {
   const queryClient = useQueryClient()
 
