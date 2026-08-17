@@ -62,7 +62,6 @@ export function StoreShell({
 
   const { data: store, isError } = useStore(slug, initialStore);
   const { data: fetchedCategories } = useStoreCategories(slug, initialCategories);
-  const previewActive = useSfPreview((s) => s.active);
   const previewBrand = useSfPreview((s) => s.brand);
   const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
@@ -78,16 +77,20 @@ export function StoreShell({
   /* The admin's Collections panel streams its unsaved draft; prefer it so
      reordering/hiding previews live instead of waiting on a save + refetch.
 
-     In the theme preview, a store with NO categories falls back to samples.
+     On the THEME PICKER, a store with NO categories falls back to samples.
      This is the single most load-bearing fallback of the set: the `rail` shell
      returns null without categories, so a merchant who has not built their
      taxonomy yet — i.e. every merchant choosing their first theme — compared
      four themes with the department rail invisible, which is the whole reason
-     to pick that one. */
+     to pick that one.
+
+     ⚠ Gated on `previewSamples`, not on the preview store's `active` flag —
+     `active` also covers the Customize editor and a bare `?preview=1` on a live
+     shop, and inventing six departments a merchant does not have is a claim
+     about their shop rather than a placeholder. Null samples make the call a
+     no-op. */
   const resolvedCategories = previewCollections ?? fetchedCategories;
-  const categories = previewActive
-    ? padCategoriesForPreview(resolvedCategories, previewSamples)
-    : resolvedCategories;
+  const categories = padCategoriesForPreview(resolvedCategories, previewSamples);
 
   // Tab icon = the store's favicon, swapped in place so router-integrated
   // navigations (page changes AND the account tab switch's replaceState) don't
