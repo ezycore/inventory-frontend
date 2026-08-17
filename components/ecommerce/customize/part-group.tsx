@@ -120,6 +120,35 @@ export function PartBlock({
   );
 }
 
+/**
+ * A labelled control for a part that puts SEVERAL settings in one `PartGroup`
+ * slot — the compact sibling of `PartBlock`.
+ *
+ * The difference is vertical padding, and it is the whole point: `PartGroup`
+ * pays `py-4` per direct child, so six settings rendered as six `PartBlock`s
+ * spend 192px on block padding alone before a single control is drawn. Six
+ * `PartField`s inside one wrapper spend 32px. Use `PartBlock` when the setting
+ * genuinely is its own question (Product cards' style vs its buttons); use this
+ * when the settings are facets of one (Design's six axes).
+ */
+export function PartField({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <PartLabel>{label}</PartLabel>
+      {children}
+      {hint ? <PartHint>{hint}</PartHint> : null}
+    </div>
+  );
+}
+
 /** Small caption above a block of controls inside an open part. */
 export function PartLabel({ children }: { children: ReactNode }) {
   return (

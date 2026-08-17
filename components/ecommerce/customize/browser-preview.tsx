@@ -9,6 +9,11 @@ import type { Image } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { toPreviewPayload } from "@/components/ecommerce/customize/draft-payloads";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import {
+  DESKTOP_PREVIEW_WIDTH,
+  usePreviewScale,
+} from "@/components/ecommerce/customize/use-preview-scale";
 
 /** Which storefront page the preview is pointed at. */
 export type PreviewPage = "home" | "collection" | "product";
@@ -43,6 +48,8 @@ export function BrowserPreview({
   forceHeroSlides,
   forceCollectionsMenu,
   socialWhatsapp,
+  hasCollections = true,
+  samples,
   viewportHeight = "calc(100vh - 11rem)",
 }: {
   slug?: string;
@@ -56,6 +63,10 @@ export function BrowserPreview({
   forceCollectionsMenu: boolean;
   /** Settings → General number, so the preview mirrors the blank-number fallback. */
   socialWhatsapp?: string;
+  /** False when the caller runs no collections query — see toPreviewPayload. */
+  hasCollections?: boolean;
+  /** Sample stock for the theme picker — see `toPreviewPayload`. */
+  samples?: ThemeSample;
   /**
    * Viewport height. The default fills the Customize page below its header; the
    * theme store's Preview dialog passes its own, because a `100vh`-derived
@@ -65,6 +76,9 @@ export function BrowserPreview({
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const { hostRef, scale, ready, frameHeight } = usePreviewScale(
+    device === "desktop",
+  );
   const [reloadKey, setReloadKey] = useState(0);
 
   // One listed product is enough to preview the product page; without one the
@@ -74,7 +88,11 @@ export function BrowserPreview({
   // DTO only carries `storefront.slug` when an owner has typed a custom one, so
   // a normal store returns nothing and the tab would never enable. The public
   // payload always carries the resolved slug — it is the one the shop links to.
-  const { data: storeProducts } = useStoreProducts(slug ?? "", { limit: 1 }, !!slug);
+  const { data: storeProducts } = useStoreProducts(
+    slug ?? "",
+    { limit: 1 },
+    !!slug,
+  );
   const productSlug = storeProducts?.items?.[0]?.slug;
 
   const path =
@@ -96,8 +114,19 @@ export function BrowserPreview({
         forceHeroSlides,
         forceCollectionsMenu,
         socialWhatsapp,
+        hasCollections,
+        samples,
       }),
-    [draft, logo, banner, forceHeroSlides, forceCollectionsMenu, socialWhatsapp],
+    [
+      draft,
+      logo,
+      banner,
+      forceHeroSlides,
+      forceCollectionsMenu,
+      socialWhatsapp,
+      hasCollections,
+      samples,
+    ],
   );
 
   const post = useCallback(() => {
@@ -250,6 +279,7 @@ export function BrowserPreview({
         style={{ height: viewportHeight, minHeight: 560 }}
       >
         <div
+          ref={device === "desktop" ? hostRef : undefined}
           className={cn(
             "flex-none overflow-hidden bg-white",
             device === "mobile"
@@ -261,16 +291,44 @@ export function BrowserPreview({
         >
           {/* `visibility`, not conditional mounting: the frame has to load and
               run to send the ack that reveals it. Opacity alone would still let
-              the saved theme paint through the transition. */}
-          <iframe
-            key={reloadKey}
-            ref={ref}
-            src={url}
-            title="Storefront preview"
-            onLoad={post}
-            className="h-full w-full border-0 bg-white"
-            style={{ visibility: painted ? "visible" : "hidden" }}
-          />
+              the saved theme paint through the transition.
+
+              On desktop the frame is laid out at a real desktop width and scaled
+              down to fit, rather than laid out at the panel's own width — see
+              `usePreviewScale` for why a rail theme was previewing with no rail. */}
+          {ready ? (
+            <iframe
+              key={reloadKey}
+              ref={ref}
+              src={url}
+              title="Storefront preview"
+              onLoad={post}
+              className="border-0 bg-white"
+              style={{
+                visibility: painted ? "visible" : "hidden",
+                ...(device === "desktop"
+                  ? {
+                      /* `zoom`, NOT `transform: scale()`. The storefront is on
+                         its own subdomain, so this frame is an OOPIF, and a
+                         transformed OOPIF does not repaint — Chrome keeps showing
+                         a stale blank layer while the DOM inside is fully built.
+                         Proven directly in the browser: setting `transform: none`
+                         on the live element made it paint instantly. Neither
+                         `will-change` nor deferring the mount until the host was
+                         measured fixed it, because both leave it a compositing
+                         problem. `zoom` scales through LAYOUT, so the frame is
+                         laid out at its final size and paints like any other. */
+                      zoom: scale,
+                      width: DESKTOP_PREVIEW_WIDTH,
+                      // In the frame's own unzoomed coordinates — height × zoom
+                      // lands on the host exactly. A percentage resolves in the
+                      // zoomed space and comes up short.
+                      height: frameHeight || "100%",
+                    }
+                  : { width: "100%", height: "100%" }),
+              }}
+            />
+          ) : null}
         </div>
         {!painted ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">

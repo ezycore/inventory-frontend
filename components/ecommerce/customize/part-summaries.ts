@@ -3,9 +3,11 @@
 import {
   DESIGN_DENSITIES,
   DESIGN_FONTS,
+  DEFAULT_DESIGN,
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
+  DESIGN_WIDTHS,
   getPreset,
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
@@ -57,7 +59,14 @@ export function partSummary(
       const scale = DESIGN_SCALES.find((o) => o.id === draft.design.scale);
       const density = DESIGN_DENSITIES.find((o) => o.id === draft.design.density);
       const radius = DESIGN_RADII.find((o) => o.id === draft.design.radius);
-      return `${font?.label ?? draft.design.font} · ${surface?.label ?? draft.design.surface} · ${scale?.label ?? draft.design.scale} headings · ${density?.label ?? draft.design.density} spacing · ${radius?.label ?? draft.design.radius} corners`;
+      // Width is appended only when it is NOT the default. Five axes already
+      // fill this row, and "Contained" on every untouched shop would push the
+      // axes a merchant actually changed off the end of the line.
+      const width =
+        draft.design.width && draft.design.width !== DEFAULT_DESIGN.width
+          ? ` · ${DESIGN_WIDTHS.find((o) => o.id === draft.design.width)?.label ?? draft.design.width}`
+          : "";
+      return `${font?.label ?? draft.design.font} · ${surface?.label ?? draft.design.surface} · ${scale?.label ?? draft.design.scale} headings · ${density?.label ?? draft.design.density} spacing · ${radius?.label ?? draft.design.radius} corners${width}`;
     }
     case "announcement":
       if (!draft.announcement.enabled) return "Off";

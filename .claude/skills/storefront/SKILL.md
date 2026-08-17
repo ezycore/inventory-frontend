@@ -154,9 +154,9 @@ reads as two filters at once.
     NOT part of that scale and must never be tokenised**: they mean "pill" and "circle", so
     swapping them would turn badges and avatars into squares on the sharp setting — a different
     *shape*, not a different radius. Same for the deliberate `0`s and the chat-bubble tails.
-    Migration is partial by design: the look-carrying surfaces (`.sf-hero`, `.sf-account-nav`,
-    `.sf-acct-tab`, `.sf-pdp-zoom`, `.sf-qb-panel`, `.sf-footer-trustbar`, `product-card.tsx`,
-    `sfInput`) are on the tokens; the long tail of ~130 inline `borderRadius` values still isn't,
+    Migration is partial by design: the look-carrying surfaces (`.sf-hero`, `.sf-herocard`,
+    `.sf-account-nav`, `.sf-acct-tab`, `.sf-pdp-zoom`, `.sf-qb-panel`, `.sf-footer-trustbar`,
+    `product-card.tsx`, `sfInput`) are on the tokens; the long tail of ~130 inline `borderRadius` values still isn't,
     and moves over file-by-file under the `// coding-standard: maintained` convention. **When you
     touch a storefront file, swap its radii for the tokens** — sm = controls, md = cards/panels,
     lg = big surfaces.
@@ -266,18 +266,30 @@ reads as two filters at once.
     on each amount. Cards are ~130px wide in the 2-column mobile grid and clip
     (`overflow: hidden`), so an unwrapped "From + price + struck compare-at" row rendered the
     original price cut off mid-digit.
-  - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` (62svh on mobile) — a flat
+  - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` on desktop — a flat
     430px was 76% of an iPhone SE screen and 89% in landscape. Use `svh`, not `vh`, so the
     collapsing mobile URL bar doesn't resize it. Always declare a **non-`svh` fallback first**: the
     hero's slides are `position: absolute`, so a browser without `svh` (pre-Chrome 108 / Safari 15.4)
     drops the declaration and collapses it to nothing.
+  - ⚠ **A fixed height is a promise about RATIO you didn't mean to make** (2026-08-17). Below 640px
+    `.sf-hero` is now `aspect-ratio: 4 / 3` with a `min-height: 300px` floor and the `62svh` cap kept
+    as `max-height`, because the height version silently redefined the box: 430px at 360px wide is
+    **0.84:1**, so the 2.5:1 upload the slides panel asks for was cropped to a third of its width.
+    The photo looked "broken" and the CSS looked fine. When a fixed-height box holds a merchant
+    photo, work out the ratio it implies at 360px before shipping it. (`aspect-ratio` needs no `svh`
+    fallback of its own — a browser that drops the cap still gets a height from the ratio.)
   - **A desktop sidebar is not a mobile header.** `--acctgrid` / `--colmain` / `--cartgrid` collapse
     to one column below 680px, so anything built as a side column *stacks above the content* there.
     Check what that costs before it ships: the account nav was a 499px list (62% of the screen) and
     also `position: sticky`, so it pinned itself over the content. Pattern for fixing it is
     `.sf-account-nav` — **one** set of markup, `grid-template-areas` re-pointed at the breakpoint, so
     a control can move (logout sits inline with the identity row on mobile, under the list on
-    desktop) without a second copy of the nav in the JSX.
+    desktop) without a second copy of the nav in the JSX. **`.sf-herocard` is the second instance**
+    (2026-08-17): `--herocols` collapsing to `1fr` stacked the Classic hero's copy above its
+    photograph, so a phone's whole first screen was text and the photo arrived at ~477px with the
+    fold through it. Same markup, `grid-template-areas` on desktop and `order` on mobile — the photo
+    leads, the trust badges become the card's footer strip. This is also why `HeroCard` is the one
+    static hero styled by class rather than inline: **reordering is not expressible inline.**
 - **Overlays must lock the page behind them** — `useBodyScrollLock(open)`
   (`hooks/use-body-scroll-lock.ts`), used by `SideDrawer` (cart + filters), the bottom-nav
   `MenuSheet` and the mobile search takeover. It takes `<body>` out of flow (`position: fixed`
@@ -497,9 +509,19 @@ Four files, in payload order:
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
 `components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
-over `resolveSections(store, { draft, isSectionId, presets })`. **`home-classic.tsx`,
-`home-hero-split.tsx` and `home-minimal.tsx` are gone** — `templates.home` now selects a *default
-section list* (`HOME_PRESET_SECTIONS`), not a component.
+over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.home` now selects a
+*default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+
+`home-classic.tsx`, `home-hero-split.tsx` and `home-minimal.tsx` are **gone** — removed by the owner's
+decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
+`HOME_PRESET_SECTIONS` keys, so `templates.home: "classic"` still resolves; it just names a starting
+section list now instead of a component.
+
+⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
+correct and their second was not, because between the two a colleague had committed them back on
+purpose in a commit that also carried unrelated work. A file returning after you removed it is a
+signal that someone else has an opinion about it, not that git made a mistake. `git log --follow` on
+the path names the author and the date in one command.
 
 **Why it changed, and the rule it leaves behind.** Those three components each hardcoded a sequence
 of the same five ingredients, so a theme could pick one of three arrangements and repaint it — which
@@ -636,6 +658,30 @@ add" now includes "the shell is already saying it".
 ⚠ **The rail is `sf-desktop-only`, not a collapsible drawer.** A 218px column on a 390px screen is
 not navigation, and the mobile bottom nav plus the header search already cover the job. A second
 mobile nav competing with the bottom bar is how a shopper ends up with two half-answers.
+  - ⚠ **`.sf-rail-grid` must only claim two columns when a rail is actually rendered.**
+    `RailShell` returns `null` for the aside when the store has no categories, and a grid whose first
+    child is missing puts the CONTENT into the first track — the whole page rendered inside 218px,
+    with 44px product cards. `:has(> .sf-rail)` gates both the template and the `--cols` step-down, so
+    the layout follows what was rendered rather than what was assumed. Any shop with an empty taxonomy
+    hit this, not just the preview.
+  - ⚠ **The rail costs 218px, so the content column takes one fewer product column** — cozy 4→3,
+    compact 5→4, airy 3→2. `--cols` is resolved from the VIEWPORT (the density axis predates the
+    rail), so without the step-down the widest breakpoint fitted five compact columns into 970px and
+    drew 172px cards — narrower than the same theme draws on a phone.
+  - ⚠ **The rail's breakpoint is 1000px, not 680px.** Between the two it left ~580px of content and
+    124px cards. A rail is worth its width only once there is width to spare; below that the header
+    search does the job.
+  - ⚠ **A caller with no collections query must pass `hasCollections={false}`** to `BrowserPreview` /
+    `toPreviewPayload`. `seedDraft` omits collections (in Customize they arrive from their own query),
+    so such a caller holds `[]` — which is not "this shop has none" but "I did not look". Sent as a
+    draft it emptied the taxonomy, and under `rail` that removed the aside and triggered the collapse
+    above. Omitting the key leaves `previewCollections` null and `StoreShell` uses the categories it
+    fetched itself.
+  - **Measuring a cross-origin iframe needs its OWN CDP target.** The storefront preview runs
+    out-of-process (`rmc.localhost` vs `localhost`), so it is absent from `Page.getFrameTree` and
+    unreachable via `contentDocument`. It appears in `/json/list` as `type: "iframe"` — attach a second
+    WebSocket to it. Measuring the same URL in the top-level tab does NOT reproduce the preview: the
+    draft that only exists inside the frame is exactly what broke it.
 
 ⚠ **No bundled theme stamps `rail` today** — Fresh Market did for a few hours on 2026-08-14 and was
 moved back to `stacked` the same day, when the merchant's own Claude Design mockup answered the
@@ -648,6 +694,71 @@ the strength of "nothing uses it". The moment any theme or merchant picks `rail`
 **Adding a shell:** write it in `shells/`, compose it from `shell-parts.tsx`, register it in `SHELLS`,
 add the id to the `StoreTemplates["shell"]` union, the `SHELL` map, and `TEMPLATE_OPTIONS.shell` —
 then audit every section that could now be saying the same thing twice.
+
+### The `width` axis — and why it can never move `--maxw` alone (2026-08-16)
+
+The sixth design axis: `contained` (1200px, the default and unchanged), `wide` (1600px), `full`
+(uncapped). Cheap to add because `--maxw` was already ONE token on `.sf-root`, consumed by every
+wrapper — all five header variants, the footer, the content frame, both account layouts, and the
+shared home-section wrapper in `home/home-shared.tsx`. No component changed.
+
+⚠ **A width step must always move `--cols` with it.** `--cols` is a fixed count, not a function of
+available space — 4 at desktop, 5 compact, 3 airy. So widening the page on its own does not show more
+products, it inflates the ones already there: an uncapped page at four columns renders ~600px cards
+on a 27" monitor, the opposite of what "full width" is asked for. Each width therefore ships a column
+count per density, and `full` gains one more at `min-width: 1600px` where `wide` has already capped.
+
+⚠ **The `[data-width]` blocks must stay BELOW the `[data-density]` blocks.** Both selectors have
+identical specificity, so source order is the only thing deciding which owns `--cols`. Move them up
+and a wide shop silently reverts to its density's column count, with nothing failing.
+
+**`--maxw-read` is the deliberate exception.** The account area (profile, addresses, order history) is
+read and filled in, not browsed, so it caps while the catalogue widens. It is declared as
+`--maxw-read: var(--maxw)` on `.sf-root`, and that resolves to 1200px *permanently* — `var()` inside a
+custom-property declaration is substituted on the element that declares it, so a `--maxw` override on
+`.sf-shell` cannot reach back into it. That is the intended behaviour, written that way to say so.
+Content pages need no equivalent: their prose is already capped at fixed 680–860px measures in
+`content-frame.tsx`, and their banner strip is meant to span.
+
+**All four themes stay `contained`.** Widening an approved theme is a design decision, not a side
+effect of adding the control — and Classic in particular MUST equal the defaults or applying it would
+restyle every shop already on it (`apply-theme.test.ts` asserts this field by field).
+
+### The `mist` surface, and the rail finally being used (2026-08-16)
+
+Meridian Care was rebuilt from the axes nothing else spent. The old bundle was `surface: default`,
+`radius: soft`, `shell: stacked`, card grid, teal — which is **Classic with a different hue**, and it
+shared its ground with two other themes. Hue was never what separated them.
+
+**`mist` inverts the card/page relationship.** `default` and `parchment` both float a card slightly
+lighter than a page that is nearly the same colour; `mist` pushes the page down to `#eef2f5` and the
+card up to pure white, so each card reads as a separate physical object. Measured: the home page is
+**62.5% card, 22.9% panel** where Fresh Market is **72% page** — the inverse composition, from one
+axis. Right for a shop whose unit is a sealed box, and the fastest way to look unlike the others
+without touching a hue.
+
+Its other four axes were also unused: `font: grotesk`, `density: compact`, `scale: sm`,
+`pagination: load-more`, `checkout: multi-step`, `cartLayout: compact`.
+
+⚠ **`shell: "rail"` — the first bundled theme to stamp it.** It had been registered and offered in
+Customize since 2026-08-14 with nothing using it, and its two duplication guards were live but
+untested by any theme. They hold: `CategoryRow` returns null on `ctx.hideCategoryRow`, `CategoryTiles`
+returns null under `rail`, and the rail is `sf-desktop-only` (verified hidden at 390px).
+
+**The composition rule this theme is built on.** With a rail carrying departments and a `clinical`
+header carrying the search, a hero could only repeat one of them — so the theme has **no hero and no
+category section**. Its five sections are the ones the shell cannot say: `trust-row` (promises),
+`deal-strip` (a live campaign), `featured-grid`, `product-rail`, `promo-tiles`. Two constraints ride
+with that and must not be undone:
+
+- `trust-row` reads `trustBadges`, so **`trust-band` must never join it** and the footer must not be
+  `rich` — both print the same three promises.
+- The `clinical` header carries the only search, so **no `search-hero`**. The first draft of this
+  theme had both, which is the fifth time this storefront has shipped that class of bug.
+
+`TrustRow`'s icon moved from a bare `--primary` glyph to `--accent` on an `--accent-soft` disc.
+Reassurance is what a second colour is *for*; a shop whose promises are painted in the same hue as its
+buy button has one colour doing two jobs. It falls back to the brand pair when no accent is set.
 
 ### The theme store is a picker beside one live preview (2026-08-15)
 
@@ -680,6 +791,61 @@ staging flow where Save and Discard live. The page has no mutation of its own.
 **Selection resolves, it is not seeded.** `picked ?? activeId` — rather than an effect that copies
 `activeId` into state once the settings query lands, which would fight a merchant who clicked a row
 while the request was still in flight.
+
+### An empty shop must still show what a theme IS (2026-08-16)
+
+A merchant choosing their first theme is, by definition, a merchant with nothing in the shop — and
+every section that distinguishes one theme from another hides itself on no data. `RailShell` returns
+null without categories; so do `category-tiles`, `-chips` and `-links`. `deal-strip` returns null
+with no live campaign, `trust-band` with no `trustBadges`. So the four themes rendered as four
+near-identical empty shells at exactly the moment the choice is made, and Meridian Care lost the
+department rail that is the whole reason to pick it.
+
+`lib/storefront-preview-samples.ts` fills those gaps, and `lib/storefront-theme-samples.ts` decides
+**with what** — a `ThemeSample` (categories, products, promises, campaign) carried by each bundle, so
+Meridian previews as a pharmacy and Fresh Market as a grocery. Illustrations live in `public/samples/`.
+The campaign's `endsAt` is computed at render, never stored: a date baked into a bundle would preview
+an offer that expired months ago.
+
+Four rules, none of them optional:
+
+- **Preview only.** Gated on the preview store's `active` flag, which is set only under `?preview=1`.
+- **Fills gaps, never replaces.** Real products, categories, campaigns and badges always win, and
+  padding is appended AFTER the merchant's own so nothing is displaced or reordered.
+- **Only the Themes page sends samples.** `toPreviewPayload` takes them as an option and Customize
+  omits it — that page previews a *real* shop being edited, and padding it would show a merchant
+  stock they do not have.
+- **It is data on a bundle, never a branch on `themeId`.** Samples ride the existing preview bridge
+  exactly as `badges` and `collections` do. A fifth theme adds a fifth sample set and changes no
+  component.
+
+Sample product names are prefixed "Sample", which is what lets the rest of the content be realistic;
+departments and promises are not, because prefixing every rail entry would wreck the layout being
+judged. The disclosure is made once, in `ThemeStage`'s admin chrome — **not** as a banner inside the
+preview, which would paint over the very thing the merchant is trying to look at.
+
+### ⚠ The preview iframe must be laid out at a REAL desktop width (2026-08-16)
+
+`usePreviewScale` renders the desktop preview at a fixed 1280px and CSS-scales it down to fit the
+panel. Two hard-won reasons, both invisible to typecheck, lint and tests:
+
+1. **The panel is not a desktop.** On a 1440px window the frame measures **860px** — under the
+   1000px breakpoint where `.sf-rail-grid` reserves its column. Meridian Care therefore previewed
+   with *no rail at all* on the most common laptop size: the merchant was comparing a different
+   theme from the one they would get. Lowering the breakpoint would have been backwards — that
+   changes what real shoppers see to fix an artefact of the admin chrome.
+2. **⚠ Scale it with `zoom`, NEVER `transform: scale()`.** The storefront is on its own subdomain,
+   so this frame is an OOPIF — and a transformed OOPIF does not repaint. The Customize preview came
+   up **blank white** while every measurement looked perfect: right width, right transform,
+   `visibility: visible`, 2072px of scroll height and a fully built DOM inside. Proven directly by
+   setting `transform: none` on the live element, which made it paint instantly. Neither
+   `will-change: transform` nor deferring the mount until the host was measured fixed it — both
+   leave it a compositing problem. `zoom` scales through **layout**, so the frame is laid out at its
+   final size and paints like anything else. Its height must then be given in the frame's own
+   unzoomed pixels (host height ÷ zoom); a percentage resolves in the zoomed space and comes up
+   short. **If this preview is ever blank again, check whether something reintroduced a transform.**
+
+Mobile is deliberately unscaled — 390px is a real phone width, so that preview is already honest.
 
 ### Per-theme PAGE LAYOUTS (the layout registry, 2026-08-14)
 
@@ -749,6 +915,30 @@ as "the price changed at the last step".
 **Adding a layout to an existing surface:** add the file, add it to that
 surface's registry map, its `StoreTemplates` union, its map in
 `storefront-templates.ts`, and its `TEMPLATE_OPTIONS` entry.
+
+**Rendering a `TEMPLATE_OPTIONS` key in Customize — pick the control, don't
+default to tiles.** `parts/template-picker.tsx` exports three, all reading the
+same catalogue so an option's id, label and wording exist exactly once:
+
+| Use | Component | For a key whose options are |
+|---|---|---|
+| Sketch tiles | `TemplatePicker` | **spatial** — `home`, `product`, `header`, `footer`, `shell`, `cartLayout`, `accountLayout`, `contentLayout`, `checkout`, `categoryTiles` |
+| One track of steps | `TemplateSegmented` | a **ramp** — `imageRatio`, `imageFit`, `collection`, `pagination` |
+| Dropdown, descriptions inside | `TemplateSelect` | a **list of 5–6** told apart by what they do, not their shape — `cardActions` |
+
+⚠ **`TemplatePicker` defaults to `caption` mode** — one line under the grid for
+the selected option, not a line under every tile. Do not pass `caption={false}`
+to "restore" the old look: a per-tile description is read at ~95px inside the
+380px rail and wraps to four lines, which is what made the Design part open to
+~1,870px and Product cards to ~1,240px before this split. `SegmentedField` and
+`SwatchField` (`ui/components/`) follow the same rule.
+
+The Design part is the worked example: six axes in **one** `PartGroup` slot
+(`PartField`, not six `PartBlock`s — that alone was 192px of block padding),
+typeface as a described `SimpleSelect`, surface as a `SwatchField`, the four
+ramps as `SegmentedField`s with the glyphs in `parts/design-glyphs.tsx`, and
+corners + page width folded behind **More options** — opened automatically when
+either is already off its default, so the fold never hides a merchant's own answer.
 
 **Adding a whole new surface:** extract a `use<Surface>` hook first, then the
 shared blocks, then the layouts — in that order. Writing the layouts first is how
@@ -1240,10 +1430,18 @@ resolved **per request from the host**, never baked.
     `fit="cover"` on a card-sized surface again** — read **`useStoreImageFit()`**
     (`services/storefront/use-image-fit.ts`, zero-arg, draft-first, mirrors `useStoreLogoStyle()`) and
     pass its result straight through. Current call sites: `product-card.tsx`'s grid image,
-    `home-minimal.tsx`'s product tiles, `home-classic.tsx`'s hero banner (4:3),
-    `wishlist-section.tsx`'s saved-item grid, `product-gallery.tsx`'s PDP hero, and the hero
-    carousel (below) — all read the hook independently, so nothing threads it as a prop through
-    `TplProps` or anywhere else.
+    `home-minimal.tsx`'s product tiles, `HeroCard`'s banner in `home/sections/hero-sections.tsx`
+    (`--herocard-ratio`: 4:3 on desktop, 16:9 on a phone),
+    `wishlist-section.tsx`'s saved-item grid, and `product-gallery.tsx`'s PDP hero — all read the
+    hook independently, so nothing threads it as a prop through `TplProps` or anywhere else.
+    ⚠ **No hero is on this list any more, as of 2026-08-17.** The control is rendered inside the
+    *Product cards* part, so a hero that inherited it meant re-cropping the shop's biggest picture as
+    a side effect of a thumbnail setting. Carousel slides read their own `imageFit`; the static
+    banner reads `heroBanner.imageFit`/`.focal` through **`bannerPhoto(hb)`** in `home-shared.tsx`,
+    which returns the `{ fit, focal }` pair to spread onto `<Media>`. Every section that CROPS the
+    banner spreads it — `HeroCard`, `HeroOpen`, and `EditorialSplit` in `band-sections.tsx` — so the
+    answer follows the photo into whichever frame is showing it (4:3, 4:5, `--herocard-ratio`).
+    `HeroSplit` needs nothing: `ratio="auto"` means no frame to miss. Unset = `"fit"` everywhere.
     Leave small row thumbs (cart drawer + cart page, search results, tracking, quick-buy sheet,
     header search, the PDP thumbnail rail, `thumbImageUrl` call sites generally) hardcoded on
     `fit="cover"` — a uniform crop reads as intentional at that size and a blurred halo around a
@@ -1257,8 +1455,8 @@ resolved **per request from the host**, never baked.
     nothing to crop) — don't layer the setting on top of that, the two solve the same problem
     differently on purpose. The hero
     carousel uses the same two-layer idea directly in CSS (`.sf-hero-art-bg`/`-fg` vs the classic
-    single-layer `.sf-hero-art`, branched on `useStoreImageFit()`, see the hero bullet above) since it
-    paints via `background-image`, not an `<img>`.
+    single-layer `.sf-hero-art`, branched on the SLIDE's own `imageFit`, see the hero bullet above)
+    since it paints via `background-image`, not an `<img>`.
     **`templates.imageRatio` is its sibling, and the two are orthogonal** (2026-08-12): ratio is
     the FRAME (`square` default / `portrait` 3:4 / `landscape` 4:3 / `tall` 2:3), fit is what
     happens to a photo that doesn't match it. `mediaRatioFor()` beside `mediaFitFor()` is the only
@@ -2297,15 +2495,47 @@ resolved **per request from the host**, never baked.
   (`customize/parts/hero-part.tsx` — zero-slides warning, Minimal note; the wireframe layout tiles
   it once shared a card with now live in the Home page part).
   Banner MediaField now documents its double duty (static hero + og:image, `shop/page.tsx`).
+  **`heroBanner.imageFit` + `.focal` (2026-08-17) are the banner photo's own crop controls** — same
+  `<PhotoFitField>` the slides use, rendered under the banner MediaField. They live on `heroBanner`
+  rather than beside the image because `StorefrontSettings.banner` is a bare image field shared with
+  `og:image`, with no shape of its own. ⚠ `cleanHeroBanner` rebuilds the object **field by field**,
+  so a new key must be added there or it is silently dropped from the PATCH and the preview — the
+  same trap as `trimSlides`. Uploading or removing the banner clears `focal` (coordinates on a
+  specific photograph) but keeps `imageFit` (a preference for the slot). `<Media>` gained a `focal`
+  prop for this: `object-position` on the **cropped** branch only — `canvas` already shows the whole
+  photo, so moving it would just slide it inside its own letterbox.
 
-- **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
-  subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
+- **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/focal?/imageFit?/
+  badge?/title/subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
   (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
   swipe, reduced-motion; imageless = brand-tinted panel, image = blurred-canvas fit (`.sf-hero-art-bg`
   blurred cover behind, `.sf-hero-art-fg` full photo at `contain` on top — a slide never loses its
-  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands). Renders on
+  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands).
+  **`focal` (2026-08-17) is where a cropping slide is anchored** — `{ x, y }` in percent, unset =
+  centre, translated to `background-position` by `lib/storefront-focal.ts`, which is the ONE place
+  that translation happens (it sits outside `storefront-templates.ts` only because that file is at
+  its size limit). It lands on `.sf-hero-art` and `.sf-hero-art-bg`, never `-fg` — that layer is
+  `contain`, so the whole photo is already visible and moving it would just slide it inside its own
+  letterbox. Admin: `customize/focal-point-picker.tsx`, whose click target is the `<img>` itself
+  rather than its padded box, so any photo ratio maps its own edges to 0/100%; replacing or
+  removing a slide image clears the point, since it was picked on the old photo.
+  ⚠ **The carousel does NOT call `useStoreImageFit()` — deliberately** (2026-08-17). Each slide
+  carries its own `imageFit`, and `undefined` renders `fit` (whole photo), the answer that can never
+  cut a face or a word in half. It arrives as a loose string like the `templates` ids, so it reaches
+  `mediaFitFor` through the `isImageFit` guard (beside `isImageRatio`) and an unknown id falls back to
+  the same default rather than throwing. **Why the inheritance was cut:** `templates.imageFit` is
+  rendered inside the *Product cards* part, so a hero that read it meant changing how product
+  thumbnails crop silently re-cropped the shop's biggest picture — a grid of small squares and a wide
+  banner are different jobs with no reason to share an answer. The editor hides the focus picker when
+  the fit is `fit`; nothing is cropped, so the control would have no effect. The chips are worded
+  from `TEMPLATE_OPTIONS.imageFit` so the slide and the store-wide control can't drift apart.
+  **The photo's URL is published as two custom properties** (`--sf-slide-img` medium /
+  `--sf-slide-img-lg` original) on the slide `<section>`, and storefront.css picks per breakpoint:
+  which one is right is a viewport question and the carousel renders on the server, so the 800px
+  `mediumUrl` was being stretched over a 1200px hero. The imageless tint sets `background` inline,
+  which outranks the undefined var — don't "fix" that by adding a `var()` fallback. Renders on
   Classic + Hero Split when slides exist (Minimal keeps its hero;
-  empty = static hero). Admin: Customize → Theme → `hero-slides-editor.tsx`; slide image upload =
+  empty = static hero). Admin: Customize → Hero → `customize/hero-slides-panel.tsx`; slide image upload =
   `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
   cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.
   Approved design sample: claude.ai/code/artifact/2ea161da-ea0a-4d15-9c31-00a3110804f1.

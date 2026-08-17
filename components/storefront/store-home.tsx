@@ -10,6 +10,11 @@ import type {
 import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
 import { configFor, sectionSignature } from "@/lib/storefront-sections";
 import {
+  padCampaignsForPreview,
+  padForPreview,
+  padStoreForPreview,
+} from "@/lib/storefront-preview-samples";
+import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
@@ -66,6 +71,9 @@ export function StoreHome({
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
+  const previewActive = useSfPreview((s) => s.active);
+  // Sent only by the Themes page; null in Customize, where the shop is real.
+  const previewSamples = useSfPreview((s) => s.samples);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
   const sectionConfig = previewSectionConfig ?? store.sectionConfig;
@@ -115,18 +123,24 @@ export function StoreHome({
     rowItems.set(section.key, ssrBySignature.get(sectionSignature(config)) ?? []);
   }
 
+  /* In the theme PREVIEW only, pad a thin catalogue so a grid can show its own
+     shape. A shop with three products renders three cards in every theme, which
+     is exactly when the choice is being made and least visible. Gated on the
+     preview store's `active` flag, so a shopper never sees a placeholder. */
   const shared = {
     base,
     currency,
-    featured,
-    latest,
+    featured: previewActive ? padForPreview(featured, previewSamples) : featured,
+    latest: previewActive ? padForPreview(latest, previewSamples) : latest,
     categories: previewCategories ?? categories,
-    campaigns,
+    campaigns: previewActive
+      ? padCampaignsForPreview(campaigns, previewSamples)
+      : campaigns,
     t,
     banner,
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
-    store,
+    store: previewActive ? padStoreForPreview(store, previewSamples) : store,
   };
 
   return (

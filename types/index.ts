@@ -508,11 +508,33 @@ export interface StorefrontHeroBanner {
   primaryLink?: string;
   secondaryLabel?: string;
   secondaryLink?: string;
+  /**
+   * How the banner photo handles a frame it doesn't match ("crop" fills and
+   * trims, "fit" shows all of it); unset means "fit". Lives here, beside the
+   * banner's copy, because the image itself is `StorefrontSettings.banner` — a
+   * bare field shared with `og:image`, with no shape of its own.
+   */
+  imageFit?: string;
+  /** Where to crop the banner from when cropped; unset = centre. */
+  focal?: { x: number; y: number };
 }
 
 /** One home-page hero slide (owner-managed carousel, max 5). */
 export interface StorefrontHeroSlide {
   image?: Image | null;
+  /**
+   * Crop anchor in percent; unset = centre. Mirrors `StoreFocalPoint` in
+   * `lib/storefront-focal.ts`, which owns the meaning and the CSS translation —
+   * the admin types mirror the storefront ones here rather than import them.
+   */
+  focal?: { x: number; y: number };
+  /**
+   * How this slide's photo fills the hero ("crop" fills and trims, "fit" shows
+   * all of it); unset means "fit", NOT "inherit" — the hero deliberately does
+   * not follow `templates.imageFit`, which is a *Product cards* control. A loose
+   * string like the templates ids it mirrors, narrowed by `isImageFit`.
+   */
+  imageFit?: string;
   badge?: string;
   title: string;
   subtitle?: string;

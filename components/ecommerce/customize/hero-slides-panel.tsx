@@ -17,6 +17,7 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
+import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
 
 export const MAX_HERO_SLIDES = 5;
@@ -95,7 +96,9 @@ export function HeroSlidesPanel({
   const onFile = async (file: File, target: number) => {
     try {
       const res = await upload.mutateAsync(file);
-      if (res.data) patch(target, { image: res.data });
+      // The focal point belongs to the photo it was picked on, so a replacement
+      // starts centred rather than inheriting a crop aimed at a different image.
+      if (res.data) patch(target, { image: res.data, focal: undefined });
     } catch {
       // handleMutationError already toasted; keep the slide unchanged.
     } finally {
@@ -197,7 +200,7 @@ export function HeroSlidesPanel({
                         size="sm"
                         variant="ghost"
                         className="text-red-600"
-                        onClick={() => patch(i, { image: null })}
+                        onClick={() => patch(i, { image: null, focal: undefined })}
                       >
                         Remove image
                       </Button>
@@ -231,14 +234,24 @@ export function HeroSlidesPanel({
                       </button>
                     </span>
                   </div>
-                  {/* The hero is ~2.6:1 on desktop but crops to a tall centre
-                      strip on mobile, and the desktop scrim darkens the left
-                      where this copy sits — hence both halves of this advice. */}
+                  {/* The hero is ~3:1 on desktop and much narrower on a phone,
+                      so a wide upload is always cropped somewhere. Fill + focus
+                      point below decide whether and where — which is why this no
+                      longer asks the owner to compose around a centred crop. The
+                      scrim note stays: the desktop hero darkens the left, where
+                      the slide's own copy sits. */}
                   <p className="text-xs leading-snug text-muted-foreground">
-                    1600 × 640 px (2.5:1) works best. Keep the subject right of
-                    centre and away from the edges — the text sits on the left,
-                    and phones crop to a tall centre strip.
+                    1600 × 640 px (2.5:1) works best. Leave the left clear — the
+                    title and button sit there on a wide screen.
                   </p>
+                  {s.image?.mediumUrl || s.image?.url ? (
+                    <PhotoFitField
+                      url={s.image.mediumUrl || s.image.url || ""}
+                      imageFit={s.imageFit}
+                      focal={s.focal}
+                      onChange={(next) => patch(i, next)}
+                    />
+                  ) : null}
                   <div className="space-y-1">
                     <Label className="text-xs">Title</Label>
                     <Input

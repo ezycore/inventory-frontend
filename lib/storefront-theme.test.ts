@@ -6,6 +6,7 @@ import {
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
+  DESIGN_WIDTHS,
   designAttrs,
   resolveDesign,
 } from "@/lib/storefront-theme";
@@ -58,7 +59,19 @@ describe("resolveDesign", () => {
       scale: DESIGN_SCALES[0].id,
       density: DESIGN_DENSITIES[0].id,
       radius: DESIGN_RADII[0].id,
+      width: DESIGN_WIDTHS[0].id,
     });
+  });
+
+  // The whole point of the axis: `--maxw` and `--cols` move together, and the
+  // CSS only has blocks for the non-defaults. An id that reached the DOM without
+  // a matching block would render a shop with no width rule at all.
+  it("falls back to contained for an unknown width", () => {
+    expect(resolveDesign({ width: "ultrawide" }).width).toBe("contained");
+  });
+
+  it("keeps a known width", () => {
+    expect(resolveDesign({ width: "full" }).width).toBe("full");
   });
 });
 
@@ -73,6 +86,7 @@ describe("designAttrs", () => {
       "data-scale": undefined,
       "data-density": undefined,
       "data-radius": undefined,
+      "data-width": undefined,
     });
   });
 
@@ -83,6 +97,7 @@ describe("designAttrs", () => {
       "data-scale": undefined,
       "data-density": "airy",
       "data-radius": undefined,
+      "data-width": undefined,
     });
   });
 
@@ -94,6 +109,7 @@ describe("designAttrs", () => {
         scale: "lg",
         density: "airy",
         radius: "sharp",
+        width: "full",
       }),
     ).toEqual({
       "data-font": "serif",
@@ -101,6 +117,7 @@ describe("designAttrs", () => {
       "data-scale": "lg",
       "data-density": "airy",
       "data-radius": "sharp",
+      "data-width": "full",
     });
   });
 });

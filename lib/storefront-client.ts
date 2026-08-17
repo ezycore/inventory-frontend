@@ -6,6 +6,7 @@
  */
 
 import type { CourierNormalizedStatus } from "@/lib/courier-status";
+import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 const API_BASE =
@@ -73,6 +74,10 @@ export interface StoreHomeCollections {
 /** One home-page hero slide (owner-managed carousel). */
 export interface StoreHeroSlide {
   image?: StorefrontImage | null;
+  /** Crop anchor for narrow boxes; unset = centre. See `storefront-focal.ts`. */
+  focal?: StoreFocalPoint;
+  /** How this slide's photo fills the hero; unset = show the whole photo. */
+  imageFit?: string;
   badge?: string;
   title: string;
   subtitle?: string;
@@ -93,6 +98,10 @@ export interface StoreHeroBanner {
   primaryLink?: string;
   secondaryLabel?: string;
   secondaryLink?: string;
+  /** How the banner photo fills its frame; unset = show the whole photo. */
+  imageFit?: string;
+  /** Crop anchor for the banner; unset = centre. See `storefront-focal.ts`. */
+  focal?: StoreFocalPoint;
 }
 
 /** One channel on the public payload — `value` is resolved, `enabled` is gone. */

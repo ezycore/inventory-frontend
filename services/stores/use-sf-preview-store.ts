@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import type { StoreDesign } from "@/lib/storefront-theme";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import type {
   CatalogCategory,
   StoreAnnouncement,
@@ -148,6 +149,13 @@ interface SfPreviewState {
    * object here would mean the shell had to re-resolve what the editor already knows.
    */
   design: StoreDesign | null;
+  /**
+   * Sample shop content for the theme picker — the previewed theme's own, so an
+   * empty shop renders as that trade rather than as four blank shells. Only the
+   * Themes page sends it; the Customize editor previews a real shop and leaves
+   * this null. See `lib/storefront-preview-samples.ts`.
+   */
+  samples: ThemeSample | null;
   activate: () => void;
   apply: (patch: {
     brand?: string;
@@ -192,6 +200,7 @@ interface SfPreviewState {
     logoStyle?: StoreLogoStyle;
     homeCollections?: StoreHomeCollections;
     design?: StoreDesign;
+    samples?: ThemeSample;
   }) => void;
 }
 
@@ -237,6 +246,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   logoStyle: null,
   homeCollections: null,
   design: null,
+  samples: null,
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
@@ -309,6 +319,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
           ? patch.homeCollections
           : s.homeCollections,
       design: patch.design !== undefined ? patch.design : s.design,
+      samples: patch.samples !== undefined ? patch.samples : s.samples,
     })),
 }));
 

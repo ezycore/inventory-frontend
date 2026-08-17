@@ -3,9 +3,10 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { StoreHeroSlide } from "@/lib/storefront-client";
+import { focalPosition } from "@/lib/storefront-focal";
+import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { Icon } from "@/components/storefront/sf-icons";
 import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
-import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 
 const INTERVAL_MS = 5000;
 
@@ -46,11 +47,23 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
  * Crossfade + staggered text rise, 5s autoplay (paused on hover/press, skipped
  * for reduced-motion), dots with a time-to-next fill, arrows, and swipe.
  * Slides without an image get a brand-tinted panel. With an image, the fill is
- * the merchant's choice (Customize → Product cards → Image fit, `useStoreImageFit`):
- * a blurred fill (`.sf-hero-art-bg`) behind the full photo at `contain`
- * (`.sf-hero-art-fg`, default, so a slide never loses its edges to a crop) or the
- * classic `.sf-hero-art` cover crop. Either way a scrim keeps the white text
- * readable. Classes live in storefront.css (.sf-hero-*).
+ * the slide's OWN choice (Customize → Hero → the slide's "This photo"): a blurred
+ * fill (`.sf-hero-art-bg`) behind the full photo at `contain` (`.sf-hero-art-fg`,
+ * the default, so a slide never loses its edges to a crop) or the `.sf-hero-art`
+ * cover crop. Either way a scrim keeps the white text readable. Classes live in
+ * storefront.css (.sf-hero-*).
+ *
+ * ⚠ **This deliberately does NOT call `useStoreImageFit()`.** It used to, which
+ * meant a hero followed *Product cards → Image fit* — so changing how product
+ * thumbnails crop silently re-cropped the shop's biggest picture, and the two
+ * could never disagree. They are different jobs on different shapes: one grid of
+ * small squares, one wide banner. A slide that has chosen nothing shows the whole
+ * photo, which is the answer that can never cut a face or a word in half.
+ *
+ * A cropping slide is anchored on its own focal point (Customize → Hero → the
+ * slide's "Focus point", `lib/storefront-focal.ts`) rather than its centre —
+ * without it the phone crop, which is the narrowest box the same upload has to
+ * survive, keeps whichever third of the photo happens to be in the middle.
  */
 export function HeroCarousel({
   slides,
@@ -59,7 +72,6 @@ export function HeroCarousel({
   slides: StoreHeroSlide[];
   base: string;
 }) {
-  const fit = useStoreImageFit();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   // Bumped to restart the active dot's fill animation when the timer resets.
@@ -109,20 +121,43 @@ export function HeroCarousel({
       >
         {slides.map((slide, i) => {
           const img = slide.image?.mediumUrl || slide.image?.url;
+          // The two sources are published as custom properties rather than
+          // written into `background-image` here because which one is right is a
+          // VIEWPORT question, and this component renders on the server: the
+          // 800px `mediumUrl` was being stretched across a 1200px hero (and 2x
+          // that on a retina panel), which is the softness owners were seeing on
+          // desktop. storefront.css picks per breakpoint; see `.sf-hero-art`.
+          const artVars = img
+            ? ({
+                "--sf-slide-img": `url("${img}")`,
+                "--sf-slide-img-lg": `url("${slide.image?.url || img}")`,
+              } as CSSProperties)
+            : undefined;
+          // Each slide answers for itself; nothing else in the shop votes. An
+          // unset or unrecognised id means "show the whole photo" — see the
+          // warning in the block comment above.
+          const slideFit = isImageFit(slide.imageFit)
+            ? mediaFitFor(slide.imageFit)
+            : "canvas";
+          // Only the CROPPING layers take the focal point. `-fg` is `contain`,
+          // so the whole photo is already visible and moving it would only slide
+          // it around inside its own letterbox.
+          const focal = focalPosition(slide.focal);
           return (
             <section
               key={i}
               className={`sf-hero-slide${i === current ? " sf-hero-active" : ""}`}
+              style={artVars}
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== current}
             >
               {img ? (
-                fit === "cover" ? (
-                  <div className="sf-hero-art" style={{ backgroundImage: `url("${img}")` }} />
+                slideFit === "cover" ? (
+                  <div className="sf-hero-art" style={{ backgroundPosition: focal }} />
                 ) : (
                   <>
-                    <div className="sf-hero-art-bg" style={{ backgroundImage: `url("${img}")` }} />
-                    <div className="sf-hero-art-fg" style={{ backgroundImage: `url("${img}")` }} />
+                    <div className="sf-hero-art-bg" style={{ backgroundPosition: focal }} />
+                    <div className="sf-hero-art-fg" />
                   </>
                 )
               ) : (

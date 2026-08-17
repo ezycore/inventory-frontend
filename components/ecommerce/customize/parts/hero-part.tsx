@@ -16,6 +16,7 @@ import { Button } from "@/ui/components/button";
 import { OptionCard } from "@/ui/components/option-card";
 import { BannerHeroFields } from "@/components/ecommerce/customize/banner-hero-fields";
 import { MediaField } from "@/components/ecommerce/customize/media-field";
+import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
 import {
   PartBlock,
   PartHint,
@@ -70,15 +71,28 @@ export function HeroPart({
     onEditSlide(next.length - 1);
   };
 
+  // A focus point is coordinates on one specific photograph, so a replacement
+  // starts centred rather than inheriting a crop aimed at the old image. The fit
+  // stays: that is a preference for this slot, not a fact about the file.
+  // Guarded, because an unconditional patch would turn `heroBanner: undefined`
+  // into `{}` and light up the "Hero changed" save bar after an upload that
+  // saved itself immediately — a change the merchant never made.
+  const clearBannerFocal = () => {
+    if (!draft.heroBanner?.focal) return;
+    patch({ heroBanner: { ...draft.heroBanner, focal: undefined } });
+  };
+
   const uploadBanner = (file: File) => {
     const fd = new FormData();
     fd.append("banner", file);
     media.mutate(fd);
+    clearBannerFocal();
   };
   const removeBanner = () => {
     const fd = new FormData();
     fd.append("removeBanner", "true");
     media.mutate(fd);
+    clearBannerFocal();
   };
 
   return (
@@ -206,8 +220,20 @@ export function HeroPart({
           busy={media.isPending}
           onPick={uploadBanner}
           onRemove={settings.banner ? removeBanner : undefined}
-          hint="1200 × 900 px (4:3) works best, subject centred."
+          hint="1200 × 900 px (4:3) works best."
         />
+        {/* The banner sits in a different frame in every hero — 4:3, 4:5, or
+            the full width of a card — so how it handles a frame it doesn't
+            match is a property of the photo, and it follows the photo into
+            whichever section is showing it. */}
+        {settings.banner?.mediumUrl || settings.banner?.url ? (
+          <PhotoFitField
+            url={settings.banner.mediumUrl || settings.banner.url || ""}
+            imageFit={draft.heroBanner?.imageFit}
+            focal={draft.heroBanner?.focal}
+            onChange={(next) => patch({ heroBanner: { ...draft.heroBanner, ...next } })}
+          />
+        ) : null}
       </PartBlock>
 
       {heroApplies && !usesSlides ? (
