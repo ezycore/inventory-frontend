@@ -80,10 +80,25 @@ export function useLogin(show2FASetter: (show: boolean) => void) {
 
       handleMutationSuccess("Login successful!");
 
-      // Redirect to the intended page or dashboard after successful login
+      // An un-onboarded workspace goes straight to the wizard. The login
+      // response already carries `onboardingCompletedAt` and `permissions`, so
+      // the answer is known here — pushing /dashboard and letting the protected
+      // layout bounce it meant the merchant watched a full dashboard (sidebar,
+      // header, every dashboard query) paint and then vanish on their very
+      // first login. Same gate as the layout's, including the permission check:
+      // an invited staff member never defines the workspace.
+      const organization = result.data?.user?.organization;
+      const needsOnboarding = !!organization && !organization.onboardingCompletedAt;
+      const canConfigureOrg =
+        result.data?.user?.permissions?.includes("organization.edit") ?? false;
+
+      // A callbackUrl is where they were headed, not where they may go — the
+      // layout would redirect them out of it anyway.
       const params = new URLSearchParams(window.location.search);
       const callbackUrl = params.get("callbackUrl") || "/dashboard";
-      router.push(callbackUrl);
+      router.push(
+        needsOnboarding && canConfigureOrg ? "/onboarding" : callbackUrl,
+      );
     },
     onError: handleMutationError,
   });
