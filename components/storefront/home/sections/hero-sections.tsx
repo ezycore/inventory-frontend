@@ -45,7 +45,8 @@ export function HeroCard(props: SectionProps) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "var(--herocols)",
+          // No banner → the copy takes the full width. See `heroHasMedia`.
+          gridTemplateColumns: banner ? "var(--herocols)" : "1fr",
           gap: 26,
           alignItems: "center",
           background: "var(--card)",
@@ -101,7 +102,16 @@ export function HeroCard(props: SectionProps) {
             ))}
           </div>
         </div>
-        <Media src={banner} alt="" label="hero banner" ratio="4 / 3" fit={imageFit} />
+        {/* Only when there IS one. The striped `Placeholder` exists so missing
+            PRODUCT art stays honest rather than faked — but above the fold, on a
+            shop that has simply not uploaded a banner yet (which is every shop on
+            day one), a box captioned "hero banner" reads as a broken page, not as
+            an empty slot. Rendering nothing and letting the copy run full width is
+            a finished-looking default; the merchant's own banner still takes over
+            the moment they add one. */}
+        {banner && (
+          <Media src={banner} alt="" label="hero banner" ratio="4 / 3" fit={imageFit} />
+        )}
       </div>
     </div>
   );
@@ -115,7 +125,8 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "var(--splitcols)",
+          // No banner → the copy panel takes the full width (see HeroCard).
+          gridTemplateColumns: banner ? "var(--splitcols)" : "1fr",
           border: "1px solid var(--border)",
           borderRadius: "var(--radius-lg)",
           overflow: "hidden",
@@ -135,14 +146,16 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
           </p>
           {heroBtns(base, t, t.shopWeekly, hb)}
         </div>
-        <Media
-          src={banner}
-          alt=""
-          label="lifestyle shot"
-          ratio="auto"
-          radius={0}
-          style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
-        />
+        {banner && (
+          <Media
+            src={banner}
+            alt=""
+            label="lifestyle shot"
+            ratio="auto"
+            radius={0}
+            style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
+          />
+        )}
       </div>
     </div>
   );
@@ -173,7 +186,8 @@ export function HeroOpen(props: SectionProps) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "var(--herocols)",
+          // No banner → the copy panel takes the full width (see HeroCard).
+          gridTemplateColumns: banner ? "var(--herocols)" : "1fr",
           gap: "clamp(24px,4vw,48px)",
           alignItems: "center",
         }}
@@ -225,7 +239,9 @@ export function HeroOpen(props: SectionProps) {
         {/* A tinted panel rather than a bare photo: the picture needs an edge to
             sit against once there is no card providing one, and `--accent-soft`
             gives it one without introducing a second near-white surface beside
-            the page. */}
+            the page. Dropped entirely with no banner — an empty tinted block is
+            worse than none (see HeroCard). */}
+        {banner && (
         <div
           style={{
             background: "var(--accent-soft)",
@@ -244,6 +260,7 @@ export function HeroOpen(props: SectionProps) {
             style={{ borderRadius: "var(--radius-md)" }}
           />
         </div>
+        )}
       </div>
     </div>
   );
