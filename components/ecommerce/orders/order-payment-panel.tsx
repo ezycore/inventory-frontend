@@ -8,7 +8,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
-import { OrderAdvanceDialog } from "./order-advance-dialog";
+import { OrderPrepaymentDialog } from "./order-prepayment-dialog";
 
 /**
  * Payment card. The "mark paid" affordance only appears once the order is
@@ -16,10 +16,10 @@ import { OrderAdvanceDialog } from "./order-advance-dialog";
  * pickup), because `markPaid` pays that Sale's goods due. A reserved-but-
  * uncommitted order has no Sale to settle, so no button.
  *
- * For a COD **delivery** order it also owns the delivery-charge advance: the
- * "Record advance" affordance appears in the same pre-dispatch window the backend
- * allows (unpaid, pending/confirmed/processing, no consignment, none recorded
- * yet), and once one is booked the advance / COD-to-collect breakdown replaces it.
+ * For a **delivery** order it also owns the prepayment: the "Record prepayment"
+ * affordance appears in the same pre-dispatch window the backend allows (unpaid,
+ * pending/confirmed/processing, no consignment, none recorded yet), and once one is
+ * booked the prepaid / COD-to-collect breakdown replaces it.
  * Pickup carries no shipping, so none of this shows.
  */
 export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
@@ -33,19 +33,20 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   const isPickup = order.fulfillmentType === "pickup";
   const money = (n: number) => formatMoney(n, currency);
 
-  const advance = order.advanceAmount ?? 0;
-  const hasAdvance = advance > 0;
-  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - advance);
-  // Mirrors the backend `recordAdvance` guards: delivery, unpaid, before
-  // dispatch, no consignment, none booked yet, and a shipping charge to advance
-  // against (an advance must be 0 < amount ≤ shippingCharged).
-  const canRecordAdvance =
+  const prepaid = order.prepaidAmount ?? 0;
+  const hasPrepayment = prepaid > 0;
+  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - prepaid);
+  // Mirrors the backend `recordPrepayment` guards: delivery, unpaid, before
+  // dispatch, no consignment, none booked yet, and something to pay against (a
+  // prepayment must be 0 < amount ≤ totalAmount).
+  const canRecordPrepayment =
     !isPickup &&
     !isPaid &&
-    !hasAdvance &&
-    !order.advanceTxnId &&
+    !hasPrepayment &&
+    !order.prepaidShippingTxnId &&
+    !order.prepaidGoodsTxnId &&
     !order.courier?.consignmentId &&
-    (order.shippingCharged ?? 0) > 0 &&
+    (order.totalAmount ?? 0) > 0 &&
     ["pending", "confirmed", "processing"].includes(order.status);
 
   return (
@@ -60,12 +61,12 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
         <PaymentBadge status={order.paymentStatus} />
       </div>
 
-      {!isPickup && hasAdvance && (
+      {!isPickup && hasPrepayment && (
         <div className="mt-3 space-y-1.5 rounded-lg bg-muted p-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Advance collected</span>
+            <span className="text-muted-foreground">Prepaid</span>
             <span className="font-semibold tabular-nums text-green-700">
-              {money(advance)}
+              {money(prepaid)}
             </span>
           </div>
           {!isPaid && (
@@ -79,13 +80,13 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
         </div>
       )}
 
-      {canRecordAdvance && (
+      {canRecordPrepayment && (
         <div className="mt-4 border-t pt-4">
-          <OrderAdvanceDialog
+          <OrderPrepaymentDialog
             order={order}
             trigger={
               <Button variant="outline" className="w-full">
-                Record delivery-charge advance
+                Record prepayment
               </Button>
             }
           />

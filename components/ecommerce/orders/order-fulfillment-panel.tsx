@@ -54,9 +54,10 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
     ? customCouriers.find((c) => c._id === selected.slice(CUSTOM_PREFIX.length))
     : undefined;
 
-  // A recorded delivery-charge advance shrinks what the courier collects COD.
-  const advance = order.advanceAmount ?? 0;
-  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - advance);
+  // A recorded prepayment shrinks what the courier collects COD — to nothing at
+  // all when the shopper prepaid the whole order.
+  const prepaid = order.prepaidAmount ?? 0;
+  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - prepaid);
 
   if (order.fulfillmentType === "pickup") {
     return (
@@ -130,11 +131,11 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
               </button>
             ) : null}
 
-            {advance > 0 && order.paymentMethod === "cod" && (
+            {prepaid > 0 && (
               <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-xs">
                 <span className="text-muted-foreground">
-                  Courier collects (COD, after {formatMoney(advance, currency)}{" "}
-                  advance)
+                  Courier collects (COD, after{" "}
+                  {formatMoney(prepaid, currency)} prepaid)
                 </span>
                 <span className="font-semibold tabular-nums">
                   {formatMoney(codToCollect, currency)}

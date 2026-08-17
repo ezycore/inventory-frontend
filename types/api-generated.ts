@@ -6084,7 +6084,7 @@ export interface paths {
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
     };
-    "/api/ecommerce/orders/{id}/advance": {
+    "/api/ecommerce/orders/{id}/prepayment": {
         parameters: {
             query?: never;
             header?: never;
@@ -6094,10 +6094,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * POST /api/ecommerce/orders/:id/advance
+         * POST /api/ecommerce/orders/:id/prepayment
          * @description Defined in `src/routes/storefront-orders.routes.ts:132`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
-        post: operations["post_api_ecommerce_orders_id_advance"];
+        post: operations["post_api_ecommerce_orders_id_prepayment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -10057,7 +10057,7 @@ export interface components {
                 count: number;
                 value: number;
             };
-            prepaidPaid: {
+            gatewayPaid: {
                 count: number;
                 value: number;
             };
@@ -10204,12 +10204,16 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
-                advanceAmount?: number;
-                advanceAccountId?: string | null;
-                advanceTxnId?: string | null;
-                advanceRefundTxnId?: string | null;
+                prepaidAmount?: number;
+                prepaidShippingAmount?: number;
+                prepaidGoodsAmount?: number;
+                prepaidAccountId?: string | null;
+                prepaidShippingTxnId?: string | null;
+                prepaidGoodsTxnId?: string | null;
+                prepaidRefundShippingTxnId?: string | null;
+                prepaidRefundGoodsTxnId?: string | null;
                 /** Format: date-time */
-                advanceAt?: string | null;
+                prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
                 salesReturnId?: string | null;
@@ -10338,12 +10342,16 @@ export interface components {
             saleId?: string | null;
             shippingIncomeTxnId?: string | null;
             shippingCostTxnId?: string | null;
-            advanceAmount?: number;
-            advanceAccountId?: string | null;
-            advanceTxnId?: string | null;
-            advanceRefundTxnId?: string | null;
+            prepaidAmount?: number;
+            prepaidShippingAmount?: number;
+            prepaidGoodsAmount?: number;
+            prepaidAccountId?: string | null;
+            prepaidShippingTxnId?: string | null;
+            prepaidGoodsTxnId?: string | null;
+            prepaidRefundShippingTxnId?: string | null;
+            prepaidRefundGoodsTxnId?: string | null;
             /** Format: date-time */
-            advanceAt?: string | null;
+            prepaidAt?: string | null;
             /** Format: date-time */
             paidAt?: string | null;
             salesReturnId?: string | null;
@@ -10456,12 +10464,16 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
-                advanceAmount?: number;
-                advanceAccountId?: string | null;
-                advanceTxnId?: string | null;
-                advanceRefundTxnId?: string | null;
+                prepaidAmount?: number;
+                prepaidShippingAmount?: number;
+                prepaidGoodsAmount?: number;
+                prepaidAccountId?: string | null;
+                prepaidShippingTxnId?: string | null;
+                prepaidGoodsTxnId?: string | null;
+                prepaidRefundShippingTxnId?: string | null;
+                prepaidRefundGoodsTxnId?: string | null;
                 /** Format: date-time */
-                advanceAt?: string | null;
+                prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
                 salesReturnId?: string | null;
@@ -34803,7 +34815,7 @@ export interface operations {
             content: {
                 "application/json": {
                     reject?: boolean;
-                    refundAdvance?: boolean;
+                    refundPrepayment?: boolean;
                     accountId?: string;
                 };
             };
@@ -34927,7 +34939,7 @@ export interface operations {
             };
         };
     };
-    post_api_ecommerce_orders_id_advance: {
+    post_api_ecommerce_orders_id_prepayment: {
         parameters: {
             query?: never;
             header?: {
