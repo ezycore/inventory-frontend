@@ -1237,6 +1237,157 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   }
 }
 
+/* ---- Classic hero card (home/sections/hero-sections.tsx → HeroCard) ----
+   The one static hero whose markup is NOT inline-styled, for the reason no
+   inline style can cover: below 680px it REORDERS. `--herocols` collapsing to
+   `1fr` there turned the card into copy-then-photo in DOM order, so the whole
+   first screen of a shop was text — badge, headline, paragraph, two buttons and
+   three trust badges pushed the photograph to ~477px on an iPhone SE, where the
+   fold cut it in half and no product was visible at all.
+
+   Mobile-first, like the rest of this file: the base block IS the phone layout
+   (photo full-bleed at the top of the card, copy padded under it, trust badges
+   as a footer strip) and the 680px block restores the two-column desktop card
+   unchanged. 680 is not a free choice — it is where `--herocols` becomes two
+   columns, so the two must move together. Everything here uses the same tokens
+   the inline styles did; only the phone layout is new. */
+.sf-herocard {
+  /* Read by the `<Media>` call's inline `aspect-ratio`. A 4:3 photo is a third
+     of the phone's screen; 16:9 shows the same picture and keeps the headline
+     and the first CTA above the fold. */
+  --herocard-ratio: 16 / 9;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.sf-herocard-media {
+  /* The photo is the third child so that the desktop grid can place copy and
+     trust badges in one column; `order` is what moves it to the top here. */
+  order: -1;
+}
+.sf-herocard-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 16px 18px 18px;
+}
+/* The CTAs come from the shared `heroBtns`, whose inline styles set colour and
+   padding but never flex — so the pair can share the row edge-to-edge on a
+   phone without forking that helper for one caller. */
+.sf-herocard-copy a {
+  flex: 1 1 auto;
+  text-align: center;
+}
+/* `heroBtns`' own wrapper — the only `<div>` in the copy column. The column is
+   `align-items: flex-start`, so without this the pair shrinks to its text and
+   the `flex: 1` above has no width to share. */
+.sf-herocard-copy > div {
+  align-self: stretch;
+}
+.sf-herocard-badge {
+  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. */
+  display: inline-block;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+.sf-herocard-title {
+  /* Scales WITH the merchant's type-scale axis rather than flattening to a
+     fixed phone size, so a shop on `sm` or `lg` keeps its ramp here too. */
+  font-size: calc(var(--h1) * 0.88);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+  white-space: pre-line;
+}
+.sf-herocard-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 420px;
+}
+.sf-herocard-trust {
+  display: flex;
+  flex-wrap: wrap;
+  /* NOT `space-between`. Three badges fit one row only with short labels — the
+     built-in English ones do, "Same-day delivery" and every Bangla string do
+     not — and a spread first row above a lone left-aligned third badge reads as
+     a bug. Left-aligned wraps look the same at any label length. */
+  justify-content: flex-start;
+  gap: 8px 14px;
+  border-top: 1px solid var(--border);
+  padding: 10px 18px;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.sf-herocard-trust span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (min-width: 680px) {
+  .sf-herocard {
+    --herocard-ratio: 4 / 3;
+    grid-template-columns: var(--herocols);
+    grid-template-areas:
+      "copy media"
+      "trust media";
+    column-gap: 26px;
+    row-gap: 24px;
+    /* The photo spans both rows, so when it is the taller side the extra height
+       is split between them. Pinning the copy to the bottom of its row and the
+       badges to the top of theirs keeps the pair together and centred against
+       the photo, which is what the single-row inline version did. */
+    align-content: center;
+    padding: clamp(20px, 4vw, 40px);
+  }
+  .sf-herocard-copy {
+    grid-area: copy;
+    align-self: end;
+    padding: 0;
+    /* Per-child margins rather than a gap: the desktop rhythm is 16/14/22, not
+       one step, and this block must leave the desktop card as it was. (Its one
+       intentional difference is the photo's corner, now `--radius-md` rather
+       than a hardcoded 11px — the radius-token migration this file documents.) */
+    gap: 0;
+  }
+  .sf-herocard-copy a {
+    flex: 0 0 auto;
+    text-align: left;
+  }
+  .sf-herocard-copy > div {
+    align-self: auto;
+  }
+  .sf-herocard-media {
+    grid-area: media;
+    order: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .sf-herocard-trust {
+    grid-area: trust;
+    align-self: start;
+    justify-content: flex-start;
+    gap: 18px;
+    border-top: 0;
+    padding: 0;
+    font-size: 12.5px;
+  }
+  .sf-herocard-badge { margin-bottom: 16px; }
+  .sf-herocard-title { font-size: var(--h1); margin-bottom: 14px; }
+  .sf-herocard-sub { font-size: 15px; margin-bottom: 22px; }
+}
+
 /* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
 .sf-hero {
   position: relative;
@@ -1269,10 +1420,30 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   opacity: 1;
   pointer-events: auto;
 }
+/* The slide photo comes in as two custom properties set by `hero-carousel.tsx`
+   — `--sf-slide-img` (the 800px medium) and `--sf-slide-img-lg` (the 1600px
+   original) — because picking between them is a viewport question and the
+   carousel renders on the server. Above the phone breakpoint the hero is up to
+   1200px wide, where the medium was being upscaled 1.5x (3x on a 2x panel) and
+   read soft. The tinted no-image panel sets `background` inline, which outranks
+   these, so it is unaffected by the undefined var. */
+.sf-hero-art,
+.sf-hero-art-bg,
+.sf-hero-art-fg {
+  background-image: var(--sf-slide-img);
+}
+@media (min-width: 641px) {
+  .sf-hero-art,
+  .sf-hero-art-bg,
+  .sf-hero-art-fg {
+    background-image: var(--sf-slide-img-lg);
+  }
+}
 .sf-hero-art {
   position: absolute;
   inset: 0;
   background-size: cover;
+  /* Overridden per slide by the merchant's focal point, when they set one. */
   background-position: center;
 }
 /* Slide photo, split into two layers instead of one `cover` fill: a
@@ -1455,15 +1626,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   }
 }
 @media (max-width: 640px) {
-  /* Tall enough to hold the slide copy, but capped against the VIEWPORT so it
-     can't eat the fold: a flat 430px was 76% of an iPhone SE screen, leaving
-     no product visible above it. `svh` (small viewport height) is the stable
-     value that ignores the collapsing mobile URL bar. */
-  /* Fallback first — see the note on `.sf-hero` above. */
+  /* A RATIO, not a height — the single biggest reason merchant photos looked
+     wrong here. A 360px-wide phone with the old flat 430px got a 0.84:1 box, so
+     a 2.5:1 upload (what the slides panel asks for) was cropped to about a third
+     of its width; 4/3 roughly halves that loss and still leaves the copy room.
+     `min-height` is the floor for a slide with three lines of copy on a narrow
+     phone, and `max-height` keeps the viewport cap that stops the hero eating
+     the fold — `svh` (small viewport height) ignores the collapsing URL bar.
+     A browser without `svh` drops only the cap, and `aspect-ratio` still gives
+     the absolutely-positioned slides a height, so nothing collapses. */
   .sf-hero {
-    height: 430px;
-    height: min(430px, 62svh);
-    min-height: 260px;
+    /* ⚠ `width: 100%` is LOAD-BEARING, not tidiness. With width left `auto`,
+       `aspect-ratio` resolves in whichever direction is free — and once
+       `min-height` raised the box to 300px, Chrome ran the ratio BACKWARDS and
+       made it 400px wide inside a 360px phone, scrolling the whole shop
+       sideways. A definite width forces the ratio to compute the height only. */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 300px;
+    max-height: 62svh;
   }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {

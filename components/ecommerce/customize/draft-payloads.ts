@@ -35,8 +35,13 @@ const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
   // Untitled slides are drafts — a title is required to ship.
   slides
     .filter((s) => s.title.trim())
+    // ⚠ Field-by-field, so a NEW slide field must be added here or it is
+    // silently dropped from both the PATCH and the live preview — the draft
+    // keeps it, the shop never sees it, and nothing fails.
     .map((s) => ({
       image: s.image ?? null,
+      focal: s.focal,
+      imageFit: s.imageFit,
       badge: s.badge?.trim() || undefined,
       title: s.title.trim(),
       subtitle: s.subtitle?.trim() || undefined,

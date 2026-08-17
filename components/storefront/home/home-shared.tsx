@@ -14,7 +14,9 @@ import type {
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { focalPosition } from "@/lib/storefront-focal";
 import { findSectionCategory, sectionTitle } from "@/lib/storefront-sections";
+import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { ProductCard } from "@/components/storefront/product-card";
 import { money } from "@/components/storefront/format";
 
@@ -100,6 +102,31 @@ export function sectionRow(
     // "View all" goes where the row's own products live — the collection page
     // for a category row, the full catalogue for the two catalogue-wide sources.
     href: found ? collectionHref(base, found.category) : storeHref(base, "/products"),
+  };
+}
+
+/**
+ * The `<Media>` props for the store's banner photo — its own fit and focus
+ * point, set beside the banner in Customize → Hero.
+ *
+ * ⚠ **Deliberately NOT `useStoreImageFit()`.** These sections used to read that
+ * hook, which is *Customize → Product cards → Image fit* — so changing how
+ * product thumbnails crop silently re-cropped the shop's biggest picture. A grid
+ * of small squares and a wide banner are different jobs. Unset means "fit": show
+ * the whole photo, the one answer that can never cut a face or a word in half.
+ *
+ * Every section that CROPS the banner spreads this (`HeroCard`, `HeroOpen`,
+ * `EditorialSplit`), so the merchant's answer follows their photo into whichever
+ * frame is showing it. `HeroSplit` is the exception and needs nothing: it runs
+ * `ratio="auto"`, so there is no frame to miss and nothing to trim.
+ */
+export function bannerPhoto(hb?: StoreHeroBanner): {
+  fit: "cover" | "canvas";
+  focal?: string;
+} {
+  return {
+    fit: isImageFit(hb?.imageFit) ? mediaFitFor(hb.imageFit) : "canvas",
+    focal: focalPosition(hb?.focal),
   };
 }
 

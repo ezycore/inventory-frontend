@@ -154,9 +154,9 @@ reads as two filters at once.
     NOT part of that scale and must never be tokenised**: they mean "pill" and "circle", so
     swapping them would turn badges and avatars into squares on the sharp setting — a different
     *shape*, not a different radius. Same for the deliberate `0`s and the chat-bubble tails.
-    Migration is partial by design: the look-carrying surfaces (`.sf-hero`, `.sf-account-nav`,
-    `.sf-acct-tab`, `.sf-pdp-zoom`, `.sf-qb-panel`, `.sf-footer-trustbar`, `product-card.tsx`,
-    `sfInput`) are on the tokens; the long tail of ~130 inline `borderRadius` values still isn't,
+    Migration is partial by design: the look-carrying surfaces (`.sf-hero`, `.sf-herocard`,
+    `.sf-account-nav`, `.sf-acct-tab`, `.sf-pdp-zoom`, `.sf-qb-panel`, `.sf-footer-trustbar`,
+    `product-card.tsx`, `sfInput`) are on the tokens; the long tail of ~130 inline `borderRadius` values still isn't,
     and moves over file-by-file under the `// coding-standard: maintained` convention. **When you
     touch a storefront file, swap its radii for the tokens** — sm = controls, md = cards/panels,
     lg = big surfaces.
@@ -266,18 +266,30 @@ reads as two filters at once.
     on each amount. Cards are ~130px wide in the 2-column mobile grid and clip
     (`overflow: hidden`), so an unwrapped "From + price + struck compare-at" row rendered the
     original price cut off mid-digit.
-  - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` (62svh on mobile) — a flat
+  - **Fixed heights get a viewport cap.** `.sf-hero` is `min(…, 70svh)` on desktop — a flat
     430px was 76% of an iPhone SE screen and 89% in landscape. Use `svh`, not `vh`, so the
     collapsing mobile URL bar doesn't resize it. Always declare a **non-`svh` fallback first**: the
     hero's slides are `position: absolute`, so a browser without `svh` (pre-Chrome 108 / Safari 15.4)
     drops the declaration and collapses it to nothing.
+  - ⚠ **A fixed height is a promise about RATIO you didn't mean to make** (2026-08-17). Below 640px
+    `.sf-hero` is now `aspect-ratio: 4 / 3` with a `min-height: 300px` floor and the `62svh` cap kept
+    as `max-height`, because the height version silently redefined the box: 430px at 360px wide is
+    **0.84:1**, so the 2.5:1 upload the slides panel asks for was cropped to a third of its width.
+    The photo looked "broken" and the CSS looked fine. When a fixed-height box holds a merchant
+    photo, work out the ratio it implies at 360px before shipping it. (`aspect-ratio` needs no `svh`
+    fallback of its own — a browser that drops the cap still gets a height from the ratio.)
   - **A desktop sidebar is not a mobile header.** `--acctgrid` / `--colmain` / `--cartgrid` collapse
     to one column below 680px, so anything built as a side column *stacks above the content* there.
     Check what that costs before it ships: the account nav was a 499px list (62% of the screen) and
     also `position: sticky`, so it pinned itself over the content. Pattern for fixing it is
     `.sf-account-nav` — **one** set of markup, `grid-template-areas` re-pointed at the breakpoint, so
     a control can move (logout sits inline with the identity row on mobile, under the list on
-    desktop) without a second copy of the nav in the JSX.
+    desktop) without a second copy of the nav in the JSX. **`.sf-herocard` is the second instance**
+    (2026-08-17): `--herocols` collapsing to `1fr` stacked the Classic hero's copy above its
+    photograph, so a phone's whole first screen was text and the photo arrived at ~477px with the
+    fold through it. Same markup, `grid-template-areas` on desktop and `order` on mobile — the photo
+    leads, the trust badges become the card's footer strip. This is also why `HeroCard` is the one
+    static hero styled by class rather than inline: **reordering is not expressible inline.**
 - **Overlays must lock the page behind them** — `useBodyScrollLock(open)`
   (`hooks/use-body-scroll-lock.ts`), used by `SideDrawer` (cart + filters), the bottom-nav
   `MenuSheet` and the mobile search takeover. It takes `<body>` out of flow (`position: fixed`
@@ -1394,10 +1406,18 @@ resolved **per request from the host**, never baked.
     `fit="cover"` on a card-sized surface again** — read **`useStoreImageFit()`**
     (`services/storefront/use-image-fit.ts`, zero-arg, draft-first, mirrors `useStoreLogoStyle()`) and
     pass its result straight through. Current call sites: `product-card.tsx`'s grid image,
-    `home-minimal.tsx`'s product tiles, `home-classic.tsx`'s hero banner (4:3),
-    `wishlist-section.tsx`'s saved-item grid, `product-gallery.tsx`'s PDP hero, and the hero
-    carousel (below) — all read the hook independently, so nothing threads it as a prop through
-    `TplProps` or anywhere else.
+    `home-minimal.tsx`'s product tiles, `HeroCard`'s banner in `home/sections/hero-sections.tsx`
+    (`--herocard-ratio`: 4:3 on desktop, 16:9 on a phone),
+    `wishlist-section.tsx`'s saved-item grid, and `product-gallery.tsx`'s PDP hero — all read the
+    hook independently, so nothing threads it as a prop through `TplProps` or anywhere else.
+    ⚠ **No hero is on this list any more, as of 2026-08-17.** The control is rendered inside the
+    *Product cards* part, so a hero that inherited it meant re-cropping the shop's biggest picture as
+    a side effect of a thumbnail setting. Carousel slides read their own `imageFit`; the static
+    banner reads `heroBanner.imageFit`/`.focal` through **`bannerPhoto(hb)`** in `home-shared.tsx`,
+    which returns the `{ fit, focal }` pair to spread onto `<Media>`. Every section that CROPS the
+    banner spreads it — `HeroCard`, `HeroOpen`, and `EditorialSplit` in `band-sections.tsx` — so the
+    answer follows the photo into whichever frame is showing it (4:3, 4:5, `--herocard-ratio`).
+    `HeroSplit` needs nothing: `ratio="auto"` means no frame to miss. Unset = `"fit"` everywhere.
     Leave small row thumbs (cart drawer + cart page, search results, tracking, quick-buy sheet,
     header search, the PDP thumbnail rail, `thumbImageUrl` call sites generally) hardcoded on
     `fit="cover"` — a uniform crop reads as intentional at that size and a blurred halo around a
@@ -1411,8 +1431,8 @@ resolved **per request from the host**, never baked.
     nothing to crop) — don't layer the setting on top of that, the two solve the same problem
     differently on purpose. The hero
     carousel uses the same two-layer idea directly in CSS (`.sf-hero-art-bg`/`-fg` vs the classic
-    single-layer `.sf-hero-art`, branched on `useStoreImageFit()`, see the hero bullet above) since it
-    paints via `background-image`, not an `<img>`.
+    single-layer `.sf-hero-art`, branched on the SLIDE's own `imageFit`, see the hero bullet above)
+    since it paints via `background-image`, not an `<img>`.
     **`templates.imageRatio` is its sibling, and the two are orthogonal** (2026-08-12): ratio is
     the FRAME (`square` default / `portrait` 3:4 / `landscape` 4:3 / `tall` 2:3), fit is what
     happens to a photo that doesn't match it. `mediaRatioFor()` beside `mediaFitFor()` is the only
@@ -2451,15 +2471,47 @@ resolved **per request from the host**, never baked.
   (`customize/parts/hero-part.tsx` — zero-slides warning, Minimal note; the wireframe layout tiles
   it once shared a card with now live in the Home page part).
   Banner MediaField now documents its double duty (static hero + og:image, `shop/page.tsx`).
+  **`heroBanner.imageFit` + `.focal` (2026-08-17) are the banner photo's own crop controls** — same
+  `<PhotoFitField>` the slides use, rendered under the banner MediaField. They live on `heroBanner`
+  rather than beside the image because `StorefrontSettings.banner` is a bare image field shared with
+  `og:image`, with no shape of its own. ⚠ `cleanHeroBanner` rebuilds the object **field by field**,
+  so a new key must be added there or it is silently dropped from the PATCH and the preview — the
+  same trap as `trimSlides`. Uploading or removing the banner clears `focal` (coordinates on a
+  specific photograph) but keeps `imageFit` (a preference for the slot). `<Media>` gained a `focal`
+  prop for this: `object-position` on the **cropped** branch only — `canvas` already shows the whole
+  photo, so moving it would just slide it inside its own letterbox.
 
-- **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/badge?/title/
-  subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
+- **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/focal?/imageFit?/
+  badge?/title/subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
   (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
   swipe, reduced-motion; imageless = brand-tinted panel, image = blurred-canvas fit (`.sf-hero-art-bg`
   blurred cover behind, `.sf-hero-art-fg` full photo at `contain` on top — a slide never loses its
-  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands). Renders on
+  edges to a hard `cover` crop) + scrim; CTA has a white border for near-black brands).
+  **`focal` (2026-08-17) is where a cropping slide is anchored** — `{ x, y }` in percent, unset =
+  centre, translated to `background-position` by `lib/storefront-focal.ts`, which is the ONE place
+  that translation happens (it sits outside `storefront-templates.ts` only because that file is at
+  its size limit). It lands on `.sf-hero-art` and `.sf-hero-art-bg`, never `-fg` — that layer is
+  `contain`, so the whole photo is already visible and moving it would just slide it inside its own
+  letterbox. Admin: `customize/focal-point-picker.tsx`, whose click target is the `<img>` itself
+  rather than its padded box, so any photo ratio maps its own edges to 0/100%; replacing or
+  removing a slide image clears the point, since it was picked on the old photo.
+  ⚠ **The carousel does NOT call `useStoreImageFit()` — deliberately** (2026-08-17). Each slide
+  carries its own `imageFit`, and `undefined` renders `fit` (whole photo), the answer that can never
+  cut a face or a word in half. It arrives as a loose string like the `templates` ids, so it reaches
+  `mediaFitFor` through the `isImageFit` guard (beside `isImageRatio`) and an unknown id falls back to
+  the same default rather than throwing. **Why the inheritance was cut:** `templates.imageFit` is
+  rendered inside the *Product cards* part, so a hero that read it meant changing how product
+  thumbnails crop silently re-cropped the shop's biggest picture — a grid of small squares and a wide
+  banner are different jobs with no reason to share an answer. The editor hides the focus picker when
+  the fit is `fit`; nothing is cropped, so the control would have no effect. The chips are worded
+  from `TEMPLATE_OPTIONS.imageFit` so the slide and the store-wide control can't drift apart.
+  **The photo's URL is published as two custom properties** (`--sf-slide-img` medium /
+  `--sf-slide-img-lg` original) on the slide `<section>`, and storefront.css picks per breakpoint:
+  which one is right is a viewport question and the carousel renders on the server, so the 800px
+  `mediumUrl` was being stretched over a 1200px hero. The imageless tint sets `background` inline,
+  which outranks the undefined var — don't "fix" that by adding a `var()` fallback. Renders on
   Classic + Hero Split when slides exist (Minimal keeps its hero;
-  empty = static hero). Admin: Customize → Theme → `hero-slides-editor.tsx`; slide image upload =
+  empty = static hero). Admin: Customize → Hero → `customize/hero-slides-panel.tsx`; slide image upload =
   `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
   cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.
   Approved design sample: claude.ai/code/artifact/2ea161da-ea0a-4d15-9c31-00a3110804f1.

@@ -6,8 +6,8 @@ import { storeHref } from "@/lib/storefront-links";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
-import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import {
+  bannerPhoto,
   campaignBadge,
   heroBtns,
   wrap,
@@ -350,7 +350,6 @@ function DealCard({
  */
 export function EditorialSplit(props: SectionProps) {
   const { base, t, banner, heroBanner: hb } = props;
-  const imageFit = useStoreImageFit();
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,56px) var(--pad)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "var(--splitcols)", gap: "clamp(20px,4vw,52px)", alignItems: "center" }}>
@@ -360,8 +359,8 @@ export function EditorialSplit(props: SectionProps) {
           label="lifestyle shot"
           ratio="4 / 5"
           radius={0}
-          fit={imageFit}
           style={{ borderRadius: "var(--radius-lg)" }}
+          {...bannerPhoto(hb)}
         />
         <div>
           <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>

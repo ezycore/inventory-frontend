@@ -11454,6 +11454,11 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                 } | null;
+                focal?: {
+                    x: number;
+                    y: number;
+                };
+                imageFit?: string;
                 badge?: string;
                 title: string;
                 subtitle?: string;
@@ -11468,6 +11473,11 @@ export interface components {
                 primaryLink?: string;
                 secondaryLabel?: string;
                 secondaryLink?: string;
+                imageFit?: string;
+                focal?: {
+                    x: number;
+                    y: number;
+                };
             };
             couriers: {
                 /** @enum {string} */
@@ -17801,6 +17811,11 @@ export interface operations {
                             thumbnailUrl?: string;
                             publicId?: string;
                         } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        imageFit?: string;
                         badge?: string;
                         title: string;
                         subtitle?: string;
@@ -17815,6 +17830,11 @@ export interface operations {
                         primaryLink?: string;
                         secondaryLabel?: string;
                         secondaryLink?: string;
+                        imageFit?: string;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
                     };
                 };
             };

@@ -112,6 +112,32 @@ your logo, banner, slide and announcement pictures — save the moment you uploa
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 
+### Hero
+
+The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
+**static banner** with your own headline — choose which under "The hero shows".
+
+A slide photo has to sit in two very different shapes: a wide strip on a computer, and something
+close to square on a phone. Each slide decides how its own photo handles that, under **This photo**:
+
+- **Full photo** — all of it stays visible, over a soft blurred backdrop. This is what a slide does
+  until you say otherwise, and it is the right choice for a poster or anything with writing on it,
+  which a crop would cut through.
+- **Cropped** — the photo covers the whole hero and the edges are trimmed off. Best for a photograph.
+
+Each slide answers for itself, and your **Banner image** has the same two choices and its own focus
+point, just under where you upload it. The **Image fit** setting under Product cards decides how your
+*product* photos behave and has no say over the hero, so you can crop your product grid tidily and
+still show a banner whole.
+
+When a slide is cropped, a phone keeps the middle of the photo unless you say otherwise — that is what
+**Focus point** is for. Tap the part that must stay visible — a face, the product, your logo — and
+the small **Phone crop** preview beside it shows exactly what a phone will keep. Leave it untouched
+and the photo stays centred, as it always did.
+
+Upload around 1600 × 640 px, and keep the left side clear: on a wide screen your title and button
+sit there.
+
 ### Home page → Sections
 
 Your homepage is a list of blocks, top to bottom, and **Sections** is where you set it. Move a block
