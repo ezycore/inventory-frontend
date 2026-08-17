@@ -13,6 +13,14 @@
       "all": "সব গ্রাহক",
       "accounts": "অনলাইন অ্যাকাউন্ট",
       "subscribers": "সাবস্ক্রাইবার"
+    },
+    "totals": {
+      "receivable": "মোট পাওনা",
+      "receivableHint": "এই মুহূর্তে আপনার পাওনা",
+      "debtors": "বকেয়া আছে যাদের",
+      "debtorsHint": "অপরিশোধিত ব্যালেন্সসহ",
+      "credit": "স্টোর ক্রেডিট",
+      "creditHint": "ক্রেতাদের কাছে আপনার দেনা"
     }
   },
   "filters": {
@@ -32,7 +40,10 @@
     "selectDateRange": "তারিখের সীমা নির্বাচন করুন",
     "updatedDate": "আপডেটের তারিখ",
     "selectDate": "তারিখ নির্বাচন করুন",
-    "globalSearchPlaceholder": "নাম, ইমেইল, ফোন বা স্ট্যাটাস দিয়ে গ্রাহক খুঁজুন..."
+    "globalSearchPlaceholder": "নাম, ইমেইল, ফোন বা স্ট্যাটাস দিয়ে গ্রাহক খুঁজুন...",
+    "dues": "বকেয়া",
+    "allCustomers": "সব ক্রেতা",
+    "owesMoney": "বকেয়া আছে (বেশি আগে)"
   },
   "form": {
     "name": "গ্রাহকের নাম",

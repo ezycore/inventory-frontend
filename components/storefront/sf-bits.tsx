@@ -70,6 +70,7 @@ export function Media({
   ratio = "1 / 1",
   radius = 11,
   fit = "cover",
+  focal,
   className,
   style,
 }: {
@@ -79,6 +80,14 @@ export function Media({
   ratio?: string;
   radius?: number;
   fit?: "cover" | "canvas";
+  /**
+   * `object-position` for the CROPPED branch — a `focalPosition()` string, so the
+   * merchant decides which part of an owner-uploaded photo survives the trim.
+   * `canvas` ignores it on purpose: that branch already shows the whole photo, so
+   * moving it would only slide it inside its own letterbox. Unset = centre, which
+   * is every product/thumbnail caller.
+   */
+  focal?: string;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -130,6 +139,7 @@ export function Media({
           aspectRatio: ratio,
           width: "100%",
           objectFit: "cover",
+          objectPosition: focal,
           borderRadius: radius,
           ...style,
         }}

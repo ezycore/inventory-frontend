@@ -28,7 +28,7 @@ export function SidebarAccount({
 }) {
   const { t, activeKey, setTab, tabsRef, memberYear, signOut, initial } = api;
   return (
-    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", width: "100%", padding: "22px var(--pad) 40px" }}>
+    <div style={{ maxWidth: "var(--maxw-read)", margin: "0 auto", width: "100%", padding: "22px var(--pad) 40px" }}>
       <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 20px", letterSpacing: "-0.02em" }}>
         {t.myAccount}
       </h1>

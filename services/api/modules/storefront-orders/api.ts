@@ -296,23 +296,24 @@ export const storefrontOrdersApi = {
     body: EditAdminOrderInput,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.patch(`${base}/${id}`, body),
-  // Cancel/reject a pre-commit order (no Sale yet). `refundAdvance` returns a
-  // recorded COD delivery-charge advance to the shopper (books the reversing
-  // expense); `accountId` overrides the account it's refunded from.
+  // Cancel/reject a pre-commit order (no Sale yet). `refundPrepayment` returns a
+  // recorded prepayment to the shopper (books a reversing expense per leg);
+  // `accountId` overrides the account it's refunded from.
   cancel: (
     id: string,
-    body?: { reject?: boolean; refundAdvance?: boolean; accountId?: string },
+    body?: { reject?: boolean; refundPrepayment?: boolean; accountId?: string },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/cancel`, body ?? {}),
-  // Record a COD delivery-charge advance collected before shipping. The server
-  // caps `amount` at the order's `shippingCharged`; the door/COD collection then
-  // shrinks by it. Delivery orders only, once, before dispatch.
-  recordAdvance: (
+  // Record money collected before shipping — a delivery-charge advance, or a bank
+  // transfer for the whole order. The server caps `amount` at the order's
+  // `totalAmount` and splits it into its shipping and goods legs; the door/COD
+  // collection shrinks by it. Delivery orders only, once, before dispatch.
+  recordPrepayment: (
     id: string,
     amount: number,
     accountId?: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
-    apiClient.post(`${base}/${id}/advance`, { amount, accountId }),
+    apiClient.post(`${base}/${id}/prepayment`, { amount, accountId }),
   updateCourierCost: (
     id: string,
     shippingCost: number,

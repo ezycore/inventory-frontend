@@ -18,6 +18,7 @@ import type {
   CustomizeDraft,
   FooterContentPagesDraft,
 } from "@/components/ecommerce/customize/use-customize-draft";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -34,8 +35,13 @@ const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
   // Untitled slides are drafts — a title is required to ship.
   slides
     .filter((s) => s.title.trim())
+    // ⚠ Field-by-field, so a NEW slide field must be added here or it is
+    // silently dropped from both the PATCH and the live preview — the draft
+    // keeps it, the shop never sees it, and nothing fails.
     .map((s) => ({
       image: s.image ?? null,
+      focal: s.focal,
+      imageFit: s.imageFit,
       badge: s.badge?.trim() || undefined,
       title: s.title.trim(),
       subtitle: s.subtitle?.trim() || undefined,
@@ -303,6 +309,8 @@ export function toPreviewPayload(
     forceHeroSlides,
     forceCollectionsMenu,
     socialWhatsapp,
+    hasCollections = true,
+    samples,
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
@@ -312,6 +320,27 @@ export function toPreviewPayload(
     forceCollectionsMenu: boolean;
     /** Settings → General's number, so the preview can mirror the blank-number fallback. */
     socialWhatsapp?: string;
+    /**
+     * Whether the caller actually HAS the merchant's collections.
+     *
+     * `seedDraft` deliberately omits them — in Customize they arrive from their
+     * own query — so a caller without that query holds `[]`, which is not
+     * "this shop has none" but "I did not look". Sending it as a draft made the
+     * storefront believe the taxonomy was empty: the category row vanished and,
+     * under the `rail` shell, the aside stopped rendering entirely and the whole
+     * page collapsed into the rail's 218px track.
+     *
+     * Omitting the key instead leaves `previewCollections` null, and `StoreShell`
+     * falls back to the categories it fetched itself.
+     */
+    hasCollections?: boolean;
+    /**
+     * Sample stock for the theme PICKER, where the shop being previewed may have
+     * nothing to draw. Sent only by the Themes page, which knows which theme it
+     * is staging; Customize previews a real shop and omits it, so the storefront
+     * keeps showing the merchant's own catalogue exactly as it is.
+     */
+    samples?: ThemeSample;
   },
 ) {
   return {
@@ -363,7 +392,12 @@ export function toPreviewPayload(
     // `null` (not undefined) is what tells the preview store the launcher is
     // switched off, as opposed to "nothing drafted yet" — see the store's note.
     contactButton: toPreviewContactButton(draft, socialWhatsapp),
-    collections: publicCollections(draft.collections),
+    // Omitted entirely when the caller has no collections query — see
+    // `hasCollections`. An absent key means "not drafted"; `[]` means "none".
+    ...(hasCollections
+      ? { collections: publicCollections(draft.collections) }
+      : {}),
+    samples,
     // `null` (not undefined) is what tells the preview store "removed" apart
     // from "not sent yet".
     logo,

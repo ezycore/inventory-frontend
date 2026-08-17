@@ -109,6 +109,10 @@ export const DESIGN_FONTS: DesignOption[] = [
 export const DESIGN_SURFACES: DesignOption[] = [
   { id: "default", label: "Clean white", description: "White cards on a near-white page — the default" },
   { id: "parchment", label: "Warm parchment", description: "Cream ground with tan panels — grocery, food, craft" },
+  // The inverse of the other two: the PAGE is tinted and the card is pure white,
+  // so every card reads as a separate object rather than a slightly lighter
+  // patch of the same sheet.
+  { id: "mist", label: "Cool mist", description: "White cards on a soft grey-blue page — pharmacy, clinical, technical" },
 ];
 
 /**
@@ -129,6 +133,7 @@ export const DESIGN_SURFACES: DesignOption[] = [
 const SURFACE_SWATCH: Record<string, [string, string, string]> = {
   default: ["#f8fafc", "#ffffff", "#f1f5f9"],
   parchment: ["#f5ead8", "#f9f4ed", "#ebddc5"],
+  mist: ["#eef2f5", "#ffffff", "#e2e9ee"],
 };
 
 /** The swatch for a surface id, falling back to the built-in look. */
@@ -164,6 +169,24 @@ export const DESIGN_RADII: DesignOption[] = [
   { id: "pill", label: "Pill buttons", description: "Fully round buttons and chips over soft cards" },
 ];
 
+/**
+ * How much of the screen the shop occupies. Drives `--maxw` **and `--cols`**.
+ *
+ * ⚠ The column half is not optional. `--cols` is a fixed count, not a function
+ * of available space — 4 at desktop, 5 on compact, 3 on airy — so widening
+ * `--maxw` alone does not add products, it inflates the ones already there. On a
+ * 27" monitor an uncapped page would render the same four cards at roughly
+ * 600px each, which is the opposite of what anyone asking for full width wants.
+ * A width step therefore always moves the column count with it.
+ *
+ * Prose deliberately does NOT follow — see `--maxw-prose` in storefront.css.
+ */
+export const DESIGN_WIDTHS: DesignOption[] = [
+  { id: "contained", label: "Contained", description: "A centred 1200px page — the default" },
+  { id: "wide", label: "Wide", description: "More of the screen, and a fifth column of products" },
+  { id: "full", label: "Full width", description: "Edge to edge, with six columns on a large screen" },
+];
+
 /** The resolved design a storefront renders with. */
 export interface StoreDesign {
   font: string;
@@ -171,6 +194,7 @@ export interface StoreDesign {
   scale: string;
   density: string;
   radius: string;
+  width: string;
 }
 
 /**
@@ -184,6 +208,7 @@ export const DEFAULT_DESIGN: StoreDesign = {
   scale: DESIGN_SCALES[0].id,
   density: DESIGN_DENSITIES[0].id,
   radius: DESIGN_RADII[0].id,
+  width: DESIGN_WIDTHS[0].id,
 };
 
 const idsOf = (options: DesignOption[]) => new Set(options.map((o) => o.id));
@@ -192,6 +217,7 @@ const SURFACE_IDS = idsOf(DESIGN_SURFACES);
 const SCALE_IDS = idsOf(DESIGN_SCALES);
 const DENSITY_IDS = idsOf(DESIGN_DENSITIES);
 const RADIUS_IDS = idsOf(DESIGN_RADII);
+const WIDTH_IDS = idsOf(DESIGN_WIDTHS);
 
 const pickId = (allowed: Set<string>, raw: string | undefined, fallback: string) =>
   raw && allowed.has(raw) ? raw : fallback;
@@ -209,6 +235,7 @@ export function resolveDesign(design?: {
   scale?: string;
   density?: string;
   radius?: string;
+  width?: string;
 }): StoreDesign {
   return {
     font: pickId(FONT_IDS, design?.font, DEFAULT_DESIGN.font),
@@ -216,6 +243,7 @@ export function resolveDesign(design?: {
     scale: pickId(SCALE_IDS, design?.scale, DEFAULT_DESIGN.scale),
     density: pickId(DENSITY_IDS, design?.density, DEFAULT_DESIGN.density),
     radius: pickId(RADIUS_IDS, design?.radius, DEFAULT_DESIGN.radius),
+    width: pickId(WIDTH_IDS, design?.width, DEFAULT_DESIGN.width),
   };
 }
 
@@ -239,5 +267,6 @@ export function designAttrs(design: StoreDesign) {
     "data-scale": omitDefault(design.scale, DEFAULT_DESIGN.scale),
     "data-density": omitDefault(design.density, DEFAULT_DESIGN.density),
     "data-radius": omitDefault(design.radius, DEFAULT_DESIGN.radius),
+    "data-width": omitDefault(design.width, DEFAULT_DESIGN.width),
   };
 }

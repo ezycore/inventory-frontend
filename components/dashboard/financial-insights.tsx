@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@ui/components/card'
-import { Badge } from '@ui/components/badge'
 import { Skeleton } from '@ui/components/skeleton'
 import { Progress } from '@ui/components/progress'
 import EmptyState from '@ui/components/EmptyState'
@@ -36,7 +35,7 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="space-y-1">
                 <Skeleton className="h-3 w-[100px]" />
                 <Skeleton className="h-5 w-[140px]" />
@@ -70,7 +69,8 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
     )
   }
 
-  const grossProfit = overview.grossProfit
+  // Gross profit is headlined in the KPI row, not repeated here — this panel is
+  // the rates and averages behind those headlines.
   const collectionRate = overview.sales.total > 0
     ? Math.round((overview.sales.paid / overview.sales.total) * 100)
     : 0
@@ -95,17 +95,6 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Gross Profit */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">{t('grossProfit')}</p>
-              <p className="text-base font-bold">{formatCurrency(grossProfit)}</p>
-            </div>
-            <Badge variant={grossProfit >= 0 ? 'default' : 'destructive'} className="text-[10px]">
-              {grossProfit >= 0 ? '+' : ''}{overview.sales.total > 0 ? Math.round((grossProfit / overview.sales.total) * 100) : 0}{t('marginSuffix')}
-            </Badge>
-          </div>
-
           {/* Avg Order Value */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import JsBarcode from "jsbarcode";
+import { checkBarcodeForSymbology } from "@/utils/barcode-symbology";
 import { cn } from "@ui/lib/utils";
 
 export type BarcodeSymbology =
@@ -43,9 +44,14 @@ export function BarcodeImage({
   className,
 }: BarcodeImageProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  // Checked before rendering rather than caught after. The `catch {}` this
+  // replaces left an EMPTY <svg> on screen: a merchant who picked UPC-A for an
+  // alphanumeric barcode saw a blank space, no reason, and only found out at
+  // print time. Say which rule was broken, where they can still fix it.
+  const check = checkBarcodeForSymbology(value, symbology);
 
   useEffect(() => {
-    if (!svgRef.current || !value) return;
+    if (!svgRef.current || !value || !check.ok) return;
     const format = TO_JSBARCODE[symbology];
     if (!format) {
       // QR or unsupported — caller should use BE image URL
@@ -60,10 +66,18 @@ export function BarcodeImage({
         margin: 4,
       });
     } catch {
-      // invalid value for chosen symbology
+      // A wrong check digit on an otherwise well-formed code — the one case the
+      // pre-check cannot know. The message below still explains the blank.
     }
-  }, [value, symbology, width, height, displayValue]);
+  }, [value, symbology, width, height, displayValue, check.ok]);
 
   if (!value) return null;
+  if (!check.ok) {
+    return (
+      <p className={cn("text-xs text-destructive", className)} role="status">
+        {check.reason}
+      </p>
+    );
+  }
   return <svg ref={svgRef} className={cn("inline-block", className)} />;
 }

@@ -28,6 +28,8 @@
 | Per-lot table on stock detail | `components/inventory/detail/inventory-batches.tsx` |
 | Assign-expiry dialog | `components/inventory/detail/assign-expiry-dialog.tsx` |
 | Expiry report | `app/(protected)/reports/expiry/page.tsx` + `components/reports/expiry-report.tsx` |
+| Expiry-report row type + `lotValue()` | `components/reports/expiry-report-types.ts` — the **one** place a lot's money value is computed |
+| Write off an expired lot | `components/reports/expiry-write-off-dialog.tsx` + `useWriteOffExpiredBatch()` |
 | Receive-time capture + missing-date warning | `components/purchases/orders/receive-items-dialog.tsx`, `components/purchases/expiry-cells.tsx` |
 | Sales-side lot handling | `components/sales/sell/use-sell-page.ts` |
 | API + hooks | `services/api/modules/inventory/{api,hooks}.ts`; types in `analytics.types.ts` (`BatchRow`) |
@@ -100,9 +102,21 @@ interface BatchRow {
   batchNumber?: string          // null/absent on the unknown lot
   remainingQuantity: number
   expiryDate?: string | null    // null = unknown-expiry lot
-  costPrice?: number
+  costPrice?: number            // per BASE unit — value is a plain multiply, no factor
+  inventoryQuantity?: number | null   // expiry reports only; see below
 }
 ```
+
+**`inventoryQuantity` is on-hand across every lot of that product at that location**, not this
+lot's own quantity. It arrives on the two expiry report reads (`/expiry/expiring`, `/expiry/expired`)
+so the report can write a lot off in place: `bulk-adjust` takes an **absolute** `newQuantity`
+checked against an `expectedQuantity`, and this is that figure. `null` means no inventory row
+matched — treat it as *"cannot write off from here"*, **never** as zero, or the write-off posts
+`newQuantity: 0` against a row it never read.
+
+**`days` on `/expiry/expiring` is an override, not a default.** Omit it and the backend applies each
+product's own `expiryAlertDays`, which is what the product form promises. `ExpiryReport` therefore
+defaults its selector to `null` and only sends `days` when the merchant picks a fixed window.
 
 There is no `daysToExpiry`, no `initialQuantity`, no `value`, and no `quarantined` status — the
 server sends `active | depleted | expired` and the FE derives urgency from `expiryDate` itself.
@@ -138,6 +152,8 @@ now deleted) because the backend had no write-off path. It does now — do not r
   from the allocation instead of showing the split the user chose.
 - A dedicated batch-picker **drawer** for sales returns / purchase returns.
 - A dashboard expiry widget.
+- **A "write off all expired" bulk action.** Single-lot write-off shipped 2026-08-17; the bulk
+  version would post several `bulk-adjust` rows in one call, which the backend already supports.
 
 ## Resolved disagreements (2026-07-29 merge)
 

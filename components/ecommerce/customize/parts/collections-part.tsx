@@ -4,12 +4,17 @@
 import { Pencil } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import { OptionChip } from "@/ui/components/option-card";
+import { cn } from "@/ui/lib/utils";
 import {
   PartBlock,
+  PartField,
   PartHint,
   PartLabel,
 } from "@/components/ecommerce/customize/part-group";
-import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
+import {
+  TemplatePicker,
+  TemplateSegmented,
+} from "@/components/ecommerce/customize/parts/template-picker";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 import { resolveHomeCollections } from "@/lib/storefront-templates";
 import type { StorefrontHomeCollections } from "@/types";
@@ -76,23 +81,27 @@ export function CollectionsPart({
         </Button>
       </PartBlock>
 
-      <PartBlock label="Products per row">
-        <TemplatePicker
-          templateKey="collection"
-          value={draft.templates.collection}
-          onChange={(v) => patchTemplate("collection", v)}
-        />
-      </PartBlock>
+      {/* One block, two fields: both describe the category page, and as two
+          `PartBlock`s they spent 64px of block padding saying so twice. */}
+      <PartBlock label="Category pages" hint="Also applies to search results.">
+        <PartField label="Products per row">
+          <TemplateSegmented
+            templateKey="collection"
+            label="Products per row"
+            value={draft.templates.collection}
+            onChange={(v) => patchTemplate("collection", v)}
+            glyph={(v) => <ColumnsGlyph value={v} />}
+          />
+        </PartField>
 
-      <PartBlock
-        label="Loading more products"
-        hint="Applies to category pages and search results."
-      >
-        <TemplatePicker
-          templateKey="pagination"
-          value={draft.templates.pagination}
-          onChange={(v) => patchTemplate("pagination", v)}
-        />
+        <PartField label="Loading more products">
+          <TemplateSegmented
+            templateKey="pagination"
+            label="Loading more products"
+            value={draft.templates.pagination}
+            onChange={(v) => patchTemplate("pagination", v)}
+          />
+        </PartField>
       </PartBlock>
 
       <PartBlock
@@ -120,6 +129,49 @@ export function CollectionsPart({
         />
       </PartBlock>
     </>
+  );
+}
+
+/**
+ * What a category page's grid looks like at each step. `sidebar` draws the
+ * filter column that is its actual difference; the other two differ only in how
+ * many boxes are in the row, which is what the glyph counts.
+ *
+ * ⚠ **`sidebar` is a THREE-column grid, not two.** `shop/products/view.tsx`
+ * resolves `grid3 || sidebar → sf-grid-3`, so the rail steals width from the
+ * page, not a column from the grid. The first version of this glyph drew two
+ * boxes, which in a field literally labelled "Products per row" was a wrong
+ * answer to the only question it asks.
+ */
+const COLUMNS_IN_GLYPH: Record<string, number> = {
+  "grid-3": 3,
+  "grid-4": 4,
+  sidebar: 3,
+};
+
+function ColumnsGlyph({ value }: { value: string }) {
+  const tiles = COLUMNS_IN_GLYPH[value] ?? 3;
+  const withRail = value === "sidebar";
+  return (
+    <span className="flex h-3 w-full gap-[2px]">
+      {/* The rail is drawn SOLID against dimmed product tiles, not merely
+          narrower. The glyph is ~30px wide, so a 4px rail beside three 6.7px
+          tiles reads as four equal bars — i.e. as "4 per row", which is the
+          option sitting next to this one. Weight separates them where width
+          cannot. */}
+      {withRail ? (
+        <span className="h-full w-[4px] flex-none rounded-[1px] bg-current" />
+      ) : null}
+      {Array.from({ length: tiles }, (_, i) => (
+        <span
+          key={i}
+          className={cn(
+            "h-full flex-1 rounded-[1px] bg-current",
+            withRail && "opacity-50",
+          )}
+        />
+      ))}
+    </span>
   );
 }
 

@@ -195,11 +195,22 @@ export function getOwnerSetupFormConfig(t: Translator): DynamicFormConfig {
             // and invoices, and `Location.address` is required anyway — while
             // this was optional the backend fell back to the literal string
             // "Default Address" (docs/plan/onboarding-workspace.md §5.5).
+            //
+            // Labelled "business address", not "shop address": the launch
+            // segment is F-commerce sellers working from home, and asking a
+            // home-based seller for their *shop* address as a required field
+            // creates privacy hesitation at the worst possible moment (QA-021).
+            //
+            // The helper says where it becomes public, because it does: the
+            // storefront's `pickup.location.address` reads this same location,
+            // so enabling in-store pickup publishes it to shoppers. A merchant
+            // deciding what to type here needs that before they type it.
             name: "address",
             type: "textarea",
             label: t("addressLabel"),
             columnSpan: 12,
             placeholder: t("addressPlaceholder"),
+            helperText: () => t("addressHelper"),
             required: true,
             validation: { minLength: 5, maxLength: 300 },
           },

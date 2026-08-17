@@ -12,6 +12,44 @@ import { NavGroup, NavItem } from "@/types/layout";
  * money flow, so it gets its own group instead of nesting under Sell. A group
  * with an empty `label` renders without a heading (see `AppSidebar`); Dashboard
  * uses that so the rail doesn't spend a row labelling a single item.
+ *
+ * ## Every destination declares its `permissions`
+ *
+ * Until 2026-08-17 only the storefront and tax entries did — 19 of 66 — so a
+ * `staff` user was offered Sell, Purchases, Reports, Cash & Bank and Pricing,
+ * every one of which answered 403 or rendered empty. `filterNavItems` had
+ * honoured the key all along; the data simply wasn't there. **A new entry
+ * without `permissions` is a row somebody will be shown and cannot use.**
+ *
+ * List the permission that makes the screen *usable*, not merely reachable —
+ * New Sale takes `sales.create`, not `sales.view`.
+ *
+ * ### A parent MUST list the union of its children
+ *
+ * Not "should" — `filterNavItems` tests the parent **before** it recurses, so a
+ * parent that fails its own gate takes every child down with it, whatever the
+ * children declare. A narrower parent than its children is therefore a hidden
+ * screen, not a redundant line.
+ *
+ * That is not hypothetical: `Reports` listed `reports.view` alone while
+ * `Expiry Report` beneath it is deliberately `stock.view`, so the pharmacy
+ * counter person the exception was written for — `staff`, who holds `stock.view`
+ * and no `reports.view` — lost the entire Reports section and never reached it.
+ * `Locations` / `Stock by Location` had the same shape.
+ *
+ * A parent whose children are all denied is still dropped automatically, so a
+ * pure container needs nothing of its own.
+ *
+ * Four entries are deliberately ungated:
+ * - **Dashboard** — everyone must land somewhere, and it already tailors itself
+ *   by role ("Sales figures aren't shown for your role").
+ * - **Online Store**, **Pricing**, **Settings** — pure containers; their
+ *   children carry the gates and the parent disappears with them.
+ *
+ * Note `Expiry Report` is gated on `stock.view`, not `reports.view`: it lives
+ * under Reports but it is a shop-floor screen, and the pharmacy counter person
+ * who needs it holds stock permissions and no reporting ones. `Reports` carries
+ * `stock.view` in its union for exactly that reason.
  */
 export const navGroups: NavGroup[] = [
   {
@@ -41,6 +79,12 @@ export const navGroups: NavGroup[] = [
         // hide an online seller's entire sales history.
         title: "Sales",
         url: "/sales",
+        permissions: [
+          "sales.view",
+          "storefront.orders.view",
+          "sales.create",
+          "returns.view",
+        ],
         icon: "shopping-cart",
         isActive: false,
         anyFeatures: ["sales", "storefront"],
@@ -48,6 +92,7 @@ export const navGroups: NavGroup[] = [
           {
             title: "New Sale",
             url: "/sales",
+            permissions: ["sales.create"],
             icon: "shopping-cart",
             features: ["sales"],
           },
@@ -64,6 +109,7 @@ export const navGroups: NavGroup[] = [
           {
             title: "Sales History",
             url: "/sales/history",
+            permissions: ["sales.view"],
             icon: "clock",
             anyFeatures: ["sales", "storefront"],
           },
@@ -72,6 +118,7 @@ export const navGroups: NavGroup[] = [
             // `anyFeatures` is any-of, and filterNavItems applies both.
             title: "Sales Returns",
             url: "/sales/returns",
+            permissions: ["returns.view"],
             icon: "corner-up-left",
             features: ["returns"],
             anyFeatures: ["sales", "storefront"],
@@ -81,6 +128,7 @@ export const navGroups: NavGroup[] = [
       {
         title: "Customers",
         url: "/customers",
+        permissions: ["customers.view"],
         icon: "users",
         isActive: false,
         items: [],
@@ -187,27 +235,32 @@ export const navGroups: NavGroup[] = [
       {
         title: "Purchases",
         url: "/purchases",
+        permissions: ["purchases.view", "returns.view", "purchases.create"],
         icon: "shopping-bag",
         isActive: false,
         items: [
           {
             title: "New Purchase",
             url: "/purchases",
+            permissions: ["purchases.create"],
             icon: "packages",
           },
           {
             title: "Purchase Orders",
             url: "/purchases/orders",
+            permissions: ["purchases.view"],
             icon: "file-plus",
           },
           {
             title: "Purchase History",
             url: "/purchases/history",
+            permissions: ["purchases.view"],
             icon: "clock",
           },
           {
             title: "Purchase Returns",
             url: "/purchases/returns",
+            permissions: ["returns.view"],
             icon: "package-minus",
             features: ["returns"],
           },
@@ -216,6 +269,7 @@ export const navGroups: NavGroup[] = [
       {
         title: "Suppliers",
         url: "/suppliers",
+        permissions: ["suppliers.view"],
         icon: "truck",
         isActive: false,
         items: [],
@@ -229,26 +283,30 @@ export const navGroups: NavGroup[] = [
       {
         title: "Inventory",
         url: "/inventory",
+        permissions: ["stock.view", "stock.manage"],
         icon: "database",
         isActive: false,
         items: [
-          { title: "Current Stock", url: "/inventory", icon: "list" },
+          { title: "Current Stock", url: "/inventory", permissions: ["stock.view"], icon: "list" },
           {
             title: "Low Stock",
             url: "/inventory/lowstock",
+            permissions: ["stock.view"],
             icon: "clipboard-list",
           },
-          { title: "Adjust Stock", url: "/inventory/adjust", icon: "edit" },
+          { title: "Adjust Stock", url: "/inventory/adjust", permissions: ["stock.manage"], icon: "edit" },
           {
             // Nothing to transfer between when there is one location.
             title: "Transfer Stock",
             url: "/inventory/transfers",
+            permissions: ["stock.manage"],
             icon: "truck",
             features: ["multiLocation"],
           },
           {
             title: "Stock History",
             url: "/inventory/movements",
+            permissions: ["stock.view"],
             icon: "arrow-right-left",
           },
         ],
@@ -256,16 +314,26 @@ export const navGroups: NavGroup[] = [
       {
         title: "Products",
         url: "/products",
+        // The catalog parent: one entry per child screen, because a merchant
+        // custom role may grant `categories.view` without `products.view`.
+        permissions: [
+          "products.view",
+          "categories.view",
+          "brands.view",
+          "tags.view",
+          "variants.view",
+          "units.view",
+        ],
         icon: "package",
         isActive: false,
         shortcut: ["p", "p"],
         items: [
-          { title: "Products", url: "/products", icon: "list" },
-          { title: "Categories", url: "/categories", icon: "tag" },
-          { title: "Brands", url: "/brands", icon: "star" },
-          { title: "Tags", url: "/tags", icon: "tag" },
-          { title: "Variants", url: "/variants", icon: "layers" },
-          { title: "Units", url: "/units", icon: "grid" },
+          { title: "Products", url: "/products", permissions: ["products.view"], icon: "list" },
+          { title: "Categories", url: "/categories", permissions: ["categories.view"], icon: "tag" },
+          { title: "Brands", url: "/brands", permissions: ["brands.view"], icon: "star" },
+          { title: "Tags", url: "/tags", permissions: ["tags.view"], icon: "tag" },
+          { title: "Variants", url: "/variants", permissions: ["variants.view"], icon: "layers" },
+          { title: "Units", url: "/units", permissions: ["units.view"], icon: "grid" },
         ],
       },
     ],
@@ -277,6 +345,7 @@ export const navGroups: NavGroup[] = [
       {
         title: "Cash & Bank",
         url: "/accounts",
+        permissions: ["accounts.view", "transactions.view"],
         icon: "wallet",
         isActive: false,
         features: ["accounts"],
@@ -284,12 +353,14 @@ export const navGroups: NavGroup[] = [
           {
             title: "Accounts",
             url: "/accounts",
+            permissions: ["accounts.view"],
             icon: "list",
             features: ["accounts"],
           },
           {
             title: "Transactions",
             url: "/accounts/transactions",
+            permissions: ["transactions.view"],
             icon: "arrow-right-left",
             features: ["accounts"],
           },
@@ -304,66 +375,81 @@ export const navGroups: NavGroup[] = [
       {
         title: "Reports",
         url: "/reports",
+        // Union of the children: every report is `reports.view` EXCEPT Expiry,
+        // which is `stock.view`. Narrowing this to `reports.view` hides Expiry
+        // from `staff` — see the union rule at the top of this file.
+        permissions: ["reports.view", "stock.view"],
         icon: "file-text",
         isActive: false,
         items: [
           {
             title: "Inventory Report",
             url: "/reports/inventory",
+            permissions: ["reports.view"],
             icon: "file-text",
           },
           {
             title: "Sales Report",
             url: "/reports/sales",
+            permissions: ["reports.view"],
             icon: "bar-chart-2",
             features: ["sales"],
           },
           {
             title: "Purchase Report",
             url: "/reports/purchases",
+            permissions: ["reports.view"],
             icon: "file-text",
           },
           {
             title: "Profit & Loss",
             url: "/reports/profit-loss",
+            permissions: ["reports.view"],
             icon: "trending-up",
           },
           {
             title: "Business Position",
             url: "/reports/position",
+            permissions: ["reports.view"],
             icon: "scale",
           },
           {
             title: "Cash Report",
             url: "/reports/cash",
+            permissions: ["reports.view"],
             icon: "credit-card",
             features: ["accounts"],
           },
           {
             title: "VAT Report",
             url: "/reports/tax",
+            permissions: ["reports.view"],
             icon: "percent",
             features: ["tax"],
           },
           {
             title: "Stock Value",
             url: "/reports/valuation",
+            permissions: ["reports.view"],
             icon: "database",
           },
           {
             title: "Expiry Report",
             url: "/reports/expiry",
+            permissions: ["stock.view"],
             icon: "calendar",
             features: ["expiryTracking"],
           },
           {
             title: "Staff Report",
             url: "/reports/employees",
+            permissions: ["reports.view"],
             icon: "user-check",
           },
           {
             title: "Export Data",
             url: "/reports/export",
+            permissions: ["reports.view"],
             icon: "download-cloud",
           },
         ],
@@ -377,6 +463,10 @@ export const navGroups: NavGroup[] = [
       {
         title: "Locations",
         url: "/locations",
+        // Union of the children — `Stock by Location` is a stock screen, so
+        // `stock.view` belongs here too or it is unreachable for anyone without
+        // `locations.view`. See the union rule at the top of this file.
+        permissions: ["locations.view", "stock.view"],
         icon: "map-pin",
         isActive: false,
         items: [
@@ -385,11 +475,12 @@ export const navGroups: NavGroup[] = [
           // address — hiding it would strand that address with no edit path.
           // The page hides its "Add location" button instead, and the backend
           // refuses a second location (docs/plan/onboarding-workspace.md §3.1).
-          { title: "Locations", url: "/locations", icon: "list" },
+          { title: "Locations", url: "/locations", permissions: ["locations.view"], icon: "list" },
           {
             // A per-location breakdown of one location is just Current Stock.
             title: "Stock by Location",
             url: "/locations/stock-report",
+            permissions: ["stock.view"],
             icon: "bar-chart-2",
             features: ["multiLocation"],
           },
@@ -401,7 +492,7 @@ export const navGroups: NavGroup[] = [
         icon: "tags",
         isActive: false,
         items: [
-          { title: "Discounts", url: "/discounts", icon: "tag" },
+          { title: "Discounts", url: "/discounts", permissions: ["discounts.view"], icon: "tag" },
           {
             title: "VAT Rates",
             url: "/taxes",

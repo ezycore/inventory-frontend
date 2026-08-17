@@ -58,11 +58,17 @@ describe("the theme catalogue", () => {
 
   // A theme is a bundle of DATA. If a look cannot be expressed with the axes the
   // catalogue already has, the fix is a new axis — not a branch in a component.
+  //
+  // Derived from `DEFAULT_DESIGN` rather than a hardcoded list, so adding an
+  // axis does not mean editing this test — it means every theme must declare
+  // the new axis, which is the thing actually worth enforcing. A bundle missing
+  // one would inherit whatever the merchant last chose instead of stamping the
+  // theme's own value, which is precisely how "apply Classic" stops being a
+  // reset.
   it("expresses every theme through the design axes alone", () => {
+    const axes = Object.keys(DEFAULT_DESIGN).sort();
     for (const theme of READY_MADE_THEMES) {
-      expect(Object.keys(theme.design).sort()).toEqual(
-        ["density", "font", "radius", "scale", "surface"],
-      );
+      expect(Object.keys(theme.design).sort()).toEqual(axes);
     }
   });
 
