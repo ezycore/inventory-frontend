@@ -462,6 +462,31 @@ const saleToDoc = (
   }
   totals.push({ label: tt("total", "Total"), value: currency(sale.totalAmount), strong: true });
   totals.push({ label: tt("paid", "Paid"), value: currency(sale.paidAmount) });
+  // The two settlements that are NOT cash-in, printed so the column reconciles.
+  //
+  // `dueAmount = totalAmount − paidAmount − refundCreditApplied` (sales-flow §1),
+  // and until 2026-08-17 only two of those three terms reached the paper: an
+  // invoice settled partly by a return credit printed `Total 55.20 · Paid 0.00 ·
+  // Due 40.20` and left ৳15 unaccounted for — with a rule under "Paid", so the
+  // layout actively asserted a subtraction that was false. This is the copy the
+  // customer keeps and the auditor reads, and it goes wrong precisely when a
+  // customer is most likely to check it: after a return.
+  //
+  // `refundedAmount` is cash paid back out of this sale. It does not enter the
+  // due arithmetic, but on a reprint after a refund the bare "Paid" line
+  // overstates what the customer is actually out of pocket, so it is shown too.
+  if ((sale.refundCreditApplied ?? 0) > 0) {
+    totals.push({
+      label: tt("creditApplied", "Credit applied"),
+      value: currency(sale.refundCreditApplied as number),
+    });
+  }
+  if ((sale.refundedAmount ?? 0) > 0) {
+    totals.push({
+      label: tt("refunded", "Refunded"),
+      value: `- ${currency(sale.refundedAmount as number)}`,
+    });
+  }
   if (sale.dueAmount > 0) {
     totals.push({ label: tt("due", "Due"), value: currency(sale.dueAmount), strong: true });
   }
