@@ -505,6 +505,12 @@ Four files, in payload order:
   header instead of reverting to the org mark.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+- **A payload key nothing READS is the same bug as one nothing sends** (browser QA, 2026-08-17).
+  `theme.accentColor` was sent by `toPreviewPayload`, mapped by `preview-bridge`, and stored by
+  `use-sf-preview-store` — and then read by no component, so the Brand part's accent field repainted
+  nothing while the brand control directly above it updated live. `StoreShell` now takes
+  `previewAccent ?? store?.theme?.accentColor`, the same shape as its `brandColor` line. When adding
+  a preview key, grep for a consumer of `s.<key>` before calling it wired.
 
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
@@ -516,6 +522,15 @@ over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.hom
 decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
 `HOME_PRESET_SECTIONS` keys, so `templates.home: "classic"` still resolves; it just names a starting
 section list now instead of a component.
+
+⚠ **The Customize picker must SEED the list — `api.patchHomeTemplate`, never
+`patchTemplate("home", …)`** (browser QA, 2026-08-17). `resolveSections` reads the preset only as the
+fallback for an *empty* `homepageSections`, and no store has one (applying any theme fills it via
+`sectionInstances(theme.sections)`). So the plain template write marked the part dirty, saved, and
+changed nothing a shopper could see — the whole "Starting layout" picker was inert on every theme.
+`patchHomeTemplate` writes the key *and* reseeds the list from `HOME_PRESET_SECTIONS`, exactly the
+way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
+does.
 
 ⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
 correct and their second was not, because between the two a colleague had committed them back on

@@ -11,6 +11,7 @@ import {
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
 import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
+import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
@@ -409,6 +410,38 @@ export function applyThemeToDraft(
 }
 
 /**
+ * The home template, which is a STARTING layout: it seeds the section list the
+ * Sections editor then owns.
+ *
+ * **This is why the picker cannot be a plain `patchTemplate("home", …)`.**
+ * `templates.home` reaches the shop only through `resolveSections`, which uses
+ * the preset as the fallback for an EMPTY `homepageSections` — and no store has
+ * one, because applying any theme fills it via `sectionInstances(theme.sections)`.
+ * So the bare template write marked the part dirty, saved, and changed nothing a
+ * shopper could see: the picker was inert on every theme (found in browser QA,
+ * 2026-08-17).
+ *
+ * Seeded the way `applyThemeToDraft` does, and for the same reasons: replaced
+ * outright rather than merged (a homepage is an ordered whole), with instances
+ * minted deterministically so picking a layout twice yields the same keys.
+ * `sectionConfig` is deliberately left alone — orphans are dropped in
+ * `toSettingsPayload`, and a row the merchant pointed at a collection keeps it
+ * when the same key comes back.
+ */
+export function applyHomeTemplateToDraft(
+  draft: CustomizeDraft,
+  value: string,
+): Partial<CustomizeDraft> {
+  const preset = HOME_PRESET_SECTIONS[value];
+  return {
+    templates: { ...draft.templates, home: value },
+    // An id with no preset (retired, or from a newer build) still sets the
+    // template — but must not blank the page, which an empty list would mean.
+    ...(preset ? { homepageSections: sectionInstances(preset) } : {}),
+  };
+}
+
+/**
  * Has the merchant edited the look since applying `appliedThemeId`? Compares
  * only what a theme writes, so changing footer wording — which a theme cannot
  * touch — must never read as "modified".
@@ -435,6 +468,8 @@ export interface CustomizeDraftApi {
   draft: CustomizeDraft;
   patch: (p: Partial<CustomizeDraft>) => void;
   patchTemplate: (key: string, value: string) => void;
+  /** `templates.home` + the section list it seeds — never `patchTemplate("home")`. */
+  patchHomeTemplate: (value: string) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
@@ -513,6 +548,10 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   const patchTemplate = useCallback(
     (key: string, value: string) =>
       setDraft((d) => ({ ...d, templates: { ...d.templates, [key]: value } })),
+    [],
+  );
+  const patchHomeTemplate = useCallback(
+    (value: string) => setDraft((d) => ({ ...d, ...applyHomeTemplateToDraft(d, value) })),
     [],
   );
   const applyTheme = useCallback((themeId: string) => {
@@ -599,6 +638,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     draft,
     patch,
     patchTemplate,
+    patchHomeTemplate,
     patchAnnouncement,
     patchContactButton,
     patchContentPages,

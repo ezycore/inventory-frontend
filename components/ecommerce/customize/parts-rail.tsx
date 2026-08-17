@@ -107,8 +107,17 @@ export function PartsRail({
   onManageCollections: () => void;
   onEditSlide: (index: number) => void;
 }) {
-  const { draft, patch, patchTemplate, dirtyParts, isDirty, discard, save, saving } =
-    api;
+  const {
+    draft,
+    patch,
+    patchTemplate,
+    patchHomeTemplate,
+    dirtyParts,
+    isDirty,
+    discard,
+    save,
+    saving,
+  } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
   const dirtyNames = dirtyParts
@@ -216,12 +225,20 @@ export function PartsRail({
               // the sections themselves. The picker seeds the list; the editor
               // owns it from then on — which is what makes these controls follow
               // whatever theme was applied rather than a fixed six rows.
+              //
+              // The seeding is `patchHomeTemplate`, NOT `patchTemplate("home")`:
+              // the plain template write reaches the shop only as the fallback
+              // for an empty section list, which no store has, so it left this
+              // picker inert. See the hook for the whole path.
               <>
-                <PartBlock label="Starting layout">
+                <PartBlock
+                  label="Starting layout"
+                  hint="Replaces the sections below with that layout's own. Your wording, products and collections are untouched."
+                >
                   <TemplatePicker
                     templateKey="home"
                     value={draft.templates.home}
-                    onChange={(v) => patchTemplate("home", v)}
+                    onChange={patchHomeTemplate}
                   />
                 </PartBlock>
                 <PartBlock
