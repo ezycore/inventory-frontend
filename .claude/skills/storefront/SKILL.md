@@ -2639,15 +2639,27 @@ resolved **per request from the host**, never baked.
   QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
   (MutationObserver misses them) + a guest control run to prove the detector fires.
 - **`json.error` not `json.message`** is where backend error text lives.
-- **The settings PATCH replaces `templates` (and every provided sub-field) WHOLESALE** —
+- **The settings PATCH replaces `templates`, `theme` and every provided sub-field WHOLESALE** —
   `updateSettings` is a shallow `Object.assign`. Any admin section saving one key inside
   `templates` must spread the saved object first (`{ ...settings.templates, headerMenu }`), and
   `TemplatesSection` seeds its draft from the full saved object for the same reason. Sending a
   partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
+  The validator is no guard: every key in `themeSchema`/`templatesSchema` is `.optional()`, so the
+  destructive payload is valid input. A comment in `draft-payloads.ts` claimed the opposite
+  ("nested paths MERGE, an omitted key keeps its stored value") until 2026-08-18 — it was wrong in
+  both directions, and an explicit `undefined` **does** clear a key, which is what makes clearing a
+  brand colour work at all. Pinned backend-side by
+  `src/services/__tests__/storefront-settings-patch-semantics.test.ts`.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
 - **Store payload is cached** (`getStore` = 300s + 5-min client staleTime). Merchant saves flush it
   on demand; anything else changes it lags by the timer. See "Cache + on-demand revalidation".
+  **This is the #1 way a working storefront looks broken during QA** — a theme round in 2026-08-17
+  reported "all four themes are identical" while reading one cached render four times. Only a save
+  from the admin UI flushes (`revalidateStorefront` runs in the merchant's browser off their token);
+  curl, Postman, a script or a direct DB write flush nothing. A hard reload does not help and that
+  is the tell. Tester-facing checklist: backend `docs/features/ecommerce-qa.md` → "Testing the
+  storefront without fooling yourself".
 - **Turbopack can panic per-route persistently** ("Panic in async function" 500) — restart the
   frontend dev server; it purges the corrupted FS cache itself.
 - Known pre-existing type errors (NOT ours; don't chase): frontend `image-gallery-upload.tsx` ×3

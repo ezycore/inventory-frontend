@@ -13877,7 +13877,8 @@ export interface operations {
                     phone?: (unknown | string) | "";
                     organizationName: string;
                     organizationSlug: string;
-                    industry: string;
+                    /** @enum {string} */
+                    industry: "ONLINE_SHOP" | "PHARMACY" | "GROCERY_STORE" | "ELECTRONICS_STORE" | "FASHION_APPAREL" | "HARDWARE_STORE" | "MANUFACTURING_UNIT" | "WHOLESALE_DISTRIBUTOR" | "RESTAURANT_FNB" | "SERVICE_BUSINESS" | "OTHER";
                     country: string;
                     timezone: string;
                     currency: string;
