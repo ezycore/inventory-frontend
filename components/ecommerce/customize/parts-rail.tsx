@@ -27,6 +27,7 @@ import { PartBlock, PartGroup } from "@/components/ecommerce/customize/part-grou
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
+import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
 import { DesignPart } from "@/components/ecommerce/customize/parts/design-part";
@@ -209,49 +210,7 @@ export function PartsRail({
                 patchContentPages={api.patchContentPages}
               />
             ) : part.id === "cards" ? (
-              // Two independent questions: how much room a card takes, and what
-              // it offers. Keeping them in one part is right — they are the same
-              // card — but they must not read as one nine-option picker.
-              <>
-                <PartBlock label="Card style">
-                  <TemplatePicker
-                    templateKey="productCard"
-                    value={draft.templates.productCard}
-                    onChange={(v) => patchTemplate("productCard", v)}
-                  />
-                </PartBlock>
-                <PartBlock
-                  label="Buttons on each card"
-                  hint="Independent of the style above — a compact card can still show two buttons."
-                >
-                  <TemplatePicker
-                    templateKey="cardActions"
-                    value={draft.templates.cardActions}
-                    onChange={(v) => patchTemplate("cardActions", v)}
-                  />
-                </PartBlock>
-                <PartBlock
-                  label="Photo shape"
-                  hint="The frame your product photos sit in. Cart and search thumbnails stay square so their rows keep their shape."
-                >
-                  <TemplatePicker
-                    templateKey="imageRatio"
-                    value={draft.templates.imageRatio}
-                    onChange={(v) => patchTemplate("imageRatio", v)}
-                    columns={2}
-                  />
-                </PartBlock>
-                <PartBlock
-                  label="Image fit"
-                  hint="What happens to a photo that doesn't match the shape above — show all of it, or fill the frame."
-                >
-                  <TemplatePicker
-                    templateKey="imageFit"
-                    value={draft.templates.imageFit}
-                    onChange={(v) => patchTemplate("imageFit", v)}
-                  />
-                </PartBlock>
-              </>
+              <CardsPart draft={draft} patchTemplate={patchTemplate} />
             ) : part.id === "home" ? (
               // The home page is two questions: which starting layout, and then
               // the sections themselves. The picker seeds the list; the editor

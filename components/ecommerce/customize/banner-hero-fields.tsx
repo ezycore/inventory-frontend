@@ -8,6 +8,11 @@ import { Label } from "@/ui/components/label";
 /**
  * Trim every field, mapping empties to undefined — the storefront falls back
  * to its built-in copy per-field, so "cleared" and "never set" behave the same.
+ *
+ * ⚠ Field-by-field, so a NEW key must be added here or it is silently dropped
+ * from both the PATCH and the live preview — the draft keeps it, the shop never
+ * sees it, and nothing fails. `imageFit`/`focal` are not copy and pass through
+ * untrimmed.
  */
 export function cleanHeroBanner(v: StorefrontHeroBanner): StorefrontHeroBanner {
   const t = (s?: string) => s?.trim() || undefined;
@@ -19,6 +24,8 @@ export function cleanHeroBanner(v: StorefrontHeroBanner): StorefrontHeroBanner {
     primaryLink: t(v.primaryLink),
     secondaryLabel: t(v.secondaryLabel),
     secondaryLink: t(v.secondaryLink),
+    imageFit: v.imageFit,
+    focal: v.focal,
   };
 }
 

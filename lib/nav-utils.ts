@@ -1,6 +1,7 @@
 // coding-standard: maintained
-import { NavItem } from "@/types/layout";
+import { NavGroup, NavItem } from "@/types/layout";
 import { OrganizationFeatures } from "@/types";
+import { navGroups } from "@/constants/navItem";
 import { areAllFeaturesEnabled, isAnyFeatureEnabled } from "./feature-utils";
 
 /**
@@ -81,6 +82,57 @@ export function filterNavItems(
 
       return [{ ...item, items: children }];
     });
+}
+
+/**
+ * The permissions a route needs, read off the nav table that already declares
+ * them.
+ *
+ * The sidebar and the page must agree about who may open a screen. Before this
+ * they disagreed in the worst direction: `/reports/sales` was offered to a
+ * `staff` user, the API answered 403, and the page rendered **"No data
+ * available"** — which reads as *this shop made no sales*, not *this is not
+ * yours to see*. Deriving both from one table means a gate can never be added
+ * to the menu and forgotten on the screen.
+ *
+ * Matches the longest declared `url` that prefixes `pathname`, so a child route
+ * (`/reports/expiry`, gated on `stock.view`) wins over its section
+ * (`/reports`, gated on `reports.view`). Returns `undefined` for a route the
+ * table does not gate — the caller should let those through.
+ *
+ * **On an exact tie the deeper entry wins**, and that is load-bearing rather
+ * than arbitrary. A section parent and its first child routinely share a URL
+ * (`/products`, `/inventory`, `/sales`), and the two declare different things:
+ * the parent lists the *union* of its children, because it is a container that
+ * must appear if any one child is reachable, while the child lists what that
+ * one screen actually needs. Taking the parent here would hand the route guard
+ * the union — letting someone with only `units.view` open `/products/:id/edit`.
+ * Children are visited after their parent, so `>=` keeps the leaf.
+ */
+export function permissionsForPath(
+  pathname: string,
+  groups: NavGroup[] = navGroups,
+): string[] | undefined {
+  let best: { url: string; permissions: string[] } | undefined;
+
+  const visit = (items: NavItem[]) => {
+    for (const item of items) {
+      const url = item.url;
+      if (
+        url &&
+        url !== "#" &&
+        item.permissions?.length &&
+        (pathname === url || pathname.startsWith(`${url}/`)) &&
+        (!best || url.length >= best.url.length)
+      ) {
+        best = { url, permissions: item.permissions };
+      }
+      if (item.items?.length) visit(item.items);
+    }
+  };
+  for (const group of groups) visit(group.items);
+
+  return best?.permissions;
 }
 
 /**

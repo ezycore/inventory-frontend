@@ -30,7 +30,7 @@ import { useOrderForm, type OrderFormInitial } from "./use-order-form";
  * This is the screen the whole omnichannel feature exists for: most of a BD
  * f-commerce merchant's volume arrives by Messenger, WhatsApp, a boosted post's
  * comments or a phone call, and until now their only way to ring it up was a POS
- * `Sale` — which has no courier dispatch, no tracking, no COD advance, no RTO and
+ * `Sale` — which has no courier dispatch, no tracking, no prepayment, no RTO and
  * no fraud check. Typing it here puts it on the same pipeline as a web order.
  *
  * **Channel is required and has no default.** Guessing it would file every chat

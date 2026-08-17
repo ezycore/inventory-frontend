@@ -6,6 +6,7 @@ import {
   type AdminStorefrontOrder,
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
+import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
@@ -24,6 +25,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
   const confirm = useConfirmOrder();
   const updateStatus = useUpdateOrderStatus();
   const markPaid = useMarkOrderPaid();
+  const { accountsEnabled } = useOrderAccountOptions();
   // Each button names the step it moves the order INTO, so a renamed pipeline
   // reads as one vocabulary — a "Mark processing" button under a stepper the
   // merchant relabelled "Packing" is the mismatch this avoids.
@@ -118,14 +120,21 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           Mark as {labelFor("delivered")}
         </Button>
       )}
-      {(order.status === "delivered" || order.status === "picked_up") &&
+      {/* Only when the merchant has no account to choose. With `accounts` on,
+          `OrderPaymentPanel` owns this action because it carries the receiving-
+          account selector; this button cannot see that selection (the state is
+          the panel's own `useState`) and used to post `accountId: undefined`
+          regardless — so a seller who picked "Mobile Money" for a bKash
+          collection had it silently booked against the mapped default, or, on a
+          workspace with no `paymentAccountMap`, got NO_RECEIVING_ACCOUNT while
+          staring at the account they had just selected. */}
+      {!accountsEnabled &&
+        (order.status === "delivered" || order.status === "picked_up") &&
         !isPaid && (
           <Button
             size="sm"
             disabled={markPaid.isPending}
-            onClick={() =>
-              markPaid.mutate({ id: order._id, accountId: undefined })
-            }
+            onClick={() => markPaid.mutate({ id: order._id })}
           >
             Mark COD collected
           </Button>

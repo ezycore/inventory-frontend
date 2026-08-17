@@ -22,6 +22,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { Dict } from "@/lib/storefront-i18n";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
+import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
 import { ShellBottomNav } from "@/components/storefront/shells/shell-parts";
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
@@ -64,6 +65,7 @@ export function StoreShell({
   const previewBrand = useSfPreview((s) => s.brand);
   const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
+  const previewSamples = useSfPreview((s) => s.samples);
   const previewAnnouncement = useSfPreview((s) => s.announcement);
   // Which SKELETON. Draft first, like every other look value, so switching it in
   // Customize repaints without a save. Declared with the other preview hooks
@@ -72,9 +74,23 @@ export function StoreShell({
   const previewShell = useSfPreview((s) => s.shell);
   const logo = useSfPreviewImage("logo", store?.logo);
 
-  // The admin's Collections panel streams its unsaved draft; prefer it so
-  // reordering/hiding previews live instead of waiting on a save + refetch.
-  const categories = previewCollections ?? fetchedCategories;
+  /* The admin's Collections panel streams its unsaved draft; prefer it so
+     reordering/hiding previews live instead of waiting on a save + refetch.
+
+     On the THEME PICKER, a store with NO categories falls back to samples.
+     This is the single most load-bearing fallback of the set: the `rail` shell
+     returns null without categories, so a merchant who has not built their
+     taxonomy yet — i.e. every merchant choosing their first theme — compared
+     four themes with the department rail invisible, which is the whole reason
+     to pick that one.
+
+     ⚠ Gated on `previewSamples`, not on the preview store's `active` flag —
+     `active` also covers the Customize editor and a bare `?preview=1` on a live
+     shop, and inventing six departments a merchant does not have is a claim
+     about their shop rather than a placeholder. Null samples make the call a
+     no-op. */
+  const resolvedCategories = previewCollections ?? fetchedCategories;
+  const categories = padCategoriesForPreview(resolvedCategories, previewSamples);
 
   // Tab icon = the store's favicon, swapped in place so router-integrated
   // navigations (page changes AND the account tab switch's replaceState) don't

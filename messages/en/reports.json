@@ -126,7 +126,23 @@
     "colDaysOverdue": "Days overdue",
     "colDaysLeft": "Days left",
     "colQty": "Qty",
-    "unknownProduct": "Unknown product"
+    "unknownProduct": "Unknown product",
+    "colValue": "Value",
+    "valueAtCost": "{amount} at cost",
+    "perProductWindow": "Each product's own setting",
+    "expiringSectionPerProduct": "Expiring soon (each product's own window)",
+    "writeOff": {
+      "action": "Write off",
+      "title": "Write off expired stock?",
+      "body": "This removes all {qty} units of {product} from batch {batch}. Expired stock cannot be sold, so it is already out of your sellable count — this clears it from your shelf figures too.",
+      "valueLabel": "Value written off (at cost)",
+      "note": "Recorded as a stock movement with reason \"expiry\", so it stays in your stock history. This cannot be undone.",
+      "confirm": "Write off",
+      "cancel": "Cancel",
+      "done": "Wrote off {qty} units of {product}.",
+      "failed": "Could not write off this batch.",
+      "noInventoryRow": "This batch has no matching stock row — open Inventory → Adjust for this product instead."
+    }
   },
   "inventory": {
     "title": "Inventory Report",

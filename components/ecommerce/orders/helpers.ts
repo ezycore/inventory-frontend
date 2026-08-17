@@ -14,7 +14,7 @@ import { formatMoney } from "@/components/storefront/format";
 /**
  * The order-list stat cards (Phase 4). Six headline buckets of the COD cash cycle — each shows
  * money (`value`, currency-formatted) with the order count as the subtitle. The money buckets are
- * NET of any recorded advance server-side, so "In transit" etc. read as cash still owed, not gross
+ * NET of any recorded prepayment server-side, so "In transit" etc. read as cash still owed, not gross
  * order value. `deliveredUncollected` is styled `danger` — cash the merchant delivered but has not
  * yet collected. See the backend `orderStatsDto` for the exact semantics.
  */

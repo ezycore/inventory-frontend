@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
+import { useFeatureLabel } from "@/hooks/use-feature-label";
 import { useGetSubscription } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
@@ -251,6 +252,9 @@ function UsageCard({
 
 function FeaturesCard({ entitlement }: { entitlement: Entitlement }) {
   const t = useTranslations("settings.billing.features");
+  // Labels come from the full `settings.features.names` map, not this card's own
+  // partial list — see `useFeatureLabel` (QA-049).
+  const featureLabel = useFeatureLabel();
   const features = entitlement.features ?? {};
   const entries = Object.entries(features);
   if (entries.length === 0) return null;
@@ -270,7 +274,7 @@ function FeaturesCard({ entitlement }: { entitlement: Entitlement }) {
               <AlertCircle className="size-4 text-muted-foreground/50" />
             )}
             <span className={enabled ? "" : "text-muted-foreground"}>
-              {t.has(key as never) ? t(key as never) : key}
+              {featureLabel(key)}
             </span>
           </div>
         ))}

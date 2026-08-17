@@ -46,6 +46,21 @@ import { BRAND } from "@/constants/brand";
  */
 const workspaceTitle = <title>{BRAND.documentTitle}</title>;
 
+/**
+ * The neutral hold shown whenever the layout knows the current route is not the
+ * one the merchant is about to be on. Deliberately identical to the
+ * pre-hydration splash: anything more specific would itself be a thing that
+ * appears and disappears.
+ */
+const workspaceSplash = (
+  <>
+    {workspaceTitle}
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  </>
+);
+
 export default function ProtectedLayout({
   children,
 }: {
@@ -150,12 +165,23 @@ export default function ProtectedLayout({
   // without this check it silently wins.
   const billingConfined = needsReactivation(subscription.data?.entitlement);
 
+  // Whether this render is on the wrong side of that gate. Computed during
+  // render, not in the effect, because the effect fires only *after* React has
+  // painted — and what it paints is the full workspace shell plus whatever page
+  // was asked for. On a first login that is the dashboard: sidebar, header and
+  // every dashboard query, on screen for as long as the wizard chunk takes to
+  // load (1.7s in dev), then replaced. Rendering the splash instead means the
+  // dashboard is never mounted, so there is nothing to flash.
+  const awaitingOnboardingRedirect =
+    !billingConfined &&
+    needsOnboarding &&
+    canConfigureOrg &&
+    pathname !== "/onboarding";
+
   useEffect(() => {
-    if (billingConfined) return;
-    if (!needsOnboarding || !canConfigureOrg) return;
-    if (pathname === "/onboarding") return;
+    if (!awaitingOnboardingRedirect) return;
     router.replace("/onboarding");
-  }, [billingConfined, needsOnboarding, canConfigureOrg, pathname, router]);
+  }, [awaitingOnboardingRedirect, router]);
 
   // The org/user identity lives in the persisted auth store, which the server
   // can't read — SSR HTML would show brand defaults that visibly "blink" into
@@ -164,14 +190,13 @@ export default function ProtectedLayout({
   // rehydrates synchronously), so the first thing painted is correct.
   const hydrated = useHydrated();
   if (!hydrated) {
-    return (
-      <>
-        {workspaceTitle}
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      </>
-    );
+    return workspaceSplash;
+  }
+
+  // Hold rather than paint a workspace the effect above is already navigating
+  // away from. See `awaitingOnboardingRedirect`.
+  if (awaitingOnboardingRedirect) {
+    return workspaceSplash;
   }
 
   // Staff arriving before the owner has finished setup: the org's shape is not

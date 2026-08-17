@@ -56,8 +56,10 @@ different set of blocks in a different order, a different kind of product card:
   the way it shipped, whatever you have tried since.
 - **Fresh Market** — a big search box across a white top bar with your delivery promise beside it,
   then your two offer banners, then a wall of department tiles. For grocery, food and daily needs.
-- **Meridian Care** — your promises in a band directly under the header, before any products, then
-  the departments. Filters stay on screen. For pharmacy, health and personal care.
+- **Meridian Care** — your categories stay in a column down the left of **every** page, so a shopper
+  never has to go back to find them. One search box in the header, your promises as three cards, then
+  a tight grid of products on a soft grey-blue background. Built for shops with a long list where
+  people arrive knowing the name of what they want. For pharmacy, health and personal care.
 - **Muslin** — a photograph beside your headline and one button, then your departments with their
   names over the pictures, then a short edit of products with no boxes around them. For clothing,
   footwear and gifts.
@@ -110,6 +112,32 @@ your logo, banner, slide and announcement pictures — save the moment you uploa
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 
+### Hero
+
+The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
+**static banner** with your own headline — choose which under "The hero shows".
+
+A slide photo has to sit in two very different shapes: a wide strip on a computer, and something
+close to square on a phone. Each slide decides how its own photo handles that, under **This photo**:
+
+- **Full photo** — all of it stays visible, over a soft blurred backdrop. This is what a slide does
+  until you say otherwise, and it is the right choice for a poster or anything with writing on it,
+  which a crop would cut through.
+- **Cropped** — the photo covers the whole hero and the edges are trimmed off. Best for a photograph.
+
+Each slide answers for itself, and your **Banner image** has the same two choices and its own focus
+point, just under where you upload it. The **Image fit** setting under Product cards decides how your
+*product* photos behave and has no say over the hero, so you can crop your product grid tidily and
+still show a banner whole.
+
+When a slide is cropped, a phone keeps the middle of the photo unless you say otherwise — that is what
+**Focus point** is for. Tap the part that must stay visible — a face, the product, your logo — and
+the small **Phone crop** preview beside it shows exactly what a phone will keep. Leave it untouched
+and the photo stays centred, as it always did.
+
+Upload around 1600 × 640 px, and keep the left side clear: on a wide screen your title and button
+sit there.
+
 ### Home page → Sections
 
 Your homepage is a list of blocks, top to bottom, and **Sections** is where you set it. Move a block
@@ -150,11 +178,15 @@ an empty page.
 **Design** is what makes your shop look like *your* business rather than a recoloured version of
 everyone else's. Colour alone does surprisingly little; type and spacing do most of the work.
 
-- **Typeface** — five choices, each picked to suit a kind of shop: a clean sans for anything, an
-  elegant serif for fashion and gifts, a techy grotesk for electronics, a friendly rounded face for
-  grocery and food, and a clear humanist one for pharmacy and health. Every option pairs a Latin
-  face with a Bengali one, so your shop reads properly in both languages. The tiles show the names
-  only — look at the preview to see the actual lettering.
+- **Typeface** — six choices in a dropdown, each picked to suit a kind of shop: a clean sans for
+  anything, an elegant serif for fashion and gifts, a techy grotesk for electronics, a friendly
+  rounded face for grocery and food, a clear humanist one for pharmacy and health, and a display
+  face over plain body text for markets and bakeries. Every option pairs a Latin face with a Bengali
+  one, so your shop reads properly in both languages. The list shows the names only — look at the
+  preview to see the actual lettering.
+- **Surface** — the ground your shop is printed on: white cards on a near-white page, a warm
+  parchment, or white cards on a cool grey-blue. Your brand colour sits on top of whichever you
+  pick and is not changed by it.
 - **Heading size** — how loudly your headings speak. **Statement** leads with big type; understated
   headings let the products do the talking.
 - **Spacing** — how tightly everything is packed, which also decides how many products sit side by
@@ -163,6 +195,12 @@ everyone else's. Colour alone does surprisingly little; type and spacing do most
 - **Corners** — how rounded your cards, panels and form fields are. **Sharp** reads as precise and
   technical, **Round** as friendly and informal. Round badges like "Best Seller" and any circular
   picture keep their shape whatever you pick here — those are shapes, not corners.
+- **Page width** — how much of a large screen your shop occupies. A wider setting adds a column of
+  products rather than stretching the ones you have; your account pages stay a comfortable reading
+  width whatever you choose.
+
+Corners and page width sit under **More options**, since most shops set them once and leave them.
+If you have already changed either one, that group opens for you.
 
 Everything here applies to the whole shop at once, and none of it touches your products, pages or
 wording — you can try every combination and change your mind without losing any work.

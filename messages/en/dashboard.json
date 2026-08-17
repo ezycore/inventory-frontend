@@ -13,10 +13,10 @@
   "kpi": {
     "salesRevenue": "Sales Revenue",
     "purchaseCost": "Purchase Cost",
-    "totalDue": "Total Due",
+    "grossProfit": "Gross Profit",
+    "marginOfSales": "{margin}% margin on sales",
     "transactions": "Transactions",
     "vsPrevious": "vs previous",
-    "salesPurchaseDue": "Sales {sales} · Purchase {purchase}",
     "salesPurchaseCount": "{sales} sales · {purchases} purchases"
   },
   "chart": {
@@ -32,14 +32,15 @@
     "emptyDescription": "Sales and purchase trends will appear here as you record transactions"
   },
   "summary": {
-    "periodSales": "Period Sales",
-    "transactionsCollected": "{count, plural, one {# transaction} other {# transactions}} · Collected {amount}",
-    "periodPurchases": "Period Purchases",
-    "ordersPaid": "{count, plural, one {# order} other {# orders}} · Paid {amount}",
+    "receivable": "Receivable",
+    "owedByCustomers": "Owed by customers · all time",
+    "payable": "Payable",
+    "owedToSuppliers": "Owed to suppliers · all time",
     "inventoryValueCost": "Inventory Value (Cost)",
     "itemsInStock": "{count} items in stock",
-    "periodDue": "Period Due",
-    "salesPurchaseDue": "Sales {sales} · Purchase {purchase}"
+    "salesChannels": "Online vs Counter",
+    "shareOnline": "{share}% online",
+    "onlineCounterSplit": "Online {online} · Counter {counter}"
   },
   "topSold": {
     "title": "Top Sold Items",
@@ -77,8 +78,6 @@
     "subtitle": "Period performance metrics",
     "emptyTitle": "No data yet",
     "emptyDescription": "Financial insights will appear with transactions",
-    "grossProfit": "Gross Profit",
-    "marginSuffix": "% margin",
     "avgSaleValue": "Avg Sale Value",
     "salesCount": "{count, plural, one {# sale} other {# sales}}",
     "avgPurchaseValue": "Avg Purchase Value",

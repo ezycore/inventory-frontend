@@ -40,6 +40,20 @@
 
   /* ---- Layout tokens (mobile-first base; widen at breakpoints below) ---- */
   --maxw: 1200px;
+  /* The cap for surfaces meant to be READ or FILLED IN rather than browsed —
+     the account area's profile, addresses and order history. It starts from the
+     page width and then stops following it: the `width` design axis is about
+     merchandising space, and a 2400px-wide form field or order table is worse at
+     every size than a comfortable one. Content pages need no help here — their
+     prose is already capped at fixed 680–860px measures in `content-frame.tsx`.
+
+     ⚠ It stays at 1200px under every width setting for a subtle reason worth
+     knowing: `var()` inside a custom-property declaration is substituted on the
+     element that DECLARES it, so this computes to 1200px here on `.sf-root` and
+     inherits down as that literal. A `--maxw` override on `.sf-shell` therefore
+     cannot reach back into it. That is the behaviour we want — it is written as
+     `var(--maxw)` rather than `1200px` to say so, not by accident. */
+  --maxw-read: var(--maxw);
   --pad: 16px;
   --gap: 12px;
   --cols: 2;
@@ -302,6 +316,42 @@
   --discount: #a33a1f;
   --discount-soft: #f6ddd0;
 }
+/* MIST — a tinted ground with WHITE cards, which is the inverse of every other
+   surface here: `default` and `parchment` both float a card that is lighter than
+   nothing much on a page that is nearly the same colour. Pushing the page down
+   and the card up to pure white makes each card read as a separate physical
+   object — right for a shop where the unit being bought is a sealed box, and the
+   fastest way to look unlike the other themes without touching a hue.
+   Cool and desaturated on purpose: this is the clinical end of the catalogue. */
+.sf-root:has(.sf-shell[data-surface="mist"]) {
+  --page: #eef2f5;
+  --card: #ffffff;
+  --surface: #e2e9ee;
+  --surface-2: #d3dde4;
+  --text: #10222c;
+  --muted: #5c6e79;
+  --faint: #8598a3;
+  --border: #d6e0e6;
+  --border-strong: #b9c8d1;
+  --header: rgba(255, 255, 255, 0.92);
+  --discount: #b3261e;
+  --discount-soft: #fbe4e2;
+}
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="mist"]) {
+  --page: #0b1116;
+  --card: #131c23;
+  --surface: #1a252d;
+  --surface-2: #24323b;
+  --text: #e3edf3;
+  --muted: #94a7b3;
+  --faint: #6d818e;
+  --border: #1f2b34;
+  --border-strong: #33434f;
+  --header: rgba(11, 17, 22, 0.88);
+  --discount: #f19a94;
+  --discount-soft: #3d1f1d;
+}
+
 /* Warm dark — roasted rather than the default's neutral zinc, so switching the
    theme toggle stays the same shop with the lights off. */
 .sf-root[data-theme="dark"]:has(.sf-shell[data-surface="parchment"]) {
@@ -344,6 +394,12 @@ body:has(.sf-shell[data-surface="parchment"]) {
 }
 body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   background: #17140f;
+}
+body:has(.sf-shell[data-surface="mist"]) {
+  background: #eef2f5;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
+  background: #0b1116;
 }
 
 /* Heading ramp (mobile base — see both @media blocks for the rest). */
@@ -473,6 +529,58 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   .sf-shell[data-density="airy"] {
     --pad: 56px;
     --cols: 3;
+  }
+
+  /* ---- The `width` axis ----
+     ⚠ **Must stay below the `[data-density]` blocks above.** `.sf-shell[data-width]`
+     and `.sf-shell[data-density]` have identical specificity, so source order is
+     the only thing deciding which owns `--cols` — move these up and a wide shop
+     silently reverts to its density's column count.
+
+     ⚠ **Width always moves `--cols`, never `--maxw` alone.** The column count is
+     a fixed number, not a function of available space, so widening the page on
+     its own does not add products — it inflates the ones already there. An
+     uncapped page at four columns renders ~600px cards on a 27" monitor, which
+     is the opposite of what "full width" is asked for. The pairs below keep a
+     card roughly the size it is today and spend the extra room on more of them.
+
+     The density combinations are spelled out rather than computed: CSS cannot
+     add to a custom property without a second token to bump (`--cols` cannot
+     reference itself), and six explicit rules read better than the indirection
+     that would avoid them. */
+  .sf-shell[data-width="wide"] {
+    --maxw: 1600px;
+    --cols: 5;
+  }
+  .sf-shell[data-width="wide"][data-density="compact"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="wide"][data-density="airy"] {
+    --cols: 4;
+  }
+  .sf-shell[data-width="full"] {
+    --maxw: none;
+    --cols: 5;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] {
+    --cols: 4;
+  }
+}
+
+/* Only `full` keeps growing past this point — `wide` has reached its 1600px cap
+   and would just centre itself, so a further column would shrink its cards. */
+@media (min-width: 1600px) {
+  .sf-shell[data-width="full"] {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] {
+    --cols: 7;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] {
+    --cols: 5;
   }
 }
 
@@ -909,16 +1017,81 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
 .sf-rail {
   display: none;
 }
-@media (min-width: 681px) {
+/* ⚠ **1000px, not 681px.** The rail is a fixed 218px column, but `--cols` is
+   resolved from the VIEWPORT — the density axis was written when the content
+   column and the viewport were the same thing. So between 681 and 1000 the page
+   kept asking for four product columns inside ~580px of content and rendered
+   124px cards with one word per line. The band where a rail costs more than it
+   gives starts well above the phone breakpoint, and a shopper on a small laptop
+   is better served by the full width plus the header search.
+   Measured before the change: 820px viewport → 580px content → 124px cards;
+   after → no rail, 3 columns, 266px cards. */
+@media (min-width: 1000px) {
+  /* ⚠ **The two-column template only applies when a rail is actually there.**
+     `RailShell` returns null for the aside when the store has no categories, and
+     a grid whose rail child is missing puts the CONTENT into the first track —
+     so the whole page rendered inside 218px, with 44px product cards. A shop
+     with an empty taxonomy hit this, and so did the theme-store preview.
+     `:has()` makes the layout follow what was rendered rather than what was
+     assumed. */
   .sf-rail-grid {
     display: grid;
-    grid-template-columns: 218px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--gap);
     align-items: start;
     padding-inline: var(--pad);
   }
-  /* The rail's own padding replaces the page's, so the content column keeps its
-     normal `--pad` from the sections inside it. */
+  .sf-rail-grid:has(> .sf-rail) {
+    grid-template-columns: 218px minmax(0, 1fr);
+  }
+
+  /* **The rail spends 218px, so the content column takes one fewer product
+     column than the viewport alone would suggest** — cozy 4→3, compact 5→4,
+     airy 3→2. Without this the widest breakpoint fits five compact columns into
+     970px and renders 172px cards, narrower than the same theme draws on a
+     phone. `--cols` is redefined on the content column rather than on the grid
+     because the sections inside are what read it.
+
+     The rail's own padding also replaces the page's here, so those sections keep
+     their normal `--pad`. */
+  .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 3;
+  }
+  .sf-shell[data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+  .sf-shell[data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 2;
+  }
+
+  /* ⚠ **The `width` axis has to be repeated here, or it does nothing on a rail
+     page.** The three rules above set `--cols` on the CONTENT COLUMN, and the
+     width axis sets it on `.sf-shell` — an ancestor. A value declared on a
+     descendant always wins over an inherited one, whatever the specificity or
+     the source order, so without these the widest setting would still render
+     three columns while `--maxw` grew to 1600px or came off entirely. That is
+     precisely the failure the width axis exists to avoid: a wider page with the
+     same card count is not more shop, it is bigger cards.
+
+     The counts are the shell's own, minus one for the rail's 218px — the same
+     subtraction the block above makes at the contained width. `wide` and `full`
+     agree at this breakpoint because `wide` has not yet reached its 1600px cap;
+     they part company in the `min-width: 1600px` block below. */
+  .sf-shell[data-width="wide"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+  .sf-shell[data-width="wide"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 5;
+  }
+  .sf-shell[data-width="wide"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 3;
+  }
+
+  /* The rail's own padding replaces the page's, so the sections inside the
+     content column keep their normal `--pad`. Applies with or without a rail. */
   .sf-rail-grid > :last-child {
     margin-inline: calc(var(--pad) * -1);
   }
@@ -930,16 +1103,36 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
     align-self: start;
     padding-block: 16px;
   }
+  /* **Bare, not a card.** The rail is navigation, not content — boxing it makes
+     a white panel that competes with the product cards beside it, and on a
+     tinted surface it stacks card-on-card. Letting the page show through keeps
+     the eye on the goods and matches the approved design, which drew it as a
+     plain column of names. */
   .sf-rail-inner {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     padding: 12px 0 6px;
     max-height: calc(100vh - 104px);
     overflow-y: auto;
     scrollbar-width: thin;
   }
 }
+
+/* The rail's half of the `full`-only bump the shell takes at this width. ⚠ Must
+   stay BELOW the `min-width: 1000px` rail block above: these selectors have the
+   same specificity as the ones there, so source order is the only thing making
+   them win. `wide` is absent on purpose — it has reached its 1600px cap and is
+   centring by now, so another column would only shrink its cards. */
+@media (min-width: 1600px) {
+  .sf-shell[data-width="full"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 5;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+}
+
 .sf-rail-link {
   display: flex;
   align-items: center;
@@ -1089,6 +1282,171 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   }
 }
 
+/* ---- Classic hero card (home/sections/hero-sections.tsx → HeroCard) ----
+   The one static hero whose markup is NOT inline-styled, for the reason no
+   inline style can cover: below 680px it REORDERS. `--herocols` collapsing to
+   `1fr` there turned the card into copy-then-photo in DOM order, so the whole
+   first screen of a shop was text — badge, headline, paragraph, two buttons and
+   three trust badges pushed the photograph to ~477px on an iPhone SE, where the
+   fold cut it in half and no product was visible at all.
+
+   Mobile-first, like the rest of this file: the base block IS the phone layout
+   (photo full-bleed at the top of the card, copy padded under it, trust badges
+   as a footer strip) and the 680px block restores the two-column desktop card
+   unchanged. 680 is not a free choice — it is where `--herocols` becomes two
+   columns, so the two must move together. Everything here uses the same tokens
+   the inline styles did; only the phone layout is new. */
+.sf-herocard {
+  /* Read by the `<Media>` call's inline `aspect-ratio`. A 4:3 photo is a third
+     of the phone's screen; 16:9 shows the same picture and keeps the headline
+     and the first CTA above the fold. */
+  --herocard-ratio: 16 / 9;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.sf-herocard-media {
+  /* The photo is the third child so that the desktop grid can place copy and
+     trust badges in one column; `order` is what moves it to the top here. */
+  order: -1;
+}
+.sf-herocard-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 16px 18px 18px;
+}
+/* The CTAs come from the shared `heroBtns`, whose inline styles set colour and
+   padding but never flex — so the pair can share the row edge-to-edge on a
+   phone without forking that helper for one caller. */
+.sf-herocard-copy a {
+  flex: 1 1 auto;
+  text-align: center;
+}
+/* `heroBtns`' own wrapper — the only `<div>` in the copy column. The column is
+   `align-items: flex-start`, so without this the pair shrinks to its text and
+   the `flex: 1` above has no width to share. */
+.sf-herocard-copy > div {
+  align-self: stretch;
+}
+.sf-herocard-badge {
+  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. */
+  display: inline-block;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+.sf-herocard-title {
+  /* Scales WITH the merchant's type-scale axis rather than flattening to a
+     fixed phone size, so a shop on `sm` or `lg` keeps its ramp here too. */
+  font-size: calc(var(--h1) * 0.88);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+  white-space: pre-line;
+}
+.sf-herocard-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 420px;
+}
+.sf-herocard-trust {
+  display: flex;
+  flex-wrap: wrap;
+  /* NOT `space-between`. Three badges fit one row only with short labels — the
+     built-in English ones do, "Same-day delivery" and every Bangla string do
+     not — and a spread first row above a lone left-aligned third badge reads as
+     a bug. Left-aligned wraps look the same at any label length. */
+  justify-content: flex-start;
+  gap: 8px 14px;
+  border-top: 1px solid var(--border);
+  padding: 10px 18px;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.sf-herocard-trust span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (min-width: 680px) {
+  .sf-herocard {
+    --herocard-ratio: 4 / 3;
+    grid-template-columns: var(--herocols);
+    grid-template-areas:
+      "copy media"
+      "trust media";
+    column-gap: 26px;
+    row-gap: 24px;
+    /* The photo spans both rows, so when it is the taller side the extra height
+       is split between them. Pinning the copy to the bottom of its row and the
+       badges to the top of theirs keeps the pair together and centred against
+       the photo, which is what the single-row inline version did. */
+    align-content: center;
+    padding: clamp(20px, 4vw, 40px);
+  }
+  /* ⚠ **A shop with no banner has no media child at all** — `HeroCard` renders
+     it only when `banner` is set, because a striped "hero banner" placeholder
+     above the fold reads as a broken page on every shop's first day. A
+     `grid-template-areas` layout does NOT collapse on its own when an area goes
+     unfilled: the `media` column keeps its track and the card renders with the
+     copy squeezed into `--herocols`' first half beside a void. Named areas also
+     have to be redeclared, not just the columns — an area a template no longer
+     names is invalid, and the whole `grid-area` on each child stops resolving. */
+  .sf-herocard:not(:has(> .sf-herocard-media)) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "trust";
+  }
+  .sf-herocard-copy {
+    grid-area: copy;
+    align-self: end;
+    padding: 0;
+    /* Per-child margins rather than a gap: the desktop rhythm is 16/14/22, not
+       one step, and this block must leave the desktop card as it was. (Its one
+       intentional difference is the photo's corner, now `--radius-md` rather
+       than a hardcoded 11px — the radius-token migration this file documents.) */
+    gap: 0;
+  }
+  .sf-herocard-copy a {
+    flex: 0 0 auto;
+    text-align: left;
+  }
+  .sf-herocard-copy > div {
+    align-self: auto;
+  }
+  .sf-herocard-media {
+    grid-area: media;
+    order: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .sf-herocard-trust {
+    grid-area: trust;
+    align-self: start;
+    justify-content: flex-start;
+    gap: 18px;
+    border-top: 0;
+    padding: 0;
+    font-size: 12.5px;
+  }
+  .sf-herocard-badge { margin-bottom: 16px; }
+  .sf-herocard-title { font-size: var(--h1); margin-bottom: 14px; }
+  .sf-herocard-sub { font-size: 15px; margin-bottom: 22px; }
+}
+
 /* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
 .sf-hero {
   position: relative;
@@ -1121,10 +1479,30 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   opacity: 1;
   pointer-events: auto;
 }
+/* The slide photo comes in as two custom properties set by `hero-carousel.tsx`
+   — `--sf-slide-img` (the 800px medium) and `--sf-slide-img-lg` (the 1600px
+   original) — because picking between them is a viewport question and the
+   carousel renders on the server. Above the phone breakpoint the hero is up to
+   1200px wide, where the medium was being upscaled 1.5x (3x on a 2x panel) and
+   read soft. The tinted no-image panel sets `background` inline, which outranks
+   these, so it is unaffected by the undefined var. */
+.sf-hero-art,
+.sf-hero-art-bg,
+.sf-hero-art-fg {
+  background-image: var(--sf-slide-img);
+}
+@media (min-width: 641px) {
+  .sf-hero-art,
+  .sf-hero-art-bg,
+  .sf-hero-art-fg {
+    background-image: var(--sf-slide-img-lg);
+  }
+}
 .sf-hero-art {
   position: absolute;
   inset: 0;
   background-size: cover;
+  /* Overridden per slide by the merchant's focal point, when they set one. */
   background-position: center;
 }
 /* Slide photo, split into two layers instead of one `cover` fill: a
@@ -1307,15 +1685,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="parchment"]) {
   }
 }
 @media (max-width: 640px) {
-  /* Tall enough to hold the slide copy, but capped against the VIEWPORT so it
-     can't eat the fold: a flat 430px was 76% of an iPhone SE screen, leaving
-     no product visible above it. `svh` (small viewport height) is the stable
-     value that ignores the collapsing mobile URL bar. */
-  /* Fallback first — see the note on `.sf-hero` above. */
+  /* A RATIO, not a height — the single biggest reason merchant photos looked
+     wrong here. A 360px-wide phone with the old flat 430px got a 0.84:1 box, so
+     a 2.5:1 upload (what the slides panel asks for) was cropped to about a third
+     of its width; 4/3 roughly halves that loss and still leaves the copy room.
+     `min-height` is the floor for a slide with three lines of copy on a narrow
+     phone, and `max-height` keeps the viewport cap that stops the hero eating
+     the fold — `svh` (small viewport height) ignores the collapsing URL bar.
+     A browser without `svh` drops only the cap, and `aspect-ratio` still gives
+     the absolutely-positioned slides a height, so nothing collapses. */
   .sf-hero {
-    height: 430px;
-    height: min(430px, 62svh);
-    min-height: 260px;
+    /* ⚠ `width: 100%` is LOAD-BEARING, not tidiness. With width left `auto`,
+       `aspect-ratio` resolves in whichever direction is free — and once
+       `min-height` raised the box to 300px, Chrome ran the ratio BACKWARDS and
+       made it 400px wide inside a 360px phone, scrolling the whole shop
+       sideways. A definite width forces the ratio to compute the height only. */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 300px;
+    max-height: 62svh;
   }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {

@@ -19,6 +19,18 @@ export function getCustomerFilterConfig(t: Translator): FilterConfig {
         placeholder: t("filters.emailPlaceholder"),
       },
       {
+        // Server-side: it both restricts the list to customers who owe money AND
+        // orders them by amount owed, biggest first. Creation order put the
+        // largest debt on page 2 of a 10-row list — invisible on the one screen
+        // a merchant opens to ask "who owes me?" (QA-064).
+        name: "hasDues",
+        label: t("filters.dues"),
+        type: "select",
+        placeholder: t("filters.allCustomers"),
+        columnSpan: 2,
+        options: [{ label: t("filters.owesMoney"), value: "true" }],
+      },
+      {
         name: "status",
         label: t("filters.status"),
         type: "select",
