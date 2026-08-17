@@ -77,8 +77,12 @@ export default function DashboardPage() {
   // Gross profit headlines here rather than inside Financial Insights: it is the
   // number a merchant opens the page for. The panel keeps the rates and averages.
   const grossProfit = overview?.grossProfit || 0
-  const grossMargin = overview && overview.sales.total > 0
-    ? Math.round((grossProfit / overview.sales.total) * 100)
+  // Margin is of NET revenue — `grossProfit` already has returns taken off both
+  // revenue and COGS, so dividing by the gross `sales.total` understates it and
+  // disagrees with the Profit & Loss report for the same period.
+  const netRevenue = overview?.netRevenue ?? 0
+  const grossMargin = netRevenue > 0
+    ? Math.round((grossProfit / netRevenue) * 100)
     : 0
 
   const kpiStats: StatData[] = [
