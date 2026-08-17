@@ -2285,7 +2285,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:25`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_summary"];
         put?: never;
@@ -2305,13 +2305,13 @@ export interface paths {
         };
         /**
          * GET /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:32`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers"];
         put?: never;
         /**
          * POST /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
          */
         post: operations["post_api_customers"];
         delete?: never;
@@ -2329,7 +2329,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_active"];
         put?: never;
@@ -2349,7 +2349,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:49`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
          */
         get: operations["get_api_customers_import_template"];
         put?: never;
@@ -2371,7 +2371,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:56`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
          */
         post: operations["post_api_customers_import"];
         delete?: never;
@@ -2389,7 +2389,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_slug_slug"];
         put?: never;
@@ -2409,18 +2409,18 @@ export interface paths {
         };
         /**
          * GET /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_id"];
         /**
          * PUT /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
          */
         put: operations["put_api_customers_id"];
         post?: never;
         /**
          * DELETE /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_customers_id"];
         options?: never;
@@ -2439,7 +2439,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
          */
         post: operations["post_api_customers_bulk_delete"];
         delete?: never;
@@ -2457,7 +2457,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_dues"];
         put?: never;
@@ -2477,7 +2477,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:119`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_ledger"];
         put?: never;
@@ -2497,7 +2497,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_outstanding"];
         put?: never;
@@ -2519,7 +2519,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_customers_customerId_payments"];
         delete?: never;
@@ -2537,7 +2537,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:144`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_statement"];
         put?: never;
@@ -2559,7 +2559,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
          */
         post: operations["post_api_customers_customerId_email_statement"];
         delete?: never;
@@ -2577,7 +2577,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:25`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_summary"];
         put?: never;
@@ -2597,13 +2597,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:32`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers"];
         put?: never;
         /**
          * POST /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
          */
         post: operations["post_api_sales_customers"];
         delete?: never;
@@ -2621,7 +2621,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_active"];
         put?: never;
@@ -2641,7 +2641,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:49`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
          */
         get: operations["get_api_sales_customers_import_template"];
         put?: never;
@@ -2663,7 +2663,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:56`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
          */
         post: operations["post_api_sales_customers_import"];
         delete?: never;
@@ -2681,7 +2681,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_slug_slug"];
         put?: never;
@@ -2701,18 +2701,18 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_id"];
         /**
          * PUT /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
          */
         put: operations["put_api_sales_customers_id"];
         post?: never;
         /**
          * DELETE /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_sales_customers_id"];
         options?: never;
@@ -2731,7 +2731,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
          */
         post: operations["post_api_sales_customers_bulk_delete"];
         delete?: never;
@@ -2749,7 +2749,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_dues"];
         put?: never;
@@ -2769,7 +2769,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:119`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_ledger"];
         put?: never;
@@ -2789,7 +2789,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_outstanding"];
         put?: never;
@@ -2811,7 +2811,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_customers_customerId_payments"];
         delete?: never;
@@ -2829,7 +2829,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:144`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_statement"];
         put?: never;
@@ -2851,7 +2851,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
          */
         post: operations["post_api_sales_customers_customerId_email_statement"];
         delete?: never;
@@ -6084,7 +6084,7 @@ export interface paths {
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
     };
-    "/api/ecommerce/orders/{id}/advance": {
+    "/api/ecommerce/orders/{id}/prepayment": {
         parameters: {
             query?: never;
             header?: never;
@@ -6094,10 +6094,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * POST /api/ecommerce/orders/:id/advance
+         * POST /api/ecommerce/orders/:id/prepayment
          * @description Defined in `src/routes/storefront-orders.routes.ts:132`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
-        post: operations["post_api_ecommerce_orders_id_advance"];
+        post: operations["post_api_ecommerce_orders_id_prepayment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7913,6 +7913,7 @@ export interface components {
                 _id: string;
                 name: string;
             } | null;
+            inventoryQuantity: number | null;
         };
         StockMovement: {
             _id: string;
@@ -10056,7 +10057,7 @@ export interface components {
                 count: number;
                 value: number;
             };
-            prepaidPaid: {
+            gatewayPaid: {
                 count: number;
                 value: number;
             };
@@ -10203,12 +10204,16 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
-                advanceAmount?: number;
-                advanceAccountId?: string | null;
-                advanceTxnId?: string | null;
-                advanceRefundTxnId?: string | null;
+                prepaidAmount?: number;
+                prepaidShippingAmount?: number;
+                prepaidGoodsAmount?: number;
+                prepaidAccountId?: string | null;
+                prepaidShippingTxnId?: string | null;
+                prepaidGoodsTxnId?: string | null;
+                prepaidRefundShippingTxnId?: string | null;
+                prepaidRefundGoodsTxnId?: string | null;
                 /** Format: date-time */
-                advanceAt?: string | null;
+                prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
                 salesReturnId?: string | null;
@@ -10337,12 +10342,16 @@ export interface components {
             saleId?: string | null;
             shippingIncomeTxnId?: string | null;
             shippingCostTxnId?: string | null;
-            advanceAmount?: number;
-            advanceAccountId?: string | null;
-            advanceTxnId?: string | null;
-            advanceRefundTxnId?: string | null;
+            prepaidAmount?: number;
+            prepaidShippingAmount?: number;
+            prepaidGoodsAmount?: number;
+            prepaidAccountId?: string | null;
+            prepaidShippingTxnId?: string | null;
+            prepaidGoodsTxnId?: string | null;
+            prepaidRefundShippingTxnId?: string | null;
+            prepaidRefundGoodsTxnId?: string | null;
             /** Format: date-time */
-            advanceAt?: string | null;
+            prepaidAt?: string | null;
             /** Format: date-time */
             paidAt?: string | null;
             salesReturnId?: string | null;
@@ -10455,12 +10464,16 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
-                advanceAmount?: number;
-                advanceAccountId?: string | null;
-                advanceTxnId?: string | null;
-                advanceRefundTxnId?: string | null;
+                prepaidAmount?: number;
+                prepaidShippingAmount?: number;
+                prepaidGoodsAmount?: number;
+                prepaidAccountId?: string | null;
+                prepaidShippingTxnId?: string | null;
+                prepaidGoodsTxnId?: string | null;
+                prepaidRefundShippingTxnId?: string | null;
+                prepaidRefundGoodsTxnId?: string | null;
                 /** Format: date-time */
-                advanceAt?: string | null;
+                prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
                 salesReturnId?: string | null;
@@ -12330,6 +12343,16 @@ export interface components {
                 count: number;
                 previousTotal: number;
                 previousCount: number;
+                byChannel: {
+                    pos: {
+                        total: number;
+                        count: number;
+                    };
+                    online: {
+                        total: number;
+                        count: number;
+                    };
+                };
             };
             purchases: {
                 total: number;
@@ -12338,6 +12361,10 @@ export interface components {
                 count: number;
                 previousTotal: number;
                 previousCount: number;
+            };
+            outstanding: {
+                receivable: number;
+                payable: number;
             };
             chartData: {
                 label: string;
@@ -12368,6 +12395,7 @@ export interface components {
                 totalItems: number;
             };
             grossProfit: number;
+            netRevenue: number;
             totalCOGS: number;
         };
         DashboardStats: {
@@ -12890,7 +12918,6 @@ export interface components {
             }[];
             status?: string;
             emailVerified?: boolean;
-            loginAttempts?: number;
             /** Format: date-time */
             lockUntil?: string | null;
             /** Format: date-time */
@@ -13556,7 +13583,6 @@ export interface components {
                 }[];
                 status?: string;
                 emailVerified?: boolean;
-                loginAttempts?: number;
                 /** Format: date-time */
                 lockUntil?: string | null;
                 /** Format: date-time */
@@ -20646,6 +20672,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
+                hasDues?: boolean;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -21686,6 +21713,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
+                hasDues?: boolean;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -34809,7 +34837,7 @@ export interface operations {
             content: {
                 "application/json": {
                     reject?: boolean;
-                    refundAdvance?: boolean;
+                    refundPrepayment?: boolean;
                     accountId?: string;
                 };
             };
@@ -34933,7 +34961,7 @@ export interface operations {
             };
         };
     };
-    post_api_ecommerce_orders_id_advance: {
+    post_api_ecommerce_orders_id_prepayment: {
         parameters: {
             query?: never;
             header?: {

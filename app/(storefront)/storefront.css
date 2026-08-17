@@ -1063,6 +1063,33 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   .sf-shell[data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
     --cols: 2;
   }
+
+  /* ⚠ **The `width` axis has to be repeated here, or it does nothing on a rail
+     page.** The three rules above set `--cols` on the CONTENT COLUMN, and the
+     width axis sets it on `.sf-shell` — an ancestor. A value declared on a
+     descendant always wins over an inherited one, whatever the specificity or
+     the source order, so without these the widest setting would still render
+     three columns while `--maxw` grew to 1600px or came off entirely. That is
+     precisely the failure the width axis exists to avoid: a wider page with the
+     same card count is not more shop, it is bigger cards.
+
+     The counts are the shell's own, minus one for the rail's 218px — the same
+     subtraction the block above makes at the contained width. `wide` and `full`
+     agree at this breakpoint because `wide` has not yet reached its 1600px cap;
+     they part company in the `min-width: 1600px` block below. */
+  .sf-shell[data-width="wide"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+  .sf-shell[data-width="wide"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 5;
+  }
+  .sf-shell[data-width="wide"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child,
+  .sf-shell[data-width="full"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 3;
+  }
+
   /* The rail's own padding replaces the page's, so the sections inside the
      content column keep their normal `--pad`. Applies with or without a rail. */
   .sf-rail-grid > :last-child {
@@ -1088,6 +1115,24 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
     scrollbar-width: thin;
   }
 }
+
+/* The rail's half of the `full`-only bump the shell takes at this width. ⚠ Must
+   stay BELOW the `min-width: 1000px` rail block above: these selectors have the
+   same specificity as the ones there, so source order is the only thing making
+   them win. `wide` is absent on purpose — it has reached its 1600px cap and is
+   centring by now, so another column would only shrink its cards. */
+@media (min-width: 1600px) {
+  .sf-shell[data-width="full"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 5;
+  }
+  .sf-shell[data-width="full"][data-density="compact"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 6;
+  }
+  .sf-shell[data-width="full"][data-density="airy"] .sf-rail-grid:has(> .sf-rail) > :last-child {
+    --cols: 4;
+  }
+}
+
 .sf-rail-link {
   display: flex;
   align-items: center;
@@ -1350,6 +1395,20 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
        the photo, which is what the single-row inline version did. */
     align-content: center;
     padding: clamp(20px, 4vw, 40px);
+  }
+  /* ⚠ **A shop with no banner has no media child at all** — `HeroCard` renders
+     it only when `banner` is set, because a striped "hero banner" placeholder
+     above the fold reads as a broken page on every shop's first day. A
+     `grid-template-areas` layout does NOT collapse on its own when an area goes
+     unfilled: the `media` column keeps its track and the card renders with the
+     copy squeezed into `--herocols`' first half beside a void. Named areas also
+     have to be redeclared, not just the columns — an area a template no longer
+     names is invalid, and the whole `grid-area` on each child stops resolving. */
+  .sf-herocard:not(:has(> .sf-herocard-media)) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "trust";
   }
   .sf-herocard-copy {
     grid-area: copy;

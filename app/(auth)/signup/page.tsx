@@ -14,30 +14,16 @@ import {
   SignupBrandPanel,
   SignupHighlightStrip,
 } from "@/components/setup/owner/signup-brand-panel";
+import { SignupPlanNote } from "@/components/setup/owner/signup-plan-note";
 import { BRAND, LEGAL_URLS } from "@/constants/brand";
 import { getCountryDefaults } from "@/constants/organization-options";
 import { useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { detectCountryCode } from "@/utils/detect-country";
+import { getSignupPlanFromUrl } from "@/utils/signup-plan";
 import { slugify } from "@/utils/slugify";
 import { Button } from "@/ui/components/button";
 import DynamicForm from "@/ui/components/form";
-
-/** Query params that carry a chosen plan across from the marketing site. */
-function getSignupPlanFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const planName =
-    params.get("planName") || params.get("plan") || params.get("planSlug");
-  const planSlug = params.get("planSlug") || undefined;
-
-  // Send nothing when no plan was chosen — Mission Control then picks the entry
-  // plan (first public + active by sort order). Defaulting to a hardcoded slug
-  // here would break every direct signup the day that plan is renamed.
-  return {
-    ...(planName?.trim() && { planName: planName.trim() }),
-    ...(planSlug && { planSlug }),
-  };
-}
 
 export default function Signup() {
   const t = useTranslations("auth.signup");
@@ -183,6 +169,8 @@ export default function Signup() {
                 </Link>
               </p>
             </div>
+
+            <SignupPlanNote />
 
             <SignupHighlightStrip />
 

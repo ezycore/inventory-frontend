@@ -58,8 +58,19 @@ const integerToWords = (value: number): string => {
 };
 
 /**
- * Amount to words (English) with a two-decimal fraction, e.g. `840` → "Eight
- * Hundred Forty and 00/100". Negative amounts are prefixed "Minus".
+ * Amount to words (English), e.g. `840` → "Eight Hundred Forty Only",
+ * `55.20` → "Fifty Five and 20 Only". Negative amounts are prefixed "Minus".
+ *
+ * **"Only" always terminates the phrase.** It used to live inside the paisa
+ * branch, so a round amount — the commonest invoice total in a shop — printed
+ * "Five Hundred " with a trailing space and no terminator, while `55.20` got
+ * its "Only". That is the wrong half to lose: on a financial document "Only"
+ * is a fraud control, the thing that stops digits being appended to the written
+ * amount, which is exactly why cheques carry it.
+ *
+ * (This function's own docstring used to claim `840` → "Eight Hundred Forty and
+ * 00/100" — the implementation never did that either. A zero fraction is now
+ * omitted rather than written out, which is how an invoice actually reads.)
  */
 const amountToWordsEn = (value: number): string => {
   if (!Number.isFinite(value)) return "";
@@ -68,7 +79,8 @@ const amountToWordsEn = (value: number): string => {
   const whole = Math.floor(rounded);
   const cents = Math.round((rounded - whole) * 100);
   const centStr = String(cents).padStart(2, "0");
-  return `${sign}${integerToWords(whole)} ${centStr != "00" ? `and ${centStr} Only` : ""}`;
+  const fraction = centStr !== "00" ? ` and ${centStr}` : "";
+  return `${sign}${integerToWords(whole)}${fraction} Only`;
 };
 
 // Bangla counting words 0–99 are irregular (not tens+ones compounds like
@@ -113,7 +125,12 @@ const integerToWordsBn = (value: number): string => {
   return parts.join(" ");
 };
 
-/** Amount to words (Bangla), mirroring `amountToWordsEn`'s shape/fraction rules. */
+/**
+ * Amount to words (Bangla), mirroring `amountToWordsEn`'s shape/fraction rules —
+ * including that **`মাত্র` always terminates the phrase**. It had the identical
+ * bug: the terminator sat inside the paisa branch, so a round amount printed
+ * "পাঁচ শত " with no `মাত্র` at all.
+ */
 const amountToWordsBn = (value: number): string => {
   if (!Number.isFinite(value)) return "";
   const sign = value < 0 ? "ঋণাত্মক " : "";
@@ -121,7 +138,8 @@ const amountToWordsBn = (value: number): string => {
   const whole = Math.floor(rounded);
   const cents = Math.round((rounded - whole) * 100);
   const centStr = String(cents).padStart(2, "0");
-  return `${sign}${integerToWordsBn(whole)} ${centStr != "00" ? `এবং ${centStr}/100 মাত্র` : ""}`;
+  const fraction = centStr !== "00" ? ` এবং ${centStr}/100` : "";
+  return `${sign}${integerToWordsBn(whole)}${fraction} মাত্র`;
 };
 
 /** Amount to words in the given locale (defaults to English). */

@@ -13,6 +13,14 @@
       "all": "All customers",
       "accounts": "Online accounts",
       "subscribers": "Subscribers"
+    },
+    "totals": {
+      "receivable": "Total receivable",
+      "receivableHint": "Owed to you right now",
+      "debtors": "Customers who owe",
+      "debtorsHint": "With an unpaid balance",
+      "credit": "Store credit",
+      "creditHint": "You owe customers"
     }
   },
   "filters": {
@@ -32,7 +40,10 @@
     "selectDateRange": "Select date range",
     "updatedDate": "Updated Date",
     "selectDate": "Select date",
-    "globalSearchPlaceholder": "Search customers by name, email, phone, or status..."
+    "globalSearchPlaceholder": "Search customers by name, email, phone, or status...",
+    "dues": "Dues",
+    "allCustomers": "All customers",
+    "owesMoney": "Owes money (largest first)"
   },
   "form": {
     "name": "Customer Name",

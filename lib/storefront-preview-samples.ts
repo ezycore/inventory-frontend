@@ -6,10 +6,7 @@ import type {
   StoreCampaign,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import {
-  NEUTRAL_SAMPLE,
-  type ThemeSample,
-} from "@/lib/storefront-theme-samples";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
 
 /**
  * Sample content for the theme PREVIEW, and nowhere else.
@@ -25,8 +22,19 @@ import {
  * happens to stock. See `storefront-theme-samples.ts` for why that is data on a
  * bundle and not a branch on `themeId`.
  *
- * ⚠ **Preview only.** This must never reach a shopper. Every caller gates on the
- * preview store's `active` flag, which is set only under `?preview=1`.
+ * ⚠ **The THEME PICKER only — not the Customize editor, and never a shopper.**
+ * The gate is `sample === null`, checked at the top of every function here, and
+ * it has to be: `active` is not the same question. That flag is set by
+ * `?preview=1`, which is what the Customize editor's iframe uses too — and
+ * Customize previews the merchant's real shop, where an invented product is not
+ * a helpful placeholder but a claim about their stock. It is also a bare URL
+ * parameter, so gating on it alone put sample products on a live storefront for
+ * anyone who typed it. Only the Themes page sends `samples`; everywhere else it
+ * is null and every function below is a no-op.
+ *
+ * That is why `sample` is a required parameter rather than one defaulting to
+ * `NEUTRAL_SAMPLE`. A default made "I have no samples" and "pad with the generic
+ * set" the same call, which is exactly how the two surfaces got confused.
  *
  * ⚠ **Fills gaps, never replaces.** Each function returns the merchant's own
  * data untouched the moment they have any, and padding is appended AFTER their
@@ -53,12 +61,12 @@ export const PREVIEW_MIN_PRODUCTS = 8;
  */
 export function padForPreview(
   products: CatalogProduct[],
-  sample: ThemeSample | null = NEUTRAL_SAMPLE,
+  sample: ThemeSample | null,
   min = PREVIEW_MIN_PRODUCTS,
 ): CatalogProduct[] {
-  if (products.length >= min) return products;
+  if (!sample || products.length >= min) return products;
 
-  const stock = (sample ?? NEUTRAL_SAMPLE).products;
+  const stock = sample.products;
   // Clone a real product where there is one, so the filler carries whatever
   // shape this shop's payload really has (currency handling, flags) rather than
   // a guess. With an empty catalogue there is nothing to clone, hence the
@@ -105,10 +113,10 @@ const EMPTY_MODEL = {
  */
 export function padCategoriesForPreview(
   categories: CatalogCategory[],
-  sample: ThemeSample | null = NEUTRAL_SAMPLE,
+  sample: ThemeSample | null,
 ): CatalogCategory[] {
-  if (categories.length) return categories;
-  return (sample ?? NEUTRAL_SAMPLE).categories.map((name, i) => ({
+  if (!sample || categories.length) return categories;
+  return sample.categories.map((name, i) => ({
     _id: `preview-cat-${i}`,
     name,
     slug: `preview-cat-${i}`,
@@ -127,10 +135,10 @@ export function padCategoriesForPreview(
  */
 export function padCampaignsForPreview(
   campaigns: StoreCampaign[],
-  sample: ThemeSample | null = NEUTRAL_SAMPLE,
+  sample: ThemeSample | null,
 ): StoreCampaign[] {
-  if (campaigns.length) return campaigns;
-  const { name, type, value } = (sample ?? NEUTRAL_SAMPLE).campaign;
+  if (!sample || campaigns.length) return campaigns;
+  const { name, type, value } = sample.campaign;
   return [
     {
       _id: "preview-campaign",
@@ -155,12 +163,12 @@ export function padCampaignsForPreview(
  */
 export function padStoreForPreview(
   store: StorefrontStore,
-  sample: ThemeSample | null = NEUTRAL_SAMPLE,
+  sample: ThemeSample | null,
 ): StorefrontStore {
   const badges = (store.trustBadges ?? []).filter((b) => b.text?.trim());
-  if (badges.length) return store;
+  if (!sample || badges.length) return store;
   return {
     ...store,
-    trustBadges: (sample ?? NEUTRAL_SAMPLE).promises.map((text) => ({ text })),
+    trustBadges: sample.promises.map((text) => ({ text })),
   } as StorefrontStore;
 }

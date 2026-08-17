@@ -64,6 +64,26 @@ the resolved `features`. A hidden nav item is UI-only — the backend still enfo
 like `sales`, notably does **not** — see the BE skill's gap notes before assuming a hidden module is
 secured).
 
+### The nav table is the permission table — and a parent must list the union of its children
+
+`constants/navItem.ts` is the single declaration of which permission opens which screen. Two things
+read it: `filterNavItems` (the sidebar) and `permissionsForPath` (`RouteAccessGuard`, so a page and
+its menu entry can never disagree). Two rules follow, and both were learned by shipping the opposite:
+
+- **`filterNavItems` tests a parent BEFORE recursing.** A parent gated more narrowly than a child
+  takes that child down with it — the child is never asked. `Reports` listed `reports.view` alone
+  while `Expiry Report` under it is deliberately `stock.view` (a shop-floor screen), so `staff` — who
+  holds `stock.view` and no `reports.view` — lost the whole Reports section *including* the one
+  screen the exception existed for. A parent may declare **more** than its children; never less.
+  `constants/__tests__/navItem.test.ts` enforces this over the real table.
+- **`permissionsForPath` takes the leaf on a URL tie.** A section parent and its first child share a
+  URL (`/products`, `/inventory`, `/sales`), and they declare different things: the parent is the
+  union (a container appears if *any* child is reachable), the child is what that one screen needs.
+  Handing the guard the union would open `/products/:id/edit` to someone holding only `units.view`.
+
+Corollary for tests: never hardcode "all permissions" as a literal array — derive it from the table,
+or the fixture silently becomes a partial grant the next time an entry is gated.
+
 ---
 
 ## 4. Subscription / billing enforcement

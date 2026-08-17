@@ -1,4 +1,8 @@
+"use client";
+// coding-standard: maintained
+
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
@@ -11,6 +15,11 @@ interface CopyFieldProps {
 }
 
 export function CopyField({ value, showValue = true, className }: CopyFieldProps) {
+  // These three strings were English literals until 2026-08-17, in a component
+  // used in nine places — DNS instructions, both payments drawers, both returns
+  // columns, stock movements, order details, role details — so a Bangla merchant
+  // met English on every copy action in the product.
+  const t = useTranslations("common.copy");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -18,10 +27,10 @@ export function CopyField({ value, showValue = true, className }: CopyFieldProps
     try {
       await copyText(value);
       setCopied(true);
-      toast.success("Copied!", { description: value });
+      toast.success(t("done"), { description: value });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy");
+      toast.error(t("failed"));
     }
   };
 
@@ -33,7 +42,7 @@ export function CopyField({ value, showValue = true, className }: CopyFieldProps
       <button
         onClick={handleCopy}
         className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
-        aria-label="Copy to clipboard"
+        aria-label={t("label")}
       >
         {copied ? (
           <Check className="h-4 w-4 text-green-500" />

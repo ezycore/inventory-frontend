@@ -14,6 +14,7 @@ import PageHeader from "@/ui/components/header";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   useCreateCustomer,
+  useCustomerTotals,
   useDeleteCustomer,
   useUpdateCustomer,
 } from "@/services/api";
@@ -28,7 +29,10 @@ import {
 } from "@/components/customers";
 import { StorefrontListPanel } from "@/components/customers/storefront-list-panel";
 import { PageTabs, type PageTab } from "@/ui/components/page-tabs";
+import StatsCard from "@/ui/components/StatsCard";
+import { formatCurrency } from "@/lib/currency";
 import { isFeatureEnabled } from "@/lib/feature-utils";
+import { HandCoins, Users, Wallet } from "lucide-react";
 
 type CustomerTab = "all" | "accounts" | "subscribers";
 
@@ -73,6 +77,44 @@ export default function CustomersPage() {
     [showStorefrontTabs, t],
   );
 
+  /**
+   * What the shop is owed, above the table.
+   *
+   * The `Due` column was per-row only — no total anywhere — so a merchant who
+   * wanted the one number this screen exists to give them added up a paginated
+   * column by hand, while the dashboard stated it exactly one click away
+   * (QA-063). Sourced from the same `CustomerDue` rows the column is, so the
+   * header can never disagree with the figures under it.
+   */
+  const { data: totals, isLoading: totalsLoading } = useCustomerTotals();
+  const currency = user?.organization?.currency;
+  const totalCards = useMemo(
+    () => [
+      {
+        label: t("page.totals.receivable"),
+        value: formatCurrency(totals?.receivable ?? 0, currency),
+        icon: HandCoins,
+        variant: "danger" as const,
+        description: t("page.totals.receivableHint"),
+      },
+      {
+        label: t("page.totals.debtors"),
+        value: String(totals?.debtorCount ?? 0),
+        icon: Users,
+        variant: "primary" as const,
+        description: t("page.totals.debtorsHint"),
+      },
+      {
+        label: t("page.totals.credit"),
+        value: formatCurrency(totals?.creditBalance ?? 0, currency),
+        icon: Wallet,
+        variant: "success" as const,
+        description: t("page.totals.creditHint"),
+      },
+    ],
+    [totals, currency, t],
+  );
+
   const customActions: CustomAction[] = useMemo(() => [
     {
       type: "ledger",
@@ -103,6 +145,11 @@ export default function CustomersPage() {
       {/* Explicit type argument: inferring K from `onChange` would widen it to
           `string`, because a setState dispatch also accepts a function updater. */}
       <PageTabs<CustomerTab> tabs={tabs} active={activeTab} onChange={setTab} />
+
+      {/* Accounts-only: with the feature off there are no dues to total. */}
+      {activeTab === "all" && isAccountsEnabled && (
+        <StatsCard data={totalCards} isLoading={totalsLoading} />
+      )}
 
       {activeTab !== "all" ? (
         // Remount per kind so the search box and page cursor reset — page 3 of
