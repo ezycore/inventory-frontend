@@ -5,6 +5,10 @@
  * SHOPPER token (not the staff token) and never sends `X-Active-Location`.
  */
 
+import {
+  previewApiHeaders,
+  storefrontPreviewToken,
+} from "@/lib/storefront-preview";
 import type { CourierNormalizedStatus } from "@/lib/courier-status";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
@@ -887,6 +891,11 @@ async function sfFetch<T>(
     headers: {
       "Content-Type": "application/json",
       ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}),
+      // Owner preview, and orthogonal to the shopper token above: one says which
+      // shopper is asking, this says the asker may see a shop that is not
+      // published. Read here rather than threaded through ~40 call sites — see
+      // `lib/storefront-preview.ts`.
+      ...previewApiHeaders(storefrontPreviewToken()),
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
     cache: "no-store",

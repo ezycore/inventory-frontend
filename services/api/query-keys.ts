@@ -47,6 +47,11 @@ export const queryKeys = {
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
     storefront: () => ["organization", "storefront"] as const,
+    // Under the `storefront` prefix deliberately: a settings save is exactly the
+    // moment the merchant is about to look at the preview again, and a re-mint is
+    // one cheap request against a stale token in an iframe URL.
+    storefrontPreview: () =>
+      ["organization", "storefront", "preview-token"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,

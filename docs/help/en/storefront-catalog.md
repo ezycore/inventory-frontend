@@ -69,6 +69,12 @@ photographs, your logo, rendered in that theme. Click another name to swap it in
 compare two looks without losing your place. Use the Home / Collection / Product tabs to check the
 rest of the shop, and the phone button to see it at phone size.
 
+**You can do all of this before anyone can reach your shop.** The preview shows your own store
+whether or not it is live, so the sensible order is: pick a theme, set every part under Customize,
+check it on the phone size, and only then turn **Store status** on under Store Settings → Publish.
+Until you do, you are the only person who can see it — open your shop's address in another browser
+and it says the store isn't published yet, which is exactly what a passer-by would get.
+
 **Applying a theme changes nothing until you agree to it.** *Apply this theme* takes you to Customize
 with the theme already loaded against your real products — press **Save changes** to keep it or
 **Discard** to walk away. Nothing is written to your shop in between.

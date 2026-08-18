@@ -449,6 +449,10 @@ colour took up to five minutes to appear. Now:
 
 ## Live preview (Customize) — how it works, and how to add a field
 
+> **An unpublished shop previews too, since 2026-08-18** — that is what "the real storefront" costs,
+> and it needs a token. See "Owner preview" below before touching the iframe URL, `proxy.ts`, or
+> either storefront fetch layer.
+
 The right-hand panel of Customize is **the real storefront** in an iframe at `{store}?preview=1`. It
 mounts **once**; edits reach it by `postMessage`, never by refetching. An edit therefore costs zero
 server requests — do not "optimise" this into a save-then-reload, which would cost a full (and now
@@ -521,6 +525,55 @@ Four files, in payload order:
   nothing while the brand control directly above it updated live. `StoreShell` now takes
   `previewAccent ?? store?.theme?.accentColor`, the same shape as its `brandColor` line. When adding
   a preview key, grep for a consumer of `s.<key>` before calling it wired.
+
+### Owner preview — the unpublished shop (2026-08-18)
+
+Because the preview is the **real** storefront, it inherited the real storefront's front door: the
+public API refuses a store whose merchant has not published it. So the preview pane was the "this
+store isn't published yet" 404 until the shop was already live, and a merchant could only theme their
+shop in public. Saving was never blocked — the admin settings endpoints know nothing about
+`published` — so this adds a way to *see*, and changes nothing about who may *write*.
+
+`lib/storefront-preview.ts` is the one file that owns the names, and its header comment draws the
+whole route. In order:
+
+| Step | File | What it does |
+|---|---|---|
+| mint | `services/api/modules/storefront-preview/` | `useStorefrontPreviewToken()` — a `useQuery` over a **GET** (nothing is created), enabled only when the shop is unpublished |
+| carry | `components/ecommerce/customize/browser-preview.tsx` | `?previewToken=…` beside `preview=1` in the iframe `src` |
+| relay | `proxy.ts` | URL param → `x-ezy-store-preview` request header, **and** into the `ezy-store-preview` cookie on the shop's host |
+| read (SSR) | `lib/storefront-host.ts` → `lib/storefront-server.ts` | `getStorePreviewToken()`, then `x-storefront-preview` + `cache: "no-store"` |
+| read (client) | `lib/storefront-client.ts` | one line in `sfFetch`, reading URL → cookie |
+
+**Five things here are load-bearing, and four of them are invisible in a typecheck:**
+
+- **The token has to travel in the URL.** The preview is a cross-origin iframe, and a frame's own
+  navigation is the one request the parent page cannot put a header on. Everything downstream exists
+  to get it *off* the URL again.
+- **`proxy.ts` moves it to a header because a LAYOUT does the fetching.** `app/(storefront)/shop/layout.tsx`
+  is where `getStore` and friends are called, and a layout receives `headers()` but never
+  `searchParams`. There is no way to read the param where it is needed.
+- **The cookie is what makes the preview survive a click.** One client-side navigation and the query
+  param is gone; the RSC request for the next route would arrive anonymous and 404 the shop. It is
+  script-readable on purpose — `sfFetch` runs on that origin and needs the same token.
+- **A preview SSR fetch must be `cache: "no-store"`.** It is the one case where a storefront URL can
+  return a payload the public may not have. Letting it settle into the `store:{slug}` entry would
+  serve an unpublished shop to the next anonymous visitor.
+- **`setStorefrontPreviewToken` is called during RENDER, above `useStoreProducts`.** That hook queues
+  its fetch from its own effect, which runs *before* an effect written lower down — so a token
+  published from an effect always arrived one request too late, and the Product tab stayed disabled.
+  The same query is gated on the mint settling, because an early 404 is cached and would not re-run.
+
+**A preview is exempt from the canonical 301** (`proxy.ts`). That redirect exists so crawlers index
+one host; a preview is read by one person and indexed by nobody. Left in place it would move an owner
+previewing a shop that has a custom domain off `{slug}.ezycore.com` — same site as the admin, so the
+cookie sticks — and onto `mystore.com`, where the frame is cross-site, a `Lax` cookie is neither set
+nor sent, and the preview survives exactly one click. Do not "restore consistency" by removing that
+exemption; add a test instead.
+
+The backend half — what the token does and does **not** unlock — is the `storefront-orders` skill's
+`resolveStore` note; the spec is `../inventory-backend/docs/features/ecommerce.md` → "Owner preview".
+Do not restate the gate table here.
 
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
