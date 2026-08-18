@@ -83,6 +83,7 @@ export function ThemeStage({
       {draft ? (
         <BrowserPreview
           slug={slug}
+          published={!!settings?.published}
           draft={draft}
           page={page}
           onPageChange={setPage}

@@ -15,6 +15,8 @@
  * "Cache + on-demand revalidation" in `.claude/skills/storefront/SKILL.md`.
  */
 
+import { getStorePreviewToken } from "@/lib/storefront-host";
+import { previewApiHeaders } from "@/lib/storefront-preview";
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -36,9 +38,19 @@ async function sf<T>(
   revalidate: number,
 ): Promise<T | null> {
   try {
+    // Owner preview (`lib/storefront-preview.ts`): the merchant looking at their
+    // own unpublished shop from the Customize editor.
+    const preview = await getStorePreviewToken();
     const res = await fetch(`${API_BASE}/storefront/${slug}${path}`, {
-      next: { revalidate, tags: [`store:${slug}`] },
-      headers: { Accept: "application/json" },
+      // A preview response is NOT shared cache. It is the one case where this
+      // URL can return a payload the public may not have, so letting it settle
+      // into the `store:{slug}` entry would serve an unpublished shop to the
+      // next anonymous visitor. Preview is a handful of requests by one person;
+      // paying full price for them is the correct trade.
+      ...(preview
+        ? { cache: "no-store" as const }
+        : { next: { revalidate, tags: [`store:${slug}`] } }),
+      headers: { Accept: "application/json", ...previewApiHeaders(preview) },
     });
     if (!res.ok) return null;
     const json = await res.json().catch(() => ({}));
