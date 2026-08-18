@@ -17,7 +17,7 @@ import {
 import { SignupPlanNote } from "@/components/setup/owner/signup-plan-note";
 import { BRAND, LEGAL_URLS } from "@/constants/brand";
 import { getCountryDefaults } from "@/constants/organization-options";
-import { useSignupAPi } from "@/hooks";
+import { useHydrated, useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { detectCountryCode } from "@/utils/detect-country";
 import { getSignupPlanFromUrl } from "@/utils/signup-plan";
@@ -29,6 +29,14 @@ export default function Signup() {
   const t = useTranslations("auth.signup");
   const locale = useLocale();
   const createOwnerMutation = useSignupAPi();
+
+  // The sticky-bar submit below is this form's default button — it lives outside
+  // the <form> and reaches it by id, so Enter in any field fires it. A disabled
+  // default button is skipped by implicit submission entirely, which closes the
+  // pre-hydration native-submit window from the other side of DynamicForm's
+  // `method="post"`. False on the server and on the hydration render, so no
+  // mismatch; the button is only ever dead while a click wouldn't have worked.
+  const hydrated = useHydrated();
   // Memoized on `t`: `useDynamicForm` keys its schema, resolver and default
   // values off the config's identity, so an unstable config would rebuild the
   // form on every keystroke. `t` changes only when the locale does.
@@ -260,6 +268,7 @@ export default function Signup() {
               <Button
                 type="submit"
                 form="owner-setup-form"
+                disabled={!hydrated}
                 className="gap-2 sm:w-auto"
               >
                 {t("submit")}
