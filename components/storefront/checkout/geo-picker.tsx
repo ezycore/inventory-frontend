@@ -4,6 +4,7 @@
 import { useMemo } from "react";
 import { BD_DISTRICTS, districtLabel, upazilasOf } from "@/lib/bd-geo";
 import { Combobox, type ComboOption } from "./combobox";
+import { FieldPair, LabeledField } from "./blocks/labeled-field";
 
 /** The shopper's courier-neutral location — a canonical district + free-text area. */
 export interface GeoValue {
@@ -24,11 +25,23 @@ export function GeoPicker({
   onChange,
   lang,
   labels,
+  errors,
+  onBlurField,
+  fieldLabels,
 }: {
   value: GeoValue;
   onChange: (next: GeoValue) => void;
   lang: string;
   labels: { district: string; area: string; noMatch?: string };
+  /** Optional — the account address form reuses this picker without validation. */
+  errors?: { district?: string; area?: string };
+  onBlurField?: (field: "district" | "area") => void;
+  /**
+   * Field labels above the two combos. Optional because the account address
+   * form supplies its own; checkout passes them so the pair reads as two
+   * questions rather than two dropdowns that appeared.
+   */
+  fieldLabels?: { district: string; area: string };
 }) {
   // District is a strict pick (canonical name); area is free-text with the
   // district's upazilas + metro thanas as searchable suggestions.
@@ -44,23 +57,42 @@ export function GeoPicker({
     });
   }, [value.district, lang]);
 
-  return (
-    <div style={{ display: "grid", gap: 10 }}>
-      <Combobox
-        value={value.district}
-        onChange={(district) => onChange({ district, area: "" })}
-        options={districtOptions}
-        placeholder={labels.district}
-      />
-      <Combobox
-        value={value.area}
-        onChange={(area) => onChange({ ...value, area })}
-        options={areaOptions}
-        placeholder={labels.area}
-        allowFreeText
-        disabled={!value.district}
-        noMatchText={labels.noMatch}
-      />
-    </div>
+  const district = (
+    <LabeledField name="district" label={fieldLabels?.district} error={errors?.district}>
+      {(id) => (
+        <Combobox
+          id={id}
+          value={value.district}
+          onChange={(next) => onChange({ district: next, area: "" })}
+          options={districtOptions}
+          placeholder={labels.district}
+          invalid={!!errors?.district}
+          onBlur={onBlurField && (() => onBlurField("district"))}
+        />
+      )}
+    </LabeledField>
   );
+  const area = (
+    <LabeledField name="area" label={fieldLabels?.area} error={errors?.area}>
+      {(id) => (
+        <Combobox
+          id={id}
+          value={value.area}
+          onChange={(next) => onChange({ ...value, area: next })}
+          options={areaOptions}
+          placeholder={labels.area}
+          allowFreeText
+          disabled={!value.district}
+          noMatchText={labels.noMatch}
+          invalid={!!errors?.area}
+          onBlur={onBlurField && (() => onBlurField("area"))}
+        />
+      )}
+    </LabeledField>
+  );
+
+  // Labelled, the two combos are short questions and pair on one row; unlabelled
+  // (the account form) they stay stacked, which is the shape that page expects.
+  if (!fieldLabels) return <div style={{ display: "grid", gap: 12 }}>{district}{area}</div>;
+  return <FieldPair>{district}{area}</FieldPair>;
 }

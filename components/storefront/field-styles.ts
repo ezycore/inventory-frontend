@@ -12,6 +12,22 @@ import type { CSSProperties } from "react";
  * placing one order meant seven manual pinch-outs. `fontSize` here is therefore
  * a floor, not a preference — do not lower it, and do not re-inline this style.
  */
+/**
+ * The label that sits above a field.
+ *
+ * Third copy of an identical object (account profile + password already had
+ * one each), which is the point at which the repo's rule says extract. It is
+ * NOT muted grey: a label is the question the field is asking, and a question
+ * greyed out below the answer's contrast is a question nobody re-reads.
+ */
+export const sfFieldLabel: CSSProperties = {
+  display: "block",
+  fontSize: 12.5,
+  fontWeight: 600,
+  color: "var(--text)",
+  marginBottom: 6,
+};
+
 export const sfInput: CSSProperties = {
   width: "100%",
   border: "1px solid var(--border-strong)",

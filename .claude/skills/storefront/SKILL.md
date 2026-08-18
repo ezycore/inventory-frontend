@@ -256,8 +256,9 @@ reads as two filters at once.
   - **Text fields are ≥16px.** Use `sfInput` (`components/storefront/field-styles.ts`) for every
     shopper-facing input — one shared object, previously six pasted copies. Below 16px iOS Safari
     zooms the page on focus and, since the viewport meta rightly permits scaling, never zooms back;
-    checkout's seven fields meant seven pinch-outs per order. Checkout keeps its own slightly
-    padded `input` in `checkout/checkout-bits.tsx`, also ≥16px.
+    checkout's seven fields meant seven pinch-outs per order. `checkout-bits.tsx` **re-exports**
+    `sfInput` as `input` — it used to declare a fourth copy, which had already drifted to its own
+    radius, padding and background. Its label partner is `sfFieldLabel` in the same file.
   - **Touch targets are ≥40px.** For icon buttons add `padding` plus a matching negative `margin`
     (see `tapPad` in `store-header.tsx`) so the hit box grows without moving the glyph; for list
     rows add real vertical padding. A bare `padding: 0` icon button is a bug — the hit box equals
@@ -929,6 +930,36 @@ registry miss — and `storefront-templates.test.ts` pins both.
 email-verification gate, the placed-order card and the empty cart all answer
 "should a checkout render at all" — a layout that got one wrong would take an
 order it should have refused. Same for the cart's hydration + empty state.
+
+### Checkout blocks + validation (2026-08-18)
+
+`checkout-blocks.tsx` is a **barrel** over `checkout/blocks/`, so the four layouts
+have one import site and the blocks can be split by concern without touching a
+layout. Add a block to `blocks/`, re-export it there.
+
+| Piece | File | Owns |
+|---|---|---|
+| Rules | `checkout-validation.ts` | which fields are wrong, and the message for each. **Pure** — no store, cart or shopper |
+| Timing | `use-checkout-errors.ts` | when a message may be seen: on blur, and on a refused submit (reveal all + scroll + focus) |
+| Chrome | `checkout-field.tsx` | `Field` (message + `data-cofield` focus handle), `FormAlert`, `invalidInput()` |
+| Label | `blocks/labeled-field.tsx` | `LabeledField` (label + control + error) and `FieldPair` (two short fields on a row, via `--cofields`) |
+| Fields | `blocks/contact-fields.tsx`, `blocks/delivery-fields.tsx` | the two halves `AddressBlock` composes, so `single` can card them separately |
+| Items | `blocks/order-lines.tsx` | the ONE cart-line renderer — `thumbs` on for the summary rail, off for `ReviewBlock` |
+
+⚠ **The submit button is never disabled by an incomplete form.** Pressing it is
+how a shopper asks what is missing, and a greyed-out button answers nothing —
+`submit()`/`tryAdvance()` refuse out loud instead. `canSubmit` and `stepBlocked`
+were removed for this; only `placing` disables anything.
+
+⚠ **The trust strip may not assert a policy.** `blocks/trust-strip.tsx` shows COD
+only when the merchant offers COD, and a returns line only when the merchant has
+published a returns page — using that page's own title, linked. In a white-label
+storefront a hard-coded "7-day returns" is a promise made on behalf of every
+merchant on the platform. The strip rendering nothing is a correct outcome.
+
+⚠ **Field numbering lives in the layout.** `single` numbers its three cards via
+`blocks/section-card.tsx`; `guided` numbers its own four sections. A block that
+numbered itself would number itself twice in `guided`.
 
 ⚠ **A layout may not compute money.** `useCheckout` owns the shipping zone, the
 coupon quote and the total; `useCartPage` owns the "From ৳X" delivery estimate
