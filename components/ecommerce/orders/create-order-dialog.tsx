@@ -182,7 +182,7 @@ export function CreateOrderDialog({
                   coupon limit — so the server rejects one it cannot normalise. */}
               {form.phoneInvalid ? (
                 <p className="text-xs text-destructive">
-                  Enter a valid number.
+                  Enter a valid Bangladeshi mobile number, e.g. 01712345678
                 </p>
               ) : null}
             </div>
