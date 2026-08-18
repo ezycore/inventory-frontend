@@ -82,7 +82,9 @@ export function PasswordChangeTab() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* method="post": a pre-hydration Enter would GET this form and put BOTH
+          the current and the new password in the query string. */}
+      <form method="post" onSubmit={handleSubmit} className="space-y-6">
         {/* Current Password */}
         <div className="space-y-2">
           <Label htmlFor="currentPassword" className="flex items-center gap-2">
