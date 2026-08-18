@@ -144,8 +144,15 @@ export default function Signup() {
 
       {/* Form panel. On lg it owns its own scroll so the action bar can stick to
           the column's bottom; on smaller screens the page scrolls and the bar
-          sticks to the viewport instead. */}
-      <main className="flex min-h-svh flex-col lg:h-svh lg:overflow-y-auto">
+          sticks to the viewport instead.
+
+          `relative` is load-bearing, not decoration: Radix Switch (the sample-data
+          toggle) renders a hidden absolutely-positioned <input> for form bubbling.
+          With no positioned ancestor its containing block was the <body>, so this
+          column's overflow could not clip it — the input sat ~960px down the
+          form, stretched the *document* to that height, and left a dead band of
+          background under the whole two-column layout. */}
+      <main className="relative flex min-h-svh flex-col lg:h-svh lg:overflow-y-auto">
         <div className="flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
           <div className="mx-auto flex w-full max-w-2xl flex-col gap-7">
             {/* Mobile lockup (the branded panel is hidden on small screens) */}
