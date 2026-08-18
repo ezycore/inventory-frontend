@@ -24,6 +24,7 @@ import { FormContent } from './form-content'
 import { cn } from '@/ui/lib/utils';
 import { Spinner } from '../spinner';
 import { toast } from 'sonner';
+import { useHydrated } from '@/hooks/use-hydrated'
 
 // Walk a react-hook-form errors tree and return the first message. Skips the
 // `ref` node (a DOM element) to avoid recursing into the DOM.
@@ -52,6 +53,40 @@ function findFirstErrorMessage(errors: any): string | undefined {
 // changes nothing after hydration (the submit is prevented either way), and
 // sits before the props spread so a caller can still override it.
 const FORM_METHOD = "post";
+
+/**
+ * Neutralises IMPLICIT submission until React is running.
+ *
+ * `method="post"` above stops a stray pre-hydration submit leaking fields into
+ * the URL; this stops it happening at all. Per the HTML spec a form's default
+ * button is the first submit button in its submit-button list, and implicit
+ * submission (Enter in a text field) does nothing when that button is disabled —
+ * so an always-first, always-hidden submit button is a switch for the whole
+ * behaviour.
+ *
+ * It lives HERE rather than on the pages: `/signup` guards its own sticky
+ * submit button this way, but that only protects the one page that remembered.
+ * Any form whose submit button sits outside the `<form>` and reaches it by
+ * `form="id"` has the same pre-hydration window, and this closes it for all of
+ * them. The page-level guard is still worth keeping where it exists — it also
+ * blocks a real CLICK on that button, which no default-button trick can.
+ *
+ * After hydration it is an ordinary enabled submit button, so Enter behaves
+ * exactly as before: it triggers the form's `onSubmit`, which is React Hook
+ * Form's `handleSubmit` either way.
+ */
+function ImplicitSubmitGuard() {
+    const hydrated = useHydrated()
+    return (
+        <button
+            type="submit"
+            disabled={!hydrated}
+            aria-hidden="true"
+            tabIndex={-1}
+            className="pointer-events-none absolute h-0 w-0 overflow-hidden border-0 p-0 opacity-0"
+        />
+    )
+}
 
 const DynamicForm: FC<DynamicFormProps> = ({
     className,
@@ -246,6 +281,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
+                            <ImplicitSubmitGuard />
                             {formContent}
                         </form>
                     </div>
@@ -284,6 +320,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
+                            <ImplicitSubmitGuard />
                             {formContent}
                             {actionsPlacement === 'bottom' && formActions}
                         </form>
@@ -301,6 +338,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                 {...props}
                 onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
             >
+                <ImplicitSubmitGuard />
                 {actionsPlacement === 'top' && formActions}
                 {formContent}
                 {actionsPlacement === 'bottom' && formActions}
