@@ -352,6 +352,47 @@ describe("applyHomeTemplateToDraft — the starting-layout picker", () => {
     expect(patch).not.toHaveProperty("footerText");
   });
 
+  /**
+   * REGRESSION — re-picking the active layout wiped the merchant's page (QA,
+   * 2026-08-18). The picker highlights the current tile, so clicking it again is
+   * the obvious way to ask "what is this one?" — and it replaced a composed
+   * section list with the preset's, silently, with no undo. Seeding is for
+   * CHANGING layout.
+   */
+  it("is a NO-OP when the shop is already on that layout", () => {
+    const composed = draft({
+      templates: { home: "classic", header: "boutique" },
+      homepageSections: [
+        { key: "hero-card-0", type: "hero-card" },
+        { key: "collections-1", type: "collections" },
+      ],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "classic");
+
+    // Nothing at all — not even a same-value template write, which would still
+    // mark the part dirty and offer a Save that changes nothing.
+    expect(patch).toEqual({});
+    expect(patch).not.toHaveProperty("homepageSections");
+  });
+
+  it("still reseeds when the layout genuinely changes from the same base", () => {
+    const composed = draft({
+      templates: { home: "classic" },
+      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "minimal");
+    expect(patch.homepageSections?.map((s) => s.type)).toEqual(
+      HOME_PRESET_SECTIONS["minimal"],
+    );
+  });
+
+  // A shop that has never picked one must still get seeded on its first click.
+  it("seeds on the first pick, when no home template is set yet", () => {
+    const patch = applyHomeTemplateToDraft(draft(), "classic");
+    expect(patch.templates?.home).toBe("classic");
+    expect(patch.homepageSections?.length).toBeGreaterThan(0);
+  });
+
   it("sets the template but never blanks the page for an unknown id", () => {
     // A retired id, or one from a newer build. An empty list would mean "this
     // shop shows no sections at all" and render a blank homepage.

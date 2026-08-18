@@ -440,6 +440,14 @@ export function applyHomeTemplateToDraft(
   draft: CustomizeDraft,
   value: string,
 ): Partial<CustomizeDraft> {
+  // ⚠ Re-picking the layout the shop is ALREADY on is a NO-OP, never a reseed.
+  // The picker highlights the active tile, so clicking it again is the most
+  // natural way to ask "what does this one look like?" — and that click used to
+  // replace the merchant's whole composed section list with the preset's, with
+  // no confirmation, no undo, and nothing in the UI to suggest a destructive
+  // write. Seeding is for CHANGING layout; staying put changes nothing.
+  if (value === draft.templates.home) return {};
+
   const preset = HOME_PRESET_SECTIONS[value];
   return {
     templates: { ...draft.templates, home: value },
