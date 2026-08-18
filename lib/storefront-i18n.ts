@@ -640,7 +640,7 @@ const en: Dict = {
   optionalTag: "optional",
   contactHeading: "Contact",
   codHint: "Pay when your order arrives",
-  phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
+  phoneInvalid: "Enter a valid number",
   nameRequired: "Enter your full name",
   phoneRequired: "Enter your mobile number",
   addressRequired: "Enter your delivery address",
