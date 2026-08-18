@@ -4,7 +4,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Monitor, RotateCw, Smartphone } from "lucide-react";
 import { useStoreProducts } from "@/services/storefront/hooks";
+import { useStorefrontPreviewToken } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
+import {
+  PREVIEW_TOKEN_PARAM,
+  setStorefrontPreviewToken,
+} from "@/lib/storefront-preview";
 import type { Image } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { toPreviewPayload } from "@/components/ecommerce/customize/draft-payloads";
@@ -39,6 +44,7 @@ const PAGES: { id: PreviewPage; label: string }[] = [
  */
 export function BrowserPreview({
   slug,
+  published,
   draft,
   logo,
   banner,
@@ -53,6 +59,12 @@ export function BrowserPreview({
   viewportHeight = "calc(100vh - 11rem)",
 }: {
   slug?: string;
+  /**
+   * Whether the shop is live. Drives owner preview: an unpublished shop is a 404
+   * to the public API, so previewing one needs a minted token — and a published
+   * one must not pay for a token it has no use for.
+   */
+  published: boolean;
   draft: CustomizeDraft;
   /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
   logo: Image | null;
@@ -81,6 +93,34 @@ export function BrowserPreview({
   );
   const [reloadKey, setReloadKey] = useState(0);
 
+  /* ── Owner preview ───────────────────────────────────────────────────────
+     Before this, everything below was a 404 until the merchant published: the
+     preview iframes the REAL storefront, and the public API does not serve an
+     unpublished shop. So "set the shop up properly, then go live" meant going
+     live first and theming in front of shoppers. See `lib/storefront-preview.ts`. */
+  const { data: preview, isPending: mintingToken } =
+    useStorefrontPreviewToken(!published);
+
+  /* Registered during RENDER rather than in an effect, and ABOVE the query that
+     needs it. `useStoreProducts` queues its fetch from its own effect, which — as
+     the earlier hook — runs first in the same commit; a token published from an
+     effect down here would always arrive one request too late.
+
+     No unmount cleanup on purpose. It looked like hygiene and was a dev-only
+     bug: StrictMode mounts, tears down and remounts effects with NO render in
+     between, so the teardown cleared a token this render had just published and
+     nothing re-published it. This line is the only writer and it runs every
+     render, which is what makes the value correct; one left behind after the
+     editor closes is inert — `sfFetch` on the admin origin is only reached from
+     these editors, and the API ignores a token for a shop that is published. */
+  setStorefrontPreviewToken(published ? null : (preview?.token ?? null));
+
+  /* Don't ask about products until we know whether we may. Firing early against
+     an unpublished shop caches the 404, and the answer arriving afterwards would
+     not re-run it — leaving the Product tab permanently disabled on exactly the
+     shops this feature exists for. */
+  const previewReady = published || !mintingToken;
+
   // One listed product is enough to preview the product page; without one the
   // tab is disabled rather than opening a 404.
   //
@@ -91,7 +131,7 @@ export function BrowserPreview({
   const { data: storeProducts } = useStoreProducts(
     slug ?? "",
     { limit: 1 },
-    !!slug,
+    !!slug && previewReady,
   );
   const productSlug = storeProducts?.items?.[0]?.slug;
 
@@ -101,7 +141,13 @@ export function BrowserPreview({
       : page === "product" && productSlug
         ? `/products/${productSlug}`
         : "";
-  const url = slug ? `${storefrontUrl(slug)}${path}?preview=1` : "";
+  // `preview=1` turns on the draft bridge inside the frame; the token is what
+  // gets the frame served at all before the shop is published. The token also
+  // makes the "open in a new tab" link beside it work pre-launch, which is the
+  // only way to see the shop at full size before going live.
+  const params = new URLSearchParams({ preview: "1" });
+  if (preview?.token) params.set(PREVIEW_TOKEN_PARAM, preview.token);
+  const url = slug ? `${storefrontUrl(slug)}${path}?${params}` : "";
 
   // Built by the same module as the save payload, so the preview cannot promise
   // a footer column or a slide the save path would drop. Memoised so the post
@@ -170,10 +216,13 @@ export function BrowserPreview({
      still appear. A moment of the saved theme is a blemish; a permanently blank
      preview is a broken page. */
   useEffect(() => {
-    if (painted) return;
+    // `previewReady` guards it too: on an unpublished shop the frame is not
+    // mounted until the token is in hand, and revealing a frame that does not
+    // exist yet shows a blank panel rather than a late one.
+    if (painted || !previewReady) return;
     const t = setTimeout(() => setPaintedKey(frameKey), 1500);
     return () => clearTimeout(t);
-  }, [painted, frameKey]);
+  }, [painted, frameKey, previewReady]);
 
   if (!slug) {
     return (
@@ -296,7 +345,11 @@ export function BrowserPreview({
               On desktop the frame is laid out at a real desktop width and scaled
               down to fit, rather than laid out at the panel's own width — see
               `usePreviewScale` for why a rail theme was previewing with no rail. */}
-          {ready ? (
+          {/* `previewReady` as well as `ready`: mounting before the owner-preview
+              token is in hand would load the shop's own "not published yet" 404
+              and then reload it a moment later — a wasted render of the wrong
+              page, and one the 1.5s reveal could catch mid-flight. */}
+          {ready && previewReady ? (
             <iframe
               key={reloadKey}
               ref={ref}

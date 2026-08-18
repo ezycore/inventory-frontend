@@ -72,6 +72,9 @@
   --relcols: 2;
   --pdpgrid: 1fr;
   --cartgrid: 1fr;
+  /* Checkout: two short fields (name + phone, district + area) sharing a row.
+     One column on a phone — a 160px-wide field is worse than a stacked one. */
+  --cofields: 1fr;
   --colmain: 1fr;
   /* Account area: sidebar + content grid, profile detail columns. */
   --acctgrid: 1fr;
@@ -80,6 +83,14 @@
   --invcols: 1fr;
   /* Height reserved for the fixed mobile bottom nav; 0 on desktop. */
   --sf-bottom-nav-h: 0px;
+  /*
+   * Height of the sticky header, published by `StoreHeader` (see
+   * `use-header-height.ts`). Anything that sticks to the TOP of the viewport
+   * must offset by this or it renders underneath the header — the mirror of
+   * `--sf-buybar-h` below. 0 until the header mounts, so every consumer needs
+   * to read it through a `calc()` that survives that.
+   */
+  --sf-header-h: 0px;
   /*
    * Height of the product page's sticky buy bar, published by that page while
    * the "sticky-bar" product template is active (0 everywhere else). The contact
@@ -474,6 +485,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
     --relcols: 4;
     --pdpgrid: minmax(0, 1.1fr) minmax(0, 1fr);
     --cartgrid: minmax(0, 1.6fr) minmax(0, 1fr);
+    --cofields: 1fr 1fr;
     --colmain: 220px minmax(0, 1fr);
     --acctgrid: 260px minmax(0, 1fr);
     --profcols: 1fr 1fr;

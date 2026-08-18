@@ -166,8 +166,47 @@ export interface Dict {
   deliveryDetails: string;
   fullName: string;
   phone: string;
+  /**
+   * Checkout field LABELS, as distinct from the placeholders above them.
+   *
+   * The checkout used to be placeholder-only, which loses the question the
+   * moment the shopper answers it — by the time they reach the district they
+   * can no longer see what the third box was for. Labels stay; placeholders
+   * become examples of the answer, not restatements of the question.
+   *
+   * `mobileLabel` says "mobile" rather than "phone" on purpose: the validator
+   * (and the backend) accept BD mobile numbers only, so the account page's
+   * `phoneLabel` ("Phone number") would invite a landline the order rejects.
+   */
+  mobileLabel: string;
+  phonePh: string;
+  addressLineLabel: string;
+  districtLabel: string;
+  areaLabel: string;
+  orderNotesLabel: string;
+  /** Suffix on labels the shopper may leave blank. */
+  optionalTag: string;
+  /** Group heading above name + phone, separating them from the address. */
+  contactHeading: string;
+  /** One line under Cash on delivery. Says only what COD already means — no
+   *  claim the merchant has not made. */
+  codHint: string;
   /** Inline error under the phone field when a guest types a non-BD mobile. */
   phoneInvalid: string;
+  /**
+   * Per-field checkout errors. Deliberately one message PER FIELD rather than a
+   * single reusable "Required" — a shopper facing a form with four blanks needs
+   * to know WHICH blank, and "Required" repeated four times says only that the
+   * form is unhappy. They surface on blur and on a refused Place-order attempt.
+   */
+  nameRequired: string;
+  phoneRequired: string;
+  addressRequired: string;
+  districtRequired: string;
+  areaRequired: string;
+  termsRequiredError: string;
+  /** Form-level summary shown when a submit attempt is refused. */
+  checkoutFixErrors: string;
   /** Optional sign-in nudge beside the guest form — an offer, never a gate. */
   haveAccount: string;
   /** Soft "you are not signed in" notice on checkout. Informs, never blocks —
@@ -592,7 +631,23 @@ const en: Dict = {
   deliveryDetails: "Delivery details",
   fullName: "Full name",
   phone: "Phone number",
+  mobileLabel: "Mobile number",
+  phonePh: "01XXXXXXXXX",
+  addressLineLabel: "Street address",
+  districtLabel: "District",
+  areaLabel: "Area / upazila",
+  orderNotesLabel: "Delivery notes",
+  optionalTag: "optional",
+  contactHeading: "Contact",
+  codHint: "Pay when your order arrives",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
+  nameRequired: "Enter your full name",
+  phoneRequired: "Enter your mobile number",
+  addressRequired: "Enter your delivery address",
+  districtRequired: "Select your district",
+  areaRequired: "Select or type your area",
+  termsRequiredError: "Please accept the terms to continue",
+  checkoutFixErrors: "Please complete the highlighted fields.",
   haveAccount: "Already have an account?",
   guestNoticeTitle: "You're not signed in",
   guestNoticeBody:
@@ -638,7 +693,7 @@ const en: Dict = {
   loadingLocations: "Loading…",
   newAddress: "New address",
   saveThisAddress: "Save this address",
-  orderNotesPh: "Delivery notes (optional)",
+  orderNotesPh: "Gate code, landmark, best time to call",
   agreeToTerms: "I agree to the {terms}",
   termsLinkLabel: "terms & conditions",
   minOrderNotice: "Minimum order value:",
@@ -989,7 +1044,23 @@ const bn: Dict = {
   deliveryDetails: "ডেলিভারি তথ্য",
   fullName: "পুরো নাম",
   phone: "ফোন নম্বর",
+  mobileLabel: "মোবাইল নম্বর",
+  phonePh: "01XXXXXXXXX",
+  addressLineLabel: "রাস্তার ঠিকানা",
+  districtLabel: "জেলা",
+  areaLabel: "এলাকা / উপজেলা",
+  orderNotesLabel: "ডেলিভারি নোট",
+  optionalTag: "ঐচ্ছিক",
+  contactHeading: "যোগাযোগ",
+  codHint: "অর্ডার পৌঁছালে টাকা পরিশোধ করুন",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
+  nameRequired: "আপনার পুরো নাম লিখুন",
+  phoneRequired: "আপনার মোবাইল নম্বর লিখুন",
+  addressRequired: "আপনার ডেলিভারি ঠিকানা লিখুন",
+  districtRequired: "আপনার জেলা নির্বাচন করুন",
+  areaRequired: "আপনার এলাকা নির্বাচন করুন বা লিখুন",
+  termsRequiredError: "চালিয়ে যেতে শর্তাবলিতে সম্মতি দিন",
+  checkoutFixErrors: "চিহ্নিত ঘরগুলো পূরণ করুন।",
   haveAccount: "আগে থেকে অ্যাকাউন্ট আছে?",
   guestNoticeTitle: "আপনি সাইন ইন করেননি",
   guestNoticeBody:
@@ -1035,7 +1106,7 @@ const bn: Dict = {
   loadingLocations: "লোড হচ্ছে…",
   newAddress: "নতুন ঠিকানা",
   saveThisAddress: "এই ঠিকানা সংরক্ষণ করুন",
-  orderNotesPh: "ডেলিভারি নোট (ঐচ্ছিক)",
+  orderNotesPh: "গেট কোড, ল্যান্ডমার্ক, কল করার উপযুক্ত সময়",
   agreeToTerms: "আমি {terms}তে সম্মত",
   termsLinkLabel: "নিয়ম ও শর্তাবলী",
   minOrderNotice: "সর্বনিম্ন অর্ডার মূল্য:",
