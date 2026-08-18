@@ -138,6 +138,52 @@ describe("tryAdvance — a step is blocked only by what it renders", () => {
   });
 });
 
+describe("submit — never points at a screen the shopper cannot see", () => {
+  /**
+   * A stepped shopper can reach step 3 and only then have a step-1 field go
+   * invalid — a signed-in session dropping mid-checkout tightens `phoneUsable`
+   * from "non-empty" to the BD-mobile rule, so a number that passed step 1 no
+   * longer does. Refusing without moving would show a banner with no highlighted
+   * field on screen.
+   */
+  it("jumps back to the step that owns the first problem", () => {
+    shopper = { emailVerified: true, addresses: [], name: "R", phone: "+44 20 7946 0000" };
+    const { result } = renderHook(() => useCheckout());
+    act(() => result.current.set("name", "Rashidul Karim"));
+    act(() => result.current.set("phone", "+44 20 7946 0000"));
+    act(() => result.current.set("address", "House 42"));
+    act(() => result.current.setTermsAccepted(true));
+
+    // Signed in, a non-BD number is accepted, so step 1 clears.
+    act(() => void result.current.tryAdvance());
+    act(() => void result.current.tryAdvance());
+    expect(result.current.step).toBe(3);
+
+    // The session drops. That same number is now invalid, on a screen two back.
+    act(() => {
+      shopper = null;
+    });
+    act(() => result.current.set("phone", "+44 20 7946 0000"));
+    expect(result.current.allErrors.phone).toBeTruthy();
+
+    act(() => result.current.submit());
+
+    expect(placeOrder).not.toHaveBeenCalled();
+    expect(result.current.step).toBe(1);
+  });
+
+  it("does not move a valid form", () => {
+    const { result } = renderHook(() => useCheckout());
+    fillStepOne(result.current);
+    act(() => void result.current.tryAdvance());
+    act(() => result.current.setTermsAccepted(true));
+    const before = result.current.step;
+    act(() => result.current.submit());
+    expect(result.current.step).toBe(before);
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("submit — the final gate keeps every rule", () => {
   it("refuses to place the order while required terms are unticked", () => {
     const { result } = renderHook(() => useCheckout());

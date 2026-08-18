@@ -33,6 +33,8 @@ import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
   CHECKOUT_STEP_FIELDS,
   checkoutErrors,
+  firstInvalidField,
+  stepForField,
   type CheckoutErrors,
 } from "@/components/storefront/checkout/checkout-validation";
 import { useCheckoutErrors } from "@/components/storefront/checkout/use-checkout-errors";
@@ -288,6 +290,16 @@ export function useCheckout() {
       toast.error(`${t.minOrderNotice} ${money(minOrder, currency)}`);
       return;
     }
+    // A stepped layout shows one screen at a time, and the final submit checks
+    // every field — so the first problem may be on a screen that is not mounted,
+    // and the refusal would point at nothing. Jump to the screen that owns it
+    // first. Unreachable through normal use (`tryAdvance` gates step 1), but a
+    // signed-in shopper whose session drops mid-checkout gets there: `phoneUsable`
+    // tightens to the BD-mobile rule and a number that passed step 1 no longer
+    // does. A no-op in the three single-screen layouts, which never read `step`.
+    const offending = firstInvalidField(errors);
+    if (offending) setStep(stepForField(offending));
+
     // No toast here: `PlaceOrderButton` renders the same sentence as a banner
     // beside itself, and `reveal()` has already scrolled to the offending field,
     // which shows the SPECIFIC message. A toast would be the generic one, twice.
