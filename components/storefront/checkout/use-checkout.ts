@@ -31,6 +31,7 @@ import { cartAnonymousId } from "@/services/storefront/cart-identity";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
+  CHECKOUT_STEP_FIELDS,
   checkoutErrors,
   type CheckoutErrors,
 } from "@/components/storefront/checkout/checkout-validation";
@@ -264,9 +265,14 @@ export function useCheckout() {
    * This one DOES toast, unlike `submit`: Continue has no banner beside it, so
    * without the toast a shopper who is already looking at a filled-in field sees
    * only a page that refused to move.
+   *
+   * It checks **only the current step's fields**. Checking all of them looks
+   * stricter and is in fact a dead end: an unticked required-terms box lives on
+   * step 3, so it refused step 1 and then pointed at a checkbox that had not
+   * rendered yet. Terms still gate `submit`, which is where they belong.
    */
   const tryAdvance = () => {
-    if (step === 1 && !errorState.reveal()) {
+    if (!errorState.reveal(CHECKOUT_STEP_FIELDS[step])) {
       toast.error(t.checkoutFixErrors);
       return false;
     }

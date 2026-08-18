@@ -60,6 +60,26 @@ export const CHECKOUT_FIELD_ORDER: CheckoutField[] = [
   "terms",
 ];
 
+/**
+ * Which fields each step of the STEPPED layout is answerable for.
+ *
+ * ⚠ **This must match `SteppedCheckout`'s block placement.** A field listed
+ * against a step that does not render it becomes a step the shopper can never
+ * leave and can see no way to fix — which is exactly what shipped: `terms`
+ * renders in step 3, an unticked required box is an error from the first render,
+ * and an unscoped advance check therefore refused step 1 while pointing at a
+ * control two screens away. Terms and the minimum order are **final-submit**
+ * concerns; they never gate an earlier step.
+ *
+ * Step 2 is payment, which is always valid — one method is always selected — so
+ * it owns no fields rather than being special-cased at the call site.
+ */
+export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
+  1: ["name", "phone", "address", "district", "area"],
+  2: [],
+  3: ["terms"],
+};
+
 export function checkoutErrors({
   t,
   addr,
@@ -104,7 +124,19 @@ export function checkoutErrors({
   return errors;
 }
 
-/** First field in visual order that has a message — what to focus and scroll to. */
-export function firstInvalidField(errors: CheckoutErrors): CheckoutField | null {
-  return CHECKOUT_FIELD_ORDER.find((f) => errors[f]) ?? null;
+/**
+ * First field in visual order that has a message — what to focus and scroll to.
+ *
+ * `scope` narrows it to the fields currently on screen. Order always comes from
+ * `CHECKOUT_FIELD_ORDER`, never from the scope array, so a caller cannot
+ * accidentally change which problem the shopper is sent to first.
+ */
+export function firstInvalidField(
+  errors: CheckoutErrors,
+  scope?: readonly CheckoutField[],
+): CheckoutField | null {
+  const order = scope
+    ? CHECKOUT_FIELD_ORDER.filter((field) => scope.includes(field))
+    : CHECKOUT_FIELD_ORDER;
+  return order.find((field) => errors[field]) ?? null;
 }

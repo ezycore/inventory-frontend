@@ -35,8 +35,13 @@ export interface CheckoutErrorState {
   /**
    * Show everything and jump to the first problem. Returns `true` when there was
    * nothing to reveal, i.e. the caller may proceed.
+   *
+   * `scope` limits which fields can refuse — pass the current step's fields from
+   * a stepped layout, and nothing for a final submit. **A scope must only ever
+   * name fields that are on screen**, or the refusal points at a control the
+   * shopper cannot see (see `CHECKOUT_STEP_FIELDS`).
    */
-  reveal: () => boolean;
+  reveal: (scope?: readonly CheckoutField[]) => boolean;
 }
 
 export function useCheckoutErrors(errors: CheckoutErrors): CheckoutErrorState {
@@ -56,8 +61,8 @@ export function useCheckoutErrors(errors: CheckoutErrors): CheckoutErrorState {
     return shown;
   }, [errors, revealed, touched]);
 
-  const reveal = useCallback(() => {
-    const first = firstInvalidField(errors);
+  const reveal = useCallback((scope?: readonly CheckoutField[]) => {
+    const first = firstInvalidField(errors, scope);
     if (!first) return true;
     setRevealed(true);
     // After paint, or the field is still rendering without its message and the
