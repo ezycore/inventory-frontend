@@ -2,6 +2,11 @@
 // coding-standard: maintained
 
 import { ImagePlus, Info, Loader2, X } from "lucide-react";
+import {
+  ImageRatioWarning,
+  useImageRatioWarning,
+} from "@/components/shared/image-ratio-warning";
+import type { ImageSize } from "@/lib/image-ratio";
 import { Label } from "@/ui/components/label";
 import {
   Tooltip,
@@ -25,6 +30,7 @@ export function MediaField({
   onPick,
   onRemove,
   hint,
+  recommended,
 }: {
   label: string;
   url?: string;
@@ -34,7 +40,14 @@ export function MediaField({
   onPick: (file: File) => void;
   onRemove?: () => void;
   hint?: string;
+  /**
+   * The shape this slot is built for. Supplying it turns on the mismatch
+   * warning; leaving it off keeps the field exactly as it was, which is what a
+   * slot with no meaningful shape (a favicon, a vector mark) wants.
+   */
+  recommended?: ImageSize;
 }) {
+  const ratio = useImageRatioWarning(recommended);
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
@@ -88,7 +101,10 @@ export function MediaField({
         {url && onRemove && !busy && (
           <button
             type="button"
-            onClick={onRemove}
+            onClick={() => {
+              ratio.clear();
+              onRemove?.();
+            }}
             disabled={disabled}
             aria-label={`Remove ${label.toLowerCase()}`}
             className="absolute right-1.5 top-1.5 rounded-md border bg-background/95 p-1 text-muted-foreground shadow-sm transition-colors hover:text-red-600"
@@ -102,6 +118,7 @@ export function MediaField({
           </span>
         )}
       </div>
+      <ImageRatioWarning message={ratio.warning} />
       <input
         ref={inputRef}
         type="file"
@@ -109,7 +126,10 @@ export function MediaField({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onPick(file);
+          if (file) {
+            void ratio.check(file);
+            onPick(file);
+          }
           e.target.value = "";
         }}
       />

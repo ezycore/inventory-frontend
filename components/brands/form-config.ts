@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { DynamicFormConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * Static English config — module-scope `config/quickAddConfig.ts` and the
@@ -38,6 +39,7 @@ export const brandFormConfig: DynamicFormConfig = {
       maxSize: 5 * 1024 * 1024, // 5MB per file
       fileTypes: ["jpg", "jpeg", "png", "webp"],
       dropzoneText: "Square 600 × 600 px works best · PNG, JPG, WEBP up to 5MB",
+      recommended: RECOMMENDED.brand,
       showPreview: true,
     },
     {

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useUploadStorefrontImage } from "@/services/api";
 import type { Image } from "@/types";
 import { MediaField } from "@/components/ecommerce/customize/media-field";
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * Announcement-bar background image upload — reuses the shared MediaField tile
@@ -39,6 +40,7 @@ export function AnnouncementBgField({
       onPick={onPick}
       onRemove={() => onChange(null)}
       hint="Optional. 1600 × 200 px works best (or a small seamless tile for the tile fit). Painted behind the text with an overlay for readability."
+      recommended={RECOMMENDED.announcementBg}
     />
   );
 }
