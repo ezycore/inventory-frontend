@@ -11,6 +11,7 @@ import type {
   StorefrontHeroSlide,
   StorefrontMenuItem,
   StorefrontNav,
+  StorefrontTheme,
   UpdateStorefrontSettingsDto,
 } from "@/types";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
@@ -234,10 +235,26 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
   };
 }
 
+/**
+ * A `theme` with **every** key present — values may still be `undefined`.
+ *
+ * `StorefrontTheme` is all-optional, and `UpdateStorefrontSettingsDto` wraps it
+ * in `Partial`, so nothing stopped this builder from quietly omitting a key. It
+ * had to be right by memory, and the failure mode was silent and permanent:
+ * because the PATCH replaces `theme` wholesale, a field added to the interface
+ * and forgotten HERE would be deleted from every merchant's shop on their next
+ * Save, with no error anywhere.
+ *
+ * Mapping over `keyof Required<…>` makes the key list mandatory while leaving
+ * each value's own optionality intact — so adding a field to `StorefrontTheme`
+ * now fails to compile until this builder mentions it. Deciding it should be
+ * `undefined` is fine; forgetting it is not.
+ */
+type CompleteTheme = { [K in keyof Required<StorefrontTheme>]: StorefrontTheme[K] };
+
 /** One PATCH carrying theme, templates and nav — the page's whole Save. */
 export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettingsDto {
-  return {
-    theme: {
+  const theme: CompleteTheme = {
       preset: draft.preset,
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
@@ -251,23 +268,44 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       homepageSections: draft.homepageSections.length
         ? draft.homepageSections
         : undefined,
-      // ⚠ Not editable here, and listed anyway: this object literal is the whole
-      // `theme` the merchant is saving, and a field left out of it is a field
-      // this editor has no opinion about — which is not the same as one it wants
-      // preserved. Sending it keeps the payload a complete picture rather than
-      // one that depends on how the server merges.
+      // ⚠ Not editable here, and listed anyway — because this literal MUST be
+      // the whole `theme`. The server does a shallow `Object.assign(settings,
+      // dto)`, and assigning a POJO to a Mongoose nested path REPLACES it: the
+      // stored `theme` becomes exactly the keys sent, and every key omitted here
+      // is DELETED from the document — or, where the schema declares a default,
+      // silently reset to it on the next read, which is worse because nothing
+      // looks missing afterwards. Sending a partial `theme` is how a save of one
+      // colour wipes the merchant's design and homepage layout. `CompleteTheme`
+      // above is what now stops a forgotten key compiling.
       //
-      // What the server actually does, because the wrong version of this note
-      // stood here and would have misled the next reader: `theme` is a Mongoose
-      // NESTED PATH, so `Object.assign(settings, dto)` MERGES it — an omitted
-      // key keeps its stored value and an explicit `undefined` is a no-op, not
-      // an unset. The practical consequence is the opposite of "omitted fields
-      // are deleted": a merchant who CLEARS a field cannot clear it, because
-      // `undefined` never reaches the document. `shippingZones` in
-      // `storefront-settings.service.ts` is the one place that works around it,
-      // with an explicit `settings.set(path, undefined)`.
-      appliedThemeId: draft.appliedThemeId,
-    },
+      // Verified against the driver, not assumed — an earlier version of this
+      // note claimed the opposite ("nested paths MERGE, an omitted key keeps its
+      // stored value, an explicit `undefined` is a no-op"). Both halves were
+      // wrong in both directions: omitted keys are dropped, and an explicit
+      // `undefined` DOES clear the field, because the whole subdocument is
+      // rewritten from this literal.
+      //
+      // Since 2026-08-19 the validator catches the two shapes a wire format can
+      // catch (QA-094): `themeSchema.preset` is REQUIRED, so the one-key PATCH
+      // that erased a live tenant's look now 400s, and `theme`/`templates` are
+      // `.strict()`, so a misspelt key is rejected instead of being stripped and
+      // then deleted by the replace. It cannot demand a COMPLETE block —
+      // `JSON.stringify` drops `undefined`, so this literal legitimately arrives
+      // carrying only the keys the merchant has set. That half is still on us:
+      // always send the whole block you touch.
+      //
+      // The same rule governs `templates` below, and the storefront skill's
+      // gotcha list carries it as the repo-wide statement ("the settings PATCH
+      // replaces `templates` … WHOLESALE"). The one true exception is
+      // `shippingZones`: clearing the whole block needs an explicit `null`,
+      // which `storefront-settings.service.ts` turns into
+      // `settings.set(path, undefined)` because assigning `null` to a nested
+      // path is not a replace.
+    appliedThemeId: draft.appliedThemeId,
+  };
+
+  return {
+    theme,
     // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
     // is what lets a ready-made theme replace the look wholesale without
     // touching a word the merchant typed. Each field is `undefined`, never `""`:

@@ -159,6 +159,8 @@ export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
+/** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */
+export type StorefrontPreviewToken = Schemas["StorefrontPreviewToken"];
 
 /** Notification engine (backend docs/plan/notifications.md). */
 export type NotificationSettings = Schemas["NotificationSettings"];

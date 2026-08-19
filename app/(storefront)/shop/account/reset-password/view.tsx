@@ -103,7 +103,12 @@ export default function ResetPasswordPage() {
           </h1>
         </div>
 
+        {/* method="post" matters most here: this page is already at ?token=…,
+            so a native pre-hydration submit would GET the form and put the reset
+            token AND the shopper's new password in one URL — history, Referer,
+            and every proxy log between them and us. */}
         <form
+          method="post"
           onSubmit={(e) => {
             e.preventDefault();
             if (!reset.isPending) submit();

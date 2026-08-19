@@ -125,7 +125,11 @@ function ResetPasswordForm() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit}>
+              {/* method="post" matters most here: this page is already at
+                  ?token=…, so a pre-hydration Enter would GET the form and
+                  land the reset token AND the new password in one URL —
+                  browser history, Referer, and every proxy log on the way. */}
+              <form method="post" onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
                     <Label htmlFor="newPassword">New Password</Label>

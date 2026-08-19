@@ -113,7 +113,10 @@ export function LoginForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handle2FASubmit}>
+            {/* method="post": before hydration this is plain server HTML, and
+                Enter submits it natively — as a GET, which would put the
+                one-time code in the URL. See ui/components/form/index.tsx. */}
+            <form method="post" onSubmit={handle2FASubmit}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="twoFactorToken">
@@ -190,7 +193,9 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          {/* method="post": a pre-hydration Enter would otherwise GET this
+              form, putting the email and password in the query string. */}
+          <form method="post" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {showSlugField && (
                 <div className="grid gap-3">

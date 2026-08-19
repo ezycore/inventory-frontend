@@ -63,6 +63,7 @@ export function StoreShell({
   const { data: store, isError } = useStore(slug, initialStore);
   const { data: fetchedCategories } = useStoreCategories(slug, initialCategories);
   const previewBrand = useSfPreview((s) => s.brand);
+  const previewAccent = useSfPreview((s) => s.accent);
   const previewDesign = useSfPreview((s) => s.design);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewSamples = useSfPreview((s) => s.samples);
@@ -126,10 +127,11 @@ export function StoreShell({
      the brand is not a second colour, and `--accent*` already falls back to the
      primary pair in storefront.css, so stamping it would be a no-op that costs
      two attributes and a stack of vars.
-     ⚠ Read from the saved theme only — the Customize editor has no live accent
-     preview to prefer, unlike `previewBrand`. If one is ever added, it belongs
-     here beside its brand counterpart. */
-  const accentColor = store?.theme?.accentColor;
+     Draft first, exactly like `brandColor` above. The payload has always carried
+     `accentColor` and the preview store has always kept it, but nothing read it
+     — so the Customize editor's accent field repainted nothing until a save and
+     a reload, while the brand control directly above it updated live. */
+  const accentColor = previewAccent ?? store?.theme?.accentColor;
   const accent =
     accentColor && accentColor.toLowerCase() !== brandColor?.toLowerCase()
       ? accentColor

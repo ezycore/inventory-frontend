@@ -11,6 +11,7 @@ import {
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
 import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
+import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
@@ -192,7 +193,17 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
-  home: (d) => [d.templates.home, d.homepageSections, d.sectionConfig],
+  // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
+  // belong to this slice — they moved here from `collections` with their
+  // controls on 2026-08-18. A setting left in the wrong slice marks the wrong
+  // part dirty, which is the save bar naming a part the merchant never opened.
+  home: (d) => [
+    d.templates.home,
+    d.homepageSections,
+    d.sectionConfig,
+    d.homeCollections,
+    d.templates.categoryTiles,
+  ],
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
@@ -203,8 +214,6 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.collections,
     d.templates.collection,
     d.templates.pagination,
-    d.homeCollections,
-    d.templates.categoryTiles,
   ],
   product: (d) => d.templates.product,
   contact: (d) => d.contactButton,
@@ -409,6 +418,46 @@ export function applyThemeToDraft(
 }
 
 /**
+ * The home template, which is a STARTING layout: it seeds the section list the
+ * Sections editor then owns.
+ *
+ * **This is why the picker cannot be a plain `patchTemplate("home", …)`.**
+ * `templates.home` reaches the shop only through `resolveSections`, which uses
+ * the preset as the fallback for an EMPTY `homepageSections` — and no store has
+ * one, because applying any theme fills it via `sectionInstances(theme.sections)`.
+ * So the bare template write marked the part dirty, saved, and changed nothing a
+ * shopper could see: the picker was inert on every theme (found in browser QA,
+ * 2026-08-17).
+ *
+ * Seeded the way `applyThemeToDraft` does, and for the same reasons: replaced
+ * outright rather than merged (a homepage is an ordered whole), with instances
+ * minted deterministically so picking a layout twice yields the same keys.
+ * `sectionConfig` is deliberately left alone — orphans are dropped in
+ * `toSettingsPayload`, and a row the merchant pointed at a collection keeps it
+ * when the same key comes back.
+ */
+export function applyHomeTemplateToDraft(
+  draft: CustomizeDraft,
+  value: string,
+): Partial<CustomizeDraft> {
+  // ⚠ Re-picking the layout the shop is ALREADY on is a NO-OP, never a reseed.
+  // The picker highlights the active tile, so clicking it again is the most
+  // natural way to ask "what does this one look like?" — and that click used to
+  // replace the merchant's whole composed section list with the preset's, with
+  // no confirmation, no undo, and nothing in the UI to suggest a destructive
+  // write. Seeding is for CHANGING layout; staying put changes nothing.
+  if (value === draft.templates.home) return {};
+
+  const preset = HOME_PRESET_SECTIONS[value];
+  return {
+    templates: { ...draft.templates, home: value },
+    // An id with no preset (retired, or from a newer build) still sets the
+    // template — but must not blank the page, which an empty list would mean.
+    ...(preset ? { homepageSections: sectionInstances(preset) } : {}),
+  };
+}
+
+/**
  * Has the merchant edited the look since applying `appliedThemeId`? Compares
  * only what a theme writes, so changing footer wording — which a theme cannot
  * touch — must never read as "modified".
@@ -435,6 +484,8 @@ export interface CustomizeDraftApi {
   draft: CustomizeDraft;
   patch: (p: Partial<CustomizeDraft>) => void;
   patchTemplate: (key: string, value: string) => void;
+  /** `templates.home` + the section list it seeds — never `patchTemplate("home")`. */
+  patchHomeTemplate: (value: string) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
@@ -513,6 +564,10 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   const patchTemplate = useCallback(
     (key: string, value: string) =>
       setDraft((d) => ({ ...d, templates: { ...d.templates, [key]: value } })),
+    [],
+  );
+  const patchHomeTemplate = useCallback(
+    (value: string) => setDraft((d) => ({ ...d, ...applyHomeTemplateToDraft(d, value) })),
     [],
   );
   const applyTheme = useCallback((themeId: string) => {
@@ -599,6 +654,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     draft,
     patch,
     patchTemplate,
+    patchHomeTemplate,
     patchAnnouncement,
     patchContactButton,
     patchContentPages,
