@@ -59,6 +59,40 @@ export const SECTION_IDS = [
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
+/** Sections whose own component already renders the homepage's primary heading. */
+export const HOME_PRIMARY_HEADING_SECTIONS: ReadonlySet<SectionId> = new Set([
+  "hero-card",
+  "hero-open",
+  "hero-split",
+  "hero-manifesto",
+  "hero-fullbleed",
+  "search-hero",
+]);
+
+/**
+ * Decide where a homepage without a conventional hero gets its one `<h1>`.
+ * Editorial split has a real visible headline, so it is promoted when possible;
+ * a composition such as Meridian Care with no headline uses the store name in
+ * visually-hidden markup instead of inventing visible copy for the merchant.
+ */
+export function resolveHomePrimaryHeading(
+  sections: readonly { key: string; type: string }[],
+): { editorialKey?: string; useHiddenStoreName: boolean } {
+  if (
+    sections.some(
+      (section) =>
+        isSectionId(section.type) && HOME_PRIMARY_HEADING_SECTIONS.has(section.type),
+    )
+  ) {
+    return { useHiddenStoreName: false };
+  }
+
+  const editorial = sections.find((section) => section.type === "editorial-split");
+  return editorial
+    ? { editorialKey: editorial.key, useHiddenStoreName: false }
+    : { useHiddenStoreName: true };
+}
+
 const SECTION_ID_SET: ReadonlySet<string> = new Set(SECTION_IDS);
 
 /**

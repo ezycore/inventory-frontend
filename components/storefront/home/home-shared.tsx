@@ -50,6 +50,8 @@ export interface SectionProps {
   heroBanner?: StoreHeroBanner;
   /** The whole store — sections that read `trustBadges`, `social` or `name`. */
   store: StorefrontStore;
+  /** This section owns the page's single visible `<h1>` when true. */
+  primaryHeading?: boolean;
   /** Historical fallback until the merchant explicitly chooses grid or strip. */
   categoryRowDefault?: "strip" | "grid";
   /**
@@ -223,7 +225,7 @@ export function heroBtns(
           background: "var(--primary)",
           color: "var(--on-primary)",
           padding: "12px 24px",
-          borderRadius: 8,
+          borderRadius: "var(--radius-sm)",
           fontSize: 14,
           fontWeight: 600,
         }}
@@ -237,7 +239,7 @@ export function heroBtns(
           color: "var(--text)",
           border: "1px solid var(--border-strong)",
           padding: "12px 22px",
-          borderRadius: 8,
+          borderRadius: "var(--radius-sm)",
           fontSize: 14,
           fontWeight: 600,
         }}

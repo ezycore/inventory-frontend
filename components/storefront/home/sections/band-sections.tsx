@@ -350,6 +350,7 @@ function DealCard({
  */
 export function EditorialSplit(props: SectionProps) {
   const { base, t, banner, heroBanner: hb } = props;
+  const Heading = props.primaryHeading ? "h1" : "h2";
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,56px) var(--pad)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "var(--splitcols)", gap: "clamp(20px,4vw,52px)", alignItems: "center" }}>
@@ -366,7 +367,7 @@ export function EditorialSplit(props: SectionProps) {
           <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
             {hb?.badge || campaignBadge(props) || t.weeklyEdit}
           </span>
-          <h2
+          <Heading
             style={{
               fontSize: "var(--h1)",
               lineHeight: 1.08,
@@ -377,7 +378,7 @@ export function EditorialSplit(props: SectionProps) {
             }}
           >
             {hb?.title || t.heroBt}
-          </h2>
+          </Heading>
           <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 26px", maxWidth: 420 }}>
             {hb?.subtitle || t.heroBs}
           </p>

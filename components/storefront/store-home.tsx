@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import type { CSSProperties } from "react";
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -23,8 +24,21 @@ import { SECTION_COMPONENTS } from "@/components/storefront/home/home-sections";
 import {
   HOME_PRESET_SECTIONS,
   isSectionId,
+  resolveHomePrimaryHeading,
   type SectionId,
 } from "@/lib/storefront-section-ids";
+
+const visuallyHidden: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
 
 /**
  * Storefront homepage — **a list of sections, not a template.**
@@ -107,6 +121,7 @@ export function StoreHome({
     isSectionId,
     presets: HOME_PRESET_SECTIONS,
   });
+  const primaryHeading = resolveHomePrimaryHeading(sections);
 
   // Per-section products. The server fetched one query per CONFIGURED section
   // (see `shop/page.tsx`); under preview a section the merchant just re-pointed
@@ -154,6 +169,9 @@ export function StoreHome({
 
   return (
     <div>
+      {primaryHeading.useHiddenStoreName ? (
+        <h1 style={visuallyHidden}>{store.name}</h1>
+      ) : null}
       {sections.map((section) => {
         const Section = SECTION_COMPONENTS[section.type as SectionId];
         const config = configFor(sectionConfig, section.key);
@@ -164,6 +182,7 @@ export function StoreHome({
           <Section
             key={section.key}
             {...shared}
+            primaryHeading={primaryHeading.editorialKey === section.key}
             config={config}
             items={config ? rowItems.get(section.key) : undefined}
           />

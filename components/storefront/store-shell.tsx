@@ -19,11 +19,11 @@ import {
 } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import type { Dict } from "@/lib/storefront-i18n";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
 import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
+import { shellCrumbLabel } from "@/lib/storefront-shell-breadcrumb";
 import { ShellBottomNav } from "@/components/storefront/shells/shell-parts";
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
 import { RailShell } from "@/components/storefront/shells/rail-shell";
@@ -175,7 +175,7 @@ export function StoreShell({
     : resolveTemplates(store).shell;
 
   const onHome = pathname === base || pathname === `${base}/` || pathname === "/";
-  const crumb = !onHome ? crumbLabel(pathname, t) : "";
+  const crumb = !onHome ? shellCrumbLabel(pathname, t) : "";
 
   const Shell = SHELLS[shell] ?? StackedShell;
 
@@ -256,14 +256,4 @@ const SHELLS: Record<StoreTemplates["shell"], typeof StackedShell> = {
 
 function isShell(v: unknown): v is StoreTemplates["shell"] {
   return v === "stacked" || v === "rail";
-}
-
-function crumbLabel(pathname: string, t: Dict): string {
-  if (/\/products\/[^/]+$/.test(pathname)) return t.navProduct;
-  if (/\/products(\?|$)/.test(pathname) || /\/products$/.test(pathname)) return t.navShop;
-  if (pathname.includes("/search")) return t.navSearch;
-  if (pathname.includes("/cart")) return t.navCart;
-  if (pathname.includes("/checkout")) return t.navCheckout;
-  if (pathname.includes("/account")) return t.navAccount;
-  return "";
 }
