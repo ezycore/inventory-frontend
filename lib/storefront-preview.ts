@@ -29,7 +29,22 @@
  */
 
 /** URL param the admin puts the token in when it builds the preview iframe URL. */
+import { create } from "zustand";
+
 export const PREVIEW_TOKEN_PARAM = "previewToken";
+
+/**
+ * Asks the shop's own origin to forget its preview cookie.
+ *
+ * The cookie is set on the SHOP's host and the editor lives on the admin's, so
+ * the admin cannot delete it — only ask. Publishing is the moment it stops being
+ * wanted: from then on the shop renders for everyone, and a lingering cookie
+ * just means the merchant's own visits carry an inert header and, because a
+ * preview response is deliberately `no-store`, bypass ISR for up to the token's
+ * full four hours. Nobody else is affected, which is why this is a tidy-up and
+ * not a security fix.
+ */
+export const PREVIEW_CLEAR_PARAM = "previewEnded";
 
 /**
  * Request header `proxy.ts` forwards the token to server components on.
@@ -60,13 +75,36 @@ export const PREVIEW_COOKIE = "ezy-store-preview";
 /**
  * Set by the admin editor, which holds a minted token in React state and is on a
  * different origin from the shop — so it has no `?previewToken=` of its own to
- * read. Module scope rather than a prop, because the consumer is `sfFetch`, a
- * module-level fetch helper several layers below any component.
+ * read. A store rather than a prop, because the consumer is `sfFetch`, a
+ * module-level fetch helper several layers below any component — the same
+ * `getState()` shape `api-client.ts` and `revalidate-storefront.ts` use to reach
+ * auth from outside React.
+ *
+ * ⚠ A bare module-scope `let` did this job, and it was fine in a browser, where
+ * module scope is per-tab. **It is not per-tab on the server.** Client components
+ * still server-render, so the editor's write runs there too — into state shared
+ * by every concurrent request in the process. It has never leaked only because
+ * the token comes from a query with no data during SSR, so the server always
+ * wrote `null`; prefetch or hydrate that query and one merchant's token becomes
+ * a process global. The write below therefore refuses to run on the server,
+ * which is the part that actually closes it — the store is what makes the state
+ * observable and testable rather than a hidden module variable.
  */
-let injected: string | null = null;
+interface PreviewTokenState {
+  injected: string | null;
+  setInjected: (token: string | null) => void;
+}
+
+const usePreviewToken = create<PreviewTokenState>((set) => ({
+  injected: null,
+  setInjected: (injected) => set({ injected }),
+}));
 
 export const setStorefrontPreviewToken = (token: string | null): void => {
-  injected = token;
+  // Client only — see above. A server render reads its token from the request
+  // (`getStorePreviewToken`), never from here, so this is a no-op, not a gap.
+  if (typeof window === "undefined") return;
+  usePreviewToken.getState().setInjected(token);
 };
 
 /**
@@ -78,8 +116,11 @@ export const setStorefrontPreviewToken = (token: string | null): void => {
  * would race the first query on a cold load.
  */
 export const storefrontPreviewToken = (): string | null => {
-  if (injected) return injected;
+  // The window check comes FIRST. Reading injected state on the server would be
+  // reading whatever the last request happened to write — the hazard above.
   if (typeof window === "undefined") return null;
+  const { injected } = usePreviewToken.getState();
+  if (injected) return injected;
   return (
     new URLSearchParams(window.location.search).get(PREVIEW_TOKEN_PARAM) ??
     // The cookie outlives the URL param: one client-side navigation inside the

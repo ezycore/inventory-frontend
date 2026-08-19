@@ -7,6 +7,7 @@ import { useStoreProducts } from "@/services/storefront/hooks";
 import { useStorefrontPreviewToken } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
 import {
+  PREVIEW_CLEAR_PARAM,
   PREVIEW_TOKEN_PARAM,
   setStorefrontPreviewToken,
 } from "@/lib/storefront-preview";
@@ -147,6 +148,11 @@ export function BrowserPreview({
   // only way to see the shop at full size before going live.
   const params = new URLSearchParams({ preview: "1" });
   if (preview?.token) params.set(PREVIEW_TOKEN_PARAM, preview.token);
+  // Published shops mint no token, so the frame no longer needs one — and the
+  // cookie a PREVIOUS session left on the shop's host is now pure overhead that
+  // would otherwise sit there for up to four hours. This is the only request the
+  // admin makes to that origin, so it is the only chance to ask it to forget.
+  if (published) params.set(PREVIEW_CLEAR_PARAM, "1");
   const url = slug ? `${storefrontUrl(slug)}${path}?${params}` : "";
 
   // Built by the same module as the save payload, so the preview cannot promise

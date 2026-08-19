@@ -14,6 +14,7 @@ import {
 } from "@/lib/storefront-domain-lookup";
 import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
 import {
+  PREVIEW_CLEAR_PARAM,
   PREVIEW_COOKIE,
   PREVIEW_REQUEST_HEADER,
   PREVIEW_TOKEN_PARAM,
@@ -125,12 +126,21 @@ export async function proxy(request: NextRequest) {
     // forwarded verbatim — the backend is what decides whether either means
     // anything, and a token for another org opens nothing here.
     const freshToken = request.nextUrl.searchParams.get(PREVIEW_TOKEN_PARAM);
-    const previewToken =
-      freshToken ?? request.cookies.get(PREVIEW_COOKIE)?.value ?? null;
+    // The editor appends this once the shop is published — see PREVIEW_CLEAR_PARAM.
+    // Checked BEFORE the cookie is read, so this request stops previewing too
+    // rather than clearing the cookie and then serving one more preview anyway.
+    const previewEnded = request.nextUrl.searchParams.has(PREVIEW_CLEAR_PARAM);
+    const previewToken = previewEnded
+      ? null
+      : (freshToken ?? request.cookies.get(PREVIEW_COOKIE)?.value ?? null);
     if (previewToken) headers.set(PREVIEW_REQUEST_HEADER, previewToken);
 
     /** Remembers a token that arrived in the URL, on this store's host only. */
     const keepPreview = (response: NextResponse): NextResponse => {
+      if (previewEnded) {
+        response.cookies.delete(PREVIEW_COOKIE);
+        return response;
+      }
       if (freshToken) {
         response.cookies.set(PREVIEW_COOKIE, freshToken, {
           path: "/",

@@ -11,6 +11,7 @@ import type {
   StorefrontHeroSlide,
   StorefrontMenuItem,
   StorefrontNav,
+  StorefrontTheme,
   UpdateStorefrontSettingsDto,
 } from "@/types";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
@@ -234,10 +235,26 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
   };
 }
 
+/**
+ * A `theme` with **every** key present — values may still be `undefined`.
+ *
+ * `StorefrontTheme` is all-optional, and `UpdateStorefrontSettingsDto` wraps it
+ * in `Partial`, so nothing stopped this builder from quietly omitting a key. It
+ * had to be right by memory, and the failure mode was silent and permanent:
+ * because the PATCH replaces `theme` wholesale, a field added to the interface
+ * and forgotten HERE would be deleted from every merchant's shop on their next
+ * Save, with no error anywhere.
+ *
+ * Mapping over `keyof Required<…>` makes the key list mandatory while leaving
+ * each value's own optionality intact — so adding a field to `StorefrontTheme`
+ * now fails to compile until this builder mentions it. Deciding it should be
+ * `undefined` is fine; forgetting it is not.
+ */
+type CompleteTheme = { [K in keyof Required<StorefrontTheme>]: StorefrontTheme[K] };
+
 /** One PATCH carrying theme, templates and nav — the page's whole Save. */
 export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettingsDto {
-  return {
-    theme: {
+  const theme: CompleteTheme = {
       preset: draft.preset,
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
@@ -255,8 +272,11 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       // the whole `theme`. The server does a shallow `Object.assign(settings,
       // dto)`, and assigning a POJO to a Mongoose nested path REPLACES it: the
       // stored `theme` becomes exactly the keys sent, and every key omitted here
-      // is DELETED from the document. Sending a partial `theme` is how a save of
-      // one colour wipes the merchant's design and homepage layout.
+      // is DELETED from the document — or, where the schema declares a default,
+      // silently reset to it on the next read, which is worse because nothing
+      // looks missing afterwards. Sending a partial `theme` is how a save of one
+      // colour wipes the merchant's design and homepage layout. `CompleteTheme`
+      // above is what now stops a forgotten key compiling.
       //
       // Verified against the driver, not assumed — an earlier version of this
       // note claimed the opposite ("nested paths MERGE, an omitted key keeps its
@@ -281,8 +301,11 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       // which `storefront-settings.service.ts` turns into
       // `settings.set(path, undefined)` because assigning `null` to a nested
       // path is not a replace.
-      appliedThemeId: draft.appliedThemeId,
-    },
+    appliedThemeId: draft.appliedThemeId,
+  };
+
+  return {
+    theme,
     // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
     // is what lets a ready-made theme replace the look wholesale without
     // touching a word the merchant typed. Each field is `undefined`, never `""`:

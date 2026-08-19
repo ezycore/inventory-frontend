@@ -80,6 +80,21 @@ export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
   3: ["terms"],
 };
 
+/**
+ * The step that renders a given field — the inverse of `CHECKOUT_STEP_FIELDS`.
+ *
+ * A stepped layout's final submit checks EVERY field, but only one screen is
+ * mounted, so a refusal can name a field the shopper cannot see. This is what
+ * lets the submit jump to the screen that owns the problem first. Falls back to
+ * step 1, which is where the fields a shopper can actually be missing live.
+ */
+export function stepForField(field: CheckoutField): number {
+  const hit = Object.entries(CHECKOUT_STEP_FIELDS).find(([, fields]) =>
+    fields.includes(field),
+  );
+  return hit ? Number(hit[0]) : 1;
+}
+
 export function checkoutErrors({
   t,
   addr,
