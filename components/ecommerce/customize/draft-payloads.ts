@@ -263,9 +263,16 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       // stored value, an explicit `undefined` is a no-op"). Both halves were
       // wrong in both directions: omitted keys are dropped, and an explicit
       // `undefined` DOES clear the field, because the whole subdocument is
-      // rewritten from this literal. `storefront-settings.validator`'s
-      // `themeSchema` cannot save you — every key there is `.optional()`, so a
-      // one-key payload validates cleanly and then destroys the rest.
+      // rewritten from this literal.
+      //
+      // Since 2026-08-19 the validator catches the two shapes a wire format can
+      // catch (QA-094): `themeSchema.preset` is REQUIRED, so the one-key PATCH
+      // that erased a live tenant's look now 400s, and `theme`/`templates` are
+      // `.strict()`, so a misspelt key is rejected instead of being stripped and
+      // then deleted by the replace. It cannot demand a COMPLETE block —
+      // `JSON.stringify` drops `undefined`, so this literal legitimately arrives
+      // carrying only the keys the merchant has set. That half is still on us:
+      // always send the whole block you touch.
       //
       // The same rule governs `templates` below, and the storefront skill's
       // gotcha list carries it as the repo-wide statement ("the settings PATCH

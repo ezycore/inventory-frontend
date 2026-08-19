@@ -1136,6 +1136,30 @@ draw the blurb** — `columns`/`rich`/`contact` via `BrandLead`, `simple` via it
 and `newsletter` was the sole exception until it was fixed to lead with `FooterBrand`. **Adding a
 footer variant means deciding where the blurb goes**; omitting it is the bug, not the default.
 
+### The settings PATCH REPLACES `theme` and `templates` — and now says so with a 400
+
+`updateSettings` ends in `Object.assign(settings, dto)`, and both are Mongoose **nested paths**:
+assigning a POJO rewrites the whole subdocument, so the stored block becomes exactly the keys sent
+and every key omitted is **deleted**. That is the intended contract — it is what lets a ready-made
+theme stamp a look wholesale — and it is pinned by
+`storefront-settings-patch-semantics.test.ts`.
+
+It cost a live tenant its whole visual identity on 2026-08-18: a one-field
+`{"theme":{"homeCollections":{…}}}` erased `design`, `brandColor`, `accentColor` and
+`homepageSections`, reset `preset` to its default, and returned **200** (QA-094). Since 2026-08-19
+the validator refuses that shape:
+
+- **`preset` is required** whenever `theme` is present. It was already non-optional in
+  `StorefrontTheme`; the validator was the one place that disagreed.
+- **`theme` and `templates` are `.strict()`.** `validate()` REPLACES `req.body`, so an unknown key
+  used to be stripped in silence and then deleted by the replace — a typo (`designs`,
+  `homeCollection`, `hom`) cost the merchant the field they were trying to save and reported
+  success.
+
+**What the schema still cannot do, so you have to:** a *complete* block cannot be demanded, because
+`JSON.stringify` drops `undefined` and the Customize editor's own full literal therefore arrives
+carrying only the keys the merchant has actually set. **Always send the whole block you touch.**
+
 ### The look/content split — what a theme may and may not write
 
 **`theme` + `templates` = the look. `copy` + `nav` + `trustBadges` + `promoTiles` + `heroSlides` +
