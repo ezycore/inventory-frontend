@@ -49,11 +49,17 @@ export function useImageRatioWarning(recommended?: ImageSize) {
   // every pick, changing its identity for every consumer that memoises on it.
   const latest = useRef(0);
 
-  useEffect(() => {
-    // A field whose recommendation is removed must not keep showing a warning
-    // derived from it.
+  // Adjusted during render, not in an effect: a field whose recommendation is
+  // removed must not keep showing a warning derived from it. Comparing
+  // against the previous value and setting state mid-render is the React-
+  // sanctioned way to do this (see "Adjusting state based on a prop change"
+  // in the React docs) — an effect-based reset would render once with the
+  // stale warning and only clear it a tick later.
+  const [prevRecommended, setPrevRecommended] = useState(recommended);
+  if (recommended !== prevRecommended) {
+    setPrevRecommended(recommended);
     if (!recommended) setWarning(null);
-  }, [recommended]);
+  }
 
   const check = useCallback(
     async (file: File | null | undefined) => {
