@@ -206,7 +206,12 @@ export default function AccountPage() {
               merchant has no provider configured. */}
           <SocialLoginButtons />
 
+          {/* method="post": the sign-in / register form is server HTML until
+              React hydrates, and Enter submits it natively before then. With no
+              method that is a GET, which would put the shopper's email and
+              password in the query string. */}
           <form
+            method="post"
             onSubmit={(e) => {
               e.preventDefault();
               if (!pending) submit();

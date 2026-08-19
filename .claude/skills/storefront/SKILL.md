@@ -256,8 +256,9 @@ reads as two filters at once.
   - **Text fields are ≥16px.** Use `sfInput` (`components/storefront/field-styles.ts`) for every
     shopper-facing input — one shared object, previously six pasted copies. Below 16px iOS Safari
     zooms the page on focus and, since the viewport meta rightly permits scaling, never zooms back;
-    checkout's seven fields meant seven pinch-outs per order. Checkout keeps its own slightly
-    padded `input` in `checkout/checkout-bits.tsx`, also ≥16px.
+    checkout's seven fields meant seven pinch-outs per order. `checkout-bits.tsx` **re-exports**
+    `sfInput` as `input` — it used to declare a fourth copy, which had already drifted to its own
+    radius, padding and background. Its label partner is `sfFieldLabel` in the same file.
   - **Touch targets are ≥40px.** For icon buttons add `padding` plus a matching negative `margin`
     (see `tapPad` in `store-header.tsx`) so the hit box grows without moving the glyph; for list
     rows add real vertical padding. A bare `padding: 0` icon button is a bug — the hit box equals
@@ -449,6 +450,10 @@ colour took up to five minutes to appear. Now:
 
 ## Live preview (Customize) — how it works, and how to add a field
 
+> **An unpublished shop previews too, since 2026-08-18** — that is what "the real storefront" costs,
+> and it needs a token. See "Owner preview" below before touching the iframe URL, `proxy.ts`, or
+> either storefront fetch layer.
+
 The right-hand panel of Customize is **the real storefront** in an iframe at `{store}?preview=1`. It
 mounts **once**; edits reach it by `postMessage`, never by refetching. An edit therefore costs zero
 server requests — do not "optimise" this into a save-then-reload, which would cost a full (and now
@@ -505,6 +510,71 @@ Four files, in payload order:
   header instead of reverting to the org mark.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+- **A control belongs to the part whose PREVIEW PAGE renders it** (browser QA, 2026-08-18).
+  Opening a part points the preview at one page (`PART_PAGE` in `parts-rail.tsx`), so a block whose
+  subject lives on a different page can never be judged from the part holding it. Collections points
+  at the collection page and used to carry the homepage collections row and the category-tile style;
+  both styled the home page, so a merchant changed them while watching a page that does not contain
+  either — indistinguishable from a dead control, and read as exactly that in QA. They now live in
+  the Home page part (`parts/home-part.tsx`) beside the section list they style. Before adding a
+  block to a part, check `PART_PAGE` for that part and confirm the preview will actually show it.
+  When a setting moves parts, its `PART_SLICE` entry moves with it, or the save bar names a part the
+  merchant never opened.
+- **A payload key nothing READS is the same bug as one nothing sends** (browser QA, 2026-08-17).
+  `theme.accentColor` was sent by `toPreviewPayload`, mapped by `preview-bridge`, and stored by
+  `use-sf-preview-store` — and then read by no component, so the Brand part's accent field repainted
+  nothing while the brand control directly above it updated live. `StoreShell` now takes
+  `previewAccent ?? store?.theme?.accentColor`, the same shape as its `brandColor` line. When adding
+  a preview key, grep for a consumer of `s.<key>` before calling it wired.
+
+### Owner preview — the unpublished shop (2026-08-18)
+
+Because the preview is the **real** storefront, it inherited the real storefront's front door: the
+public API refuses a store whose merchant has not published it. So the preview pane was the "this
+store isn't published yet" 404 until the shop was already live, and a merchant could only theme their
+shop in public. Saving was never blocked — the admin settings endpoints know nothing about
+`published` — so this adds a way to *see*, and changes nothing about who may *write*.
+
+`lib/storefront-preview.ts` is the one file that owns the names, and its header comment draws the
+whole route. In order:
+
+| Step | File | What it does |
+|---|---|---|
+| mint | `services/api/modules/storefront-preview/` | `useStorefrontPreviewToken()` — a `useQuery` over a **GET** (nothing is created), enabled only when the shop is unpublished |
+| carry | `components/ecommerce/customize/browser-preview.tsx` | `?previewToken=…` beside `preview=1` in the iframe `src` |
+| relay | `proxy.ts` | URL param → `x-ezy-store-preview` request header, **and** into the `ezy-store-preview` cookie on the shop's host |
+| read (SSR) | `lib/storefront-host.ts` → `lib/storefront-server.ts` | `getStorePreviewToken()`, then `x-storefront-preview` + `cache: "no-store"` |
+| read (client) | `lib/storefront-client.ts` | one line in `sfFetch`, reading URL → cookie |
+
+**Five things here are load-bearing, and four of them are invisible in a typecheck:**
+
+- **The token has to travel in the URL.** The preview is a cross-origin iframe, and a frame's own
+  navigation is the one request the parent page cannot put a header on. Everything downstream exists
+  to get it *off* the URL again.
+- **`proxy.ts` moves it to a header because a LAYOUT does the fetching.** `app/(storefront)/shop/layout.tsx`
+  is where `getStore` and friends are called, and a layout receives `headers()` but never
+  `searchParams`. There is no way to read the param where it is needed.
+- **The cookie is what makes the preview survive a click.** One client-side navigation and the query
+  param is gone; the RSC request for the next route would arrive anonymous and 404 the shop. It is
+  script-readable on purpose — `sfFetch` runs on that origin and needs the same token.
+- **A preview SSR fetch must be `cache: "no-store"`.** It is the one case where a storefront URL can
+  return a payload the public may not have. Letting it settle into the `store:{slug}` entry would
+  serve an unpublished shop to the next anonymous visitor.
+- **`setStorefrontPreviewToken` is called during RENDER, above `useStoreProducts`.** That hook queues
+  its fetch from its own effect, which runs *before* an effect written lower down — so a token
+  published from an effect always arrived one request too late, and the Product tab stayed disabled.
+  The same query is gated on the mint settling, because an early 404 is cached and would not re-run.
+
+**A preview is exempt from the canonical 301** (`proxy.ts`). That redirect exists so crawlers index
+one host; a preview is read by one person and indexed by nobody. Left in place it would move an owner
+previewing a shop that has a custom domain off `{slug}.ezycore.com` — same site as the admin, so the
+cookie sticks — and onto `mystore.com`, where the frame is cross-site, a `Lax` cookie is neither set
+nor sent, and the preview survives exactly one click. Do not "restore consistency" by removing that
+exemption; add a test instead.
+
+The backend half — what the token does and does **not** unlock — is the `storefront-orders` skill's
+`resolveStore` note; the spec is `../inventory-backend/docs/features/ecommerce.md` → "Owner preview".
+Do not restate the gate table here.
 
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
@@ -516,6 +586,15 @@ over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.hom
 decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
 `HOME_PRESET_SECTIONS` keys, so `templates.home: "classic"` still resolves; it just names a starting
 section list now instead of a component.
+
+⚠ **The Customize picker must SEED the list — `api.patchHomeTemplate`, never
+`patchTemplate("home", …)`** (browser QA, 2026-08-17). `resolveSections` reads the preset only as the
+fallback for an *empty* `homepageSections`, and no store has one (applying any theme fills it via
+`sectionInstances(theme.sections)`). So the plain template write marked the part dirty, saved, and
+changed nothing a shopper could see — the whole "Starting layout" picker was inert on every theme.
+`patchHomeTemplate` writes the key *and* reseeds the list from `HOME_PRESET_SECTIONS`, exactly the
+way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
+does.
 
 ⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
 correct and their second was not, because between the two a colleague had committed them back on
@@ -905,6 +984,36 @@ email-verification gate, the placed-order card and the empty cart all answer
 "should a checkout render at all" — a layout that got one wrong would take an
 order it should have refused. Same for the cart's hydration + empty state.
 
+### Checkout blocks + validation (2026-08-18)
+
+`checkout-blocks.tsx` is a **barrel** over `checkout/blocks/`, so the four layouts
+have one import site and the blocks can be split by concern without touching a
+layout. Add a block to `blocks/`, re-export it there.
+
+| Piece | File | Owns |
+|---|---|---|
+| Rules | `checkout-validation.ts` | which fields are wrong, and the message for each. **Pure** — no store, cart or shopper |
+| Timing | `use-checkout-errors.ts` | when a message may be seen: on blur, and on a refused submit (reveal all + scroll + focus) |
+| Chrome | `checkout-field.tsx` | `Field` (message + `data-cofield` focus handle), `FormAlert`, `invalidInput()` |
+| Label | `blocks/labeled-field.tsx` | `LabeledField` (label + control + error) and `FieldPair` (two short fields on a row, via `--cofields`) |
+| Fields | `blocks/contact-fields.tsx`, `blocks/delivery-fields.tsx` | the two halves `AddressBlock` composes, so `single` can card them separately |
+| Items | `blocks/order-lines.tsx` | the ONE cart-line renderer — `thumbs` on for the summary rail, off for `ReviewBlock` |
+
+⚠ **The submit button is never disabled by an incomplete form.** Pressing it is
+how a shopper asks what is missing, and a greyed-out button answers nothing —
+`submit()`/`tryAdvance()` refuse out loud instead. `canSubmit` and `stepBlocked`
+were removed for this; only `placing` disables anything.
+
+⚠ **The trust strip may not assert a policy.** `blocks/trust-strip.tsx` shows COD
+only when the merchant offers COD, and a returns line only when the merchant has
+published a returns page — using that page's own title, linked. In a white-label
+storefront a hard-coded "7-day returns" is a promise made on behalf of every
+merchant on the platform. The strip rendering nothing is a correct outcome.
+
+⚠ **Field numbering lives in the layout.** `single` numbers its three cards via
+`blocks/section-card.tsx`; `guided` numbers its own four sections. A block that
+numbered itself would number itself twice in `guided`.
+
 ⚠ **A layout may not compute money.** `useCheckout` owns the shipping zone, the
 coupon quote and the total; `useCartPage` owns the "From ৳X" delivery estimate
 (the zone is only known at checkout, so the cart quotes the *cheapest* possible
@@ -1026,6 +1135,30 @@ loss, and the promise a theme has to keep is that their words survive *visibly*.
 draw the blurb** — `columns`/`rich`/`contact` via `BrandLead`, `simple` via its own centred `<p>` —
 and `newsletter` was the sole exception until it was fixed to lead with `FooterBrand`. **Adding a
 footer variant means deciding where the blurb goes**; omitting it is the bug, not the default.
+
+### The settings PATCH REPLACES `theme` and `templates` — and now says so with a 400
+
+`updateSettings` ends in `Object.assign(settings, dto)`, and both are Mongoose **nested paths**:
+assigning a POJO rewrites the whole subdocument, so the stored block becomes exactly the keys sent
+and every key omitted is **deleted**. That is the intended contract — it is what lets a ready-made
+theme stamp a look wholesale — and it is pinned by
+`storefront-settings-patch-semantics.test.ts`.
+
+It cost a live tenant its whole visual identity on 2026-08-18: a one-field
+`{"theme":{"homeCollections":{…}}}` erased `design`, `brandColor`, `accentColor` and
+`homepageSections`, reset `preset` to its default, and returned **200** (QA-094). Since 2026-08-19
+the validator refuses that shape:
+
+- **`preset` is required** whenever `theme` is present. It was already non-optional in
+  `StorefrontTheme`; the validator was the one place that disagreed.
+- **`theme` and `templates` are `.strict()`.** `validate()` REPLACES `req.body`, so an unknown key
+  used to be stripped in silence and then deleted by the replace — a typo (`designs`,
+  `homeCollection`, `hom`) cost the merchant the field they were trying to save and reported
+  success.
+
+**What the schema still cannot do, so you have to:** a *complete* block cannot be demanded, because
+`JSON.stringify` drops `undefined` and the Customize editor's own full literal therefore arrives
+carrying only the keys the merchant has actually set. **Always send the whole block you touch.**
 
 ### The look/content split — what a theme may and may not write
 
@@ -2614,15 +2747,27 @@ resolved **per request from the host**, never baked.
   QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
   (MutationObserver misses them) + a guest control run to prove the detector fires.
 - **`json.error` not `json.message`** is where backend error text lives.
-- **The settings PATCH replaces `templates` (and every provided sub-field) WHOLESALE** —
+- **The settings PATCH replaces `templates`, `theme` and every provided sub-field WHOLESALE** —
   `updateSettings` is a shallow `Object.assign`. Any admin section saving one key inside
   `templates` must spread the saved object first (`{ ...settings.templates, headerMenu }`), and
   `TemplatesSection` seeds its draft from the full saved object for the same reason. Sending a
   partial `templates` silently wipes the other sections' choices — this nearly shipped twice.
+  The validator is no guard: every key in `themeSchema`/`templatesSchema` is `.optional()`, so the
+  destructive payload is valid input. A comment in `draft-payloads.ts` claimed the opposite
+  ("nested paths MERGE, an omitted key keeps its stored value") until 2026-08-18 — it was wrong in
+  both directions, and an explicit `undefined` **does** clear a key, which is what makes clearing a
+  brand colour work at all. Pinned backend-side by
+  `src/services/__tests__/storefront-settings-patch-semantics.test.ts`.
 - **OAuth callback route order** (before `/:slug`), and same-document hash navigation does NOT
   remount the oauth landing page — QA must full-navigate.
 - **Store payload is cached** (`getStore` = 300s + 5-min client staleTime). Merchant saves flush it
   on demand; anything else changes it lags by the timer. See "Cache + on-demand revalidation".
+  **This is the #1 way a working storefront looks broken during QA** — a theme round in 2026-08-17
+  reported "all four themes are identical" while reading one cached render four times. Only a save
+  from the admin UI flushes (`revalidateStorefront` runs in the merchant's browser off their token);
+  curl, Postman, a script or a direct DB write flush nothing. A hard reload does not help and that
+  is the tell. Tester-facing checklist: backend `docs/features/ecommerce-qa.md` → "Testing the
+  storefront without fooling yourself".
 - **Turbopack can panic per-route persistently** ("Panic in async function" 500) — restart the
   frontend dev server; it purges the corrupted FS cache itself.
 - Known pre-existing type errors (NOT ours; don't chase): frontend `image-gallery-upload.tsx` ×3

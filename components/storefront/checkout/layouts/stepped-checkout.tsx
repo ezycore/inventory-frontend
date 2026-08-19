@@ -28,12 +28,15 @@ import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout"
  * reaches the button; the running total follows them instead. Steps also keep
  * each screen short enough that a phone keyboard does not bury the next control.
  *
- * The step gate is `api.stepBlocked`, not a local rule — it already carries the
+ * The step gate is `api.tryAdvance`, not a local rule — it already carries the
  * BD phone check, which is what stops a guest advancing past step 1 with a junk
- * number and meeting the 400 two screens later.
+ * number and meeting the 400 two screens later. It REFUSES and points at the
+ * offending field rather than sitting disabled: a dead Continue is the same
+ * silence this change removes, and on a stepped form it is worse, because the
+ * shopper cannot even see which field is holding them.
  */
 export function SteppedCheckout({ api }: { api: CheckoutApi }) {
-  const { t, currency, total, step, setStep, stepBlocked } = api;
+  const { t, currency, total, step, setStep, tryAdvance } = api;
   const steps = [
     { n: 1, label: t.stepAddress },
     { n: 2, label: t.stepPayment },
@@ -73,9 +76,8 @@ export function SteppedCheckout({ api }: { api: CheckoutApi }) {
           {step < 3 ? (
             <button
               type="button"
-              onClick={() => setStep(Math.min(3, step + 1))}
-              disabled={stepBlocked}
-              style={{ ...primaryBtn, flex: 1, opacity: stepBlocked ? 0.5 : 1 }}
+              onClick={tryAdvance}
+              style={{ ...primaryBtn, flex: 1 }}
             >
               {t.continueStep}
             </button>

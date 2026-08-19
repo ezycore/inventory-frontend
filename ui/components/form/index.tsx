@@ -39,6 +39,20 @@ function findFirstErrorMessage(errors: any): string | undefined {
 }
 
 
+// Every form here submits through React Hook Form's `handleSubmit`, which calls
+// preventDefault — but only once React has hydrated. Until then the markup is
+// plain server HTML, and pressing Enter in a text field submits it NATIVELY.
+// With no method that is a GET to the current URL, which serialises every named
+// field into the query string. On /signup that meant
+// `?firstName=…&password=hunter2` in the address bar, browser history and the
+// CDN access log, for the seconds between first paint and hydration — exactly
+// when a password manager has just autofilled the thing.
+//
+// POST keeps a stray pre-hydration submit in the request body instead. It
+// changes nothing after hydration (the submit is prevented either way), and
+// sits before the props spread so a caller can still override it.
+const FORM_METHOD = "post";
+
 const DynamicForm: FC<DynamicFormProps> = ({
     className,
     onFieldChange,
@@ -228,6 +242,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
                     <div className="flex-1 overflow-y-auto px-6 pb-1">
                         <form
+                            method={FORM_METHOD}
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
@@ -265,6 +280,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
 
                     <div className="flex-1 overflow-y-auto px-6 pb-6">
                         <form
+                            method={FORM_METHOD}
                             {...props}
                             onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
                         >
@@ -281,6 +297,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     return (
         <div>
             <form
+                method={FORM_METHOD}
                 {...props}
                 onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
             >

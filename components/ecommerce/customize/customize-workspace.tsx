@@ -132,6 +132,7 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
       <div className="min-w-0 lg:sticky lg:top-6">
         <BrowserPreview
           slug={slug}
+          published={settings.published}
           draft={api.draft}
           page={page}
           onPageChange={setPage}

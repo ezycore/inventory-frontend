@@ -23,7 +23,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
-import { PartBlock, PartGroup } from "@/components/ecommerce/customize/part-group";
+import { PartGroup } from "@/components/ecommerce/customize/part-group";
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
@@ -31,10 +31,10 @@ import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
 import { DesignPart } from "@/components/ecommerce/customize/parts/design-part";
-import { SectionsEditor } from "@/components/ecommerce/customize/sections-editor";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
+import { HomePart } from "@/components/ecommerce/customize/parts/home-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
@@ -107,8 +107,17 @@ export function PartsRail({
   onManageCollections: () => void;
   onEditSlide: (index: number) => void;
 }) {
-  const { draft, patch, patchTemplate, dirtyParts, isDirty, discard, save, saving } =
-    api;
+  const {
+    draft,
+    patch,
+    patchTemplate,
+    patchHomeTemplate,
+    dirtyParts,
+    isDirty,
+    discard,
+    save,
+    saving,
+  } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
   const dirtyNames = dirtyParts
@@ -192,7 +201,6 @@ export function PartsRail({
             ) : part.id === "collections" ? (
               <CollectionsPart
                 draft={draft}
-                patch={patch}
                 patchTemplate={patchTemplate}
                 onManageCollections={onManageCollections}
               />
@@ -212,32 +220,12 @@ export function PartsRail({
             ) : part.id === "cards" ? (
               <CardsPart draft={draft} patchTemplate={patchTemplate} />
             ) : part.id === "home" ? (
-              // The home page is two questions: which starting layout, and then
-              // the sections themselves. The picker seeds the list; the editor
-              // owns it from then on — which is what makes these controls follow
-              // whatever theme was applied rather than a fixed six rows.
-              <>
-                <PartBlock label="Starting layout">
-                  <TemplatePicker
-                    templateKey="home"
-                    value={draft.templates.home}
-                    onChange={(v) => patchTemplate("home", v)}
-                  />
-                </PartBlock>
-                <PartBlock
-                  label="Sections"
-                  hint="Your homepage, top to bottom. Reorder, remove, or add — the preview follows."
-                >
-                  <SectionsEditor
-                    sections={draft.homepageSections}
-                    config={draft.sectionConfig}
-                    collections={draft.collections}
-                    homeTemplate={draft.templates.home}
-                    onChange={(homepageSections) => patch({ homepageSections })}
-                    onConfigChange={(sectionConfig) => patch({ sectionConfig })}
-                  />
-                </PartBlock>
-              </>
+              <HomePart
+                draft={draft}
+                patch={patch}
+                patchTemplate={patchTemplate}
+                patchHomeTemplate={patchHomeTemplate}
+              />
             ) : (
               // product / account / checkout are a single layout choice each, so
               // the part IS its picker. Its id is usually the template key too —

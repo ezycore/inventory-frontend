@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { READY_MADE_THEMES, getReadyMadeTheme } from "@/lib/storefront-themes";
 import {
+  applyHomeTemplateToDraft,
   applyThemeToDraft,
   isThemeModified,
 } from "@/components/ecommerce/customize/use-customize-draft";
@@ -287,5 +288,120 @@ describe("applyThemeToDraft — sectionConfig", () => {
     expect(current.sectionConfig).toEqual([
       { key: "r1", source: "category", categoryId: "cat-skin" },
     ]);
+  });
+});
+
+/**
+ * The Home page → "Starting layout" picker.
+ *
+ * It was inert until 2026-08-17: it wrote `templates.home` and nothing else, and
+ * `resolveSections` only consults the preset when `homepageSections` is EMPTY —
+ * which it never is, because applying a theme fills it. So every option marked
+ * the part dirty, saved, and left the shop exactly as it was. These tests pin
+ * the seeding rather than the template key, because the key alone is the bug.
+ */
+describe("applyHomeTemplateToDraft — the starting-layout picker", () => {
+  it("seeds the section list, not just the template key", () => {
+    // A page already composed — the state every real store is in.
+    const composed = draft({
+      templates: { home: "classic" },
+      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "hero-split");
+
+    expect(patch.templates?.home).toBe("hero-split");
+    expect(patch.homepageSections?.map((s) => s.type)).toEqual(
+      HOME_PRESET_SECTIONS["hero-split"],
+    );
+  });
+
+  it("gives each preset its own page", () => {
+    const types = (value: string) =>
+      applyHomeTemplateToDraft(draft(), value).homepageSections?.map((s) => s.type);
+
+    // If two presets ever produced the same list the picker would be back to
+    // being a control that changes nothing.
+    expect(types("classic")).not.toEqual(types("hero-split"));
+    expect(types("hero-split")).not.toEqual(types("minimal"));
+    expect(types("classic")).not.toEqual(types("minimal"));
+  });
+
+  it("covers every option the picker offers", () => {
+    for (const option of TEMPLATE_OPTIONS.home) {
+      const patch = applyHomeTemplateToDraft(draft(), option.value);
+      expect(
+        patch.homepageSections?.length,
+        `home template "${option.value}" seeds no sections`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("mints the same keys twice, so per-section config stays attached", () => {
+    const a = applyHomeTemplateToDraft(draft(), "classic").homepageSections;
+    const b = applyHomeTemplateToDraft(draft(), "classic").homepageSections;
+    expect(a).toEqual(b);
+  });
+
+  it("keeps the merchant's other templates and their wording", () => {
+    const composed = draft({ templates: { home: "classic", header: "boutique" } });
+    const patch = applyHomeTemplateToDraft(composed, "minimal");
+
+    expect(patch.templates?.header).toBe("boutique");
+    // Same rule as a theme apply: the config outlives the composition.
+    expect(patch).not.toHaveProperty("sectionConfig");
+    expect(patch).not.toHaveProperty("footerText");
+  });
+
+  /**
+   * REGRESSION — re-picking the active layout wiped the merchant's page (QA,
+   * 2026-08-18). The picker highlights the current tile, so clicking it again is
+   * the obvious way to ask "what is this one?" — and it replaced a composed
+   * section list with the preset's, silently, with no undo. Seeding is for
+   * CHANGING layout.
+   */
+  it("is a NO-OP when the shop is already on that layout", () => {
+    const composed = draft({
+      templates: { home: "classic", header: "boutique" },
+      homepageSections: [
+        { key: "hero-card-0", type: "hero-card" },
+        { key: "collections-1", type: "collections" },
+      ],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "classic");
+
+    // Nothing at all — not even a same-value template write, which would still
+    // mark the part dirty and offer a Save that changes nothing.
+    expect(patch).toEqual({});
+    expect(patch).not.toHaveProperty("homepageSections");
+  });
+
+  it("still reseeds when the layout genuinely changes from the same base", () => {
+    const composed = draft({
+      templates: { home: "classic" },
+      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "minimal");
+    expect(patch.homepageSections?.map((s) => s.type)).toEqual(
+      HOME_PRESET_SECTIONS["minimal"],
+    );
+  });
+
+  // A shop that has never picked one must still get seeded on its first click.
+  it("seeds on the first pick, when no home template is set yet", () => {
+    const patch = applyHomeTemplateToDraft(draft(), "classic");
+    expect(patch.templates?.home).toBe("classic");
+    expect(patch.homepageSections?.length).toBeGreaterThan(0);
+  });
+
+  it("sets the template but never blanks the page for an unknown id", () => {
+    // A retired id, or one from a newer build. An empty list would mean "this
+    // shop shows no sections at all" and render a blank homepage.
+    const composed = draft({
+      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
+    });
+    const patch = applyHomeTemplateToDraft(composed, "no-such-layout");
+
+    expect(patch.templates?.home).toBe("no-such-layout");
+    expect(patch).not.toHaveProperty("homepageSections");
   });
 });
