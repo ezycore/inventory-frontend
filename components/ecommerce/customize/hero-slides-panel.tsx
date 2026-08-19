@@ -19,6 +19,8 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
+import { ImageRatioWarning } from "@/components/shared/image-ratio-warning";
+import { RECOMMENDED, checkImageRatio } from "@/lib/image-ratio";
 
 export const MAX_HERO_SLIDES = 5;
 
@@ -57,6 +59,12 @@ export function HeroSlidesPanel({
   // State, not a ref: the row renders "Uploading…" from it, and a ref read
   // during render doesn't repaint when it changes.
   const [uploadTarget, setUploadTarget] = useState<number | null>(null);
+  /**
+   * Shape warnings, keyed by slide index — one hidden input serves every row, so
+   * a single warning string would attach itself to whichever slide was touched
+   * last and follow the merchant around the panel.
+   */
+  const [ratioWarnings, setRatioWarnings] = useState<Record<number, string>>({});
   const [expanded, setExpanded] = useState<number | null>(
     initialExpanded ?? (slides.length === 0 ? 0 : null),
   );
@@ -71,9 +79,19 @@ export function HeroSlidesPanel({
 
   const patch = (i: number, p: Partial<StorefrontHeroSlide>) =>
     setSlides(slides.map((s, idx) => (idx === i ? { ...s, ...p } : s)));
+  /**
+   * Shape warnings are keyed by INDEX, so anything that renumbers the rows makes
+   * every one of them point at the wrong slide. Dropped wholesale rather than
+   * remapped: a warning is about a file the merchant just picked, it costs one
+   * click to see again, and a warning parked on the wrong picture is worse than
+   * none at all.
+   */
+  const forgetRatioWarnings = () => setRatioWarnings({});
+
   const remove = (i: number) => {
     setSlides(slides.filter((_, idx) => idx !== i));
     setExpanded(null);
+    forgetRatioWarnings();
   };
   const move = (i: number, dir: -1 | 1) => {
     const t = i + dir;
@@ -83,6 +101,7 @@ export function HeroSlidesPanel({
     setSlides(next);
     if (expanded === i) setExpanded(t);
     else if (expanded === t) setExpanded(i);
+    forgetRatioWarnings();
   };
   const add = () => {
     setSlides([...slides, newHeroSlide()]);
@@ -139,7 +158,18 @@ export function HeroSlidesPanel({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file && uploadTarget !== null) void onFile(file, uploadTarget);
+          if (file && uploadTarget !== null) {
+            const slide = uploadTarget;
+            void checkImageRatio(file, RECOMMENDED.heroSlide).then((message) =>
+              setRatioWarnings((prev) => {
+                const next = { ...prev };
+                if (message) next[slide] = message;
+                else delete next[slide];
+                return next;
+              }),
+            );
+            void onFile(file, slide);
+          }
           e.target.value = "";
         }}
       />
@@ -200,7 +230,15 @@ export function HeroSlidesPanel({
                         size="sm"
                         variant="ghost"
                         className="text-red-600"
-                        onClick={() => patch(i, { image: null, focal: undefined })}
+                        onClick={() => {
+                          // No photo, nothing to be the wrong shape.
+                          setRatioWarnings((prev) => {
+                            const next = { ...prev };
+                            delete next[i];
+                            return next;
+                          });
+                          patch(i, { image: null, focal: undefined });
+                        }}
                       >
                         Remove image
                       </Button>
@@ -244,6 +282,7 @@ export function HeroSlidesPanel({
                     1600 × 640 px (2.5:1) works best. Leave the left clear — the
                     title and button sit there on a wide screen.
                   </p>
+                  <ImageRatioWarning message={ratioWarnings[i] ?? null} />
                   {s.image?.mediumUrl || s.image?.url ? (
                     <PhotoFitField
                       url={s.image.mediumUrl || s.image.url || ""}

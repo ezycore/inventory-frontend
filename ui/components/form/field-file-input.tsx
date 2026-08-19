@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
 import { Controller } from "react-hook-form";
+import { ImageRatioNotice } from "@/components/shared/image-ratio-warning";
 import { Upload, X } from "lucide-react";
 import { Button } from "../button";
 import {
@@ -72,6 +73,9 @@ export function renderFileUpload(ctx: FieldRenderContext): ReactNode {
                 </div>
               </FileUploadDropzone>
             )}
+
+            {/* Advisory only — a wrong-shaped file still uploads. */}
+            <ImageRatioNotice files={files} recommended={field.recommended} />
 
             {shouldHideDropzone && (
               <div className="text-sm text-muted-foreground mb-2">

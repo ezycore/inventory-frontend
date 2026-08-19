@@ -12,6 +12,8 @@ import {
   FileUploadList,
 } from "@/ui/components/file-upload";
 import { SafeImage } from "@/ui/components/safeImage";
+import { ImageRatioNotice } from "@/components/shared/image-ratio-warning";
+import type { ImageSize } from "@/lib/image-ratio";
 
 /** An already-uploaded image (server shape) — anything not a `File`. */
 export interface UploadedImage {
@@ -35,6 +37,8 @@ interface ImageGalleryUploadProps {
   accept?: string;
   dropzoneText?: string;
   disabled?: boolean;
+  /** Shape this gallery is built for; omit to leave the field unchanged. */
+  recommended?: ImageSize;
 }
 
 /**
@@ -51,6 +55,7 @@ export function ImageGalleryUpload({
   accept = "image/*",
   dropzoneText,
   disabled,
+  recommended,
 }: ImageGalleryUploadProps) {
   const files: GalleryImage[] = Array.isArray(value) ? value : [];
   const isSingleFileMode = maxFiles === 1;
@@ -99,6 +104,9 @@ export function ImageGalleryUpload({
           </div>
         </FileUploadDropzone>
       )}
+
+      {/* Advisory only — a wrong-shaped file still uploads. */}
+      <ImageRatioNotice files={files} recommended={recommended} />
 
       {files.length > 0 && (
         <FileUploadList className="mt-4">
