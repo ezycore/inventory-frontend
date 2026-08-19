@@ -254,6 +254,12 @@ export interface FormFieldConfig {
   // File upload specific
   fileTypes?: string[]; // Array of allowed file extensions ['jpg', 'png', 'pdf']
   dropzoneText?: string; // Custom dropzone text
+  /**
+   * Shape this field's images are built for — e.g. `RECOMMENDED.product`.
+   * Supplying it warns (never blocks) when a picked file is a different shape;
+   * omitting it leaves the field exactly as it was. See `lib/image-ratio.ts`.
+   */
+  recommended?: { w: number; h: number };
   showPreview?: boolean; // Show file preview (default: true)
 
   // Advanced select action properties

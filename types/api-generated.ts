@@ -17718,7 +17718,7 @@ export interface operations {
                     };
                     bankInstructions?: string;
                     theme?: {
-                        preset?: string;
+                        preset: string;
                         brandColor?: string;
                         accentColor?: string;
                         homepageSections?: {

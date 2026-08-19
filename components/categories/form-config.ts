@@ -2,6 +2,7 @@
 import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import type { Translator } from '@/i18n/config'
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * `status=active` matters here for the same reason it does on the product form:
@@ -86,6 +87,7 @@ export const categoryFormConfig: DynamicFormConfig = {
       maxSize: 5 * 1024 * 1024, // 5MB per file
       fileTypes: ["jpg", "jpeg", "png", "webp"],
       dropzoneText: "Square 600 × 600 px works best · PNG, JPG, WEBP up to 5MB",
+      recommended: RECOMMENDED.category,
       showPreview: true,
     },
     {

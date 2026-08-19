@@ -22,6 +22,7 @@ import ComboComponentsField from './combo-components-field'
 import PriceFieldWithUnit from './price-field-with-unit'
 import { Switch } from '@/ui/components/switch'
 import type { Translator } from '@/i18n/config'
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * Category options for the product form.
@@ -668,6 +669,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             maxSize: 5 * 1024 * 1024, // 5MB
             showPreview: true,
             dropzoneText: tr('form.imagesDropzone', "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"),
+            recommended: RECOMMENDED.product,
           },
         ],
       },
