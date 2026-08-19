@@ -25,6 +25,7 @@ import {
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
 import { MAX_HERO_SLIDES } from "@/components/ecommerce/customize/hero-slides-panel";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * Hero — what the top of the home page shows, and its content. The source
@@ -221,6 +222,7 @@ export function HeroPart({
           onPick={uploadBanner}
           onRemove={settings.banner ? removeBanner : undefined}
           hint="1200 × 900 px (4:3) works best."
+          recommended={RECOMMENDED.heroBanner}
         />
         {/* The banner sits in a different frame in every hero — 4:3, 4:5, or
             the full width of a card — so how it handles a frame it doesn't

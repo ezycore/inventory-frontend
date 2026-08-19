@@ -12,6 +12,7 @@ import { MediaField } from "@/components/ecommerce/customize/media-field";
 import { PresetTiles } from "@/components/ecommerce/customize/preset-tiles";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 import { getPreset } from "@/lib/storefront-theme";
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 /**
  * Brand — the preset, the two colours and the logo. It sits above the store
@@ -85,6 +86,7 @@ export function BrandPart({
           onPick={uploadLogo}
           onRemove={settings.logo ? removeLogo : undefined}
           hint="600 × 200 px (up to 3:1) works best — the header shows it at 42px tall by default."
+          recommended={RECOMMENDED.storeLogo}
         />
         <PartHint>
           {settings.logo

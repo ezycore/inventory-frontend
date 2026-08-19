@@ -35,6 +35,7 @@ import {
 } from "@/components/ecommerce/catalog/variant-pricing-fields";
 import { formatMoney } from "@/components/storefront/format";
 import { slugify } from "@/utils/slugify";
+import { RECOMMENDED } from "@/lib/image-ratio";
 
 const OUT_OF_STOCK_OPTIONS = [
   { value: "show", label: 'Show as "Out of stock"' },
@@ -363,6 +364,7 @@ export function ProductOnlineEditor({
               onChange={setImages}
               maxFiles={5}
               dropzoneText="Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"
+              recommended={RECOMMENDED.product}
             />
           </div>
 
