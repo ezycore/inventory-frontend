@@ -10,10 +10,11 @@ const props = {
   categories: [],
   campaigns: [],
   t: {
-    weeklyEdit: "Weekly edit",
-    heroBt: "Everything, by seven.",
-    heroBs: "A considered selection.",
-    shopWeekly: "Shop the edit",
+    shopNow: "Shop now",
+  },
+  heroBanner: {
+    title: "Everything, by seven.",
+    subtitle: "A considered selection.",
   },
   store: { name: "Muslin" },
 } as SectionProps;
@@ -33,5 +34,13 @@ describe("EditorialSplit", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Everything, by seven." }),
     ).toBeInTheDocument();
+  });
+
+  it("uses the store name without inventing editorial copy", () => {
+    render(<EditorialSplit {...props} heroBanner={undefined} primaryHeading />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Muslin" })).toBeInTheDocument();
+    expect(screen.queryByText("Everything, by seven.")).not.toBeInTheDocument();
+    expect(screen.queryByText("A considered selection.")).not.toBeInTheDocument();
   });
 });

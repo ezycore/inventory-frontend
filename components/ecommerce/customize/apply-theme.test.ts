@@ -97,8 +97,10 @@ describe("the theme catalogue", () => {
 
   it("gives every theme its own header anatomy or card", () => {
     for (const theme of READY_MADE_THEMES) {
-      expect(theme.sections.length).toBeGreaterThanOrEqual(4);
+      expect(theme.sections.length).toBeGreaterThanOrEqual(3);
       expect(theme.templates.header).toBeTruthy();
+      expect(theme.sections).not.toContain("trust-row");
+      expect(theme.sections).not.toContain("promo-tiles");
     }
   });
 

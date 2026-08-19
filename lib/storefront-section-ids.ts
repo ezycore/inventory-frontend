@@ -50,9 +50,7 @@ export const SECTION_IDS = [
   "product-rail",
   "minimal-picks",
   // Full-width bands.
-  "trust-row",
   "trust-band",
-  "promo-tiles",
   "deal-strip",
   "editorial-split",
 ] as const;
@@ -114,7 +112,7 @@ export const isSectionId = (value: unknown): value is SectionId =>
  */
 export const HOME_PRESET_SECTIONS: Record<string, SectionId[]> = {
   classic: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
-  "hero-split": ["hero-split", "trust-row", "picks-grid", "promo-tiles"],
+  "hero-split": ["hero-split", "picks-grid"],
   minimal: ["hero-manifesto", "category-links", "minimal-picks"],
 };
 
@@ -134,9 +132,7 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   "picks-grid": "Weekly picks",
   "product-rail": "Product rail (side-scroll)",
   "minimal-picks": "Selected products",
-  "trust-row": "Promise cards",
   "trust-band": "Your promises band",
-  "promo-tiles": "Promo tiles",
   "deal-strip": "Live campaign strip",
   "editorial-split": "Editorial split",
 };

@@ -18,7 +18,7 @@ export interface TemplateOption {
 export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
   home: [
     { value: "classic", label: "Classic", description: "Hero card, category chips, product rails" },
-    { value: "hero-split", label: "Hero Split", description: "Split hero, trust row, promo tiles" },
+    { value: "hero-split", label: "Hero Split", description: "Split hero and weekly picks" },
     { value: "minimal", label: "Minimal", description: "Centered manifesto, quiet product grid" },
   ],
   collection: [

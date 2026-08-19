@@ -95,14 +95,6 @@ export interface Dict {
   duePayment: string;
   youSavedLabel: string;
   trackOrder: string;
-  genuine: string;
-  fastDelivery: string;
-  codBadge: string;
-  eidBadge: string;
-  eidSale: string;
-  toolsClear: string;
-  heroAt: string;
-  heroAs: string;
   shopNow: string;
   browseCats: string;
   featured: string;
@@ -110,22 +102,7 @@ export interface Dict {
   newArrivals: string;
   catGroceries: string;
   catElectronics: string;
-  weeklyEdit: string;
-  heroBt: string;
-  heroBs: string;
-  shopWeekly: string;
-  trust1t: string;
-  trust1s: string;
-  trust2t: string;
-  trust2s: string;
-  trust3t: string;
-  trust3s: string;
   weeklyPicks: string;
-  promo1: string;
-  promo2: string;
-  minimalKicker: string;
-  heroCt: string;
-  heroCs: string;
   startShopping: string;
   selected: string;
   yourCart: string;
@@ -561,14 +538,6 @@ const en: Dict = {
   viewAll: "View all",
   added: "Added to cart",
   trackOrder: "Track order",
-  genuine: "100% authentic",
-  fastDelivery: "Same-day delivery",
-  codBadge: "Cash on delivery",
-  eidBadge: "Eid Sale · 10% off storewide",
-  eidSale: "Eid Sale",
-  toolsClear: "Tools Clearance",
-  heroAt: "Everyday essentials,\ndelivered to your door",
-  heroAs: "Groceries, electronics, tools and home needs — one cart, paid your way, delivered across Bangladesh.",
   shopNow: "Shop now",
   browseCats: "Browse categories",
   featured: "Featured products",
@@ -576,22 +545,7 @@ const en: Dict = {
   newArrivals: "New arrivals",
   catGroceries: "Groceries",
   catElectronics: "Electronics",
-  weeklyEdit: "This week at Rashid’s",
-  heroBt: "Stock up\nfor the week",
-  heroBs: "A curated weekly basket of essentials — fair prices, authentic brands, no surprises at checkout.",
-  shopWeekly: "Shop the basket",
-  trust1t: "Free over BDT 2,000",
-  trust1s: "On every order",
-  trust2t: "Authentic brands",
-  trust2s: "Sourced direct",
-  trust3t: "Best price",
-  trust3s: "Coupons stack-free",
   weeklyPicks: "Weekly picks",
-  promo1: "Save 10% on the whole cart this Eid",
-  promo2: "Hand & power tools, 15% off",
-  minimalKicker: "Rashid’s Mart",
-  heroCt: "Less clutter.\nMore essentials.",
-  heroCs: "A quieter way to shop the basics — only what you need, delivered when you need it.",
   startShopping: "Start shopping",
   selected: "Selected for you",
   yourCart: "Your cart",
@@ -974,14 +928,6 @@ const bn: Dict = {
   viewAll: "সব দেখুন",
   added: "কার্টে যোগ হয়েছে",
   trackOrder: "অর্ডার ট্র্যাক",
-  genuine: "১০০% আসল",
-  fastDelivery: "একই দিনে ডেলিভারি",
-  codBadge: "ক্যাশ অন ডেলিভারি",
-  eidBadge: "ঈদ সেল · সব পণ্যে ১০% ছাড়",
-  eidSale: "ঈদ সেল",
-  toolsClear: "টুলস ক্লিয়ারেন্স",
-  heroAt: "প্রতিদিনের প্রয়োজন,\nআপনার দরজায়",
-  heroAs: "মুদি, ইলেকট্রনিক্স, টুলস ও হোম পণ্য — এক কার্টে, পছন্দমতো পেমেন্টে, সারা বাংলাদেশে ডেলিভারি।",
   shopNow: "কিনুন",
   browseCats: "ক্যাটাগরি দেখুন",
   featured: "ফিচার্ড পণ্য",
@@ -989,22 +935,7 @@ const bn: Dict = {
   newArrivals: "নতুন এসেছে",
   catGroceries: "মুদি",
   catElectronics: "ইলেকট্রনিক্স",
-  weeklyEdit: "এই সপ্তাহে রশিদ’স",
-  heroBt: "সপ্তাহের জন্য\nস্টক করুন",
-  heroBs: "প্রতি সপ্তাহের বাছাই করা প্রয়োজনীয় ঝুড়ি — সঠিক দাম, আসল ব্র্যান্ড, চেকআউটে কোনো চমক নেই।",
-  shopWeekly: "ঝুড়ি দেখুন",
-  trust1t: "২,০০০ টাকার বেশি অর্ডারে ফ্রি",
-  trust1s: "প্রতিটি অর্ডারে",
-  trust2t: "আসল ব্র্যান্ড",
-  trust2s: "সরাসরি সংগ্রহ",
-  trust3t: "সেরা দাম",
-  trust3s: "কুপন একক প্রযোজ্য",
   weeklyPicks: "সাপ্তাহিক পছন্দ",
-  promo1: "এই ঈদে পুরো কার্টে ১০% ছাড়",
-  promo2: "হ্যান্ড ও পাওয়ার টুলসে ১৫% ছাড়",
-  minimalKicker: "রশিদ’স মার্ট",
-  heroCt: "কম ভিড়।\nবেশি প্রয়োজন।",
-  heroCs: "প্রয়োজনীয় জিনিস কেনার সহজ উপায় — যা দরকার শুধু তাই, সময়মতো ডেলিভারি।",
   startShopping: "কেনাকাটা শুরু",
   selected: "আপনার জন্য বাছাই",
   yourCart: "আপনার কার্ট",
