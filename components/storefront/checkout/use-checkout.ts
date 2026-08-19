@@ -30,6 +30,14 @@ import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
 import { cartAnonymousId } from "@/services/storefront/cart-identity";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
+import {
+  CHECKOUT_STEP_FIELDS,
+  checkoutErrors,
+  firstInvalidField,
+  stepForField,
+  type CheckoutErrors,
+} from "@/components/storefront/checkout/checkout-validation";
+import { useCheckoutErrors } from "@/components/storefront/checkout/use-checkout-errors";
 
 const emptyGeo = (): GeoValue => ({ district: "", area: "" });
 
@@ -185,7 +193,6 @@ export function useCheckout() {
   const required = new Set(
     store?.checkout?.requiredFields ?? ["name", "phone", "address"],
   );
-  const needAddress = required.has("address");
   const needArea = required.has("area") || zoned;
   // A GUEST's phone is their identity, not just a contact detail — the server
   // rejects one it cannot normalise with `INVALID_PHONE`, so validate the same
@@ -193,19 +200,7 @@ export function useCheckout() {
   // keeps the looser check: they are already identified by their account, and
   // tightening that is a separate change.
   const phoneUsable = shopper ? !!addr.phone.trim() : isValidBdPhone(addr.phone);
-  const phoneInvalid = !shopper && !!addr.phone.trim() && !phoneUsable;
-  const contactComplete = !!(
-    (!required.has("name") || addr.name.trim()) &&
-    (!required.has("phone") || phoneUsable)
-  );
-  // Delivery honours the configured fields; pickup only needs name + phone.
-  const deliveryComplete = !!(
-    (!needAddress || addr.address.trim()) &&
-    (!needArea || (geo.district.trim() && geo.area.trim()))
-  );
-  const addressComplete = isPickup
-    ? contactComplete
-    : contactComplete && deliveryComplete;
+  const phoneMalformed = !shopper && !!addr.phone.trim() && !phoneUsable;
 
   const minOrder = store?.checkout?.minOrderValue ?? 0;
   const belowMin = minOrder > 0 && subtotal < minOrder;
@@ -222,15 +217,29 @@ export function useCheckout() {
       : contentPages.find((p) => /^terms($|-)|^tos$|conditions$/i.test(p.slug))?.slug
     : undefined;
 
-  const canSubmit =
-    addressComplete && !belowMin && (!termsRequired || termsAccepted);
-  // Per-step advance gate for any layout that has steps: step 1 = address/contact,
-  // step 2 = payment. Terms/min-order are settled at the final submit, not here.
-  //
-  // `addressComplete` already carries the phone rule, which is what makes a
-  // stepped path safe: without it a guest advances past step 1 with a junk
-  // number and only meets the 400 two screens later.
-  const stepBlocked = step === 1 && !addressComplete;
+  // The merchant's own returns page, if they published one. Read ONLY by the
+  // trust strip, and the reason that strip can exist at all: a white-label
+  // checkout must not promise a returns window on behalf of a merchant who never
+  // wrote one, so the claim and its wording both come from their CMS page.
+  const returnsPage =
+    contentPages.find((p) => /(^|-)(returns?|refunds?|exchanges?)($|-)/i.test(p.slug)) ?? null;
+
+  // The single source of "what is wrong with this form". Completeness used to be
+  // three booleans computed here; it is now derived from the same messages the
+  // shopper reads, so the button and the errors can never disagree.
+  const errors: CheckoutErrors = checkoutErrors({
+    t,
+    addr,
+    geo,
+    required,
+    needArea,
+    isPickup,
+    phoneUsable,
+    phoneMalformed,
+    termsRequired,
+    termsAccepted,
+  });
+  const errorState = useCheckoutErrors(errors);
 
   // Best-effort: remember the picked district/area on the chosen address (or save
   // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
@@ -250,7 +259,52 @@ export function useCheckout() {
     }
   };
 
+  /**
+   * Advance a stepped layout. Returns `false` and lights up step 1 rather than
+   * sitting on a dead Continue button — the old `stepBlocked` disabled it, which
+   * is the same silence this whole change is about.
+   *
+   * This one DOES toast, unlike `submit`: Continue has no banner beside it, so
+   * without the toast a shopper who is already looking at a filled-in field sees
+   * only a page that refused to move.
+   *
+   * It checks **only the current step's fields**. Checking all of them looks
+   * stricter and is in fact a dead end: an unticked required-terms box lives on
+   * step 3, so it refused step 1 and then pointed at a checkbox that had not
+   * rendered yet. Terms still gate `submit`, which is where they belong.
+   */
+  const tryAdvance = () => {
+    if (!errorState.reveal(CHECKOUT_STEP_FIELDS[step])) {
+      toast.error(t.checkoutFixErrors);
+      return false;
+    }
+    setStep(Math.min(3, step + 1));
+    return true;
+  };
+
   const submit = () => {
+    // The button is never disabled for an incomplete form: pressing it is how a
+    // shopper ASKS what is missing, and a disabled button answers nothing. The
+    // refusal happens here instead, and it says why.
+    if (belowMin) {
+      toast.error(`${t.minOrderNotice} ${money(minOrder, currency)}`);
+      return;
+    }
+    // A stepped layout shows one screen at a time, and the final submit checks
+    // every field — so the first problem may be on a screen that is not mounted,
+    // and the refusal would point at nothing. Jump to the screen that owns it
+    // first. Unreachable through normal use (`tryAdvance` gates step 1), but a
+    // signed-in shopper whose session drops mid-checkout gets there: `phoneUsable`
+    // tightens to the BD-mobile rule and a number that passed step 1 no longer
+    // does. A no-op in the three single-screen layouts, which never read `step`.
+    const offending = firstInvalidField(errors);
+    if (offending) setStep(stepForField(offending));
+
+    // No toast here: `PlaceOrderButton` renders the same sentence as a banner
+    // beside itself, and `reveal()` has already scrolled to the offending field,
+    // which shows the SPECIFIC message. A toast would be the generic one, twice.
+    if (!errorState.reveal()) return;
+
     // Pickup carries only contact fields; delivery carries the full canonical address.
     const shippingAddress: ShippingAddress = isPickup
       ? { name: addr.name, phone: addr.phone, notes: addr.notes || undefined }
@@ -317,7 +371,11 @@ export function useCheckout() {
     pickNew,
     saveNew,
     setSaveNew,
-    phoneInvalid,
+    // validation
+    errors: errorState.visible,
+    allErrors: errors,
+    errorsRevealed: errorState.revealed,
+    touch: errorState.touch,
     // fulfillment
     pickupOffered,
     fulfillment,
@@ -347,11 +405,11 @@ export function useCheckout() {
     termsAccepted,
     setTermsAccepted,
     termsSlug,
+    returnsPage,
     // steps + submit
     step,
     setStep,
-    stepBlocked,
-    canSubmit,
+    tryAdvance,
     submit,
   };
 }

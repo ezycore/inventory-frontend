@@ -17,7 +17,7 @@ import {
 import { SignupPlanNote } from "@/components/setup/owner/signup-plan-note";
 import { BRAND, LEGAL_URLS } from "@/constants/brand";
 import { getCountryDefaults } from "@/constants/organization-options";
-import { useSignupAPi } from "@/hooks";
+import { useHydrated, useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { detectCountryCode } from "@/utils/detect-country";
 import { getSignupPlanFromUrl } from "@/utils/signup-plan";
@@ -29,6 +29,14 @@ export default function Signup() {
   const t = useTranslations("auth.signup");
   const locale = useLocale();
   const createOwnerMutation = useSignupAPi();
+
+  // The sticky-bar submit below is this form's default button — it lives outside
+  // the <form> and reaches it by id, so Enter in any field fires it. A disabled
+  // default button is skipped by implicit submission entirely, which closes the
+  // pre-hydration native-submit window from the other side of DynamicForm's
+  // `method="post"`. False on the server and on the hydration render, so no
+  // mismatch; the button is only ever dead while a click wouldn't have worked.
+  const hydrated = useHydrated();
   // Memoized on `t`: `useDynamicForm` keys its schema, resolver and default
   // values off the config's identity, so an unstable config would rebuild the
   // form on every keystroke. `t` changes only when the locale does.
@@ -136,8 +144,15 @@ export default function Signup() {
 
       {/* Form panel. On lg it owns its own scroll so the action bar can stick to
           the column's bottom; on smaller screens the page scrolls and the bar
-          sticks to the viewport instead. */}
-      <main className="flex min-h-svh flex-col lg:h-svh lg:overflow-y-auto">
+          sticks to the viewport instead.
+
+          `relative` is load-bearing, not decoration: Radix Switch (the sample-data
+          toggle) renders a hidden absolutely-positioned <input> for form bubbling.
+          With no positioned ancestor its containing block was the <body>, so this
+          column's overflow could not clip it — the input sat ~960px down the
+          form, stretched the *document* to that height, and left a dead band of
+          background under the whole two-column layout. */}
+      <main className="relative flex min-h-svh flex-col lg:h-svh lg:overflow-y-auto">
         <div className="flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
           <div className="mx-auto flex w-full max-w-2xl flex-col gap-7">
             {/* Mobile lockup (the branded panel is hidden on small screens) */}
@@ -260,6 +275,7 @@ export default function Signup() {
               <Button
                 type="submit"
                 form="owner-setup-form"
+                disabled={!hydrated}
                 className="gap-2 sm:w-auto"
               >
                 {t("submit")}

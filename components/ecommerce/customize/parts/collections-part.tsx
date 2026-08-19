@@ -3,36 +3,35 @@
 
 import { Pencil } from "lucide-react";
 import { Button } from "@/ui/components/button";
-import { OptionChip } from "@/ui/components/option-card";
 import { cn } from "@/ui/lib/utils";
 import {
   PartBlock,
   PartField,
   PartHint,
-  PartLabel,
 } from "@/components/ecommerce/customize/part-group";
-import {
-  TemplatePicker,
-  TemplateSegmented,
-} from "@/components/ecommerce/customize/parts/template-picker";
+import { TemplateSegmented } from "@/components/ecommerce/customize/parts/template-picker";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
-import { resolveHomeCollections } from "@/lib/storefront-templates";
-import type { StorefrontHomeCollections } from "@/types";
 
 /**
  * Collections — which categories the shop lists, in what order, and how their
  * product pages look. The listing layout and the pagination mode live here
  * rather than under a separate "Collection page" heading because a merchant
  * thinking about their category pages is thinking about one thing.
+ *
+ * **Everything here is about the COLLECTION page**, which is what the preview
+ * shows while this part is open (`PART_PAGE.collections`). The homepage
+ * collections row and the category-tile style used to sit here too and moved to
+ * the Home page part on 2026-08-18 — under this part's preview they styled a
+ * page that was not on screen, so both read as dead controls. Keep the rule:
+ * a control belongs to the part whose preview page renders it.
  */
 export function CollectionsPart({
   draft,
-  patch,
   patchTemplate,
   onManageCollections,
 }: {
   onManageCollections: () => void;
-} & Pick<CustomizeDraftApi, "draft" | "patch" | "patchTemplate">) {
+} & Pick<CustomizeDraftApi, "draft" | "patchTemplate">) {
   const listed = draft.collections.filter((c) => c.isListed);
 
   return (
@@ -104,30 +103,6 @@ export function CollectionsPart({
         </PartField>
       </PartBlock>
 
-      <PartBlock
-        label="On the homepage"
-        hint="How the collections row is laid out under the hero. Phones always show two per row, whatever you pick here."
-      >
-        <HomeCollectionsField
-          value={draft.homeCollections}
-          onChange={(homeCollections) => patch({ homeCollections })}
-        />
-      </PartBlock>
-
-      {/* The tiles section is a different homepage row from the collections
-          strip above — it only renders if "Category tiles" is in Home →
-          Sections, which is why the hint says so rather than leaving an owner
-          to wonder why nothing moved. */}
-      <PartBlock
-        label="Category tiles"
-        hint="Used by the Category tiles section on the homepage. Over the photo needs a picture on every category — without one it falls back to a letter tile."
-      >
-        <TemplatePicker
-          templateKey="categoryTiles"
-          value={draft.templates.categoryTiles}
-          onChange={(v) => patchTemplate("categoryTiles", v)}
-        />
-      </PartBlock>
     </>
   );
 }
@@ -172,91 +147,5 @@ function ColumnsGlyph({ value }: { value: string }) {
         />
       ))}
     </span>
-  );
-}
-
-const LAYOUTS: {
-  value: NonNullable<StorefrontHomeCollections["layout"]>;
-  label: string;
-}[] = [
-  { value: "strip", label: "Scrolling strip" },
-  { value: "grid", label: "Grid" },
-];
-
-const ALIGNMENTS: {
-  value: NonNullable<StorefrontHomeCollections["align"]>;
-  label: string;
-}[] = [
-  { value: "left", label: "Left" },
-  { value: "center", label: "Center" },
-  { value: "right", label: "Right" },
-];
-
-const COLUMN_CHOICES = [2, 3, 4, 5, 6];
-
-/**
- * Layout / columns / alignment for the homepage collections row.
- *
- * Columns only appear under `grid`: a strip scrolls, so it has no column count
- * to set, and a disabled-but-visible row of numbers would only invite the
- * question of why it does nothing.
- */
-function HomeCollectionsField({
-  value,
-  onChange,
-}: {
-  value: StorefrontHomeCollections;
-  onChange: (next: StorefrontHomeCollections) => void;
-}) {
-  const { layout, columns, align } = resolveHomeCollections(value);
-  const patch = (p: Partial<StorefrontHomeCollections>) =>
-    onChange({ ...value, ...p });
-
-  return (
-    <div className="space-y-2.5">
-      <div className="flex flex-wrap gap-2">
-        {LAYOUTS.map((l) => (
-          <OptionChip
-            key={l.value}
-            selected={layout === l.value}
-            onSelect={() => patch({ layout: l.value })}
-          >
-            {l.label}
-          </OptionChip>
-        ))}
-      </div>
-
-      {layout === "grid" ? (
-        <div className="space-y-1.5">
-          <PartLabel>Collections per row</PartLabel>
-          <div className="flex flex-wrap gap-2">
-            {COLUMN_CHOICES.map((n) => (
-              <OptionChip
-                key={n}
-                selected={columns === n}
-                onSelect={() => patch({ columns: n })}
-              >
-                {n}
-              </OptionChip>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="space-y-1.5">
-        <PartLabel>{layout === "grid" ? "Align in column" : "Align row"}</PartLabel>
-        <div className="flex flex-wrap gap-2">
-          {ALIGNMENTS.map((a) => (
-            <OptionChip
-              key={a.value}
-              selected={align === a.value}
-              onSelect={() => patch({ align: a.value })}
-            >
-              {a.label}
-            </OptionChip>
-          ))}
-        </div>
-      </div>
-    </div>
   );
 }

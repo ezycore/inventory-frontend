@@ -13,6 +13,12 @@ import {
   lookupCanonicalHostBySlug,
 } from "@/lib/storefront-domain-lookup";
 import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
+import {
+  PREVIEW_CLEAR_PARAM,
+  PREVIEW_COOKIE,
+  PREVIEW_REQUEST_HEADER,
+  PREVIEW_TOKEN_PARAM,
+} from "@/lib/storefront-preview";
 
 /**
  * Option A routing + admin auth gate.
@@ -99,6 +105,7 @@ export async function proxy(request: NextRequest) {
   headers.delete("x-ezy-store-slug");
   headers.delete("x-ezy-store-base");
   headers.delete("x-ezy-store-origin");
+  headers.delete(PREVIEW_REQUEST_HEADER);
 
   if (store) {
     const proto =
@@ -107,6 +114,45 @@ export async function proxy(request: NextRequest) {
     headers.set("x-ezy-store-slug", store.slug);
     headers.set("x-ezy-store-base", store.base);
     headers.set("x-ezy-store-origin", `${proto}://${hostHeader}`);
+
+    // Owner preview (`lib/storefront-preview.ts`). The token rides in the URL
+    // because a cross-origin iframe's own navigation is the one request the
+    // admin cannot attach a header to — and it is moved onto a header HERE
+    // because the storefront layout, which does the fetching, is a layout: it
+    // receives `headers()` and never `searchParams`.
+    //
+    // The URL carries it once; the cookie carries it thereafter, so exploring an
+    // unpublished shop does not fall out of preview on the first click. Both are
+    // forwarded verbatim — the backend is what decides whether either means
+    // anything, and a token for another org opens nothing here.
+    const freshToken = request.nextUrl.searchParams.get(PREVIEW_TOKEN_PARAM);
+    // The editor appends this once the shop is published — see PREVIEW_CLEAR_PARAM.
+    // Checked BEFORE the cookie is read, so this request stops previewing too
+    // rather than clearing the cookie and then serving one more preview anyway.
+    const previewEnded = request.nextUrl.searchParams.has(PREVIEW_CLEAR_PARAM);
+    const previewToken = previewEnded
+      ? null
+      : (freshToken ?? request.cookies.get(PREVIEW_COOKIE)?.value ?? null);
+    if (previewToken) headers.set(PREVIEW_REQUEST_HEADER, previewToken);
+
+    /** Remembers a token that arrived in the URL, on this store's host only. */
+    const keepPreview = (response: NextResponse): NextResponse => {
+      if (previewEnded) {
+        response.cookies.delete(PREVIEW_COOKIE);
+        return response;
+      }
+      if (freshToken) {
+        response.cookies.set(PREVIEW_COOKIE, freshToken, {
+          path: "/",
+          sameSite: "lax",
+          secure: proto === "https",
+          // Matches the token's own lifetime: a cookie that outlives its token
+          // just means the shop 404s again with no hint as to why.
+          maxAge: 4 * 60 * 60,
+        });
+      }
+      return response;
+    };
 
     // `/s/...` is gone — bounce any old links to the public store base.
     if (isLegacyStorePath(pathname)) {
@@ -123,7 +169,16 @@ export async function proxy(request: NextRequest) {
     //
     // Only store traffic pays the lookup: on a tenant subdomain the admin app
     // owns every path outside `/shop` and must never be redirected anywhere.
-    if (store.base === "" || isStorePath(pathname)) {
+    //
+    // **A preview is exempt.** This redirect exists so crawlers index one host,
+    // and a preview is seen by one person and indexed by nobody — so it buys
+    // nothing here and costs something real: it would move an owner previewing a
+    // shop that has a custom domain from `{slug}.ezycore.com` (same site as the
+    // admin, so the preview cookie sticks) onto `mystore.com`, where the frame is
+    // cross-site and a `Lax` cookie is neither set nor sent. The preview would
+    // then survive exactly one page, and only in browsers permissive enough to
+    // have kept it at all.
+    if (!previewToken && (store.base === "" || isStorePath(pathname))) {
       const host = hostnameOf(hostHeader);
       const target = canonicalRedirectFor({
         method: request.method,
@@ -151,7 +206,7 @@ export async function proxy(request: NextRequest) {
       if (!isStorePath(pathname)) {
         const url = request.nextUrl.clone();
         url.pathname = `/shop${pathname === "/" ? "" : pathname}`;
-        return NextResponse.rewrite(url, { request: { headers } });
+        return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
       }
       // Keep the internal `/shop` path out of the public custom-domain URL space.
       // GET/HEAD already left above with a 301; this catches the rest, where a
@@ -163,7 +218,7 @@ export async function proxy(request: NextRequest) {
 
     // Tenant subdomain: only `/shop/*` is the store; the rest is admin.
     if (isStorePath(pathname)) {
-      return NextResponse.next({ request: { headers } });
+      return keepPreview(NextResponse.next({ request: { headers } }));
     }
     // …otherwise fall through to the admin auth gate below.
   } else {

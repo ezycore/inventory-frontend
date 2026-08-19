@@ -3,6 +3,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { input } from "./checkout-bits";
+import { invalidInput } from "./checkout-field";
 import { optionRow, popoverMenu } from "@/components/storefront/menu-styles";
 
 export interface ComboOption {
@@ -24,6 +25,9 @@ export function Combobox({
   allowFreeText = false,
   disabled = false,
   noMatchText,
+  invalid = false,
+  onBlur,
+  id,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -32,6 +36,13 @@ export function Combobox({
   allowFreeText?: boolean;
   disabled?: boolean;
   noMatchText?: string;
+  /** Paints the error ring; the MESSAGE stays with the caller's field wrapper. */
+  invalid?: boolean;
+  /** Fires when focus genuinely leaves — picking an option does NOT blur, since
+   *  the option row preventDefaults its mousedown to keep focus in the input. */
+  onBlur?: () => void;
+  /** Lets a caller's `<label htmlFor>` reach the input. */
+  id?: string;
 }) {
   const [open, setOpen] = useState(false);
   // null → show the selected option's label; string → the shopper's live query.
@@ -98,7 +109,9 @@ export function Combobox({
   return (
     <div ref={wrapRef} style={wrap}>
       <input
-        style={{ ...input, cursor: disabled ? "not-allowed" : "text" }}
+        id={id}
+        style={{ ...(invalid ? invalidInput() : input), cursor: disabled ? "not-allowed" : "text" }}
+        aria-invalid={invalid}
         disabled={disabled}
         placeholder={placeholder}
         value={text}
@@ -115,6 +128,7 @@ export function Combobox({
           if (allowFreeText) onChange(v);
         }}
         onKeyDown={onKeyDown}
+        onBlur={onBlur}
       />
       {open && !disabled ? (
         <div id={listId} style={menu} role="listbox">

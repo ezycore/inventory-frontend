@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
+import { useRef, type RefObject } from "react";
 import type {
   CatalogCategory,
   StoreTemplates,
@@ -20,6 +21,7 @@ import {
 import { Icon } from "@/components/storefront/sf-icons";
 import { expandHeaderMenu } from "@/components/storefront/header-nav";
 import { Brand } from "@/components/storefront/logo-mark";
+import { useHeaderHeight } from "@/components/storefront/use-header-height";
 import { HeaderSearchMobile } from "@/components/storefront/header-search";
 import {
   bareBtn,
@@ -139,12 +141,18 @@ export function StoreHeader({
   )
     ? (previewHeader as StoreTemplates["header"])
     : resolveTemplates(store).header;
+  const mobileRef = useRef<HTMLDivElement>(null);
+  const desktopRef = useRef<HTMLDivElement>(null);
   const Desktop = DESKTOP_VARIANTS[variant] ?? ClassicDesktop;
+
+  // Publishes `--sf-header-h` so a top-sticky panel elsewhere on the page can
+  // clear this bar instead of sliding under it (checkout's order rail).
+  useHeaderHeight(mobileRef, desktopRef);
 
   return (
     <>
-      <MobileHeader ctx={ctx} />
-      <div className="sf-desktop-only" style={headerBar}>
+      <MobileHeader ctx={ctx} barRef={mobileRef} />
+      <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
         <Desktop ctx={ctx} />
       </div>
     </>
@@ -153,12 +161,12 @@ export function StoreHeader({
 
 /* -------------------------------- mobile ---------------------------------- */
 
-function MobileHeader({ ctx }: { ctx: HeaderCtx }) {
+function MobileHeader({ ctx, barRef }: { ctx: HeaderCtx; barRef: RefObject<HTMLDivElement | null> }) {
   const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, cats } = ctx;
   // Cart + account live in the bottom nav on mobile, so the top bar keeps just
   // the logo, locale/theme toggles and the search field.
   return (
-    <div className="sf-mobile-only" style={{ ...headerBar, padding: "14px 14px 10px" }}>
+    <div ref={barRef} className="sf-mobile-only" style={{ ...headerBar, padding: "14px 14px 10px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Brand name={name} logo={logo} markSize={29} nameSize={15.5} />

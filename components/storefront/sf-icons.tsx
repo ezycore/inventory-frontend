@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { CSSProperties } from "react";
 
 /**
@@ -11,6 +12,9 @@ const PATHS: Record<string, string> = {
   zoomIn: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/><path d="M8.4 11h5.2M11 8.4v5.2"/>',
   phone: '<path d="M6.5 3.5h3l1.4 4-1.8 1.2a12 12 0 0 0 5.2 5.2l1.2-1.8 4 1.4v3a1.6 1.6 0 0 1-1.7 1.6A16.5 16.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.5 3.5Z"/>',
   check: '<path d="M4 12.5 9 17.5 20 6.5"/>',
+  // Validation + inline warnings. Stroke-only like the rest, so it takes the
+  // error red from `currentColor` rather than baking one in.
+  alert: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.6v5"/><path d="M12 16.1h.01"/>',
   // "Buy now" in the icon-CTA card layouts — the universal instant-purchase mark.
   bolt: '<path d="M13 2.5 4.8 13.6H11l-1 7.9 8.2-11.1H12z"/>',
   truck: '<path d="M2.5 6.5h10v9h-10z"/><path d="M12.5 9.5h4l3 3v3h-7z"/><circle cx="6" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/>',

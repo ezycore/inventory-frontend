@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import type { CSSProperties } from "react";
+import { sfInput } from "@/components/storefront/field-styles";
 
 /* Shared checkout styling — the section eyebrow, text inputs and buttons. */
 
@@ -14,20 +15,18 @@ export const label: CSSProperties = {
   marginBottom: 12,
 };
 
-/** iOS Safari zooms the page whenever a focused field is under 16px, and the
- *  viewport meta (correctly) permits scaling, so it never zooms back — checkout
- *  alone has 7 fields, which meant 7 zooms per order. 16px is the floor. */
-export const input: CSSProperties = {
-  border: "1px solid var(--border-strong)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  borderRadius: 8,
-  padding: "12px 14px",
-  fontFamily: "inherit",
-  fontSize: 16,
-  outline: "none",
-  width: "100%",
-};
+/**
+ * Checkout's text field IS the storefront's text field — re-export, don't
+ * re-declare. This was a near-identical fourth copy of `sfInput`, and the copy
+ * had already drifted (its own radius, its own padding, `--card` instead of
+ * `--surface`), so checkout's inputs quietly looked unlike every other
+ * shopper-facing form in the storefront.
+ *
+ * The 16px floor that `sfInput` documents matters most here: iOS Safari zooms
+ * on any focused field under 16px and never zooms back, and checkout has the
+ * most fields of any page.
+ */
+export const input: CSSProperties = sfInput;
 
 export const primaryBtn: CSSProperties = {
   background: "var(--primary)",
