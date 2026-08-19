@@ -150,6 +150,17 @@ Your homepage is a list of blocks, top to bottom, and **Sections** is where you 
 up or down, remove one, or add one from the list underneath — the preview follows every change
 before you save.
 
+**Category chips** and **Category photo tiles** are two ways to place your categories on the home
+page. When either one is in the section list, **Collections row** controls whether that visible row
+is a scrolling strip or a grid, how many categories sit across a desktop row, and its alignment.
+Phone grids always use two columns so the names remain readable. If you use Category photo tiles,
+the separate **Category tiles** control chooses whether names sit below photos, over photos, or under
+round letter icons. A layout such as Meridian Care that puts categories in a permanent page sidebar
+shows an explanation here instead of controls that cannot affect the page.
+
+Applying a ready-made theme also restores that theme's starting row: Classic uses a scrolling strip,
+while Fresh Market and Muslin use their wider adaptive grid. Your next row edit can override it.
+
 **Give a collection its own row.** Press **Add a collection row**, pick the collection, and it
 appears on your home page with its own heading. Add as many as you want — "Skin care" above
 "Devices" is two rows pointed at two collections.

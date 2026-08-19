@@ -8,6 +8,7 @@ import {
 import { DEFAULT_DESIGN, resolveThemeColors } from "@/lib/storefront-theme";
 import {
   DEFAULT_TEMPLATES,
+  resolveHomeCollections,
   resolveTemplates,
 } from "@/lib/storefront-templates";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
@@ -130,6 +131,12 @@ describe("the theme catalogue", () => {
       expect(classic.sections).toEqual(HOME_PRESET_SECTIONS.classic);
     });
 
+    it("carries the default category-row layout", () => {
+      expect(resolveHomeCollections(classic.homeCollections)).toEqual(
+        resolveHomeCollections(undefined),
+      );
+    });
+
     /* The bundle stores RAW admin ids ("grid-4"), the storefront consumes
        resolved variant names ("grid4"), so the comparison has to go through
        `resolveTemplates` — comparing the raw strings would pass while the two
@@ -166,6 +173,7 @@ describe("applyThemeToDraft", () => {
     expect(patch.brandColor).toBe(theme.brandColor);
     expect(patch.accentColor).toBe(theme.accentColor);
     expect(patch.design).toEqual(theme.design);
+    expect(patch.homeCollections).toEqual(theme.homeCollections);
     expect(patch.appliedThemeId).toBe("muslin");
     expect(patch.templates).toMatchObject(theme.templates);
     // The bundle stays a list of TYPES; the patch is a list of instances. A
@@ -224,6 +232,18 @@ describe("applyThemeToDraft", () => {
       expect(bundle.templates.checkout, bundle.id).toBeTruthy();
     }
   });
+
+  it("does not carry Classic's category strip into tile-led themes", () => {
+    const classicRow = draft({
+      homeCollections: { layout: "strip", columns: 5, align: "left" },
+    });
+    const fresh = getReadyMadeTheme("fresh-market")!;
+
+    expect(applyThemeToDraft(classicRow, fresh).homeCollections).toEqual({
+      layout: "grid",
+      align: "center",
+    });
+  });
 });
 
 describe("isThemeModified", () => {
@@ -242,6 +262,12 @@ describe("isThemeModified", () => {
     expect(isThemeModified({ ...applied, brandColor: "#ff0000" })).toBe(true);
     expect(
       isThemeModified({ ...applied, design: { ...applied.design, font: "serif" } }),
+    ).toBe(true);
+    expect(
+      isThemeModified({
+        ...applied,
+        homeCollections: { ...applied.homeCollections, columns: 3 },
+      }),
     ).toBe(true);
   });
 

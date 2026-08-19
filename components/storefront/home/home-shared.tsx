@@ -50,6 +50,8 @@ export interface SectionProps {
   heroBanner?: StoreHeroBanner;
   /** The whole store — sections that read `trustBadges`, `social` or `name`. */
   store: StorefrontStore;
+  /** Historical fallback until the merchant explicitly chooses grid or strip. */
+  categoryRowDefault?: "strip" | "grid";
   /**
    * This INSTANCE's config, when the merchant has given it one. Absent means
    * "render your built-in source", which is what every section did before

@@ -116,7 +116,7 @@ export interface CustomizeDraft {
    * single Save — it is settings, not media.
    */
   logoStyle: StorefrontLogoStyle;
-  /** Homepage collections row layout (Customize → Collections). */
+  /** Homepage category-row layout (Customize → Home page). */
   homeCollections: StorefrontHomeCollections;
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
@@ -400,6 +400,10 @@ export function applyThemeToDraft(
     brandColor: theme.brandColor,
     accentColor: theme.accentColor,
     design: resolveDesign(theme.design),
+    // Category-row geometry is part of the look. Without resetting it here,
+    // Fresh Market inherits Classic's saved strip and stops looking like its
+    // own theme in both the picker preview and the applied storefront.
+    homeCollections: { ...theme.homeCollections },
     templates: { ...draft.templates, ...theme.templates },
     // The homepage composition — the half that makes themes structurally
     // different rather than repainted. Replaced outright, not merged: a theme's
@@ -470,6 +474,7 @@ export function isThemeModified(draft: CustomizeDraft): boolean {
     draft.brandColor !== applied.brandColor ||
     draft.accentColor !== applied.accentColor ||
     !same(draft.design, applied.design) ||
+    !same(draft.homeCollections, applied.homeCollections) ||
     !same(draft.templates, applied.templates) ||
     // TYPE sequence, not the instances: a key is identity plumbing, not look.
     // Two pages composed of the same sections in the same order ARE the theme,

@@ -1184,23 +1184,14 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
 }
 
 /* ---- Category tiles (home/sections/category-sections.tsx) ----
-   The grid lives here rather than inline because it needs a BREAKPOINT, and the
-   two halves are not the same rule:
-
-   - Phone: `1fr` as the max, so the tiles share the row. A definite px max makes
-     `auto-fit` size every track at that MAX when counting how many fit — which
-     is why a 132px cap put only two tiles on a 358px row and turned seven
-     departments into four rows of half-empty width.
-   - Desktop: the px cap is the whole point, or seven departments stretch to
-     ~150px each and a wayfinding row outweighs the products under it.
-
-   `--tile-min` / `--tile-max` come from the component, which owns the numbers
-   per presentation (compact / photo / overlay). */
+   A theme's untouched row keeps its original adaptive composition. Once the
+   merchant chooses an exact column count, `--sf-ct-cols` takes over; phones
+   stay at two and tracks never grow beyond the visual mode's maximum. */
 .sf-cat-tiles {
   display: grid;
   gap: var(--gap);
-  justify-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(var(--tile-min, 96px), 1fr));
+  justify-content: var(--sf-ct-justify, center);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @media (min-width: 681px) {
   .sf-cat-tiles {
@@ -1208,6 +1199,17 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
       auto-fit,
       minmax(var(--tile-min, 96px), var(--tile-max, 148px))
     );
+  }
+  .sf-cat-tiles--controlled {
+    grid-template-columns: repeat(
+      var(--sf-ct-cols, 4),
+      minmax(0, var(--tile-max, 148px))
+    );
+  }
+}
+@media (max-width: 680px) {
+  .sf-cat-tiles--controlled {
+    grid-template-columns: repeat(2, minmax(0, var(--tile-max, 148px)));
   }
 }
 

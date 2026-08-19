@@ -37,6 +37,7 @@
 
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { SectionId } from "@/lib/storefront-section-ids";
+import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
   GROCERY_SAMPLE,
@@ -56,6 +57,8 @@ export interface ReadyMadeTheme {
   brandColor: string;
   accentColor: string;
   design: StoreDesign;
+  /** The category row's starting geometry. Applying a theme resets this look. */
+  homeCollections: StoreHomeCollections;
   /**
    * The homepage, as an ordered section list. **This is what makes the themes
    * structurally different rather than differently painted** — they compose
@@ -123,6 +126,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "soft",
       width: "contained",
     },
+    homeCollections: { layout: "strip", align: "left" },
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
     sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
     templates: {
@@ -182,6 +186,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "pill",
       width: "contained",
     },
+    // No fixed column count: the original department row fits as many roomy
+    // discs as the available width allows. The owner can still choose 2–6.
+    homeCollections: { layout: "grid", align: "center" },
     /* The mockup's page, top to bottom: a typographic hero, a strip of
        department discs, the seasonal grid, the buy-again rail, then a pair of
        feature cards.
@@ -303,6 +310,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "soft",
       width: "contained",
     },
+    homeCollections: { layout: "grid", align: "center" },
     /* **No hero, and no category section.** The `rail` shell puts the conditions
        down the left of every page and the `clinical` header carries the search,
        so a hero could only repeat one of the two — which is exactly the bug this
@@ -401,6 +409,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "sharp",
       width: "contained",
     },
+    // Overlay scenes keep their original adaptive, centred composition until
+    // the merchant chooses an exact number per row.
+    homeCollections: { layout: "grid", align: "center" },
     // A magazine, not a shop window: a **split** hero — photograph beside the
     // eyebrow, serif headline and one CTA — then "shop by occasion" as overlay
     // tiles, then a short edit of products with no card chrome, closing on the

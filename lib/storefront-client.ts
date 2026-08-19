@@ -66,7 +66,7 @@ export interface StoreLogoStyle {
   radius?: number;
 }
 
-/** Owner layout for the homepage collections row (Customize → Collections). */
+/** Owner layout for homepage category rows (Customize → Home page). */
 export interface StoreHomeCollections {
   /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
   layout?: "strip" | "grid";

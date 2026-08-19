@@ -145,6 +145,11 @@ export function StoreHome({
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
     store: padStoreForPreview(store, previewSamples),
+    // Classic's chips have always scrolled; photo/disc themes have always used
+    // a grid. Preserve that look until the merchant explicitly chooses a mode.
+    categoryRowDefault: sections.some((section) => section.type === "category-tiles")
+      ? "grid" as const
+      : "strip" as const,
   };
 
   return (
