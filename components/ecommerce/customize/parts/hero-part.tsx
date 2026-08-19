@@ -153,7 +153,7 @@ export function HeroPart({
               {slides.map((s, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2.5 rounded-lg border bg-background p-2"
+                  className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border bg-background p-2"
                 >
                   <SlideThumb slide={s} className="h-8 w-[3.25rem]" />
                   <span className="min-w-0 flex-1">
@@ -166,12 +166,12 @@ export function HeroPart({
                         .join(" · ")}
                     </span>
                   </span>
-                  <span className="flex flex-none items-center text-muted-foreground">
+                  <span className="grid flex-none grid-cols-3 items-center text-muted-foreground">
                     <button
                       type="button"
                       disabled={i === 0}
                       onClick={() => move(i, -1)}
-                      className="rounded p-1 hover:text-foreground disabled:opacity-30"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground disabled:opacity-30"
                       aria-label={`Move ${s.title.trim() || "slide"} up`}
                     >
                       <ArrowUp className="h-3.5 w-3.5" />
@@ -180,7 +180,7 @@ export function HeroPart({
                       type="button"
                       disabled={i === slides.length - 1}
                       onClick={() => move(i, 1)}
-                      className="rounded p-1 hover:text-foreground disabled:opacity-30"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground disabled:opacity-30"
                       aria-label={`Move ${s.title.trim() || "slide"} down`}
                     >
                       <ArrowDown className="h-3.5 w-3.5" />
@@ -188,7 +188,7 @@ export function HeroPart({
                     <button
                       type="button"
                       onClick={() => onEditSlide(i)}
-                      className="rounded p-1 hover:text-foreground"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground"
                       aria-label={`Edit ${s.title.trim() || "slide"}`}
                     >
                       <Pencil className="h-3.5 w-3.5" />
