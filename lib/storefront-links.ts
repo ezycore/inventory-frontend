@@ -18,6 +18,34 @@ export function storeHref(base: string, path = ""): string {
   return `${base}${suffix}`;
 }
 
+/** Normalize an owner-entered link into a route relative to the active store. */
+export function normalizeStoreLink(
+  input?: string,
+  fallback = "/products",
+): string {
+  const raw = input?.trim();
+  if (!raw) return fallback;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^[a-z][a-z\d+.-]*:/i.test(raw) || raw.startsWith("//")) return fallback;
+
+  let path = raw.startsWith("/") ? raw : `/${raw}`;
+  if (path === "/shop") return "/";
+  if (path.startsWith("/shop/") || path.startsWith("/shop?") || path.startsWith("/shop#")) {
+    path = path.slice(5) || "/";
+  }
+  return path;
+}
+
+/** Resolve the normalized link for a tenant base or a root custom domain. */
+export function storeLinkHref(
+  base: string,
+  input?: string,
+  fallback = "/products",
+): string {
+  const target = normalizeStoreLink(input, fallback);
+  return /^https?:\/\//i.test(target) ? target : storeHref(base, target);
+}
+
 /**
  * Link to a collection page.
  *

@@ -2,17 +2,25 @@
 
 import type { CSSProperties } from "react";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
+import {
+  normalizeSocialProfile,
+  SOCIAL_PROFILES,
+  type SocialProfileKey,
+} from "@/lib/storefront-social";
 
 interface SocialConfig {
   facebook?: string;
   instagram?: string;
   whatsapp?: string;
+  profiles?: { platform: string; url: string }[];
 }
 
-const ORDER: { key: keyof SocialConfig; icon: IconName; label: string }[] = [
-  { key: "facebook", icon: "facebook", label: "Facebook" },
-  { key: "instagram", icon: "instagram", label: "Instagram" },
-  { key: "whatsapp", icon: "whatsapp", label: "WhatsApp" },
+const ORDER: { key: SocialProfileKey; icon: IconName; label: string }[] = [
+  ...SOCIAL_PROFILES.map((profile) => ({
+    key: profile.key,
+    icon: profile.icon,
+    label: profile.label,
+  })),
 ];
 
 /**
@@ -40,12 +48,13 @@ const PHONE_ONLY = /^[\d\s+()-]+$/;
  * may or may not carry its scheme. Exported for its test — the failure mode here is a dead link on
  * every storefront, which nothing else would catch.
  */
-export function hrefFor(key: keyof SocialConfig, value: string): string {
+export function hrefFor(key: SocialProfileKey | "whatsapp", value: string): string {
   // Phone-shaped input is the only case that isn't already a URL. Testing the shape (rather than
   // "no scheme ⇒ phone") is what keeps `wa.me/8801…` from being stripped to its digits.
   if (key === "whatsapp" && PHONE_ONLY.test(value)) {
     return `https://wa.me/${value.replace(/\D/g, "")}`;
   }
+  if (key !== "whatsapp") return normalizeSocialProfile(key as SocialProfileKey, value);
   return absoluteUrl(value);
 }
 
@@ -62,7 +71,7 @@ const btn: CSSProperties = {
 
 /**
  * Shared storefront social-links row — the single source for rendering a store's
- * Facebook / Instagram / WhatsApp as brand-icon buttons. Used across all footer
+ * configured profiles as brand-icon buttons. Used across all footer
  * variants; renders nothing when no links are configured. Colors stay on
  * `--muted`/`--text` (never `--primary`, which can be near-black on dark cards).
  */
@@ -77,7 +86,32 @@ export function SocialLinks({
   size?: number;
   style?: CSSProperties;
 }) {
-  const links = ORDER.filter((s) => social?.[s.key]?.trim());
+  const profileMap = new Map(
+    (social?.profiles ?? []).map(({ platform, url }) => [platform, url.trim()]),
+  );
+  if (social?.facebook?.trim() && !profileMap.has("facebook")) {
+    profileMap.set("facebook", social.facebook.trim());
+  }
+  if (social?.instagram?.trim() && !profileMap.has("instagram")) {
+    profileMap.set("instagram", social.instagram.trim());
+  }
+  const links: {
+    key: SocialProfileKey | "whatsapp";
+    icon: IconName;
+    label: string;
+    value: string;
+  }[] = ORDER.flatMap((profile) => {
+    const value = profileMap.get(profile.key);
+    return value ? [{ ...profile, value }] : [];
+  });
+  if (social?.whatsapp?.trim()) {
+    links.push({
+      key: "whatsapp",
+      icon: "whatsapp",
+      label: "WhatsApp",
+      value: social.whatsapp.trim(),
+    });
+  }
   if (links.length === 0) return null;
 
   return (
@@ -90,7 +124,7 @@ export function SocialLinks({
       {links.map((s) => (
         <a
           key={s.key}
-          href={hrefFor(s.key, social![s.key]!.trim())}
+          href={hrefFor(s.key, s.value)}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={s.label}

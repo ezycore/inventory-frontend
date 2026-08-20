@@ -326,6 +326,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       "deal-strip",
       "featured-grid",
       "product-rail",
+      "trust-band",
     ],
     templates: {
       home: "classic",

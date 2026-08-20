@@ -182,7 +182,11 @@ export function PartsRail({
             ) : part.id === "design" ? (
               <DesignPart draft={draft} patch={patch} />
             ) : part.id === "announcement" ? (
-              <AnnouncementPart draft={draft} patchAnnouncement={api.patchAnnouncement} />
+              <AnnouncementPart
+                settings={settings}
+                draft={draft}
+                patchAnnouncement={api.patchAnnouncement}
+              />
             ) : part.id === "header" ? (
               <HeaderPart
                 draft={draft}

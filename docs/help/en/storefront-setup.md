@@ -30,11 +30,23 @@ Turn on **Ecommerce Storefront** in Feature Settings to begin. See
 This is where you set how your store trades. Work through it before you tell anyone the address:
 
 - **Store identity** — name, contact details and the branding shoppers see.
+- **Social profiles** — Facebook, Instagram, YouTube, Threads, TikTok, X and LinkedIn links shown
+  by every footer. Paste a secure profile URL or a simple handle. WhatsApp stays separate because
+  its number also supplies the floating contact button.
 - **Delivery** — the areas you deliver to and what you charge for each. Get this wrong and you either
   lose money on every distant order or lose the order at checkout.
 - **Payment** — how shoppers pay. Cash on delivery is the standard option; card and mobile payment
   depend on what your plan and gateway support.
 - **Order rules** — minimum order value and anything else that governs what shoppers may place.
+
+Under Shipping, enter separate inside- and outside-Dhaka delivery windows. These are shown on the
+product page, cart, and after checkout identifies the shopper's zone. Leave them blank when you
+cannot promise a window; the shop then tells shoppers that delivery options appear at checkout.
+
+In Customize, the announcement bar can use the current free-delivery threshold instead of typed
+copy. If zone pricing is enabled, its threshold is the one advertised. Store links are relative to
+the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
+saved, and full `https://` links remain external.
 
 ## Your store dashboard
 

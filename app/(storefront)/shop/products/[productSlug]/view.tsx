@@ -17,6 +17,7 @@ import { useProductDetail } from "@/components/storefront/product-detail/use-pro
 import { ProductBuyPanel } from "@/components/storefront/product-detail/product-buy-panel";
 import { ProductStickyBar } from "@/components/storefront/product-detail/product-sticky-bar";
 import type { CatalogProduct } from "@/lib/storefront-client";
+import { deliveryEstimateSummary } from "@/lib/storefront-delivery";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -40,6 +41,11 @@ export default function ProductDetailPage({
 }) {
   const d = useProductDetail(initialProduct);
   const { t, base, product } = d;
+  const deliveryEstimate = deliveryEstimateSummary(d.store, {
+    insideDhaka: t.insideDhaka,
+    outsideDhaka: t.outsideDhaka,
+    fallback: t.deliveryOptionsCheckout,
+  });
 
   if (d.isLoading) {
     return (
@@ -151,7 +157,7 @@ export default function ProductDetailPage({
                 color: "var(--muted)",
               }}
             >
-              <Icon name="truck" size={18} /> {t.deliveryEst}
+              <Icon name="truck" size={18} /> {deliveryEstimate}
             </div>
           </div>
         </div>

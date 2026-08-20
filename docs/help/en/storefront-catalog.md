@@ -253,6 +253,8 @@ Settings → General and your chat buttons from the **WhatsApp button** part, so
 copy of your number to keep correct.
 
 Optional footer wording can stay blank; the store never invents a promise on your behalf.
+Your promises list can contain up to four items. Add, remove or reorder them in **Customize →
+Footer**; the same saved list feeds promise bands and trust-badge footers without inventing defaults.
 
 One setting changes how shoppers move through a long list: under **Collections**, the way more
 products load. Numbered pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load

@@ -344,6 +344,10 @@ export interface Dict {
   zoomHint: string;
   relatedTitle: string;
   deliveryEst: string;
+  /** Neutral fallback when the merchant has not configured a delivery window. */
+  deliveryOptionsCheckout: string;
+  /** Shipping-backed announcement; `{amount}` is the effective free threshold. */
+  freeShippingOver: string;
   reviewsWord: string;
   skuLabel: string;
   variableTitle: string;
@@ -733,7 +737,9 @@ const en: Dict = {
   specifications: "Specifications",
   zoomHint: "Hover to zoom",
   relatedTitle: "You may also like",
-  deliveryEst: "Delivery in 1–2 days inside Dhaka",
+  deliveryEst: "Delivery options shown at checkout",
+  deliveryOptionsCheckout: "Delivery options shown at checkout",
+  freeShippingOver: "Free delivery on orders over {amount}",
   reviewsWord: "reviews",
   skuLabel: "SKU",
   variableTitle: "Available in-store only",
@@ -1118,7 +1124,9 @@ const bn: Dict = {
   specifications: "স্পেসিফিকেশন",
   zoomHint: "জুম করতে হোভার করুন",
   relatedTitle: "আরও পছন্দ হতে পারে",
-  deliveryEst: "ঢাকার ভিতরে ১–২ দিনে ডেলিভারি",
+  deliveryEst: "চেকআউটে ডেলিভারির তথ্য দেখানো হবে",
+  deliveryOptionsCheckout: "চেকআউটে ডেলিভারির তথ্য দেখানো হবে",
+  freeShippingOver: "{amount}-এর বেশি অর্ডারে ফ্রি ডেলিভারি",
   reviewsWord: "রিভিউ",
   skuLabel: "এসকেইউ",
   variableTitle: "শুধু দোকানে পাওয়া যায়",

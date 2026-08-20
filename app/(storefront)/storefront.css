@@ -99,6 +99,8 @@
    * home page, on desktop, and in every screenshot taken while building it.
    */
   --sf-buybar-h: 0px;
+  /* Signed-in owner controls; 0 for shoppers and Customize previews. */
+  --sf-ownerbar-h: 0px;
 
   /* ---- Corner radius (the `theme.design.radius` axis) ----
      Three steps, and three is the whole scale: `sm` for controls (inputs, chips,
@@ -772,6 +774,27 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   background: var(--surface);
 }
 
+/* Merchant promises share one icon/text column structure. Independent centered
+   rows zigzagged on phones whenever their labels had different lengths. */
+.sf-trust-list {
+  display: grid;
+  grid-template-columns: repeat(var(--trustcols), minmax(0, 1fr));
+  gap: var(--gap);
+}
+.sf-trust-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+}
+@media (max-width: 679px) {
+  .sf-trust-list {
+    grid-template-columns: minmax(0, 420px);
+    justify-content: center;
+  }
+}
+
 /* ---- Contact launcher (floating chat button) ---- */
 /*
  * Anchored off BOTH bottom-bar variables, so one rule serves phone and desktop
@@ -786,7 +809,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
  */
 .sf-contact {
   position: fixed;
-  bottom: calc(var(--sf-bottom-nav-h, 0px) + var(--sf-buybar-h, 0px) + 14px);
+  bottom: calc(
+    var(--sf-bottom-nav-h, 0px) + var(--sf-ownerbar-h, 0px) +
+      var(--sf-buybar-h, 0px) + 14px
+  );
   z-index: 45;
   display: flex;
   flex-direction: column;
@@ -900,6 +926,36 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
 }
 .sf-contact[data-pos="left"] .sf-contact-note {
   border-radius: 12px 12px 12px 3px;
+}
+@media (max-width: 679px) {
+  /* Automatic notes covered product CTAs on short phones. The launcher stays
+     available; a shopper must explicitly open it before any panel can grow. */
+  .sf-contact-note {
+    display: none;
+  }
+  .sf-owner-bar-inner {
+    flex-wrap: nowrap;
+    min-height: 48px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .sf-owner-name,
+  .sf-owner-admin-label {
+    display: none;
+  }
+  .sf-owner-bar-inner a {
+    min-height: 40px;
+  }
+  /* Touch browsers can keep :hover/:focus after a tap. Keep the resting single
+     channel launcher a true 56px circle; multi-channel expansion is explicit. */
+  .sf-contact-btn:not([data-open="1"]) > .sf-contact-label {
+    max-width: 0;
+    opacity: 0;
+    padding: 0;
+  }
+  .sf-contact-btn:hover {
+    transform: none;
+  }
 }
 @keyframes sfContactIn {
   from {

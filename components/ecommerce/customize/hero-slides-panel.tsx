@@ -16,6 +16,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
+import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 import { Label } from "@/ui/components/label";
 import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
@@ -300,6 +301,7 @@ export function HeroSlidesPanel({
                       placeholder="Mega sale coming on 12th December"
                       className="h-9"
                     />
+                    <StoreLinkHint value={s.link} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">

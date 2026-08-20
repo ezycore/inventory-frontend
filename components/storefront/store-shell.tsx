@@ -32,6 +32,8 @@ import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
+import { money } from "@/components/storefront/format";
+import { effectiveFreeShippingThreshold } from "@/lib/storefront-delivery";
 
 /**
  * Storefront chrome — header (admin-selectable variant) + breadcrumb + footer
@@ -168,7 +170,19 @@ export function StoreShell({
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.
-  const announcement = previewAnnouncement ?? store?.nav?.announcement;
+  const rawAnnouncement = previewAnnouncement ?? store?.nav?.announcement;
+  const threshold = effectiveFreeShippingThreshold(store);
+  const announcement = rawAnnouncement?.useShippingRule
+    ? threshold == null
+      ? undefined
+      : {
+          ...rawAnnouncement,
+          text: t.freeShippingOver.replace(
+            "{amount}",
+            money(threshold, store?.currency),
+          ),
+        }
+    : rawAnnouncement;
 
   const shell = isShell(previewShell)
     ? previewShell

@@ -13,7 +13,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref, storeLinkHref } from "@/lib/storefront-links";
 import { focalPosition } from "@/lib/storefront-focal";
 import { findSectionCategory, sectionTitle } from "@/lib/storefront-sections";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
@@ -195,7 +195,7 @@ export function HeroCtaLink({
   style: CSSProperties;
   children: ReactNode;
 }) {
-  const target = link?.trim() || "/products";
+  const target = storeLinkHref(base, link);
   if (/^https?:\/\//i.test(target)) {
     return (
       <a href={target} target="_blank" rel="noopener noreferrer" style={style}>
@@ -204,7 +204,7 @@ export function HeroCtaLink({
     );
   }
   return (
-    <Link href={storeHref(base, target)} style={style}>
+    <Link href={target} style={style}>
       {children}
     </Link>
   );

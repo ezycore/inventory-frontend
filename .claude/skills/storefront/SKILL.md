@@ -2788,3 +2788,8 @@ Check the `// coding-standard: maintained` marker before editing; one file = one
 (components ≲250 lines — extract to `components/storefront/...`); reuse before writing
 (shared inputs, tables, print engine, markdown, tax utils per CLAUDE.md); backend is authoritative,
 frontend numbers are previews; verify changes live (CDP) before calling them done.
+
+Owner-entered CTA links are store-relative and must go through `normalizeStoreLink`/`storeLinkHref`.
+Never persist or render the tenant-only `/shop` prefix as part of the owner route. Shipping marketing
+copy must derive from `effectiveFreeShippingThreshold`; delivery windows are merchant-authored and
+must fall back to neutral checkout guidance when absent.

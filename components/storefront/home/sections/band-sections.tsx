@@ -49,9 +49,9 @@ export function TrustBand({ store }: SectionProps) {
     // has set no accent, so a shop that never picks one is unchanged.
     <section style={{ background: "var(--accent-soft)" }}>
       <div style={{ ...wrap, padding: "clamp(13px,1.8vw,19px) var(--pad)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+        <div className="sf-trust-list">
           {badges.map((b, i) => (
-            <div key={b.text} style={{ display: "flex", alignItems: "center", gap: 13, justifyContent: "center" }}>
+            <div key={`${i}:${b.text}`} className="sf-trust-row">
               {/* The icon gets a solid disc so it survives the tint — an
                   `--accent` glyph on an `--accent-soft` ground is the one
                   pairing in the palette with almost no contrast. */}

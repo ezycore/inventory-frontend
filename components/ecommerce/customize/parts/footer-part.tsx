@@ -33,8 +33,6 @@ export function FooterPart({
   "draft" | "patch" | "patchTemplate" | "patchContentPages"
 >) {
   const layout = draft.templates.footer;
-  const setBadge = (i: number, p: Partial<(typeof draft.badges)[number]>) =>
-    patch({ badges: draft.badges.map((b, idx) => (idx === i ? { ...b, ...p } : b)) });
   const setNewsletter = (p: Partial<typeof draft.footerNewsletter>) =>
     patch({ footerNewsletter: { ...draft.footerNewsletter, ...p } });
 
@@ -79,14 +77,15 @@ export function FooterPart({
         </PartHint>
       </div>
 
-      {layout === "rich" ? (
-        <PartBlock
-          label="Trust badges"
-          hint="Pick an icon and write your own promise, or leave the text empty to keep the default wording."
-        >
-          <TrustBadgesField badges={draft.badges} setBadge={setBadge} />
-        </PartBlock>
-      ) : null}
+      <PartBlock
+        label="Store promises"
+        hint="Add up to four merchant-owned promises. They appear in promise sections and footer layouts that support them; blank rows are not published."
+      >
+        <TrustBadgesField
+          badges={draft.badges}
+          setBadges={(badges) => patch({ badges })}
+        />
+      </PartBlock>
 
       {layout === "contact" ? (
         <PartBlock
@@ -142,10 +141,9 @@ export function FooterPart({
         </PartBlock>
       ) : null}
 
-      {layout !== "rich" && layout !== "contact" && layout !== "newsletter" ? (
+      {layout !== "contact" && layout !== "newsletter" ? (
         <PartHint>
-          Trust badges, a contact block and an email sign-up each belong to their
-          own layout — switch to it above to edit them.
+          Contact and email sign-up blocks each belong to their own footer layout.
         </PartHint>
       ) : null}
     </>

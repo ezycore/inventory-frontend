@@ -162,7 +162,12 @@ export interface StorefrontStore {
    */
   socialImage?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };
-  social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  social?: {
+    facebook?: string;
+    instagram?: string;
+    whatsapp?: string;
+    profiles?: { platform: string; url: string }[];
+  };
   /**
    * Floating chat launcher. **Presence is enabled** — the backend omits the
    * whole block when the merchant has it off or no channel resolves to a usable
@@ -232,6 +237,8 @@ export interface StorefrontStore {
   };
   /** Dhaka inside/outside zone rates (override shippingRule when present). */
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number };
+  /** Merchant-authored delivery windows shown instead of a platform promise. */
+  deliveryEstimates?: { insideDhaka?: string; outsideDhaka?: string };
   /** In-store pickup option + the collection location (when enabled). */
   pickup?: {
     enabled: boolean;
@@ -394,6 +401,8 @@ export interface StoreFooterNewsletter {
 /** The single-line bar above the storefront header (admin Navigation tab). */
 export interface StoreAnnouncement {
   enabled?: boolean;
+  /** Use the effective shipping threshold instead of free-form message text. */
+  useShippingRule?: boolean;
   text?: string;
   link?: string;
   bgColor?: string;
@@ -973,8 +982,14 @@ export const storefrontApi = {
     sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
-  listBrands: (slug: string) => sfFetch<StoreBrand[]>(slug, "/brands"),
-  listTags: (slug: string) => sfFetch<StoreTag[]>(slug, "/tags"),
+  listBrands: (
+    slug: string,
+    params: Record<string, string | number | undefined> = {},
+  ) => sfFetch<StoreBrand[]>(slug, `/brands${buildQuery(params)}`),
+  listTags: (
+    slug: string,
+    params: Record<string, string | number | undefined> = {},
+  ) => sfFetch<StoreTag[]>(slug, `/tags${buildQuery(params)}`),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   listPages: (slug: string) =>
