@@ -51,7 +51,13 @@ function readLocale(locale) {
     .readdirSync(dir)
     .filter((file) => file.endsWith(".md"))
     .map((file) => {
-      const parsed = parseFrontmatter(fs.readFileSync(path.join(dir, file), "utf8"));
+      // Keep the committed module byte-stable across Windows and Unix. Without
+      // normalizing here, CRLF source files rewrite every generated body string
+      // even when one help paragraph changed.
+      const source = fs
+        .readFileSync(path.join(dir, file), "utf8")
+        .replace(/\r\n/g, "\n");
+      const parsed = parseFrontmatter(source);
       if (!parsed) {
         throw new Error(`docs/help/${locale}/${file}: missing frontmatter — run pnpm help:verify`);
       }

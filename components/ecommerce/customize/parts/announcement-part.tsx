@@ -12,6 +12,10 @@ import type {
   AnnouncementDraft,
   CustomizeDraftApi,
 } from "@/components/ecommerce/customize/use-customize-draft";
+import type { StorefrontSettings } from "@/types";
+import { effectiveFreeShippingThreshold } from "@/lib/storefront-delivery";
+import { money } from "@/components/storefront/format";
+import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 
 const SIZES: { value: AnnouncementDraft["size"]; label: string }[] = [
   { value: "sm", label: "Small" },
@@ -30,10 +34,14 @@ const FITS: { value: AnnouncementDraft["bgFit"]; label: string; hint: string }[]
  * actually in use.
  */
 export function AnnouncementPart({
+  settings,
   draft,
   patchAnnouncement,
-}: Pick<CustomizeDraftApi, "draft" | "patchAnnouncement">) {
+}: Pick<CustomizeDraftApi, "draft" | "patchAnnouncement"> & {
+  settings: StorefrontSettings;
+}) {
   const value = draft.announcement;
+  const threshold = effectiveFreeShippingThreshold(settings);
 
   if (!value.enabled) {
     return (
@@ -46,14 +54,37 @@ export function AnnouncementPart({
 
   return (
     <div className="grid gap-3">
+      <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
+        <span>
+          <span className="block text-sm font-medium">Use shipping offer</span>
+          <span className="block text-xs text-muted-foreground">
+            Keep this message synced with the free-delivery threshold.
+          </span>
+        </span>
+        <Switch
+          checked={value.useShippingRule}
+          onCheckedChange={(useShippingRule) =>
+            patchAnnouncement({ useShippingRule })
+          }
+        />
+      </label>
+
       <div className="space-y-1.5">
         <Label>Message</Label>
         <Input
           value={value.text}
           onChange={(e) => patchAnnouncement({ text: e.target.value })}
           maxLength={200}
+          disabled={value.useShippingRule}
           placeholder="Free delivery on orders over ৳2000"
         />
+        {value.useShippingRule ? (
+          <PartHint>
+            {threshold == null
+              ? "Set a free-delivery threshold under Store Settings → Shipping before publishing this bar."
+              : `Storefront message: Free delivery on orders over ${money(threshold, settings.currency)}`}
+          </PartHint>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -65,6 +96,7 @@ export function AnnouncementPart({
             maxLength={8}
             placeholder="🚚"
           />
+          <StoreLinkHint value={value.link} />
         </div>
         <div className="space-y-1.5">
           <Label>Link (optional)</Label>

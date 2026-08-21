@@ -54,11 +54,11 @@ different set of blocks in a different order, a different kind of product card:
 - **Classic** — the shop exactly as it comes: a clear grid, a simple hero, nothing loud. It is
   listed first because it is also how you **start over** — applying it puts every look setting back
   the way it shipped, whatever you have tried since.
-- **Fresh Market** — a big search box across a white top bar with your delivery promise beside it,
-  then your two offer banners, then a wall of department tiles. For grocery, food and daily needs.
+- **Fresh Market** — a big search box across a white top bar, then a wall of department tiles and
+  roomy product rows. For grocery, food and daily needs.
 - **Meridian Care** — your categories stay in a column down the left of **every** page, so a shopper
-  never has to go back to find them. One search box in the header, your promises as three cards, then
-  a tight grid of products on a soft grey-blue background. Built for shops with a long list where
+  never has to go back to find them. One search box in the header, then a tight grid of products on
+  a soft grey-blue background. Built for shops with a long list where
   people arrive knowing the name of what they want. For pharmacy, health and personal care.
 - **Muslin** — a photograph beside your headline and one button, then your departments with their
   names over the pictures, then a short edit of products with no boxes around them. For clothing,
@@ -150,6 +150,17 @@ Your homepage is a list of blocks, top to bottom, and **Sections** is where you 
 up or down, remove one, or add one from the list underneath — the preview follows every change
 before you save.
 
+**Category chips** and **Category photo tiles** are two ways to place your categories on the home
+page. When either one is in the section list, **Collections row** controls whether that visible row
+is a scrolling strip or a grid, how many categories sit across a desktop row, and its alignment.
+Phone grids always use two columns so the names remain readable. If you use Category photo tiles,
+the separate **Category tiles** control chooses whether names sit below photos, over photos, or under
+round letter icons. A layout such as Meridian Care that puts categories in a permanent page sidebar
+shows an explanation here instead of controls that cannot affect the page.
+
+Applying a ready-made theme also restores that theme's starting row: Classic uses a scrolling strip,
+while Fresh Market and Muslin use their wider adaptive grid. Your next row edit can override it.
+
 **Give a collection its own row.** Press **Add a collection row**, pick the collection, and it
 appears on your home page with its own heading. Add as many as you want — "Skin care" above
 "Devices" is two rows pointed at two collections.
@@ -228,8 +239,7 @@ to put in it:
   group or four.
 - **Centered** — one centred stack. Best when you have only a few links; it is the tidiest way to
   look finished on your first week.
-- **Trust badges** — Columns, with your three promises in a band above it. Write your own, or leave
-  a badge empty to keep the standard wording.
+- **Trust badges** — Columns, with the promises you wrote in a band above it. Empty badges stay hidden.
 - **Contact first** — your phone number at full size with a WhatsApp button beside it. Choose this if
   people phone you to order, which in Bangladesh many still do. If you have not published a number or
   a WhatsApp button, this quietly falls back to Columns rather than showing an empty box.
@@ -242,8 +252,9 @@ whatever you need there; leave it empty and it shows your currency. Your phone c
 Settings → General and your chat buttons from the **WhatsApp button** part, so there is only ever one
 copy of your number to keep correct.
 
-Anything you leave blank falls back to standard wording in both English and Bangla, so a footer you
-never touch still reads properly.
+Optional footer wording can stay blank; the store never invents a promise on your behalf.
+Your promises list can contain up to four items. Add, remove or reorder them in **Customize →
+Footer**; the same saved list feeds promise bands and trust-badge footers without inventing defaults.
 
 One setting changes how shoppers move through a long list: under **Collections**, the way more
 products load. Numbered pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load

@@ -101,6 +101,7 @@ export function useCatalogFacets({
   const categoryId = categoryPath ? "" : (sp.get("categoryId") ?? "");
   const subcategoryId = categoryPath ? "" : (sp.get("subcategoryId") ?? "");
   const brandId = sp.get("brandId") ?? "";
+  const q = sp.get("q") ?? "";
   const tags = sp.get("tags") ?? "";
   const minPrice = sp.get("minPrice") ?? "";
   const maxPrice = sp.get("maxPrice") ?? "";
@@ -110,8 +111,19 @@ export function useCatalogFacets({
 
   const { data: store } = useStore(slug);
   const { data: categoryData } = useStoreCategories(slug);
-  const { data: brandData } = useStoreBrands(slug);
-  const { data: tagData } = useStoreTags(slug);
+  const facetScope = {
+    q,
+    categoryPath,
+    categoryId,
+    subcategoryId,
+    brandId,
+    tags,
+    minPrice,
+    maxPrice,
+    inStock: inStock ? "1" : "",
+  };
+  const { data: brandData } = useStoreBrands(slug, facetScope);
+  const { data: tagData } = useStoreTags(slug, facetScope);
   const categories = categoryData ?? [];
   const brands = brandData ?? [];
   const tagList = tagData ?? [];

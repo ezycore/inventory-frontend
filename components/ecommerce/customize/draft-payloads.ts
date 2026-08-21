@@ -18,8 +18,10 @@ import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fi
 import type {
   CustomizeDraft,
   FooterContentPagesDraft,
+  PartId,
 } from "@/components/ecommerce/customize/use-customize-draft";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import { normalizeStoreLink } from "@/lib/storefront-links";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -47,7 +49,7 @@ const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
       title: s.title.trim(),
       subtitle: s.subtitle?.trim() || undefined,
       buttonLabel: s.buttonLabel?.trim() || undefined,
-      link: s.link?.trim() || undefined,
+      link: s.link?.trim() ? normalizeStoreLink(s.link) : undefined,
     }));
 
 const trimHeaderMenu = (items: StorefrontMenuItem[]): StorefrontMenuItem[] =>
@@ -101,9 +103,10 @@ const trimNewsletter = (n: CustomizeDraft["footerNewsletter"]) => {
 };
 
 const trimBadges = (badges: CustomizeDraft["badges"]) =>
-  // All three slots are kept (empty = the storefront's default copy) so their
-  // positions survive a reload.
-  badges.map((b) => ({ text: b.text.trim(), icon: b.icon }));
+  badges
+    .filter((badge) => badge.text.trim())
+    .slice(0, 4)
+    .map((badge) => ({ text: badge.text.trim(), icon: badge.icon }));
 
 /**
  * Listed collections only, display name winning, draft order preserved —
@@ -140,10 +143,8 @@ export const publicCollections = (collections: CustomizeDraft["collections"]) =>
 /**
  * The editor's flat contact draft, back into the stored `channels` shape.
  *
- * `channels` is sent EMPTY on purpose. The editor no longer offers a per-button
- * number — it lives at Settings → General — so there is no override to store,
- * and `resolvePublicContactButton` synthesises the WhatsApp row from
- * `social.whatsapp` for exactly this case.
+ * Legacy `channels` are preserved while the backend still supports them. The
+ * editor no longer creates overrides, but an explicit edit must not erase one.
  */
 function toContactButton(draft: CustomizeDraft): StorefrontContactButton {
   const c = draft.contactButton;
@@ -156,9 +157,10 @@ function toContactButton(draft: CustomizeDraft): StorefrontContactButton {
     // says "unset" instead of "an empty whitelist someone might later read
     // literally".
     showOn: c.showOn.length ? c.showOn : undefined,
-    channels: [],
+    channels: c.channels,
     hours: {
       enabled: c.hoursEnabled,
+      days: c.hoursDays.length ? c.hoursDays : undefined,
       from: c.hoursFrom,
       to: c.hoursTo,
       offlineNote: c.offlineNote.trim() || undefined,
@@ -217,8 +219,9 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
     footerContentPages: trimContentPages(draft.footerContentPages),
     announcement: {
       enabled: a.enabled,
+      useShippingRule: a.useShippingRule,
       text: a.text.trim() || undefined,
-      link: a.link.trim() || undefined,
+      link: a.link.trim() ? normalizeStoreLink(a.link) : undefined,
       bgColor: a.bgColor,
       textColor: a.textColor.trim() || undefined,
       icon: a.icon.trim() || undefined,
@@ -336,6 +339,56 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
     nav: toNav(draft),
     contactButton: toContactButton(draft),
   };
+}
+
+const TEMPLATE_PARTS = new Set<PartId>([
+  "header",
+  "hero",
+  "home",
+  "cards",
+  "collections",
+  "product",
+  "footer",
+  "account",
+  "shell",
+  "cart",
+  "content",
+  "checkout",
+]);
+
+/**
+ * Convert dirty visual parts into the smallest safe settings PATCH. Selected
+ * nested blocks remain complete because the backend replaces them wholesale.
+ */
+export function toSettingsPatch(
+  draft: CustomizeDraft,
+  dirtyParts: readonly PartId[],
+): UpdateStorefrontSettingsDto {
+  const full = toSettingsPayload(draft);
+  const dirty = new Set(dirtyParts);
+  const patch: UpdateStorefrontSettingsDto = {};
+  const take = <K extends keyof UpdateStorefrontSettingsDto>(key: K) => {
+    (patch as Record<keyof UpdateStorefrontSettingsDto, unknown>)[key] = full[key];
+  };
+
+  if (["brand", "design", "home"].some((part) => dirty.has(part as PartId))) {
+    take("theme");
+  }
+  if (dirty.has("home")) take("sectionConfig");
+  if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
+  if (["announcement", "header", "footer"].some((part) => dirty.has(part as PartId))) {
+    take("nav");
+  }
+  if (dirty.has("hero")) {
+    take("heroBanner");
+    take("heroSlides");
+  }
+  if (dirty.has("footer")) {
+    take("copy");
+    take("trustBadges");
+  }
+  if (dirty.has("contact")) take("contactButton");
+  return patch;
 }
 
 /** The `ezycore-preview` message body — the keys the storefront's preview store reads. */

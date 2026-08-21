@@ -46,8 +46,13 @@ import {
  * the desktop reading order, which the phone re-points with `order`.
  */
 export function HeroCard(props: SectionProps) {
-  const { base, t, banner, heroSlides, heroBanner: hb } = props;
+  const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
   if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
+  const badge = hb?.badge || campaignBadge(props);
+  const promises = (store.trustBadges ?? []).flatMap((item) => {
+    const label = item.text?.trim();
+    return label ? [label] : [];
+  });
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
       <div className="sf-herocard">
@@ -58,12 +63,9 @@ export function HeroCard(props: SectionProps) {
               colour. Painting both in `--primary` was the loudest reason a shop
               read as one hue rather than a palette. Falls back to the brand pair
               when the merchant has set no accent, so nothing changes for them. */}
-          <span className="sf-herocard-badge">
-            {/* Owner copy wins; else the live campaign; else template copy. */}
-            {hb?.badge || campaignBadge(props) || t.eidBadge}
-          </span>
-          <h1 className="sf-herocard-title">{hb?.title || t.heroAt}</h1>
-          <p className="sf-herocard-sub">{hb?.subtitle || t.heroAs}</p>
+          {badge ? <span className="sf-herocard-badge">{badge}</span> : null}
+          <h1 className="sf-herocard-title">{hb?.title || store.name}</h1>
+          {hb?.subtitle ? <p className="sf-herocard-sub">{hb.subtitle}</p> : null}
           {heroBtns(base, t, t.shopNow, hb)}
         </div>
         {/* Only when there IS one. The striped `Placeholder` exists so missing
@@ -93,20 +95,20 @@ export function HeroCard(props: SectionProps) {
             />
           </div>
         )}
-        <div className="sf-herocard-trust">
-          {[t.genuine, t.fastDelivery, t.codBadge].map((label) => (
+        {promises.length ? <div className="sf-herocard-trust">
+          {promises.map((label) => (
             <span key={label}>
               <Icon name="check" size={15} /> {label}
             </span>
           ))}
-        </div>
+        </div> : null}
       </div>
     </div>
   );
 }
 
 /** Hero Split — copy panel beside a full-height lifestyle shot. */
-export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: SectionProps) {
+export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
   if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
@@ -122,17 +124,16 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
         }}
       >
         <div style={{ padding: "clamp(26px,4vw,52px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <span style={{ fontSize: 11.5, color: "var(--primary)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
-            {/* The owner's banner "badge" renders as this section's kicker. */}
-            {hb?.badge || t.weeklyEdit}
-          </span>
+          {hb?.badge ? <span style={{ fontSize: 11.5, color: "var(--primary)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
+            {hb.badge}
+          </span> : null}
           <h1 style={{ fontSize: "var(--h1)", lineHeight: 1.06, fontWeight: 700, margin: "12px 0 16px", letterSpacing: "-0.03em", whiteSpace: "pre-line" }}>
-            {hb?.title || t.heroBt}
+            {hb?.title || store.name}
           </h1>
-          <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 24px", maxWidth: 400 }}>
-            {hb?.subtitle || t.heroBs}
-          </p>
-          {heroBtns(base, t, t.shopWeekly, hb)}
+          {hb?.subtitle ? <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 24px", maxWidth: 400 }}>
+            {hb.subtitle}
+          </p> : null}
+          {heroBtns(base, t, t.shopNow, hb)}
         </div>
         {banner && (
           <Media
@@ -166,8 +167,9 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb }: Secti
  * all. Choose it whenever the page's own colour is meant to be seen.
  */
 export function HeroOpen(props: SectionProps) {
-  const { base, t, banner, heroSlides, heroBanner: hb } = props;
+  const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
   if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
+  const badge = hb?.badge || campaignBadge(props);
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
       <div
@@ -182,7 +184,7 @@ export function HeroOpen(props: SectionProps) {
         <div>
           {/* The accent, like every other informational chip — see the note on
               `HeroCard`'s badge. */}
-          <span
+          {badge ? <span
             style={{
               display: "inline-block",
               background: "var(--accent-soft)",
@@ -196,8 +198,8 @@ export function HeroOpen(props: SectionProps) {
               marginBottom: 18,
             }}
           >
-            {hb?.badge || campaignBadge(props) || t.eidBadge}
-          </span>
+            {badge}
+          </span> : null}
           <h1
             style={{
               fontSize: "var(--h1m)",
@@ -208,9 +210,9 @@ export function HeroOpen(props: SectionProps) {
               whiteSpace: "pre-line",
             }}
           >
-            {hb?.title || t.heroBt}
+            {hb?.title || store.name}
           </h1>
-          <p
+          {hb?.subtitle ? <p
             style={{
               fontSize: 17,
               color: "var(--muted)",
@@ -219,8 +221,8 @@ export function HeroOpen(props: SectionProps) {
               maxWidth: "46ch",
             }}
           >
-            {hb?.subtitle || t.heroBs}
-          </p>
+            {hb.subtitle}
+          </p> : null}
           {heroBtns(base, t, t.shopNow, hb)}
         </div>
         {/* A tinted panel rather than a bare photo: the picture needs an edge to
@@ -254,18 +256,12 @@ export function HeroOpen(props: SectionProps) {
 }
 
 /** Minimal — centred manifesto, no image at all. */
-export function HeroManifesto({ base, t }: SectionProps) {
+export function HeroManifesto({ base, t, store }: SectionProps) {
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(48px,9vw,110px) var(--pad) clamp(36px,6vw,64px)", textAlign: "center" }}>
-      <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500 }}>
-        {t.minimalKicker}
-      </span>
       <h1 style={{ fontSize: "var(--h1m)", lineHeight: 1.05, fontWeight: 700, margin: "18px 0 20px", letterSpacing: "-0.035em", whiteSpace: "pre-line" }}>
-        {t.heroCt}
+        {store.name}
       </h1>
-      <p style={{ fontSize: 16, color: "var(--muted)", lineHeight: 1.6, margin: "0 auto 28px", maxWidth: 460 }}>
-        {t.heroCs}
-      </p>
       <Link
         href={storeHref(base, "/products")}
         style={{ display: "inline-block", background: "var(--text)", color: "var(--card)", padding: "14px 32px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 600 }}
@@ -285,7 +281,7 @@ export function HeroManifesto({ base, t }: SectionProps) {
  * slide's image as its backdrop — a carousel inside a full-bleed hero fights the
  * one thing this section is for, which is a single confident picture.
  */
-export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb }: SectionProps) {
+export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
   const slide = heroSlides?.[0];
   const image = slide?.image?.url || slide?.image?.mediumUrl || banner;
   return (
@@ -318,9 +314,9 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb }: S
         }}
       />
       <div style={{ ...wrap, position: "relative", padding: "clamp(28px,6vw,64px) var(--pad)" }}>
-        <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
-          {hb?.badge || slide?.badge || t.weeklyEdit}
-        </span>
+        {hb?.badge || slide?.badge ? <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+          {hb?.badge || slide?.badge}
+        </span> : null}
         <h1
           style={{
             fontSize: "var(--h1m)",
@@ -333,11 +329,11 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb }: S
             whiteSpace: "pre-line",
           }}
         >
-          {hb?.title || slide?.title || t.heroCt}
+          {hb?.title || slide?.title || store.name}
         </h1>
-        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
-          {hb?.subtitle || slide?.subtitle || t.heroCs}
-        </p>
+        {hb?.subtitle || slide?.subtitle ? <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
+          {hb?.subtitle || slide?.subtitle}
+        </p> : null}
         <Link
           href={storeHref(base, "/products")}
           style={{
@@ -370,7 +366,10 @@ export function SearchHero({ t, store, categories }: SectionProps) {
   // a reload), so a store that never wrote one still arrives with three empty
   // rows — and `promises.length` was truthy for it, printing three bare ticks
   // with no words beside them.
-  const promises = (store.trustBadges ?? []).filter((b) => b.text?.trim()).slice(0, 3);
+  const promises = (store.trustBadges ?? []).flatMap((badge) => {
+    const label = badge.text?.trim();
+    return label ? [label] : [];
+  }).slice(0, 3);
   return (
     <section style={{ background: "var(--primary-soft)", padding: "clamp(26px,5vw,52px) 0" }}>
       <div style={{ ...wrap, padding: "0 var(--pad)", textAlign: "center" }}>
@@ -380,16 +379,13 @@ export function SearchHero({ t, store, categories }: SectionProps) {
         <div style={{ maxWidth: 620, margin: "0 auto" }}>
           <HeaderSearchBar categories={categories} />
         </div>
-        <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
-          {(promises.length
-            ? promises.map((b) => b.text)
-            : [t.fastDelivery, t.genuine, t.codBadge]
-          ).map((label) => (
+        {promises.length ? <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
+          {promises.map((label) => (
             <span key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>
               <Icon name="check" size={15} /> {label}
             </span>
           ))}
-        </div>
+        </div> : null}
       </div>
     </section>
   );

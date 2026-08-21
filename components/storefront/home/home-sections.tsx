@@ -27,9 +27,7 @@ import {
 import {
   DealStrip,
   EditorialSplit,
-  PromoTiles,
   TrustBand,
-  TrustRow,
 } from "@/components/storefront/home/sections/band-sections";
 
 /**
@@ -82,9 +80,7 @@ export const SECTION_COMPONENTS = {
   "product-rail": ProductRail,
   "minimal-picks": MinimalPicks,
   // Full-width bands.
-  "trust-row": TrustRow,
   "trust-band": TrustBand,
-  "promo-tiles": PromoTiles,
   "deal-strip": DealStrip,
   "editorial-split": EditorialSplit,
 } satisfies Record<SectionId, FC<SectionProps>>;

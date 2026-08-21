@@ -6,7 +6,9 @@
  * `GET /facebook.com/rkrashu 404` in a dev server log.
  */
 import { describe, expect, it } from "vitest";
-import { hrefFor } from "./social-links";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { hrefFor, SocialLinks } from "./social-links";
 
 describe("hrefFor", () => {
   it("makes a schemeless URL absolute instead of relative", () => {
@@ -27,6 +29,14 @@ describe("hrefFor", () => {
     // genuinely have no TLS.
     expect(hrefFor("facebook", "http://facebook.com/rkrashu")).toBe(
       "http://facebook.com/rkrashu",
+    );
+  });
+
+  it("normalizes supported profile handles to their public destinations", () => {
+    expect(hrefFor("youtube", "@ezycore")).toBe("https://youtube.com/@ezycore");
+    expect(hrefFor("threads", "ezycore")).toBe("https://threads.net/@ezycore");
+    expect(hrefFor("linkedin", "company/ezycore")).toBe(
+      "https://linkedin.com/company/ezycore",
     );
   });
 
@@ -55,5 +65,31 @@ describe("hrefFor", () => {
     expect(hrefFor("whatsapp", "chat.whatsapp.com/AbC123")).toBe(
       "https://chat.whatsapp.com/AbC123",
     );
+  });
+});
+
+describe("SocialLinks", () => {
+  it("renders every configured profile safely and omits empty channels", () => {
+    const html = renderToStaticMarkup(
+      createElement(SocialLinks, {
+        social: {
+          profiles: [
+            { platform: "youtube", url: "https://youtube.com/@ezycore" },
+            { platform: "threads", url: "@ezycore" },
+            { platform: "tiktok", url: "" },
+            { platform: "x", url: "ezycore" },
+            { platform: "linkedin", url: "company/ezycore" },
+            { platform: "mastodon", url: "https://example.social/@ezycore" },
+          ],
+        },
+      }),
+    );
+    expect(html).toContain('aria-label="YouTube"');
+    expect(html).toContain('aria-label="Threads"');
+    expect(html).toContain('aria-label="X / Twitter"');
+    expect(html).toContain('aria-label="LinkedIn"');
+    expect(html).not.toContain('aria-label="TikTok"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
   });
 });

@@ -272,6 +272,8 @@ export interface StorefrontFooterContentPages {
 
 export interface StorefrontAnnouncement {
   enabled: boolean;
+  /** Use the effective shipping threshold instead of free-form message text. */
+  useShippingRule?: boolean;
   text?: string;
   link?: string;
   bgColor?: string;
@@ -375,7 +377,13 @@ export interface StorefrontSettings {
   storefrontLocationId?: string;
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };
-  social?: { facebook?: string; instagram?: string; whatsapp?: string };
+  social?: {
+    /** Legacy fields migrate into profiles on the next General settings save. */
+    facebook?: string;
+    instagram?: string;
+    whatsapp?: string;
+    profiles?: { platform: string; url: string }[];
+  };
   /** Floating chat launcher (Ecommerce → Customize → WhatsApp button). */
   contactButton?: StorefrontContactButton;
   seo?: { title?: string; description?: string };
@@ -384,6 +392,7 @@ export interface StorefrontSettings {
   /** Optional Dhaka inside/outside zone rates (override shippingRule when set).
    *  `null` on an update clears them (disables the zone toggle). */
   shippingZones?: { inside?: number; outside?: number; freeThreshold?: number } | null;
+  deliveryEstimates?: { insideDhaka?: string; outsideDhaka?: string };
   defaultDeliveryCost: number;
   /** In-store pickup option (collect from the fulfillment location). */
   pickup?: { enabled?: boolean; instructions?: string };

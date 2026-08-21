@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { Icon } from "@/components/storefront/sf-icons";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
@@ -199,43 +200,104 @@ export function HeaderSearchIcon({ categories }: { categories: CatalogCategory[]
 export function HeaderSearchMobile({ categories }: { categories: CatalogCategory[] }) {
   const { t } = useStorefrontUI();
   const [open, setOpen] = useState(false);
-  const c = useHeaderSearch(() => setOpen(false), open);
+  const historyMarker = `sf-search-${useId()}`;
+  const previousStateRef = useRef<unknown>(null);
+
+  const close = useCallback((reason: "dismiss" | "navigate") => {
+    const ownsHistoryEntry = window.history.state?.sfSearchSheet === historyMarker;
+    if (ownsHistoryEntry && reason === "dismiss") {
+      window.history.back();
+      return;
+    }
+    if (ownsHistoryEntry) {
+      // Remove the synthetic sheet entry before Next navigates. Replacing the
+      // destination then leaves one clean Back step to this storefront page.
+      window.history.replaceState(previousStateRef.current, "", window.location.href);
+      setOpen(false);
+      return "replace" as const;
+    }
+    setOpen(false);
+  }, [historyMarker]);
+
+  const openSheet = useCallback(() => {
+    if (window.history.state?.sfSearchSheet !== historyMarker) {
+      previousStateRef.current = window.history.state;
+      window.history.pushState(
+        { ...(window.history.state ?? {}), sfSearchSheet: historyMarker },
+        "",
+        window.location.href,
+      );
+    }
+    setOpen(true);
+  }, [historyMarker]);
+
+  const c = useHeaderSearch(close, open);
 
   // Lock the page behind the takeover while it's open.
   useBodyScrollLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPopState = () => setOpen(false);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close("dismiss");
+      if (event.key !== "Tab") return;
+      const dialog = document.querySelector<HTMLElement>(".sf-search-sheet");
+      const focusable = dialog?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), a[href]',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [close, open]);
+
+  const sheet = open ? (
+    <div
+      className="sf-search-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.searchPh}
+      style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--page)", display: "flex", flexDirection: "column", minHeight: "100dvh" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", background: "var(--card)", flex: "none" }}>
+        <SearchInput c={c} autoFocus size="sm" />
+        <button type="button" onClick={() => close("dismiss")} style={{ flex: "none", border: "none", background: "none", fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer", padding: "11px 6px" }}>
+          {t.cancelEdit}
+        </button>
+      </div>
+      <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <SearchPanel c={c} categories={categories} />
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--muted)", cursor: "pointer", fontFamily: "inherit" }}
+        onClick={openSheet}
+        style={{ width: "100%", minHeight: 40, display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--muted)", cursor: "pointer", fontFamily: "inherit" }}
       >
         <Icon name="search" size={18} />
         <span style={{ fontSize: 13 }}>{t.searchPh}</span>
       </button>
-      {open ? (
-        <div
-          className="sf-search-sheet"
-          role="dialog"
-          aria-modal="true"
-          style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--page)", display: "flex", flexDirection: "column" }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--border)", background: "var(--card)" }}>
-            <SearchInput c={c} autoFocus size="sm" />
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              style={{ flex: "none", border: "none", background: "none", fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: "var(--primary)", cursor: "pointer", padding: "11px 6px" }}
-            >
-              {t.cancelEdit}
-            </button>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
-            <SearchPanel c={c} categories={categories} />
-          </div>
-        </div>
-      ) : null}
+      {sheet && typeof document !== "undefined"
+        ? createPortal(sheet, document.querySelector<HTMLElement>(".sf-root") ?? document.body)
+        : null}
     </>
   );
 }

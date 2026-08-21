@@ -9,8 +9,15 @@ import {
 import { SectionsEditor } from "@/components/ecommerce/customize/sections-editor";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
-import { resolveHomeCollections } from "@/lib/storefront-templates";
+import {
+  resolveSections,
+} from "@/lib/storefront-templates";
+import {
+  HOME_PRESET_SECTIONS,
+  isSectionId,
+} from "@/lib/storefront-section-ids";
 import type { StorefrontHomeCollections } from "@/types";
+import { resolveCategoryRowLayout } from "@/components/storefront/home/category-row-layout";
 
 /**
  * The home page: which layout it starts from, the sections themselves, and the
@@ -38,6 +45,26 @@ export function HomePart({
   CustomizeDraftApi,
   "draft" | "patch" | "patchTemplate" | "patchHomeTemplate"
 >) {
+  const effectiveSections = resolveSections(
+    {
+      theme: { homepageSections: draft.homepageSections },
+      templates: { home: draft.templates.home },
+    },
+    { isSectionId, presets: HOME_PRESET_SECTIONS },
+  );
+  const hasCategoryChips = effectiveSections.some(
+    (section) => section.type === "category-chips",
+  );
+  const hasCategoryTiles = effectiveSections.some(
+    (section) => section.type === "category-tiles",
+  );
+  const hasCategoryRow = hasCategoryChips || hasCategoryTiles;
+  const categoryRowHint = hasCategoryChips && hasCategoryTiles
+    ? "Styles both Category chips and Category photo tiles above. Phones always show two per row in a grid."
+    : hasCategoryTiles
+      ? "Styles the Category photo tiles section above. Phones always show two per row in a grid."
+      : "Styles the Category chips section above. Phones always show two per row in a grid.";
+
   return (
     <>
       {/* The home page is two questions: which starting layout, and then the
@@ -74,30 +101,40 @@ export function HomePart({
         />
       </PartBlock>
 
-      <PartBlock
-        label="Collections row"
-        hint="Styles the Category chips section above. Phones always show two per row, whatever you pick here."
-      >
-        <HomeCollectionsField
-          value={draft.homeCollections}
-          onChange={(homeCollections) => patch({ homeCollections })}
-        />
-      </PartBlock>
+      {hasCategoryRow ? (
+        <PartBlock label="Collections row" hint={categoryRowHint}>
+          <HomeCollectionsField
+            value={draft.homeCollections}
+            defaultLayout={hasCategoryTiles ? "grid" : "strip"}
+            onChange={(homeCollections) => patch({ homeCollections })}
+          />
+        </PartBlock>
+      ) : (
+        <PartBlock label="Category navigation">
+          <p className="text-xs leading-snug text-muted-foreground">
+            {draft.templates.shell === "rail"
+              ? "Categories are already shown in the Page layout sidebar. Switch Page layout to Stacked, then add Category chips or Category photo tiles above to place a row on the home page."
+              : "This home page has no category row. Add Category chips or Category photo tiles in Sections above to configure one."}
+          </p>
+        </PartBlock>
+      )}
 
       {/* A different homepage row from the collections strip above, and only
           rendered when "Category photo tiles" is in the section list — which is
           why the hint names it rather than leaving an owner to wonder why
           nothing moved. */}
-      <PartBlock
-        label="Category tiles"
-        hint="Styles the Category photo tiles section above. Over the photo needs a picture on every category — without one it falls back to a letter tile."
-      >
-        <TemplatePicker
-          templateKey="categoryTiles"
-          value={draft.templates.categoryTiles}
-          onChange={(v) => patchTemplate("categoryTiles", v)}
-        />
-      </PartBlock>
+      {hasCategoryTiles ? (
+        <PartBlock
+          label="Category tiles"
+          hint="Styles the Category photo tiles section above. Over the photo needs a picture on every category — without one it falls back to a letter tile."
+        >
+          <TemplatePicker
+            templateKey="categoryTiles"
+            value={draft.templates.categoryTiles}
+            onChange={(v) => patchTemplate("categoryTiles", v)}
+          />
+        </PartBlock>
+      ) : null}
     </>
   );
 }
@@ -130,12 +167,17 @@ const COLUMN_CHOICES = [2, 3, 4, 5, 6];
  */
 function HomeCollectionsField({
   value,
+  defaultLayout,
   onChange,
 }: {
   value: StorefrontHomeCollections;
+  defaultLayout: "strip" | "grid";
   onChange: (next: StorefrontHomeCollections) => void;
 }) {
-  const { layout, columns, align } = resolveHomeCollections(value);
+  const { layout, columns, align } = resolveCategoryRowLayout(
+    value,
+    defaultLayout,
+  );
   const patch = (p: Partial<StorefrontHomeCollections>) =>
     onChange({ ...value, ...p });
 
@@ -171,7 +213,7 @@ function HomeCollectionsField({
       ) : null}
 
       <div className="space-y-1.5">
-        <PartLabel>{layout === "grid" ? "Align in column" : "Align row"}</PartLabel>
+        <PartLabel>Alignment</PartLabel>
         <div className="flex flex-wrap gap-2">
           {ALIGNMENTS.map((a) => (
             <OptionChip

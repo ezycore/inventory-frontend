@@ -8,6 +8,7 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import type { CartPageApi } from "@/components/storefront/cart/use-cart-page";
+import { deliveryEstimateSummary } from "@/lib/storefront-delivery";
 
 /** The pieces every cart layout is built from. Layouts arrange, never re-implement. */
 
@@ -102,7 +103,12 @@ export function CartLine({
 
 /** Subtotal / shipping / total, the estimate note, and the checkout button. */
 export function CartSummary({ api, cta = true }: { api: CartPageApi; cta?: boolean }) {
-  const { t, base, currency, subtotal, shipping, estimated, total, amount } = api;
+  const { t, base, store, currency, subtotal, shipping, estimated, total, amount } = api;
+  const deliveryEstimate = deliveryEstimateSummary(store, {
+    insideDhaka: t.insideDhaka,
+    outsideDhaka: t.outsideDhaka,
+    fallback: t.deliveryOptionsCheckout,
+  });
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
@@ -128,7 +134,7 @@ export function CartSummary({ api, cta = true }: { api: CartPageApi; cta?: boole
             {t.proceed}
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--muted)", marginTop: 14, justifyContent: "center" }}>
-            <Icon name="truck" size={18} /> {t.deliveryEst}
+            <Icon name="truck" size={18} /> {deliveryEstimate}
           </div>
         </>
       ) : null}
