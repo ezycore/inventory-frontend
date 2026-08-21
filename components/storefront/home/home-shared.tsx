@@ -13,7 +13,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref, storeLinkHref } from "@/lib/storefront-links";
 import { focalPosition } from "@/lib/storefront-focal";
 import { findSectionCategory, sectionTitle } from "@/lib/storefront-sections";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
@@ -50,6 +50,10 @@ export interface SectionProps {
   heroBanner?: StoreHeroBanner;
   /** The whole store — sections that read `trustBadges`, `social` or `name`. */
   store: StorefrontStore;
+  /** This section owns the page's single visible `<h1>` when true. */
+  primaryHeading?: boolean;
+  /** Historical fallback until the merchant explicitly chooses grid or strip. */
+  categoryRowDefault?: "strip" | "grid";
   /**
    * This INSTANCE's config, when the merchant has given it one. Absent means
    * "render your built-in source", which is what every section did before
@@ -191,7 +195,7 @@ export function HeroCtaLink({
   style: CSSProperties;
   children: ReactNode;
 }) {
-  const target = link?.trim() || "/products";
+  const target = storeLinkHref(base, link);
   if (/^https?:\/\//i.test(target)) {
     return (
       <a href={target} target="_blank" rel="noopener noreferrer" style={style}>
@@ -200,7 +204,7 @@ export function HeroCtaLink({
     );
   }
   return (
-    <Link href={storeHref(base, target)} style={style}>
+    <Link href={target} style={style}>
       {children}
     </Link>
   );
@@ -221,7 +225,7 @@ export function heroBtns(
           background: "var(--primary)",
           color: "var(--on-primary)",
           padding: "12px 24px",
-          borderRadius: 8,
+          borderRadius: "var(--radius-sm)",
           fontSize: 14,
           fontWeight: 600,
         }}
@@ -235,7 +239,7 @@ export function heroBtns(
           color: "var(--text)",
           border: "1px solid var(--border-strong)",
           padding: "12px 22px",
-          borderRadius: 8,
+          borderRadius: "var(--radius-sm)",
           fontSize: 14,
           fontWeight: 600,
         }}

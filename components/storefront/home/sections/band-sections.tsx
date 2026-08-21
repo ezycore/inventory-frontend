@@ -23,66 +23,10 @@ import {
 /** Icon fallbacks when a merchant left a trust badge's icon unset. */
 const TRUST_ICONS: IconName[] = ["truck", "shield", "tag"];
 
-/** Three bordered promise cards — the Hero Split row, unchanged. */
-export function TrustRow({ t }: SectionProps) {
-  const trust: { icon: IconName; t1: string; t2: string }[] = [
-    { icon: "truck", t1: t.trust1t, t2: t.trust1s },
-    { icon: "shield", t1: t.trust2t, t2: t.trust2s },
-    { icon: "tag", t1: t.trust3t, t2: t.trust3s },
-  ];
-  return (
-    <div style={{ ...wrap, padding: "0 var(--pad) 4px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))", gap: "var(--gap)" }}>
-        {trust.map((tr) => (
-          <div
-            key={tr.t1}
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              padding: "16px 18px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            {/* The ACCENT on a soft disc, not a bare `--primary` glyph. These
-                are reassurances, and reassurance is exactly what a second colour
-                is for — a shop whose promises are painted in the same hue as its
-                buy button has one colour doing two jobs. Falls back to the brand
-                pair for a merchant who has set no accent, so nothing changes for
-                them. */}
-            <div
-              style={{
-                flex: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 38,
-                height: 38,
-                borderRadius: "var(--radius-sm)",
-                background: "var(--accent-soft)",
-                color: "var(--accent)",
-              }}
-            >
-              <Icon name={tr.icon} size={20} />
-            </div>
-            <div>
-              <div style={{ fontSize: 13.5, fontWeight: 600 }}>{tr.t1}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>{tr.t2}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /**
  * Full-width tinted authenticity band, in the merchant's OWN words.
  *
- * Where `TrustRow` prints the platform's three built-in promises, this one reads
- * `store.trustBadges` — because "we are a licensed pharmacy" is a claim only the
+ * Reads `store.trustBadges` because "we are a licensed pharmacy" is a claim only the
  * merchant can make, and the sections that need it most (health, food) are
  * exactly the ones where a generic promise is worthless. Renders nothing when
  * they have written none.
@@ -105,9 +49,9 @@ export function TrustBand({ store }: SectionProps) {
     // has set no accent, so a shop that never picks one is unchanged.
     <section style={{ background: "var(--accent-soft)" }}>
       <div style={{ ...wrap, padding: "clamp(13px,1.8vw,19px) var(--pad)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--trustcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+        <div className="sf-trust-list">
           {badges.map((b, i) => (
-            <div key={b.text} style={{ display: "flex", alignItems: "center", gap: 13, justifyContent: "center" }}>
+            <div key={`${i}:${b.text}`} className="sf-trust-row">
               {/* The icon gets a solid disc so it survives the tint — an
                   `--accent` glyph on an `--accent-soft` ground is the one
                   pairing in the palette with almost no contrast. */}
@@ -134,83 +78,6 @@ export function TrustBand({ store }: SectionProps) {
         </div>
       </div>
     </section>
-  );
-}
-
-/**
- * Two promo tiles closing the page — a filled one and a tinted one.
- *
- * **Both grounds are built from `--primary`, which is the whole reason these
- * suit every theme without branching.** The filled tile is a gradient rather
- * than a flat fill: a large flat rectangle of brand colour is the single thing
- * that made the first grocery theme look unfinished, and a 135° ramp into a
- * darker mix of the same hue costs nothing and reads as designed. The second
- * tile is `--primary-soft` rather than `--card`, so the pair is one object in
- * two weights instead of "a coloured box and a bordered box".
- */
-export function PromoTiles({ base, t }: SectionProps) {
-  return (
-    <div style={{ ...wrap, padding: "8px var(--pad) 14px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "var(--promocols)", gap: "var(--gap)" }}>
-        <Link
-          href={storeHref(base, "/products")}
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: "var(--radius-lg)",
-            background:
-              "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 68%, #000))",
-            color: "var(--on-primary)",
-            padding: "clamp(18px,2.2vw,26px)",
-            minHeight: 136,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          {/* A soft light bloom off the top-right corner. Purely decorative and
-              deliberately `pointer-events: none` — it exists so the gradient has
-              somewhere to travel to, which is what stops a two-stop ramp reading
-              as a flat panel at small sizes. */}
-          <span
-            aria-hidden
-            style={{
-              position: "absolute",
-              top: -60,
-              right: -44,
-              width: 180,
-              height: 180,
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.13)",
-              pointerEvents: "none",
-            }}
-          />
-          <span style={{ position: "relative", fontSize: 12, opacity: 0.85, fontWeight: 600, letterSpacing: "0.04em" }}>{t.eidSale}</span>
-          <span style={{ position: "relative", fontSize: 20, fontWeight: 700, lineHeight: 1.15, margin: "5px 0 11px", maxWidth: 260 }}>{t.promo1}</span>
-          <span style={{ position: "relative", fontSize: 13, fontWeight: 600 }}>{t.shopNow} →</span>
-        </Link>
-        <Link
-          href={storeHref(base, "/products")}
-          style={{
-            borderRadius: "var(--radius-lg)",
-            background: "var(--primary-soft)",
-            // A hairline in the brand colour. Flat tint alone had no weight at
-            // all beside the gradient tile — it read as empty space with words
-            // in it rather than as the second half of a pair.
-            border: "1px solid color-mix(in srgb, var(--primary) 22%, transparent)",
-            padding: "clamp(18px,2.2vw,26px)",
-            minHeight: 136,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 600, letterSpacing: "0.04em" }}>{t.toolsClear}</span>
-          <span style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.15, margin: "5px 0 11px", maxWidth: 260, color: "var(--text)" }}>{t.promo2}</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>{t.shopNow} →</span>
-        </Link>
-      </div>
-    </div>
   );
 }
 
@@ -349,7 +216,9 @@ function DealCard({
  * as the heroes do.
  */
 export function EditorialSplit(props: SectionProps) {
-  const { base, t, banner, heroBanner: hb } = props;
+  const { base, t, banner, heroBanner: hb, store } = props;
+  const Heading = props.primaryHeading ? "h1" : "h2";
+  const badge = hb?.badge || campaignBadge(props);
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,56px) var(--pad)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "var(--splitcols)", gap: "clamp(20px,4vw,52px)", alignItems: "center" }}>
@@ -363,10 +232,10 @@ export function EditorialSplit(props: SectionProps) {
           {...bannerPhoto(hb)}
         />
         <div>
-          <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
-            {hb?.badge || campaignBadge(props) || t.weeklyEdit}
-          </span>
-          <h2
+          {badge ? <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+            {badge}
+          </span> : null}
+          <Heading
             style={{
               fontSize: "var(--h1)",
               lineHeight: 1.08,
@@ -376,12 +245,12 @@ export function EditorialSplit(props: SectionProps) {
               whiteSpace: "pre-line",
             }}
           >
-            {hb?.title || t.heroBt}
-          </h2>
-          <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 26px", maxWidth: 420 }}>
-            {hb?.subtitle || t.heroBs}
-          </p>
-          {heroBtns(base, t, t.shopWeekly, hb)}
+            {hb?.title || store.name}
+          </Heading>
+          {hb?.subtitle ? <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 26px", maxWidth: 420 }}>
+            {hb.subtitle}
+          </p> : null}
+          {heroBtns(base, t, t.shopNow, hb)}
         </div>
       </div>
     </div>

@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   publicCollections,
   toPreviewPayload,
+  toSettingsPatch,
   toSettingsPayload,
 } from "@/components/ecommerce/customize/draft-payloads";
 import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
+import { seedDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
  * The collections half of the preview payload.
@@ -126,6 +128,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   navHeader: [],
   announcement: {
     enabled: false,
+    useShippingRule: false,
     text: "",
     link: "",
     bgColor: "#2563eb",
@@ -145,7 +148,9 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     greeting: "",
     position: "right",
     showOn: [],
+    channels: undefined,
     hoursEnabled: false,
+    hoursDays: [],
     hoursFrom: "10:00",
     hoursTo: "20:00",
     offlineNote: "",
@@ -187,6 +192,103 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
 
   it("leaves appliedThemeId absent for a store that never applied one", () => {
     expect(toSettingsPayload(draft()).theme?.appliedThemeId).toBeUndefined();
+  });
+});
+
+describe("toSettingsPatch — unchanged Customize parts stay off the wire", () => {
+  it("sends only the complete theme block for a Design-only save", () => {
+    const value = draft({
+      contactButton: {
+        ...draft().contactButton,
+        channels: [
+          {
+            kind: "whatsapp",
+            value: "+8801700000126",
+            label: "Legacy override",
+            enabled: true,
+          },
+        ],
+        hoursDays: [1, 3, 5],
+      },
+    });
+    const patch = toSettingsPatch(value, ["design"]);
+    expect(Object.keys(patch)).toEqual(["theme"]);
+    expect(patch).not.toHaveProperty("contactButton");
+  });
+
+  it("round-trips supported hidden channels and editable working days", () => {
+    const value = draft({
+      contactButton: {
+        ...draft().contactButton,
+        channels: [
+          {
+            kind: "whatsapp",
+            value: "+8801700000126",
+            label: "Legacy override",
+            enabled: true,
+          },
+        ],
+        hoursDays: [1, 3, 5],
+      },
+    });
+    expect(toSettingsPatch(value, ["contact"]).contactButton).toMatchObject({
+      channels: value.contactButton.channels,
+      hours: { days: [1, 3, 5] },
+    });
+  });
+
+  it("keeps nav wholesale when only the announcement part changes", () => {
+    const value = draft({
+      navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
+      footerGroups: [{ title: "Help", links: [] }],
+    });
+    const patch = toSettingsPatch(value, ["announcement"]);
+    expect(Object.keys(patch)).toEqual(["nav"]);
+    expect(patch.nav?.header).toEqual(value.navHeader);
+    expect(patch.nav?.footer).toEqual(value.footerGroups);
+  });
+
+  it("persists collection layout and pagination template changes", () => {
+    const value = draft({
+      templates: {
+        collection: "grid-3",
+        pagination: "load-more",
+      },
+    });
+    const patch = toSettingsPatch(value, ["collections"]);
+
+    expect(Object.keys(patch)).toEqual(["templates"]);
+    expect(patch.templates).toEqual(value.templates);
+  });
+});
+
+describe("merchant promises", () => {
+  it("seeds and saves all four stored promises in order", () => {
+    const trustBadges = [
+      { text: "One", icon: "shield" },
+      { text: "Two", icon: "truck" },
+      { text: "Three", icon: "coins" },
+      { text: "Four", icon: "check" },
+    ];
+    const seeded = seedDraft({
+      published: true,
+      allowedPaymentMethods: ["cod"],
+      shippingRule: { mode: "none" },
+      defaultDeliveryCost: 0,
+      trustBadges,
+    });
+    expect(seeded.badges).toEqual(trustBadges);
+    expect(
+      toSettingsPatch({ ...seeded, collections: [] }, ["footer"]).trustBadges,
+    ).toEqual(trustBadges);
+  });
+
+  it("drops blank rows instead of inventing fallback claims", () => {
+    expect(
+      toSettingsPayload(
+        draft({ badges: [{ text: "  ", icon: "shield" }] }),
+      ).trustBadges,
+    ).toEqual([]);
   });
 });
 

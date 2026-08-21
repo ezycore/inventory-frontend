@@ -82,30 +82,27 @@ export function ColumnsFooter(props: FooterProps) {
 
 /**
  * **Trust bar** — the anchored body under a strip of the merchant's own
- * promises. The badges are `store.trustBadges` (Customize → Footer), each
- * falling back per-slot to a localized default so a merchant who filled in only
- * the first still gets three sensible ones.
+ * promises. The badges are `store.trustBadges` (Customize → Footer); an empty
+ * slot stays empty because shipping, authenticity and payment claims must never
+ * be invented by a visual template.
  */
 export function RichFooter(props: FooterProps) {
-  const { t } = props;
   // Live draft wins so the Customize editor repaints as the merchant types.
   const previewBadges = useSfPreview((s) => s.badges);
   const saved = previewBadges ?? props.store?.trustBadges ?? [];
-  const defaults: { icon: IconName; label: string }[] = [
-    { icon: "shield", label: t.genuine },
-    { icon: "truck", label: t.fastDelivery },
-    { icon: "coins", label: t.codBadge },
-  ];
-  const trust = defaults.map((d, i) => {
-    const text = saved[i]?.text?.trim();
-    return text ? { icon: (saved[i].icon as IconName) || d.icon, label: text } : d;
+  const fallbackIcons: IconName[] = ["shield", "truck", "coins"];
+  const trust = saved.flatMap((badge, i) => {
+    const label = badge.text?.trim();
+    return label
+      ? [{ icon: (badge.icon as IconName) || fallbackIcons[i % fallbackIcons.length], label }]
+      : [];
   });
 
   return (
     <FooterShell>
       {/* A tinted band rather than three floating icons: the row is one claim
           about the shop, and giving it a ground says so without a heading. */}
-      <div className="sf-footer-trustbar">
+      {trust.length ? <div className="sf-footer-trustbar">
         {trust.map((tr) => (
           <div key={tr.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
@@ -114,7 +111,7 @@ export function RichFooter(props: FooterProps) {
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{tr.label}</span>
           </div>
         ))}
-      </div>
+      </div> : null}
 
       <ColumnsBody {...props} />
       {Bottom(props)}

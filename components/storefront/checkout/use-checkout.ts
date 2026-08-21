@@ -383,6 +383,7 @@ export function useCheckout() {
     isPickup,
     // money
     zoned,
+    zone,
     zoneLabel,
     subtotal,
     shipping,

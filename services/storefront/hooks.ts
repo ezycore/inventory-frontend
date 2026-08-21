@@ -48,8 +48,10 @@ export const storefront = {
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
-  brands: (slug: string) => ["storefront", slug, "brands"] as const,
-  tags: (slug: string) => ["storefront", slug, "tags"] as const,
+  brands: (slug: string, params: unknown = {}) =>
+    ["storefront", slug, "brands", params] as const,
+  tags: (slug: string, params: unknown = {}) =>
+    ["storefront", slug, "tags", params] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
@@ -188,19 +190,25 @@ export const useStoreCategories = (
   });
 
 /** Curated brand facet (products page filter; brand names for chips/headings). */
-export const useStoreBrands = (slug: string) =>
+export const useStoreBrands = (
+  slug: string,
+  params: Record<string, string | number | undefined> = {},
+) =>
   useQuery({
-    queryKey: storefront.brands(slug),
-    queryFn: () => storefrontApi.listBrands(slug),
+    queryKey: storefront.brands(slug, params),
+    queryFn: () => storefrontApi.listBrands(slug, params),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });
 
 /** The public tag facet. Curated server-side, so an empty list means "no tags in use". */
-export const useStoreTags = (slug: string) =>
+export const useStoreTags = (
+  slug: string,
+  params: Record<string, string | number | undefined> = {},
+) =>
   useQuery({
-    queryKey: storefront.tags(slug),
-    queryFn: () => storefrontApi.listTags(slug),
+    queryKey: storefront.tags(slug, params),
+    queryFn: () => storefrontApi.listTags(slug, params),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });

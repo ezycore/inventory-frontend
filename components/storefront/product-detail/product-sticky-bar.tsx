@@ -61,7 +61,7 @@ export function ProductStickyBar({ d }: { d: ProductDetail }) {
 
 const bar: CSSProperties = {
   position: "sticky",
-  bottom: "var(--sf-bottom-nav-h, 0px)",
+  bottom: "calc(var(--sf-bottom-nav-h, 0px) + var(--sf-ownerbar-h, 0px))",
   margin: "28px calc(-1 * var(--pad)) -40px",
   background: "var(--card)",
   borderTop: "1px solid var(--border)",

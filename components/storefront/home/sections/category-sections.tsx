@@ -9,6 +9,10 @@ import { cardImageUrl } from "@/lib/storefront-image";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { Media } from "@/components/storefront/sf-bits";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
+import {
+  categoryTileRowLayout,
+  useCategoryRowLayout,
+} from "@/components/storefront/home/category-row-layout";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { wrap, type SectionProps } from "@/components/storefront/home/home-shared";
@@ -22,13 +26,17 @@ import { wrap, type SectionProps } from "@/components/storefront/home/home-share
  * keeps a reordered page from growing holes.
  */
 
-/** Chips row — the merchant's own layout (Customize → Collections). */
-export function CategoryChips({ base, categories }: SectionProps) {
+/** Chips row — the merchant's own layout (Customize → Home page). */
+export function CategoryChips({ base, categories, categoryRowDefault }: SectionProps) {
   if (!categories.length) return null;
   return (
     <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
       {/* Layout is the merchant's, so the row itself owns it — home-collections.tsx. */}
-      <HomeCollections base={base} categories={categories} />
+      <HomeCollections
+        base={base}
+        categories={categories}
+        defaultLayout={categoryRowDefault}
+      />
     </div>
   );
 }
@@ -81,10 +89,14 @@ export function CategoryLinks({ base, categories }: SectionProps) {
  * visibly different object.
  */
 export function CategoryTiles(props: SectionProps) {
-  const { base, categories, store } = props;
+  const { base, categories, store, categoryRowDefault } = props;
   const imageFit = useStoreImageFit();
   const draftMode = useSfPreview((s) => s.categoryTiles);
   const draftShell = useSfPreview((s) => s.shell);
+  const categoryRow = useCategoryRowLayout(
+    store,
+    categoryRowDefault ?? "grid",
+  );
   const mode = isTilesMode(draftMode)
     ? draftMode
     : resolveTemplates(store).categoryTiles;
@@ -135,37 +147,21 @@ export function CategoryTiles(props: SectionProps) {
      are not lost: they head the collection page each disc leads to. */
   const described =
     !overlay && !disc && categories.some((c) => !!c.description?.trim());
+  const tileRow = categoryTileRowLayout(
+    categoryRow,
+    overlay ? 150 : disc ? 100 : compact && described ? 210 : 96,
+    overlay ? 210 : disc ? 150 : compact ? (described ? 330 : 132) : 148,
+  );
 
   if (!categories.length) return null;
   return (
     <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad)" }}>
-      {/* A department tile is a wayfinding target, not a product — sized off
-          the four-column product grid it became a 275px square, and left to
-          stretch it filled the first screen. The cap that fixes that is
-          desktop-only, so the grid itself lives in `.sf-cat-tiles`
-          (storefront.css); this only supplies the two numbers per presentation.
-
-          `overlay` is widest — a 96px tile has no room for a name written across
-          it. `compact` is narrowest: it is a disc and a word, and any wider just
-          spreads them out. */}
+      {/* A department tile is a wayfinding target, not a product. Its visual
+          mode supplies a maximum width; the merchant's shared category-row
+          setting decides grid versus strip, columns and alignment. */}
       <div
-        className="sf-cat-tiles"
-        style={
-          {
-            /* `disc` runs a little wider than the fallback — its circle is 68px
-               rather than 42, and a 96px track puts a seven-letter department
-               name on two lines. But only a little: the row's whole job is to be
-               ONE scannable strip, and a max wide enough to push the eighth
-               department onto a second line costs more than a snug name does.
-               150px holds seven or eight across a 1200px page. */
-            "--tile-min": `${
-              overlay ? 150 : disc ? 100 : compact && described ? 210 : 96
-            }px`,
-            "--tile-max": `${
-              overlay ? 210 : disc ? 150 : compact ? (described ? 330 : 132) : 148
-            }px`,
-          } as CSSProperties
-        }
+        className={tileRow.className}
+        style={tileRow.style}
       >
         {categories.map((c) => (
           <CategoryTile
@@ -182,6 +178,7 @@ export function CategoryTiles(props: SectionProps) {
             overlay={overlay}
             compact={compact}
             disc={disc}
+            strip={tileRow.strip}
           />
         ))}
       </div>
@@ -245,6 +242,7 @@ function CategoryTile({
   overlay,
   compact,
   disc,
+  strip,
 }: {
   href: string;
   name: string;
@@ -263,7 +261,12 @@ function CategoryTile({
    * products out-shout the products, which is the opposite of wayfinding.
    */
   disc?: boolean;
+  /** The shared category-row control selected horizontal scrolling. */
+  strip: boolean;
 }) {
+  const flowStyle = strip
+    ? ({ flex: "0 0 var(--tile-max)", width: "var(--tile-max)" } as CSSProperties)
+    : undefined;
   /* A disc and a word. No square, no reserved photo slot: there is no photograph
      coming, so holding space for one is what made this section look broken.
 
@@ -278,6 +281,7 @@ function CategoryTile({
       <Link
         href={href}
         style={{
+          ...flowStyle,
           display: "flex",
           flexDirection: row ? "row" : "column",
           alignItems: "center",
@@ -344,7 +348,7 @@ function CategoryTile({
 
   if (overlay) {
     return (
-      <Link href={href} style={{ position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+      <Link href={href} style={{ ...flowStyle, position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
         {media}
         {/* A scrim, not a translucent bar: the name has to stay legible over a
             photograph the merchant chose and we have never seen, and a gradient
@@ -373,6 +377,7 @@ function CategoryTile({
     <Link
       href={href}
       style={{
+        ...flowStyle,
         display: "flex",
         flexDirection: "column",
         gap: 8,

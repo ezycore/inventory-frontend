@@ -48,6 +48,7 @@ export function useCartPage() {
   return {
     t,
     base,
+    store,
     hydrated,
     items,
     currency,

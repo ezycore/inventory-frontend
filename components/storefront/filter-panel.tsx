@@ -23,10 +23,9 @@ export type FilterPatch = Record<string, string | undefined>;
 
 /**
  * The products-page filter facets: Category, Brand, Price range, Availability.
- * One component, two homes — inline in the sidebar template's aside and inside
- * the filter SideDrawer everywhere else. Selections apply instantly via
- * `onChange` (URL-driven; the panel holds no staged state beyond the price
- * fields' in-progress typing).
+ * The shared panel lives in the filter drawer for every collection layout.
+ * Selections apply instantly via `onChange` (URL-driven; the panel holds no
+ * staged state beyond the price fields' in-progress typing).
  */
 export function FilterPanel({
   categories,
@@ -285,7 +284,6 @@ function PriceBounds({
   }
 
   const commit = () => {
-    // Swap crossed bounds instead of returning a silently empty list.
     if (lo && hi && Number(lo) > Number(hi)) onCommit(hi, lo);
     else onCommit(lo, hi);
   };
@@ -329,8 +327,6 @@ const priceField: React.CSSProperties = {
   border: "1px solid var(--border-strong)",
   borderRadius: 8,
   padding: "9px 9px",
-  // 16px is the floor that stops iOS Safari zooming the page on focus — and it
-  // never zooms back out, since the viewport meta (correctly) allows scaling.
   fontSize: 16,
   fontFamily: "inherit",
   background: "var(--card)",

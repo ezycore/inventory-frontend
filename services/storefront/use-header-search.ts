@@ -46,7 +46,13 @@ export type SearchAction =
  * the same `useStoreProducts` hook (and cache) the full /search page uses — no
  * backend change.
  */
-export function useHeaderSearch(onClose: () => void, open: boolean) {
+type SearchCloseReason = "dismiss" | "navigate";
+type SearchNavigationMode = "replace" | void;
+
+export function useHeaderSearch(
+  onClose: (reason: SearchCloseReason) => SearchNavigationMode,
+  open: boolean,
+) {
   const { slug, base } = useStoreContext();
   const router = useRouter();
   const pathname = usePathname();
@@ -127,20 +133,26 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
     const trimmed = term.trim();
     if (!trimmed) return;
     remember(trimmed);
-    onClose();
-    router.push(storeHref(base, `/search?q=${encodeURIComponent(trimmed)}`));
+    const mode = onClose("navigate");
+    router[mode === "replace" ? "replace" : "push"](
+      storeHref(base, `/search?q=${encodeURIComponent(trimmed)}`),
+    );
   };
   const goProduct = (product: CatalogProduct) => {
-    onClose();
-    router.push(storeHref(base, `/products/${product.slug}`));
+    const mode = onClose("navigate");
+    router[mode === "replace" ? "replace" : "push"](
+      storeHref(base, `/products/${product.slug}`),
+    );
   };
   // A collection is addressed by its PATH (`/phones`, `/phones/accessories`), so
   // the chip takes the whole category, not an id. The `?categoryId=` form this
   // used to push still resolves, but it is `noindex` and canonicalizes elsewhere
   // — navigating a shopper to a URL the store itself disclaims.
   const goCategory = (category: CatalogCategory) => {
-    onClose();
-    router.push(collectionHref(base, category));
+    const mode = onClose("navigate");
+    router[mode === "replace" ? "replace" : "push"](
+      collectionHref(base, category),
+    );
   };
   const runAction = (action: SearchAction) =>
     action.kind === "product" ? goProduct(action.product) : goSearchPage();
@@ -160,7 +172,9 @@ export function useHeaderSearch(onClose: () => void, open: boolean) {
 
   const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
-      onClose();
+      e.preventDefault();
+      e.stopPropagation();
+      onClose("dismiss");
     } else if (e.key === "ArrowDown" && actions.length) {
       e.preventDefault();
       setActive((i) => Math.min(i + 1, actions.length - 1));
