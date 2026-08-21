@@ -128,6 +128,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   navHeader: [],
   announcement: {
     enabled: false,
+    useShippingRule: false,
     text: "",
     link: "",
     bgColor: "#2563eb",
