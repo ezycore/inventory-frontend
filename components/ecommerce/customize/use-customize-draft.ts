@@ -16,6 +16,7 @@ import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-clie
 import type {
   ContactButtonPage,
   Image,
+  StorefrontContactButton,
   StorefrontFooterGroup,
   StorefrontHeroBanner,
   StorefrontHeroSlide,
@@ -25,8 +26,7 @@ import type {
   StorefrontSettings,
   StorefrontTrustBadge,
 } from "@/types";
-import { toSettingsPayload } from "@/components/ecommerce/customize/draft-payloads";
-import { DEFAULT_BADGES } from "@/components/ecommerce/customize/trust-badges-field";
+import { toSettingsPatch } from "@/components/ecommerce/customize/draft-payloads";
 import {
   RETIRED_TEMPLATE_KEYS,
   TEMPLATE_OPTIONS,
@@ -39,6 +39,7 @@ import {
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
   enabled: boolean;
+  useShippingRule: boolean;
   text: string;
   link: string;
   bgColor: string;
@@ -66,7 +67,11 @@ export interface ContactButtonDraft {
   position: "right" | "left";
   /** Empty ⇒ every page (see `isPageAllowed`). */
   showOn: ContactButtonPage[];
+  /** Preserved legacy overrides until the backend contract removes them explicitly. */
+  channels: StorefrontContactButton["channels"];
   hoursEnabled: boolean;
+  /** Days the merchant answers, 0 = Sunday. Empty means every day. */
+  hoursDays: number[];
   hoursFrom: string;
   hoursTo: string;
   offlineNote: string;
@@ -116,7 +121,7 @@ export interface CustomizeDraft {
    * single Save — it is settings, not media.
    */
   logoStyle: StorefrontLogoStyle;
-  /** Homepage collections row layout (Customize → Collections). */
+  /** Homepage category-row layout (Customize → Home page). */
   homeCollections: StorefrontHomeCollections;
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
@@ -265,10 +270,8 @@ function seedTemplates(settings: StorefrontSettings): Record<string, string> {
 /**
  * Flatten the stored `contactButton` into the editor's shape.
  *
- * `channels` is deliberately NOT surfaced: the number lives at Settings →
- * General and has exactly one home, so the editor has nothing to seed from it.
- * When a second `kind` is registered this grows a channel list, and this
- * function is where that starts.
+ * Legacy channel overrides are not editable, but remain in the draft so an
+ * explicit Contact Button edit cannot erase data the backend still supports.
  */
 function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
   const c = settings.contactButton;
@@ -280,7 +283,9 @@ function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
     greeting: c?.greeting ?? "",
     position: c?.position === "left" ? "left" : "right",
     showOn: c?.showOn ?? [],
+    channels: c?.channels,
     hoursEnabled: h?.enabled ?? false,
+    hoursDays: h?.days ?? [],
     hoursFrom: h?.from ?? "10:00",
     hoursTo: h?.to ?? "20:00",
     offlineNote: h?.offlineNote ?? "",
@@ -324,16 +329,14 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
     templates: seedTemplates(settings),
-    // Three fixed slots seeded by index — an empty slot keeps its default badge.
-    badges: DEFAULT_BADGES.map((d, i) => ({
-      text: settings.trustBadges?.[i]?.text ?? "",
-      icon: settings.trustBadges?.[i]?.icon ?? d.icon,
-    })),
+    // The API supports zero to four; preserve the complete ordered list.
+    badges: settings.trustBadges ?? [],
     heroSlides: settings.heroSlides ?? [],
     heroBanner: settings.heroBanner ?? {},
     navHeader: settings.nav?.header ?? [],
     announcement: {
       enabled: a?.enabled ?? false,
+      useShippingRule: a?.useShippingRule ?? false,
       text: a?.text ?? "",
       link: a?.link ?? "",
       bgColor: a?.bgColor ?? "#2563eb",
@@ -400,6 +403,10 @@ export function applyThemeToDraft(
     brandColor: theme.brandColor,
     accentColor: theme.accentColor,
     design: resolveDesign(theme.design),
+    // Category-row geometry is part of the look. Without resetting it here,
+    // Fresh Market inherits Classic's saved strip and stops looking like its
+    // own theme in both the picker preview and the applied storefront.
+    homeCollections: { ...theme.homeCollections },
     templates: { ...draft.templates, ...theme.templates },
     // The homepage composition — the half that makes themes structurally
     // different rather than repainted. Replaced outright, not merged: a theme's
@@ -470,6 +477,7 @@ export function isThemeModified(draft: CustomizeDraft): boolean {
     draft.brandColor !== applied.brandColor ||
     draft.accentColor !== applied.accentColor ||
     !same(draft.design, applied.design) ||
+    !same(draft.homeCollections, applied.homeCollections) ||
     !same(draft.templates, applied.templates) ||
     // TYPE sequence, not the instances: a key is identity plumbing, not look.
     // Two pages composed of the same sections in the same order ARE the theme,
@@ -629,10 +637,13 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
         await reorderCollections.mutateAsync(d.collections.map((c) => c._id));
       }
 
-      // Then one settings PATCH carrying theme, templates and nav together,
-      // trimmed by the same builder the live preview uses (`draft-payloads`) so
-      // what the merchant judged is exactly what ships.
-      const res = await saveSettings.mutateAsync(toSettingsPayload(d));
+      // Only dirty top-level settings blocks are sent. Nested blocks replace
+      // wholesale on the backend, so the builder still sends each selected
+      // block completely; untouched blocks never cross the wire at all.
+      const settingsPatch = toSettingsPatch(d, dirtyParts);
+      const res = Object.keys(settingsPatch).length
+        ? await saveSettings.mutateAsync(settingsPatch)
+        : { data: settings };
 
       // Re-seed from the saved response rather than from the draft, so the rail
       // shows what the store actually has — untitled slides and blank footer
@@ -648,7 +659,15 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     } catch {
       // handleMutationError already toasted; keep the draft so nothing is lost.
     }
-  }, [draft, baseline.collections, reorderCollections, saveSettings, updateCollection]);
+  }, [
+    draft,
+    dirtyParts,
+    baseline.collections,
+    reorderCollections,
+    saveSettings,
+    settings,
+    updateCollection,
+  ]);
 
   return {
     draft,

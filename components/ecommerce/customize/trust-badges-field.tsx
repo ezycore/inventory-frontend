@@ -11,8 +11,6 @@ import {
 import { cn } from "@/ui/lib/utils";
 import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 
-// Trust-badge editor (Rich footer). Rows seed empty with these defaults as
-// placeholders/icons; unset rows fall back to the storefront's localized copy.
 export const BADGE_ICON_CHOICES: IconName[] = [
   "shield",
   "truck",
@@ -22,11 +20,6 @@ export const BADGE_ICON_CHOICES: IconName[] = [
   "tag",
   "heart",
   "clock",
-];
-export const DEFAULT_BADGES: StorefrontTrustBadge[] = [
-  { text: "", icon: "shield" },
-  { text: "", icon: "truck" },
-  { text: "", icon: "coins" },
 ];
 const BADGE_PLACEHOLDERS = [
   "100% authentic",
@@ -88,24 +81,50 @@ function BadgeRow({
   );
 }
 
-/** The three trust badges the Rich footer shows above its link columns. */
+/** The merchant-managed promise list shared by trust bands and footer variants. */
 export function TrustBadgesField({
   badges,
-  setBadge,
+  setBadges,
 }: {
   badges: StorefrontTrustBadge[];
-  setBadge: (i: number, patch: Partial<StorefrontTrustBadge>) => void;
+  setBadges: (badges: StorefrontTrustBadge[]) => void;
 }) {
+  const patch = (index: number, value: Partial<StorefrontTrustBadge>) =>
+    setBadges(
+      badges.map((badge, current) =>
+        current === index ? { ...badge, ...value } : badge,
+      ),
+    );
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= badges.length) return;
+    const next = [...badges];
+    [next[index], next[target]] = [next[target], next[index]];
+    setBadges(next);
+  };
+
   return (
     <div className="space-y-2">
       {badges.map((b, i) => (
-        <BadgeRow
-          key={i}
-          badge={b}
-          placeholder={BADGE_PLACEHOLDERS[i] ?? "Badge text"}
-          onChange={(patch) => setBadge(i, patch)}
-        />
+        <div key={i} className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <BadgeRow
+              badge={b}
+              placeholder={BADGE_PLACEHOLDERS[i] ?? "Your promise"}
+              onChange={(value) => patch(i, value)}
+            />
+          </div>
+          <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move promise up" className="h-9 w-9 rounded-md border disabled:opacity-40">↑</button>
+          <button type="button" onClick={() => move(i, 1)} disabled={i === badges.length - 1} aria-label="Move promise down" className="h-9 w-9 rounded-md border disabled:opacity-40">↓</button>
+          <button type="button" onClick={() => setBadges(badges.filter((_, current) => current !== i))} aria-label="Remove promise" className="h-9 w-9 rounded-md border text-destructive">×</button>
+        </div>
       ))}
+      {badges.length < 4 ? (
+        <button type="button" onClick={() => setBadges([...badges, { text: "", icon: BADGE_ICON_CHOICES[badges.length % BADGE_ICON_CHOICES.length] }])} className="h-10 w-full rounded-md border border-dashed text-sm font-medium text-muted-foreground hover:text-foreground">
+          Add promise
+        </button>
+      ) : null}
+      {!badges.length ? <p className="text-xs text-muted-foreground">No promises are shown until you add one.</p> : null}
     </div>
   );
 }

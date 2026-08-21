@@ -8,6 +8,7 @@ import { LabeledField } from "@/components/storefront/checkout/blocks/labeled-fi
 import { CheckoutAddressBook } from "@/components/storefront/checkout/checkout-address-book";
 import { GeoPicker } from "@/components/storefront/checkout/geo-picker";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
+import { deliveryEstimateForZone } from "@/lib/storefront-delivery";
 
 /**
  * Where the order goes — the saved-address picker, the street address, the
@@ -44,9 +45,11 @@ export function DeliveryFields({
     touch,
     isPickup,
     zoned,
+    zone,
     zoneLabel,
     shipping,
   } = api;
+  const deliveryEstimate = deliveryEstimateForZone(store, zone);
 
   return (
     <div>
@@ -126,25 +129,18 @@ export function DeliveryFields({
             sits on a tinted row rather than as loose text so it reads as a RESULT
             of the field above it, not as another thing to fill in. */}
         {!isPickup && zoned && geo.district ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: 13,
-              color: "var(--muted)",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "10px 13px",
-            }}
-          >
-            <span>
-              {t.deliveryZone} · {zoneLabel}
-            </span>
-            <span className="sf-mono" style={{ color: "var(--text)", fontWeight: 700 }}>
-              {shipping === 0 ? t.free : money(shipping, currency)}
-            </span>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 13px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "var(--muted)" }}>
+              <span>{t.deliveryZone} · {zoneLabel}</span>
+              <span className="sf-mono" style={{ color: "var(--text)", fontWeight: 700 }}>
+                {shipping === 0 ? t.free : money(shipping, currency)}
+              </span>
+            </div>
+            {deliveryEstimate ? (
+              <div style={{ marginTop: 5, fontSize: 12, color: "var(--faint)" }}>
+                {deliveryEstimate}
+              </div>
+            ) : null}
           </div>
         ) : null}
 

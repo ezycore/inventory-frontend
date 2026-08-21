@@ -175,11 +175,9 @@ function CollectionInner({
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-          {/* Sidebar template shows the panel inline on desktop — the button is mobile-only there. */}
           <FiltersButton
             activeCount={chips.length}
             onClick={() => setDrawerOpen(true)}
-            className={variant === "sidebar" ? "sf-mobile-only" : undefined}
           />
           <SortSelect sort={sort} onChange={(s) => setParams({ sort: s })} />
         </div>
@@ -196,19 +194,7 @@ function CollectionInner({
 
       <FilterChips chips={chips} onClearAll={clearAll} />
 
-      {variant === "sidebar" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "var(--colmain)", gap: "var(--gap)" }}>
-          <aside
-            className="sf-desktop-only"
-            style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 18, alignSelf: "start" }}
-          >
-            {panel}
-          </aside>
-          {grid}
-        </div>
-      ) : (
-        grid
-      )}
+      {grid}
 
       {!isLoading && items.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>{t.noResults}</p>

@@ -4,8 +4,8 @@
  * The homepage collections row — one tile per listed collection, linking to its
  * collection page.
  *
- * Its shape is a merchant setting (`theme.homeCollections`, Customize →
- * Collections) rather than a constant, because the right answer depends on how
+ * Its shape is a merchant setting (`theme.homeCollections`, Customize → Home
+ * page → Collections row) rather than a constant, because the answer depends on how
  * many collections a shop has: five categories read well as a scrolling strip of
  * chips, three look stranded there and want the full row width.
  *
@@ -25,23 +25,16 @@ import Link from "next/link";
 import type { CatalogCategory } from "@/lib/storefront-client";
 import { collectionHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
-import { resolveHomeCollections } from "@/lib/storefront-templates";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
+import {
+  categoryStripStyle,
+  useCategoryRowLayout,
+} from "@/components/storefront/home/category-row-layout";
 
 /** Tile width in `strip`; the grid lets its column decide instead. */
 const STRIP_TILE = 84;
 const THUMB = 60;
-
-const STRIP_ALIGN = {
-  left: "flex-start",
-  // `safe` matters: a centred flex row whose content overflows its scroll box
-  // pushes the first item out of reach past the leading edge. `safe` falls back
-  // to start-alignment exactly when that would happen.
-  center: "safe center",
-  right: "safe flex-end",
-} as const;
 
 /**
  * A grid already spans the full content width, so there is no row left to
@@ -53,16 +46,16 @@ const GRID_ALIGN = { left: "start", center: "center", right: "end" } as const;
 export function HomeCollections({
   base,
   categories,
+  defaultLayout = "strip",
 }: {
   base: string;
   categories: CatalogCategory[];
+  /** Section-list default: chips historically strip; tile-led pages use grid. */
+  defaultLayout?: "strip" | "grid";
 }) {
   const { slug } = useStoreContext();
   const { data: store } = useStore(slug);
-  const draft = useSfPreview((s) => s.homeCollections);
-  const { layout, columns, align } = resolveHomeCollections(
-    draft ?? store?.theme?.homeCollections,
-  );
+  const { layout, columns, align } = useCategoryRowLayout(store, defaultLayout);
 
   if (categories.length === 0) return null;
 
@@ -76,11 +69,8 @@ export function HomeCollections({
         "--sf-hc-cols": columns,
       } as CSSProperties)
     : ({
-        display: "flex",
+        ...categoryStripStyle(align),
         gap: 11,
-        overflowX: "auto",
-        paddingBottom: 6,
-        justifyContent: STRIP_ALIGN[align],
       } as CSSProperties);
 
   return (

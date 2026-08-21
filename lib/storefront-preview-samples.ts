@@ -157,8 +157,7 @@ export function padCampaignsForPreview(
 /**
  * Sample promises, so `trust-band` has something to draw.
  *
- * `trust-row` needs no help — it falls back to the storefront dictionary — but
- * the band reads `store.trustBadges` and hides itself when they are unset, which
+ * The band reads `store.trustBadges` and hides itself when they are unset, which
  * silently removes a whole section from two of the four themes.
  */
 export function padStoreForPreview(

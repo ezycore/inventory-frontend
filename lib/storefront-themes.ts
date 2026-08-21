@@ -37,6 +37,7 @@
 
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { SectionId } from "@/lib/storefront-section-ids";
+import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
   GROCERY_SAMPLE,
@@ -56,6 +57,8 @@ export interface ReadyMadeTheme {
   brandColor: string;
   accentColor: string;
   design: StoreDesign;
+  /** The category row's starting geometry. Applying a theme resets this look. */
+  homeCollections: StoreHomeCollections;
   /**
    * The homepage, as an ordered section list. **This is what makes the themes
    * structurally different rather than differently painted** — they compose
@@ -123,6 +126,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "soft",
       width: "contained",
     },
+    homeCollections: { layout: "strip", align: "left" },
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
     sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
     templates: {
@@ -182,15 +186,17 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "pill",
       width: "contained",
     },
-    /* The mockup's page, top to bottom: a typographic hero, a strip of
-       department discs, the seasonal grid, the buy-again rail, then a pair of
-       feature cards.
+    // No fixed column count: the original department row fits as many roomy
+    // discs as the available width allows. The owner can still choose 2–6.
+    homeCollections: { layout: "grid", align: "center" },
+    /* The page, top to bottom: a typographic hero, a strip of department
+       discs, the seasonal grid, the buy-again rail, then the merchant's own
+       promise band when they have written one.
 
-       `hero-card` reads as a reversal of the old note here ("no lifestyle
+       `hero-open` reads as a reversal of the old note here ("no lifestyle
        hero — a weekly shop is not sold a photograph") and is not: the mockup's
-       hero is a headline, a sentence and two buttons, which is exactly what
-       `hero-card` renders. The objection was to selling groceries with a
-       photograph, and it still stands.
+       hero is a headline, a sentence and buttons on the page ground. The
+       objection was to selling groceries with a photograph, and it still stands.
 
        `deal-strip` is dropped. The mockup has no countdown, and the strip was
        the weakest thing on the page — a live campaign already announces itself
@@ -214,7 +220,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       "category-tiles",
       "featured-grid",
       "product-rail",
-      "promo-tiles",
       "trust-band",
     ],
     templates: {
@@ -303,6 +308,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "soft",
       width: "contained",
     },
+    homeCollections: { layout: "grid", align: "center" },
     /* **No hero, and no category section.** The `rail` shell puts the conditions
        down the left of every page and the `clinical` header carries the search,
        so a hero could only repeat one of the two — which is exactly the bug this
@@ -312,21 +318,15 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
 
        What is left is a page made only of things the shell cannot say:
 
-       - `trust-row` — the merchant's promises as CARDS, not a strip. For a
-         pharmacy the guarantee is the product; licence, seal and pharmacist
-         hours earn real estate. ⚠ It reads `trustBadges`, so `trust-band` must
-         never join it and the footer must not be `rich`.
        - `deal-strip` — a live campaign, and only when one is running.
        - `featured-grid` — what people actually buy.
        - `product-rail` — what just arrived. A different question from the grid,
-         which is why both belong.
-       - `promo-tiles` — the merchant's own two offers. */
+         which is why both belong. */
     sections: [
-      "trust-row",
       "deal-strip",
       "featured-grid",
       "product-rail",
-      "promo-tiles",
+      "trust-band",
     ],
     templates: {
       home: "classic",
@@ -334,9 +334,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          is on EVERY page, which is what a shop selling by product name needs —
          a hero search vanishes the moment the shopper scrolls or opens a box. */
       header: "clinical",
-      /* `contact`, and deliberately NOT `rich`: the rich footer prints
-         `trustBadges` as its own strip, and `trust-row` above already spends
-         them. People phone a pharmacy, so the footer leads with the number. */
+      /* People phone a pharmacy, so the footer leads with the number. */
       footer: "contact",
       /* The rail carries departments; the collection page's own left column is
          free to carry FILTERS, which is where a shopper narrows by strength,
@@ -401,6 +399,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       radius: "sharp",
       width: "contained",
     },
+    // Overlay scenes keep their original adaptive, centred composition until
+    // the merchant chooses an exact number per row.
+    homeCollections: { layout: "grid", align: "center" },
     // A magazine, not a shop window: a **split** hero — photograph beside the
     // eyebrow, serif headline and one CTA — then "shop by occasion" as overlay
     // tiles, then a short edit of products with no card chrome, closing on the

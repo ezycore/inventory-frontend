@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import type { StorefrontHeroBanner } from "@/types";
+import { normalizeStoreLink } from "@/lib/storefront-links";
+import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 
@@ -21,9 +23,13 @@ export function cleanHeroBanner(v: StorefrontHeroBanner): StorefrontHeroBanner {
     title: t(v.title),
     subtitle: t(v.subtitle),
     primaryLabel: t(v.primaryLabel),
-    primaryLink: t(v.primaryLink),
+    primaryLink: v.primaryLink?.trim()
+      ? normalizeStoreLink(v.primaryLink)
+      : undefined,
     secondaryLabel: t(v.secondaryLabel),
-    secondaryLink: t(v.secondaryLink),
+    secondaryLink: v.secondaryLink?.trim()
+      ? normalizeStoreLink(v.secondaryLink)
+      : undefined,
     imageFit: v.imageFit,
     focal: v.focal,
   };
@@ -133,6 +139,7 @@ export function BannerHeroFields({
               placeholder={btn.labelPlaceholder}
               maxLength={30}
             />
+            <StoreLinkHint value={btn.link} />
             <TextRow
               label="Link"
               value={btn.link}

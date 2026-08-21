@@ -1478,17 +1478,22 @@ resolved **per request from the host**, never baked.
     `id`: a re-pointed row keeps its id, and matching on id would go on showing the old row's
     products under the new heading, while matching on the whole row would blank a row over a rename.
 
-- **Homepage collections row** — `components/storefront/home/home-collections.tsx`, rendered by the
-  Classic template (the only one with a tile row; Minimal keeps its text links). Layout is the
-  merchant's — `theme.homeCollections` (Customize → Collections → "On the homepage") via
-  `resolveHomeCollections` — with `strip` (the original scrolling chip row) as the default, because
-  changing that fallback would restyle every existing homepage without its owner asking.
-  Two things to keep: **the grid's columns live in CSS, not the inline style**
-  (`.sf-home-collections` in `storefront.css`, fed the count as `--sf-hc-cols`) because narrow
-  screens must pin to 2 whatever the merchant chose, and an inline style cannot carry a media query;
-  and `align` means **different things per layout** — `justify-content` on the scrolling strip
-  (with `safe`, or a centred overflowing row puts its first tile out of reach), `justify-items`
-  inside each column on the grid, which already spans the full width.
+- **Homepage category-row layout** — `theme.homeCollections` now controls both catalogue-entry
+  sections: Classic's `category-chips` (`home/home-collections.tsx`) and Fresh Market/Muslin's
+  `category-tiles` (`home/sections/category-sections.tsx`). `category-row-layout.ts` is the shared
+  draft/saved resolver and strip behavior. Until an owner chooses explicitly, chips keep their
+  historical `strip` default and tile-led pages keep their historical `grid`; collapsing those to
+  one fallback would restyle an existing theme without its owner asking. Grid columns live in CSS
+  (`.sf-home-collections` / `.sf-cat-tiles`, fed by `--sf-hc-cols` / `--sf-ct-cols`) so phones can
+  pin to two while desktop honors the owner's 2–6 choice; tile tracks retain a mode-specific max,
+  so choosing two never stretches a department into a half-page product card. Strip alignment uses
+  `safe`, or centred overflowing content makes its first tile unreachable. Customize shows the
+  controls only when `category-chips` or `category-tiles` is actually in the effective section list;
+  Meridian Care's rail-only page gets an explanation instead of inert controls.
+  Ready-made themes stamp this visual setting too: Classic starts as a left strip, while Fresh
+  Market and Muslin start as centred adaptive grids with no fixed column count. An explicit 2–6
+  choice switches tile grids to exact tracks. This reset is required when applying or previewing a
+  theme; otherwise a saved Classic strip leaks into Fresh/Muslin and makes them look like Classic.
 
 - **Sub-category drill-down** — `components/storefront/subcategory-strip.tsx`. A collection page
   shows a chip row of its sub-collections under the `<h1>`; `subcategoriesFor(collection, tree)`
@@ -2783,3 +2788,8 @@ Check the `// coding-standard: maintained` marker before editing; one file = one
 (components ≲250 lines — extract to `components/storefront/...`); reuse before writing
 (shared inputs, tables, print engine, markdown, tax utils per CLAUDE.md); backend is authoritative,
 frontend numbers are previews; verify changes live (CDP) before calling them done.
+
+Owner-entered CTA links are store-relative and must go through `normalizeStoreLink`/`storeLinkHref`.
+Never persist or render the tenant-only `/shop` prefix as part of the owner route. Shipping marketing
+copy must derive from `effectiveFreeShippingThreshold`; delivery windows are merchant-authored and
+must fall back to neutral checkout guidance when absent.

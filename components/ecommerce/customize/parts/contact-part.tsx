@@ -34,6 +34,16 @@ const SIDES: { value: "right" | "left"; label: string }[] = [
   { value: "left", label: "Bottom left" },
 ];
 
+const DAYS = [
+  { value: 0, label: "Sun" },
+  { value: 1, label: "Mon" },
+  { value: 2, label: "Tue" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thu" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
+];
+
 /**
  * The floating chat button. Its on/off switch lives on the part row (like the
  * announcement bar), so the editor stays collapsed until the button is in use.
@@ -165,7 +175,30 @@ export function ContactPart({
         onCheckedChange={(hoursEnabled) => patchContactButton({ hoursEnabled })}
       >
         {value.hoursEnabled ? (
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3">
+            <div className="space-y-1.5">
+              <Label>Working days</Label>
+              <div className="flex flex-wrap gap-2">
+                {DAYS.map((day) => (
+                  <OptionChip
+                    key={day.value}
+                    selected={
+                      value.hoursDays.length === 0 ||
+                      value.hoursDays.includes(day.value)
+                    }
+                    onSelect={() =>
+                      patchContactButton({
+                        hoursDays: toggleDay(value.hoursDays, day.value),
+                      })
+                    }
+                  >
+                    {day.label}
+                  </OptionChip>
+                ))}
+              </div>
+              <PartHint>Nothing selected means every day.</PartHint>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label>From</Label>
               <Input
@@ -192,6 +225,7 @@ export function ContactPart({
                 maxLength={120}
                 placeholder="Back at 10 AM"
               />
+            </div>
             </div>
           </div>
         ) : null}
@@ -289,5 +323,14 @@ function togglePage(
   const next = effective.includes(page)
     ? effective.filter((p) => p !== page)
     : [...effective, page];
+  return next.length === all.length ? [] : next;
+}
+
+function toggleDay(current: number[], day: number): number[] {
+  const all = DAYS.map((item) => item.value);
+  const effective = current.length === 0 ? all : current;
+  const next = effective.includes(day)
+    ? effective.filter((value) => value !== day)
+    : [...effective, day].sort((a, b) => a - b);
   return next.length === all.length ? [] : next;
 }

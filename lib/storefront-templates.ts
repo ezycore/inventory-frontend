@@ -390,7 +390,7 @@ export interface ResolvedHomeCollections {
 }
 
 /**
- * Resolve `theme.homeCollections` (Customize → Collections).
+ * Resolve `theme.homeCollections` (Customize → Home page → Collections row).
  *
  * `strip` is the default because it is what the row has always been; switching
  * the fallback to `grid` would restyle every existing homepage without its
