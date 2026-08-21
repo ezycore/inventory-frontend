@@ -346,6 +346,7 @@ const TEMPLATE_PARTS = new Set<PartId>([
   "hero",
   "home",
   "cards",
+  "collections",
   "product",
   "footer",
   "account",

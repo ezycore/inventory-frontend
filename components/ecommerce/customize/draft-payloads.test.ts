@@ -246,6 +246,19 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     expect(patch.nav?.header).toEqual(value.navHeader);
     expect(patch.nav?.footer).toEqual(value.footerGroups);
   });
+
+  it("persists collection layout and pagination template changes", () => {
+    const value = draft({
+      templates: {
+        collection: "grid-3",
+        pagination: "load-more",
+      },
+    });
+    const patch = toSettingsPatch(value, ["collections"]);
+
+    expect(Object.keys(patch)).toEqual(["templates"]);
+    expect(patch.templates).toEqual(value.templates);
+  });
 });
 
 describe("merchant promises", () => {
