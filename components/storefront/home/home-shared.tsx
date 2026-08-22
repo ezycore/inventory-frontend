@@ -110,6 +110,33 @@ export function sectionRow(
 }
 
 /**
+ * The narrowest column count `<Grid>`'s `--cols` ever resolves to (see
+ * `storefront.css`) — 2 on a phone, up to 7 on a dense wide desktop. There is
+ * no single number that rounds a product count to a whole row at every one of
+ * those; a JS-side trim can only target the layout the merchant is actually
+ * looking at when they picked a count, which for a "how many products" call
+ * is desktop. 4 is that floor: every desktop breakpoint runs `--cols >= 4`.
+ */
+const ROW_COLS = 4;
+
+/**
+ * Drop the trailing orphans a product count leaves under a fixed-column grid
+ * (QA-124) — a catalogue with 6 featured products in a 4-wide grid used to
+ * render one full row plus two products alone in a second, which reads as
+ * broken rather than as "there are only six". A count of `ROW_COLS` or fewer
+ * is left alone: a single short row is an ordinary small catalogue, not the
+ * ragged-second-row shape this exists to fix. Still imperfect at any other
+ * breakpoint (3, 5, 6 and 7-column layouts have no shared multiple with 4
+ * short of 420 products) — the trade a merchant already makes on `<MinimalPicks>`'s
+ * fixed cap of 6, applied here instead of hand-tuned per section.
+ */
+export function trimToWholeRows<T>(items: readonly T[]): T[] {
+  if (items.length <= ROW_COLS) return [...items];
+  const whole = Math.floor(items.length / ROW_COLS) * ROW_COLS;
+  return items.slice(0, whole || ROW_COLS);
+}
+
+/**
  * The `<Media>` props for the store's banner photo — its own fit and focus
  * point, set beside the banner in Customize → Hero.
  *
