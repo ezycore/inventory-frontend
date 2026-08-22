@@ -103,6 +103,16 @@ export interface Dict {
   catGroceries: string;
   catElectronics: string;
   weeklyPicks: string;
+  /**
+   * `editorial-split`'s own headline/subtitle — deliberately generic and
+   * independent of `heroBanner`. That section used to fall back to the hero's
+   * copy when it had none of its own, so a page using both showed the same
+   * headline twice (QA-123). Fixed copy here, not a fallback, is what keeps
+   * that from happening again regardless of what the merchant writes for the
+   * hero.
+   */
+  editorialTitle: string;
+  editorialSubtitle: string;
   startShopping: string;
   selected: string;
   yourCart: string;
@@ -550,6 +560,8 @@ const en: Dict = {
   catGroceries: "Groceries",
   catElectronics: "Electronics",
   weeklyPicks: "Weekly picks",
+  editorialTitle: "Worth a closer look",
+  editorialSubtitle: "A few of our favourites, picked for you.",
   startShopping: "Start shopping",
   selected: "Selected for you",
   yourCart: "Your cart",
@@ -942,6 +954,8 @@ const bn: Dict = {
   catGroceries: "মুদি",
   catElectronics: "ইলেকট্রনিক্স",
   weeklyPicks: "সাপ্তাহিক পছন্দ",
+  editorialTitle: "একটু কাছ থেকে দেখুন",
+  editorialSubtitle: "আপনার জন্য বেছে নেওয়া কিছু পণ্য।",
   startShopping: "কেনাকাটা শুরু",
   selected: "আপনার জন্য বাছাই",
   yourCart: "আপনার কার্ট",

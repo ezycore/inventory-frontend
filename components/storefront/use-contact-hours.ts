@@ -11,20 +11,25 @@ type Hours = NonNullable<StorefrontContactButton["hours"]>;
  * Is the merchant outside their stated reply hours right now, and what should
  * the launcher say about it.
  *
- * **Gated on `useHydrated`.** This reads the visitor's clock, so computing it
- * during SSR would bake the *server's* "now" into the HTML — a shop rendered at
- * 2 a.m. on the server would ship "Away" to a shopper browsing at noon, and the
- * first client render would disagree with it. Before hydration it always answers
- * "open", which is the safe default: a shopper who messages an away merchant
- * still becomes a lead, where a wrongly-away button loses one.
+ * **Gated on `useHydrated`.** This reads a clock, so computing it during SSR
+ * would bake the *server's* "now" into the HTML — a shop rendered at 2 a.m.
+ * would ship "Away" to a shopper browsing at noon, and the first client
+ * render would disagree with it. Before hydration it always answers "open",
+ * which is the safe default: a shopper who messages an away merchant still
+ * becomes a lead, where a wrongly-away button loses one.
  *
- * The comparison runs in the VISITOR's timezone, not the merchant's. That is a
- * real limitation and a deliberate one for now: the storefront has no reliable
- * merchant timezone on the public payload, and for a Bangladeshi shop with
- * Bangladeshi shoppers the two agree. Revisit when a store first sells abroad —
- * the fix is a timezone on the settings block, not a change here.
+ * **The comparison runs in the SHOP's timezone, not the visitor's** (QA-115).
+ * A Dhaka pharmacy open 09:00–22:00 used to tell every shopper outside
+ * Bangladesh it was closed — diaspora customers, and a store demoed or
+ * recorded from another timezone. `timezone` comes from the public payload
+ * (`storeInfoDto`); an older backend or a malformed IANA name leaves it
+ * unusable, and `nowInZone` falls back to the visitor's own clock rather than
+ * refusing to answer — the storefront still needs to say something.
  */
-export function useContactHours(hours: Hours | undefined): {
+export function useContactHours(
+  hours: Hours | undefined,
+  timezone: string | undefined,
+): {
   isAway: boolean;
   note?: string;
 } {
@@ -37,10 +42,9 @@ export function useContactHours(hours: Hours | undefined): {
   const to = parseHm(hours.to);
   if (from === null || to === null) return { isAway: false };
 
-  const now = new Date();
+  const { day, minutes } = nowInZone(timezone);
   const days = hours.days?.length ? hours.days : [0, 1, 2, 3, 4, 5, 6];
-  const openToday = days.includes(now.getDay());
-  const minutes = now.getHours() * 60 + now.getMinutes();
+  const openToday = days.includes(day);
 
   // A window that wraps midnight ("20:00"–"02:00") is inclusive of both ends of
   // the wrap, not an empty range — the naive `from <= n && n < to` reads it as
@@ -54,6 +58,41 @@ export function useContactHours(hours: Hours | undefined): {
     isAway: true,
     note: hours.offlineNote?.trim() || t.chatAway.replace("{when}", formatHm(hours.from)),
   };
+}
+
+/** Sunday-first, matching `Date#getDay()` and the merchant's `hours.days`. */
+const WEEKDAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * "Right now" as a day-of-week (0=Sun) and minutes-since-midnight, in
+ * `timezone` when it resolves to a real IANA zone, else the visitor's own.
+ * `hourCycle: "h23"` is deliberate: `hour12: false` alone can format midnight
+ * as "24" rather than "00" in some engines, which would read as tomorrow.
+ */
+function nowInZone(timezone: string | undefined): { day: number; minutes: number } {
+  const now = new Date();
+  try {
+    if (!timezone) throw new Error("no timezone on the payload");
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value;
+    const day = WEEKDAYS_SHORT.indexOf(get("weekday") ?? "");
+    const hour = Number(get("hour"));
+    const minute = Number(get("minute"));
+    if (day < 0 || Number.isNaN(hour) || Number.isNaN(minute)) {
+      throw new Error("unparseable Intl output");
+    }
+    return { day, minutes: hour * 60 + minute };
+  } catch {
+    // Invalid/absent timezone — fall back to the visitor's clock rather than
+    // guessing "open" or "away" outright.
+    return { day: now.getDay(), minutes: now.getHours() * 60 + now.getMinutes() };
+  }
 }
 
 /** "HH:mm" → minutes since midnight, or null when the merchant left it blank. */

@@ -162,6 +162,14 @@ export interface StorefrontStore {
    */
   socialImage?: StorefrontImage | null;
   contact?: { email?: string; phone?: string; address?: string };
+  /**
+   * IANA zone the org operates in (e.g. `Asia/Dhaka`), so the storefront can
+   * evaluate "is the merchant open right now" against the SHOP's clock rather
+   * than the visitor's — see `useContactHours`. Optional only for a payload
+   * from a backend that predates the field; treated as "unknown" there, same
+   * as no `hours` block at all.
+   */
+  timezone?: string;
   social?: {
     facebook?: string;
     instagram?: string;
