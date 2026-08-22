@@ -114,6 +114,8 @@ export function PartsRail({
     patchHomeTemplate,
     dirtyParts,
     isDirty,
+    validationErrors,
+    isValid,
     discard,
     save,
     saving,
@@ -252,7 +254,12 @@ export function PartsRail({
       {/* Wraps: the status line plus both buttons sit right on the width of a
           360px phone, and Save is the one control that must never be clipped. */}
       <div className="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-t bg-muted/30 px-3.5 py-2.5">
-        {isDirty ? (
+        {!isValid ? (
+          <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-destructive" role="alert">
+            <span className="h-1.5 w-1.5 flex-none rounded-full bg-destructive" />
+            <span className="truncate">{validationErrors[0]}. Fix it before saving.</span>
+          </span>
+        ) : isDirty ? (
           <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-500">
             <span className="h-1.5 w-1.5 flex-none rounded-full bg-amber-500" />
             <span className="truncate">{dirtyNames.join(", ")} changed</span>
@@ -269,7 +276,7 @@ export function PartsRail({
           >
             Discard
           </Button>
-          <Button size="sm" onClick={save} disabled={!isDirty || saving}>
+          <Button size="sm" onClick={save} disabled={!isDirty || !isValid || saving}>
             {saving ? "Saving…" : "Save changes"}
           </Button>
         </span>

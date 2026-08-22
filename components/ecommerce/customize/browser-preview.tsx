@@ -183,10 +183,10 @@ export function BrowserPreview({
 
   const post = useCallback(() => {
     ref.current?.contentWindow?.postMessage(
-      { type: "ezycore-preview", payload },
+      { type: "ezycore-preview", payload: { ...payload, previewDevice: device } },
       "*",
     );
-  }, [payload]);
+  }, [payload, device]);
 
   // Push the draft whenever it changes…
   useEffect(() => {

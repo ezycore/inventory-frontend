@@ -35,6 +35,7 @@ import {
   toRowValue,
   type CollectionRowValue,
 } from "@/components/ecommerce/collections/collection-row";
+import { isValidHexColor } from "@/ui/components/color-field";
 
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
@@ -370,6 +371,12 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
+/** Category rows are independent from the collection page's layout templates. */
+export const haveCollectionRowsChanged = (
+  draft: Pick<CustomizeDraft, "collections">,
+  baseline: Pick<CustomizeDraft, "collections">,
+): boolean => !same(draft.collections, baseline.collections);
+
 /** A section list reduced to what a theme actually decides — its composition. */
 const sectionTypes = (sections: StoreHomeSection[] | undefined) =>
   (sections ?? []).map((s) => s.type);
@@ -505,6 +512,9 @@ export interface CustomizeDraftApi {
   /** Parts whose values differ from what the server last confirmed. */
   dirtyParts: PartId[];
   isDirty: boolean;
+  /** Human-readable validation failures that block the single Save action. */
+  validationErrors: string[];
+  isValid: boolean;
   discard: () => void;
   save: () => void;
   saving: boolean;
@@ -532,6 +542,12 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     [draft, baseline],
   );
   const isDirty = dirtyParts.length > 0;
+  const validationErrors = useMemo(() => validateCustomizeDraft(draft), [draft]);
+  const isValid = validationErrors.length === 0;
+  // A theme can change the collection PAGE template while the category query is
+  // still loading. That is not an edit to the category rows and must not prevent
+  // those rows from hydrating when the request completes.
+  const collectionRowsDirty = haveCollectionRowsChanged(draft, baseline);
 
   // The draft is seeded once, but `settings` keeps arriving — a media upload
   // PATCHes immediately and invalidates the query, and the page can sit open for
@@ -558,7 +574,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   const [seededFrom, setSeededFrom] = useState<typeof fetchedCollections>(undefined);
   if (fetchedCollections && fetchedCollections !== seededFrom) {
     setSeededFrom(fetchedCollections);
-    if (!dirtyParts.includes("collections")) {
+    if (!collectionRowsDirty) {
       const rows = fetchedCollections.map(toRowValue);
       setDraft((d) => ({ ...d, collections: rows }));
       setBaseline((b) => ({ ...b, collections: rows }));
@@ -612,6 +628,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   }, [isDirty]);
 
   const save = useCallback(async () => {
+    if (!isValid) return;
     const d = draft;
     try {
       // Collections first: they are Category docs behind their own endpoints.
@@ -667,6 +684,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     saveSettings,
     settings,
     updateCollection,
+    isValid,
   ]);
 
   return {
@@ -680,6 +698,8 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     applyTheme,
     dirtyParts,
     isDirty,
+    validationErrors,
+    isValid,
     discard,
     save: () => void save(),
     saving:
@@ -687,4 +707,16 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
       updateCollection.isPending ||
       reorderCollections.isPending,
   };
+}
+
+/** Validate values whose invalid form would make CSS declarations disappear. */
+export function validateCustomizeDraft(draft: CustomizeDraft): string[] {
+  const errors: string[] = [];
+  if (!isValidHexColor(draft.brandColor, false)) errors.push("Brand colour is invalid");
+  if (!isValidHexColor(draft.accentColor, false)) errors.push("Accent colour is invalid");
+  if (!isValidHexColor(draft.logoStyle.background ?? "")) errors.push("Logo backdrop is invalid");
+  if (!isValidHexColor(draft.announcement.bgColor, false)) errors.push("Announcement background is invalid");
+  if (!isValidHexColor(draft.announcement.textColor)) errors.push("Announcement text colour is invalid");
+  if (!isValidHexColor(draft.announcement.overlay)) errors.push("Announcement overlay is invalid");
+  return errors;
 }

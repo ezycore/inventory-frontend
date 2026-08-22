@@ -31,6 +31,8 @@ import type {
  */
 interface SfPreviewState {
   active: boolean;
+  /** Device selected by Customize; iframe pointer media queries cannot infer it. */
+  previewDevice: "desktop" | "mobile" | null;
   brand: string | null;
   accent: string | null;
   /** Raw home-template id (classic | hero-split | minimal) the editor is drafting. */
@@ -163,6 +165,7 @@ interface SfPreviewState {
   samples: ThemeSample | null;
   activate: () => void;
   apply: (patch: {
+    previewDevice?: "desktop" | "mobile";
     brand?: string;
     accent?: string;
     home?: string;
@@ -211,6 +214,7 @@ interface SfPreviewState {
 
 export const useSfPreview = create<SfPreviewState>((set) => ({
   active: false,
+  previewDevice: null,
   brand: null,
   accent: null,
   home: null,
@@ -255,6 +259,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   activate: () => set({ active: true }),
   apply: (patch) =>
     set((s) => ({
+      previewDevice:
+        patch.previewDevice !== undefined ? patch.previewDevice : s.previewDevice,
       brand: patch.brand !== undefined ? patch.brand : s.brand,
       accent: patch.accent !== undefined ? patch.accent : s.accent,
       home: patch.home !== undefined ? patch.home : s.home,
