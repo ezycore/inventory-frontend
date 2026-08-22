@@ -17788,7 +17788,7 @@ export interface operations {
                     };
                     bankInstructions?: string;
                     theme?: {
-                        preset?: string;
+                        preset: string;
                         brandColor?: string;
                         accentColor?: string;
                         homepageSections?: {
@@ -17796,7 +17796,7 @@ export interface operations {
                             type: string;
                         }[];
                         logo?: {
-                            background?: string;
+                            background?: "" | string;
                             height?: number;
                             padding?: number;
                             radius?: number;
@@ -17865,8 +17865,8 @@ export interface operations {
                             useShippingRule?: boolean;
                             text?: string;
                             link?: string;
-                            bgColor?: string;
-                            textColor?: string;
+                            bgColor?: "" | string;
+                            textColor?: "" | string;
                             icon?: string;
                             ctaLabel?: string;
                             dismissible?: boolean;
@@ -17878,7 +17878,7 @@ export interface operations {
                                 thumbnailUrl?: string;
                                 publicId?: string;
                             } | null;
-                            overlay?: string;
+                            overlay?: "" | string;
                             overlayOpacity?: number;
                             /** @enum {string} */
                             bgFit?: "cover" | "tile";
