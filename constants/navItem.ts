@@ -564,6 +564,12 @@ export const navGroups: NavGroup[] = [
             icon: "globe",
             permissions: ["organization.view"],
           },
+          {
+            title: "Referrals",
+            url: "/settings/referrals",
+            icon: "ticket-percent",
+            permissions: ["organization.view"],
+          },
           // Billing is deliberately absent: it lives in the sidebar's user menu
           // (`AppSidebar` footer), not under Settings — one entry, one place.
           // Its breadcrumb/tab title still resolves via `layout.nav.items.billing`.

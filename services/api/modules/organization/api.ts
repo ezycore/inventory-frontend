@@ -5,6 +5,7 @@ import type {
   OrganizationFeatures,
   PaginatedResponse,
   PlanChangeResult,
+  ReferralLinkInfo,
   StorefrontHeroSlide,
   StorefrontSettings,
   SubscriptionCancelResult,
@@ -151,6 +152,12 @@ export const organizationApi = {
   getPayLink: (): Promise<
     ApiResponse<{ url: string | null; gateway: string | null; status: string }>
   > => apiClient.get(`/organization/billing/pay-link`),
+
+  // GET /api/organization/referral-link - This workspace's own shareable
+  // referral URL (proxied from Mission Control). Used in:
+  // useGetReferralLink → settings/referrals page.
+  getReferralLink: (): Promise<ApiResponse<ReferralLinkInfo>> =>
+    apiClient.get(`/organization/referral-link`),
 
   // POST /api/organization/plan-change - Self-serve upgrade/downgrade
   // Used in: useRequestPlanChange → billing/available-plans.tsx
