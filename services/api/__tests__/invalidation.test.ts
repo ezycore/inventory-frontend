@@ -44,6 +44,9 @@ const STOREFRONT_HOOKS = path.join(SERVICES_DIR, "storefront", "hooks.ts");
  * Adding a name here is a claim — if the endpoint writes something, it does not belong.
  */
 const READ_ONLY_MUTATIONS: Record<string, string> = {
+  useEndOwnSupportSession:
+    "the support operator ending their own session — it clears the local auth, " +
+    "so every cached query is discarded with the session rather than refreshed",
   useEmailCustomerStatement: "sends an email; changes no data",
   useEmailSaleReceipt: "sends an email; changes no data",
   useOrderFraudScore: "on-demand risk lookup, modelled as a mutation to run lazily",
