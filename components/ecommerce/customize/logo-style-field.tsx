@@ -7,6 +7,7 @@ import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { resolveLogoStyle } from "@/lib/storefront-templates";
 import type { StorefrontLogoStyle } from "@/types";
+import { useId } from "react";
 
 /** Bounds mirror the backend validator; the shop clamps to these too. */
 const LIMITS = {
@@ -145,12 +146,14 @@ function SizeInput({
   limits: { min: number; max: number };
   onChange: (value: number | undefined) => void;
 }) {
+  const id = useId();
   return (
     <div className="space-y-1">
-      <Label className="cursor-default text-xs text-muted-foreground">
+      <Label htmlFor={id} className="cursor-default text-xs text-muted-foreground">
         {label}
       </Label>
       <NumberField
+        id={id}
         value={value ?? null}
         // `null` back to `undefined`: the payload must OMIT a cleared field, not
         // send an explicit null, or the backend stores one and the resolver's

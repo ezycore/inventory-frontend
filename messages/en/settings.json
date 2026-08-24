@@ -138,6 +138,20 @@
       "value": "Value"
     }
   },
+  "referrals": {
+    "title": "Referrals",
+    "subtitle": "Share your referral link with other businesses. When they sign up through it, you'll earn a commission on their subscription.",
+    "linkTitle": "Your referral link",
+    "linkDescription": "Anyone who signs up through this link is credited to you.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "shareWhatsapp": "Share on WhatsApp",
+    "toasts": {
+      "copied": "Referral link copied",
+      "copyFailed": "Could not copy — copy the link manually"
+    },
+    "empty": "Your referral link isn't available right now. Please try again in a moment."
+  },
   "fields": {
     "title": "Field Settings",
     "subtitle": "Customize which fields appear in forms for your organization",
