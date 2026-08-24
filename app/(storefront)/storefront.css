@@ -707,6 +707,80 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
 .sf-root ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Campaigns are a deliberate carousel on phones, not a raw overflow box. The
+   next-card peek, position, buttons and dots communicate that more content is
+   available while the native scrollbar stays out of the storefront chrome. */
+.sf-deals-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.sf-deals-heading h2 {
+  margin: 0;
+  font-size: clamp(17px, 2vw, 20px);
+}
+.sf-deals-heading span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.sf-deals-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: var(--gap);
+}
+.sf-deal-card {
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.sf-deals-controls { display: none; }
+@media (max-width: 640px) {
+  .sf-deals-track {
+    grid-auto-flow: column;
+    grid-auto-columns: calc(100% - 28px);
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .sf-deals-track::-webkit-scrollbar { display: none; }
+  .sf-deals-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .sf-deals-controls button {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .sf-deals-controls button:disabled { opacity: 0.35; cursor: default; }
+  .sf-deals-dots { display: flex; align-items: center; gap: 6px; }
+  .sf-deals-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+  .sf-deals-dots span[data-active="true"] { width: 20px; background: var(--primary); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-deals-track { scroll-behavior: auto; }
+}
 @keyframes ezSlideUp {
   from {
     transform: translateY(14px);
@@ -1705,8 +1779,8 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
 /* A 7px dot is far too small to tap. The <button> is a transparent 32×36 hit
    area; `::before` paints the dot itself, so the visual design is unchanged. */
 .sf-hero-dot {
-  width: 32px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 0;
   border: 0;
   padding: 0;
