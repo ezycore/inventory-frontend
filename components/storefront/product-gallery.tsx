@@ -25,6 +25,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
+import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import type { StorefrontImage } from "@/lib/storefront-client";
 
 /** How far the hero magnifies under the pointer. */
@@ -81,6 +82,7 @@ export function ProductGallery({
   const { t } = useStorefrontUI();
   const fit = useStoreImageFit();
   const imageRatio = useStoreImageRatio();
+  const previewMobile = useSfPreview((s) => s.previewDevice === "mobile");
   const [zoomed, setZoomed] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
 
@@ -99,9 +101,9 @@ export function ProductGallery({
       className="sf-pdp-zoom"
       // Handlers only when there's a real image — the striped placeholder has
       // nothing to magnify.
-      onPointerMove={main ? track : undefined}
-      onPointerLeave={main ? () => setZoomed(false) : undefined}
-      style={{ cursor: main ? "zoom-in" : undefined }}
+      onPointerMove={main && !previewMobile ? track : undefined}
+      onPointerLeave={main && !previewMobile ? () => setZoomed(false) : undefined}
+      style={{ cursor: main && !previewMobile ? "zoom-in" : undefined }}
     >
       <Media
         src={main}
@@ -125,7 +127,7 @@ export function ProductGallery({
           transformOrigin: origin,
         }}
       />
-      {main ? (
+      {main && !previewMobile ? (
         // Affordance only — CSS hides it wherever there is no fine pointer.
         <span className="sf-pdp-zoom-hint" aria-hidden="true">
           <Icon name="zoomIn" size={14} /> {t.zoomHint}

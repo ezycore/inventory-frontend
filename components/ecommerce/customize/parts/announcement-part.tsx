@@ -127,6 +127,7 @@ export function AnnouncementPart({
           label="Background"
           value={value.bgColor}
           onChange={(bgColor) => patchAnnouncement({ bgColor })}
+          allowEmpty={false}
         />
         <ColorField
           label="Text colour"

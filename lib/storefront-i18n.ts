@@ -33,6 +33,9 @@ export interface Dict {
   /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
   campaignOff: string;
   campaignEnds: string;
+  campaignOffers: string;
+  previousOffer: string;
+  nextOffer: string;
   /* --- account area (sidebar + sections, Rashid's Mart design) --- */
   tabWishlist: string;
   tabAddresses: string;
@@ -480,6 +483,9 @@ const en: Dict = {
   viewCart: "View cart",
   campaignOff: "off",
   campaignEnds: "Ends",
+  campaignOffers: "Current offers",
+  previousOffer: "Previous offer",
+  nextOffer: "Next offer",
   tabWishlist: "Wishlist",
   tabAddresses: "Addresses",
   tabPrefs: "Notifications",
@@ -872,6 +878,9 @@ const bn: Dict = {
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
   campaignEnds: "শেষ",
+  campaignOffers: "চলতি অফার",
+  previousOffer: "আগের অফার",
+  nextOffer: "পরের অফার",
   tabWishlist: "উইশলিস্ট",
   tabAddresses: "ঠিকানা",
   tabPrefs: "নোটিফিকেশন",

@@ -27,12 +27,14 @@ export function BrandColorsField({
         layout="inline"
         value={brandColor}
         onChange={setBrandColor}
+        allowEmpty={false}
       />
       <ColorField
         label="Accent"
         layout="inline"
         value={accentColor}
         onChange={setAccentColor}
+        allowEmpty={false}
       />
       <div className="overflow-hidden rounded-lg border bg-background">
         <p className="px-2.5 pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">

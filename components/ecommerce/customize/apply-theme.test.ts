@@ -3,7 +3,9 @@ import { READY_MADE_THEMES, getReadyMadeTheme } from "@/lib/storefront-themes";
 import {
   applyHomeTemplateToDraft,
   applyThemeToDraft,
+  haveCollectionRowsChanged,
   isThemeModified,
+  validateCustomizeDraft,
 } from "@/components/ecommerce/customize/use-customize-draft";
 import { DEFAULT_DESIGN, resolveThemeColors } from "@/lib/storefront-theme";
 import {
@@ -245,6 +247,56 @@ describe("applyThemeToDraft", () => {
       layout: "grid",
       align: "center",
     });
+  });
+});
+
+describe("Customize draft safeguards", () => {
+  const validAnnouncement: CustomizeDraft["announcement"] = {
+    enabled: true,
+    useShippingRule: false,
+    text: "Delivery today",
+    link: "",
+    bgColor: "#2563eb",
+    textColor: "",
+    icon: "",
+    ctaLabel: "",
+    dismissible: false,
+    size: "sm",
+    bgImage: null,
+    overlay: "",
+    overlayOpacity: 40,
+    bgFit: "cover",
+  };
+  const row = {
+    _id: "c1",
+    name: "Skin",
+    displayName: "Skin",
+    isListed: true,
+    seoTitle: "",
+    seoDescription: "",
+  };
+
+  it("rejects malformed colours while preserving blank auto colours", () => {
+    const valid = draft({ announcement: validAnnouncement });
+    expect(validateCustomizeDraft(valid)).toEqual([]);
+    expect(validateCustomizeDraft({ ...valid, brandColor: "#123" })).toContain(
+      "Brand colour is invalid",
+    );
+  });
+
+  it("does not mistake a collection layout change for edited category rows", () => {
+    const baseline = draft({ collections: [row] });
+    const themed = {
+      ...baseline,
+      templates: { ...baseline.templates, collection: "sidebar" },
+    };
+    expect(haveCollectionRowsChanged(themed, baseline)).toBe(false);
+    expect(
+      haveCollectionRowsChanged(
+        { ...themed, collections: [{ ...row, displayName: "Beauty" }] },
+        baseline,
+      ),
+    ).toBe(true);
   });
 });
 

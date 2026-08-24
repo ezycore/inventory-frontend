@@ -46,6 +46,7 @@ export const queryKeys = {
     featureImpact: () => ["organization", "features", "impact"] as const,
     subscription: () => ["organization", "subscription"] as const,
     plans: () => ["organization", "plans"] as const,
+    referralLink: () => ["organization", "referral-link"] as const,
     storefront: () => ["organization", "storefront"] as const,
     // Under the `storefront` prefix deliberately: a settings save is exactly the
     // moment the merchant is about to look at the preview again, and a re-mint is
