@@ -56,6 +56,12 @@ const publicRoutes = [
   "/reset-password",
   "/verify-email",
   "/resend-verification",
+  // Mission Control's support-session entry link. It MUST be public: the
+  // operator arrives with a one-time code and no session at all, so the auth
+  // gate would bounce them to /login — where they have no password to type,
+  // because a support session deliberately never issues one. Found by loading
+  // a real entry link in a browser; every unit test passed with this broken.
+  "/support/enter",
 ];
 
 // Auth routes that should redirect to the dashboard if already authenticated.
