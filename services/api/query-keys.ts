@@ -332,4 +332,7 @@ export const queryKeys = {
   coupons: resourceKeys("coupons"),
   contentPages: resourceKeys("content-pages"),
   domains: resourceKeys("domains"),
+  // Read-only Mission Control access to this workspace. No mutation of ours
+  // creates one — only MC can — so nothing else invalidates this root.
+  supportSessions: resourceKeys("supportSessions"),
 } as const;

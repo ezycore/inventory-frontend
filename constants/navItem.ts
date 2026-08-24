@@ -559,6 +559,16 @@ export const navGroups: NavGroup[] = [
             permissions: ["organization.manage"],
           },
           {
+            title: "Support Access",
+            url: "/settings/support-access",
+            icon: "shield",
+            // `organization.view`, matching the API: this is a disclosure, and
+            // hiding it from the staff who work in the workspace would defeat
+            // the point of keeping one. Ending a session needs more, and the
+            // button on the page is what checks that.
+            permissions: ["organization.view"],
+          },
+          {
             title: "Custom Domains",
             url: "/settings/domains",
             icon: "globe",

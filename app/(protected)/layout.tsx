@@ -8,6 +8,7 @@ import AppSidebar from "@/components/layout/app-sidebar";
 import Header from "@/components/layout/header";
 import { BillingAlertBanner } from "@/components/shared/billing-alert-banner";
 import { DemoBanner } from "@/components/shared/demo-banner";
+import { SupportSessionBanner } from "@/components/shared/support-session-banner";
 import {
   needsReactivation,
   shouldBlockWorkspaceAccess,
@@ -247,6 +248,9 @@ export default function ProtectedLayout({
           <AppSidebar />
           <SidebarInset>
             <BillingAlertBanner />
+            {/* First of the three: someone reading your workspace outranks a
+                billing notice and a sample-data reminder. */}
+            <SupportSessionBanner />
             <DemoBanner />
             <Header />
             <div className="min-h-screen">
