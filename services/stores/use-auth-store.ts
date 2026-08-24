@@ -92,11 +92,28 @@ interface AuthState extends LoadingState {
   token: string | null;
   isAuthenticated: boolean;
   activeLocationId: string | null;
+  /**
+   * Set only when THIS browser is a Mission Control support session
+   * (`mission-control/plan/support-session.md`). It is what lets the banner tell
+   * the operator's view apart from the merchant's — both see a live session, but
+   * only one of them is in it.
+   *
+   * Never set by an ordinary login, so every other code path can keep assuming
+   * it is null.
+   */
+  supportSessionId: string | null;
 }
 
 // Auth actions interface
 interface AuthActions {
   setUser: (user: User, token: string) => void;
+  /**
+   * Adopt a support session: the same thing `setUser` does, plus the session id
+   * the banner keys on. Deliberately a separate action rather than an extra
+   * argument — a support session is a different kind of sign-in, and making it
+   * look identical at the call site is how it would end up mistaken for one.
+   */
+  setSupportSession: (user: User, token: string, sessionId: string) => void;
   /** Swap the bearer token without touching the session around it. */
   setToken: (token: string) => void;
   updateUser: (updates: Partial<User>) => void;
@@ -122,6 +139,7 @@ const initialState: AuthState = {
   token: null,
   isAuthenticated: false,
   activeLocationId: null,
+  supportSessionId: null,
 };
 
 // Create the auth store with persistence
@@ -155,6 +173,11 @@ export const useAuthStore = create<AuthStore>()(
               secure: process.env.NODE_ENV === "production",
             });
           }
+        },
+
+        setSupportSession: (user: User, token: string, sessionId: string) => {
+          get().setUser(user, token);
+          set({ supportSessionId: sessionId });
         },
 
         // Replace only the token — used after a password change, where the
@@ -304,6 +327,10 @@ export const useAuthStore = create<AuthStore>()(
           token: state.token,
           isAuthenticated: state.isAuthenticated,
           activeLocationId: state.activeLocationId,
+          // Persisted so a page refresh mid-session does not turn the operator's
+          // banner into the merchant's — the app would then offer them a button
+          // labelled as if someone else were the one being watched.
+          supportSessionId: state.supportSessionId,
         }),
       },
     ),

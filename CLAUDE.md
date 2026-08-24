@@ -3,6 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Sibling repos:** one of several under `easeventory/` (`inventory-backend`, `inventory-frontend`, `inventory-landing`, `mission-control`). For the repo map, aliases, and the cross-repo contracts that connect them, see the workspace-root [`../CLAUDE.md`](../CLAUDE.md).
+>
+> **Cross-repo master reference:** `mission-control/docs/EZYCORE_MASTER_REFERENCE.md` — the full cross-product reference (data model, features, API surface, permissions, MC/billing, pricing, marketing guardrails) across all five repos. **Update it in the same PR** whenever your change shifts a count or fact it documents — a new admin page, storefront route, feature toggle, or sidebar/permission change.
 
 ## Working agreement (mandatory)
 
