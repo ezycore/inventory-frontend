@@ -713,6 +713,18 @@ export interface AvailablePlansInfo {
 }
 
 /**
+ * Response of GET /api/organization/referral-link (proxied from Mission
+ * Control). `null` whenever MC is unreachable/unconfigured — the ordinary
+ * degraded case, not an error — so the Settings page should hide the section
+ * rather than show a broken link.
+ */
+export type ReferralLinkInfo = {
+  code: string;
+  status: "active" | "disabled";
+  url: string;
+} | null;
+
+/**
  * Result of POST /api/organization/plan-change (proxied from Mission Control).
  * Discriminated by `mode`:
  *   - "checkout":  redirect the user to `url` (hosted Stripe / Bangladesh

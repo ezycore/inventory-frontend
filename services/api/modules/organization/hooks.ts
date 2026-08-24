@@ -171,6 +171,18 @@ export const useGetAvailablePlans = () => {
   });
 };
 
+// GET /api/organization/referral-link - This workspace's own shareable
+// referral URL. `null` (MC unreachable/unconfigured) is the ordinary
+// degraded case — the page should hide the section, not show an error.
+export const useGetReferralLink = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.referralLink(),
+    queryFn: () => organizationApi.getReferralLink(),
+    select: (res) => res.data,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 // POST /api/organization/plan-change - Self-serve upgrade/downgrade.
 // Returns MC's discriminated result; the caller decides what to do (redirect to
 // checkout / toast a scheduled downgrade / refresh after immediate activation).

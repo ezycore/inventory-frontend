@@ -21,6 +21,7 @@ import { useHydrated, useSignupAPi } from "@/hooks";
 import useDynamicForm from "@/hooks/use-dynamic-form";
 import { detectCountryCode } from "@/utils/detect-country";
 import { getSignupPlanFromUrl } from "@/utils/signup-plan";
+import { getSignupReferralFromUrl } from "@/utils/signup-referral";
 import { slugify } from "@/utils/slugify";
 import { Button } from "@/ui/components/button";
 import DynamicForm from "@/ui/components/form";
@@ -135,6 +136,7 @@ export default function Signup() {
       // in Bangla should not get their first email from us in English.
       locale,
       ...getSignupPlanFromUrl(),
+      ...getSignupReferralFromUrl(),
     });
   };
 
