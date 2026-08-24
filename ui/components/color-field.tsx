@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useId } from "react";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { cn } from "@/ui/lib/utils";
@@ -25,6 +26,7 @@ export function ColorField({
   hint,
   layout = "stacked",
   fallback = "#000000",
+  allowEmpty = true,
   className,
 }: {
   label: string;
@@ -34,12 +36,17 @@ export function ColorField({
   layout?: "stacked" | "inline";
   /** Swatch colour when `value` is empty — never written back on its own. */
   fallback?: string;
+  /** Whether blank means inherit / automatic for this setting. */
+  allowEmpty?: boolean;
   className?: string;
 }) {
+  const id = useId();
+  const errorId = `${id}-error`;
+  const valid = isValidHexColor(value, allowEmpty);
   const swatch = (
     <input
       type="color"
-      value={value || fallback}
+      value={isHexColor(value) ? value : fallback}
       onChange={(e) => onChange(e.target.value)}
       aria-label={`${label} swatch`}
       className={cn(
@@ -57,28 +64,47 @@ export function ColorField({
         </span>
         {swatch}
         <Input
+          id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-label={`${label} hex value`}
+          aria-invalid={!valid}
+          aria-describedby={!valid ? errorId : undefined}
           className="h-9 font-mono text-sm"
         />
+        {!valid ? <span id={errorId} className="sr-only">Use a 6-digit hex colour such as #2563eb.</span> : null}
       </div>
     );
   }
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label>{label}</Label>
+      <Label htmlFor={id}>{label}</Label>
       <div className="flex items-center gap-2">
         {swatch}
         <Input
+          id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-label={`${label} hex value`}
+          aria-invalid={!valid}
+          aria-describedby={!valid ? errorId : undefined}
           className="font-mono text-sm"
         />
       </div>
+      {!valid ? (
+        <p id={errorId} className="text-xs text-destructive">
+          Use a 6-digit hex colour such as #2563eb.
+        </p>
+      ) : null}
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
+
+/** CSS colours accepted by Customize and by the API. */
+export const isHexColor = (value: string): boolean =>
+  /^#[0-9a-fA-F]{6}$/.test(value.trim());
+
+export const isValidHexColor = (value: string, allowEmpty = true): boolean =>
+  (allowEmpty && value.trim() === "") || isHexColor(value);

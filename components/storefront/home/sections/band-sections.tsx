@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
+import { useCallback, useId, useRef, useState } from "react";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
@@ -92,25 +93,73 @@ export function TrustBand({ store }: SectionProps) {
 export function DealStrip(props: SectionProps) {
   const { base, campaigns, currency, t } = props;
   const live = campaigns.filter((c) => c.name);
+  const scroller = useRef<HTMLDivElement>(null);
+  const headingId = useId();
+  const [current, setCurrent] = useState(0);
+  const go = useCallback((index: number) => {
+    const el = scroller.current;
+    if (!el) return;
+    const next = Math.max(0, Math.min(index, live.length - 1));
+    const card = el.children[next] as HTMLElement | undefined;
+    if (!card) return;
+    el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: "smooth" });
+    setCurrent(next);
+  }, [live.length]);
+  const syncCurrent = useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const cards = Array.from(el.children) as HTMLElement[];
+    const nearest = cards.reduce(
+      (best, card, index) => {
+        const distance = Math.abs(card.offsetLeft - el.offsetLeft - el.scrollLeft);
+        return distance < best.distance ? { index, distance } : best;
+      },
+      { index: 0, distance: Number.POSITIVE_INFINITY },
+    );
+    setCurrent(nearest.index);
+  }, []);
   if (!live.length) return null;
   return (
-    <div style={{ ...wrap, padding: "clamp(12px,2vw,20px) var(--pad)" }}>
+    <section
+      className="sf-deals"
+      aria-labelledby={headingId}
+      style={{ ...wrap, padding: "clamp(12px,2vw,20px) var(--pad)" }}
+    >
+      <div className="sf-deals-heading">
+        <h2 id={headingId}>{t.campaignOffers}</h2>
+        {live.length > 1 ? <span aria-live="polite">{current + 1} / {live.length}</span> : null}
+      </div>
       <div
-        style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gridAutoColumns: "minmax(248px, 1fr)",
-          gap: "var(--gap)",
-          overflowX: "auto",
-          scrollSnapType: "x mandatory",
-          paddingBottom: 6,
+        ref={scroller}
+        className="sf-deals-track"
+        role="region"
+        aria-roledescription="carousel"
+        aria-labelledby={headingId}
+        tabIndex={live.length > 1 ? 0 : undefined}
+        onScroll={syncCurrent}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft") { event.preventDefault(); go(current - 1); }
+          if (event.key === "ArrowRight") { event.preventDefault(); go(current + 1); }
         }}
       >
-        {live.map((c) => (
-          <DealCard key={c._id ?? c.name} campaign={c} base={base} currency={currency} t={t} />
+        {live.map((c, index) => (
+          <DealCard key={c._id ?? c.name} campaign={c} base={base} currency={currency} t={t} index={index} total={live.length} />
         ))}
       </div>
-    </div>
+      {live.length > 1 ? (
+        <div className="sf-deals-controls">
+          <button type="button" onClick={() => go(current - 1)} disabled={current === 0} aria-label={t.previousOffer}>
+            <Icon name="back" size={17} />
+          </button>
+          <div className="sf-deals-dots" aria-hidden="true">
+            {live.map((c, index) => <span key={c._id ?? `${c.name}-${index}`} data-active={index === current} />)}
+          </div>
+          <button type="button" onClick={() => go(current + 1)} disabled={current === live.length - 1} aria-label={t.nextOffer}>
+            <Icon name="chevR" size={17} />
+          </button>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -132,11 +181,15 @@ function DealCard({
   base,
   currency,
   t,
+  index,
+  total,
 }: {
   campaign: SectionProps["campaigns"][number];
   base: string;
   currency?: string;
   t: SectionProps["t"];
+  index: number;
+  total: number;
 }) {
   const amount =
     c.type === "percentage" ? `${c.value}%` : money(c.value, currency);
@@ -154,8 +207,9 @@ function DealCard({
   return (
     <Link
       href={storeHref(base, "/products")}
+      className="sf-deal-card"
+      aria-label={`${index + 1} / ${total}: ${c.name}, ${amount} ${t.campaignOff}`}
       style={{
-        scrollSnapAlign: "start",
         display: "flex",
         alignItems: "center",
         gap: 14,

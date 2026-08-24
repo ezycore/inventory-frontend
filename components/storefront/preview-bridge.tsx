@@ -26,6 +26,7 @@ export function StorePreviewBridge() {
       if (!d || d.type !== "ezycore-preview") return;
       const p = d.payload || {};
       apply({
+        previewDevice: p.previewDevice,
         samples: p.samples,
         brand: p.theme?.brandColor,
         accent: p.theme?.accentColor,
