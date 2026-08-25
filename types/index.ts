@@ -2018,6 +2018,7 @@ export type PurchaseReturnReason =
   | "wrong_item"
   | "excess_quantity"
   | "expired"
+  | "quality_issue"
   | "other";
 
 /**

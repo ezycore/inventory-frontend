@@ -30,6 +30,7 @@ const REASON_KEYS: Record<string, string> = {
   wrong_item: "reasonWrongItem",
   excess_quantity: "reasonExcessQuantity",
   expired: "reasonExpired",
+  quality_issue: "reasonQualityIssue",
   other: "reasonOther",
 };
 

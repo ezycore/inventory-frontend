@@ -9638,7 +9638,7 @@ export interface components {
                 };
             };
             /** @enum {string} */
-            reason: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "other";
+            reason: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "quality_issue" | "other";
             notes?: string;
             /** @enum {string} */
             status: "pending" | "completed" | "cancelled";
@@ -26124,7 +26124,7 @@ export interface operations {
                 purchaseOrderId?: string;
                 supplierId?: string;
                 status?: "pending" | "completed" | "cancelled";
-                reason?: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "other";
+                reason?: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "quality_issue" | "other";
                 startDate?: string;
                 endDate?: string;
                 search?: string;
@@ -26213,7 +26213,7 @@ export interface operations {
                         conversionFactor?: number;
                     }[];
                     /** @enum {string} */
-                    reason: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "other";
+                    reason: "damaged" | "defective" | "wrong_item" | "excess_quantity" | "expired" | "quality_issue" | "other";
                     notes?: string;
                     deductionAmount?: number;
                     refundAllocation?: {
