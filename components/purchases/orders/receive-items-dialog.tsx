@@ -3,9 +3,9 @@
 
 import { useTranslations } from "next-intl";
 import { populatedRef } from "@/utils/populated-ref";
-import { useAccounts, useDefaultAccount } from "@/services/api";
+import { useAccountPaymentOptions } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
-import type { Account, PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
+import type { PurchaseOrder, ReceivePurchaseOrderDto } from "@/types";
 import { Button } from "@/ui/components/button";
 import {
   Dialog,
@@ -67,12 +67,15 @@ export function ReceiveItemsDialog({
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isExpiryEnabled = user?.organization?.features?.expiryTracking ?? false;
 
-  const { data: accountsData } = useAccounts({ all: true });
-  const accounts: Account[] = useMemo(
-    () => (accountsData?.items as Account[]) ?? [],
-    [accountsData],
+  // Minimal list (id/name/isDefault only) — reachable by purchases.edit
+  // (what receiving actually requires) as well as accounts.view, so a
+  // receiving-only role can pick a payment account without the full list.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
+  const accounts = useMemo(() => accountsData ?? [], [accountsData]);
+  const defaultAccount = useMemo(
+    () => accounts.find((a) => a.isDefault),
+    [accounts],
   );
-  const { data: defaultAccount } = useDefaultAccount();
 
   const [receiveItems, setReceiveItems] = useState<ItemReceiveState[]>([]);
   const [accountId, setAccountId] = useState<string>("");
@@ -87,7 +90,7 @@ export function ReceiveItemsDialog({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setReceiveItems(buildReceiveItemsFromOrder(order));
       setPaidAmount(String(order.dueAmount ?? ""));
-      setAccountId((defaultAccount as Account | undefined)?._id ?? "");
+      setAccountId(defaultAccount?._id ?? "");
     }
   }, [open, order, defaultAccount]);
 

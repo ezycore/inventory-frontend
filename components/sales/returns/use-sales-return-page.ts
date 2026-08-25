@@ -12,7 +12,7 @@ import {
   useSalesReturns,
   useCreateSalesReturn,
   useCustomerPendingDues,
-  useAccounts,
+  useAccountPaymentOptions,
   useSalesReturnsSummary,
 } from '@/services/api';
 import type { RefundAllocation } from '@/services/api/modules/sales-returns/api';
@@ -25,7 +25,6 @@ import type {
   SalesReturnReason,
   SalesReturnsSummary,
   SalesReturnFilters,
-  Account,
   ApiResponse,
   PaginatedResponse,
 } from '@/types';
@@ -72,9 +71,9 @@ export function useSalesReturnPage() {
     limit,
     ...filters,
   });
-  const { data: accountsData } = useAccounts(
-    isAccountsEnabled ? { status: 'active', limit: 100 } : undefined,
-  );
+  // Minimal list — reachable by returns.create (what creating a return
+  // actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesReturnsSummary();
   const createReturnMutation = useCreateSalesReturn();
 
@@ -82,7 +81,7 @@ export function useSalesReturnPage() {
   const sale = (saleData as ApiResponse<Sale>)?.data;
   const returnsResponse = (returnsData as ApiResponse<PaginatedResponse<SalesReturn>>)?.data;
   const returns: SalesReturn[] = returnsResponse?.items ?? [];
-  const accounts: Account[] = (accountsData as PaginatedResponse<Account>)?.items ?? [];
+  const accounts = accountsData ?? [];
   const summary = (summaryData as ApiResponse<SalesReturnsSummary>)?.data;
 
   const paginationInfo = useMemo(() => {

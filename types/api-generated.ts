@@ -1765,7 +1765,7 @@ export interface paths {
         };
         /**
          * GET /api/support-sessions
-         * @description Defined in `src/routes/support-session.routes.ts:24`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/support-session.routes.ts:28`.
          */
         get: operations["get_api_support_sessions"];
         put?: never;
@@ -1969,13 +1969,13 @@ export interface paths {
         };
         /**
          * GET /api/brands
-         * @description Defined in `src/routes/brands.routes.ts:18`. Requires permission `brands.view`.
+         * @description Defined in `src/routes/brands.routes.ts:20`.
          */
         get: operations["get_api_brands"];
         put?: never;
         /**
          * POST /api/brands
-         * @description Defined in `src/routes/brands.routes.ts:52`. Requires permission `brands.create`.
+         * @description Defined in `src/routes/brands.routes.ts:54`. Requires permission `brands.create`.
          */
         post: operations["post_api_brands"];
         delete?: never;
@@ -1993,7 +1993,7 @@ export interface paths {
         };
         /**
          * GET /api/brands/stats
-         * @description Defined in `src/routes/brands.routes.ts:25`. Requires permission `brands.view`.
+         * @description Defined in `src/routes/brands.routes.ts:27`. Requires permission `brands.view`.
          */
         get: operations["get_api_brands_stats"];
         put?: never;
@@ -2013,7 +2013,7 @@ export interface paths {
         };
         /**
          * GET /api/brands/active
-         * @description Defined in `src/routes/brands.routes.ts:28`. Requires permission `brands.view`.
+         * @description Defined in `src/routes/brands.routes.ts:30`. Requires permission `brands.view`.
          */
         get: operations["get_api_brands_active"];
         put?: never;
@@ -2033,7 +2033,7 @@ export interface paths {
         };
         /**
          * GET /api/brands/slug/:slug
-         * @description Defined in `src/routes/brands.routes.ts:36`. Requires permission `brands.view`.
+         * @description Defined in `src/routes/brands.routes.ts:38`. Requires permission `brands.view`.
          */
         get: operations["get_api_brands_slug_slug"];
         put?: never;
@@ -2053,18 +2053,18 @@ export interface paths {
         };
         /**
          * GET /api/brands/:id
-         * @description Defined in `src/routes/brands.routes.ts:44`. Requires permission `brands.view`.
+         * @description Defined in `src/routes/brands.routes.ts:46`. Requires permission `brands.view`.
          */
         get: operations["get_api_brands_id"];
         /**
          * PUT /api/brands/:id
-         * @description Defined in `src/routes/brands.routes.ts:61`. Requires permission `brands.edit`.
+         * @description Defined in `src/routes/brands.routes.ts:63`. Requires permission `brands.edit`.
          */
         put: operations["put_api_brands_id"];
         post?: never;
         /**
          * DELETE /api/brands/:id
-         * @description Defined in `src/routes/brands.routes.ts:70`. Requires permission `brands.delete`.
+         * @description Defined in `src/routes/brands.routes.ts:72`. Requires permission `brands.delete`.
          */
         delete: operations["delete_api_brands_id"];
         options?: never;
@@ -2083,7 +2083,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/brands/bulk-delete
-         * @description Defined in `src/routes/brands.routes.ts:78`. Requires permission `brands.delete`.
+         * @description Defined in `src/routes/brands.routes.ts:80`. Requires permission `brands.delete`.
          */
         post: operations["post_api_brands_bulk_delete"];
         delete?: never;
@@ -2101,13 +2101,13 @@ export interface paths {
         };
         /**
          * GET /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:24`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:26`.
          */
         get: operations["get_api_categories"];
         put?: never;
         /**
          * POST /api/categories
-         * @description Defined in `src/routes/categories.routes.ts:71`. Requires permission `categories.create`.
+         * @description Defined in `src/routes/categories.routes.ts:73`. Requires permission `categories.create`.
          */
         post: operations["post_api_categories"];
         delete?: never;
@@ -2125,7 +2125,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/stats
-         * @description Defined in `src/routes/categories.routes.ts:32`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:34`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_stats"];
         put?: never;
@@ -2145,7 +2145,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/tree
-         * @description Defined in `src/routes/categories.routes.ts:35`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:37`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_tree"];
         put?: never;
@@ -2165,7 +2165,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/by-path
-         * @description Defined in `src/routes/categories.routes.ts:39`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:41`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_by_path"];
         put?: never;
@@ -2185,7 +2185,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/active
-         * @description Defined in `src/routes/categories.routes.ts:47`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:49`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_active"];
         put?: never;
@@ -2205,7 +2205,7 @@ export interface paths {
         };
         /**
          * GET /api/categories/slug/:slug
-         * @description Defined in `src/routes/categories.routes.ts:55`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:57`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_slug_slug"];
         put?: never;
@@ -2225,18 +2225,18 @@ export interface paths {
         };
         /**
          * GET /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:63`. Requires permission `categories.view`.
+         * @description Defined in `src/routes/categories.routes.ts:65`. Requires permission `categories.view`.
          */
         get: operations["get_api_categories_id"];
         /**
          * PUT /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:80`. Requires permission `categories.edit`.
+         * @description Defined in `src/routes/categories.routes.ts:82`. Requires permission `categories.edit`.
          */
         put: operations["put_api_categories_id"];
         post?: never;
         /**
          * DELETE /api/categories/:id
-         * @description Defined in `src/routes/categories.routes.ts:89`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:91`. Requires permission `categories.delete`.
          */
         delete: operations["delete_api_categories_id"];
         options?: never;
@@ -2255,7 +2255,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/categories/:id/apply-default-tax
-         * @description Defined in `src/routes/categories.routes.ts:100`. Requires permission `products.edit`. Gated by organization feature `tax` — returns 403 when disabled.
+         * @description Defined in `src/routes/categories.routes.ts:102`. Requires permission `products.edit`. Gated by organization feature `tax` — returns 403 when disabled.
          */
         post: operations["post_api_categories_id_apply_default_tax"];
         delete?: never;
@@ -2275,7 +2275,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/categories/bulk-delete
-         * @description Defined in `src/routes/categories.routes.ts:109`. Requires permission `categories.delete`.
+         * @description Defined in `src/routes/categories.routes.ts:111`. Requires permission `categories.delete`.
          */
         post: operations["post_api_categories_bulk_delete"];
         delete?: never;
@@ -2293,13 +2293,13 @@ export interface paths {
         };
         /**
          * GET /api/tags
-         * @description Defined in `src/routes/tags.routes.ts:24`. Requires permission `tags.view`.
+         * @description Defined in `src/routes/tags.routes.ts:29`.
          */
         get: operations["get_api_tags"];
         put?: never;
         /**
          * POST /api/tags
-         * @description Defined in `src/routes/tags.routes.ts:58`. Requires permission `tags.create`.
+         * @description Defined in `src/routes/tags.routes.ts:63`. Requires permission `tags.create`.
          */
         post: operations["post_api_tags"];
         delete?: never;
@@ -2317,7 +2317,7 @@ export interface paths {
         };
         /**
          * GET /api/tags/stats
-         * @description Defined in `src/routes/tags.routes.ts:31`. Requires permission `tags.view`.
+         * @description Defined in `src/routes/tags.routes.ts:36`. Requires permission `tags.view`.
          */
         get: operations["get_api_tags_stats"];
         put?: never;
@@ -2337,7 +2337,7 @@ export interface paths {
         };
         /**
          * GET /api/tags/active
-         * @description Defined in `src/routes/tags.routes.ts:34`. Requires permission `tags.view`.
+         * @description Defined in `src/routes/tags.routes.ts:39`. Requires permission `tags.view`.
          */
         get: operations["get_api_tags_active"];
         put?: never;
@@ -2357,7 +2357,7 @@ export interface paths {
         };
         /**
          * GET /api/tags/slug/:slug
-         * @description Defined in `src/routes/tags.routes.ts:42`. Requires permission `tags.view`.
+         * @description Defined in `src/routes/tags.routes.ts:47`. Requires permission `tags.view`.
          */
         get: operations["get_api_tags_slug_slug"];
         put?: never;
@@ -2377,18 +2377,18 @@ export interface paths {
         };
         /**
          * GET /api/tags/:id
-         * @description Defined in `src/routes/tags.routes.ts:50`. Requires permission `tags.view`.
+         * @description Defined in `src/routes/tags.routes.ts:55`. Requires permission `tags.view`.
          */
         get: operations["get_api_tags_id"];
         /**
          * PUT /api/tags/:id
-         * @description Defined in `src/routes/tags.routes.ts:66`. Requires permission `tags.edit`.
+         * @description Defined in `src/routes/tags.routes.ts:71`. Requires permission `tags.edit`.
          */
         put: operations["put_api_tags_id"];
         post?: never;
         /**
          * DELETE /api/tags/:id
-         * @description Defined in `src/routes/tags.routes.ts:75`. Requires permission `tags.delete`.
+         * @description Defined in `src/routes/tags.routes.ts:80`. Requires permission `tags.delete`.
          */
         delete: operations["delete_api_tags_id"];
         options?: never;
@@ -2407,7 +2407,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/tags/bulk-delete
-         * @description Defined in `src/routes/tags.routes.ts:83`. Requires permission `tags.delete`.
+         * @description Defined in `src/routes/tags.routes.ts:88`. Requires permission `tags.delete`.
          */
         post: operations["post_api_tags_bulk_delete"];
         delete?: never;
@@ -5063,7 +5063,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/accounts
-         * @description Defined in `src/routes/accounts.routes.ts:60`. Requires permission `accounts.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:80`. Requires permission `accounts.create`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_accounts"];
         delete?: never;
@@ -5081,7 +5081,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/payment-options
-         * @description Defined in `src/routes/accounts.routes.ts:31`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:43`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_payment_options"];
         put?: never;
@@ -5101,7 +5101,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/summary
-         * @description Defined in `src/routes/accounts.routes.ts:38`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:58`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_summary"];
         put?: never;
@@ -5121,7 +5121,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/default
-         * @description Defined in `src/routes/accounts.routes.ts:45`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:65`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_default"];
         put?: never;
@@ -5141,18 +5141,18 @@ export interface paths {
         };
         /**
          * GET /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:52`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:72`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_id"];
         /**
          * PUT /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:68`. Requires permission `accounts.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:88`. Requires permission `accounts.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         put: operations["put_api_accounts_id"];
         post?: never;
         /**
          * DELETE /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:76`. Requires permission `accounts.delete`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:96`. Requires permission `accounts.delete`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         delete: operations["delete_api_accounts_id"];
         options?: never;
@@ -7316,6 +7316,8 @@ export interface components {
         AccountPaymentOption: {
             _id: string;
             name: string;
+            /** @enum {string} */
+            type: "cash" | "bank" | "mfs" | "custom";
             isDefault?: boolean;
         };
         Brand: {
@@ -18851,15 +18853,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
         };
     };
     post_api_support_sessions_id_end: {
@@ -19367,15 +19360,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -19954,15 +19938,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -20705,15 +20680,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };

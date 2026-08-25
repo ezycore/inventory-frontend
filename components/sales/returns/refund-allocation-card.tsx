@@ -5,7 +5,7 @@
  */
 import { useTranslations } from 'next-intl';
 import { RefundAllocationCard as SharedRefundAllocationCard } from '@/components/shared/returns/refund-allocation-card';
-import type { Account } from '@/types';
+import type { AccountPaymentOption } from '@/types';
 import type { DueAllocation } from './types';
 
 interface RefundAllocationCardProps {
@@ -18,7 +18,7 @@ interface RefundAllocationCardProps {
   onDueToggle: (index: number, selected: boolean) => void;
   onDueAmountChange: (index: number, amount: number) => void;
   remainingForRefund: number;
-  accounts: Account[];
+  accounts: AccountPaymentOption[];
   selectedAccountId: string;
   onAccountChange: (id: string) => void;
   accountRefundAmount: number;

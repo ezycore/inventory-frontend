@@ -18,7 +18,7 @@ import {
 } from '@/ui/components/select';
 import { Checkbox } from '@/ui/components/checkbox';
 import { Separator } from '@/ui/components/separator';
-import type { Account } from '@/types';
+import type { AccountPaymentOption } from '@/types';
 
 /** Each pending-due row rendered inside the card. `referenceLabel` is the
  *  human-readable identifier (invoice number for sales, order number for purchases). */
@@ -55,7 +55,9 @@ export interface RefundAllocationCardProps {
 
   // ── Cash refund ────────────────────────────────────────────────────
   remainingForRefund: number;
-  accounts: Account[];
+  /** The minimal accounts.routes.ts payment-options list — no balance, so
+   * the picker below shows the account's type, not a figure it doesn't have. */
+  accounts: AccountPaymentOption[];
   selectedAccountId: string;
   onAccountChange: (id: string) => void;
   accountRefundAmount: number;
@@ -250,8 +252,7 @@ export function RefundAllocationCard({
                   <SelectContent>
                     {accounts.map((account) => (
                       <SelectItem key={account._id} value={account._id}>
-                        {account.name} (
-                        {formatCurrency(account.balance ?? 0)})
+                        {account.name} ({account.type})
                       </SelectItem>
                     ))}
                     {accounts.length === 0 && (

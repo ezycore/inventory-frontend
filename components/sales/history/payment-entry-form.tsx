@@ -4,12 +4,12 @@ import { useTranslations } from 'next-intl';
 import {
   PaymentEntryForm as SharedPaymentEntryForm,
 } from "@/components/shared/payments";
-import type { Account, Sale } from "@/types";
+import type { AccountPaymentOption, Sale } from "@/types";
 import { populatedRef } from "@/utils/populated-ref";
 
 interface PaymentEntryFormProps {
   sale: Sale;
-  accounts: Account[];
+  accounts: AccountPaymentOption[];
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
   paymentAmount: string;

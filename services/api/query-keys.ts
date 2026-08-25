@@ -206,10 +206,9 @@ export const queryKeys = {
   accounts: {
     ...resourceKeys("accounts"),
     default: () => ["accounts", "default"] as const,
-    /** The lean account list behind order/payment pickers (`use-order-account-options`). */
-    orderOptions: () => ["accounts", "order-options"] as const,
-    /** GET /accounts/payment-options — reachable by sales.create/purchases.create
-     * as well as accounts.view, unlike orderOptions above (see useAccountPaymentOptions). */
+    /** GET /accounts/payment-options — the id/name/isDefault list shared by
+     * every "which account" payment picker (sales, purchases, storefront
+     * orders — see useAccountPaymentOptions and use-order-account-options). */
     paymentOptions: () => ["accounts", "payment-options"] as const,
   },
 

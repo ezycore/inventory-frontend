@@ -12,7 +12,7 @@ import { z } from "zod";
 import { useCurrency } from "@/lib/currency";
 import { roundMoney } from "@/lib/money";
 import {
-  useAccounts,
+  useAccountPaymentOptions,
   useCreatePurchaseReturn,
   usePurchaseOrder,
   usePurchaseReturns,
@@ -21,7 +21,6 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type {
-  Account,
   PurchaseOrder,
   PurchaseReturn,
   PurchaseReturnFilters,
@@ -101,9 +100,9 @@ export function usePurchaseReturnsPage() {
   const { data: returnsData, isLoading: isLoadingReturns } = usePurchaseReturns(
     { page, limit, ...filters },
   );
-  const { data: accountsData } = useAccounts(
-    isAccountsEnabled ? { status: "active", limit: 100 } : undefined,
-  );
+  // Minimal list — reachable by returns.create (what creating a return
+  // actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   const { data: summaryData, isLoading: isSummaryLoading } =
     usePurchaseReturnsSummary();
 
@@ -119,8 +118,7 @@ export function usePurchaseReturnsPage() {
       }
     | undefined;
   const returns: PurchaseReturn[] = returnsResponse?.items ?? [];
-  const accounts = ((accountsData as { items?: Account[] } | undefined)?.items ??
-    []) as Account[];
+  const accounts = accountsData ?? [];
   const summary = summaryData?.data;
 
   const paginationInfo = useMemo(() => {
