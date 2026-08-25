@@ -18,15 +18,6 @@ export const useUpdateAccount = accountHooks.useUpdate
 export const useDeleteAccount = accountHooks.useDelete
 export const useBulkDeleteAccounts = accountHooks.useBulkDelete
 
-// Get default account
-export function useDefaultAccount() {
-  return useQuery({
-    queryKey: queryKeys.accounts.default(),
-    queryFn: () => accountsApi.getDefault(),
-    select: (data) => data.data,
-  })
-}
-
 // Get account summary
 export function useAccountSummary() {
   return useQuery({

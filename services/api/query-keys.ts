@@ -205,7 +205,6 @@ export const queryKeys = {
   // ── Money ───────────────────────────────────────────────────────────────────
   accounts: {
     ...resourceKeys("accounts"),
-    default: () => ["accounts", "default"] as const,
     /** GET /accounts/payment-options — the id/name/isDefault list shared by
      * every "which account" payment picker (sales, purchases, storefront
      * orders — see useAccountPaymentOptions and use-order-account-options). */

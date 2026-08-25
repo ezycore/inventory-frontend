@@ -24,9 +24,6 @@ export const accountsApi = {
   getById: (id: string): Promise<ApiResponse<ApiAccount>> =>
     apiClient.get(`/accounts/${id}`),
 
-  getDefault: (): Promise<ApiResponse<ApiAccount>> =>
-    apiClient.get("/accounts/default"),
-
   getSummary: (): Promise<ApiResponse<AccountSummary>> =>
     apiClient.get("/accounts/summary"),
 
