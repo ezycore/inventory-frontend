@@ -42,8 +42,10 @@ import { sanitize } from "@/utils";
 import { fullName } from "@/utils/user-name";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { cn } from "@/ui/lib/utils";
+import { isPermissionDeniedError } from "@/lib/api-client";
 import {
   CheckCircle2,
+  Lock,
   MapPin,
   Store,
   Warehouse,
@@ -117,9 +119,11 @@ function getLocationStats(
 function LocationSummaryBanner({
   stats,
   isLoading,
+  isPermissionDenied,
 }: {
   stats: SummaryItem[];
   isLoading: boolean;
+  isPermissionDenied: boolean;
 }) {
   if (isLoading) {
     return (
@@ -130,6 +134,19 @@ function LocationSummaryBanner({
             className="h-[108px] rounded-2xl border bg-card animate-pulse"
           />
         ))}
+      </div>
+    );
+  }
+
+  // A denied stats query used to fall back to `stats?.total || 0`, which read
+  // as "you have no locations" rather than "you may not see this count" — the
+  // table below already explains the real reason via ErrorBoundaryFallback,
+  // so the banner just steps aside instead of showing a false zero.
+  if (isPermissionDenied) {
+    return (
+      <div className="flex items-center gap-2 rounded-2xl border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <Lock className="h-4 w-4 shrink-0" />
+        <span>You don&apos;t have permission to view location stats.</span>
       </div>
     );
   }
@@ -327,7 +344,7 @@ export default function LocationsPage() {
     "multiLocation",
   );
   const [viewMode, setViewMode] = useViewMode("locations", 'card');
-  const { data: statsData, isLoading: statsLoading } = useLocationStats?.() ?? { data: undefined, isLoading: false };
+  const { data: statsData, isLoading: statsLoading, error: statsError } = useLocationStats?.() ?? { data: undefined, isLoading: false, error: undefined };
   const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
   const { data: rolesData } = useRoles({ enabled: canManageUsers });
   const roles = useMemo(() => rolesData?.data || [], [rolesData]);
@@ -426,6 +443,7 @@ export default function LocationsPage() {
       <LocationSummaryBanner
         stats={getLocationStats(statsData, t)}
         isLoading={statsLoading}
+        isPermissionDenied={isPermissionDeniedError(statsError)}
       />
 
       {/* The switch belongs where the need appears: a merchant wanting a second

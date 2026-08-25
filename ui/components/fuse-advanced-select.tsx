@@ -29,6 +29,7 @@
  */
 
 import { useSelectOptions } from "@/services/api";
+import { isPermissionDeniedError } from "@/lib/api-client";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useQuickAddModule } from "@/hooks/use-quick-add-module";
 import DynamicForm from "@/ui/components/form";
@@ -102,7 +103,14 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     [optionsApi, apiOptions, options]
   );
 
-  const apiError = queryError ? (queryError as Error).message : null;
+  // See advanced-select.tsx for why a permission-denied query gets its own
+  // copy rather than the raw backend message — it's not retryable.
+  const isPermissionDenied = isPermissionDeniedError(queryError);
+  const apiError = queryError
+    ? isPermissionDenied
+      ? "You don't have permission to view these options"
+      : (queryError as Error).message
+    : null;
 
   const {
     handleValueChange,
@@ -302,11 +310,11 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
     return (
       <div
         className={fieldCls(
-          "flex h-9 items-center border-red-500 py-2 pr-3 opacity-50"
+          cn("flex h-9 items-center py-2 pr-3 opacity-50", !isPermissionDenied && "border-red-500")
         )}
       >
         <span className="min-w-0 flex-1 truncate text-muted-foreground">
-          Error: {apiError}
+          {isPermissionDenied ? apiError : `Error: ${apiError}`}
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
       </div>

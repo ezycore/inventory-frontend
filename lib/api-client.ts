@@ -11,6 +11,25 @@ export type ApiError = {
   statusCode?: number;
 };
 
+/**
+ * True for a 403 the backend raised because the user lacks a permission
+ * (`AppErrors.FORBIDDEN` / any `checkPermission(...)` gate), as opposed to a
+ * feature gate or other 403. `code` is reliable when the backend sent one;
+ * the message check is the fallback for older/uncoded throws. Callers that
+ * render a query error (a select's options, a list's empty state) use this
+ * to swap the raw backend string for friendly copy and drop any "Retry" —
+ * retrying a permission error can never succeed.
+ */
+export function isPermissionDeniedError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { status?: number; statusCode?: number; code?: string; message?: string; error?: string };
+  const status = candidate.status ?? candidate.statusCode;
+  if (status !== 403) return false;
+  if (candidate.code === "FORBIDDEN") return true;
+  const message = `${candidate.message ?? ""} ${candidate.error ?? ""}`.toLowerCase();
+  return message.includes("permission");
+}
+
 // Global 401 handler - will be set by the auth store
 let handle401: (() => void) | null = null;
 

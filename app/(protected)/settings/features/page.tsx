@@ -9,7 +9,12 @@ import {
 } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import { FeatureName } from "@/types";
-import { useFeatureImpact, useGetFeatures, useUpdateFeatures } from "@/services/api";
+import {
+  useFeatureImpact,
+  useGetFeatures,
+  useGetStorefrontSettings,
+  useUpdateFeatures,
+} from "@/services/api";
 import {
   DisableFeatureDialog,
   disableConsequence,
@@ -78,6 +83,18 @@ export default function FeatureSettingsPage() {
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
 
+  // The `storefront` flag is the platform gate; publishing is a separate,
+  // merchant-owned switch on /ecommerce/settings that this page never touches
+  // — so turning storefront on here does not make the shop reachable by
+  // itself. A merchant who stops at this toggle hits "This store is
+  // currently unavailable" with no clue why, since nothing else points them
+  // at the publish step. Fetch the settings doc only once the feature is on
+  // (the endpoint 403s while it's off) and nudge toward it when unpublished.
+  const isStorefrontEnabled = features?.storefront === true;
+  const { data: storefrontSettings } = useGetStorefrontSettings(isStorefrontEnabled);
+  const needsStorefrontPublish =
+    isStorefrontEnabled && storefrontSettings && !storefrontSettings.published;
+
   // Redirect if user doesn't have permission
   useEffect(() => {
     if (user && !canManageSettings) {
@@ -140,6 +157,19 @@ export default function FeatureSettingsPage() {
         title={t("title")}
         subTitle={t("subtitle")}
       />
+
+      {needsStorefrontPublish && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <Lock className="h-4 w-4 shrink-0" />
+          <span>{t("storefrontNotPublished")}</span>
+          <Link
+            href="/ecommerce/settings"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {t("storefrontPublishLink")}
+          </Link>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {FEATURE_ORDER.map((feature) => {

@@ -216,10 +216,17 @@ export function getInventoryColumns(t: Translator): ColumnDef<Inventory>[] {
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <div className="text-xs space-y-1">
+              <div className="text-xs space-y-1 max-w-[220px]">
                 <p>{t("columns.tooltipQuantity", { quantity: quantity.toLocaleString() })}</p>
                 <p>{t("columns.tooltipCostPrice", { price: costPrice.toFixed(2) })}</p>
                 <p>{t("columns.tooltipTotalValue", { value: `৳${costValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}` })}</p>
+                {/* This cost price is rarely what the merchant last typed — it's
+                    the location's running weighted average, blended across every
+                    receive at a different price. Spelled out here once, next to
+                    the number that prompts the question every time. */}
+                <p className="border-t pt-1 text-muted-foreground">
+                  {t("columns.tooltipWeightedAverage")}
+                </p>
               </div>
             </TooltipContent>
           </Tooltip>
