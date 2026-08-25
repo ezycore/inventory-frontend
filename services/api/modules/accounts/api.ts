@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import type {
+  AccountPaymentOption,
   AccountSummary,
   ApiResponse,
   CreateAccountDto,
@@ -28,6 +29,11 @@ export const accountsApi = {
 
   getSummary: (): Promise<ApiResponse<AccountSummary>> =>
     apiClient.get("/accounts/summary"),
+
+  // Minimal id/name/isDefault list for the sale/purchase payment picker —
+  // reachable by sales.create/purchases.create as well as accounts.view.
+  getPaymentOptions: (): Promise<ApiResponse<AccountPaymentOption[]>> =>
+    apiClient.get("/accounts/payment-options"),
 
   create: (data: CreateAccountDto): Promise<ApiResponse<ApiAccount>> =>
     apiClient.post("/accounts", data),

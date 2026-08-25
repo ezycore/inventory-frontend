@@ -36,5 +36,16 @@ export function useAccountSummary() {
   })
 }
 
+// Minimal account list for the sale/purchase payment picker — reachable by
+// sales.create/purchases.create as well as accounts.view, so a sell-only or
+// receiving-only role can take payment without the full accounts list.
+export function useAccountPaymentOptions() {
+  return useQuery({
+    queryKey: queryKeys.accounts.paymentOptions(),
+    queryFn: () => accountsApi.getPaymentOptions(),
+    select: (data) => data.data,
+  })
+}
+
 // Aliases for consistency with other hooks
 export const useAddAccount = useCreateAccount

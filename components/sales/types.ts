@@ -63,6 +63,16 @@ export interface AccountApiResponse {
     items?: AccountApiItem[];
   };
 }
+
+/**
+ * GET /api/accounts/payment-options — a flat array under `data`, not the
+ * paginated `{items}` envelope `AccountApiResponse` carries, and no
+ * `balance`/`type`/`status`: this endpoint is reachable by sales.create
+ * (no accounts.view needed), so those never leave the database for it.
+ */
+export interface AccountPaymentOptionApiResponse {
+  data?: Array<{ _id: string; name: string; isDefault?: boolean }>;
+}
 export interface ExtractedCustomer {
   value: string | null;
   label: string | null;

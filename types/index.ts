@@ -680,6 +680,20 @@ export interface SubscriptionInfo {
   usage: SubscriptionUsage;
 }
 
+/**
+ * Response of GET /api/organization/subscription/status — permission-free
+ * (any authenticated org member, not just `organization.view`). Deliberately
+ * a subset of `Entitlement`: no `amount`, `planSlug`/`planName`, `modules`,
+ * or `limits`. See `lib/subscription-utils.ts`'s `EntitlementAccessFields`
+ * for exactly what this is used for.
+ */
+export interface SubscriptionStatusInfo {
+  entitlement: Pick<
+    Entitlement,
+    "status" | "subscriptionStatus" | "cancelAtPeriodEnd" | "cancelAt" | "currentPeriodEnd"
+  > | null;
+}
+
 /** A publicly available plan (proxied from Mission Control). */
 export interface AvailablePlan {
   id: string;
@@ -1746,6 +1760,18 @@ export interface AccountSummary {
     mfs: number;
     custom: number;
   };
+}
+
+/**
+ * Response item of GET /api/accounts/payment-options — enough to pick "which
+ * account did this payment land in" and nothing else. Reachable by
+ * sales.create/purchases.create as well as accounts.view, unlike every other
+ * account read; deliberately no `balance`, `type`, or `status`.
+ */
+export interface AccountPaymentOption {
+  _id: string;
+  name: string;
+  isDefault?: boolean;
 }
 
 // Transaction interfaces.

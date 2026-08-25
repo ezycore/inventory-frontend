@@ -45,6 +45,7 @@ export const queryKeys = {
     features: () => ["organization", "features"] as const,
     featureImpact: () => ["organization", "features", "impact"] as const,
     subscription: () => ["organization", "subscription"] as const,
+    subscriptionStatus: () => ["organization", "subscription", "status"] as const,
     plans: () => ["organization", "plans"] as const,
     referralLink: () => ["organization", "referral-link"] as const,
     storefront: () => ["organization", "storefront"] as const,
@@ -207,6 +208,9 @@ export const queryKeys = {
     default: () => ["accounts", "default"] as const,
     /** The lean account list behind order/payment pickers (`use-order-account-options`). */
     orderOptions: () => ["accounts", "order-options"] as const,
+    /** GET /accounts/payment-options — reachable by sales.create/purchases.create
+     * as well as accounts.view, unlike orderOptions above (see useAccountPaymentOptions). */
+    paymentOptions: () => ["accounts", "payment-options"] as const,
   },
 
   transactions: {
