@@ -12,13 +12,10 @@ import {
 } from "@/lib/storefront-templates";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 
-const STRIP_ALIGN = {
-  left: "flex-start",
-  // A centred or right-aligned row that overflows must keep its first tile
-  // reachable. `safe` falls back to start alignment only in that case.
-  center: "safe center",
-  right: "safe flex-end",
-} as const;
+/** How much of the visible row one arrow press moves. */
+const STRIP_PAGE = 0.8;
+/** A phone-width track still has to clear a whole tile in one press. */
+const STRIP_MIN_STEP = 120;
 
 const GRID_ROW_ALIGN = {
   left: "start",
@@ -59,20 +56,62 @@ export function resolveCategoryRowLayout(
   };
 }
 
-/** Shared horizontal-strip behavior for category chips and category tiles. */
-export function categoryStripStyle(
-  align: ResolvedHomeCollections["align"],
-): CSSProperties {
+/**
+ * Does this row draw its category NAMES?
+ *
+ * Two inputs, and the second is the one that matters: a merchant can ask for a
+ * pictures-only row, but a category with no image renders as a letter tile, and
+ * a letter with no name under it is not a wayfinding target — it is a mystery
+ * box where a department should be. So the preference is honored only when the
+ * whole row is photographed.
+ *
+ * ⚠ **Asked ONCE per section, never per tile.** Keeping the name on just the
+ * unphotographed tiles would leave a row of mixed shapes, which is the same
+ * mistake `CategoryTiles` already avoids when it asks `photographed` for the
+ * whole section rather than tile by tile. One shape used consistently beats a
+ * ragged row, even when the consistent one is not what was asked for.
+ */
+export function categoryLabelsVisible(
+  showLabels: boolean,
+  allPhotographed: boolean,
+): boolean {
+  return showLabels || !allPhotographed;
+}
+
+/** Distance one arrow press scrolls a strip whose track is `clientWidth` wide. */
+export function stripStep(clientWidth: number): number {
+  return Math.max(Math.round(clientWidth * STRIP_PAGE), STRIP_MIN_STEP);
+}
+
+/**
+ * Which of the strip's two arrows have somewhere to go — a row that fits shows
+ * neither, and the arrow pointing past the edge you are already at is hidden
+ * rather than disabled (they overlay the tiles, so a dead one would sit on top
+ * of the first category for no reason).
+ *
+ * The 1px tolerance is not defensive rounding. Browser zoom and fractional
+ * device pixels leave `scrollLeft` resting at values like 0.5 or `max - 0.4`,
+ * so an exact comparison keeps one arrow permanently lit at a rest position.
+ */
+export function stripEdges(
+  scrollLeft: number,
+  scrollWidth: number,
+  clientWidth: number,
+): { start: boolean; end: boolean } {
   return {
-    display: "flex",
-    gap: "var(--gap)",
-    overflowX: "auto",
-    paddingBottom: 6,
-    justifyContent: STRIP_ALIGN[align],
+    start: scrollLeft > 1,
+    end: scrollLeft < scrollWidth - clientWidth - 1,
   };
 }
 
-/** Layout props for the photo/disc category row. */
+/**
+ * Layout props for the photo/disc category row.
+ *
+ * `strip` returns the tile variables ALONE — the flex track, its alignment and
+ * its scrolling belong to `CategoryStrip`, which owns the arrow state they feed.
+ * The variables still ride out on `style` because the strip wrapper puts them on
+ * the element the tiles inherit from.
+ */
 export function categoryTileRowLayout(
   row: CategoryRowLayout,
   tileMin: number,
@@ -88,10 +127,7 @@ export function categoryTileRowLayout(
   } as CSSProperties;
 
   if (row.layout === "strip") {
-    return {
-      style: { ...variables, ...categoryStripStyle(row.align) },
-      strip: true,
-    };
+    return { style: variables, strip: true };
   }
 
   return {

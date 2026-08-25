@@ -387,6 +387,13 @@ export interface ResolvedHomeCollections {
   /** Desktop columns in `grid`. Narrow screens pin to 2 — see storefront.css. */
   columns: number;
   align: "left" | "center" | "right";
+  /**
+   * The merchant's PREFERENCE, not the answer. Whether the names actually come
+   * off also depends on the catalogue having a picture for every listed
+   * category — `categoryLabelsVisible` in `home/category-row-layout.ts` is
+   * where the two meet, and the only thing a row should ask.
+   */
+  showLabels: boolean;
 }
 
 /**
@@ -404,5 +411,9 @@ export function resolveHomeCollections(
     columns: clampInt(raw?.columns, 2, 6, 4),
     align:
       raw?.align === "center" || raw?.align === "right" ? raw.align : "left",
+    // Only an explicit `false` hides the names. Anything else — unset, null, a
+    // string that survived an old payload — is the shop that has never been
+    // asked, and that shop shows its category names.
+    showLabels: raw?.showLabels !== false,
   };
 }
