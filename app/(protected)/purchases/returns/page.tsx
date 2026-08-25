@@ -3,9 +3,7 @@
 
 import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
 
-import { Button } from "@/ui/components/button";
 import type { PurchaseReturnReason } from "@/types";
 
 import {
@@ -70,18 +68,15 @@ function PurchaseReturnsPageContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground">
-            {t("subtitle")}
-          </p>
-        </div>
-        <Button onClick={() => ctx.setShowNewReturn(!ctx.showNewReturn)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("newReturn")}
-        </Button>
+      {/* Header. No "New Return" button here on purpose — the search card
+          below is always visible (there is nothing to reveal), matching the
+          sales-returns page. A button that toggled unread state used to sit
+          here, doing nothing when pressed. */}
+      <div>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground">
+          {t("subtitle")}
+        </p>
       </div>
 
       {/* Summary Stats */}

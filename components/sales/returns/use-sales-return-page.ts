@@ -45,7 +45,6 @@ type SaleSearchData = z.infer<ReturnType<typeof makeSaleSearchSchema>>;
 export function useSalesReturnPage() {
   const t = useTranslations('sales.returns');
   // ── Core UI state ─────────────────────────────────────────────
-  const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
   const [notes, setNotes] = useState('');
@@ -144,7 +143,6 @@ export function useSalesReturnPage() {
     itemsHook.resetItems();
     allocationHook.resetAllocation();
     setNotes('');
-    setShowNewReturn(false);
     searchForm.reset();
   }, [itemsHook, allocationHook, searchForm]);
 
@@ -305,9 +303,6 @@ export function useSalesReturnPage() {
   );
 
   return {
-    // UI
-    showNewReturn,
-    setShowNewReturn,
     // form state
     selectedSaleId,
     returnableItems: itemsHook.returnableItems,

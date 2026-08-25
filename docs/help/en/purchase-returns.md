@@ -9,7 +9,6 @@ features:
   - returns
 ui_labels:
   - purchases:returns.title
-  - purchases:returns.newReturn
   - purchases:returns.findOrder
   - purchases:returns.findOrderDesc
   - purchases:returns.itemsDesc
@@ -28,9 +27,9 @@ from, and the money you paid comes back to you.
 
 ## Record the return
 
-1. Press **New Return**, then **Find Purchase Order** — *Enter an order ID or order number to
-   process a return.* The return attaches to the original purchase, which is what lets it credit the
-   right supplier at the right cost price.
+1. **Find Purchase Order** — *Enter an order ID or order number to process a return.* The return
+   attaches to the original purchase, which is what lets it credit the right supplier at the right
+   cost price.
 2. *Choose which items to return to the supplier and specify quantities.*
 3. **Give a reason:** Damaged, Defective, Wrong Item, **Excess Quantity**, Expired, **Quality Issue**
    or Other.

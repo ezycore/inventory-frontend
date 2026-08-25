@@ -59,6 +59,7 @@ export function RefundAllocationCard({
       onCounterpartyCreditChange={onSupplierCreditChange}
       creditSectionTitle={t('convertToSupplierCredit')}
       creditSectionDescription={t('supplierCreditDesc')}
+      creditSummaryLabel={t('supplierCreditSummaryLabel')}
     />
   );
 }

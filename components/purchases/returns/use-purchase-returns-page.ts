@@ -60,7 +60,6 @@ export function usePurchaseReturnsPage() {
   const { format: formatCurrency } = useCurrency();
 
   // ── State ─────────────────────────────────────────────────────
-  const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(
     searchParams.get("orderId"),
   );
@@ -231,7 +230,6 @@ export function usePurchaseReturnsPage() {
     setSelectedAccountId("");
     setSupplierCreditAmount(0);
     setNotes("");
-    setShowNewReturn(false);
     searchForm.reset();
   }, [searchForm]);
 
@@ -488,10 +486,6 @@ export function usePurchaseReturnsPage() {
 
   // ── Public API ────────────────────────────────────────────────
   return {
-    // UI state
-    showNewReturn,
-    setShowNewReturn,
-
     // Search
     searchForm,
     handleSearch,

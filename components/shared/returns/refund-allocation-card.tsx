@@ -75,6 +75,11 @@ export interface RefundAllocationCardProps {
   creditSectionTitle?: string;
   /** Override the credit section description line */
   creditSectionDescription?: string;
+  /** Override the allocation-summary row label (default: "Store Credit:") —
+   * separate from creditSectionTitle above, which only covers the input
+   * section's heading. Without this the summary always read "Store Credit:"
+   * even on a supplier return. */
+  creditSummaryLabel?: string;
 
   // ── Visual customisation ───────────────────────────────────────────
   /** Tailwind color class for adjustment rows, e.g. "text-green-600" or "text-blue-600" */
@@ -108,12 +113,14 @@ export function RefundAllocationCard({
   currentCounterpartyCreditBalance,
   creditSectionTitle,
   creditSectionDescription,
+  creditSummaryLabel,
   adjustmentColorClass = 'text-green-600',
   descriptionSuffix = '',
 }: RefundAllocationCardProps) {
   const t = useTranslations('common.returns');
   const resolvedCreditTitle = creditSectionTitle ?? t('convertToStoreCredit');
   const resolvedCreditDescription = creditSectionDescription ?? t('convertToStoreCreditDescription');
+  const resolvedCreditSummaryLabel = creditSummaryLabel ?? t('storeCredit');
   return (
     <Card>
       <CardHeader>
@@ -306,7 +313,7 @@ export function RefundAllocationCard({
           )}
           {counterpartyCreditAmount > 0 && (
             <div className="flex justify-between text-blue-600">
-              <span>{t('storeCredit')}</span>
+              <span>{resolvedCreditSummaryLabel}</span>
               <span>{formatCurrency(counterpartyCreditAmount)}</span>
             </div>
           )}
