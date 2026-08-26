@@ -11433,6 +11433,8 @@ export interface components {
                 publicId: string;
             } | null;
             storefrontLocationId?: string;
+            /** @enum {string} */
+            defaultOutOfStockBehavior?: "hide" | "show" | "backorder";
             allowedPaymentMethods: ("cod" | "bank")[];
             contact?: {
                 email?: string;
@@ -18089,6 +18091,8 @@ export interface operations {
                     published?: boolean;
                     displayName?: string;
                     storefrontLocationId?: string;
+                    /** @enum {string} */
+                    defaultOutOfStockBehavior?: "hide" | "show" | "backorder";
                     allowedPaymentMethods?: ("cod" | "bank")[];
                     contact?: {
                         email?: (unknown | string) | "";
@@ -38043,6 +38047,8 @@ export interface operations {
                     patch: {
                         isListed?: boolean;
                         featured?: boolean;
+                        /** @enum {string} */
+                        outOfStockBehavior?: "hide" | "show" | "backorder" | "inherit";
                     };
                 };
             };

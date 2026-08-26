@@ -1736,8 +1736,26 @@ resolved **per request from the host**, never baked.
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
 
-## Work log (what was built, newest first — as of 2026-08-15)
+## Work log (what was built, newest first — as of 2026-08-26)
 
+- **Sold-out behavior became a STORE setting with a per-product override (FE + BE)** (2026-08-26):
+  `outOfStockBehavior` existed only per product, so "backorder everything" meant opening every
+  product in the catalogue. Now: `StorefrontSettings.defaultOutOfStockBehavior` (Ecommerce →
+  Settings → General, stored default `"show"`) with `Product.storefront.outOfStockBehavior` as the
+  override — and the product field's schema `default` was **removed**, because a stored default puts
+  an explicit value on every product and makes the store setting unreachable for the whole
+  catalogue. Unset = inherit. Backend resolves the pair through
+  `resolveOutOfStockBehavior(product, settings)` in `utils/storefront-availability.ts`.
+  **What matters on this side:** the product payload carries the **resolved** value, so every
+  shopper-facing gate (`soldOut = outOfStock && !canBackorder` in `view.tsx`, `product-card.tsx`,
+  `quick-buy-sheet.tsx`, `use-card-quick-buy.ts`, `use-product-detail.ts`, `wishlist-section.tsx`)
+  keeps reading one field and needs no knowledge of the store setting. Merchant side: the online
+  editor (`product-online-editor.tsx`) gained a **"Use store default (…)"** option that labels itself
+  from `useGetStorefrontSettings` and clears the override via the existing `clearFields` list — it
+  seeds from `sf.outOfStockBehavior ?? INHERIT`, and falling back to `"show"` there would stamp an
+  override onto every product on every save. The catalog bulk bar
+  (`components/products/online-catalog-panel.tsx`) takes the same choice, where `"inherit"` is a
+  **request-only sentinel** mapping to `$unset` — never a stored fourth value.
 - **The homepage's product rows became merchant-owned (FE + BE)** (2026-08-15): the homepage
   hard-coded exactly two rows — Featured, then New arrivals — so a shop whose selling story is
   "here is the skin care, here are the devices" had nowhere to tell it. `theme.homeRows` is now a

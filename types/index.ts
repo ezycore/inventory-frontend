@@ -103,6 +103,14 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
 export type StorefrontPaymentMethod = "cod" | "bank";
 export type ShippingRuleMode = "flat" | "free_over_threshold" | "none";
 
+/**
+ * What the shop does with a sold-out product. Set store-wide on
+ * `StorefrontSettings.defaultOutOfStockBehavior` and optionally overridden per
+ * product; the storefront's product payload always carries the RESOLVED value,
+ * so shopper-facing code never needs the store setting.
+ */
+export type OutOfStockBehavior = "hide" | "show" | "backorder";
+
 export interface StorefrontShippingRule {
   mode: ShippingRuleMode;
   flatFee?: number;
@@ -375,6 +383,13 @@ export interface StorefrontSettings {
    *  banner → logo; this field is the merchant's own upload only. */
   socialImage?: Image | null;
   storefrontLocationId?: string;
+  /**
+   * Store-wide default for what the shop does with a sold-out product. A
+   * product's own `storefront.outOfStockBehavior` overrides it; that field is
+   * unset unless the merchant opted the product out, so this is what the whole
+   * catalogue follows.
+   */
+  defaultOutOfStockBehavior?: OutOfStockBehavior;
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };
   social?: {

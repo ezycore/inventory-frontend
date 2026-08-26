@@ -50,7 +50,14 @@ export interface UpdateStorefrontListingDto {
 
 export interface BulkStorefrontDto {
   ids: string[];
-  patch: { isListed?: boolean; featured?: boolean };
+  patch: {
+    isListed?: boolean;
+    featured?: boolean;
+    /** `"inherit"` clears the per-product override so the products follow the
+     *  store-wide `defaultOutOfStockBehavior` again. Request-only — it is never
+     *  a stored value. */
+    outOfStockBehavior?: OutOfStockBehavior | "inherit";
+  };
 }
 
 export type BulkStorefrontResult = BulkOperationResult;
