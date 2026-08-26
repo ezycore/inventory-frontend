@@ -1749,7 +1749,15 @@ resolved **per request from the host**, never baked.
   **What matters on this side:** the product payload carries the **resolved** value, so every
   shopper-facing gate (`soldOut = outOfStock && !canBackorder` in `view.tsx`, `product-card.tsx`,
   `quick-buy-sheet.tsx`, `use-card-quick-buy.ts`, `use-product-detail.ts`, `wishlist-section.tsx`)
-  keeps reading one field and needs no knowledge of the store setting. Merchant side: the online
+  keeps reading one field and needs no knowledge of the store setting.
+  **The shopper is told nothing about it** (2026-08-26): the stock badge has TWO states, not three —
+  a backorder product reads exactly like an ordinary in-stock one. The old "Available on backorder"
+  pill asked a shopper to understand a fulfilment arrangement that is the merchant's to manage; they
+  order as usual, the merchant restocks and then confirms. `soldOut` already excludes backorder, so
+  both badges (`view.tsx`, `quick-buy-sheet.tsx`) just lost the middle branch and the `backorder`
+  i18n key is gone from both locales. Do not reintroduce it. The one place the distinction survives
+  is `lib/storefront-jsonld.ts`, which still emits `schema.org/BackOrder` — that is a claim to a
+  crawler, not copy for a shopper, and `InStock` there would be a lie about on-hand stock. Merchant side: the online
   editor (`product-online-editor.tsx`) gained a **"Use store default (…)"** option that labels itself
   from `useGetStorefrontSettings` and clears the override via the existing `clearFields` list — it
   seeds from `sf.outOfStockBehavior ?? INHERIT`, and falling back to `"show"` there would stamp an
@@ -2402,7 +2410,8 @@ resolved **per request from the host**, never baked.
   prices/counts in memory so pagination totals stay correct; `getProductBySlug` 404s), and
   **"backorder"** keeps the buy button live past zero stock (FE `view.tsx` + `product-card.tsx` gate on
   a new `soldOut = outOfStock && !canBackorder`; `maxQty<=0` = uncapped in `use-cart-store`; i18n
-  `backorder` ×3). **Backorder is capture-only by design** — `resolveItems` lets the order be placed
+  `backorder` ×3 — **that i18n key was deleted on 2026-08-26**, see the newest work-log entry: the
+  shopper is no longer told a product is on backorder). **Backorder is capture-only by design** — `resolveItems` lets the order be placed
   past on-hand stock but the order sits `pending`; confirm→`reserveStock` and commit→`createSale` stay
   the ≥0 guard, so the merchant reserves/ships once restocked (no invariant broken). Also fixed the
   **can't-clear bug**: the editor only ever `$set` fields, so an emptied value never cleared — now it

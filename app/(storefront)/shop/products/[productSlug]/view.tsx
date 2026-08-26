@@ -111,7 +111,14 @@ export default function ProductDetailPage({
               under the title — the labels are what the merchant is merchandising
               on ("Eid sale", "Organic"), so burying them below the fold would
               make the tags page look like it does nothing. Wraps, because a
-              product can carry several and the column is narrow on a phone. */}
+              product can carry several and the column is narrow on a phone.
+
+              Two states, not three: a BACKORDER product reads exactly like an
+              ordinary in-stock one. It used to say "Available on backorder",
+              which asked the shopper to understand a fulfilment arrangement
+              that is the merchant's to manage — they order as usual, the
+              merchant restocks and then confirms. `soldOut` already excludes
+              backorder, so the branch simply goes. */}
           <div style={badgeRow}>
             <span
               style={{
@@ -120,7 +127,7 @@ export default function ProductDetailPage({
                 background: d.soldOut ? "var(--discount-soft)" : "var(--primary-soft)",
               }}
             >
-              {d.soldOut ? t.outOfStock : d.outOfStock ? t.backorder : t.inStock}
+              {d.soldOut ? t.outOfStock : t.inStock}
             </span>
             {/* Each chip is a link into the tag facet, so a shopper who likes a
                 label can see the rest of it — a chip that only decorates is a

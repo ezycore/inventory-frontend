@@ -101,7 +101,11 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     : (product?.availableQuantity ?? 0);
   const outOfStock = availableQty <= 0;
   // Backorder products stay buyable past zero stock; only "show"/"hide" products
-  // are truly sold out. `soldOut` gates the buy buttons + the red stock badge.
+  // are truly sold out. `soldOut` gates the buy buttons + the red stock badge —
+  // and it is the ONLY stock fact the page states, deliberately: a backorder
+  // product is presented as an ordinary available one (see the badge in
+  // `view.tsx`). Nothing downstream needs the raw `outOfStock`, which is why it
+  // is not returned.
   const canBackorder = product?.outOfStockBehavior === "backorder";
   const images =
     variable && selectedVariant?.images?.length
@@ -176,7 +180,6 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     compareAt,
     hasOld: !!compareAt && compareAt > price,
     availableQty,
-    outOfStock,
     canBackorder,
     soldOut: outOfStock && !canBackorder,
     images,
