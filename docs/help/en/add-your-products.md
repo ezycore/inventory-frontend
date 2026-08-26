@@ -82,6 +82,31 @@ Give a product a name, a unit, a selling price and a cost price. Everything else
 New products are **Active** by default, meaning they can be sold. Set a product to inactive when you
 stop selling it — this is better than deleting, because deleting loses its sales history.
 
+## Creating a product does not stock it
+
+A product is set up once for the whole business — every shop and warehouse uses the same one. Stock
+is not: it is counted per location. So creating a product and stocking it are two separate steps,
+and the form only does the second one if you ask it to.
+
+The **Track stock** switch at the top of the stock section is what asks. Turn it on and the product
+is added to the stock of the location you pick there, with the opening quantity and cost price you
+give it. Leave it off and the product is still saved and still appears in your product list — it
+just holds no stock anywhere.
+
+That matters more than it sounds. A product with no stock record at a location is not "zero stock"
+there: **it does not appear in the sell, purchase or adjust-stock screens at all.** Nothing on the
+Products list flags this, because that table has no stock column.
+
+Two things follow:
+
+- **Track stock only appears while you are creating a product.** Open an existing product and the
+  section is gone. Stock it from **Current Stock → Add Inventory** instead.
+- **It stocks one location.** To carry the same product in a second shop or a warehouse, switch
+  location in the top bar and add it there too. A variant product takes one entry per variant, per
+  location.
+
+[Keep your stock accurate](./track-your-stock.md) covers Add Inventory in full.
+
 ## Products with options
 
 If a product comes in several sizes or colours, add it as a variant product. Each variant carries its
