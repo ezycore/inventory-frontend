@@ -1341,6 +1341,21 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   .sf-rail-grid > :last-child {
     margin-inline: calc(var(--pad) * -1);
   }
+  /* ⚠ **…but only on the END side once a rail is there, or the content lands
+     ON TOP of the rail.** The pull above is `--pad` (28px) while the grid gap
+     is 12px, so the content column started 16px to the LEFT of where the rail
+     ends — and since it comes later in the DOM, every section with a ground of
+     its own painted over that strip. A department's hover highlight runs the
+     full 218px of the column, so it ran under the hero's tint and read as a
+     highlight bleeding out of the sidebar; the tint was simply drawn on top of
+     it.
+
+     Full-bleed is still wanted on the outer edge — a tinted band should reach
+     the viewport, not stop at `--pad`. It is only the rail's side that has
+     something to collide with. */
+  .sf-rail-grid:has(> .sf-rail) > :last-child {
+    margin-inline-start: 0;
+  }
   .sf-rail {
     display: block;
     position: sticky;
@@ -1383,7 +1398,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8;
+  gap: 8px;
   padding: 9px 12px;
   font-size: 13.5px;
   font-weight: 500;
