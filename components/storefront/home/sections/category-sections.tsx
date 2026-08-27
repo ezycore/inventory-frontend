@@ -32,7 +32,16 @@ import { wrap, type SectionProps } from "@/components/storefront/home/home-share
 export function CategoryChips({ base, categories, categoryRowDefault }: SectionProps) {
   if (!categories.length) return null;
   return (
-    <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
+    /* `StoreHome` stacks sections with no gap between them, so a section's own
+       padding is the ONLY thing separating it from the one above. This row's top
+       padding was 0, which is fine under a section that ends in whitespace and
+       broken under one that ends in a ground: after `search-hero` (a full-bleed
+       `--primary-soft` band) the tiles sat flush against the tint with their top
+       edge touching it, reading as a row clipped by the band. Sections are
+       merchant-ordered, so "what is above" is not knowable here — the row has to
+       carry its own clearance. Matches `CategoryTiles` below, which is the same
+       idea drawn as photos and always had it. */
+    <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad) 8px" }}>
       {/* Layout is the merchant's, so the row itself owns it — home-collections.tsx. */}
       <HomeCollections
         base={base}
