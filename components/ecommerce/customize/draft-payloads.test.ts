@@ -29,6 +29,7 @@ const row = (over: Partial<CustomizeDraft["collections"][number]>) =>
     parentId: null,
     displayName: "",
     isListed: true,
+    hasImage: false,
     ...over,
   }) as CustomizeDraft["collections"][number];
 

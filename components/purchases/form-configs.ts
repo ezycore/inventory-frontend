@@ -151,6 +151,12 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
   ];
 
   fields.push(
+    // Disabled reference price, labeled "(MRP)" — it is the selling price ×
+    // conversion factor, shown so the box price looks right at a glance, not
+    // a field to fill in. Cost Price is the one that drives the line total
+    // (quantity × costPrice), so it sits immediately next to Price rather
+    // than after Discount — the two used to be two boxes apart, and typing
+    // into the disabled Price field silently did nothing.
     {
       name: "price",
       label: t("form.price"),
@@ -163,8 +169,8 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       disabled: true,
     },
     {
-      name: "discount",
-      label: t("form.discount"),
+      name: "costPrice",
+      label: t("form.costPrice"),
       type: "number",
       precision: 2,
       required: false,
@@ -173,8 +179,8 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       validation: { min: 0 },
     },
     {
-      name: "costPrice",
-      label: t("form.costPrice"),
+      name: "discount",
+      label: t("form.discount"),
       type: "number",
       precision: 2,
       required: false,

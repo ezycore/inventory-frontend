@@ -45,6 +45,7 @@ ui_labels:
 | `covers_routes` | yes | App routes this page documents. Drives the contextual "?" link and the coverage gate. |
 | `features` | no | Feature flags required for this page's subject to be visible. Must match the nav's gating. |
 | `ui_labels` | no | Message keys for UI text quoted in the body. **This is the staleness detector** — see below. |
+| `video` | no | Hosted URL of a walkthrough recording for this page. Rendered above the body by `<HelpVideo>` in both the "?" drawer and `/help/<slug>` — a plain `<video>` element, so this must be a direct, playable file URL (e.g. an R2/CDN mp4), not a YouTube/Vimeo page link. |
 
 ## The `ui_labels` contract
 

@@ -134,17 +134,25 @@ export function PartBlock({
 export function PartField({
   label,
   hint,
+  hintTone,
   children,
 }: {
   label: string;
   hint?: ReactNode;
+  /**
+   * `warn` for a hint that explains why the control above it cannot act. It is
+   * a prop rather than the caller passing its own `<PartHint>` because this
+   * already wraps `hint` in one, and a nested `<p>` is invalid markup that
+   * React will not flag and the browser silently un-nests.
+   */
+  hintTone?: "muted" | "warn";
   children: ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
       <PartLabel>{label}</PartLabel>
       {children}
-      {hint ? <PartHint>{hint}</PartHint> : null}
+      {hint ? <PartHint tone={hintTone}>{hint}</PartHint> : null}
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
 } from "@ui/components/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/components/tooltip";
 import { HelpMarkdown } from "./help-markdown";
+import { HelpVideo } from "./help-video";
 
 /**
  * The "?" in the header. Opens help **for the screen you are on**, not a table of contents.
@@ -97,7 +98,10 @@ export function HelpSheet() {
         <ScrollArea className="min-h-0 flex-1">
           <div className="px-5 py-4">
             {page ? (
-              <HelpMarkdown source={page.body} onNavigate={setSlug} />
+              <>
+                <HelpVideo src={page.videoUrl} />
+                <HelpMarkdown source={page.body} onNavigate={setSlug} />
+              </>
             ) : (
               <HelpIndex pages={helpPagesFor(locale)} onSelect={setSlug} />
             )}

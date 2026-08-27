@@ -201,6 +201,12 @@ export function SellerPaymentSection({
           </div>
           <div className="space-y-1">
             <Label className="text-xs">{t("paidAmount")}</Label>
+            {/* Pre-fill is state-driven (the auto-init effect above sets
+                `seller.paymentInfo.paidAmount`), not a form default — `value`
+                already covers it, and NumberField ignores `defaultValue` once
+                `value` is present. A stray `defaultValue` prop used to sit
+                here doing nothing but trip the controlled/uncontrolled
+                warning on every purchase. */}
             <NumberField
               precision={2}
               min={0}
@@ -208,7 +214,6 @@ export function SellerPaymentSection({
               onChange={(v) => updatePayment(accountId, v ?? 0)}
               placeholder="0.00"
               className="h-9 text-sm"
-              defaultValue={seller.purchaseType === "instant" ? netAmount - creditApplied : 0}
             />
           </div>
         </div>

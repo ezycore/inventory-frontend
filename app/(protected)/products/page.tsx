@@ -4,7 +4,7 @@
 import { useTranslations, useLocale } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/ui/components/header'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
 import { isFeatureEnabled, isVatActive } from '@/lib/feature-utils'
 import { PageTabs, type PageTab } from '@/ui/components/page-tabs'
@@ -32,6 +32,7 @@ import MountingHandler from '@/components/MountingHandler';
 import { useAuthStore } from '@/services/stores';
 import { BarcodeLabelSheet, type LabelItem } from '@/components/shared/barcode';
 import { toast } from 'sonner';
+import { ProductStatus } from '@/types'
 import type { AppLocale } from '@/i18n/config'
 
 export default function ProductsPage() {
@@ -158,13 +159,38 @@ export default function ProductsPage() {
   // Product stats (only product-relevant data, no inventory stats)
   const productStats = getProductStats(statsData, t)
 
+  const updateMutation = useUpdateProduct()
+  const deleteMutation = useDeleteProduct()
+
+  // A product with an inventory row (even at qty 0) can't be deleted —
+  // backend PRODUCT_IN_USE — and archiving is the intended alternative, but
+  // nothing pointed the merchant at it: the delete just dead-ended on the
+  // generic error toast. Offer the one-click alternative right there.
+  useEffect(() => {
+    if (!deleteMutation.isError) return
+    const code = (deleteMutation.error as { code?: string } | undefined)?.code
+    if (code !== 'PRODUCT_IN_USE') return
+    const productId = deleteMutation.variables as string | undefined
+    if (!productId) return
+
+    toast(t('page.inUseTitle'), {
+      description: t('page.inUseDescription'),
+      action: {
+        label: t('page.inUseArchiveAction'),
+        onClick: () =>
+          updateMutation.mutate({ id: productId, status: ProductStatus.ARCHIVED }),
+      },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-check on a new delete error
+  }, [deleteMutation.isError, deleteMutation.error, deleteMutation.variables])
+
   // Shared operations config
   const sharedOperations = {
     formConfig: gatedFormConfig,
     getAllData: productsApi.getAll,
     createMutation: useCreateProduct(),
-    updateMutation: useUpdateProduct(),
-    deleteMutation: useDeleteProduct(),
+    updateMutation,
+    deleteMutation,
     defaultValues: { locationId: activeLocationId },
     isViewAvailable: false,
     queryKey: queryKeys.products.all(),
