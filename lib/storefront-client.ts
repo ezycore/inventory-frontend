@@ -73,6 +73,12 @@ export interface StoreHomeCollections {
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
   columns?: number;
   align?: "left" | "center" | "right";
+  /**
+   * `false` draws the row as pictures only. Honored ONLY when every listed
+   * category has an image — a nameless letter tile is not a wayfinding target,
+   * so the storefront keeps the names rather than shipping one. Unset ⇒ shown.
+   */
+  showLabels?: boolean;
 }
 
 /** One home-page hero slide (owner-managed carousel). */

@@ -36,6 +36,9 @@ export interface Dict {
   campaignOffers: string;
   previousOffer: string;
   nextOffer: string;
+  /** Category-strip arrows — they replace the scrollbar on pointer devices. */
+  previousCategories: string;
+  nextCategories: string;
   /* --- account area (sidebar + sections, Rashid's Mart design) --- */
   tabWishlist: string;
   tabAddresses: string;
@@ -496,6 +499,8 @@ const en: Dict = {
   campaignOffers: "Current offers",
   previousOffer: "Previous offer",
   nextOffer: "Next offer",
+  previousCategories: "Previous categories",
+  nextCategories: "Next categories",
   tabWishlist: "Wishlist",
   tabAddresses: "Addresses",
   tabPrefs: "Notifications",
@@ -893,6 +898,8 @@ const bn: Dict = {
   campaignOffers: "চলতি অফার",
   previousOffer: "আগের অফার",
   nextOffer: "পরের অফার",
+  previousCategories: "আগের ক্যাটাগরি",
+  nextCategories: "পরের ক্যাটাগরি",
   tabWishlist: "উইশলিস্ট",
   tabAddresses: "ঠিকানা",
   tabPrefs: "নোটিফিকেশন",

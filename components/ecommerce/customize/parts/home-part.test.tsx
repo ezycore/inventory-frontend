@@ -7,21 +7,31 @@ import type { CustomizeDraft } from "@/components/ecommerce/customize/use-custom
 import { getReadyMadeTheme } from "@/lib/storefront-themes";
 import { sectionInstances } from "@/lib/storefront-templates";
 
-const draftFor = (themeId: string): CustomizeDraft => {
+const collection = (name: string, hasImage: boolean, isListed = true) =>
+  ({ _id: name, name, displayName: "", slug: name, isListed, hasImage,
+     seoTitle: "", seoDescription: "" }) as CustomizeDraft["collections"][number];
+
+const draftFor = (
+  themeId: string,
+  collections: CustomizeDraft["collections"] = [],
+): CustomizeDraft => {
   const theme = getReadyMadeTheme(themeId)!;
   return {
     templates: { ...theme.templates },
     homepageSections: sectionInstances(theme.sections),
     homeCollections: {},
     sectionConfig: [],
-    collections: [],
+    collections,
   } as unknown as CustomizeDraft;
 };
 
-const renderTheme = (themeId: string) =>
+const renderTheme = (
+  themeId: string,
+  collections?: CustomizeDraft["collections"],
+) =>
   render(
     <HomePart
-      draft={draftFor(themeId)}
+      draft={draftFor(themeId, collections)}
       patch={vi.fn()}
       patchTemplate={vi.fn()}
       patchHomeTemplate={vi.fn()}
@@ -54,6 +64,52 @@ describe("HomePart category controls", () => {
     },
   );
 
+  it("offers the pictures-only row once every listed category has a picture", () => {
+    renderTheme("classic", [
+      collection("bakery", true),
+      collection("drinks", true),
+      // Unlisted and unphotographed — it is not in the row, so it cannot block it.
+      collection("spares", false, false),
+    ]);
+
+    expect(screen.getByRole("button", { name: "Picture and name" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Picture only" })).toBeEnabled();
+    expect(screen.getByText(/picture becomes the whole tile/)).toBeInTheDocument();
+  });
+
+  /* The defect this replaced: the chip was selectable, highlighted on click and
+     changed nothing, because the storefront keeps the names until every listed
+     category is photographed. A refusing control and a broken one looked the
+     same, so the count is the whole point of the message. */
+  it("disables pictures-only and counts what is in the way", () => {
+    renderTheme("classic", [
+      collection("bakery", false),
+      collection("drinks", false),
+      collection("household", true),
+    ]);
+
+    expect(screen.getByRole("button", { name: "Picture only" })).toBeDisabled();
+    // "Picture and name" must stay reachable — it is always honourable.
+    expect(screen.getByRole("button", { name: "Picture and name" })).toBeEnabled();
+    expect(
+      screen.getByText(/2 listed categories have no picture/),
+    ).toBeInTheDocument();
+  });
+
+  it("counts a single blocker in the singular", () => {
+    renderTheme("classic", [
+      collection("bakery", false),
+      collection("household", true),
+    ]);
+
+    expect(
+      screen.getByText(/1 listed category has no picture/),
+    ).toBeInTheDocument();
+  });
+
   it("replaces dead Meridian Care controls with sidebar guidance", () => {
     renderTheme("meridian-care");
 
@@ -62,5 +118,6 @@ describe("HomePart category controls", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Scrolling strip")).not.toBeInTheDocument();
     expect(screen.queryByText("Name below")).not.toBeInTheDocument();
+    expect(screen.queryByText("Picture only")).not.toBeInTheDocument();
   });
 });

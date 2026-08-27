@@ -20,6 +20,7 @@
  */
 
 import { useSelectOptions } from "@/services/api";
+import { isPermissionDeniedError } from "@/lib/api-client";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
 import { useQuickAddModule } from "@/hooks/use-quick-add-module";
 import DynamicForm from "@/ui/components/form";
@@ -160,7 +161,15 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
   // Determine which options to use
   const finalOptions = optionsApi ? apiOptions || [] : options || [];
-  const apiError = queryError ? (queryError as Error).message : null;
+  // A permission-denied options query gets its own placeholder below — the raw
+  // backend message ("Insufficient permissions") is not useful to the user and
+  // there is nothing actionable to retry, unlike a transient fetch failure.
+  const isPermissionDenied = isPermissionDeniedError(queryError);
+  const apiError = queryError
+    ? isPermissionDenied
+      ? "You don't have permission to view these options"
+      : (queryError as Error).message
+    : null;
 
   // Fire onMount once after options are available so labelInValue enrichment works
   // const hasMountedRef = useRef(false);
@@ -263,10 +272,10 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
           options={[]}
           value={multiValue}
           onValueChange={handleValueChange}
-          placeholder={`Error: ${apiError}`}
+          placeholder={isPermissionDenied ? apiError : `Error: ${apiError}`}
           variant={variant}
           disabled={true}
-          className={cn("border-red-500", className)}
+          className={cn(isPermissionDenied ? "" : "border-red-500", className)}
           maxCount={maxCount}
           modalPopover={modalPopover}
           asChild={asChild}
@@ -276,8 +285,8 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
     return (
       <Select disabled={true}>
-        <SelectTrigger className={cn("w-full border-red-500", className)}>
-          <SelectValue placeholder={`Error: ${apiError}`} />
+        <SelectTrigger className={cn("w-full", isPermissionDenied ? "" : "border-red-500", className)}>
+          <SelectValue placeholder={isPermissionDenied ? apiError : `Error: ${apiError}`} />
         </SelectTrigger>
       </Select>
     );

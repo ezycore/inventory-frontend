@@ -12,6 +12,7 @@ ui_labels:
   - sales:sell.title
   - sales:sell.subtitle
   - sales:sell.scanBarcode
+  - sales:sell.summary.confirmOrder
   - sales:sell.summary.finalizeSale
   - sales:sell.summary.saveAsDraft
   - sales:sell.summary.useStoreCredit
@@ -34,7 +35,8 @@ items out of stock and records the money.
 3. **Adjust as needed.** Change quantity, give a discount on a line, or override the price.
 4. **Take payment.** Choose the payment method and enter what the customer handed over. Any change
    due is calculated for you.
-5. Press **Finalize Sale**.
+5. Press **Confirm Order**. (The button reads **Finalize Sale** instead when you are completing a
+   sale you picked up from **Save as Draft**.)
 
 Paying less than the total leaves the rest owing on the customer's ledger — which is exactly how you
 sell on credit. It also means a mistyped payment quietly creates a debt, so check the figure before

@@ -61,6 +61,7 @@ export function NumberField({
   disabled,
   className,
   onBlur,
+  onFocus,
   onKeyDown,
   ...rest
 }: NumberFieldProps) {
@@ -91,6 +92,16 @@ export function NumberField({
     // Emit rounded but unclamped while typing; clamp happens on blur so the
     // user can freely type through intermediate values.
     onChange(Number.isNaN(parsed) ? null : round(parsed, precision));
+  };
+
+  // Select the existing draft on focus, native-number-input style. Without
+  // this, clicking into a field carrying a nonzero default (e.g. a conversion
+  // factor showing "1") places the caret rather than replacing the value —
+  // typing "12" then reads as "112" with no indication anything went wrong.
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setFocused(true);
+    e.target.select();
+    onFocus?.(e);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -130,7 +141,7 @@ export function NumberField({
       value={draft}
       disabled={disabled}
       onChange={handleChange}
-      onFocus={() => setFocused(true)}
+      onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       className={cn(!showSteppers && sizes.input, className)}
@@ -171,7 +182,7 @@ export function NumberField({
         value={draft}
         disabled={disabled}
         onChange={handleChange}
-        onFocus={() => setFocused(true)}
+        onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={cn(

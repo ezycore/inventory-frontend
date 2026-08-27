@@ -272,6 +272,7 @@ describe("Customize draft safeguards", () => {
     name: "Skin",
     displayName: "Skin",
     isListed: true,
+    hasImage: false,
     seoTitle: "",
     seoDescription: "",
   };

@@ -68,7 +68,15 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  const subscription = useGetSubscription();
+  // The backend gates GET /organization/subscription on `organization.view`.
+  // A sell-only role lacks it, so firing this unconditionally 403'd on every
+  // navigation for every non-admin user. `permissions` is undefined until
+  // /me resolves, which correctly holds the query off until then too.
+  const canViewSubscription =
+    useAuthStore((state) => state.user?.permissions)?.includes(
+      "organization.view",
+    ) ?? false;
+  const subscription = useGetSubscription(canViewSubscription);
   const router = useRouter();
   const pathname = usePathname();
   const tOnboarding = useTranslations("onboarding");

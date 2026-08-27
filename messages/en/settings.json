@@ -10,6 +10,8 @@
     "toEnable": "to enable.",
     "planManaged": "Plan-managed availability",
     "planManagedBody": "You control which of your plan's features are turned on here. To unlock features that aren't in your plan, change your plan on the <link>Billing</link> page.",
+    "storefrontNotPublished": "Storefront is on, but your shop isn't published yet — it will show \"currently unavailable\" to visitors until you publish it.",
+    "storefrontPublishLink": "Go to Storefront settings to publish",
     "names": {
       "sales": "Sales Management",
       "accounts": "Account Management",
