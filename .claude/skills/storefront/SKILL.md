@@ -617,6 +617,15 @@ had been modelled on the backend since the beginning and was **read by nothing**
 - **Every section returns `null` when its own data is empty.** A reordered page must not grow holes,
   and this is what lets `deal-strip` (no live campaign) or `trust-band` (no badges written) sit in a
   theme harmlessly.
+- ⚠ **Every section owns its own TOP padding.** `StoreHome` stacks them in a bare `<div>` with no
+  gap, so a section's own padding is the only thing separating it from whatever the merchant put
+  above it — and since the order is theirs, "what is above" is never knowable from inside a section.
+  `category-chips` shipped with `padding-top: 0`, which reads fine under a section ending in
+  whitespace and broken under one ending in a **ground**: after `search-hero` (a full-bleed
+  `--primary-soft` band) its tiles sat flush against the tint, looking like a row the band had
+  clipped. Anything with a background is the case to check. `category-links` and `minimal-picks`
+  still carry a `0` top for their own editorial reasons — they are quiet, rule-and-text sections, so
+  the collision is less visible, but they are the same shape of risk under a tinted hero.
 - ⚠ **`resolveSections` falls back when NOTHING survives its id filter.** Not defensive padding: every
   seeded store carried four ids from the pre-registry catalogue (`banner`/`featured`/`categories`/
   `products`) that no section answers to, so a strict filter blanked the homepage of every demo shop
@@ -750,6 +759,14 @@ mobile nav competing with the bottom bar is how a shopper ends up with two half-
   - ⚠ **The rail's breakpoint is 1000px, not 680px.** Between the two it left ~580px of content and
     124px cards. A rail is worth its width only once there is width to spare; below that the header
     search does the job.
+  - ⚠ **The content column full-bleeds on the END side only when a rail is present.**
+    `.sf-rail-grid > :last-child` is pulled out by `-{--pad}` so its sections keep their normal
+    padding, but `--pad` is 28px and the grid gap is 12px — so with a rail the content column started
+    16px LEFT of where the rail ends and, being later in the DOM, painted over that strip. A
+    department's hover highlight spans the full 218px, so it ran under the hero's tint and looked
+    like a highlight bleeding out of the sidebar; the tint was drawn on top of it. `:has(> .sf-rail)`
+    resets `margin-inline-start` to 0. The outer edge still bleeds — a tinted band should reach the
+    viewport — because only the rail's side has anything to collide with.
   - ⚠ **A caller with no collections query must pass `hasCollections={false}`** to `BrowserPreview` /
     `toPreviewPayload`. `seedDraft` omits collections (in Customize they arrive from their own query),
     so such a caller holds `[]` — which is not "this shop has none" but "I did not look". Sent as a
