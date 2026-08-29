@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { FC, memo, useMemo, type ReactNode } from "react";
+import { FC, memo, useId, useMemo, type ReactNode } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 import Link from "next/link";
 import { Info } from "lucide-react";
@@ -197,8 +197,14 @@ export const FormField: FC<{
     }
   };
 
+  // `useId` returns a colon-wrapped token (":r7:"); colons are legal in an id
+  // but hostile in a CSS selector, so they come out.
+  const uid = useId().replace(/:/g, "");
+  const fieldId = `${uid}-${field.name}`;
+
   const renderContext: FieldRenderContext = {
     field,
+    fieldId,
     control,
     watch,
     setValue,
@@ -237,7 +243,7 @@ export const FormField: FC<{
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <Label
-              htmlFor={field.name}
+              htmlFor={fieldId}
               className="text-sm gap-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {field.label}

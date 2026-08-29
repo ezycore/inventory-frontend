@@ -239,7 +239,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "select",
             mode: "multiple",
             label: tr('form.tags', "Tags"),
-            columnSpan: 12,
+            columnSpan: 6,
             placeholder: tr('form.tagsPlaceholder', "Add tags"),
             optionsApi: TAG_OPTIONS_API,
             creatable: true,

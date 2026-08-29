@@ -51,4 +51,4 @@ setting a rate, check the margin on what you are discounting — see
 on, and volume makes it worse rather than better.
 
 These affect online prices only. Counter discounts are set separately — see
-[Set up discounts and tax](./discounts-and-tax.md).
+[Set up discounts and VAT](./discounts-and-vat.md).
