@@ -182,6 +182,15 @@ export const FormField: FC<{
     return evaluateDependencyCondition(val, field.requiredWhen);
   }, [field.requiredWhen, primaryDependency, requiredWhenRawValue, dependencyWatchedValue]);
 
+  // `useId` returns a colon-wrapped token (":r7:"); colons are legal in an id
+  // but hostile in a CSS selector, so they come out.
+  //
+  // Called ABOVE the hidden-field early return below: a `dependsOn` field
+  // flips between hidden and shown as the form is filled in, and a hook that
+  // only runs on the shown pass changes the hook order between renders.
+  const uid = useId().replace(/:/g, "");
+  const fieldId = `${uid}-${field.name}`;
+
   // Determine effective disabled state
   const effectiveDisabled = field.disabled || isFieldDisabledInEdit || shouldDisable;
 
@@ -196,11 +205,6 @@ export const FormField: FC<{
       onFieldChange(field.name, value, allValues);
     }
   };
-
-  // `useId` returns a colon-wrapped token (":r7:"); colons are legal in an id
-  // but hostile in a CSS selector, so they come out.
-  const uid = useId().replace(/:/g, "");
-  const fieldId = `${uid}-${field.name}`;
 
   const renderContext: FieldRenderContext = {
     field,
