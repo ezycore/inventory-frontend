@@ -5,7 +5,7 @@ import { FilterConfig } from "@/types/DataTable";
 import { Button } from "@ui/components/button";
 import { cn } from "@ui/lib/utils";
 import { X } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FilterFieldRenderer } from "./filter-field-renderer";
 import { FilterPanel } from "./filter-panel";
 import { useInlineOverflow } from "./use-inline-overflow";
@@ -14,7 +14,22 @@ import { useInlineOverflow } from "./use-inline-overflow";
 const INLINE_TYPES = new Set(["select", "text", "number"]);
 /** Free-text types commit on a debounce; selects commit live. */
 const FREE_TEXT_TYPES = new Set(["text", "number"]);
+/**
+ * Chip width: the floor every chip gets, and the ceiling one may grow to.
+ *
+ * Chips used to be a flat 160px whatever they held. "Search by customer
+ * name..." needs 185px, "Search by product, variant, or location..." ~280px,
+ * and even a select's "All sub-categories" overflows once the chevron and clear
+ * button have taken their bite — so placeholders across the bar rendered cut
+ * off. The copy is translated too, so no single hard-coded width is right in
+ * every locale. Each chip is measured against its own placeholder instead.
+ */
 const ITEM_WIDTH = 160;
+const ITEM_MAX_WIDTH = 288;
+/** Input padding (px-3 either side) plus a little breathing room. */
+const TEXT_CHROME = 32;
+/** Padding plus the chevron and clear affordances a select trigger carries. */
+const SELECT_CHROME = 56;
 const ITEM_GAP = 8;
 /** Width kept clear for the Filters button + Reset (px). */
 const RESERVED = 190;
@@ -46,10 +61,60 @@ export function FilterBar({ config, className }: FilterBarProps) {
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Width each chip should render at, measured against its own placeholder in
+   * the font the bar actually renders in — so a longer string, or a longer
+   * translation, widens the box instead of being clipped by it. Never below
+   * `ITEM_WIDTH`, so a bar of short filters looks exactly as it did.
+   *
+   * Measured with canvas rather than a hidden DOM row: one short string per
+   * chip and no layout to inherit, so text metrics alone are enough.
+   */
+  const [textWidths, setTextWidths] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof document === "undefined") return;
+
+    const context = document.createElement("canvas").getContext("2d");
+    if (!context) return;
+    const style = getComputedStyle(el);
+    context.font = `${style.fontStyle} ${style.fontWeight} 0.875rem ${style.fontFamily}`;
+
+    const next: Record<string, number> = {};
+    for (const field of inlineEligible) {
+      const text = field.placeholder ?? field.label ?? "";
+      const chrome = FREE_TEXT_TYPES.has(field.type)
+        ? TEXT_CHROME
+        : SELECT_CHROME;
+      next[field.name] = Math.round(
+        Math.min(
+          ITEM_MAX_WIDTH,
+          Math.max(ITEM_WIDTH, context.measureText(text).width + chrome),
+        ),
+      );
+    }
+    setTextWidths((prev) => {
+      const same =
+        Object.keys(next).length === Object.keys(prev).length &&
+        Object.entries(next).every(([key, value]) => prev[key] === value);
+      return same ? prev : next;
+    });
+  }, [inlineEligible]);
+
+  const widthOf = (field: (typeof inlineEligible)[number]) =>
+    textWidths[field.name] ?? ITEM_WIDTH;
+
+  const itemWidths = useMemo(
+    () => inlineEligible.map(widthOf),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inlineEligible, textWidths],
+  );
+
   const visibleCount = useInlineOverflow({
     ref: containerRef,
-    itemCount: inlineEligible.length,
-    itemWidth: ITEM_WIDTH,
+    itemWidths,
     gap: ITEM_GAP,
     reserved: RESERVED,
   });
@@ -94,14 +159,25 @@ export function FilterBar({ config, className }: FilterBarProps) {
         // before the effect runs). Non-shrinkable chips instead pushed the document
         // wide, and useInlineOverflow then measured that inflated width and latched.
         return (
-          <div key={field.name} className="relative w-40 min-w-24 shrink">
+          <div
+            key={field.name}
+            className="relative min-w-24 shrink"
+            style={{ width: widthOf(field) }}
+          >
             <FilterFieldRenderer
               field={field}
               value={value}
               values={state.values}
               hideLabel
               // Sizes the select / text Input / NumberField to match search + button.
-              controlClassName="h-8"
+              //
+              // `min-h-8` is not redundant next to `h-8`: MultiSelect (the tag
+              // filter) carries its own `min-h-9` for the taller rows it sits in
+              // elsewhere, and `min-height` beats `height`. The chip rendered
+              // 36px against its 32px neighbours — a visibly taller box in the
+              // middle of the row. twMerge lets the later class win, so stating
+              // the floor here is what actually sets the height.
+              controlClassName="h-8 min-h-8"
               onChange={(v) =>
                 isFreeText
                   ? state.setFilterDebounced(field.name, v)
