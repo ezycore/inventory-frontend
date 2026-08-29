@@ -689,6 +689,110 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   }
 }
 
+/* ---- Scrolling category strip (home/category-strip.tsx) ----
+   Both catalogue-entry sections share this track whenever the merchant picks
+   "Scrolling strip". The scrollbar is hidden HERE and the arrows replace it:
+   `.sf-root` styles a visible 9px bar, which under a row of category tiles was
+   the one piece of raw browser chrome on an otherwise designed page.
+
+   ⚠ The arrows are pointer-only, which is the INVERSE of `.sf-deals-controls`
+   below. Right there because those are full-width campaign cards a thumb pages
+   through; wrong here, where a phone swipes the track natively and two 36px
+   buttons would cover the two tiles a 360px screen can show. */
+.sf-cat-strip {
+  position: relative;
+  min-width: 0;
+}
+.sf-cat-strip-track {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  /* `mandatory`, so a flick SETTLES flush against a tile instead of drifting
+     to a stop with one cut in half. That resting position is most of what makes
+     a row read as a carousel rather than as a box that happens to scroll.
+
+     `scroll-snap-stop` is deliberately left at `normal`: `always` would cap
+     every swipe at one tile, and eight categories then cost eight swipes. A
+     flick should carry as far as it was thrown and land square. */
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.sf-cat-strip-track::-webkit-scrollbar {
+  display: none;
+}
+.sf-cat-strip-track > * {
+  scroll-snap-align: start;
+}
+
+/* ---- Chip row sizing (home/home-collections.tsx) ----
+   The chips are the one strip that needed phone sizing of its own: the photo
+   tiles already run 132–210px and peek on their own, while an 84px chip put 3.5
+   of them on a phone at a size better suited to a mouse.
+
+   ⚠ **The phone width is a FRACTION, not a bigger px value.** `100%/2.5` means
+   two whole tiles and half of a third on every handset — 320, 360, 390, 430 —
+   which is the "there is more this way" signal the row was missing. A fixed
+   112px would peek generously on one device and land flush on the next, and a
+   row with no peek reads as finished.
+
+   The thumb rides as a PERCENTAGE of the tile so it follows automatically: 71%
+   of the 84px desktop track is the 60px this row has always drawn, so desktop
+   is unchanged to the pixel and the phone scales for free. */
+.sf-chip-row {
+  --sf-chip: 84px;
+  --sf-chip-thumb: 71%;
+  /* Chips run tighter than the theme's `--gap`; the track reads it too, so the
+     phone's fractional width can subtract exactly the gap it is spaced by. */
+  --sf-chip-gap: 11px;
+}
+/* Pictures-only: no caption to leave room for, so the photo takes the track. */
+.sf-chip-row--bare {
+  --sf-chip-thumb: 90%;
+}
+@media (max-width: 680px) {
+  .sf-chip-row {
+    --sf-chip: calc(100% / 2.5 - var(--sf-chip-gap));
+  }
+  /* The initial is sized for a 60px disc; on the phone's larger one it would
+     sit as a small mark in a wide circle. */
+  .sf-chip-row .sf-chip-letter {
+    font-size: 30px;
+  }
+}
+.sf-cat-strip-arrow {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sf-cat-strip-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    transform: translateY(-50%);
+    /* A circle, so 999px rather than a corner token — see the radius rule. */
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.14);
+    cursor: pointer;
+  }
+  .sf-cat-strip-arrow:hover {
+    border-color: var(--border-strong);
+  }
+  .sf-cat-strip-arrow[data-edge="start"] {
+    left: -6px;
+  }
+  .sf-cat-strip-arrow[data-edge="end"] {
+    right: -6px;
+  }
+}
+
 /* ---- Helpers ---- */
 .sf-root :where(h1, h2, h3) {
   letter-spacing: -0.02em;
@@ -1237,6 +1341,21 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   .sf-rail-grid > :last-child {
     margin-inline: calc(var(--pad) * -1);
   }
+  /* ⚠ **…but only on the END side once a rail is there, or the content lands
+     ON TOP of the rail.** The pull above is `--pad` (28px) while the grid gap
+     is 12px, so the content column started 16px to the LEFT of where the rail
+     ends — and since it comes later in the DOM, every section with a ground of
+     its own painted over that strip. A department's hover highlight runs the
+     full 218px of the column, so it ran under the hero's tint and read as a
+     highlight bleeding out of the sidebar; the tint was simply drawn on top of
+     it.
+
+     Full-bleed is still wanted on the outer edge — a tinted band should reach
+     the viewport, not stop at `--pad`. It is only the rail's side that has
+     something to collide with. */
+  .sf-rail-grid:has(> .sf-rail) > :last-child {
+    margin-inline-start: 0;
+  }
   .sf-rail {
     display: block;
     position: sticky;
@@ -1279,7 +1398,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8;
+  gap: 8px;
   padding: 9px 12px;
   font-size: 13.5px;
   font-weight: 500;

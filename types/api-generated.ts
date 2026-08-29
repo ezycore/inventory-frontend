@@ -10008,6 +10008,12 @@ export interface components {
             slugPath?: string;
             parentId?: string | null;
             status?: string;
+            image?: {
+                url: string;
+                mediumUrl: string;
+                thumbnailUrl: string;
+                publicId: string;
+            } | null;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
@@ -11531,6 +11537,7 @@ export interface components {
                     columns?: number;
                     /** @enum {string} */
                     align?: "left" | "center" | "right";
+                    showLabels?: boolean;
                 };
                 design?: {
                     font?: string;
@@ -14145,7 +14152,7 @@ export interface operations {
                     organizationName: string;
                     organizationSlug: string;
                     /** @enum {string} */
-                    industry: "ONLINE_SHOP" | "PHARMACY" | "GROCERY_STORE" | "ELECTRONICS_STORE" | "FASHION_APPAREL" | "HARDWARE_STORE" | "MANUFACTURING_UNIT" | "WHOLESALE_DISTRIBUTOR" | "RESTAURANT_FNB" | "SERVICE_BUSINESS" | "OTHER";
+                    industry: "ONLINE_SHOP" | "PHARMACY" | "GROCERY_STORE" | "ELECTRONICS_STORE" | "FASHION_APPAREL" | "BABY_KIDS_STORE" | "HARDWARE_STORE" | "MANUFACTURING_UNIT" | "WHOLESALE_DISTRIBUTOR" | "RESTAURANT_FNB" | "SERVICE_BUSINESS" | "OTHER";
                     country: string;
                     timezone: string;
                     currency: string;
@@ -18187,6 +18194,7 @@ export interface operations {
                             columns?: number;
                             /** @enum {string} */
                             align?: "left" | "center" | "right";
+                            showLabels?: boolean;
                         };
                         design?: {
                             font?: string;

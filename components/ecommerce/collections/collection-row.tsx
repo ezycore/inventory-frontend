@@ -28,6 +28,13 @@ export interface CollectionRowValue {
   /** Merchant SEO overrides for the collection landing page; "" when unset. */
   seoTitle: string;
   seoDescription: string;
+  /**
+   * Does this collection have a picture? Carried as a BOOLEAN rather than the
+   * image itself because no row renders it — the one caller that cares is
+   * Customize's pictures-only setting, which is offered only when every listed
+   * collection is photographed and otherwise has to say how many are not.
+   */
+  hasImage: boolean;
 }
 
 export function CollectionRow({
@@ -152,6 +159,7 @@ export function toRowValue(c: {
   slug?: string;
   slugPath?: string;
   parentId?: string | null;
+  image?: { url?: string; mediumUrl?: string; thumbnailUrl?: string } | null;
   storefront?: {
     isListed?: boolean;
     displayName?: string;
@@ -168,5 +176,8 @@ export function toRowValue(c: {
     isListed: c.storefront?.isListed !== false,
     seoTitle: c.storefront?.seo?.title ?? "",
     seoDescription: c.storefront?.seo?.description ?? "",
+    // Any variant counts: the storefront falls back through all three, so a
+    // collection with only a thumbnail still renders a picture.
+    hasImage: !!(c.image?.thumbnailUrl || c.image?.mediumUrl || c.image?.url),
   };
 }

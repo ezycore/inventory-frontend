@@ -617,6 +617,15 @@ had been modelled on the backend since the beginning and was **read by nothing**
 - **Every section returns `null` when its own data is empty.** A reordered page must not grow holes,
   and this is what lets `deal-strip` (no live campaign) or `trust-band` (no badges written) sit in a
   theme harmlessly.
+- ⚠ **Every section owns its own TOP padding.** `StoreHome` stacks them in a bare `<div>` with no
+  gap, so a section's own padding is the only thing separating it from whatever the merchant put
+  above it — and since the order is theirs, "what is above" is never knowable from inside a section.
+  `category-chips` shipped with `padding-top: 0`, which reads fine under a section ending in
+  whitespace and broken under one ending in a **ground**: after `search-hero` (a full-bleed
+  `--primary-soft` band) its tiles sat flush against the tint, looking like a row the band had
+  clipped. Anything with a background is the case to check. `category-links` and `minimal-picks`
+  still carry a `0` top for their own editorial reasons — they are quiet, rule-and-text sections, so
+  the collision is less visible, but they are the same shape of risk under a tinted hero.
 - ⚠ **`resolveSections` falls back when NOTHING survives its id filter.** Not defensive padding: every
   seeded store carried four ids from the pre-registry catalogue (`banner`/`featured`/`categories`/
   `products`) that no section answers to, so a strict filter blanked the homepage of every demo shop
@@ -750,6 +759,14 @@ mobile nav competing with the bottom bar is how a shopper ends up with two half-
   - ⚠ **The rail's breakpoint is 1000px, not 680px.** Between the two it left ~580px of content and
     124px cards. A rail is worth its width only once there is width to spare; below that the header
     search does the job.
+  - ⚠ **The content column full-bleeds on the END side only when a rail is present.**
+    `.sf-rail-grid > :last-child` is pulled out by `-{--pad}` so its sections keep their normal
+    padding, but `--pad` is 28px and the grid gap is 12px — so with a rail the content column started
+    16px LEFT of where the rail ends and, being later in the DOM, painted over that strip. A
+    department's hover highlight spans the full 218px, so it ran under the hero's tint and looked
+    like a highlight bleeding out of the sidebar; the tint was drawn on top of it. `:has(> .sf-rail)`
+    resets `margin-inline-start` to 0. The outer edge still bleeds — a tinted band should reach the
+    viewport — because only the rail's side has anything to collide with.
   - ⚠ **A caller with no collections query must pass `hasCollections={false}`** to `BrowserPreview` /
     `toPreviewPayload`. `seedDraft` omits collections (in Customize they arrive from their own query),
     so such a caller holds `[]` — which is not "this shop has none" but "I did not look". Sent as a
@@ -1487,7 +1504,41 @@ resolved **per request from the host**, never baked.
   (`.sf-home-collections` / `.sf-cat-tiles`, fed by `--sf-hc-cols` / `--sf-ct-cols`) so phones can
   pin to two while desktop honors the owner's 2–6 choice; tile tracks retain a mode-specific max,
   so choosing two never stretches a department into a half-page product card. Strip alignment uses
-  `safe`, or centred overflowing content makes its first tile unreachable. Customize shows the
+  `safe`, or centred overflowing content makes its first tile unreachable. **The strip itself is
+  `home/category-strip.tsx`** — a shared track with arrows in place of the scrollbar `.sf-root`
+  otherwise draws under it. Three rules live there: an arrow shows only when that direction can
+  actually move (measured with `ResizeObserver` + `onScroll` via the tested `stripEdges`, never from
+  a tile count — the same four categories overflow or don't depending on the window); the arrows are
+  **pointer-only**, the inverse of `.sf-deals-controls`, because a phone swipes natively and two
+  36px buttons would cover the two tiles a 360px screen shows; and one press moves ~80% of the track
+  (`stripStep`), not one tile. **The phone gets the carousel instead of the arrows** (2026-08-25):
+  the track snaps `x mandatory` so a flick settles flush rather than stopping with a tile cut in half,
+  and `.sf-chip-row` widens the chip to `100%/2.5 - gap`, i.e. two whole tiles and half of a third on
+  every handset. ⚠ **That width is a FRACTION on purpose** — a fixed px peeks generously on one screen
+  and lands flush on the next, and a row with no peek reads as finished. The thumb is a PERCENTAGE of
+  the tile (71%, or 90% when pictures-only) so it follows for free, and 71% of the 84px desktop track
+  is the 60px the row has always drawn, so desktop does not move. Its corner is `18%` rather than
+  `11px` for the same reason: a literal radius that is a soft chip at 60px is a slab at 90px.
+  `scroll-snap-stop` stays `normal` — `always` would cap a swipe at one tile and cost eight swipes for
+  eight categories. Only the chips need this; the photo tiles already run 132–210px and peek on their
+  own. `categoryTileRowLayout` returns the tile variables ALONE for a strip —
+  the flex/overflow/alignment belong to the component, so don't put them back on the caller's div or
+  the arrows will measure a container that isn't the scroller. **`showLabels: false`** (Customize →
+  Collections row → "Picture only") draws the row as pictures with no captions — chips grow their
+  thumb to 76px, tiles drop the caption, `overlay` drops its scrim with the name it existed to carry,
+  and the `<Link>` takes an `aria-label` so a picture-only link still announces its department. It is
+  **conditional**, via the tested `categoryLabelsVisible`: a row keeps its names unless EVERY listed
+  category has an image — and because of that the Customize chip is **disabled** whenever any listed
+  collection lacks one, with a warn hint counting them ("7 listed categories have no picture"). It
+  shipped enabled with a quiet hint first, and that was a bug: the chip highlighted, the preview did
+  not move, and a refusing control was indistinguishable from a broken one. The count comes from
+  `CollectionRowValue.hasImage`, which is why the admin `Collection` DTO carries `image` at all.
+  ⚠ The category picture is stored as **`images` (an array)** and served as singular `image` —
+  `select("… image")` silently selects nothing and the DTO drops the key, so every collection reads
+  as unphotographed. `catalog.service` and `storefront-taxonomy.service` both map `images?.[0]`, and the `disc`/`compact` letter shapes ignore it outright — a lettered tile
+  with no name under it names nothing. Asked once per section, never per tile, for the same reason
+  `photographed` is. Applying a ready-made theme resets it (the bundles set no `showLabels`), which is
+  the documented "applying a theme resets this look". Customize shows the
   controls only when `category-chips` or `category-tiles` is actually in the effective section list;
   Meridian Care's rail-only page gets an explanation instead of inert controls.
   Ready-made themes stamp this visual setting too: Classic starts as a left strip, while Fresh

@@ -10,9 +10,11 @@ import { resolveTemplates } from "@/lib/storefront-templates";
 import { Media } from "@/components/storefront/sf-bits";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
 import {
+  categoryLabelsVisible,
   categoryTileRowLayout,
   useCategoryRowLayout,
 } from "@/components/storefront/home/category-row-layout";
+import { CategoryStrip } from "@/components/storefront/home/category-strip";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { wrap, type SectionProps } from "@/components/storefront/home/home-shared";
@@ -30,7 +32,16 @@ import { wrap, type SectionProps } from "@/components/storefront/home/home-share
 export function CategoryChips({ base, categories, categoryRowDefault }: SectionProps) {
   if (!categories.length) return null;
   return (
-    <div style={{ ...wrap, padding: "0 var(--pad) 8px" }}>
+    /* `StoreHome` stacks sections with no gap between them, so a section's own
+       padding is the ONLY thing separating it from the one above. This row's top
+       padding was 0, which is fine under a section that ends in whitespace and
+       broken under one that ends in a ground: after `search-hero` (a full-bleed
+       `--primary-soft` band) the tiles sat flush against the tint with their top
+       edge touching it, reading as a row clipped by the band. Sections are
+       merchant-ordered, so "what is above" is not knowable here — the row has to
+       carry its own clearance. Matches `CategoryTiles` below, which is the same
+       idea drawn as photos and always had it. */
+    <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad) 8px" }}>
       {/* Layout is the merchant's, so the row itself owns it — home-collections.tsx. */}
       <HomeCollections
         base={base}
@@ -147,6 +158,17 @@ export function CategoryTiles(props: SectionProps) {
      are not lost: they head the collection page each disc leads to. */
   const described =
     !overlay && !disc && categories.some((c) => !!c.description?.trim());
+  /* Pictures-only is a setting about PICTURES, so the two letter shapes are
+     never subject to it: a `disc` row has no photographs by definition and a
+     `compact` row is the fallback for a catalogue that has none, so dropping
+     the names there would leave a row of unexplained initials. */
+  const labels =
+    compact ||
+    disc ||
+    categoryLabelsVisible(
+      categoryRow.showLabels,
+      categories.every((c) => !!cardImageUrl(c.image)),
+    );
   const tileRow = categoryTileRowLayout(
     categoryRow,
     overlay ? 150 : disc ? 100 : compact && described ? 210 : 96,
@@ -154,34 +176,46 @@ export function CategoryTiles(props: SectionProps) {
   );
 
   if (!categories.length) return null;
+  const tiles = categories.map((c) => (
+    <CategoryTile
+      key={c._id}
+      href={collectionHref(base, c)}
+      name={c.name}
+      /* The merchant's own one-liner. `overlay` is the one mode that must not
+         draw it — the name already sits on a photograph behind a scrim, and a
+         second line of type over an image the merchant chose and we have never
+         seen is where legibility runs out. */
+      description={overlay || disc ? undefined : c.description}
+      image={cardImageUrl(c.image)}
+      imageFit={imageFit}
+      overlay={overlay}
+      compact={compact}
+      disc={disc}
+      strip={tileRow.strip}
+      showLabel={labels}
+    />
+  ));
+
   return (
     <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad)" }}>
       {/* A department tile is a wayfinding target, not a product. Its visual
           mode supplies a maximum width; the merchant's shared category-row
-          setting decides grid versus strip, columns and alignment. */}
-      <div
-        className={tileRow.className}
-        style={tileRow.style}
-      >
-        {categories.map((c) => (
-          <CategoryTile
-            key={c._id}
-            href={collectionHref(base, c)}
-            name={c.name}
-            /* The merchant's own one-liner. `overlay` is the one mode that must
-               not draw it — the name already sits on a photograph behind a
-               scrim, and a second line of type over an image the merchant chose
-               and we have never seen is where legibility runs out. */
-            description={overlay || disc ? undefined : c.description}
-            image={cardImageUrl(c.image)}
-            imageFit={imageFit}
-            overlay={overlay}
-            compact={compact}
-            disc={disc}
-            strip={tileRow.strip}
-          />
-        ))}
-      </div>
+          setting decides grid versus strip, columns and alignment. The strip
+          arrives as a component rather than a class because its arrows are
+          measured state — see `category-strip.tsx`. */}
+      {tileRow.strip ? (
+        <CategoryStrip
+          align={categoryRow.align}
+          gap="var(--gap)"
+          vars={tileRow.style}
+        >
+          {tiles}
+        </CategoryStrip>
+      ) : (
+        <div className={tileRow.className} style={tileRow.style}>
+          {tiles}
+        </div>
+      )}
     </div>
   );
 }
@@ -243,6 +277,7 @@ function CategoryTile({
   compact,
   disc,
   strip,
+  showLabel,
 }: {
   href: string;
   name: string;
@@ -263,6 +298,12 @@ function CategoryTile({
   disc?: boolean;
   /** The shared category-row control selected horizontal scrolling. */
   strip: boolean;
+  /**
+   * False ⇒ the photograph is the whole tile. Decided for the SECTION (see
+   * `labels` in `CategoryTiles`), which is also why the compact branch below
+   * ignores it — it is a letter shape, and the caller never sends false to one.
+   */
+  showLabel: boolean;
 }) {
   const flowStyle = strip
     ? ({ flex: "0 0 var(--tile-max)", width: "var(--tile-max)" } as CSSProperties)
@@ -348,27 +389,35 @@ function CategoryTile({
 
   if (overlay) {
     return (
-      <Link href={href} style={{ ...flowStyle, position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+      <Link
+        href={href}
+        aria-label={showLabel ? undefined : name}
+        style={{ ...flowStyle, position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}
+      >
         {media}
         {/* A scrim, not a translucent bar: the name has to stay legible over a
             photograph the merchant chose and we have never seen, and a gradient
             does that without hiding the third of the picture a solid strip
-            would. */}
-        <span
-          style={{
-            position: "absolute",
-            inset: "auto 0 0 0",
-            display: "block",
-            padding: "26px 12px 11px",
-            background: "linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0))",
-            color: "#fff",
-            fontSize: 13.5,
-            fontWeight: 600,
-            lineHeight: 1.25,
-          }}
-        >
-          {name}
-        </span>
+            would. It goes with the name: the scrim exists to carry that text,
+            so leaving it on a pictures-only tile would darken a third of the
+            photograph for nothing. */}
+        {showLabel ? (
+          <span
+            style={{
+              position: "absolute",
+              inset: "auto 0 0 0",
+              display: "block",
+              padding: "26px 12px 11px",
+              background: "linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0))",
+              color: "#fff",
+              fontSize: 13.5,
+              fontWeight: 600,
+              lineHeight: 1.25,
+            }}
+          >
+            {name}
+          </span>
+        ) : null}
       </Link>
     );
   }
@@ -376,6 +425,7 @@ function CategoryTile({
   return (
     <Link
       href={href}
+      aria-label={showLabel ? undefined : name}
       style={{
         ...flowStyle,
         display: "flex",
@@ -388,16 +438,18 @@ function CategoryTile({
       }}
     >
       {media}
-      <span style={{ paddingBottom: 2 }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text)", lineHeight: 1.3 }}>
-          {name}
-        </span>
-        {description ? (
-          <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3, marginTop: 3 }}>
-            {description}
+      {showLabel ? (
+        <span style={{ paddingBottom: 2 }}>
+          <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text)", lineHeight: 1.3 }}>
+            {name}
           </span>
-        ) : null}
-      </span>
+          {description ? (
+            <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3, marginTop: 3 }}>
+              {description}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
     </Link>
   );
 }

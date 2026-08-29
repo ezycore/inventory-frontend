@@ -4,7 +4,7 @@
 import { OptionChip } from "@/ui/components/option-card";
 import {
   PartBlock,
-  PartLabel,
+  PartField,
 } from "@/components/ecommerce/customize/part-group";
 import { SectionsEditor } from "@/components/ecommerce/customize/sections-editor";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
@@ -106,6 +106,9 @@ export function HomePart({
           <HomeCollectionsField
             value={draft.homeCollections}
             defaultLayout={hasCategoryTiles ? "grid" : "strip"}
+            unphotographed={
+              draft.collections.filter((c) => c.isListed && !c.hasImage).length
+            }
             onChange={(homeCollections) => patch({ homeCollections })}
           />
         </PartBlock>
@@ -158,28 +161,54 @@ const ALIGNMENTS: {
 
 const COLUMN_CHOICES = [2, 3, 4, 5, 6];
 
+const CONTENTS: { showLabels: boolean; label: string }[] = [
+  { showLabels: true, label: "Picture and name" },
+  { showLabels: false, label: "Picture only" },
+];
+
 /**
- * Layout / columns / alignment for the homepage collections row.
+ * Layout / columns / alignment / contents for the homepage collections row.
  *
  * Columns only appear under `grid`: a strip scrolls, so it has no column count
  * to set, and a disabled-but-visible row of numbers would only invite the
  * question of why it does nothing.
+ *
+ * "Picture only" is the one control here the shop can decline to obey, and it
+ * is therefore **disabled until the shop can actually use it**, counting the
+ * collections in the way by name-of-number.
+ *
+ * ⚠ **The first version shipped it enabled with a quiet hint underneath, and
+ * that was the bug.** A merchant selected it, the chip highlighted, the preview
+ * did not move, and there was no way to tell a refusing control from a broken
+ * one — the hint read as a footnote rather than as the reason. A control that
+ * cannot act must not look like one that can; the count is what turns "nothing
+ * happened" into "seven of these need a picture first".
+ *
+ * The refusal itself is right and stays: a category with no image renders as a
+ * lettered tile, and a letter with no name under it names nothing.
  */
 function HomeCollectionsField({
   value,
   defaultLayout,
+  unphotographed,
   onChange,
 }: {
   value: StorefrontHomeCollections;
   defaultLayout: "strip" | "grid";
+  /** Listed collections with no picture — the exact thing standing in the way. */
+  unphotographed: number;
   onChange: (next: StorefrontHomeCollections) => void;
 }) {
-  const { layout, columns, align } = resolveCategoryRowLayout(
+  const { layout, columns, align, showLabels } = resolveCategoryRowLayout(
     value,
     defaultLayout,
   );
   const patch = (p: Partial<StorefrontHomeCollections>) =>
     onChange({ ...value, ...p });
+  /* Mirrors `categoryLabelsVisible` on the storefront: the names come off only
+     for a fully photographed row. Kept as a count rather than a boolean so the
+     hint can name the number the merchant has to fix. */
+  const blocked = unphotographed > 0;
 
   return (
     <div className="space-y-2.5">
@@ -196,8 +225,7 @@ function HomeCollectionsField({
       </div>
 
       {layout === "grid" ? (
-        <div className="space-y-1.5">
-          <PartLabel>Collections per row</PartLabel>
+        <PartField label="Collections per row">
           <div className="flex flex-wrap gap-2">
             {COLUMN_CHOICES.map((n) => (
               <OptionChip
@@ -209,11 +237,10 @@ function HomeCollectionsField({
               </OptionChip>
             ))}
           </div>
-        </div>
+        </PartField>
       ) : null}
 
-      <div className="space-y-1.5">
-        <PartLabel>Alignment</PartLabel>
+      <PartField label="Alignment">
         <div className="flex flex-wrap gap-2">
           {ALIGNMENTS.map((a) => (
             <OptionChip
@@ -225,7 +252,33 @@ function HomeCollectionsField({
             </OptionChip>
           ))}
         </div>
-      </div>
+      </PartField>
+
+      <PartField
+        label="Tile contents"
+        hintTone={blocked ? "warn" : "muted"}
+        hint={
+          blocked
+            ? `${unphotographed === 1 ? "1 listed category has" : `${unphotographed} listed categories have`} no picture, so the row would show unnamed tiles. Add images under Products → Categories to use this.`
+            : "The name comes off and the picture becomes the whole tile."
+        }
+      >
+        <div className="flex flex-wrap gap-2">
+          {CONTENTS.map((c) => (
+            <OptionChip
+              key={c.label}
+              selected={showLabels === c.showLabels}
+              // Only the option that cannot take effect is disabled — "Picture
+              // and name" always can, and greying both would read as the whole
+              // setting being unavailable.
+              disabled={blocked && !c.showLabels}
+              onSelect={() => patch({ showLabels: c.showLabels })}
+            >
+              {c.label}
+            </OptionChip>
+          ))}
+        </div>
+      </PartField>
     </div>
   );
 }
