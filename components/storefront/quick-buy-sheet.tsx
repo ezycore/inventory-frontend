@@ -190,13 +190,7 @@ export function QuickBuySheet({
                 background: soldOut ? "var(--discount-soft)" : "var(--primary-soft)",
               }}
             >
-              {soldOut
-                ? t.outOfStock
-                : incomplete
-                  ? t.chooseOption
-                  : outOfStock
-                    ? t.backorder
-                    : t.inStock}
+              {soldOut ? t.outOfStock : incomplete ? t.chooseOption : t.inStock}
             </span>
           </div>
         </div>

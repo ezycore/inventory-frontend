@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/ui/components/select";
 import { useSelectOptions } from "@/services/api";
+import { roundMoney } from "@/lib/money";
 import { deriveLinePricing } from "./helpers";
 
 // ---------- Types ----------
@@ -235,11 +236,18 @@ export function ImportLowStockDialog({
   const [discountType, setDiscountTypeState] = useState<"percentage" | "fixed">(initialDiscountType);
   const [discountValue, setDiscountValueState] = useState<number>(initialDiscountValue);
 
-  // Fetch ALL low stock items (no pagination)
+  // Every low-stock row at the active location, unpaginated.
+  //
+  // `inventoryApi.getAll` is the WHOLE stock list — this dialog called it and
+  // then labelled the result "N Low Stock Items", so a shop with 12 stock rows
+  // and 3 actually below their threshold was offered all 12 to reorder, three
+  // of them with a Needed Qty of 0. `/inventory/shortlist` is the same list row
+  // (same `inventoryDto`) with `quantity <= quantityAlert` applied server-side,
+  // which is exactly what the Low Stock page itself lists.
   const { data: shortlistData, isLoading } = useQuery({
     queryKey: [...queryKeys.inventory.lowStock(), "import-dialog"],
     queryFn: () =>
-      inventoryApi.getAll({
+      inventoryApi.getShortlist({
         all: "true",
       }),
     enabled: open,
@@ -289,10 +297,10 @@ export function ImportLowStockDialog({
     return map;
   }, [categoryOptions]);
 
-  // This dialog reuses the plain inventory list (`inventoryApi.getAll`) as a low-stock source but
-  // reads a few shortlist-only fields (`variant`, `location`) that the base `Inventory` response
-  // shape doesn't declare. Cast until either the backend `Inventory` DTO declares them or this
-  // switches to `/inventory/shortlist` once that endpoint has its own response DTO.
+  // `/inventory/shortlist` answers with the list row plus a few fields the base
+  // `Inventory` response shape doesn't declare (`variant`, `location`), and has
+  // no response DTO of its own yet. Cast until it gets one — see the TODO on
+  // `inventoryApi.getShortlist`.
   const items: ShortlistItem[] = useMemo(
     () => (shortlistData?.data?.items || []) as unknown as ShortlistItem[],
     [shortlistData],
@@ -410,16 +418,40 @@ export function ImportLowStockDialog({
       const conversionFactor = item.purchaseUnit?.conversionFactor || 1;
       const quantity = orderQuantities[item._id] || getDefaultOrderQty(item);
 
-      // price = item.price * conversionFactor, then price/discount/costPrice
-      // rounded to 2dp exactly as the manual add-product form does.
-      const { price, discount, costPrice } = deriveLinePricing(
-        (item.price ?? 0) * conversionFactor,
-        discountType,
-        discountValue,
-      );
+      // What the line costs, per purchase unit.
+      //
+      // `deriveLinePricing` takes the product's own PRICE — the MRP — and takes
+      // the supplier discount off it. With no discount configured that leaves
+      // Cost Price equal to the selling price, so an imported order read as
+      // buying stock at retail: a ৳1,450 backpack arrived costing ৳1,450, and a
+      // merchant who completed the order booked a zero-margin purchase.
+      //
+      // The stock row already knows better. `costPrice` on it is the weighted
+      // moving average of what this shop has actually paid, so it is the right
+      // opening guess whenever no supplier rate is on file. A stated supplier
+      // discount still wins — that is an explicit claim about this supplier's
+      // price, where the recorded cost is only history.
+      const boxPrice = roundMoney((item.price ?? 0) * conversionFactor);
+      const recordedCost = roundMoney((item.costPrice ?? 0) * conversionFactor);
+      const { price, discount, costPrice } =
+        discountValue > 0 || recordedCost <= 0
+          ? deriveLinePricing(boxPrice, discountType, discountValue)
+          : {
+              // A cost above MRP is a real thing (a loss leader, a price that
+              // has moved since). Lift the line price to meet it rather than
+              // emitting a negative discount, which the store would then
+              // *subtract* and inflate the total with.
+              price: Math.max(boxPrice, recordedCost),
+              costPrice: recordedCost,
+              discount: roundMoney(Math.max(boxPrice, recordedCost) - recordedCost),
+            };
 
       const convertedQuantity = quantity * conversionFactor;
-      const total = convertedQuantity * costPrice;
+      // `quantity` is in purchase units and so is `costPrice`; multiplying by
+      // the base-unit `convertedQuantity` counted a box twice over. The store
+      // recomputes this on `addItem` either way, so nothing downstream was
+      // wrong — the value just had to stop being a lie on the way there.
+      const total = roundMoney(quantity * costPrice);
       return {
         inventoryId: item._id,
         productId: item.productId || "",

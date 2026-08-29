@@ -12,7 +12,7 @@ import {
   useSalesReturns,
   useCreateSalesReturn,
   useCustomerPendingDues,
-  useAccounts,
+  useAccountPaymentOptions,
   useSalesReturnsSummary,
 } from '@/services/api';
 import type { RefundAllocation } from '@/services/api/modules/sales-returns/api';
@@ -25,7 +25,6 @@ import type {
   SalesReturnReason,
   SalesReturnsSummary,
   SalesReturnFilters,
-  Account,
   ApiResponse,
   PaginatedResponse,
 } from '@/types';
@@ -46,7 +45,6 @@ type SaleSearchData = z.infer<ReturnType<typeof makeSaleSearchSchema>>;
 export function useSalesReturnPage() {
   const t = useTranslations('sales.returns');
   // ── Core UI state ─────────────────────────────────────────────
-  const [showNewReturn, setShowNewReturn] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [reason, setReason] = useState<SalesReturnReason>('customer_changed_mind');
   const [notes, setNotes] = useState('');
@@ -72,9 +70,9 @@ export function useSalesReturnPage() {
     limit,
     ...filters,
   });
-  const { data: accountsData } = useAccounts(
-    isAccountsEnabled ? { status: 'active', limit: 100 } : undefined,
-  );
+  // Minimal list — reachable by returns.create (what creating a return
+  // actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesReturnsSummary();
   const createReturnMutation = useCreateSalesReturn();
 
@@ -82,7 +80,7 @@ export function useSalesReturnPage() {
   const sale = (saleData as ApiResponse<Sale>)?.data;
   const returnsResponse = (returnsData as ApiResponse<PaginatedResponse<SalesReturn>>)?.data;
   const returns: SalesReturn[] = returnsResponse?.items ?? [];
-  const accounts: Account[] = (accountsData as PaginatedResponse<Account>)?.items ?? [];
+  const accounts = accountsData ?? [];
   const summary = (summaryData as ApiResponse<SalesReturnsSummary>)?.data;
 
   const paginationInfo = useMemo(() => {
@@ -145,7 +143,6 @@ export function useSalesReturnPage() {
     itemsHook.resetItems();
     allocationHook.resetAllocation();
     setNotes('');
-    setShowNewReturn(false);
     searchForm.reset();
   }, [itemsHook, allocationHook, searchForm]);
 
@@ -306,9 +303,6 @@ export function useSalesReturnPage() {
   );
 
   return {
-    // UI
-    showNewReturn,
-    setShowNewReturn,
     // form state
     selectedSaleId,
     returnableItems: itemsHook.returnableItems,

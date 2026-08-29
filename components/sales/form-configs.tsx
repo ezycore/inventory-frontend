@@ -3,7 +3,7 @@ import { selectOptions } from "@/services/api/select-options";
 import type { Translator } from "@/i18n/config";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import {
-  accountItemsCreateCallback,
+  accountPaymentOptionItemsCallback,
   customerItemsCreateCallback,
 } from "./helpers";
 
@@ -58,9 +58,12 @@ export const getPaymentFormConfig = (
         label: t("paymentMethod"),
         type: "select",
         required: false,
-        optionsApi: selectOptions("accounts", { fields: "_id,name,isDefault,balance,type,status" }),
+        // Minimal endpoint, reachable by sales.create as well as
+        // accounts.view — a sell-only role would otherwise see no options
+        // here at all and be forced to record every sale fully on credit.
+        optionsApi: selectOptions("accountPaymentOptions"),
         placeholder: t("selectAccount"),
-        itemsCreateCallback: accountItemsCreateCallback,
+        itemsCreateCallback: accountPaymentOptionItemsCallback,
         columnSpan: 12,
       },
       {

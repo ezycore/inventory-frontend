@@ -58,6 +58,7 @@ export type {
 } from "@ui/components/fuse-select-types";
 
 export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
+  id,
   value,
   onValueChange,
   placeholder,
@@ -324,6 +325,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   // ── Render ────────────────────────────────────────────────────────────────
 
   const fieldCtx: FuseFieldContext = {
+    id,
     inputRef,
     disabled,
     placeholder,
@@ -397,6 +399,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
             type="button"
             variant="outline"
             size="icon"
+            aria-label={moduleConfig.title}
             onClick={() => {
               // Open already scoped to whatever narrows this select's
               // options, so a child cannot be created at the wrong level.

@@ -340,7 +340,6 @@ export interface Dict {
   onSale: string;
   inStock: string;
   outOfStock: string;
-  backorder: string;
   addToCartFull: string;
   buyNow: string;
   quantity: string;
@@ -740,7 +739,6 @@ const en: Dict = {
   onSale: "On sale",
   inStock: "In stock",
   outOfStock: "Out of stock",
-  backorder: "Available on backorder",
   addToCartFull: "Add to cart",
   buyNow: "Buy now",
   quantity: "Quantity",
@@ -1132,7 +1130,6 @@ const bn: Dict = {
   onSale: "ছাড়ে",
   inStock: "স্টকে আছে",
   outOfStock: "স্টকে নেই",
-  backorder: "প্রি-অর্ডার করা যাবে",
   addToCartFull: "কার্টে যোগ করুন",
   buyNow: "এখনই কিনুন",
   quantity: "পরিমাণ",

@@ -32,6 +32,15 @@ interface OptionSource {
 
 export const OPTION_SOURCES = {
   accounts: { path: "/accounts", root: queryKeys.accounts.all },
+  // Minimal id/name/isDefault list for the sale/purchase payment picker —
+  // reachable by sales.create/purchases.create as well as accounts.view, so
+  // a sell-only or receiving-only role can take payment without the full
+  // list (balances included). Already a bounded picker, not paginated.
+  accountPaymentOptions: {
+    path: "/accounts/payment-options",
+    root: queryKeys.accounts.all,
+    noAll: true,
+  },
   brands: { path: "/brands", root: queryKeys.brands.all },
   tags: { path: "/tags", root: queryKeys.tags.all },
   categories: { path: "/categories", root: queryKeys.categories.all },

@@ -59,7 +59,7 @@ and the one to check before deciding you can afford more stock.
 **Purchase Report** — a *Detailed analysis of purchase orders*, including order status. Useful for
 supplier negotiations, and for spotting a cost price that has crept up.
 
-## Money and tax
+## Money and VAT
 
 **Cash Report** — a *Cash flow and account balances overview*, broken down per account and per
 category. Needs the Accounts feature — see [Track your cash and bank](./money-in-and-out.md).
@@ -118,12 +118,12 @@ report. It breaks down into:
 
 - **Output VAT by Rate (Sales)** — what you collected from customers.
 - **Input VAT by Rate (Purchases)** — what you paid to suppliers.
-- A VAT Ledger listing every taxable document, and a trend chart.
+- A VAT Ledger listing every document that carried VAT, and a trend chart.
 
 **Net VAT payable is not always output minus input.** Only a standard-rated registrant can reclaim
 the VAT it paid on purchases. On any other registration the input VAT is shown for information and
 is *not* deducted — it is part of your cost instead, and the report says so. Your registration type
-lives in Settings → VAT; see [Set up discounts and tax](./discounts-and-tax.md).
+lives in Settings → VAT; see [Set up discounts and VAT](./discounts-and-vat.md).
 
 ## Stock and staff
 

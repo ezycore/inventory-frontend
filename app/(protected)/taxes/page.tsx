@@ -149,7 +149,13 @@ export default function TaxesPage() {
     updateMutation: useUpdateTax(),
     deleteMutation: useDeleteTax(),
     queryKey: queryKeys.taxes.all(),
-    entityName: "Tax" as const,
+    // Every other string on this page says VAT — the page title, the card title,
+    // the search placeholder, the form's own field labels. `entityName` feeds the
+    // shared DataTable's "Add {entity}" / "Create {entity}" / "Edit {entity}", so
+    // leaving it as "Tax" put the one word this product does not use on the
+    // primary button of the VAT screen. In Bangladesh *tax* is income tax; what
+    // is implemented here is VAT.
+    entityName: "VAT Rate" as const,
   };
 
   if (!isTaxEnabled) return null;

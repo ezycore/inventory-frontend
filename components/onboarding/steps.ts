@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { OrganizationFeatures, VatRegistrationType } from "@/types";
 import type { OnboardingStepPayload } from "@/services/api/modules/organization/api";
 
@@ -67,6 +68,10 @@ const INDUSTRY_RECOMMENDATIONS: Record<
   RESTAURANT_FNB: { expiryTracking: true, barcodeSystem: false },
   ELECTRONICS_STORE: { expiryTracking: false, barcodeSystem: true },
   FASHION_APPAREL: { expiryTracking: false, barcodeSystem: true },
+  // Expiry ON is the point of the category: formula, baby food, wipes and
+  // creams are all dated, and a shop that misses one is selling expired food to
+  // an infant. That it also sells clothes does not soften it.
+  BABY_KIDS_STORE: { expiryTracking: true, barcodeSystem: true },
   WHOLESALE_DISTRIBUTOR: { expiryTracking: false, barcodeSystem: true },
   ONLINE_SHOP: { expiryTracking: false, barcodeSystem: false },
 };

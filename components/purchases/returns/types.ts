@@ -30,5 +30,6 @@ export const RETURN_REASONS: { value: PurchaseReturnReason; label: string }[] =
     { value: "wrong_item", label: "Wrong Item" },
     { value: "excess_quantity", label: "Excess Quantity" },
     { value: "expired", label: "Expired" },
+    { value: "quality_issue", label: "Quality Issue" },
     { value: "other", label: "Other" },
   ];

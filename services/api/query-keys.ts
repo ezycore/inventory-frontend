@@ -45,6 +45,7 @@ export const queryKeys = {
     features: () => ["organization", "features"] as const,
     featureImpact: () => ["organization", "features", "impact"] as const,
     subscription: () => ["organization", "subscription"] as const,
+    subscriptionStatus: () => ["organization", "subscription", "status"] as const,
     plans: () => ["organization", "plans"] as const,
     referralLink: () => ["organization", "referral-link"] as const,
     storefront: () => ["organization", "storefront"] as const,
@@ -204,9 +205,10 @@ export const queryKeys = {
   // ── Money ───────────────────────────────────────────────────────────────────
   accounts: {
     ...resourceKeys("accounts"),
-    default: () => ["accounts", "default"] as const,
-    /** The lean account list behind order/payment pickers (`use-order-account-options`). */
-    orderOptions: () => ["accounts", "order-options"] as const,
+    /** GET /accounts/payment-options — the id/name/isDefault list shared by
+     * every "which account" payment picker (sales, purchases, storefront
+     * orders — see useAccountPaymentOptions and use-order-account-options). */
+    paymentOptions: () => ["accounts", "payment-options"] as const,
   },
 
   transactions: {

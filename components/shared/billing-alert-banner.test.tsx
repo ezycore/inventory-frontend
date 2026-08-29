@@ -19,12 +19,23 @@ vi.mock("sonner", () => ({
   },
 }));
 
+// Full detail (organization.view-gated) — only the amount matters here,
+// since `status` below is what the banner actually renders from.
 const subscription = (over: Record<string, unknown>) =>
   http.get("*/api/organization/subscription", () =>
     HttpResponse.json({
       success: true,
       data: { entitlement: over, usage: { locations: 0, users: 0, inventory: 0 } },
     }),
+  );
+
+// Minimal, permission-free status — what the banner actually renders from.
+// Real payload never carries `amount`; tests reuse the same `over` object for
+// convenience, which is harmless since BillingAlertBanner only reads
+// status/subscriptionStatus off this response.
+const subscriptionStatus = (over: Record<string, unknown>) =>
+  http.get("*/api/organization/subscription/status", () =>
+    HttpResponse.json({ success: true, data: { entitlement: over } }),
   );
 
 let hrefSpy: string;
@@ -76,6 +87,7 @@ describe("BillingAlertBanner", () => {
   it("is hidden for a healthy subscription", async () => {
     server.use(
       subscription({ status: "active", subscriptionStatus: "active", amount: 500 }),
+      subscriptionStatus({ status: "active", subscriptionStatus: "active" }),
     );
     renderWithProviders(<BillingAlertBanner />);
     // Give the query a tick; banner must never appear.
@@ -90,6 +102,7 @@ describe("BillingAlertBanner", () => {
         subscriptionStatus: "past_due",
         amount: 500,
       }),
+      subscriptionStatus({ status: "read_only", subscriptionStatus: "past_due" }),
     );
     renderWithProviders(<BillingAlertBanner />);
     expect(await screen.findByText(/overdue/i)).toBeInTheDocument();
@@ -104,6 +117,7 @@ describe("BillingAlertBanner", () => {
     let payLinkHit = false;
     server.use(
       subscription({ status: "read_only", subscriptionStatus: "past_due", amount: 500 }),
+      subscriptionStatus({ status: "read_only", subscriptionStatus: "past_due" }),
       http.get("*/api/organization/billing/pay-link", () => {
         payLinkHit = true;
         return HttpResponse.json({
@@ -130,6 +144,7 @@ describe("BillingAlertBanner", () => {
   it("Pay now with nothing due shows a toast and does not redirect", async () => {
     server.use(
       subscription({ status: "read_only", subscriptionStatus: "past_due", amount: 500 }),
+      subscriptionStatus({ status: "read_only", subscriptionStatus: "past_due" }),
       http.get("*/api/organization/billing/pay-link", () =>
         HttpResponse.json({
           success: true,
@@ -148,6 +163,7 @@ describe("BillingAlertBanner", () => {
   it("Pay now with status 'due' but no url shows an error, not 'nothing owed'", async () => {
     server.use(
       subscription({ status: "read_only", subscriptionStatus: "past_due", amount: 500 }),
+      subscriptionStatus({ status: "read_only", subscriptionStatus: "past_due" }),
       http.get("*/api/organization/billing/pay-link", () =>
         HttpResponse.json({
           success: true,

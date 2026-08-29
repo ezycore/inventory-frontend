@@ -1,7 +1,7 @@
 ---
-title: Set up discounts and tax
-slug: discounts-and-tax
-summary: Define the discount and tax rates you reuse, and decide where tax applies.
+title: Set up discounts and VAT
+slug: discounts-and-vat
+summary: Define the discount and VAT rates you reuse, and decide where VAT applies.
 order: 45
 covers_routes:
   - /discounts
@@ -23,7 +23,7 @@ ui_labels:
   - settings:vatSettings.periodFixed
 ---
 
-# Set up discounts and tax
+# Set up discounts and VAT
 
 Both of these are lists you define once and reuse. Setting them up before you start selling saves
 correcting invoices later.
@@ -41,12 +41,12 @@ consistent, and your reports can tell you what it cost you.
 You can still apply a one-off discount on a line or a whole order at the point of sale — see
 [Make a sale](./make-a-sale.md).
 
-## Tax rates
+## VAT rates
 
 **VAT Rates** holds *The VAT rates applied to your sales and purchases.* Add each rate you are
 required to charge, with its percentage.
 
-Tax is applied per line, so a single invoice can mix rates — some items taxed, others not. Products
+VAT is applied per line, so a single invoice can mix rates — some items carrying VAT, others not. Products
 carry their own rate, which is why getting this list right before you add products saves rework.
 
 ## Your VAT registration
@@ -65,7 +65,7 @@ Pick your **Registration type**:
 This choice changes what the VAT Report tells you to pay, so it matters more than any other setting
 on the page.
 
-**BIN (Business Identification Number)** is printed on every tax invoice. A registered buyer needs
+**BIN (Business Identification Number)** is printed on every VAT invoice. A registered buyer needs
 it to claim their own rebate, so fill it in before you start invoicing businesses.
 
 ### Changing it later
