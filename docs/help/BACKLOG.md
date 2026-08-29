@@ -31,7 +31,7 @@ mistaken for finished work.
 
 - **Backend-only behaviour changes are invisible.** A valuation-method or tax-rule change alters what
   a number *means* on a screen with no frontend diff. Nothing fires. `read-your-reports.md` and
-  `discounts-and-tax.md` are the pages most exposed.
+  `discounts-and-vat.md` are the pages most exposed.
 
 - **`/ecommerce/navigation` is a retired route.** The directory still exists under `app/(protected)/`
   but is absent from the sidebar; its UI now lives as a section inside Customize (see

@@ -110,6 +110,16 @@ describe("industry recommendations", () => {
     });
   });
 
+  // Half a baby shop's shelf is dated stock — formula, baby food, wipes,
+  // creams — so this trade gets expiry ON even though the other half is
+  // clothing, which is the reason it is not a shape of FASHION_APPAREL.
+  it("recommends expiry and barcode for a baby & kids store", () => {
+    expect(recommendationsFor("BABY_KIDS_STORE")).toEqual({
+      expiryTracking: true,
+      barcodeSystem: true,
+    });
+  });
+
   it("recommends neither for an online shop", () => {
     expect(recommendationsFor("ONLINE_SHOP")).toEqual({
       expiryTracking: false,

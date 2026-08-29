@@ -4,7 +4,7 @@
 import { useTranslations } from "next-intl";
 import { WalletIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { useAccounts, useSupplierPendingDues } from "@/services/api";
+import { useAccountPaymentOptions, useSupplierPendingDues } from "@/services/api";
 import {
   usePurchasePageStore,
   type SellerSession,
@@ -37,12 +37,11 @@ export function SellerPaymentSection({
   const setNotes = usePurchasePageStore((s) => s.setNotes);
   const setCreditApplied = usePurchasePageStore((s) => s.setCreditApplied);
 
-  // Accounts list — match the sales-flow pattern (lean payload, single call)
-  const { data: accountsData } = useAccounts({
-    all: true,
-    fields: "_id,name,isDefault,balance,type,status",
-  });
-  const accounts = useMemo(() => accountsData?.items || [], [accountsData]);
+  // Minimal accounts list (id/name/isDefault only) — reachable by
+  // purchases.create as well as accounts.view, so a receiving-only role can
+  // pick a payment account without the full list (balances included).
+  const { data: accountsData } = useAccountPaymentOptions();
+  const accounts = useMemo(() => accountsData || [], [accountsData]);
 
   // Supplier credit + dues (only when supplier selected)
   const { data: pendingDuesData } = useSupplierPendingDues(

@@ -13,7 +13,7 @@ import {
   needsReactivation,
   shouldBlockWorkspaceAccess,
 } from "@/lib/subscription-utils";
-import { useGetSubscription, useMe } from "@/services/api";
+import { useGetSubscriptionStatus, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useOrgDocumentTitle } from "@/hooks/use-org-document-title";
@@ -68,15 +68,12 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  // The backend gates GET /organization/subscription on `organization.view`.
-  // A sell-only role lacks it, so firing this unconditionally 403'd on every
-  // navigation for every non-admin user. `permissions` is undefined until
-  // /me resolves, which correctly holds the query off until then too.
-  const canViewSubscription =
-    useAuthStore((state) => state.user?.permissions)?.includes(
-      "organization.view",
-    ) ?? false;
-  const subscription = useGetSubscription(canViewSubscription);
+  // Minimal, permission-free status (see useGetSubscriptionStatus) — not
+  // useGetSubscription, which needs organization.view and used to 403 on
+  // every navigation for every non-admin role. The force-logout/reactivate
+  // redirect below must run for every role, not just organization.view
+  // holders, or a degraded workspace goes unexplained for everyone else.
+  const subscription = useGetSubscriptionStatus();
   const router = useRouter();
   const pathname = usePathname();
   const tOnboarding = useTranslations("onboarding");

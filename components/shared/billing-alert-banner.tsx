@@ -4,7 +4,11 @@
 import Link from "next/link";
 import { AlertTriangle, CalendarX, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useGetSubscription, useRequestPayLink } from "@/services/api";
+import {
+  useGetSubscription,
+  useGetSubscriptionStatus,
+  useRequestPayLink,
+} from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatCurrency } from "@/lib/currency";
 import { isPaymentOverdue, needsReactivation } from "@/lib/subscription-utils";
@@ -21,14 +25,21 @@ import { Button } from "@/ui/components/button";
  * Everyone sees the message — a degraded workspace needs explaining to whoever
  * hits it — but only a billing manager gets the actions, since both lead to a
  * page they cannot open and "Pay now" mints a real payment session.
+ *
+ * Two data sources, on purpose: `status` (permission-free) is what decides
+ * whether the banner renders at all, so it works for every role. `full` only
+ * fires for a billing manager and supplies the one thing `status` withholds —
+ * the owed `amount` — so the copy can say "of ৳X" for the person who can act
+ * on it, without a non-billing-manager 403ing just to render the same banner.
  */
 export function BillingAlertBanner() {
-  const subscription = useGetSubscription();
+  const status = useGetSubscriptionStatus();
+  const canManageBilling = useCanManageBilling();
+  const full = useGetSubscription(canManageBilling);
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const payLink = useRequestPayLink();
-  const canManageBilling = useCanManageBilling();
 
-  const entitlement = subscription.data?.entitlement;
+  const entitlement = status.data?.entitlement;
 
   // Billing-confined tier: data is retained but the workspace cannot be used
   // until a plan is paid for. Two states land here and they are NOT the same
@@ -72,10 +83,8 @@ export function BillingAlertBanner() {
 
   if (!entitlement || !isPaymentOverdue(entitlement)) return null;
 
-  const amount =
-    entitlement.amount != null
-      ? formatCurrency(entitlement.amount, currency)
-      : null;
+  const fullAmount = canManageBilling ? full.data?.entitlement?.amount : undefined;
+  const amount = fullAmount != null ? formatCurrency(fullAmount, currency) : null;
 
   const handlePayNow = () => {
     payLink.mutate(undefined, {
@@ -94,9 +103,11 @@ export function BillingAlertBanner() {
           return;
         }
         // Genuinely nothing due (already settled / manual plan) — refresh so the
-        // banner clears once the mirror catches up.
+        // banner clears once the mirror catches up. `status` drives whether the
+        // banner renders at all; `full` only matters here for a billing manager.
         toast.info("No outstanding payment was found.");
-        subscription.refetch();
+        status.refetch();
+        if (canManageBilling) full.refetch();
       },
     });
   };

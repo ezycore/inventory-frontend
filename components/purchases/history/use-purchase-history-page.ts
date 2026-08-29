@@ -9,7 +9,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { format } from "date-fns";
 
 import {
-  useAccounts,
+  useAccountPaymentOptions,
   useAddPurchasePayment,
   useDeleteDraftPurchaseOrder,
   usePurchaseOrderPayments,
@@ -81,7 +81,9 @@ export function usePurchaseHistoryPage() {
     usePurchaseOrderReturns(selectedOrder?._id || "");
   const { data: transactionsData, isLoading: isLoadingTransactions } =
     usePurchaseOrderTransactions(selectedOrder?._id || "");
-  const { data: accountsData } = useAccounts();
+  // Minimal list — reachable by purchases.edit (what recording a payment
+  // actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   const addPaymentMutation = useAddPurchasePayment();
   const deleteDraftMutation = useDeleteDraftPurchaseOrder();
   const { confirm, ConfirmDialog: DeleteDraftConfirmDialog } = useConfirm();
@@ -98,7 +100,7 @@ export function usePurchaseHistoryPage() {
       ? ((returnsData as { data: PurchaseReturn[] }).data)
       : (((returnsData as { data?: { returns?: PurchaseReturn[] } } | undefined)
           ?.data?.returns as PurchaseReturn[]) || []);
-  const accounts = accountsData?.items || [];
+  const accounts = accountsData || [];
 
   const paginationInfo = useMemo(() => {
     if (!purchaseData?.data) return null;

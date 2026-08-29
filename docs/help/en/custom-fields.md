@@ -36,7 +36,7 @@ Reasonable to hide if you do not use them:
 - Batch and expiry, unless you sell anything perishable
 - Brand, if you sell unbranded goods
 - Barcode, if you do not scan
-- Tax fields, if you do not charge tax
+- VAT fields, if you do not charge VAT
 
 **Required fields cannot be hidden.** If a field will not switch off, it is because the system needs
 it to work.

@@ -34,7 +34,7 @@ someone else's idea of your business on it.
 **Letterhead** is what prints at the top. You *Compose what prints at the top of every document —
 reorder lines, hide what you don't need, and add your own.*
 
-The available lines are your business name, tax registration number, store or branch, address, and
+The available lines are your business name, VAT registration number (BIN), store or branch, address, and
 phone/email. Reorder them with the arrows, hide any with its switch, and use **Add custom line** for
 anything else you need — a licence number, a slogan, a second phone.
 
@@ -44,7 +44,7 @@ Where each line's content comes from matters when you want to change it:
 |---|---|
 | Business name, Address, Logo | Organization profile |
 | Store / branch | Your active location |
-| Tax Reg. No., Phone, Email | This page |
+| VAT Reg. No., Phone, Email | This page |
 | Custom lines | This page |
 
 So if your business name prints wrong, this is not the page to fix it — see

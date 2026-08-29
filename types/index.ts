@@ -103,6 +103,14 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
 export type StorefrontPaymentMethod = "cod" | "bank";
 export type ShippingRuleMode = "flat" | "free_over_threshold" | "none";
 
+/**
+ * What the shop does with a sold-out product. Set store-wide on
+ * `StorefrontSettings.defaultOutOfStockBehavior` and optionally overridden per
+ * product; the storefront's product payload always carries the RESOLVED value,
+ * so shopper-facing code never needs the store setting.
+ */
+export type OutOfStockBehavior = "hide" | "show" | "backorder";
+
 export interface StorefrontShippingRule {
   mode: ShippingRuleMode;
   flatFee?: number;
@@ -381,6 +389,13 @@ export interface StorefrontSettings {
    *  banner → logo; this field is the merchant's own upload only. */
   socialImage?: Image | null;
   storefrontLocationId?: string;
+  /**
+   * Store-wide default for what the shop does with a sold-out product. A
+   * product's own `storefront.outOfStockBehavior` overrides it; that field is
+   * unset unless the merchant opted the product out, so this is what the whole
+   * catalogue follows.
+   */
+  defaultOutOfStockBehavior?: OutOfStockBehavior;
   allowedPaymentMethods: StorefrontPaymentMethod[];
   contact?: { email?: string; phone?: string; address?: string };
   social?: {
@@ -684,6 +699,20 @@ export interface SubscriptionUsage {
 export interface SubscriptionInfo {
   entitlement: Entitlement | null;
   usage: SubscriptionUsage;
+}
+
+/**
+ * Response of GET /api/organization/subscription/status — permission-free
+ * (any authenticated org member, not just `organization.view`). Deliberately
+ * a subset of `Entitlement`: no `amount`, `planSlug`/`planName`, `modules`,
+ * or `limits`. See `lib/subscription-utils.ts`'s `EntitlementAccessFields`
+ * for exactly what this is used for.
+ */
+export interface SubscriptionStatusInfo {
+  entitlement: Pick<
+    Entitlement,
+    "status" | "subscriptionStatus" | "cancelAtPeriodEnd" | "cancelAt" | "currentPeriodEnd"
+  > | null;
 }
 
 /** A publicly available plan (proxied from Mission Control). */
@@ -1754,6 +1783,20 @@ export interface AccountSummary {
   };
 }
 
+/**
+ * Response item of GET /api/accounts/payment-options — enough to pick "which
+ * account did this payment land in" and nothing else. Reachable by more than
+ * accounts.view (see accounts.routes.ts on the backend for the full list —
+ * one entry per screen with its own picker). `type` is included (a category,
+ * not a financial detail); `balance` and `status` are the withheld fields.
+ */
+export interface AccountPaymentOption {
+  _id: string;
+  name: string;
+  type: "cash" | "bank" | "mfs" | "custom";
+  isDefault?: boolean;
+}
+
 // Transaction interfaces.
 //
 // Both unions are DERIVED from the generated API types, which come from the backend's
@@ -1996,6 +2039,7 @@ export type PurchaseReturnReason =
   | "wrong_item"
   | "excess_quantity"
   | "expired"
+  | "quality_issue"
   | "other";
 
 /**

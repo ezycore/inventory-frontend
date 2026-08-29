@@ -6,11 +6,11 @@ import { populatedRef } from "@/utils/populated-ref";
 import {
   PaymentEntryForm as SharedPaymentEntryForm,
 } from "@/components/shared/payments";
-import type { Account, PurchaseOrder } from "@/types";
+import type { AccountPaymentOption, PurchaseOrder } from "@/types";
 
 interface PaymentEntryFormProps {
   order: PurchaseOrder;
-  accounts: Account[];
+  accounts: AccountPaymentOption[];
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
   paymentAmount: string;

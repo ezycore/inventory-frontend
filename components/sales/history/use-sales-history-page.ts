@@ -10,7 +10,7 @@ import {
   useSalePayments,
   useSaleTransactions,
   useAddSalePayment,
-  useAccounts,
+  useAccountPaymentOptions,
   useSalesSummary,
   useSaleReturns,
   useDeleteDraftSale,
@@ -59,7 +59,9 @@ export function useSalesHistoryPage() {
   const { data: saleReturnsData, isLoading: isLoadingReturns } = useSaleReturns(
     selectedSale?._id || '',
   );
-  const { data: accountsData } = useAccounts();
+  // Minimal list — reachable by sales.edit (what recording a payment
+  // actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   const { data: summaryData, isLoading: isSummaryLoading } = useSalesSummary();
   const addPaymentMutation = useAddSalePayment();
   const deleteDraftMutation = useDeleteDraftSale();
@@ -67,7 +69,7 @@ export function useSalesHistoryPage() {
   // ── Derived data ──────────────────────────────────────────────
   const sales: Sale[] = salesData?.data?.items || [];
   const payments: Payment[] = paymentsData?.data || [];  const transactions = transactionsData?.data;  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
-  const accounts = accountsData?.items || [];
+  const accounts = accountsData || [];
   const summary = summaryData?.data;
 
   const paginationInfo = useMemo(() => {

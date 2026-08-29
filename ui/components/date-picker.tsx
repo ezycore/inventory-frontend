@@ -10,6 +10,9 @@ import { Calendar } from "@ui/components/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/components/popover"
 
 interface DatePickerProps {
+  /** DOM id for the trigger button, so a `<Label htmlFor>` can focus it — a
+   *  button is a labelable element, so this works the same as for an input. */
+  id?: string
   date?: Date | string
   onSelect?: (date: string | undefined) => void
   placeholder?: string
@@ -66,6 +69,7 @@ function toZonedDate(date: Date, timeZone: string): Date {
 }
 
 export function DatePicker({
+  id,
   date,
   onSelect,
   placeholder = "Pick a date",
@@ -124,6 +128,7 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           disabled={disabled}
           className={cn(

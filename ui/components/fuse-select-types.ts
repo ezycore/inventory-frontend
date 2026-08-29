@@ -23,6 +23,8 @@ export type FuseSelectMode = "single" | "multiple";
 
 export interface FuseAdvancedSelectProps {
   // Core select properties
+  /** DOM id for the combobox input — the target of a `<Label htmlFor>`. */
+  id?: string;
   value?: FuseSelectValue;
   onValueChange?: (value: FuseSelectValue) => void;
   placeholder?: string;

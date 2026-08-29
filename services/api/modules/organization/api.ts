@@ -10,6 +10,7 @@ import type {
   StorefrontSettings,
   SubscriptionCancelResult,
   SubscriptionInfo,
+  SubscriptionStatusInfo,
   UpdateStorefrontSettingsDto,
   VatSettings,
   VatRegistrationEntry,
@@ -141,6 +142,13 @@ export const organizationApi = {
   // Used in: useGetSubscription → app/(protected)/billing/page.tsx
   getSubscription: (): Promise<ApiResponse<SubscriptionInfo>> =>
     apiClient.get(`/organization/subscription`),
+
+  // GET /api/organization/subscription/status - Minimal, permission-free
+  // status (no billing detail). Used in: useGetSubscriptionStatus →
+  // app/(protected)/layout.tsx + billing-alert-banner.tsx, both of which run
+  // for every role, not just organization.view holders.
+  getSubscriptionStatus: (): Promise<ApiResponse<SubscriptionStatusInfo>> =>
+    apiClient.get(`/organization/subscription/status`),
 
   // GET /api/organization/plans - Available plans (upgrade/downgrade options)
   // Used in: useGetAvailablePlans → billing page

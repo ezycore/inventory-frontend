@@ -22,6 +22,16 @@ export interface ReturnableItemDisplay {
   price?: number;
   /** Cost price (used in purchase returns; takes precedence for display) */
   costPrice?: number;
+  /**
+   * The tax-inclusive per-unit amount THIS return is actually priced at —
+   * sale price on a sales return, cost on a purchase return. Both builders
+   * (use-returnable-items.ts, purchases/returns/helpers.ts) already compute
+   * this, and it's what refundAmount is derived from, so it's the only field
+   * that reconciles Price × Qty against Refund on both sides. Takes
+   * precedence over price/costPrice below, which can't tell the two
+   * contexts apart on their own — a SaleItem also carries a costPrice.
+   */
+  refundUnitPrice?: number;
   /** Per-item discount amount */
   discount?: number;
   /** UOM conversion info (purchase returns) */
@@ -52,7 +62,13 @@ export function ReturnItemRow({
 }: ReturnItemRowProps) {
   const t = useTranslations('common.returns');
   const isDisabled = item.maxReturnableQty === 0;
-  const displayPrice = item.price ?? 0;
+  // refundUnitPrice takes precedence, matching the field doc above: it's the
+  // per-unit amount this return is priced at, computed by whichever builder
+  // built the item, so it's unambiguous per context. costPrice ?? price
+  // alone can't disambiguate — a SaleItem carries a costPrice too, so on a
+  // sales return that fallback showed cost instead of sale price whenever
+  // one happened to be present.
+  const displayPrice = item.refundUnitPrice ?? item.costPrice ?? item.price ?? 0;
   const displayName = item.productName ?? item.product?.name ?? t('product');
 
   return (
@@ -91,11 +107,16 @@ export function ReturnItemRow({
             </span>
           </div>
 
-          {/* Fields grid: Price | Discount | Qty | Refund */}
+          {/* Fields grid: Unit Refund | Discount | Qty | Refund */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* Price (read-only) */}
+            {/* Unit Refund (read-only). Labeled "Unit Refund", not "Price": the
+                cell holds displayPrice (== refundUnitPrice when set), which is
+                already net of discount — a raw "Price" label made the row look
+                inconsistent on a discounted line (Price × Qty appeared not to
+                match Refund once Discount was subtracted a second time, when
+                it was never subtracted from Refund in the first place). */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Price</Label>
+              <Label className="text-xs text-muted-foreground">Unit Refund</Label>
               <Input
                 value={formatCurrency(displayPrice)}
                 readOnly
