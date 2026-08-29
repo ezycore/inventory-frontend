@@ -51,6 +51,24 @@ The practical lesson: confirm online orders you can actually fulfil, promptly, a
 you cannot. A confirmed order you never ship holds stock away from customers standing in front of
 you. See [Handle online orders](/help/storefront-orders).
 
+### A product you expected is not in the list
+
+Current Stock lists stock records, not products. A product that has never been stocked at this
+location has no record here — and the same absence is why it does not turn up when you search for it
+on the sell or purchase screen. It is not out of stock; the shop simply does not carry it yet.
+
+**Add Inventory** fixes that. Its product dropdown offers only products that are not already stocked
+here, so a short list is a good sign rather than a fault. Pick the product (and the variant, if it
+has options), set the alert level, and give it the quantity and cost price you are holding right
+now — that becomes an opening-stock entry in Stock History, so the count has a starting point you
+can trace.
+
+Stock is added to **the location you are currently in** — the one named in the top bar. Switch
+location first if you meant the other shop. A variant product needs one entry per variant.
+
+The usual reason a product ends up here is that **Track stock** was left off when it was created;
+see [Add your products](./add-your-products.md).
+
 ## Low Stock
 
 **Low Stock** lists *Items running low that need restocking* — everything at or below the threshold

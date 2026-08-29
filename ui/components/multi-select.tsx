@@ -486,6 +486,90 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
 		const responsiveSettings = getResponsiveSettings();
 
+		// ── Width-driven badge overflow ──────────────────────────────────────
+		//
+		// `maxCount` alone is blind to how wide the trigger actually is: three
+		// badges in a half-width form column stack three rows deep and the field
+		// grows taller than every control beside it. So `maxCount` is only the
+		// ceiling — how many badges actually show is measured.
+		//
+		// Measured off a hidden mirror row that always renders the full set, never
+		// off the visible row: reading the visible row would make the measurement
+		// depend on its own result and oscillate under the ResizeObserver.
+		const rowRef = React.useRef<HTMLDivElement>(null);
+		const controlsRef = React.useRef<HTMLDivElement>(null);
+		const mirrorRef = React.useRef<HTMLDivElement>(null);
+		// null = not measured yet; render the capped set for one frame so the
+		// mirror has something to measure against.
+		const [fitCount, setFitCount] = React.useState<number | null>(null);
+
+		const cappedValues = selectedValues.slice(0, responsiveSettings.maxCount);
+		// singleLine scrolls horizontally instead of overflowing into a counter.
+		const visibleCount = singleLine
+			? cappedValues.length
+			: Math.min(cappedValues.length, fitCount ?? cappedValues.length);
+		const hiddenCount = selectedValues.length - visibleCount;
+		const visibleValues = cappedValues.slice(0, visibleCount);
+
+		React.useLayoutEffect(() => {
+			if (singleLine || selectedValues.length === 0) return;
+			const row = rowRef.current;
+			const mirror = mirrorRef.current;
+			if (!row || !mirror) return;
+
+			const measure = () => {
+				const children = Array.from(mirror.children) as HTMLElement[];
+				// Last mirror child is the "+ n more" chip, sized for the worst case.
+				const moreChip = children[children.length - 1];
+				const badges = children.slice(0, -1);
+				if (!moreChip || badges.length === 0) return;
+
+				const mirrorLeft = mirror.getBoundingClientRect().left;
+				// Right edge of each badge, so gaps and margins are counted by the
+				// browser rather than re-derived from the class names.
+				const consumed = badges.map(
+					(b) => b.getBoundingClientRect().right - mirrorLeft
+				);
+				const available =
+					row.clientWidth - (controlsRef.current?.offsetWidth ?? 0);
+				// What the counter chip ADDS after the last badge, not its own
+				// width: the gap and the badges' `m-1` margins sit between them,
+				// and leaving those out under-reserved by ~12px — enough to let
+				// one badge too many through, which then wrapped to a second row.
+				const moreWidth =
+					moreChip.getBoundingClientRect().right -
+					mirrorLeft -
+					consumed[consumed.length - 1] +
+					parseFloat(getComputedStyle(moreChip).marginRight || "0");
+
+				let fit = 0;
+				for (let i = 0; i < consumed.length; i++) {
+					if (consumed[i] > available) break;
+					fit = i + 1;
+				}
+				// Anything left over needs the counter chip to fit too.
+				if (fit < selectedValues.length) {
+					while (fit > 1 && consumed[fit - 1] + moreWidth > available) fit--;
+				}
+				// One badge always shows, even in a field too narrow for it — a row
+				// of nothing but "+ 4 more" says less than a truncated first badge.
+				setFitCount(Math.max(1, fit));
+			};
+
+			measure();
+			if (typeof ResizeObserver === "undefined") return;
+			const observer = new ResizeObserver(measure);
+			observer.observe(row);
+			return () => observer.disconnect();
+		}, [
+			singleLine,
+			selectedValues,
+			responsiveSettings.maxCount,
+			responsiveSettings.compactMode,
+			responsiveSettings.hideIcons,
+			screenSize,
+		]);
+
 		const getBadgeAnimationClass = () => {
 			if (animationConfig?.badgeAnimation) {
 				switch (animationConfig.badgeAnimation) {
@@ -647,10 +731,9 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
 		const clearExtraOptions = () => {
 			if (disabled) return;
-			const newSelectedValues = selectedValues.slice(
-				0,
-				responsiveSettings.maxCount
-			);
+			// Drops what the "+ n more" chip stands for — the measured visible
+			// count, not the raw `maxCount` ceiling.
+			const newSelectedValues = selectedValues.slice(0, visibleCount);
 			setSelectedValues(newSelectedValues);
 			onValueChange(newSelectedValues);
 		};
@@ -682,9 +765,30 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			}
 		}, [defaultValue, selectedValues, arraysEqual, resetOnDefaultValueChange]);
 
+		// `value` is a controlled prop, but it was only ever read to SEED the
+		// state above — never again. So a selection set from outside the trigger
+		// never reached this component: the quick-add modal appended the tag it
+		// had just created, the form field held it, and the chip never appeared.
+		// Guarded by `arraysEqual` because the parent hands us a fresh array on
+		// every render.
+		React.useEffect(() => {
+			if (!Array.isArray(value)) return;
+			const next = value as string[];
+			setSelectedValues((prev) => (arraysEqual(prev, next) ? prev : next));
+		}, [value, arraysEqual]);
+
 		const getWidthConstraints = () => {
-			const defaultMinWidth = screenSize === "mobile" ? "0px" : "200px";
-			const effectiveMinWidth = minWidth || defaultMinWidth;
+			// No floor by default. `min-width` beats `max-width` in CSS, so the
+			// old 200px desktop default made the trigger unable to fit any slot
+			// narrower than that: it rendered 200px wide inside its container and
+			// spilled out to the right, where the next control drew on top of it.
+			// That is the overlap between the tag filter and the level filter in
+			// the DataTable filter bar, whose chips are `w-40` (160px).
+			//
+			// `width: 100%` already sizes the trigger to whatever it is given, and
+			// every caller places it in a container with its own width. A caller
+			// that genuinely wants a floor can still pass `minWidth`.
+			const effectiveMinWidth = minWidth || "0px";
 			const effectiveMaxWidth = maxWidth || "100%";
 			return {
 				minWidth: effectiveMinWidth,
@@ -764,6 +868,167 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			}
 		}, [selectedValues, isPopoverOpen, searchValue, announce, getAllOptions]);
 
+		// One selected value's badge. Shared by the visible row and the hidden
+		// measuring row below, so what gets measured is exactly what gets drawn.
+		const renderSelectedBadge = (value: string) => {
+			const option = getOptionByValue(value);
+			const IconComponent = option?.icon;
+			const customStyle = option?.style;
+			if (!option) {
+				return null;
+			}
+			const badgeStyle: React.CSSProperties = {
+				animationDuration: `${animation}s`,
+				...(customStyle?.badgeColor && {
+					backgroundColor: customStyle.badgeColor,
+				}),
+				...(customStyle?.gradient && {
+					background: customStyle.gradient,
+					color: "white",
+				}),
+			};
+			return (
+				<Badge
+					key={value}
+					className={cn(
+						getBadgeAnimationClass(),
+						multiSelectVariants({ variant }),
+						customStyle?.gradient &&
+							"text-white border-transparent",
+						responsiveSettings.compactMode &&
+							"text-xs px-1.5 py-0.5",
+						// The row clips at its own edge; without a max width a long
+						// badge is cut mid-word instead of ellipsised.
+						"max-w-full",
+						screenSize === "mobile" && "max-w-[120px]",
+						singleLine && "flex-shrink-0 whitespace-nowrap",
+						"[&>svg]:pointer-events-auto"
+					)}
+					style={{
+						...badgeStyle,
+						animationDuration: `${
+							animationConfig?.duration || animation
+						}s`,
+						animationDelay: `${animationConfig?.delay || 0}s`,
+					}}>
+					{IconComponent && !responsiveSettings.hideIcons && (
+						<IconComponent
+							className={cn(
+								"h-4 w-4 mr-2",
+								responsiveSettings.compactMode &&
+									"h-3 w-3 mr-1",
+								customStyle?.iconColor && "text-current"
+							)}
+							{...(customStyle?.iconColor && {
+								style: { color: customStyle.iconColor },
+							})}
+						/>
+					)}
+					<span className="truncate">{option.label}</span>
+					<div
+						role="button"
+						tabIndex={0}
+						onClick={(event) => {
+							event.stopPropagation();
+							toggleOption(value);
+						}}
+						onKeyDown={(event) => {
+							if (
+								event.key === "Enter" ||
+								event.key === " "
+							) {
+								event.preventDefault();
+								event.stopPropagation();
+								toggleOption(value);
+							}
+						}}
+						aria-label={`Remove ${option.label} from selection`}
+						className="ml-2 inline-flex h-4 w-4 items-center justify-center cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50">
+						{/* `size-3`, not `h-3 w-3`: the trigger <Button> forces
+						    `size-4` on every descendant svg whose class list has
+						    no `size-` in it, and that selector outspecifies the
+						    h/w pair — which is why this icon rendered 16px while
+						    the counter chip's rendered 12px. */}
+						<XCircle
+							className={cn(
+								"size-3",
+								responsiveSettings.compactMode && "size-2.5"
+							)}
+						/>
+					</div>
+				</Badge>
+			);
+		};
+
+		// The overflow counter. Takes its count so the measuring row can size it
+		// for the worst case (every badge hidden) and never under-reserve.
+		const renderMoreBadge = (hidden: number) => (
+			<Badge
+				className={cn(
+					"bg-transparent text-foreground border-foreground/1 hover:bg-transparent",
+					getBadgeAnimationClass(),
+					multiSelectVariants({ variant }),
+					responsiveSettings.compactMode &&
+						"text-xs px-1.5 py-0.5",
+					singleLine && "flex-shrink-0 whitespace-nowrap",
+					"[&>svg]:pointer-events-auto"
+				)}
+				style={{
+					animationDuration: `${
+						animationConfig?.duration || animation
+					}s`,
+					animationDelay: `${animationConfig?.delay || 0}s`,
+				}}>
+				{`+ ${hidden} more`}
+				{/* Same control as a badge's remove — it was a bare <svg> with an
+				    onClick: no keyboard, no label, and a different rendered size
+				    sitting right next to the badges. */}
+				<div
+					role="button"
+					tabIndex={0}
+					onClick={(event) => {
+						event.stopPropagation();
+						clearExtraOptions();
+					}}
+					onKeyDown={(event) => {
+						if (event.key === "Enter" || event.key === " ") {
+							event.preventDefault();
+							event.stopPropagation();
+							clearExtraOptions();
+						}
+					}}
+					aria-label={`Remove the ${hidden} selected options not shown`}
+					className={cn(
+						"ml-2 inline-flex h-4 w-4 items-center justify-center cursor-pointer hover:bg-foreground/10 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-ring",
+						responsiveSettings.compactMode && "ml-1"
+					)}>
+					<XCircle
+						className={cn(
+							"size-3",
+							responsiveSettings.compactMode && "size-2.5"
+						)}
+					/>
+				</div>
+			</Badge>
+		);
+
+		// Laid out but never painted: the full capped set plus a worst-case
+		// counter, measured by the layout effect above. It exists because the
+		// visible row cannot measure itself — its width already reflects the
+		// overflow decision being made, which would oscillate.
+		const measuringRow = singleLine ? null : (
+			<div
+				ref={mirrorRef}
+				aria-hidden="true"
+				className={cn(
+					"invisible pointer-events-none absolute left-0 top-0 flex w-max items-center gap-1",
+					responsiveSettings.compactMode && "gap-0.5"
+				)}>
+				{cappedValues.map(renderSelectedBadge).filter(Boolean)}
+				{renderMoreBadge(selectedValues.length)}
+			</div>
+		);
+
 		return (
 			<>
 				<div className="sr-only">
@@ -809,7 +1074,11 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 								getAllOptions().length
 							} options selected. ${placeholder}`}
 							className={cn(
-								"flex p-1 rounded-md border border-input min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
+								// min-h-9, not 10: this trigger sits next to plain
+								// <SelectTrigger>s (h-9) and icon buttons (size-9) in the
+								// same form row and filter bar, and 40px against 36px reads
+								// as a broken row. `h-auto` still lets badge rows grow.
+								"flex p-1 rounded-md border border-input min-h-9 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
 								autoSize ? "w-auto" : "w-full",
 								responsiveSettings.compactMode && "min-h-8 text-sm",
 								screenSize === "mobile" && "min-h-12 text-base",
@@ -821,10 +1090,18 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 								maxWidth: `min(${widthConstraints.maxWidth}, 100%)`,
 							}}>
 							{selectedValues.length > 0 ? (
-								<div className="flex justify-between items-center w-full">
+								<div
+									ref={rowRef}
+									className="flex justify-between items-center w-full">
 									<div
 										className={cn(
-											"flex items-center gap-1",
+											// `min-w-0` + `overflow-hidden`: a flex item defaults to
+											// `min-width: auto`, so this badge row refused to shrink
+											// below its content and pushed the clear/chevron block
+											// out through the right-hand border — measured 13px past
+											// it, drawn over the next filter chip. The badges already
+											// truncate individually; this is what makes the ROW give.
+											"relative flex items-center gap-1 min-w-0 overflow-hidden",
 											singleLine
 												? "overflow-x-auto multiselect-singleline-scroll"
 												: "flex-wrap",
@@ -837,131 +1114,16 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 												  }
 												: {}
 										}>
-										{selectedValues
-											.slice(0, responsiveSettings.maxCount)
-											.map((value) => {
-												const option = getOptionByValue(value);
-												const IconComponent = option?.icon;
-												const customStyle = option?.style;
-												if (!option) {
-													return null;
-												}
-												const badgeStyle: React.CSSProperties = {
-													animationDuration: `${animation}s`,
-													...(customStyle?.badgeColor && {
-														backgroundColor: customStyle.badgeColor,
-													}),
-													...(customStyle?.gradient && {
-														background: customStyle.gradient,
-														color: "white",
-													}),
-												};
-												return (
-													<Badge
-														key={value}
-														className={cn(
-															getBadgeAnimationClass(),
-															multiSelectVariants({ variant }),
-															customStyle?.gradient &&
-																"text-white border-transparent",
-															responsiveSettings.compactMode &&
-																"text-xs px-1.5 py-0.5",
-															screenSize === "mobile" &&
-																"max-w-[120px] truncate",
-															singleLine && "flex-shrink-0 whitespace-nowrap",
-															"[&>svg]:pointer-events-auto"
-														)}
-														style={{
-															...badgeStyle,
-															animationDuration: `${
-																animationConfig?.duration || animation
-															}s`,
-															animationDelay: `${animationConfig?.delay || 0}s`,
-														}}>
-														{IconComponent && !responsiveSettings.hideIcons && (
-															<IconComponent
-																className={cn(
-																	"h-4 w-4 mr-2",
-																	responsiveSettings.compactMode &&
-																		"h-3 w-3 mr-1",
-																	customStyle?.iconColor && "text-current"
-																)}
-																{...(customStyle?.iconColor && {
-																	style: { color: customStyle.iconColor },
-																})}
-															/>
-														)}
-														<span
-															className={cn(
-																screenSize === "mobile" && "truncate"
-															)}>
-															{option.label}
-														</span>
-														<div
-															role="button"
-															tabIndex={0}
-															onClick={(event) => {
-																event.stopPropagation();
-																toggleOption(value);
-															}}
-															onKeyDown={(event) => {
-																if (
-																	event.key === "Enter" ||
-																	event.key === " "
-																) {
-																	event.preventDefault();
-																	event.stopPropagation();
-																	toggleOption(value);
-																}
-															}}
-															aria-label={`Remove ${option.label} from selection`}
-															className="ml-2 h-4 w-4 cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50">
-															<XCircle
-																className={cn(
-																	"h-3 w-3",
-																	responsiveSettings.compactMode &&
-																		"h-2.5 w-2.5"
-																)}
-															/>
-														</div>
-													</Badge>
-												);
-											})
-											.filter(Boolean)}
-										{selectedValues.length > responsiveSettings.maxCount && (
-											<Badge
-												className={cn(
-													"bg-transparent text-foreground border-foreground/1 hover:bg-transparent",
-													getBadgeAnimationClass(),
-													multiSelectVariants({ variant }),
-													responsiveSettings.compactMode &&
-														"text-xs px-1.5 py-0.5",
-													singleLine && "flex-shrink-0 whitespace-nowrap",
-													"[&>svg]:pointer-events-auto"
-												)}
-												style={{
-													animationDuration: `${
-														animationConfig?.duration || animation
-													}s`,
-													animationDelay: `${animationConfig?.delay || 0}s`,
-												}}>
-												{`+ ${
-													selectedValues.length - responsiveSettings.maxCount
-												} more`}
-												<XCircle
-													className={cn(
-														"ml-2 h-4 w-4 cursor-pointer",
-														responsiveSettings.compactMode && "ml-1 h-3 w-3"
-													)}
-													onClick={(event) => {
-														event.stopPropagation();
-														clearExtraOptions();
-													}}
-												/>
-											</Badge>
-										)}
+										{visibleValues.map(renderSelectedBadge).filter(Boolean)}
+										{hiddenCount > 0 && renderMoreBadge(hiddenCount)}
+										{measuringRow}
 									</div>
-									<div className="flex items-center justify-between">
+									{/* `shrink-0`: the clear button, the separator and the
+									    chevron are the affordances that say this is a select.
+									    They are the last thing that should give up width. */}
+									<div
+										ref={controlsRef}
+										className="flex shrink-0 items-center justify-between">
 										<div
 											role="button"
 											tabIndex={0}

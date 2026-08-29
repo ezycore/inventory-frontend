@@ -29,7 +29,7 @@ import {
   SheetTitle,
 } from '@/ui/components/sheet';
 import type {
-  Account,
+  AccountPaymentOption,
   Payment,
   Sale,
   SalesReturn,
@@ -52,7 +52,7 @@ interface PaymentsDrawerProps {
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
   mode: 'summary' | 'payment';
-  accounts: Account[];
+  accounts: AccountPaymentOption[];
   paymentAmount: string;
   setPaymentAmount: (value: string) => void;
   paymentAccountId: string;

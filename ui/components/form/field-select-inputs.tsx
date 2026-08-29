@@ -103,7 +103,7 @@ function renderAdvancedSelect(
   ctx: FieldRenderContext,
   Component: typeof FuseAdvancedSelect,
 ): ReactNode {
-  const { field, control, error, effectiveDisabled, isEditMode, handleChange } = ctx;
+  const { field, fieldId, control, error, effectiveDisabled, isEditMode, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
@@ -121,6 +121,7 @@ function renderAdvancedSelect(
         const handleClear = buildClearHandler(ctx);
         return (
           <Component
+            id={fieldId}
             value={controllerField.value}
             onMount={(mountedValue) => handleAutoFill(mountedValue)}
             onValueChange={(value) => {

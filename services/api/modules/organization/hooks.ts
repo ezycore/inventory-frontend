@@ -157,6 +157,20 @@ export const useGetSubscription = (enabled = true) => {
   });
 };
 
+// GET /api/organization/subscription/status - Minimal, permission-free
+// subscription status. Unconditionally enabled (unlike useGetSubscription
+// above) — the backend route carries no checkPermission, so there is no
+// role this 403s for. Used by the protected layout's workspace-access gate
+// and by BillingAlertBanner, both of which must work for every role.
+export const useGetSubscriptionStatus = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.subscriptionStatus(),
+    queryFn: () => organizationApi.getSubscriptionStatus(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
 // GET /api/organization/billing/pay-link - Resolve a live "Pay now" link on
 // demand (lazy: fired from the overdue banner, not on page load).
 export const useRequestPayLink = () =>

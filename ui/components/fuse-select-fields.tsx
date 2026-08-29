@@ -28,6 +28,9 @@ const bareInput =
 
 /** Everything both modes need from the owning component. */
 export interface FuseFieldContext {
+  /** DOM id for the text input, so a `<Label htmlFor>` above it can focus it.
+   *  Lives on the context because both modes render the same input. */
+  id?: string;
   inputRef: RefObject<HTMLInputElement | null>;
   disabled?: boolean;
   placeholder?: string;
@@ -48,6 +51,7 @@ export interface FuseFieldContext {
 
 function comboboxAria(ctx: FuseFieldContext) {
   return {
+    id: ctx.id,
     role: "combobox" as const,
     "aria-expanded": ctx.open,
     "aria-controls": ctx.listId,

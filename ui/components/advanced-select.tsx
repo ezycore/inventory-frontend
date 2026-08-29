@@ -52,6 +52,10 @@ export type SelectValue =
 
 interface AdvancedSelectProps {
   // Core select properties
+  /** DOM id for the trigger — the target of a `<Label htmlFor>` above it. Set on
+   *  every state this can render (loading, error, single, multiple), because a
+   *  label that stops working while options load is a label nobody trusts. */
+  id?: string;
   value?: SelectValue;
   onValueChange?: (value: SelectValue) => void;
   placeholder?: string;
@@ -96,6 +100,7 @@ interface AdvancedSelectProps {
 }
 
 export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
+  id,
   value,
   onValueChange,
   placeholder,
@@ -191,6 +196,17 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
   // Extract actual value strings for rendering
   const actualValue = extractValue(value);
+  // How many badges fit is measured from the trigger's width inside
+  // <MultiSelect>; this is only the ceiling on top of that, so a form field
+  // that says nothing gets width-driven behaviour instead of a hard 3.
+  const multiMaxCount = maxCount ?? 20;
+
+  // Multi mode always renders from an array, whatever shape the value arrives in.
+  const multiValue = Array.isArray(actualValue)
+    ? actualValue
+    : actualValue
+      ? [actualValue]
+      : [];
 
   // Handle value changes for both single and multiple modes
   const handleValueChange = (newValue: string | string[]) => {
@@ -221,16 +237,89 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalOptions, value, defaultFlag]);
 
+  // Quick-add modal success handler. Multi mode APPENDS: creating a tag from a
+  // half-filled Tags field must not throw away the badges already picked.
+  const handleQuickAddSuccess = async (result: any) => {
+    const newItemId = result?.data?._id;
+
+    if (moduleConfig && newItemId) {
+      // Invalidate cache to refetch with new data
+      await queryClient.invalidateQueries({
+        queryKey: moduleConfig.queryRoot(),
+      });
+
+      // Wait a tick for React to re-render with updated options
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Set the newly created item as selected
+      handleValueChange(
+        mode === "multiple" ? [...multiValue, newItemId] : newItemId,
+      );
+    }
+
+    setIsModalOpen(false);
+    form.reset();
+  };
+
+  // The quick-add trigger and its modal, built once and rendered by BOTH modes.
+  // They used to live only in the single-mode return, below the `mode ===
+  // "multiple"` early return — so a creatable multi select (the product form's
+  // Tags) silently rendered no "+" at all. Anything shared by both branches has
+  // to be built above them.
+  const quickAddButton = creatable && moduleConfig && (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      aria-label={moduleConfig.title}
+      onClick={() => {
+        // Open already scoped to whatever narrows this select's
+        // options, so a child cannot be created at the wrong level.
+        form.reset(moduleConfig.defaults);
+        setIsModalOpen(true);
+      }}
+      disabled={disabled}
+    >
+      <Plus className="h-4 w-4" />
+    </Button>
+  );
+
+  const quickAddModal = creatable && moduleConfig && createMutation && (
+    <DynamicForm
+      form={form}
+      config={moduleConfig.formConfig}
+      mutationHook={createMutation}
+      openInside="modal"
+      open={isModalOpen}
+      onOpenChange={setIsModalOpen}
+      title={moduleConfig.title}
+      submitLabel={moduleConfig.submitLabel}
+      cancelLabel="Cancel"
+      onCancel={() => setIsModalOpen(false)}
+      onSuccess={handleQuickAddSuccess}
+      modalSize="md"
+    />
+  );
+
+  // Every multi-mode return goes through this, loading and error states
+  // included, so the "+" keeps its place instead of popping in once the
+  // options land.
+  const withQuickAdd = (field: React.ReactNode) => (
+    <>
+      <div className="flex gap-2 w-full">
+        <div className="min-w-0 flex-1">{field}</div>
+        {quickAddButton}
+      </div>
+      {quickAddModal}
+    </>
+  );
+
   // Show loading state for both modes
   if (loading) {
     if (mode === "multiple") {
-      const multiValue = Array.isArray(actualValue)
-        ? actualValue
-        : actualValue
-          ? [actualValue]
-          : [];
-      return (
+      return withQuickAdd(
         <MultiSelect
+          id={id}
           options={[]}
           value={multiValue}
           onValueChange={handleValueChange}
@@ -238,16 +327,17 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
           variant={variant}
           disabled={true}
           className={cn(error ? "border-red-500" : "", className)}
-          maxCount={maxCount}
+          maxCount={multiMaxCount}
           modalPopover={modalPopover}
           asChild={asChild}
-        />
+        />,
       );
     }
 
     return (
       <Select disabled={true}>
         <SelectTrigger
+          id={id}
           className={cn("w-full", error ? "border-red-500" : "", className)}
         >
           <div className="flex items-center gap-2 w-full">
@@ -262,13 +352,9 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   // Show error state for both modes
   if (apiError) {
     if (mode === "multiple") {
-      const multiValue = Array.isArray(actualValue)
-        ? actualValue
-        : actualValue
-          ? [actualValue]
-          : [];
-      return (
+      return withQuickAdd(
         <MultiSelect
+          id={id}
           options={[]}
           value={multiValue}
           onValueChange={handleValueChange}
@@ -276,16 +362,16 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
           variant={variant}
           disabled={true}
           className={cn(isPermissionDenied ? "" : "border-red-500", className)}
-          maxCount={maxCount}
+          maxCount={multiMaxCount}
           modalPopover={modalPopover}
           asChild={asChild}
-        />
+        />,
       );
     }
 
     return (
       <Select disabled={true}>
-        <SelectTrigger className={cn("w-full", isPermissionDenied ? "" : "border-red-500", className)}>
+        <SelectTrigger id={id} className={cn("w-full", isPermissionDenied ? "" : "border-red-500", className)}>
           <SelectValue placeholder={isPermissionDenied ? apiError : `Error: ${apiError}`} />
         </SelectTrigger>
       </Select>
@@ -294,13 +380,9 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
 
   // Render multi-select mode
   if (mode === "multiple") {
-    const multiValue = Array.isArray(actualValue)
-      ? actualValue
-      : actualValue
-        ? [actualValue]
-        : [];
-    return (
+    return withQuickAdd(
       <MultiSelect
+        id={id}
         options={finalOptions}
         value={multiValue}
         onValueChange={handleValueChange}
@@ -308,33 +390,12 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
         variant={variant}
         disabled={disabled}
         className={cn(error ? "border-red-500" : "", className)}
-        maxCount={maxCount}
+        maxCount={multiMaxCount}
         modalPopover={modalPopover}
         asChild={asChild}
-      />
+      />,
     );
   }
-
-  // Quick-add modal success handler
-  const handleQuickAddSuccess = async (result: any) => {
-    const newItemId = result?.data?._id;
-
-    if (moduleConfig && newItemId) {
-      // Invalidate cache to refetch with new data
-      await queryClient.invalidateQueries({
-        queryKey: moduleConfig.queryRoot(),
-      });
-
-      // Wait a tick for React to re-render with updated options
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Set the newly created item as selected
-      handleValueChange(newItemId);
-    }
-
-    setIsModalOpen(false);
-    form.reset();
-  };
 
   // Render single select mode
   const singleValue = Array.isArray(actualValue)
@@ -361,6 +422,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
             disabled={disabled}
           >
             <SelectTrigger
+              id={id}
               className={cn(
                 "w-full",
                 error ? "border-red-500" : "",
@@ -399,41 +461,11 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
           )}
         </div>
 
-        {creatable && moduleConfig && (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              // Open already scoped to whatever narrows this select's
-              // options, so a child cannot be created at the wrong level.
-              form.reset(moduleConfig.defaults);
-              setIsModalOpen(true);
-            }}
-            disabled={disabled}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        )}
+        {quickAddButton}
       </div>
 
       {/* Quick-add modal */}
-      {creatable && moduleConfig && createMutation && (
-        <DynamicForm
-          form={form}
-          config={moduleConfig.formConfig}
-          mutationHook={createMutation}
-          openInside="modal"
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          title={moduleConfig.title}
-          submitLabel={moduleConfig.submitLabel}
-          cancelLabel="Cancel"
-          onCancel={() => setIsModalOpen(false)}
-          onSuccess={handleQuickAddSuccess}
-          modalSize="md"
-        />
-      )}
+      {quickAddModal}
     </>
   );
 };

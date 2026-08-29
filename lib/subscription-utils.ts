@@ -20,8 +20,21 @@ import type { Entitlement, ScheduledPlanChange } from "@/types";
  */
 export type SubscriptionAccess = "active" | "read_only" | "reactivate" | "blocked";
 
+/**
+ * The fields the access classifier (and everything built on it below) reads
+ * — a `Pick`, not the whole `Entitlement`, so the layout gate and the overdue
+ * banner can run on `useGetSubscriptionStatus()`'s minimal, permission-free
+ * payload (no `amount`/`planSlug`/etc.) as well as the full one from
+ * `useGetSubscription()`. Every existing caller already passes a full
+ * `Entitlement`, which satisfies this by definition — purely a widening.
+ */
+export type EntitlementAccessFields = Pick<
+  Entitlement,
+  "status" | "subscriptionStatus" | "cancelAtPeriodEnd" | "cancelAt" | "currentPeriodEnd"
+>;
+
 export function classifyEntitlementAccess(
-  entitlement?: Entitlement | null,
+  entitlement?: EntitlementAccessFields | null,
 ): SubscriptionAccess {
   if (!entitlement) return "blocked";
   const sub = entitlement.subscriptionStatus;
@@ -40,12 +53,12 @@ export function classifyEntitlementAccess(
 }
 
 /** Whether the workspace should be hard-blocked (force logout → login). */
-export function shouldBlockWorkspaceAccess(entitlement?: Entitlement | null) {
+export function shouldBlockWorkspaceAccess(entitlement?: EntitlementAccessFields | null) {
   return classifyEntitlementAccess(entitlement) === "blocked";
 }
 
 /** Whether a payment is overdue (grace / read-only) — drives the overdue banner. */
-export function isPaymentOverdue(entitlement?: Entitlement | null) {
+export function isPaymentOverdue(entitlement?: EntitlementAccessFields | null) {
   return classifyEntitlementAccess(entitlement) === "read_only";
 }
 
@@ -54,7 +67,7 @@ export function isPaymentOverdue(entitlement?: Entitlement | null) {
  * payment. The user is let into the app but should be routed to billing to
  * subscribe or re-subscribe. Their data is retained either way.
  */
-export function needsReactivation(entitlement?: Entitlement | null) {
+export function needsReactivation(entitlement?: EntitlementAccessFields | null) {
   return classifyEntitlementAccess(entitlement) === "reactivate";
 }
 
@@ -65,7 +78,7 @@ export function needsReactivation(entitlement?: Entitlement | null) {
  * the subscription outright, it does not move to another plan.
  */
 export function getScheduledCancellation(
-  entitlement?: Entitlement | null,
+  entitlement?: EntitlementAccessFields | null,
 ): { effectiveAt: string } | null {
   if (!entitlement?.cancelAtPeriodEnd) return null;
   const effectiveAt = entitlement.cancelAt ?? entitlement.currentPeriodEnd;

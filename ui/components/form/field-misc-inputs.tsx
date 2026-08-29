@@ -7,13 +7,14 @@ import type { FieldRenderContext } from "./field-render-context";
 /** `date`, `custom` (customComponent or registered renderer), `custom-fields`. */
 
 export function renderDate(ctx: FieldRenderContext): ReactNode {
-  const { field, control, effectiveDisabled, handleChange } = ctx;
+  const { field, fieldId, control, effectiveDisabled, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
       control={control}
       render={({ field: controllerField }) => (
         <DatePicker
+          id={fieldId}
           date={controllerField.value}
           onSelect={(value) => {
             controllerField.onChange(value);

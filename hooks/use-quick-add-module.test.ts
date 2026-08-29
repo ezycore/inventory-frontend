@@ -52,6 +52,20 @@ describe("scopeDefaults", () => {
     expect(scopeDefaults(url, categoryForm)).toEqual({});
   });
 
+  it("seeds nothing from a filter sentinel", () => {
+    // The product form's Category select asks for TOP-LEVEL categories with
+    // `parentId=null`. That is a filter, not a scope: seeding it put a literal
+    // "null" into the quick-add form's Parent category select, which then
+    // rendered the word `null` where the placeholder belongs.
+    const url = selectOptions("categories", {
+      parentId: "null",
+      fields: "_id,name,isDefault,defaultTaxId",
+    });
+
+    expect(url).toContain("parentId=null");
+    expect(scopeDefaults(url, categoryForm)).toEqual({});
+  });
+
   it("seeds nothing for a select with no query string at all", () => {
     expect(scopeDefaults(undefined, categoryForm)).toEqual({});
     expect(scopeDefaults("/categories", categoryForm)).toEqual({});

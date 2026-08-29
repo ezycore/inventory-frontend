@@ -1,34 +1,31 @@
 // coding-standard: maintained
-import { selectOptions } from "@/services/api/select-options";
-import { queryKeys } from "@/services/api/query-keys";
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { useAccountPaymentOptions } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 
 /**
  * The org's accounts as `{label,value}` options for the order money dialogs
- * (mark-paid, return refund). Gated on the `accounts` feature; cached 5 min.
- * Shared so the same query isn't duplicated across the payment panel and the
- * return dialog.
+ * (mark-paid, return refund, prepayment) — the ecommerce order screens,
+ * gated by `storefront.orders.manage`, not `accounts.view`. Shared so the
+ * same query isn't duplicated across the payment panel and the return
+ * dialog.
+ *
+ * A thin wrapper over `useAccountPaymentOptions` (the same minimal,
+ * multi-domain endpoint `seller-payment-section.tsx` and the sales Payment
+ * Method field use) rather than its own query: this used to hit the full
+ * `accounts.view`-gated list with a `fields=` projection, which trims what
+ * comes back but not what permission is required to ask for it — a role
+ * with only `storefront.orders.manage` got an empty/erroring picker here for
+ * exactly the reason a sell-only role did on the sales side.
  */
 export function useOrderAccountOptions() {
   const accountsEnabled = useAuthStore(
     (s) => s.user?.organization?.features?.accounts,
   );
 
-  const { data } = useQuery({
-    queryKey: queryKeys.accounts.orderOptions(),
-    queryFn: () =>
-      apiClient.get<{ data: { items: { _id: string; name: string }[] } }>(
-        selectOptions("accounts", { fields: "_id,name" }),
-      ),
-    enabled: !!accountsEnabled,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data } = useAccountPaymentOptions(!!accountsEnabled);
 
-  const accounts = data?.data?.items ?? [];
   return {
     accountsEnabled: !!accountsEnabled,
-    options: accounts.map((a) => ({ label: a.name, value: a._id })),
+    options: (data ?? []).map((a) => ({ label: a.name, value: a._id })),
   };
 }

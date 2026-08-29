@@ -14,7 +14,7 @@ import {
 } from "@/ui/components/sheet";
 import { Button } from "@/ui/components/button";
 import {
-  useAccounts,
+  useAccountPaymentOptions,
   useAddSalePayment,
   useCustomerLedger,
   useCustomerOutstanding,
@@ -81,9 +81,9 @@ export function CustomerLedgerSheet({
     page,
     limit,
   });
-  const { data: accountsData } = useAccounts(
-    isAccountsEnabled ? { status: "active", limit: 100 } : undefined,
-  );
+  // Minimal list — reachable by sales.edit (what receiving a customer
+  // payment actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   // Pre-fetch the account-wide statement while the sheet is open so the print
   // (below) runs synchronously in the click (avoids a popup-blocked async print).
   const { data: statementResp } = useCustomerStatement(
@@ -135,8 +135,7 @@ export function CustomerLedgerSheet({
   const returns = ledger?.returns || [];
   const inboundCredits = ledger?.inboundCredits || [];
   const creditBalance = ledger?.creditBalance ?? customer?.creditBalance ?? 0;
-  const accounts =
-    (accountsData as { items?: { _id: string; name: string; type?: string }[] })?.items ?? [];
+  const accounts = accountsData ?? [];
 
   const totalPaid = sales.reduce((sum, sale) => sum + sale.paidAmount, 0);
   const totalDue = sales.reduce((sum, sale) => sum + sale.dueAmount, 0);

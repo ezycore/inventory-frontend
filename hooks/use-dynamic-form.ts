@@ -89,7 +89,13 @@ export const useDynamicForm = <T = any>(
   const form = useForm<T>({
     resolver: resolver as any,
     defaultValues: mergedDefaults as any,
-    mode: "onTouched",     // validate after first blur; avoids errors on mount
+    // `onSubmit`, not `onTouched`: RHF marks a field touched on BLUR whether or
+    // not anything was typed into it, so a modal that autofocuses its first
+    // input painted "X is required" the moment focus moved on — the quick-add
+    // dialogs opened already scolding the user. Errors now wait for a submit
+    // attempt, and `reValidateMode` makes them clear live as the user fixes
+    // them.
+    mode: "onSubmit",
     reValidateMode: "onChange",
   })
 

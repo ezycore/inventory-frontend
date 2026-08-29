@@ -345,7 +345,6 @@
   "returns": {
     "title": "ক্রয় ফেরত",
     "subtitle": "পণ্য ফেরত ও রিফান্ড ব্যবস্থাপনা",
-    "newReturn": "নতুন ফেরত",
     "statTotalReturns": "মোট ফেরত",
     "statTotalReturnsDesc": "সর্বকালের",
     "statRefundAmount": "মোট রিফান্ডের অঙ্ক",
@@ -365,6 +364,7 @@
     "fromSupplierSuffix": " সরবরাহকারীর কাছ থেকে",
     "convertToSupplierCredit": "সরবরাহকারীর ক্রেডিটে রূপান্তর",
     "supplierCreditDesc": "নগদের বদলে রিফান্ডটি সরবরাহকারীর ক্রেডিট ব্যালেন্স হিসেবে রাখুন।",
+    "supplierCreditSummaryLabel": "সরবরাহকারীর ক্রেডিট:",
     "reasonDamaged": "ক্ষতিগ্রস্ত",
     "reasonDefective": "ত্রুটিপূর্ণ",
     "reasonWrongItem": "ভুল পণ্য",

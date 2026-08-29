@@ -187,6 +187,7 @@ export default function VatSettingsPage() {
                 {t("effectiveFromLabel")}
               </Label>
               <DatePicker
+                id="vat-effective-from"
                 date={effectiveFrom}
                 onSelect={(v) => setEffectiveFrom(v ?? today())}
               />

@@ -1,5 +1,5 @@
 import type { DiscountType } from "@/utils/discount";
-import type { SaleItemPayload, TaxType } from "@/types";
+import type { AccountPaymentOption, SaleItemPayload, TaxType } from "@/types";
 
 // Re-export the canonical sale-line payload union so sales components/hooks can
 // import it from this module.
@@ -62,6 +62,16 @@ export interface AccountApiResponse {
   data?: {
     items?: AccountApiItem[];
   };
+}
+
+/**
+ * GET /api/accounts/payment-options — a flat array under `data`, not the
+ * paginated `{items}` envelope `AccountApiResponse` carries, and no
+ * `balance`/`type`/`status`: this endpoint is reachable by sales.create
+ * (no accounts.view needed), so those never leave the database for it.
+ */
+export interface AccountPaymentOptionApiResponse {
+  data?: AccountPaymentOption[];
 }
 export interface ExtractedCustomer {
   value: string | null;
