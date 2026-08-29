@@ -48,6 +48,14 @@ export interface StoreSectionConfig {
   categoryId?: string;
   title?: string;
   limit?: number;
+  /**
+   * Tags this row renders, in the merchant's order. Read only by `age-chips`.
+   *
+   * Ids, never names: the section shipped matching an English list against tag
+   * NAMES, so renaming `0-3M` or translating it to Bangla silently dropped the
+   * chip. Unset ⇒ that name-matching fallback still applies.
+   */
+  tagIds?: string[];
 }
 
 /**
@@ -350,7 +358,7 @@ export interface StoreTemplates {
    * on whether the merchant's category images are product shots, scenes, or not
    * worth showing.
    */
-  categoryTiles: "tile" | "overlay" | "disc";
+  categoryTiles: "tile" | "overlay" | "disc" | "circle";
   /**
    * Which WHOLE LAYOUT the signed-in account area renders in. Unlike every other
    * key here this selects a page-level component rather than a variation within

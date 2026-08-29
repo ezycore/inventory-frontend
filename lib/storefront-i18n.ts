@@ -105,6 +105,7 @@ export interface Dict {
   browseCats: string;
   featured: string;
   shopByCat: string;
+  shopByAge: string;
   newArrivals: string;
   catGroceries: string;
   catElectronics: string;
@@ -557,6 +558,7 @@ const en: Dict = {
   browseCats: "Browse categories",
   featured: "Featured products",
   shopByCat: "Shop by category",
+  shopByAge: "Shop by age",
   newArrivals: "New arrivals",
   catGroceries: "Groceries",
   catElectronics: "Electronics",
@@ -954,6 +956,7 @@ const bn: Dict = {
   browseCats: "ক্যাটাগরি দেখুন",
   featured: "ফিচার্ড পণ্য",
   shopByCat: "ক্যাটাগরি অনুযায়ী",
+  shopByAge: "বয়স অনুযায়ী",
   newArrivals: "নতুন এসেছে",
   catGroceries: "মুদি",
   catElectronics: "ইলেকট্রনিক্স",

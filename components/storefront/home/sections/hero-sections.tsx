@@ -2,10 +2,12 @@
 // coding-standard: maintained
 
 import Link from "next/link";
+import type { StoreHeroSlide } from "@/lib/storefront-client";
 import { storeHref } from "@/lib/storefront-links";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
+import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 import { HeaderSearchBar } from "@/components/storefront/header-search";
 import {
   bannerPhoto,
@@ -31,8 +33,10 @@ import {
  *
  * `heroSlides` short-circuits every static hero: an owner who built a carousel
  * gets it, whatever the section chose. That rule predates the registry and is
- * kept per-section rather than hoisted — `hero-fullbleed` deliberately uses the
- * slides differently (see below).
+ * kept per-section rather than hoisted — `hero-fullbleed` still renders the
+ * slides in its OWN edge-to-edge shape rather than handing off to
+ * `HeroCarousel`, which is a contained card (see below). Both rotate on the
+ * same beat via `useHeroRotation`.
  */
 
 /**
@@ -277,15 +281,48 @@ export function HeroManifesto({ base, t, store }: SectionProps) {
  *
  * The editorial hero, and structurally unlike the other three: no card, no
  * border, no max-width, and the image is a background rather than a sibling of
- * the copy. It ignores `heroSlides` for the carousel and instead takes the FIRST
- * slide's image as its backdrop — a carousel inside a full-bleed hero fights the
- * one thing this section is for, which is a single confident picture.
+ * the copy.
+ *
+ * **It ROTATES when the merchant has more than one slide** (2026-08-29). It used
+ * to take only the first slide's image, on the reasoning that "a carousel inside
+ * a full-bleed hero fights the one thing this section is for, which is a single
+ * confident picture". That was overruled once a theme actually composed this
+ * section: `little-steps` seeds three slides, so the shop reported "Slides
+ * carousel · 3 slides" in Customize and then showed one static photograph
+ * forever. Promising a slideshow and rendering a still is worse than either
+ * choice made honestly.
+ *
+ * The single-slide look is unchanged — no dots, no timer, `heroBanner` copy
+ * first — so a shop that never built a carousel sees exactly what it saw before.
  */
 export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
-  const slide = heroSlides?.[0];
-  const image = slide?.image?.url || slide?.image?.mediumUrl || banner;
+  const slides = heroSlides ?? [];
+  const rotates = slides.length > 1;
+  const { current, go, hoverProps, swipeProps } = useHeroRotation(slides.length);
+  /* **Copy ownership flips with the slide count, and that is the whole rule.**
+     One slide (or none) keeps the original precedence — `heroBanner` first,
+     which is the merchant's single hero headline. Two or more and the SLIDES
+     own the copy: pinning one `heroBanner` title over three rotating photographs
+     is a slideshow that says the same thing three times, which is worse than not
+     rotating at all. */
+  const slide = rotates ? slides[current] : slides[0];
+  const pick = <K extends "badge" | "title" | "subtitle">(
+    key: K,
+    fromBanner: string | undefined,
+  ) => (rotates ? slide?.[key] : fromBanner || slide?.[key]);
+  const badge = pick("badge", hb?.badge);
+  const title = pick("title", hb?.title) || store.name;
+  const subtitle = pick("subtitle", hb?.subtitle);
+  const ctaLabel =
+    (rotates ? slide?.buttonLabel : hb?.primaryLabel || slide?.buttonLabel) ||
+    t.startShopping;
+  const imageOf = (s?: StoreHeroSlide) =>
+    s?.image?.url || s?.image?.mediumUrl || banner;
+  const image = imageOf(slide);
   return (
     <section
+      {...(rotates ? { ...hoverProps, ...swipeProps } : {})}
+      aria-roledescription={rotates ? "carousel" : undefined}
       style={{
         position: "relative",
         minHeight: "clamp(380px, 62vh, 640px)",
@@ -295,15 +332,41 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
         background: image ? "var(--surface-2)" : "var(--surface)",
       }}
     >
-      {image ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={image}
-          alt=""
-          aria-hidden="true"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : null}
+      {/* Every slide is painted and crossfaded on opacity rather than swapped in
+          and out of the tree: a plain `src` swap re-decodes the next photograph
+          on the spot and flashes the ground between the two, which on a hero
+          that fills the first screen is the most visible jank in the shop. */}
+      {rotates
+        ? slides.map((s, i) => {
+            const src = imageOf(s);
+            return src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt=""
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: i === current ? 1 : 0,
+                  transition: "opacity 700ms ease",
+                }}
+              />
+            ) : null;
+          })
+        : image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt=""
+              aria-hidden="true"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : null}
       {/* Scrim, not a tint: type over an unknown photograph is unreadable
           without one, and the merchant's photo is genuinely unknown. */}
       <div
@@ -314,8 +377,8 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
         }}
       />
       <div style={{ ...wrap, position: "relative", padding: "clamp(28px,6vw,64px) var(--pad)" }}>
-        {hb?.badge || slide?.badge ? <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
-          {hb?.badge || slide?.badge}
+        {badge ? <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+          {badge}
         </span> : null}
         <h1
           style={{
@@ -329,13 +392,13 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             whiteSpace: "pre-line",
           }}
         >
-          {hb?.title || slide?.title || store.name}
+          {title}
         </h1>
-        {hb?.subtitle || slide?.subtitle ? <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
-          {hb?.subtitle || slide?.subtitle}
+        {subtitle ? <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
+          {subtitle}
         </p> : null}
         <Link
-          href={storeHref(base, "/products")}
+          href={storeHref(base, rotates ? slide?.link || "/products" : "/products")}
           style={{
             display: "inline-block",
             background: "#fff",
@@ -346,8 +409,36 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             fontWeight: 600,
           }}
         >
-          {hb?.primaryLabel || slide?.buttonLabel || t.startShopping}
+          {ctaLabel}
         </Link>
+        {/* Dots, and they are not decoration: without them a shopper cannot tell
+            the photograph is going to change, and cannot go back to the one they
+            were reading. No arrows — this hero has no frame to hang them on, and
+            the section is swipeable. */}
+        {rotates ? (
+          <div style={{ display: "flex", gap: 8, marginTop: 28 }}>
+            {slides.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => go(i)}
+                aria-label={`${t.shopNow} ${i + 1} / ${slides.length}`}
+                aria-current={i === current}
+                style={{
+                  width: i === current ? 26 : 9,
+                  height: 9,
+                  padding: 0,
+                  border: 0,
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  background:
+                    i === current ? "#fff" : "rgba(255,255,255,0.45)",
+                  transition: "width 300ms ease, background 300ms ease",
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

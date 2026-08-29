@@ -10,6 +10,7 @@ import type {
   StoreHeroBanner,
   StoreHeroSlide,
   StoreSectionConfig,
+  StoreTag,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -41,6 +42,8 @@ export interface SectionProps {
   featured: CatalogProduct[];
   latest: CatalogProduct[];
   categories: CatalogCategory[];
+  /** The store's tag facet — `age-chips` is the only section that reads it. */
+  tags?: StoreTag[];
   campaigns: StoreCampaign[];
   t: Dict;
   banner?: string;

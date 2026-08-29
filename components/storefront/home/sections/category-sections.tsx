@@ -4,7 +4,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { StoreTemplates } from "@/lib/storefront-client";
-import { collectionHref } from "@/lib/storefront-links";
+import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { Media } from "@/components/storefront/sf-bits";
@@ -52,6 +52,120 @@ export function CategoryChips({ base, categories, categoryRowDefault }: SectionP
   );
 }
 
+/**
+ * The FALLBACK age vocabulary, for a shop that has not chosen its own tags.
+ *
+ * ⚠ **This is a cross-repo contract**, in the same class as the VAT math: it
+ * must stay identical to `AGE_BAND_NAMES` in the backend's `seed-data.ts`,
+ * which seeds these as tags and as the `Size` variant values. Both sides have a
+ * test pinning the literal list; change one, change the other.
+ *
+ * ⚠ **And it is a fallback, not the mechanism.** Matching tags by NAME is what
+ * this section shipped with, and it fails silently in three ways a merchant
+ * will actually hit: rename `0-3M` to `0-3 Months` and the chip vanishes,
+ * translate the tags to Bangla and the whole row vanishes, add `4-5Y` and it
+ * never appears. `sectionConfig.tagIds` is the real answer — ids survive every
+ * rename and the chip reads its label off the tag. A seeded `BABY_KIDS_STORE`
+ * shop is configured that way at signup, so this path only runs for a merchant
+ * who added `age-chips` to some other theme and has not picked their tags yet.
+ *
+ * Order is the order a child grows, and that is the only order this row may
+ * render in: alphabetical reads "0-3M, 12-18M, 18-24M, 2-3Y, 3-4Y, 3-6M…", so a
+ * parent scanning for their baby's age has to read every chip.
+ */
+export const AGE_BANDS = [
+  "Newborn",
+  "0-3M",
+  "3-6M",
+  "6-12M",
+  "12-18M",
+  "18-24M",
+  "2-3Y",
+  "3-4Y",
+] as const;
+
+/**
+ * Shop by age — a baby shop's primary facet.
+ *
+ * **Tag-backed, not variant-backed, and that is the load-bearing decision.**
+ * The age a garment fits is also seeded as the `Size` variant attribute, which
+ * is the more "correct" home for it — but the storefront's collection page and
+ * the backend's product query have no attribute filter, while `?tags=` is
+ * OR-combined and works end to end today. So a chip is a link to a real,
+ * already-supported filtered listing rather than a new query path down the
+ * stack, and a merchant maintains it the way they maintain every other facet.
+ *
+ * Renders nothing when the store has no age tags, like every section here: a
+ * shop that does not sell by age simply does not compose this one.
+ */
+export function AgeChips({ base, tags, t, config }: SectionProps) {
+  /* Configured ids first, in the merchant's own order — an id the store no
+     longer has is dropped rather than rendered as a dead chip, which is what
+     happens when a tag is deleted after being picked.
+
+     Falls back to name matching ONLY when the merchant has chosen nothing:
+     `config?.tagIds` present but empty is a real answer ("show none"), not an
+     absent one, so it must not reopen the fallback. */
+  const configured = config?.tagIds;
+  const bands = (
+    configured
+      ? configured.map((id) => tags?.find((tag) => tag._id === id))
+      : AGE_BANDS.map((name) =>
+          tags?.find((tag) => tag.name.toLowerCase() === name.toLowerCase()),
+        )
+  ).filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+  if (!bands.length) return null;
+
+  return (
+    <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad) 8px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
+        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0 }}>
+          {t.shopByAge}
+        </h2>
+      </div>
+      {/* Scrolls on a phone rather than wrapping to three ragged rows — eight
+          chips is one comfortable swipe and the order carries the meaning. */}
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          overflowX: "auto",
+          paddingBottom: 4,
+          scrollbarWidth: "none",
+        }}
+      >
+        {bands.map((tag) => (
+          <Link
+            key={tag._id}
+            href={storeHref(base, `/products?tags=${encodeURIComponent(tag.slug)}`)}
+            style={{
+              flex: "0 0 auto",
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+              color: "var(--text)",
+              borderRadius: 999,
+              padding: "11px 20px",
+              fontSize: 13.5,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {tag.name}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Quiet centred text links between hairlines — the editorial answer. */
 export function CategoryLinks({ base, categories }: SectionProps) {
   if (!categories.length) return null;
@@ -85,9 +199,10 @@ export function CategoryLinks({ base, categories }: SectionProps) {
  * photograph faster than they read a word, and a grocery catalogue has too many
  * departments for a chip row to stay scannable.
  *
- * **Three modes, one section, chosen by `templates.categoryTiles` — never by
+ * **Four modes, one section, chosen by `templates.categoryTiles` — never by
  * theme.** `tile` puts the photo on a tinted card with the name beneath;
- * `overlay` runs a taller photo with the name across the bottom of it; `disc`
+ * `overlay` runs a taller photo with the name across the bottom of it;
+ * `circle` crops that same photo round with the name beneath; `disc`
  * skips photographs entirely for a strip of lettered discs. Which reads better
  * is a question about the merchant's own pictures (product shots vs scenes vs
  * none worth showing), not about which theme they picked, so it is a setting
@@ -146,6 +261,11 @@ export function CategoryTiles(props: SectionProps) {
      photographs rather than the other way round. */
   const photographed = categories.some((c) => !!cardImageUrl(c.image));
   const disc = mode === "disc";
+  /* `circle` is the photo modes' round shape. It only survives while there is
+     something to photograph: with no pictures at all it degrades to the same
+     lettered-disc row `tile` falls back to, because a circle reserving space
+     for an image that never comes is the empty-square bug in a rounder frame. */
+  const circle = mode === "circle" && photographed;
   const compact = disc || (!photographed && !overlay);
   /* A compact tile carrying a sentence is a ROW, and a 132px track cannot hold
      one. Asked per section for the same reason `photographed` is: one ragged
@@ -156,8 +276,10 @@ export function CategoryTiles(props: SectionProps) {
      strip into a stack of three-wide cards that fills the first screen, which is
      the exact failure the compact shape was introduced to fix. The descriptions
      are not lost: they head the collection page each disc leads to. */
+  /* `circle` joins `disc` here for the same reason: it is a scannable round
+     strip, and a sentence under each circle turns it into a stack of cards. */
   const described =
-    !overlay && !disc && categories.some((c) => !!c.description?.trim());
+    !overlay && !disc && !circle && categories.some((c) => !!c.description?.trim());
   /* Pictures-only is a setting about PICTURES, so the two letter shapes are
      never subject to it: a `disc` row has no photographs by definition and a
      `compact` row is the fallback for a catalogue that has none, so dropping
@@ -165,14 +287,15 @@ export function CategoryTiles(props: SectionProps) {
   const labels =
     compact ||
     disc ||
+    circle ||
     categoryLabelsVisible(
       categoryRow.showLabels,
       categories.every((c) => !!cardImageUrl(c.image)),
     );
   const tileRow = categoryTileRowLayout(
     categoryRow,
-    overlay ? 150 : disc ? 100 : compact && described ? 210 : 96,
-    overlay ? 210 : disc ? 150 : compact ? (described ? 330 : 132) : 148,
+    overlay ? 150 : disc ? 100 : circle ? 104 : compact && described ? 210 : 96,
+    overlay ? 210 : disc ? 150 : circle ? 156 : compact ? (described ? 330 : 132) : 148,
   );
 
   if (!categories.length) return null;
@@ -185,12 +308,13 @@ export function CategoryTiles(props: SectionProps) {
          draw it — the name already sits on a photograph behind a scrim, and a
          second line of type over an image the merchant chose and we have never
          seen is where legibility runs out. */
-      description={overlay || disc ? undefined : c.description}
+      description={overlay || disc || circle ? undefined : c.description}
       image={cardImageUrl(c.image)}
       imageFit={imageFit}
       overlay={overlay}
       compact={compact}
       disc={disc}
+      circle={circle}
       strip={tileRow.strip}
       showLabel={labels}
     />
@@ -221,7 +345,12 @@ export function CategoryTiles(props: SectionProps) {
 }
 
 function isTilesMode(value: unknown): value is StoreTemplates["categoryTiles"] {
-  return value === "tile" || value === "overlay" || value === "disc";
+  return (
+    value === "tile" ||
+    value === "overlay" ||
+    value === "disc" ||
+    value === "circle"
+  );
 }
 
 function isShellId(value: unknown): value is StoreTemplates["shell"] {
@@ -276,6 +405,7 @@ function CategoryTile({
   overlay,
   compact,
   disc,
+  circle,
   strip,
   showLabel,
 }: {
@@ -296,6 +426,13 @@ function CategoryTile({
    * products out-shout the products, which is the opposite of wayfinding.
    */
   disc?: boolean;
+  /**
+   * `categoryTiles: "circle"` — the photograph cropped round, name beneath. The
+   * section only sets it when SOMETHING is photographed; a category that has no
+   * picture of its own still falls through to the lettered disc below, which is
+   * the same circle at the same size, so the row stays one shape.
+   */
+  circle?: boolean;
   /** The shared category-row control selected horizontal scrolling. */
   strip: boolean;
   /**
@@ -316,7 +453,44 @@ function CategoryTile({
      "shop by concern" card a pharmacy wants ("Diabetes / Strips, meters,
      insulin"). Same component, same data, decided by whether the merchant
      actually wrote anything. */
-  if (compact) {
+  /* The round photo row. Ahead of `compact` so that a circle WITH a picture
+     draws it, and an unphotographed category in the same row falls through to
+     the lettered disc — one shape, two fillings. */
+  if (circle && image) {
+    return (
+      <Link
+        href={href}
+        style={{
+          ...flowStyle,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 10,
+          textAlign: "center",
+        }}
+      >
+        {/* `radius={999}` rather than a wrapper with `overflow: hidden`: Media
+            owns the aspect box and the fit mode, and clipping it from outside
+            fights the `canvas` fit (which letterboxes on purpose). */}
+        <Media
+          src={image}
+          alt={name}
+          label="category"
+          radius={999}
+          fit={imageFit}
+          ratio="1 / 1"
+          style={{ borderRadius: 999 }}
+        />
+        {showLabel ? (
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", lineHeight: 1.25 }}>
+            {name}
+          </span>
+        ) : null}
+      </Link>
+    );
+  }
+
+  if (compact || circle) {
     const row = !!description;
     return (
       <Link
@@ -330,7 +504,7 @@ function CategoryTile({
           textAlign: row ? "start" : "center",
           // Chosen disc rows sit on the page itself; the fallback keeps its card,
           // because there it is standing in for a photograph that never came.
-          background: disc ? "transparent" : "var(--primary-soft)",
+          background: disc || circle ? "transparent" : "var(--primary-soft)",
           borderRadius: "var(--radius-lg)",
           padding: row ? "14px 15px" : "14px 8px 12px",
         }}
@@ -340,20 +514,20 @@ function CategoryTile({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: disc ? 68 : 42,
-            height: disc ? 68 : 42,
+            width: disc || circle ? 68 : 42,
+            height: disc || circle ? 68 : 42,
             flex: "none",
             borderRadius: 999,
-            background: disc ? "var(--surface)" : "var(--primary)",
+            background: disc || circle ? "var(--surface)" : "var(--primary)",
             /* A deep shade of the brand, mixed toward the page's own ink rather
                than a literal — so it darkens correctly on any surface and in
                dark mode, where a fixed rust would go muddy. */
-            color: disc
+            color: disc || circle
               ? "color-mix(in srgb, var(--primary) 76%, var(--text))"
               : "var(--on-primary)",
-            fontSize: disc ? 26 : 17,
+            fontSize: disc || circle ? 26 : 17,
             fontWeight: 700,
-            fontFamily: disc ? "var(--font-display)" : undefined,
+            fontFamily: disc || circle ? "var(--font-display)" : undefined,
           }}
         >
           {name.charAt(0).toUpperCase()}

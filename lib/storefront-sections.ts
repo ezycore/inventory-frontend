@@ -50,6 +50,24 @@ const CONFIGURABLE = new Set([
 export const isConfigurableSection = (type: string) => CONFIGURABLE.has(type);
 
 /**
+ * Sections configured by TAG rather than by product source.
+ *
+ * Deliberately not folded into `CONFIGURABLE`: that set is what
+ * `configuredSections` walks to build a product QUERY per row, so an entry
+ * there earns a catalogue fetch. `age-chips` renders tags the page already has
+ * and needs no query at all — adding it would cost every baby shop an extra
+ * round trip for products it never shows.
+ */
+const TAG_CONFIGURABLE = new Set(["age-chips"]);
+
+export const isTagConfigurableSection = (type: string) =>
+  TAG_CONFIGURABLE.has(type);
+
+/** Does this section have a config panel in the editor, of either kind? */
+export const hasSectionConfig = (type: string) =>
+  isConfigurableSection(type) || isTagConfigurableSection(type);
+
+/**
  * One section's config, by key.
  *
  * **Orphans are ignored, never an error.** An entry whose key has left

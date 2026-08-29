@@ -137,6 +137,41 @@ export const PHARMACY_SAMPLE: ThemeSample = {
   },
 };
 
+/**
+ * Little Steps. A baby shop's two halves in one basket — ৳180 of puffs beside a
+ * ৳8,500 stroller, which is the price spread that makes the grid read like a
+ * real shop rather than a catalogue of one thing.
+ *
+ * The categories are AGE-first, because that is what this theme's own
+ * `age-chips` section is for and what a parent actually shops by.
+ */
+export const BABY_SAMPLE: ThemeSample = {
+  categories: [
+    "Diapers & wipes",
+    "Feeding",
+    "Baby food",
+    "Bath & skin care",
+    "Baby clothing",
+    "Toys & learning",
+  ],
+  products: [
+    { name: "Sample nappy pants — pack of 40", price: 780, image: "/samples/baby/1.svg" },
+    { name: "Sample feeding bottle — 250 ml", price: 650, image: "/samples/baby/2.svg" },
+    { name: "Sample bodysuit set — 3 pieces", price: 780, image: "/samples/baby/3.svg" },
+    { name: "Sample stacking rings", price: 550, image: "/samples/baby/4.svg" },
+    { name: "Sample stroller — foldable", price: 8500, image: "/samples/baby/5.svg" },
+    { name: "Sample formula — 400 g", price: 1250, image: "/samples/baby/6.svg" },
+    { name: "Sample baby lotion — 200 ml", price: 310, image: "/samples/baby/7.svg" },
+    { name: "Sample wet wipes — 72 pieces", price: 220, image: "/samples/baby/8.svg" },
+  ],
+  promises: ["Every date checked", "Cash on delivery", "7-day exchange"],
+  campaign: {
+    name: "Sample offer — newborn bundles",
+    type: "percentage",
+    value: 10,
+  },
+};
+
 /** Muslin. A boutique's spread — fewer, dearer, and shown large. */
 export const APPAREL_SAMPLE: ThemeSample = {
   categories: [

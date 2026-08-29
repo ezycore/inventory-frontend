@@ -18125,6 +18125,7 @@ export interface operations {
                         categoryId?: string;
                         title?: string;
                         limit?: number;
+                        tagIds?: string[];
                     }[];
                     nav?: {
                         header?: {

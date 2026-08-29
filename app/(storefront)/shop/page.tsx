@@ -5,6 +5,7 @@ import {
   getStoreCampaigns,
   getStoreCategories,
   getStoreProducts,
+  getStoreTags,
 } from "@/lib/storefront-server";
 import { getStoreContext } from "@/lib/storefront-host";
 import { storeJsonLd } from "@/lib/storefront-jsonld";
@@ -87,7 +88,7 @@ export default async function StoreHomePage() {
 
   // Fetch everything the homepage might render (server-side, in parallel) so the
   // preview can toggle/reorder any section without a round-trip.
-  const [store, featured, latest, categories, campaigns] = await Promise.all([
+  const [store, featured, latest, categories, campaigns, tags] = await Promise.all([
     getStore(slug),
     // `inStock` on both rows: the homepage is a shop window, and a card nobody
     // can buy is dead space in the eight slots that decide whether a visitor
@@ -108,6 +109,10 @@ export default async function StoreHomePage() {
     getStoreProducts(slug, { limit: 8, sort: "newest", inStock: "1" }),
     getStoreCategories(slug),
     getStoreCampaigns(slug),
+    // The tag facet, for `age-chips`. Joins the batch rather than being fetched
+    // inside the section for the same reason everything else here does: the
+    // Customize preview can add that section without a round-trip.
+    getStoreTags(slug),
   ]);
 
   if (!store) notFound();
@@ -159,6 +164,7 @@ export default async function StoreHomePage() {
         latest={latest?.items ?? []}
         rows={rows}
         categories={categories ?? []}
+        tags={tags ?? []}
         campaigns={campaigns ?? []}
       />
     </>
