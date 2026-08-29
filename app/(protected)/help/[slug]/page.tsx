@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HelpMarkdown } from "@/components/help/help-markdown";
+import { HelpVideo } from "@/components/help/help-video";
 import PageContainer from "@/components/layout/page-container";
 import { DEFAULT_LOCALE } from "@/i18n/config";
 import { getHelpPage, helpSlugs, isHelpLocale } from "@/lib/help/resolve";
@@ -43,6 +44,7 @@ export default async function HelpArticlePage({
           <p className="mt-1 text-sm text-muted-foreground">{page.summary}</p>
         </div>
 
+        <HelpVideo src={page.videoUrl} />
         <HelpMarkdown source={page.body} />
       </div>
     </PageContainer>

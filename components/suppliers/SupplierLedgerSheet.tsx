@@ -43,7 +43,7 @@ import {
   useSupplierLedger,
   useSupplierStatement,
   useAddPurchasePayment,
-  useAccounts,
+  useAccountPaymentOptions,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import { useCurrency } from "@/lib/currency";
@@ -120,9 +120,9 @@ export function SupplierLedgerSheet({
     supplier?._id ?? null,
     { page, limit },
   );
-  const { data: accountsData } = useAccounts(
-    isAccountsEnabled ? { status: "active", limit: 100 } : undefined,
-  );
+  // Minimal list — reachable by purchases.edit (what recording a supplier
+  // payment actually requires) as well as accounts.view.
+  const { data: accountsData } = useAccountPaymentOptions(isAccountsEnabled);
   // Pre-fetch the account-wide statement while the sheet is open so print runs
   // synchronously in the click (avoids a popup-blocked async print).
   const { data: statementResp } = useSupplierStatement(
@@ -169,10 +169,7 @@ export function SupplierLedgerSheet({
   const inboundCredits = ledger?.inboundCredits || [];
   const ledgerCreditBalance =
     ledger?.creditBalance ?? supplier?.creditBalance ?? 0;
-  const accounts =
-    (accountsData as {
-      items?: { _id: string; name: string; type?: string }[];
-    })?.items ?? [];
+  const accounts = accountsData ?? [];
 
   // Calculate summary from ledger data
   const totalPaid = purchaseOrders.reduce((sum, po) => sum + po.paidAmount, 0);

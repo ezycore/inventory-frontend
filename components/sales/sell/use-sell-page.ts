@@ -15,9 +15,9 @@ import {
   type SaleItemPayload,
 } from "@/components/sales";
 import {
+  useAccountPaymentOptions,
   useCreateSalesOrder,
   useCustomerPendingDues,
-  useDefaultAccount,
   useSale,
   useUpdateDraftSale,
   useFinalizeDraftSale,
@@ -156,7 +156,16 @@ export function useSellPage() {
     [isAccountsEnabled, t],
   );
 
-  const { data: defaultAccount } = useDefaultAccount();
+  // Derived from the same payment-options list the account select renders
+  // (accounts.view is not required for either), not a separate
+  // /accounts/default call — that one is accounts.view-gated and 403'd here
+  // on every sell-page load for a sell-only role, uselessly: the picker
+  // already needed this exact list.
+  const { data: accountPaymentOptions } = useAccountPaymentOptions(isAccountsEnabled);
+  const defaultAccount = useMemo(
+    () => accountPaymentOptions?.find((a) => a.isDefault),
+    [accountPaymentOptions],
+  );
 
   const customerForm = useForm({
     defaultValues: {

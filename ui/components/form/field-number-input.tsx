@@ -26,7 +26,7 @@ function toFieldValue(raw: unknown): number | null {
  * counts and unit factors alike, so each config declares its own.
  */
 export function renderNumberInput(ctx: FieldRenderContext): ReactNode {
-  const { field, control, error, effectiveDisabled, handleChange, allValues } = ctx;
+  const { field, fieldId, control, error, effectiveDisabled, handleChange, allValues } = ctx;
   const prefix = resolveAffix(field.prefix, allValues);
   const suffix = resolveAffix(field.suffix, allValues);
 
@@ -37,6 +37,7 @@ export function renderNumberInput(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <FieldAffix prefix={prefix} suffix={suffix}>
           <NumberField
+            id={fieldId}
             name={controllerField.name}
             value={toFieldValue(controllerField.value)}
             onChange={(value) => {

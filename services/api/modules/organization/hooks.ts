@@ -143,11 +143,29 @@ export const useSmsUsage = (months?: number, enabled = true) =>
     enabled,
   });
 
-// GET /api/organization/subscription - Current plan/entitlement + usage
-export const useGetSubscription = () => {
+// GET /api/organization/subscription - Current plan/entitlement + usage.
+// Backend requires `organization.view`; a user without it fired this 403 on
+// every mount of the protected layout, so `enabled` defaults to true but
+// callers that know the viewer's permissions (the layout) should pass false.
+export const useGetSubscription = (enabled = true) => {
   return useQuery({
     queryKey: queryKeys.organization.subscription(),
     queryFn: () => organizationApi.getSubscription(),
+    select: (res) => res.data,
+    staleTime: 60 * 1000, // 1 minute
+    enabled,
+  });
+};
+
+// GET /api/organization/subscription/status - Minimal, permission-free
+// subscription status. Unconditionally enabled (unlike useGetSubscription
+// above) — the backend route carries no checkPermission, so there is no
+// role this 403s for. Used by the protected layout's workspace-access gate
+// and by BillingAlertBanner, both of which must work for every role.
+export const useGetSubscriptionStatus = () => {
+  return useQuery({
+    queryKey: queryKeys.organization.subscriptionStatus(),
+    queryFn: () => organizationApi.getSubscriptionStatus(),
     select: (res) => res.data,
     staleTime: 60 * 1000, // 1 minute
   });
@@ -549,13 +567,18 @@ export const useUpdateColumnSettings = () => {
   });
 };
 
-// GET /api/organization/storefront - Get storefront settings (lazily created backend-side)
-export const useGetStorefrontSettings = () => {
+// GET /api/organization/storefront - Get storefront settings (lazily created
+// backend-side). Requires the `storefront` feature + `storefront.view`, so
+// callers that may run before the feature is on (the Features settings page,
+// checking whether to nudge toward publishing) should pass `enabled: false`
+// until it is.
+export const useGetStorefrontSettings = (enabled = true) => {
   return useQuery({
     queryKey: queryKeys.organization.storefront(),
     queryFn: () => organizationApi.getStorefrontSettings(),
     select: (res) => res.data,
     staleTime: 60 * 1000, // 1 minute
+    enabled,
   });
 };
 

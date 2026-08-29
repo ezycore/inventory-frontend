@@ -6,6 +6,7 @@ import {
   type CatalogProduct,
   type VariantPricingEntry,
   useCatalogVariants,
+  useGetStorefrontSettings,
   useUpdateCatalogListing,
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
@@ -37,10 +38,29 @@ import { formatMoney } from "@/components/storefront/format";
 import { slugify } from "@/utils/slugify";
 import { RECOMMENDED } from "@/lib/image-ratio";
 
-const OUT_OF_STOCK_OPTIONS = [
-  { value: "show", label: 'Show as "Out of stock"' },
-  { value: "hide", label: "Hide from store" },
-  { value: "backorder", label: "Allow backorder" },
+/**
+ * `INHERIT` is a UI-only sentinel, never a stored value: picking it sends the
+ * field in `clearFields` so the backend `$unset`s it and the product falls back
+ * to the store-wide default (Ecommerce → Settings → General). A fourth enum
+ * value on the model would look the same to a merchant and quietly break that
+ * fallback — the product would store "inherit" and resolve to nothing.
+ */
+const INHERIT = "inherit";
+
+const OUT_OF_STOCK_LABELS: Record<string, string> = {
+  show: 'Show as "Out of stock"',
+  hide: "Hide from store",
+  backorder: "Allow backorder",
+};
+
+const outOfStockOptions = (storeDefault?: string) => [
+  {
+    value: INHERIT,
+    label: `Use store default (${OUT_OF_STOCK_LABELS[storeDefault ?? "show"] ?? OUT_OF_STOCK_LABELS.show})`,
+  },
+  { value: "show", label: OUT_OF_STOCK_LABELS.show },
+  { value: "hide", label: OUT_OF_STOCK_LABELS.hide },
+  { value: "backorder", label: OUT_OF_STOCK_LABELS.backorder },
 ];
 
 /** Catalog → Products: the per-product online listing editor (right sheet). */
@@ -54,6 +74,11 @@ export function ProductOnlineEditor({
   currency?: string;
 }) {
   const update = useUpdateCatalogListing();
+  // Only to LABEL the inherit option with what it actually resolves to — the
+  // editor never writes this. Shared cache with the Settings page, so opening
+  // the sheet costs no extra request in practice.
+  const { data: storeSettings } = useGetStorefrontSettings();
+  const storeDefaultOutOfStock = storeSettings?.defaultOutOfStockBehavior;
   const [isListed, setIsListed] = useState(true);
   const [featured, setFeatured] = useState(false);
   const [onlinePrice, setOnlinePrice] = useState<number | null>(null);
@@ -64,7 +89,7 @@ export function ProductOnlineEditor({
   const [onlineDescription, setOnlineDescription] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
-  const [outOfStock, setOutOfStock] = useState("show");
+  const [outOfStock, setOutOfStock] = useState(INHERIT);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [variantDrafts, setVariantDrafts] = useState<
     Record<string, VariantPriceDraft>
@@ -118,7 +143,10 @@ export function ProductOnlineEditor({
     setOnlineDescription(sf.onlineDescription ?? "");
     setSeoTitle(sf.seo?.title ?? "");
     setSeoDescription(sf.seo?.description ?? "");
-    setOutOfStock(sf.outOfStockBehavior ?? "show");
+    // Unset on the product = following the store default, which is exactly what
+    // the sentinel means — do NOT fall back to "show" here or every save would
+    // stamp an explicit override onto a product that had none.
+    setOutOfStock(sf.outOfStockBehavior ?? INHERIT);
     setImages((product?.images ?? []) as GalleryImage[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
@@ -147,7 +175,6 @@ export function ProductOnlineEditor({
     const fd = new FormData();
     fd.append("isListed", String(isListed));
     fd.append("featured", String(featured));
-    fd.append("outOfStockBehavior", outOfStock);
 
     // Optional fields: send the value when present, else mark it cleared so the
     // backend $unsets it (an emptied field falls back to the base product value —
@@ -165,6 +192,8 @@ export function ProductOnlineEditor({
               compareAtPrice !== null ? String(compareAtPrice) : null,
             ],
           ] as [string, string | null][])),
+      // `null` here (the INHERIT sentinel) clears the override — see `INHERIT`.
+      ["outOfStockBehavior", outOfStock === INHERIT ? null : outOfStock],
       ["weightKg", weightKg !== null ? String(weightKg) : null],
       ["slug", slug.trim() || null],
       ["onlineTitle", onlineTitle.trim() || null],
@@ -374,7 +403,7 @@ export function ProductOnlineEditor({
             <SimpleSelect
               value={outOfStock}
               onValueChange={setOutOfStock}
-              options={OUT_OF_STOCK_OPTIONS}
+              options={outOfStockOptions(storeDefaultOutOfStock)}
             />
           </div>
 

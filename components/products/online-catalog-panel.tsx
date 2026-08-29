@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import { Star, Pencil, ImageIcon } from "lucide-react";
 import {
+  type BulkStorefrontDto,
   CatalogProduct,
   useCatalogProducts,
   useUpdateCatalogListing,
@@ -23,6 +24,19 @@ import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-r
 import { ProductOnlineEditor } from "@/components/ecommerce/catalog/product-online-editor";
 
 type ListedFilter = "all" | "listed" | "unlisted";
+
+type BulkOutOfStockChoice = NonNullable<
+  BulkStorefrontDto["patch"]["outOfStockBehavior"]
+>;
+
+/** Bulk sold-out policy. "inherit" is a request-only sentinel that CLEARS the
+ *  per-product override — see `BulkStorefrontDto`. */
+const BULK_OUT_OF_STOCK_OPTIONS: { value: BulkOutOfStockChoice; label: string }[] = [
+  { value: "inherit", label: "Use store default" },
+  { value: "show", label: 'Show as "Out of stock"' },
+  { value: "hide", label: "Hide from store" },
+  { value: "backorder", label: "Allow backorder" },
+];
 
 /** Base-price cell text. VARIABLE products have no product-level price (it lives
  *  per-variant), so show the variant price range — collapsing to a single value
@@ -88,7 +102,7 @@ export function OnlineCatalogPanel() {
       return next;
     });
 
-  const runBulk = async (patch: { isListed?: boolean; featured?: boolean }) => {
+  const runBulk = async (patch: BulkStorefrontDto["patch"]) => {
     if (selected.size === 0) return;
     await bulkUpdate.mutateAsync({ ids: [...selected], patch });
     setSelected(new Set());
@@ -144,6 +158,18 @@ export function OnlineCatalogPanel() {
           <Button size="sm" variant="outline" onClick={() => runBulk({ featured: false })}>
             Unfeature
           </Button>
+          {/* "inherit" CLEARS the per-product override — that is the only way to
+              put a batch back under the store-wide default once someone has set
+              them one by one. See `BulkStorefrontDto`. */}
+          <SimpleSelect
+            value=""
+            onValueChange={(v) =>
+              runBulk({ outOfStockBehavior: v as BulkOutOfStockChoice })
+            }
+            options={BULK_OUT_OF_STOCK_OPTIONS}
+            placeholder="When out of stock…"
+            className="w-52"
+          />
         </div>
       )}
 

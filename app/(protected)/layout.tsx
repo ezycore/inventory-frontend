@@ -13,7 +13,7 @@ import {
   needsReactivation,
   shouldBlockWorkspaceAccess,
 } from "@/lib/subscription-utils";
-import { useGetSubscription, useMe } from "@/services/api";
+import { useGetSubscriptionStatus, useMe } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useOrgDocumentTitle } from "@/hooks/use-org-document-title";
@@ -68,7 +68,12 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const verifyMe = useMe();
-  const subscription = useGetSubscription();
+  // Minimal, permission-free status (see useGetSubscriptionStatus) — not
+  // useGetSubscription, which needs organization.view and used to 403 on
+  // every navigation for every non-admin role. The force-logout/reactivate
+  // redirect below must run for every role, not just organization.view
+  // holders, or a degraded workspace goes unexplained for everyone else.
+  const subscription = useGetSubscriptionStatus();
   const router = useRouter();
   const pathname = usePathname();
   const tOnboarding = useTranslations("onboarding");

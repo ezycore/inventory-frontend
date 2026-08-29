@@ -70,6 +70,11 @@ function readLocale(locale) {
         order: Number(data.order ?? 999),
         coversRoutes: data.covers_routes ?? [],
         features: data.features ?? [],
+        // Optional: a hosted walkthrough URL for this page. The videos this
+        // was written for already exist (recorded per guide) but sat outside
+        // the drawer entirely — a merchant reaching "?" mid-task saw text
+        // only, never the recording that shows the exact same screen.
+        videoUrl: data.video ?? null,
         body: stripLeadingH1(rewriteLinks(body)).trim(),
       };
     })
@@ -91,6 +96,8 @@ export interface HelpPage {
   coversRoutes: string[];
   /** Feature flags the page's subject depends on. */
   features: string[];
+  /** Hosted walkthrough video for this page, from frontmatter \`video:\`. Absent for most pages. */
+  videoUrl: string | null;
   /** Raw Markdown, rendered via lib/storefront-markdown.ts. */
   body: string;
 }

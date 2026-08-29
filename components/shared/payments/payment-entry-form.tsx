@@ -9,12 +9,16 @@ import { Label } from "@/ui/components/label";
 import SimpleSelect from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
-import type { Account } from "@/types";
+import type { AccountPaymentOption } from "@/types";
 import type { CreditConfig, PaymentDoc } from "./types";
 
 interface PaymentEntryFormProps {
   doc: PaymentDoc;
-  accounts: Account[];
+  /** The minimal accounts.routes.ts payment-options list, not the full
+   * Account — this only ever reads _id/name/type/isDefault, and the
+   * permission that gates a "record a payment" screen is never
+   * accounts.view alone. See accountPaymentOptionDto (backend). */
+  accounts: AccountPaymentOption[];
   isAccountsEnabled: boolean;
   formatCurrency: (n: number) => string;
   paymentAmount: string;

@@ -11,7 +11,7 @@ import type { FieldRenderContext } from "./field-render-context";
 /** `checkbox`, `switch`, `radio-group` (inline or card layout). */
 
 export function renderCheckbox(ctx: FieldRenderContext): ReactNode {
-  const { field, control, effectiveDisabled, handleChange } = ctx;
+  const { field, fieldId, control, effectiveDisabled, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
@@ -19,7 +19,7 @@ export function renderCheckbox(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <div className="flex items-center space-x-2">
           <Checkbox
-            id={field.name}
+            id={fieldId}
             checked={controllerField.value ?? field.defaultValue ?? false}
             onCheckedChange={(checked) => {
               controllerField.onChange(checked);
@@ -27,7 +27,7 @@ export function renderCheckbox(ctx: FieldRenderContext): ReactNode {
             }}
             disabled={effectiveDisabled}
           />
-          <Label htmlFor={field.name}>{field.label}</Label>
+          <Label htmlFor={fieldId}>{field.label}</Label>
         </div>
       )}
     />
@@ -35,7 +35,7 @@ export function renderCheckbox(ctx: FieldRenderContext): ReactNode {
 }
 
 export function renderSwitch(ctx: FieldRenderContext): ReactNode {
-  const { field, control, effectiveDisabled, handleChange } = ctx;
+  const { field, fieldId, control, effectiveDisabled, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
@@ -43,7 +43,7 @@ export function renderSwitch(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <div className="flex items-center space-x-2">
           <Switch
-            id={field.name}
+            id={fieldId}
             checked={controllerField.value}
             onCheckedChange={(checked) => {
               controllerField.onChange(checked);

@@ -2,6 +2,7 @@ import type { SelectOption } from "@/ui/components/form/type";
 import type { DiscountType } from "@/utils/discount";
 import type {
   AccountApiResponse,
+  AccountPaymentOptionApiResponse,
   CustomerApiResponse,
   ExtractedCustomer,
   ExtractedProduct,
@@ -125,6 +126,24 @@ export const accountItemsCreateCallback = (
   return items.map((item) => ({
     value: item._id,
     label: `${item.name} (৳${item.balance.toFixed(2)})`,
+    isDefault: item.isDefault,
+  })) as SelectOption[];
+};
+
+/**
+ * Transform the minimal payment-options response (`/accounts/payment-options`
+ * — flat array, no balance) to select options. A role without accounts.view
+ * still reaches this endpoint via sales.create, so the label can't show a
+ * balance the response never carries — unlike accountItemsCreateCallback
+ * above, which is fine doing that because it only runs for accounts.view.
+ */
+export const accountPaymentOptionItemsCallback = (
+  response: AccountPaymentOptionApiResponse,
+): SelectOption[] => {
+  const items = response?.data || [];
+  return items.map((item) => ({
+    value: item._id,
+    label: item.name,
     isDefault: item.isDefault,
   })) as SelectOption[];
 };

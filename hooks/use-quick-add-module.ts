@@ -11,6 +11,17 @@ const EMPTY_CONFIG: DynamicFormConfig = { fields: [] };
 const NON_SCOPE_PARAMS = new Set(["all", "fields", "status", "inventory"]);
 
 /**
+ * Param values that are FILTERS, not scopes.
+ *
+ * The product form's Category select asks for `parentId=null` — the backend's
+ * "top-level only" filter. Lifted as a scope it became a literal `"null"`
+ * default on the quick-add form, so opening Add New Category showed `null`
+ * sitting in the Parent category select. The neighbouring Sub-category select
+ * resolves the same param to a real id, which IS a scope and still inherits.
+ */
+const SENTINEL_VALUES = new Set(["null", "undefined", ""]);
+
+/**
  * The scope a dependent select is already filtered by, as quick-add form values.
  *
  * A creatable select whose options are narrowed by a parent — the product
@@ -40,7 +51,12 @@ export function scopeDefaults(
   for (const [key, value] of new URLSearchParams(query)) {
     // An unresolved `{{template}}` means the dependency has no value yet, so
     // there is no scope to inherit.
-    if (NON_SCOPE_PARAMS.has(key) || !names.has(key) || value.includes("{{")) {
+    if (
+      NON_SCOPE_PARAMS.has(key) ||
+      !names.has(key) ||
+      value.includes("{{") ||
+      SENTINEL_VALUES.has(value)
+    ) {
       continue;
     }
     defaults[key] = value;

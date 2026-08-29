@@ -4,7 +4,7 @@
 import { useTranslations } from "next-intl";
 import { WalletIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { useAccounts, useSupplierPendingDues } from "@/services/api";
+import { useAccountPaymentOptions, useSupplierPendingDues } from "@/services/api";
 import {
   usePurchasePageStore,
   type SellerSession,
@@ -37,12 +37,11 @@ export function SellerPaymentSection({
   const setNotes = usePurchasePageStore((s) => s.setNotes);
   const setCreditApplied = usePurchasePageStore((s) => s.setCreditApplied);
 
-  // Accounts list — match the sales-flow pattern (lean payload, single call)
-  const { data: accountsData } = useAccounts({
-    all: true,
-    fields: "_id,name,isDefault,balance,type,status",
-  });
-  const accounts = useMemo(() => accountsData?.items || [], [accountsData]);
+  // Minimal accounts list (id/name/isDefault only) — reachable by
+  // purchases.create as well as accounts.view, so a receiving-only role can
+  // pick a payment account without the full list (balances included).
+  const { data: accountsData } = useAccountPaymentOptions();
+  const accounts = useMemo(() => accountsData || [], [accountsData]);
 
   // Supplier credit + dues (only when supplier selected)
   const { data: pendingDuesData } = useSupplierPendingDues(
@@ -201,6 +200,12 @@ export function SellerPaymentSection({
           </div>
           <div className="space-y-1">
             <Label className="text-xs">{t("paidAmount")}</Label>
+            {/* Pre-fill is state-driven (the auto-init effect above sets
+                `seller.paymentInfo.paidAmount`), not a form default — `value`
+                already covers it, and NumberField ignores `defaultValue` once
+                `value` is present. A stray `defaultValue` prop used to sit
+                here doing nothing but trip the controlled/uncontrolled
+                warning on every purchase. */}
             <NumberField
               precision={2}
               min={0}
@@ -208,7 +213,6 @@ export function SellerPaymentSection({
               onChange={(v) => updatePayment(accountId, v ?? 0)}
               placeholder="0.00"
               className="h-9 text-sm"
-              defaultValue={seller.purchaseType === "instant" ? netAmount - creditApplied : 0}
             />
           </div>
         </div>

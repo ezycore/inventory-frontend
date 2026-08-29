@@ -23,6 +23,18 @@ import {
 // `noindex` in their metadata; blocking them here saves the crawl budget too.
 const PRIVATE_PATHS = ["/cart", "/checkout", "/account", "/search"];
 
+/**
+ * Host-root files a crawler must still reach on a tenant subdomain, where the
+ * store lives under `/shop` and everything else is disallowed. Not prefixed
+ * with `base` — these are served from the root whatever the store's path is.
+ */
+const PUBLIC_FILES = [
+  "/_next/static/",
+  "/_next/image",
+  "/sitemap.xml",
+  "/favicon.ico",
+];
+
 // The answer depends on the request host, so this can never be prerendered — one
 // baked robots.txt would be served to every tenant.
 export const dynamic = "force-dynamic";
@@ -59,7 +71,20 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         ? // Tenant subdomain: the admin app owns the root and only `/shop` is
           // public. Longer, more specific paths win over the Allow, so the
           // private storefront paths stay blocked.
-          { userAgent: "*", allow: base, disallow: ["/", ...disallow] }
+          //
+          // The blanket `Disallow: /` also covers same-host files the store
+          // needs crawled, so each is re-allowed: `/_next/static/` and
+          // `/_next/image` are the storefront's own CSS, JS and product images
+          // (blocking them has Google render the shop unstyled and index no
+          // images), `/sitemap.xml` is the file the Sitemap line below points
+          // at, and `/favicon.ico` has to be fetchable for the icon to show
+          // beside a search result. Every one is a longer path than `/`, so
+          // specificity lets them through without loosening anything else.
+          {
+            userAgent: "*",
+            allow: [base, ...PUBLIC_FILES],
+            disallow: ["/", ...disallow],
+          }
         : // Custom domain: the store IS the site.
           { userAgent: "*", allow: "/", disallow },
     ],

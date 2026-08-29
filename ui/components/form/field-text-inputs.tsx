@@ -22,7 +22,7 @@ const RichTextEditor = dynamic(
 
 /** `input` — text only. Numbers go through `renderNumberInput` (NumberField). */
 export function renderTextInput(ctx: FieldRenderContext): ReactNode {
-  const { field, control, error, effectiveDisabled, handleChange, allValues } = ctx;
+  const { field, fieldId, control, error, effectiveDisabled, handleChange, allValues } = ctx;
   const prefix = resolveAffix(field.prefix, allValues);
   const suffix = resolveAffix(field.suffix, allValues);
   return (
@@ -33,6 +33,7 @@ export function renderTextInput(ctx: FieldRenderContext): ReactNode {
         <FieldAffix prefix={prefix} suffix={suffix}>
           <Input
             {...controllerField}
+            id={fieldId}
             value={controllerField.value ?? ""}
             type="text"
             placeholder={field.placeholder}
@@ -54,7 +55,7 @@ export function renderTextInput(ctx: FieldRenderContext): ReactNode {
 }
 
 export function renderTextarea(ctx: FieldRenderContext): ReactNode {
-  const { field, control, error, effectiveDisabled, handleChange } = ctx;
+  const { field, fieldId, control, error, effectiveDisabled, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
@@ -62,6 +63,7 @@ export function renderTextarea(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <Textarea
           {...controllerField}
+          id={fieldId}
           value={controllerField.value ?? ""}
           placeholder={field.placeholder}
           disabled={effectiveDisabled}
@@ -99,7 +101,7 @@ export function renderRichText(ctx: FieldRenderContext): ReactNode {
 }
 
 export function renderPassword(ctx: FieldRenderContext): ReactNode {
-  const { field, control, error, effectiveDisabled, handleChange } = ctx;
+  const { field, fieldId, control, error, effectiveDisabled, handleChange } = ctx;
   return (
     <Controller
       name={field.name}
@@ -107,6 +109,7 @@ export function renderPassword(ctx: FieldRenderContext): ReactNode {
       render={({ field: controllerField }) => (
         <Password
           {...controllerField}
+          id={fieldId}
           placeholder={field.placeholder}
           disabled={effectiveDisabled}
           min={field.validation?.min}
