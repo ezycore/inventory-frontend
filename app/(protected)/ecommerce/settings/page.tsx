@@ -15,13 +15,14 @@ import { GeneralSettingsTab } from "@/components/ecommerce/settings/general-sett
 import { ShippingSettingsTab } from "@/components/ecommerce/settings/shipping-settings-tab";
 import { CheckoutSettingsTab } from "@/components/ecommerce/settings/checkout-settings-tab";
 import { PaymentsSettingsTab, PublishSettingsTab } from "@/components/ecommerce/settings/publish-payment-tabs";
+import { MetaSettingsTab } from "@/components/ecommerce/settings/meta-settings-tab";
 
 const TABS = [
   { id: "general", label: "General" }, { id: "publish", label: "Publish" },
   { id: "payments", label: "Payments" }, { id: "shipping", label: "Shipping" },
   { id: "couriers", label: "Couriers" }, { id: "checkout", label: "Checkout" },
   { id: "orderSteps", label: "Order steps" }, { id: "seo", label: "SEO" },
-  { id: "notifications", label: "Notifications" },
+  { id: "notifications", label: "Notifications" }, { id: "meta", label: "Meta pixel" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -50,6 +51,7 @@ function SettingsTab({ tab, settings }: { tab: TabId; settings: StorefrontSettin
     case "orderSteps": return <OrderStepLabelsSettings />;
     case "seo": return <SeoSettings settings={settings} />;
     case "notifications": return <NotificationsTab />;
+    case "meta": return <MetaSettingsTab />;
   }
 }
 
