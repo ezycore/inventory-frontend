@@ -268,8 +268,7 @@ export interface StorefrontFooterLink {
 }
 
 export interface StorefrontFooterGroup {
-  /** Optional; an image can be the complete slide. */
-  title?: string;
+  title: string;
   links: StorefrontFooterLink[];
 }
 
@@ -575,7 +574,8 @@ export interface StorefrontHeroSlide {
    */
   imageFit?: string;
   badge?: string;
-  title: string;
+  /** Optional; an image can be the complete slide. */
+  title?: string;
   subtitle?: string;
   buttonLabel?: string;
   link?: string;
