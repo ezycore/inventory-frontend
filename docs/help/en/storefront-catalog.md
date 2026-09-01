@@ -123,8 +123,13 @@ you have is harder to use than one listing the six that sell.
 The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
 **static banner** with your own headline — choose which under "The hero shows".
 
-A slide photo has to sit in two very different shapes: a wide strip on a computer, and something
-close to square on a phone. Each slide decides how its own photo handles that, under **This photo**:
+A slide uses one image surface at every size. On a computer it shows the full promotional copy; on
+a phone the same title and action sit compactly over a bottom gradient while the lower-priority badge
+and subtitle yield more room to the artwork. Each slide decides how its own photo handles those
+frames under **This photo**:
+
+The title is optional. Leave every text field empty to show pure slider artwork: the store adds no
+fallback headline, button, copy panel, or dark text scrim. A completely empty slide is ignored.
 
 - **Full photo** — all of it stays visible, over a soft blurred backdrop. This is what a slide does
   until you say otherwise, and it is the right choice for a poster or anything with writing on it,
@@ -136,13 +141,18 @@ point, just under where you upload it. The **Image fit** setting under Product c
 *product* photos behave and has no say over the hero, so you can crop your product grid tidily and
 still show a banner whole.
 
-When a slide is cropped, a phone keeps the middle of the photo unless you say otherwise — that is what
+When a slide is cropped, each frame starts from the middle unless you say otherwise — that is what
 **Focus point** is for. Tap the part that must stay visible — a face, the product, your logo — and
-the small **Phone crop** preview beside it shows exactly what a phone will keep. Leave it untouched
-and the photo stays centred, as it always did.
+the small **Phone crop** preview beside it shows the 16:9 mobile frame. Leave it untouched and the
+photo stays centred.
 
-Upload around 1600 × 640 px, and keep the left side clear: on a wide screen your title and button
-sit there.
+Use **1600 × 640 px (5:2)** as the recommended desktop canvas for a slider image. For the reusable
+static **Banner image**, use **1200 × 900 px (4:3)**. Add **Mobile image (optional)** at
+**1200 × 675 px (16:9)** when the desktop composition cannot crop well on a phone; otherwise mobile
+automatically uses the desktop photo and focus. These are composition guides, not upload
+requirements: **Full photo** preserves every edge, while **Cropped** and separate desktop and mobile
+focus points control each frame. The editor labels both preview ratios before saving. Keep prices,
+offers, and headlines in the text fields—not inside the image—so they can reflow and remain readable.
 
 ### Home page → Sections
 

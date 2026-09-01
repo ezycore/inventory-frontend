@@ -16,6 +16,7 @@ export function SlideThumb({
   slide: StorefrontHeroSlide;
   className?: string;
 }) {
+  const image = slide.image || slide.mobileImage;
   return (
     <span
       className={cn(
@@ -23,10 +24,10 @@ export function SlideThumb({
         className,
       )}
     >
-      {slide.image?.url ? (
+      {image?.url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={slide.image.thumbnailUrl || slide.image.url}
+          src={image.thumbnailUrl || image.url}
           alt=""
           className="h-full w-full object-cover"
         />

@@ -169,6 +169,58 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
 });
 
 describe("toSettingsPayload (theme fields must survive a Save)", () => {
+  it("keeps image-only slides and drops only completely blank rows", () => {
+    const result = toSettingsPayload(
+      draft({
+        heroSlides: [
+          { title: "", image: { url: "/artwork.jpg", publicId: "hero/artwork" } },
+          { title: "" },
+        ],
+      }),
+    );
+
+    expect(result.heroSlides).toEqual([
+      expect.objectContaining({
+        image: { url: "/artwork.jpg", publicId: "hero/artwork" },
+        title: undefined,
+      }),
+    ]);
+  });
+
+  it("carries optional mobile hero artwork and crop anchors", () => {
+    const mobileImage = {
+      url: "/mobile.jpg",
+      publicId: "storefront/mobile",
+    };
+    const result = toSettingsPayload(
+      draft({
+        heroSlides: [
+          {
+            title: "Sale",
+            image: { url: "/desktop.jpg", publicId: "storefront/desktop" },
+            mobileImage,
+            focal: { x: 70, y: 30 },
+            mobileFocal: { x: 40, y: 65 },
+          },
+        ],
+        heroBanner: {
+          mobileImage,
+          focal: { x: 60, y: 50 },
+          mobileFocal: { x: 35, y: 55 },
+        },
+      }),
+    );
+
+    expect(result.heroSlides?.[0]).toMatchObject({
+      mobileImage,
+      mobileFocal: { x: 40, y: 65 },
+    });
+    expect(result.heroBanner).toMatchObject({
+      mobileImage,
+      mobileFocal: { x: 35, y: 55 },
+    });
+  });
+
   it("carries the design tokens", () => {
     const design = {
       font: "serif",

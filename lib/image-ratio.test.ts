@@ -67,16 +67,6 @@ describe("ratioWarning", () => {
     expect(message).toContain("the sides will be cropped off");
   });
 
-  /**
-   * The case that started all of this: every seeded hero was a 3:2 photograph
-   * in a slot the product's own hint says is 2.5:1.
-   */
-  it("catches a 3:2 photo dropped into the 2.5:1 hero slot", () => {
-    expect(ratioWarning({ w: 2400, h: 1600 }, RECOMMENDED.heroSlide)).toContain(
-      "2.5:1",
-    );
-  });
-
   it("never divides by zero on a degenerate size", () => {
     expect(ratioWarning({ w: 100, h: 0 }, square)).toBeNull();
     expect(ratioWarning({ w: 0, h: 100 }, square)).toBeNull();
@@ -92,11 +82,5 @@ describe("RECOMMENDED", () => {
   it("matches the sizes the hints promise", () => {
     expect(RECOMMENDED.product).toEqual({ w: 1600, h: 1600 });
     expect(RECOMMENDED.category).toEqual({ w: 600, h: 600 });
-    expect(RECOMMENDED.heroSlide).toEqual({ w: 1600, h: 640 });
-    expect(RECOMMENDED.heroBanner).toEqual({ w: 1200, h: 900 });
-  });
-
-  it("describes the hero slot as the hint's own 2.5:1", () => {
-    expect(describeRatio(RECOMMENDED.heroSlide)).toBe("2.5:1");
   });
 });

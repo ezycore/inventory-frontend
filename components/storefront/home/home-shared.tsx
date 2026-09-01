@@ -119,21 +119,28 @@ export function sectionRow(
  * ⚠ **Deliberately NOT `useStoreImageFit()`.** These sections used to read that
  * hook, which is *Customize → Product cards → Image fit* — so changing how
  * product thumbnails crop silently re-cropped the shop's biggest picture. A grid
- * of small squares and a wide banner are different jobs. Unset means "fit": show
- * the whole photo, the one answer that can never cut a face or a word in half.
+ * of small squares and a wide banner are different jobs. For an unset choice,
+ * each section preserves the behavior it had before the control was introduced.
  *
- * Every section that CROPS the banner spreads this (`HeroCard`, `HeroOpen`,
- * `EditorialSplit`), so the merchant's answer follows their photo into whichever
- * frame is showing it. `HeroSplit` is the exception and needs nothing: it runs
- * `ratio="auto"`, so there is no frame to miss and nothing to trim.
+ * Every section that displays the banner spreads this, so the merchant's answer
+ * follows their photo into whichever frame is showing it. The caller supplies
+ * its pre-control legacy default: framed heroes used canvas; Hero Split and
+ * Full Bleed used cover. An explicit merchant choice always wins.
  */
-export function bannerPhoto(hb?: StoreHeroBanner): {
+export function bannerPhoto(
+  hb?: StoreHeroBanner,
+  defaultFit: "cover" | "canvas" = "canvas",
+): {
   fit: "cover" | "canvas";
   focal?: string;
+  mobileSrc?: string;
+  mobileFocal?: string;
 } {
   return {
-    fit: isImageFit(hb?.imageFit) ? mediaFitFor(hb.imageFit) : "canvas",
+    fit: isImageFit(hb?.imageFit) ? mediaFitFor(hb.imageFit) : defaultFit,
     focal: focalPosition(hb?.focal),
+    mobileSrc: hb?.mobileImage?.mediumUrl || hb?.mobileImage?.url,
+    mobileFocal: focalPosition(hb?.mobileFocal || hb?.focal),
   };
 }
 

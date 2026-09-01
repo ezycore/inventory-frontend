@@ -1,13 +1,13 @@
 // coding-standard: maintained
 
 /**
- * Does a picked image match the shape its field asks for?
+ * Does a picked image match the fixed shape its field asks for?
  *
- * Every image field in the product already tells the merchant a recommended
- * size — *"Square 1600 × 1600 px works best"*, *"1600 × 640 px (2.5:1) works
- * best"*. Until now that was the whole story: the hint sat there, an off-shape
- * upload was accepted in silence, and the merchant discovered the crop later by
- * looking at their own shop.
+ * Fixed-shape image fields tell the merchant a recommended size. Until this
+ * helper existed, an off-shape upload was accepted in silence and the merchant
+ * discovered the crop later by looking at their own shop. Responsive hero
+ * images deliberately do not use this warning: no single ratio represents both
+ * their desktop and mobile compositions.
  *
  * **We warn instead of cropping, deliberately.** A merchant's photograph is
  * stored exactly as they sent it (`uploadImage` resizes down a ladder but never
@@ -32,8 +32,7 @@ export interface ImageSize {
  * field is 6.7% out and loses a barely-visible sliver — warn about that and the
  * message becomes noise people learn to ignore, which costs more than it saves.
  * The mismatches that actually spoil a grid are far past this line: a portrait
- * phone photo in a square field is 50% out, and a 3:2 landscape in a 2.5:1 hero
- * is 40%.
+ * phone photo in a square field is 50% out.
  */
 const TOLERANCE = 0.1;
 
@@ -141,15 +140,12 @@ export async function checkImageRatio(
 /**
  * The recommended size behind each image field, as the field's own hint states
  * it. **One place, so the hint text and the warning can never disagree** — they
- * did once already, when the hero slide panel asked for 2.5:1 while the seed
- * shipped 1.5:1 photographs and nothing anywhere noticed.
+ * did once already when a field's hint and its warning named different shapes.
  */
 export const RECOMMENDED = {
   product: { w: 1600, h: 1600 },
   category: { w: 600, h: 600 },
   brand: { w: 600, h: 600 },
-  heroSlide: { w: 1600, h: 640 },
-  heroBanner: { w: 1200, h: 900 },
   storeLogo: { w: 600, h: 200 },
   announcementBg: { w: 1600, h: 200 },
   appLogo: { w: 512, h: 512 },

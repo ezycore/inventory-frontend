@@ -127,7 +127,11 @@ export function DealStrip(props: SectionProps) {
     >
       <div className="sf-deals-heading">
         <h2 id={headingId}>{t.campaignOffers}</h2>
-        {live.length > 1 ? <span aria-live="polite">{current + 1} / {live.length}</span> : null}
+        {live.length > 1 ? (
+          <span className="sf-deals-position" aria-live="polite">
+            {current + 1} / {live.length}
+          </span>
+        ) : null}
       </div>
       <div
         ref={scroller}
@@ -273,17 +277,19 @@ export function EditorialSplit(props: SectionProps) {
   const { base, t, banner, heroBanner: hb, store } = props;
   const Heading = props.primaryHeading ? "h1" : "h2";
   const badge = hb?.badge || campaignBadge(props);
+  const photo = bannerPhoto(hb);
+  const bannerSrc = banner || photo.mobileSrc;
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,56px) var(--pad)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "var(--splitcols)", gap: "clamp(20px,4vw,52px)", alignItems: "center" }}>
         <Media
-          src={banner}
+          src={bannerSrc}
           alt=""
           label="lifestyle shot"
           ratio="4 / 5"
           radius={0}
           style={{ borderRadius: "var(--radius-lg)" }}
-          {...bannerPhoto(hb)}
+          {...photo}
         />
         <div>
           {badge ? <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
