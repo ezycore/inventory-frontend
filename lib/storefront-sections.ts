@@ -63,10 +63,6 @@ const TAG_CONFIGURABLE = new Set(["age-chips"]);
 export const isTagConfigurableSection = (type: string) =>
   TAG_CONFIGURABLE.has(type);
 
-/** Does this section have a config panel in the editor, of either kind? */
-export const hasSectionConfig = (type: string) =>
-  isConfigurableSection(type) || isTagConfigurableSection(type);
-
 /**
  * One section's config, by key.
  *

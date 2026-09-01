@@ -12,6 +12,7 @@ import { HeaderSearchBar } from "@/components/storefront/header-search";
 import {
   bannerPhoto,
   campaignBadge,
+  HeroCtaLink,
   heroBtns,
   wrap,
   type SectionProps,
@@ -298,7 +299,7 @@ export function HeroManifesto({ base, t, store }: SectionProps) {
 export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
   const slides = heroSlides ?? [];
   const rotates = slides.length > 1;
-  const { current, go, hoverProps, swipeProps } = useHeroRotation(slides.length);
+  const { current, go, swipeProps } = useHeroRotation(slides.length);
   /* **Copy ownership flips with the slide count, and that is the whole rule.**
      One slide (or none) keeps the original precedence — `heroBanner` first,
      which is the merchant's single hero headline. Two or more and the SLIDES
@@ -321,7 +322,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
   const image = imageOf(slide);
   return (
     <section
-      {...(rotates ? { ...hoverProps, ...swipeProps } : {})}
+      {...(rotates ? swipeProps : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
       style={{
         position: "relative",
@@ -332,41 +333,19 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
         background: image ? "var(--surface-2)" : "var(--surface)",
       }}
     >
-      {/* Every slide is painted and crossfaded on opacity rather than swapped in
-          and out of the tree: a plain `src` swap re-decodes the next photograph
-          on the spot and flashes the ground between the two, which on a hero
-          that fills the first screen is the most visible jank in the shop. */}
-      {rotates
-        ? slides.map((s, i) => {
-            const src = imageOf(s);
-            return src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={src}
-                alt=""
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  opacity: i === current ? 1 : 0,
-                  transition: "opacity 700ms ease",
-                }}
-              />
-            ) : null;
-          })
-        : image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={image}
-              alt=""
-              aria-hidden="true"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : null}
+      {/* Keep only the active photograph in the document. Painting every slide
+          made the browser fetch the whole hero deck during the LCP path. */}
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={rotates ? current : "banner"}
+          src={image}
+          alt=""
+          aria-hidden="true"
+          fetchPriority={current === 0 ? "high" : "auto"}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : null}
       {/* Scrim, not a tint: type over an unknown photograph is unreadable
           without one, and the merchant's photo is genuinely unknown. */}
       <div
@@ -397,8 +376,9 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
         {subtitle ? <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
           {subtitle}
         </p> : null}
-        <Link
-          href={storeHref(base, rotates ? slide?.link || "/products" : "/products")}
+        <HeroCtaLink
+          base={base}
+          link={rotates ? slide?.link : undefined}
           style={{
             display: "inline-block",
             background: "#fff",
@@ -410,7 +390,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
           }}
         >
           {ctaLabel}
-        </Link>
+        </HeroCtaLink>
         {/* Dots, and they are not decoration: without them a shopper cannot tell
             the photograph is going to change, and cannot go back to the one they
             were reading. No arrows — this hero has no frame to hang them on, and
@@ -422,7 +402,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
                 key={i}
                 type="button"
                 onClick={() => go(i)}
-                aria-label={`${t.shopNow} ${i + 1} / ${slides.length}`}
+                aria-label={`Go to slide ${i + 1}`}
                 aria-current={i === current}
                 style={{
                   width: i === current ? 26 : 9,

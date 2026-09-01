@@ -31,6 +31,8 @@
 export interface ThemeSample {
   /** Departments for the rail, tiles, chips and links. */
   categories: string[];
+  /** Facets for sections such as Little Steps' age-band chips. */
+  tags?: string[];
   /** Products in display order. Prices are minor-unit-free numbers, like the API's. */
   products: { name: string; price: number; image: string }[];
   /** Promises for `trust-band`, which renders nothing without them. */
@@ -146,6 +148,7 @@ export const PHARMACY_SAMPLE: ThemeSample = {
  * `age-chips` section is for and what a parent actually shops by.
  */
 export const BABY_SAMPLE: ThemeSample = {
+  tags: ["Newborn", "0-3M", "3-6M", "6-12M", "12-18M", "18-24M", "2-3Y", "3-4Y"],
   categories: [
     "Diapers & wipes",
     "Feeding",

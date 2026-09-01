@@ -15,6 +15,7 @@ import {
   padCampaignsForPreview,
   padForPreview,
   padStoreForPreview,
+  padTagsForPreview,
 } from "@/lib/storefront-preview-samples";
 import {
   useSfPreview,
@@ -157,7 +158,7 @@ export function StoreHome({
     featured: padForPreview(featured, previewSamples),
     latest: padForPreview(latest, previewSamples),
     categories: previewCategories ?? categories,
-    tags,
+    tags: padTagsForPreview(tags ?? [], previewSamples),
     campaigns: padCampaignsForPreview(campaigns, previewSamples),
     t,
     banner,
