@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   HeroCard,
   HeroFullBleed,
+  HeroSplit,
 } from "@/components/storefront/home/sections/hero-sections";
 import type { SectionProps } from "@/components/storefront/home/home-shared";
 
@@ -48,7 +49,39 @@ describe("HeroCard", () => {
     expect(container.querySelector(".sf-hero-media")).toBeInTheDocument();
     expect(container.querySelector(".sf-hero-copy")).not.toBeInTheDocument();
     expect(container.querySelector(".sf-hero-scrim")).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
+      "sf-visually-hidden",
+    );
+  });
+
+  it("uses mobile artwork when no desktop banner exists", () => {
+    const { container } = render(
+      <HeroCard
+        {...props}
+        heroBanner={{ mobileImage: { url: "/mobile-banner.jpg" } }}
+      />,
+    );
+
+    expect(container.querySelector('.sf-herocard-media img[src="/mobile-banner.jpg"]'))
+      .toBeInTheDocument();
+  });
+});
+
+describe("HeroSplit", () => {
+  it("preserves the legacy cover default while honoring a deliberate fit choice", () => {
+    const { container, rerender } = render(
+      <HeroSplit {...props} banner="/banner.jpg" />,
+    );
+    expect(container.querySelector(".sf-media-cover")).toBeInTheDocument();
+
+    rerender(
+      <HeroSplit
+        {...props}
+        banner="/banner.jpg"
+        heroBanner={{ imageFit: "fit" }}
+      />,
+    );
+    expect(container.querySelector(".sf-media-canvas-fg")).toBeInTheDocument();
   });
 });
 
@@ -146,7 +179,7 @@ describe("HeroFullBleed", () => {
 
     expect(container.querySelector(".sf-hero-media-cover")).toBeInTheDocument();
     expect(container.querySelector(".sf-hero-media")).toHaveStyle({
-      "--sf-hero-focus": "78% 31%",
+      "--sf-hero-desktop-focus": "78% 31%",
     });
   });
 
@@ -178,5 +211,29 @@ describe("HeroFullBleed", () => {
     expect(container.querySelector(".sf-hero-fullbleed-scrim")).not.toBeInTheDocument();
     expect(screen.queryByText("Banner fallback")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Shop now" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
+      "sf-visually-hidden",
+    );
+  });
+
+  it("renders a mobile-only banner and keeps the legacy cover default", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroBanner={{ mobileImage: { url: "/mobile-banner.jpg" } }}
+      />,
+    );
+
+    expect(container.querySelector('.sf-hero-media-cover[src="/mobile-banner.jpg"]'))
+      .toBeInTheDocument();
+  });
+
+  it("keeps carousel dots away from the left-aligned CTA", () => {
+    const { container } = render(<HeroFullBleed {...props} heroSlides={slides} />);
+
+    expect(container.querySelector(".sf-hero-fullbleed-dots")).toHaveStyle({
+      right: "var(--pad)",
+      bottom: "18px",
+    });
   });
 });

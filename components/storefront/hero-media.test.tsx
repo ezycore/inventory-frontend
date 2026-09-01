@@ -1,5 +1,7 @@
 // coding-standard: maintained
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HeroMedia } from "@/components/storefront/hero-media";
@@ -28,7 +30,9 @@ describe("HeroMedia", () => {
       <HeroMedia image="/banner.jpg" fit="cover" focal="72% 24%" />,
     );
 
-    expect(container.firstElementChild).toHaveStyle({ "--sf-hero-focus": "72% 24%" });
+    expect(container.firstElementChild).toHaveStyle({
+      "--sf-hero-desktop-focus": "72% 24%",
+    });
     expect(container.querySelector("img")).toHaveClass("sf-hero-media-cover");
   });
 
@@ -52,8 +56,16 @@ describe("HeroMedia", () => {
       "(max-width: 640px)",
     );
     expect(container.firstElementChild).toHaveStyle({
-      "--sf-hero-focus": "70% 30%",
+      "--sf-hero-desktop-focus": "70% 30%",
       "--sf-hero-mobile-focus": "40% 65%",
     });
+
+    const css = readFileSync(
+      resolve(process.cwd(), "app/(storefront)/storefront.css"),
+      "utf8",
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 640px\)[\s\S]*?\.sf-hero-media-cover,[\s\S]*?\.sf-hero-media-bg\s*{[\s\S]*?--sf-hero-mobile-focus,[\s\S]*?--sf-hero-desktop-focus/,
+    );
   });
 });

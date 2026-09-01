@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   DealStrip,
+  EditorialSplit,
   TrustBand,
 } from "@/components/storefront/home/sections/band-sections";
 import type { SectionProps } from "@/components/storefront/home/home-shared";
@@ -71,5 +72,18 @@ describe("offer position", () => {
     expect(css).toMatch(
       /@media \(max-width: 640px\)\s*{\s*\.sf-deals-position\s*{\s*display:\s*inline;/,
     );
+  });
+});
+
+describe("EditorialSplit", () => {
+  it("uses mobile artwork as the desktop fallback when it is the only banner", () => {
+    const { container } = render(
+      <EditorialSplit
+        {...props}
+        heroBanner={{ mobileImage: { url: "/mobile-banner.jpg" } }}
+      />,
+    );
+
+    expect(container.querySelector('img[src="/mobile-banner.jpg"]')).toBeInTheDocument();
   });
 });

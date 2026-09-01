@@ -66,9 +66,11 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
 export function HeroCarousel({
   slides,
   base,
+  storeName,
 }: {
   slides: StoreHeroSlide[];
   base: string;
+  storeName: string;
 }) {
   const count = slides.length;
   // Shared with `HeroFullBleed` so the two rotating heroes keep one beat and one
@@ -87,6 +89,9 @@ export function HeroCarousel({
         {...focusProps}
         {...swipeProps}
       >
+        {slides[current]?.title?.trim() ? null : (
+          <h1 className="sf-visually-hidden">{storeName}</h1>
+        )}
         {slides.map((slide, i) => {
           const primaryImage = slide.image || slide.mobileImage;
           const img = primaryImage?.mediumUrl || primaryImage?.url;

@@ -48,7 +48,7 @@ export function HeroMedia({
 
   const position = focal || "center";
   const style = {
-    "--sf-hero-focus": position,
+    "--sf-hero-desktop-focus": position,
     "--sf-hero-mobile-focus": mobileFocal || position,
   } as CSSProperties;
   const imageProps = {

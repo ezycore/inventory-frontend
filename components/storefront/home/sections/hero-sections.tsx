@@ -55,8 +55,12 @@ import {
  */
 export function HeroCard(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
-  if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
+  if (heroSlides?.length) {
+    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
+  }
   const badge = hb?.badge || campaignBadge(props);
+  const photo = bannerPhoto(hb);
+  const bannerSrc = banner || photo.mobileSrc;
   const promises = (store.trustBadges ?? []).flatMap((item) => {
     const label = item.text?.trim();
     return label ? [label] : [];
@@ -91,15 +95,15 @@ export function HeroCard(props: SectionProps) {
             Wrapped rather than styled directly: `<Media>` sets its own radius
             inline, and the corner differs per breakpoint (the card's own
             `overflow: hidden` clips the full-bleed phone version). */}
-        {banner && (
+        {bannerSrc && (
           <div className="sf-herocard-media">
             <Media
-              src={banner}
+              src={bannerSrc}
               alt=""
               label="hero banner"
               ratio="var(--herocard-ratio)"
               radius={0}
-              {...bannerPhoto(hb)}
+              {...photo}
             />
           </div>
         )}
@@ -117,14 +121,18 @@ export function HeroCard(props: SectionProps) {
 
 /** Hero Split — copy panel beside a full-height lifestyle shot. */
 export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
-  if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
+  if (heroSlides?.length) {
+    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
+  }
+  const photo = bannerPhoto(hb, "cover");
+  const bannerSrc = banner || photo.mobileSrc;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
       <div
         style={{
           display: "grid",
           // No banner → the copy panel takes the full width (see HeroCard).
-          gridTemplateColumns: banner ? "var(--splitcols)" : "1fr",
+          gridTemplateColumns: bannerSrc ? "var(--splitcols)" : "1fr",
           border: "1px solid var(--border)",
           borderRadius: "var(--radius-lg)",
           overflow: "hidden",
@@ -143,15 +151,15 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }
           </p> : null}
           {heroBtns(base, t, t.shopNow, hb)}
         </div>
-        {banner && (
+        {bannerSrc && (
           <Media
-            src={banner}
+            src={bannerSrc}
             alt=""
             label="lifestyle shot"
             ratio="auto"
             radius={0}
             style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
-            {...bannerPhoto(hb)}
+            {...photo}
           />
         )}
       </div>
@@ -177,15 +185,19 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }
  */
 export function HeroOpen(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
-  if (heroSlides?.length) return <HeroCarousel slides={heroSlides} base={base} />;
+  if (heroSlides?.length) {
+    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
+  }
   const badge = hb?.badge || campaignBadge(props);
+  const photo = bannerPhoto(hb);
+  const bannerSrc = banner || photo.mobileSrc;
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
       <div
         style={{
           display: "grid",
           // No banner → the copy panel takes the full width (see HeroCard).
-          gridTemplateColumns: banner ? "var(--herocols)" : "1fr",
+          gridTemplateColumns: bannerSrc ? "var(--herocols)" : "1fr",
           gap: "clamp(24px,4vw,48px)",
           alignItems: "center",
         }}
@@ -239,7 +251,7 @@ export function HeroOpen(props: SectionProps) {
             gives it one without introducing a second near-white surface beside
             the page. Dropped entirely with no banner — an empty tinted block is
             worse than none (see HeroCard). */}
-        {banner && (
+        {bannerSrc && (
         <div
           style={{
             background: "var(--accent-soft)",
@@ -249,13 +261,13 @@ export function HeroOpen(props: SectionProps) {
           }}
         >
           <Media
-            src={banner}
+            src={bannerSrc}
             alt=""
             label="lifestyle shot"
             ratio="4 / 3"
             radius={0}
             style={{ borderRadius: "var(--radius-md)" }}
-            {...bannerPhoto(hb)}
+            {...photo}
           />
         </div>
         )}
@@ -326,16 +338,17 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
     slide?.mobileImage?.url || slide?.mobileImage?.mediumUrl,
   );
   const slideHasArtwork = slideHasImage || slideHasMobileImage;
+  const staticBannerImage = banner || hb?.mobileImage;
   const image = slideHasImage
     ? slide!.image!
     : slideHasMobileImage
       ? slide!.mobileImage!
-      : banner;
+      : staticBannerImage;
   const imageFit = slideHasArtwork
     ? isImageFit(slide?.imageFit)
       ? mediaFitFor(slide.imageFit)
       : "canvas"
-    : bannerPhoto(hb).fit;
+    : bannerPhoto(hb, "cover").fit;
   const imageFocal = focalPosition(slideHasArtwork ? slide?.focal : hb?.focal);
   const mobileImage = slideHasArtwork ? slide?.mobileImage : hb?.mobileImage;
   const mobileFocal = focalPosition(
@@ -349,6 +362,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
       {...(rotates ? { ...hoverProps, ...focusProps, ...swipeProps } : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
     >
+      {!title ? <h1 className="sf-visually-hidden">{store.name}</h1> : null}
       {/* Keep only the active photograph in the document. Painting every slide
           made the browser fetch the whole hero deck during the LCP path. */}
       {image ? (
@@ -407,7 +421,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             the section is swipeable. */}
       </div> : null}
         {rotates ? (
-          <div style={{ position: "absolute", zIndex: 3, display: "flex", gap: 8, left: "var(--pad)", bottom: 18 }}>
+          <div className="sf-hero-fullbleed-dots" style={{ position: "absolute", zIndex: 3, display: "flex", gap: 8, right: "var(--pad)", bottom: 18 }}>
             {slides.map((s, i) => (
               <button
                 key={i}
