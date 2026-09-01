@@ -870,7 +870,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   margin: 0;
   font-size: clamp(17px, 2vw, 20px);
 }
-.sf-deals-heading span {
+.sf-deals-position {
+  /* Desktop shows every offer at once, so a carousel position is misleading. */
+  display: none;
   color: var(--muted);
   font-size: 12px;
   font-weight: 650;
@@ -887,6 +889,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
 }
 .sf-deals-controls { display: none; }
 @media (max-width: 640px) {
+  .sf-deals-position { display: inline; }
   .sf-deals-track {
     grid-auto-flow: column;
     grid-auto-columns: calc(100% - 28px);

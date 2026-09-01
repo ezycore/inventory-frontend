@@ -127,7 +127,11 @@ export function DealStrip(props: SectionProps) {
     >
       <div className="sf-deals-heading">
         <h2 id={headingId}>{t.campaignOffers}</h2>
-        {live.length > 1 ? <span aria-live="polite">{current + 1} / {live.length}</span> : null}
+        {live.length > 1 ? (
+          <span className="sf-deals-position" aria-live="polite">
+            {current + 1} / {live.length}
+          </span>
+        ) : null}
       </div>
       <div
         ref={scroller}
