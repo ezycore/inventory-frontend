@@ -6,6 +6,7 @@ import type {
   CatalogCategory,
   CatalogProduct,
   StoreCampaign,
+  StoreTag,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
@@ -14,6 +15,7 @@ import {
   padCampaignsForPreview,
   padForPreview,
   padStoreForPreview,
+  padTagsForPreview,
 } from "@/lib/storefront-preview-samples";
 import {
   useSfPreview,
@@ -59,6 +61,7 @@ export function StoreHome({
   latest,
   rows,
   categories,
+  tags,
   campaigns,
 }: {
   store: StorefrontStore;
@@ -73,6 +76,7 @@ export function StoreHome({
    */
   rows?: { signature: string; items: CatalogProduct[] }[];
   categories: CatalogCategory[];
+  tags?: StoreTag[];
   campaigns: StoreCampaign[];
 }) {
   const { t } = useStorefrontUI();
@@ -154,6 +158,7 @@ export function StoreHome({
     featured: padForPreview(featured, previewSamples),
     latest: padForPreview(latest, previewSamples),
     categories: previewCategories ?? categories,
+    tags: padTagsForPreview(tags ?? [], previewSamples),
     campaigns: padCampaignsForPreview(campaigns, previewSamples),
     t,
     banner,

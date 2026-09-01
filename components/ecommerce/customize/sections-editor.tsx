@@ -15,11 +15,13 @@ import {
   MIN_SECTION_LIMIT,
   configFor,
   isConfigurableSection,
+  isTagConfigurableSection,
 } from "@/lib/storefront-sections";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type { CollectionRowValue } from "@/components/ecommerce/collections/collection-row";
 import { Button } from "@/ui/components/button";
 import { PartHint } from "@/components/ecommerce/customize/part-group";
+import { TagRowConfig } from "@/components/ecommerce/customize/tag-row-config";
 
 /**
  * Customize → Home page → **Sections**: the merchant's homepage as an ordered,
@@ -78,10 +80,19 @@ export function SectionsEditor({
       return;
     }
     const existing = configFor(config, key);
+    // A NEW product row needs a source — it is the whole point of configuring
+    // one. A tag row does not: `source` means nothing to `age-chips`, and
+    // storing "featured" on it would make the saved config read as a product
+    // row to anyone debugging the document.
+    const seed = isTagConfigurableSection(
+      effective.find((s) => s.key === key)?.type ?? "",
+    )
+      ? { key }
+      : { key, source: "featured" as const };
     onConfigChange(
       existing
         ? config.map((c) => (c.key === key ? { ...c, ...patch } : c))
-        : [...config, { key, source: "featured", ...patch }],
+        : [...config, { ...seed, ...patch }],
     );
   };
 
@@ -152,7 +163,12 @@ export function SectionsEditor({
               </Button>
             </div>
           </div>
-          {isConfigurableSection(section.type) ? (
+          {isTagConfigurableSection(section.type) ? (
+            <TagRowConfig
+              config={configFor(config, section.key)}
+              onChange={(patch) => setConfig(section.key, patch)}
+            />
+          ) : isConfigurableSection(section.type) ? (
             <RowConfig
               config={configFor(config, section.key)}
               collections={collections}

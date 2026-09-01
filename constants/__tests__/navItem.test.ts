@@ -192,6 +192,7 @@ describe("navGroups — Online Store as its own group", () => {
       "Customize",
       "Content",
       "Abandoned Carts",
+      "Meta Ad Reporting",
       "Store Settings",
     ]);
   });

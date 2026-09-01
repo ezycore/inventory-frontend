@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Ban, RotateCcw, Store } from "lucide-react";
 import { useStorefrontOrder, type AdminStorefrontOrder } from "@/services/api";
+import { useGetMetaSettings } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
@@ -21,6 +22,7 @@ import { OrderActivityLog } from "@/components/ecommerce/orders/order-activity-l
 import { OrderFraudPanel } from "@/components/ecommerce/orders/order-fraud-panel";
 import { OrderFulfillmentPanel } from "@/components/ecommerce/orders/order-fulfillment-panel";
 import { OrderLineItems } from "@/components/ecommerce/orders/order-line-items";
+import { OrderMetaPanel } from "@/components/ecommerce/orders/order-meta-panel";
 import { OrderPaymentPanel } from "@/components/ecommerce/orders/order-payment-panel";
 import { OrderStepper } from "@/components/ecommerce/orders/order-stepper";
 import { Button } from "@/ui/components/button";
@@ -60,6 +62,9 @@ export default function AdminOrderDetailPage() {
 }
 
 function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
+  // Only to decide whether the Meta panel renders at all. Cheap and cached — the settings card
+  // on Store Settings shares this query.
+  const { data: metaSettings } = useGetMetaSettings();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { labelFor } = useOrderStatusLabels();
 
@@ -198,6 +203,11 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           </Card>
 
           <OrderPaymentPanel order={order} />
+
+          {/* Whether this sale reached Meta, and the per-order opt-out. Renders nothing when the
+              store has no pixel connected — a panel explaining an unused feature on every order
+              page is noise. */}
+          <OrderMetaPanel order={order} configured={metaSettings?.capiReady === true} />
 
           {/* Internal notes lived here until 2026-08-16: a textarea captioned
               "Notes are not yet persisted — coming with the order-notes

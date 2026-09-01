@@ -3,10 +3,12 @@ import type {
   CatalogCategory,
   CatalogProduct,
   StoreCampaign,
+  StoreTag,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
+  BABY_SAMPLE,
   NEUTRAL_SAMPLE,
   PHARMACY_SAMPLE,
 } from "@/lib/storefront-theme-samples";
@@ -16,6 +18,7 @@ import {
   padCategoriesForPreview,
   padForPreview,
   padStoreForPreview,
+  padTagsForPreview,
 } from "@/lib/storefront-preview-samples";
 
 const product = (n: number) =>
@@ -145,6 +148,23 @@ describe("padCampaignsForPreview", () => {
   it("never replaces a real campaign", () => {
     const real = [{ _id: "x", name: "Eid Sale" }] as unknown as StoreCampaign[];
     expect(padCampaignsForPreview(real, NEUTRAL_SAMPLE)).toBe(real);
+  });
+});
+
+describe("padTagsForPreview", () => {
+  it("supplies the baby theme's age bands when the shop has no tags", () => {
+    expect(padTagsForPreview([], BABY_SAMPLE).map((tag) => tag.name)).toEqual(
+      expect.arrayContaining(["Newborn", "0-3M", "3-4Y"]),
+    );
+  });
+
+  it("never replaces the merchant's real tags", () => {
+    const real = [{ _id: "t1", name: "Organic", slug: "organic", productCount: 2 }] as StoreTag[];
+    expect(padTagsForPreview(real, BABY_SAMPLE)).toBe(real);
+  });
+
+  it("invents no tags outside the theme picker", () => {
+    expect(padTagsForPreview([], null)).toEqual([]);
   });
 });
 

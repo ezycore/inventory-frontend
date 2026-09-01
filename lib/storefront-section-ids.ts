@@ -43,6 +43,9 @@ export const SECTION_IDS = [
   "category-chips",
   "category-links",
   "category-tiles",
+  // Age, not department. A baby shop's primary facet: a parent shops for
+  // "my six-month-old" long before they think about "Feeding".
+  "age-chips",
   // Product rows.
   "featured-grid",
   "latest-grid",
@@ -127,6 +130,7 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   "category-chips": "Category chips",
   "category-links": "Category links",
   "category-tiles": "Category photo tiles",
+  "age-chips": "Shop by age",
   "featured-grid": "Featured products",
   "latest-grid": "New arrivals",
   "picks-grid": "Weekly picks",

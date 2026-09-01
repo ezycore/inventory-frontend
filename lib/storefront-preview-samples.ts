@@ -4,6 +4,7 @@ import type {
   CatalogCategory,
   CatalogProduct,
   StoreCampaign,
+  StoreTag,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
@@ -123,6 +124,20 @@ export function padCategoriesForPreview(
     slugPath: `preview-cat-${i}`,
     children: [],
   })) as unknown as CatalogCategory[];
+}
+
+/** Sample facets for theme-only sections such as Little Steps' age chips. */
+export function padTagsForPreview(
+  tags: StoreTag[],
+  sample: ThemeSample | null,
+): StoreTag[] {
+  if (!sample || tags.length || !sample.tags?.length) return tags;
+  return sample.tags.map((name, i) => ({
+    _id: `preview-tag-${i}`,
+    name,
+    slug: `preview-tag-${i}`,
+    productCount: 1,
+  }));
 }
 
 /**

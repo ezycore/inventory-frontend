@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * API Module Index
  * Central export point for all API modules
@@ -65,7 +66,9 @@ export * from './modules/storefront-catalog/hooks'
 export * from './modules/storefront-dashboard/api'
 export * from './modules/storefront-dashboard/hooks'
 export * from './modules/storefront-preview/api'
+export * from './modules/meta/api'
 export * from './modules/storefront-preview/hooks'
+export * from './modules/meta/hooks'
 export * from './modules/storefront-carts/api'
 export * from './modules/storefront-carts/hooks'
 export * from './modules/storefront-customers/api'

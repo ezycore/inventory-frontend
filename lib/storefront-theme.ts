@@ -113,6 +113,10 @@ export const DESIGN_SURFACES: DesignOption[] = [
   // so every card reads as a separate object rather than a slightly lighter
   // patch of the same sheet.
   { id: "mist", label: "Cool mist", description: "White cards on a soft grey-blue page — pharmacy, clinical, technical" },
+  // Mist's STRUCTURE — tinted page, pure-white card — at the opposite end of the
+  // wheel. Parchment is the only other warm ground and it is yellow-tan, which
+  // reads as bakery paper; this is a pink-neutral that reads as a nursery.
+  { id: "nursery", label: "Soft nursery", description: "White cards on a warm blush page — baby, kids, gifts" },
 ];
 
 /**
@@ -134,6 +138,7 @@ const SURFACE_SWATCH: Record<string, [string, string, string]> = {
   default: ["#f8fafc", "#ffffff", "#f1f5f9"],
   parchment: ["#f5ead8", "#f9f4ed", "#ebddc5"],
   mist: ["#eef2f5", "#ffffff", "#e2e9ee"],
+  nursery: ["#faf3ef", "#ffffff", "#f4e8e2"],
 };
 
 /** The swatch for a surface id, falling back to the built-in look. */

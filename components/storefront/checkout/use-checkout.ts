@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/storefront-toast";
 import {
   usePlaceOrder,
@@ -28,6 +28,11 @@ import { money } from "@/components/storefront/format";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
 import { cartAnonymousId } from "@/services/storefront/cart-identity";
+import {
+  metaCheckoutAttribution,
+  metaContentId,
+  trackMetaEvent,
+} from "@/lib/storefront-meta";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
@@ -144,6 +149,33 @@ export function useCheckout() {
   const discount = applied?.discountAmount ?? 0;
   const total = Math.max(0, subtotal - discount) + shipping;
   const zoneLabel = zone === "inside" ? t.insideDhaka : t.outsideDhaka;
+
+  // Meta `InitiateCheckout` — once per visit to this page, not once per keystroke.
+  //
+  // Gated on a hydrated, non-empty cart: on the server there is no cart, and on the first client
+  // render the persisted store has not rehydrated yet, so an ungated effect reports an empty
+  // basket worth 0 for every shopper. `num_items` is sent here and nowhere else — Meta documents
+  // it for this event alone.
+  const checkoutReported = useRef(false);
+  useEffect(() => {
+    if (checkoutReported.current || !hydrated || items.length === 0) return;
+    checkoutReported.current = true;
+    trackMetaEvent(store, "InitiateCheckout", {
+      currency,
+      value: Number(subtotal.toFixed(2)),
+      content_type: "product",
+      num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+      content_ids: items.map((i) => metaContentId(i.productId, i.variantId)),
+      contents: items.map((i) => ({
+        id: metaContentId(i.productId, i.variantId),
+        quantity: i.quantity,
+        item_price: i.price,
+      })),
+    });
+    // Deliberately narrow: this must fire on arrival, not re-fire as the shopper edits the cart
+    // or the coupon recomputes the total.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, items.length]);
 
   // --- address book selection ---
   const pickSaved = (a: ShopperAddress) => {
@@ -333,6 +365,12 @@ export function useCheckout() {
         // reminder about a parcel that already arrived. `null` here is normal
         // (Safari private mode), and the order must not depend on it.
         anonymousId: cartAnonymousId(slug) ?? undefined,
+        // Meta attribution, snapshotted HERE and replayed by the backend when the order reaches
+        // the merchant's purchase trigger. It has to travel in the body: `_fbp`/`_fbc` are
+        // first-party cookies on the storefront's host and the API is on another one, so a
+        // cross-site request never carries them. Undefined is normal (blocked cookies, no ad
+        // click) and an order must never depend on it — same rule as `anonymousId` above.
+        meta: metaCheckoutAttribution(),
       },
       {
         onSuccess: (order) => {

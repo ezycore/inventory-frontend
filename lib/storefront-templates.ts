@@ -98,7 +98,18 @@ const IMAGERATIO = {
 // is what the section has always rendered; `overlay` needs real photographs on
 // every category, so making it the fallback would put a scrim over a grid of
 // letter placeholders.
-const CATEGORYTILES = { tile: "tile", overlay: "overlay", disc: "disc" } as const;
+// `circle` is `disc`'s shape with `tile`'s content: the merchant's photograph
+// cropped round, the name beneath. The two existing photo modes are both
+// rectangles, so a soft catalogue (baby, gifts, beauty) had no way to lose the
+// corners without also losing the pictures — `disc` refuses photographs by
+// design. A category with no photo falls back to the lettered disc, which is
+// the same circle, so a half-photographed catalogue stays one consistent row.
+const CATEGORYTILES = {
+  tile: "tile",
+  overlay: "overlay",
+  disc: "disc",
+  circle: "circle",
+} as const;
 // Whole account-area layouts. `sidebar` is the default because it is what the
 // account area has always been; the other three are separate page components,
 // not restyles of it.
