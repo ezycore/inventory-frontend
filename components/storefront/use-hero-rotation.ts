@@ -23,10 +23,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const HERO_INTERVAL_MS = 5000;
 
 export function useHeroRotation(count: number) {
-  const [current, setCurrent] = useState(0);
+  const [storedCurrent, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [cycle, setCycle] = useState(0);
   const downX = useRef<number | null>(null);
+  // A live preview can delete slides without remounting the hero. Clamp at
+  // render time so it never spends a frame reading an index that no longer
+  // exists; the next move writes the clamped value back into state.
+  const current = count > 0 ? Math.min(storedCurrent, count - 1) : 0;
 
   const go = useCallback(
     (i: number) => {
@@ -39,7 +43,10 @@ export function useHeroRotation(count: number) {
 
   useEffect(() => {
     if (paused || count < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) return;
     const timer = setInterval(
       () => setCurrent((c) => (c + 1) % count),
       HERO_INTERVAL_MS,
