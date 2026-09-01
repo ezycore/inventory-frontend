@@ -31,7 +31,7 @@ export function useHeroRotation(count: number) {
   // A swipe can start over the slide CTA. Browsers synthesize a click after
   // pointerup, so remember the completed swipe long enough to consume that
   // click instead of navigating while the shopper is changing slides.
-  const suppressClick = useRef(false);
+  const suppressClickUntil = useRef(0);
   // A live preview can delete slides without remounting the hero. Clamp at
   // render time so it never spends a frame reading an index that no longer
   // exists; the next move writes the clamped value back into state.
@@ -91,7 +91,7 @@ export function useHeroRotation(count: number) {
     onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
       if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
       pointer.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
-      suppressClick.current = false;
+      suppressClickUntil.current = 0;
       e.currentTarget.setPointerCapture?.(e.pointerId);
     },
     onPointerUp: (e: ReactPointerEvent<HTMLElement>) => {
@@ -106,15 +106,18 @@ export function useHeroRotation(count: number) {
       // Horizontal intent must beat vertical movement as well as the distance
       // threshold, so an ordinary page scroll never changes the promotion.
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        suppressClick.current = true;
+        // Expire even when the browser decides not to synthesize a click after
+        // the drag; a permanent boolean would swallow the shopper's next real
+        // tap on a dot or CTA.
+        suppressClickUntil.current = Date.now() + 500;
         go(current + (dx < 0 ? 1 : -1));
       }
     },
     onPointerCancel: resetPointer,
     onLostPointerCapture: resetPointer,
     onClickCapture: (e: { preventDefault: () => void; stopPropagation: () => void }) => {
-      if (!suppressClick.current) return;
-      suppressClick.current = false;
+      if (Date.now() > suppressClickUntil.current) return;
+      suppressClickUntil.current = 0;
       e.preventDefault();
       e.stopPropagation();
     },
