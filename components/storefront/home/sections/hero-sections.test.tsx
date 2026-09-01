@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import {
   HeroCard,
   HeroFullBleed,
@@ -86,6 +86,46 @@ describe("HeroFullBleed", () => {
   it("names slide-picker dots as navigation controls", () => {
     render(<HeroFullBleed {...props} heroSlides={slides} />);
     expect(screen.getByRole("button", { name: "Go to slide 1" })).toBeInTheDocument();
+  });
+
+  it("updates the active image without remounting its media surface", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroSlides={[
+          { ...slides![0], image: { url: "/first.jpg" } },
+          { ...slides![1], image: { url: "/second.jpg" } },
+        ]}
+      />,
+    );
+    const media = container.querySelector(".sf-hero-media");
+
+    fireEvent.click(screen.getByRole("button", { name: "Go to slide 2" }));
+
+    expect(container.querySelector(".sf-hero-media")).toBe(media);
+    expect(container.querySelector('img[src="/second.jpg"]')).toBeInTheDocument();
+  });
+
+  it("pauses rotation while the hero is hovered or keyboard-focused", () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = render(<HeroFullBleed {...props} heroSlides={slides} />);
+      const hero = container.querySelector("section")!;
+
+      fireEvent.mouseEnter(hero);
+      act(() => vi.advanceTimersByTime(5_100));
+      expect(screen.getByRole("heading", { name: "First" })).toBeInTheDocument();
+
+      fireEvent.mouseLeave(hero);
+      act(() => vi.advanceTimersByTime(5_100));
+      expect(screen.getByRole("heading", { name: "Second" })).toBeInTheDocument();
+
+      fireEvent.focus(screen.getByRole("button", { name: "Go to slide 1" }));
+      act(() => vi.advanceTimersByTime(5_100));
+      expect(screen.getByRole("heading", { name: "Second" })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("honours a slide's crop mode and focus point", () => {

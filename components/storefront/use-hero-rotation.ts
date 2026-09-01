@@ -54,13 +54,22 @@ export function useHeroRotation(count: number) {
     return () => clearInterval(timer);
   }, [paused, count, cycle]);
 
+  const pause = useCallback(() => setPaused(true), []);
+  const resume = useCallback(() => {
+    setPaused(false);
+    setCycle((c) => c + 1);
+  }, []);
+
   /** Hover pauses; leaving resumes AND restarts the beat from now. */
   const hoverProps = {
-    onMouseEnter: () => setPaused(true),
-    onMouseLeave: () => {
-      setPaused(false);
-      setCycle((c) => c + 1);
-    },
+    onMouseEnter: pause,
+    onMouseLeave: resume,
+  };
+
+  /** Keyboard focus gets the same reading pause as a pointer hover. */
+  const focusProps = {
+    onFocus: pause,
+    onBlur: resume,
   };
 
   /** A horizontal drag past 40px moves one slide, in the drag's direction. */
@@ -76,5 +85,5 @@ export function useHeroRotation(count: number) {
     },
   };
 
-  return { current, paused, cycle, go, hoverProps, swipeProps };
+  return { current, paused, cycle, go, hoverProps, focusProps, swipeProps };
 }

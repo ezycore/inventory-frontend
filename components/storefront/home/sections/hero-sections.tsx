@@ -306,7 +306,8 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
   const slides = heroSlides ?? [];
   const hasSlides = slides.length > 0;
   const rotates = slides.length > 1;
-  const { current, go, swipeProps } = useHeroRotation(slides.length);
+  const { current, go, hoverProps, focusProps, swipeProps } =
+    useHeroRotation(slides.length);
   // A selected slide owns its copy even when it is the only one. Falling back
   // to banner defaults here made an intentional image-only slide grow a title
   // and CTA it never asked for.
@@ -345,14 +346,13 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
   return (
     <section
       className={`sf-hero-fullbleed${image ? " sf-hero-fullbleed-image" : ""}`}
-      {...(rotates ? swipeProps : {})}
+      {...(rotates ? { ...hoverProps, ...focusProps, ...swipeProps } : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
     >
       {/* Keep only the active photograph in the document. Painting every slide
           made the browser fetch the whole hero deck during the LCP path. */}
       {image ? (
         <HeroMedia
-          key={rotates ? current : "banner"}
           image={image}
           mobileImage={mobileImage}
           fit={imageFit}

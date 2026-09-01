@@ -73,7 +73,7 @@ export function HeroCarousel({
   const count = slides.length;
   // Shared with `HeroFullBleed` so the two rotating heroes keep one beat and one
   // set of pause rules — see `use-hero-rotation.ts`.
-  const { current, paused, cycle, go, hoverProps, swipeProps } =
+  const { current, paused, cycle, go, hoverProps, focusProps, swipeProps } =
     useHeroRotation(count);
 
   if (count === 0) return null;
@@ -84,6 +84,7 @@ export function HeroCarousel({
         className={`sf-hero${paused ? " sf-hero-paused" : ""}`}
         aria-roledescription="carousel"
         {...hoverProps}
+        {...focusProps}
         {...swipeProps}
       >
         {slides.map((slide, i) => {
