@@ -13,6 +13,7 @@ import { HeroArtworkPreview } from "@/components/ecommerce/customize/hero-artwor
 export function MobileHeroImageField({
   desktopUrl,
   desktopFocal,
+  desktopRatio,
   image,
   focal,
   imageFit,
@@ -21,6 +22,8 @@ export function MobileHeroImageField({
 }: {
   desktopUrl?: string;
   desktopFocal?: StoreFocalPoint;
+  /** Slides use a wide canvas; the reusable static banner is composed at 4:3. */
+  desktopRatio?: "5 / 2" | "4 / 3";
   image?: Image | null;
   focal?: StoreFocalPoint;
   imageFit?: string;
@@ -53,8 +56,14 @@ export function MobileHeroImageField({
         onRemove={mobileUrl ? () => {
           onImageReplace(null);
         } : undefined}
-        hint="Use separate phone artwork when the desktop composition cannot crop well. Leave empty to use the desktop image automatically."
+        hint="Recommended mobile canvas: 1200 × 675 px (16:9). Optional—not a requirement. Leave empty to reuse the desktop image automatically."
       />
+      <p className="text-xs leading-snug text-muted-foreground">
+        <span className="font-medium text-foreground">
+          Recommended mobile canvas: 1200 × 675 px (16:9).
+        </span>{" "}
+        Optional—not a requirement. Leave empty to reuse the desktop image.
+      </p>
       {mobileUrl && cropsPhoto(imageFit) ? (
         <FocalPointPicker
           url={mobileUrl}
@@ -66,6 +75,7 @@ export function MobileHeroImageField({
       <HeroArtworkPreview
         desktopUrl={desktopUrl}
         mobileUrl={mobileUrl}
+        desktopRatio={desktopRatio}
         imageFit={imageFit}
         focal={desktopFocal}
         mobileFocal={focal}

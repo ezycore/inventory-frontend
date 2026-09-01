@@ -50,12 +50,14 @@ function Preview({
 export function HeroArtworkPreview({
   desktopUrl,
   mobileUrl,
+  desktopRatio = "5 / 2",
   imageFit,
   focal,
   mobileFocal,
 }: {
   desktopUrl?: string;
   mobileUrl?: string;
+  desktopRatio?: "5 / 2" | "4 / 3";
   imageFit?: string;
   focal?: StoreFocalPoint;
   mobileFocal?: StoreFocalPoint;
@@ -65,14 +67,14 @@ export function HeroArtworkPreview({
   return (
     <div className="grid grid-cols-2 gap-2 rounded-lg border bg-background p-2.5">
       <Preview
-        label="Desktop"
+        label={`Desktop · ${desktopRatio === "4 / 3" ? "4:3" : "5:2"}`}
         url={desktopUrl}
         focal={focal}
-        ratio="5 / 2"
+        ratio={desktopRatio}
         imageFit={imageFit}
       />
       <Preview
-        label="Mobile"
+        label="Mobile · 16:9"
         url={phoneUrl}
         focal={mobileFocal || focal}
         ratio="16 / 9"

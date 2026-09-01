@@ -242,14 +242,12 @@ export function HeroSlidesPanel({
                       </button>
                     </span>
                   </div>
-                  {/* One file serves two deliberately different compositions:
-                      edge-to-edge with overlaid copy on desktop, then photo over
-                      copy on mobile. Fit + focus below define the fallback, so
-                      there is no honest single-ratio requirement to enforce. */}
+                  {/* Recommendations describe the editor's two preview canvases,
+                      while fit + focus still make off-ratio uploads safe. */}
                   <p className="text-xs leading-snug text-muted-foreground">
-                    Use a clear, high-resolution landscape photo for desktop.
-                    Add optional phone artwork below only when the composition
-                    needs it; otherwise mobile safely reuses this photo.
+                    Recommended desktop canvas: 1600 × 640 px (5:2). This is
+                    guidance, not a requirement—Full photo or Cropped + focus
+                    safely handles other shapes.
                   </p>
                   {s.image?.mediumUrl || s.image?.url ? (
                     <PhotoFitField

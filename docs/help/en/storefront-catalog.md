@@ -146,12 +146,13 @@ When a slide is cropped, each frame starts from the middle unless you say otherw
 the small **Phone crop** preview beside it shows the 16:9 mobile frame. Leave it untouched and the
 photo stays centred.
 
-Use a clear, high-resolution landscape photo for desktop. Add **Mobile image (optional)** when that
-composition cannot crop well on a phone; otherwise mobile automatically uses the desktop photo and
-focus. The editor shows Desktop and Mobile previews together before saving. There is no single exact
-ratio you must maintain: **Full photo** preserves every edge, while **Cropped** and separate desktop
-and mobile focus points control each frame. Keep prices, offers, and headlines in the text fields—not
-inside the image—so they can reflow and remain readable.
+Use **1600 × 640 px (5:2)** as the recommended desktop canvas for a slider image. For the reusable
+static **Banner image**, use **1200 × 900 px (4:3)**. Add **Mobile image (optional)** at
+**1200 × 675 px (16:9)** when the desktop composition cannot crop well on a phone; otherwise mobile
+automatically uses the desktop photo and focus. These are composition guides, not upload
+requirements: **Full photo** preserves every edge, while **Cropped** and separate desktop and mobile
+focus points control each frame. The editor labels both preview ratios before saving. Keep prices,
+offers, and headlines in the text fields—not inside the image—so they can reflow and remain readable.
 
 ### Home page → Sections
 

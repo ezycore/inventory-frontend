@@ -22,6 +22,23 @@ vi.mock("@/services/api", () => ({
 }));
 
 describe("MobileHeroImageField", () => {
+  it("shows canvas guidance for mobile and the selected desktop placement", () => {
+    render(
+      <TooltipProvider>
+        <MobileHeroImageField
+          desktopUrl="/desktop.jpg"
+          desktopRatio="4 / 3"
+          onImageReplace={vi.fn()}
+          onFocalChange={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByText("Desktop · 4:3")).toBeInTheDocument();
+    expect(screen.getByText("Mobile · 16:9")).toBeInTheDocument();
+    expect(screen.getByText(/1200 × 675 px \(16:9\)/)).toBeInTheDocument();
+  });
+
   it("hands replacement to the parent once so it can clear focal atomically", () => {
     const onImageReplace = vi.fn();
     const onFocalChange = vi.fn();

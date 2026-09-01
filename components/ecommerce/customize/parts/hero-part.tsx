@@ -222,8 +222,15 @@ export function HeroPart({
           busy={media.isPending}
           onPick={uploadBanner}
           onRemove={settings.banner ? removeBanner : undefined}
-          hint="Use a clear, high-resolution landscape photo. Its framing adapts to the selected home layout and screen size."
+          hint="Recommended desktop canvas: 1200 × 900 px (4:3). This is guidance, not a requirement—other home layouts adapt it using the selected fit and focus."
         />
+        <p className="text-xs leading-snug text-muted-foreground">
+          <span className="font-medium text-foreground">
+            Recommended desktop canvas: 1200 × 900 px (4:3).
+          </span>{" "}
+          This is guidance, not a requirement—other home layouts adapt it using
+          the selected fit and focus.
+        </p>
         {/* The banner sits in a different frame in every hero — 4:3, 4:5, or
             the full width of a card — so how it handles a frame it doesn't
             match is a property of the photo, and it follows the photo into
@@ -239,6 +246,7 @@ export function HeroPart({
         <MobileHeroImageField
           desktopUrl={settings.banner?.mediumUrl || settings.banner?.url}
           desktopFocal={draft.heroBanner?.focal}
+          desktopRatio="4 / 3"
           image={draft.heroBanner?.mobileImage}
           focal={draft.heroBanner?.mobileFocal}
           imageFit={draft.heroBanner?.imageFit}
