@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
@@ -26,7 +27,11 @@ export function useHeroRotation(count: number) {
   const [storedCurrent, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [cycle, setCycle] = useState(0);
-  const downX = useRef<number | null>(null);
+  const pointer = useRef<{ id: number; x: number; y: number } | null>(null);
+  // A swipe can start over the slide CTA. Browsers synthesize a click after
+  // pointerup, so remember the completed swipe long enough to consume that
+  // click instead of navigating while the shopper is changing slides.
+  const suppressClick = useRef(false);
   // A live preview can delete slides without remounting the hero. Clamp at
   // render time so it never spends a frame reading an index that no longer
   // exists; the next move writes the clamped value back into state.
@@ -72,16 +77,46 @@ export function useHeroRotation(count: number) {
     onBlur: resume,
   };
 
-  /** A horizontal drag past 40px moves one slide, in the drag's direction. */
+  const resetPointer = useCallback(() => {
+    pointer.current = null;
+  }, []);
+
+  /**
+   * A deliberate horizontal drag moves one slide in the drag's direction.
+   * Pointer capture matters on phones: without it, a finger leaving a nested
+   * image/link or becoming a browser gesture can strand the carousel after
+   * `pointerdown` with no matching `pointerup` on the hero.
+   */
   const swipeProps = {
-    onPointerDown: (e: { clientX: number }) => {
-      downX.current = e.clientX;
+    onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
+      if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+      pointer.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      suppressClick.current = false;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
     },
-    onPointerUp: (e: { clientX: number }) => {
-      if (downX.current === null) return;
-      const dx = e.clientX - downX.current;
-      downX.current = null;
-      if (Math.abs(dx) > 40) go(current + (dx < 0 ? 1 : -1));
+    onPointerUp: (e: ReactPointerEvent<HTMLElement>) => {
+      const start = pointer.current;
+      if (!start || start.id !== e.pointerId) return;
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      resetPointer();
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+      // Horizontal intent must beat vertical movement as well as the distance
+      // threshold, so an ordinary page scroll never changes the promotion.
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        suppressClick.current = true;
+        go(current + (dx < 0 ? 1 : -1));
+      }
+    },
+    onPointerCancel: resetPointer,
+    onLostPointerCapture: resetPointer,
+    onClickCapture: (e: { preventDefault: () => void; stopPropagation: () => void }) => {
+      if (!suppressClick.current) return;
+      suppressClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
     },
   };
 

@@ -2088,6 +2088,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   align-items: flex-end;
   overflow: hidden;
   background: var(--surface);
+  /* Keep vertical page scrolling native while horizontal drags belong to the
+     rotating hero. This matches `.sf-hero` and prevents mobile browsers from
+     cancelling the pointer stream before the swipe reaches the hook. */
+  touch-action: pan-y;
 }
 .sf-hero-fullbleed-image { background: var(--surface-2); }
 .sf-hero-fullbleed-scrim {
