@@ -395,6 +395,19 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
+  "categoryTiles:circle": (
+    <Frame className="items-center justify-center">
+      <span className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="flex flex-col items-center gap-1">
+            <span className={cn(IMG, "size-6 rounded-full")} />
+            <span className={cn(BAR, "h-1 w-4")} />
+          </span>
+        ))}
+      </span>
+    </Frame>
+  ),
+
   /* -------------------------------------------------------------- header */
   "header:classic": (
     <Frame className="justify-center">

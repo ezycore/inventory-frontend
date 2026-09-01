@@ -350,6 +350,44 @@
   --discount: #b3261e;
   --discount-soft: #fbe4e2;
 }
+/* NURSERY — mist's structure (tinted page, pure-white card) in a warm
+   pink-neutral. The card has to stay pure white here for the same reason it
+   does on mist: half a baby catalogue is packaged FMCG shot on white, and a
+   cream card behind a white tin puts a visible rectangle around every product.
+   Kept low-chroma on purpose — a saturated pink ground turns a shop that also
+   sells strollers and formula into a nursery decal. */
+.sf-root:has(.sf-shell[data-surface="nursery"]) {
+  --page: #faf3ef;
+  --card: #ffffff;
+  --surface: #f4e8e2;
+  --surface-2: #ead9d1;
+  --text: #2a2422;
+  --muted: #7d6f68;
+  --faint: #a4968e;
+  --border: #ecdfd8;
+  --border-strong: #d8c5bb;
+  --header: rgba(255, 255, 255, 0.92);
+  /* The default crimson goes pink against a blush ground and stops reading as a
+     price cut; this is the same role mixed warm, as parchment does. */
+  --discount: #b0442f;
+  --discount-soft: #f8e0d8;
+}
+/* Warm dark, cocoa rather than the default zinc — the same "same shop with the
+   lights off" rule parchment follows. */
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="nursery"]) {
+  --page: #171211;
+  --card: #221b19;
+  --surface: #2d2523;
+  --surface-2: #3c322f;
+  --text: #f5e9e4;
+  --muted: #b5a49c;
+  --faint: #8d7d76;
+  --border: #2d2523;
+  --border-strong: #453a36;
+  --header: rgba(23, 18, 17, 0.86);
+  --discount: #f0a58a;
+  --discount-soft: #45261f;
+}
 .sf-root[data-theme="dark"]:has(.sf-shell[data-surface="mist"]) {
   --page: #0b1116;
   --card: #131c23;
@@ -413,6 +451,12 @@ body:has(.sf-shell[data-surface="mist"]) {
 }
 body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="mist"]) {
   background: #0b1116;
+}
+body:has(.sf-shell[data-surface="nursery"]) {
+  background: #faf3ef;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
+  background: #171211;
 }
 
 /* Heading ramp (mobile base — see both @media blocks for the rest). */

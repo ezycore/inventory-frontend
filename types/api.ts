@@ -162,6 +162,22 @@ export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */
 export type StorefrontPreviewToken = Schemas["StorefrontPreviewToken"];
 
+/**
+ * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).
+ *
+ * `MetaSettings` carries `tokenConfigured`, never the access token — the backend has no schema
+ * for it, so there is nothing here to accidentally render into a form value.
+ */
+export type MetaSettings = Schemas["MetaSettings"];
+export type MetaTestResult = Schemas["MetaTest"];
+/** The pixel block on the PUBLIC store payload. Absent ⇒ this store has no pixel. */
+export type StoreMetaPixel = Schemas["StoreMetaPixel"];
+/** `"pending" | "confirmed" | "delivered"` — taken from the spec, never hand-written. */
+export type MetaPurchaseTrigger = MetaSettings["purchaseTrigger"];
+/** One row of the events log. Carries no `payload` — see the backend DTO. */
+export type MetaEventRow = Schemas["MetaEvent"];
+export type MetaEventList = Schemas["MetaEventList"];
+
 /** Notification engine (backend docs/plan/notifications.md). */
 export type NotificationSettings = Schemas["NotificationSettings"];
 export type NotificationEventRow = NotificationSettings["events"][number];

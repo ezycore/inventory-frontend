@@ -13,6 +13,7 @@ import {
   SearchHero,
 } from "@/components/storefront/home/sections/hero-sections";
 import {
+  AgeChips,
   CategoryChips,
   CategoryLinks,
   CategoryTiles,
@@ -73,6 +74,7 @@ export const SECTION_COMPONENTS = {
   "category-chips": CategoryChips,
   "category-links": CategoryLinks,
   "category-tiles": CategoryTiles,
+  "age-chips": AgeChips,
   // Product rows.
   "featured-grid": FeaturedGrid,
   "latest-grid": LatestGrid,

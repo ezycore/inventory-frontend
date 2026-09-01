@@ -1,14 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import type { StoreHeroSlide } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { Icon } from "@/components/storefront/sf-icons";
 import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
-
-const INTERVAL_MS = 5000;
+import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
 /** Brand-tinted panel backgrounds for slides without an image (alternating). */
 const TINTS = [
@@ -72,30 +71,11 @@ export function HeroCarousel({
   slides: StoreHeroSlide[];
   base: string;
 }) {
-  const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-  // Bumped to restart the active dot's fill animation when the timer resets.
-  const [cycle, setCycle] = useState(0);
-  const downX = useRef<number | null>(null);
   const count = slides.length;
-
-  const go = useCallback(
-    (i: number) => {
-      setCurrent(((i % count) + count) % count);
-      setCycle((c) => c + 1);
-    },
-    [count],
-  );
-
-  useEffect(() => {
-    if (paused || count < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(
-      () => setCurrent((c) => (c + 1) % count),
-      INTERVAL_MS,
-    );
-    return () => clearInterval(timer);
-  }, [paused, count, cycle]);
+  // Shared with `HeroFullBleed` so the two rotating heroes keep one beat and one
+  // set of pause rules — see `use-hero-rotation.ts`.
+  const { current, paused, cycle, go, hoverProps, swipeProps } =
+    useHeroRotation(count);
 
   if (count === 0) return null;
 
@@ -104,20 +84,8 @@ export function HeroCarousel({
       <div
         className={`sf-hero${paused ? " sf-hero-paused" : ""}`}
         aria-roledescription="carousel"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => {
-          setPaused(false);
-          setCycle((c) => c + 1);
-        }}
-        onPointerDown={(e) => {
-          downX.current = e.clientX;
-        }}
-        onPointerUp={(e) => {
-          if (downX.current === null) return;
-          const dx = e.clientX - downX.current;
-          downX.current = null;
-          if (Math.abs(dx) > 40) go(current + (dx < 0 ? 1 : -1));
-        }}
+        {...hoverProps}
+        {...swipeProps}
       >
         {slides.map((slide, i) => {
           const img = slide.image?.mediumUrl || slide.image?.url;

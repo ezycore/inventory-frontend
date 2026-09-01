@@ -59,6 +59,9 @@ vi.mock("@/hooks/use-guest-contact-capture", () => ({
 }));
 vi.mock("@/services/storefront/cart-identity", () => ({
   cartAnonymousId: () => null,
+  // Read by `metaCheckoutAttribution` on the submit path: the Customize editor renders the real
+  // storefront in an iframe, and a merchant theming their shop must not be tracked as a shopper.
+  isSfPreview: () => false,
 }));
 vi.mock("@/lib/storefront-client", () => ({ storefrontApi: { validateCoupon: vi.fn() } }));
 

@@ -40,6 +40,7 @@ import type { SectionId } from "@/lib/storefront-section-ids";
 import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
+  BABY_SAMPLE,
   GROCERY_SAMPLE,
   NEUTRAL_SAMPLE,
   PHARMACY_SAMPLE,
@@ -446,6 +447,84 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // A shop that shows its clothes without borders should not box them at the
       // moment of purchase.
       cartLayout: "editorial",
+      shell: "stacked",
+    },
+  },
+  {
+    id: "little-steps",
+    sample: BABY_SAMPLE,
+    label: "Little Steps",
+    tagline: "Soft and round, with the promises before the products.",
+    bestFor: "Baby, kids, toys, gifts",
+    // Dusty rose, not the obvious pastel pink: a nursery pink at full chroma
+    // reads as a shop for the baby, and the person spending the money is a
+    // tired parent deciding whether the formula is real. Muted enough to sit
+    // under ৳8,500 of pram without looking like a toy shop, and far enough
+    // from Muslin's wine (#8c3b52) to be its own storefront.
+    brandColor: "#a15571",
+    // Sage carries the quiet trust tints — the "date checked" chip, stock rows,
+    // the promises band. It never touches a CTA: an accent that competes for
+    // the buy button is a second primary.
+    accentColor: "#6f8f75",
+    design: {
+      // Nunito + Baloo Da 2. The catalogue has described this face as "soft and
+      // approachable — grocery, food, kids" since it shipped and no theme had
+      // taken it.
+      font: "rounded",
+      surface: "nursery",
+      // `md`, not `lg`. The warmth is doing the work here; big headlines on top
+      // of it tips a gentle shop into a loud one.
+      scale: "md",
+      density: "airy",
+      radius: "round",
+      width: "contained",
+    },
+    homeCollections: { layout: "grid", align: "center" },
+    /* **The promises come SECOND, above the catalogue** — the one structural
+       argument this theme makes. Meridian Care closes on its trust band;
+       everything else buries it. A parent's objection is not "what else do you
+       sell", it is whether the formula is genuine and in date, and an answer
+       below six rows of products is an answer they never read.
+
+       `age-chips` third, because a parent shops for their six-month-old long
+       before they think about "Feeding" — it renders nothing unless the shop
+       actually keeps age tags, so a gift shop applying this theme simply does
+       not get the row. */
+    sections: [
+      "hero-fullbleed",
+      "trust-band",
+      "age-chips",
+      "category-tiles",
+      "picks-grid",
+      "deal-strip",
+      "product-rail",
+    ],
+    templates: {
+      home: "hero-split",
+      // Wordmark centred with the departments beneath — a small shop's own
+      // sign, not a marketplace's search bar.
+      header: "centered",
+      // The one footer with room for "not sure which size?" beside the links,
+      // which for this trade is most of the support load.
+      footer: "rich",
+      // Three across, not four. Half this catalogue is a tin or a bottle shot
+      // on white, and at four-up on a soft ground they stop reading as objects.
+      collection: "grid-3",
+      product: "gallery-top",
+      productCard: "bold",
+      // COD shoppers buy one thing; "Buy now" beside "Add" saves them the cart.
+      cardActions: "add-buy",
+      pagination: "pages",
+      imageFit: "crop",
+      imageRatio: "square",
+      // Round photos — the shape the whole theme is built on, and the reason
+      // the mode exists (`disc` refuses photographs).
+      categoryTiles: "circle",
+      accountLayout: "tabs",
+      // First-time COD buyers, so one question per step beats one long form.
+      checkout: "guided",
+      contentLayout: "centered",
+      cartLayout: "panel",
       shell: "stacked",
     },
   },

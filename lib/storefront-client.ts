@@ -48,6 +48,14 @@ export interface StoreSectionConfig {
   categoryId?: string;
   title?: string;
   limit?: number;
+  /**
+   * Tags this row renders, in the merchant's order. Read only by `age-chips`.
+   *
+   * Ids, never names: the section shipped matching an English list against tag
+   * NAMES, so renaming `0-3M` or translating it to Bangla silently dropped the
+   * chip. Unset ⇒ that name-matching fallback still applies.
+   */
+  tagIds?: string[];
 }
 
 /**
@@ -259,6 +267,23 @@ export interface StorefrontStore {
     instructions?: string;
     location?: { name: string; address?: string } | null;
   };
+  /**
+   * Meta Pixel config (backend `docs/plan/meta-pixel-capi.md`).
+   *
+   * **Presence is enabled**, exactly like `contactButton`: the backend omits the whole block when
+   * the merchant has the pixel off or has not entered an id, so there is no flag to check and a
+   * disabled pixel ships no id at all. `Purchase` is deliberately absent from `events` — it is
+   * never sent from the browser, and there is no switch that could turn it on.
+   */
+  meta?: {
+    pixelId: string;
+    events: {
+      pageView: boolean;
+      viewContent: boolean;
+      addToCart: boolean;
+      initiateCheckout: boolean;
+    };
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -358,7 +383,7 @@ export interface StoreTemplates {
    * on whether the merchant's category images are product shots, scenes, or not
    * worth showing.
    */
-  categoryTiles: "tile" | "overlay" | "disc";
+  categoryTiles: "tile" | "overlay" | "disc" | "circle";
   /**
    * Which WHOLE LAYOUT the signed-in account area renders in. Unlike every other
    * key here this selects a page-level component rather than a variation within
@@ -743,6 +768,17 @@ export interface PlaceOrderInput {
    * order must never depend on an analytics record.
    */
   anonymousId?: string;
+  /**
+   * Meta attribution the browser observed at checkout (backend `docs/plan/meta-pixel-capi.md`).
+   *
+   * Only what the browser alone can supply. The shopper's IP and user agent are read by the
+   * server from the request itself — a client able to name its own IP could attribute a
+   * stranger's session — so they have no place in this shape.
+   *
+   * Optional, like `anonymousId` above and for the same reason: a shopper with cookies blocked
+   * or an ad blocker installed still checks out, and an order must never depend on tracking.
+   */
+  meta?: { fbp?: string; fbc?: string; eventSourceUrl?: string };
 }
 
 /**

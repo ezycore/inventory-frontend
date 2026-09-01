@@ -312,6 +312,7 @@ export function CreateOrderDialog({
               </span>
             </label>
           ) : (
+            <>
             <label className="flex items-start gap-2 text-sm">
               <Checkbox
                 checked={form.confirmImmediately}
@@ -324,6 +325,20 @@ export function CreateOrderDialog({
                 </span>
               </span>
             </label>
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox
+                checked={form.excludeFromMeta}
+                onCheckedChange={(c) => form.setExcludeFromMeta(c === true)}
+              />
+              <span>
+                Don&apos;t report this order to Meta
+                <span className="block text-xs text-muted-foreground">
+                  For a personal, internal or test order. Tick it here — confirming above sends
+                  the order to Meta straight away, so there is no chance to exclude it later.
+                </span>
+              </span>
+            </label>
+            </>
           )}
 
           <CreateOrderSummary

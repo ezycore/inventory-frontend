@@ -54,6 +54,9 @@ export const queryKeys = {
     // one cheap request against a stale token in an iframe URL.
     storefrontPreview: () =>
       ["organization", "storefront", "preview-token"] as const,
+    // Under the `storefront` prefix like the preview token: the Meta card lives on the Store
+    // Settings page, so a settings-wide invalidation should refresh it too.
+    storefrontMeta: () => ["organization", "storefront", "meta"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,
@@ -271,6 +274,18 @@ export const queryKeys = {
       ["location-stock-report", "detail", locationId, params ?? {}] as const,
     comparison: () => ["location-stock-report", "comparison"] as const,
   },
+  /**
+   * The Meta Conversions API events log (backend docs/plan/meta-pixel-capi.md).
+   *
+   * Its OWN root, not under `organization.storefront`: the settings there are workspace config,
+   * while this is operational data that changes as orders move — a settings save must not flush
+   * it, and a retry must not flush the settings.
+   */
+  metaEvents: {
+    all: () => ["meta-events"] as const,
+    list: (params?: object) => ["meta-events", "list", params ?? {}] as const,
+  },
+
 
   // ── Ecommerce / storefront (admin side) ─────────────────────────────────────
   storefrontOrders: {

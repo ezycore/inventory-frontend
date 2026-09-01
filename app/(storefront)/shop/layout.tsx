@@ -8,6 +8,7 @@ import {
   getStorePages,
 } from "@/lib/storefront-server";
 import { StoreShell } from "@/components/storefront/store-shell";
+import { MetaPixel } from "@/components/storefront/meta-pixel";
 
 // Note: the browser-tab icon (the store's favicon) is a raw <link rel="icon"> rendered
 // below (React hoists it into <head>), NOT `generateMetadata`. Metadata icons
@@ -81,6 +82,15 @@ export default async function ShopLayout({
           is the only source of the tab icon — so without one the browser's
           implicit /favicon.ico answers instead: render nothing. */}
       {favicon ? <link rel="icon" href={favicon} /> : null}
+      {/* Meta Pixel base tag. Rendered HERE, from the server, because `store` is already
+          awaited above — so the id ships in the SSR HTML and the first PageView fires on first
+          paint instead of after hydration. `Purchase` is never sent from the browser; the
+          backend reports it through the Conversions API (docs/plan/meta-pixel-capi.md). */}
+      <MetaPixel
+        slug={slug}
+        pixelId={store.meta?.pixelId}
+        pageViewEnabled={store.meta?.events.pageView !== false}
+      />
       <StoreShell
         slug={slug}
         base={base}

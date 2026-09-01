@@ -99,6 +99,10 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     // strip of discs above the products rather than seven photographs competing
     // with them.
     { value: "disc", label: "Round icons", description: "A lettered disc per department, name underneath — no photos" },
+    // The photo modes above are both rectangles. This is the round one: same
+    // pictures, corners gone — which is what a soft catalogue (baby, gifts,
+    // beauty) wants, and what `disc` cannot give because it refuses photos.
+    { value: "circle", label: "Round photos", description: "Your department photo cropped round, name underneath" },
   ],
   /* The four keys below are WHOLE PAGE LAYOUTS, not variations within one page:
      each id selects a different component. The first option of each is its
