@@ -269,14 +269,24 @@ function DealCard({
  * Editorial split — one large photograph beside a paragraph and a CTA.
  *
  * The magazine spread that makes a boutique read like a brand rather than a
- * catalogue. Reuses the merchant's banner copy (`heroBanner`) so it costs them
- * no extra writing, and falls back to the live campaign for its kicker exactly
- * as the heroes do.
+ * catalogue. Shares the page's `banner` photo with the heroes (a focal-point
+ * choice, not a copy one — see `bannerPhoto`), but its HEADLINE, SUBTITLE and
+ * BUTTONS are its own (`t.editorialTitle`/`editorialSubtitle`), not
+ * `heroBanner`'s. It used to fall back to the exact same `hb.title`/
+ * `hb.subtitle`/CTA a hero on the same page was already showing, so a page
+ * using both rendered one headline twice (QA-123). This section has no
+ * per-merchant copy of its own yet — the fix is fixed, non-duplicating
+ * copy rather than a second thing to write, which is the option this bug's
+ * own writeup left open. The kicker still reads the live campaign, which is
+ * data, not wording, so two sections agreeing on "Launch Sale" is not the
+ * same failure.
  */
 export function EditorialSplit(props: SectionProps) {
   const { base, t, banner, heroBanner: hb, store } = props;
   const Heading = props.primaryHeading ? "h1" : "h2";
-  const badge = hb?.badge || campaignBadge(props);
+  // QA-123: this section's badge is the live campaign, never `heroBanner`'s —
+  // that is hero COPY. The photo below is shared on purpose (a focal choice).
+  const badge = campaignBadge(props);
   const photo = bannerPhoto(hb);
   const bannerSrc = banner || photo.mobileSrc;
   return (
@@ -305,12 +315,12 @@ export function EditorialSplit(props: SectionProps) {
               whiteSpace: "pre-line",
             }}
           >
-            {hb?.title || store.name}
+            {t.editorialTitle || store.name}
           </Heading>
-          {hb?.subtitle ? <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 26px", maxWidth: 420 }}>
-            {hb.subtitle}
-          </p> : null}
-          {heroBtns(base, t, t.shopNow, hb)}
+          <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "0 0 26px", maxWidth: 420 }}>
+            {t.editorialSubtitle}
+          </p>
+          {heroBtns(base, t, t.shopNow)}
         </div>
       </div>
     </div>

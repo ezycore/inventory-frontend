@@ -13,6 +13,7 @@ import {
   Grid,
   ViewAll,
   sectionRow,
+  trimToWholeRows,
   wrap,
   type SectionProps,
 } from "@/components/storefront/home/home-shared";
@@ -31,12 +32,13 @@ export function FeaturedGrid(props: SectionProps) {
   const { currency, featured, t } = props;
   const row = sectionRow(props, { products: featured, title: t.featured });
   if (!row.products.length) return null;
+  const products = trimToWholeRows(row.products);
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
       <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
         {row.title}
       </SectionTitle>
-      <Grid products={row.products} currency={currency} variant="full" />
+      <Grid products={products} currency={currency} variant="full" />
     </div>
   );
 }
@@ -46,12 +48,13 @@ export function LatestGrid(props: SectionProps) {
   const { currency, latest, t } = props;
   const row = sectionRow(props, { products: latest, title: t.newArrivals });
   if (!row.products.length) return null;
+  const products = trimToWholeRows(row.products);
   return (
     <div style={{ ...wrap, padding: "22px var(--pad) 10px" }}>
       <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
         {row.title}
       </SectionTitle>
-      <Grid products={row.products} currency={currency} variant="compact" />
+      <Grid products={products} currency={currency} variant="compact" />
     </div>
   );
 }
@@ -66,7 +69,7 @@ export function PicksGrid(props: SectionProps) {
       <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
         {row.title}
       </SectionTitle>
-      <Grid products={featured} currency={currency} variant="compact" />
+      <Grid products={trimToWholeRows(featured)} currency={currency} variant="compact" />
     </div>
   );
 }
