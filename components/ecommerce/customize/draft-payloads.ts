@@ -22,31 +22,35 @@ import type {
 } from "@/components/ecommerce/customize/use-customize-draft";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { normalizeStoreLink } from "@/lib/storefront-links";
+import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
  * live-preview message. **They are built here together on purpose.**
  *
  * Every list the merchant edits gets trimmed on the way to the server — a footer
- * group with a blank title is dropped, an untitled slide never ships. If the
- * preview applied different rules it would promise a column or a slide the shop
- * would never render, which is the class of bug this file exists to prevent.
+ * group with a blank title and a completely empty slide are dropped. Artwork-only
+ * slides remain valid. If the preview applied different rules it would promise a
+ * column or slide the shop would never render, which is the class of bug this file
+ * exists to prevent.
  * Change a trimming rule and both sides move at once.
  */
 
 const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
-  // Untitled slides are drafts — a title is required to ship.
+  // Completely blank rows are drafts. Artwork-only slides are intentional.
   slides
-    .filter((s) => s.title.trim())
+    .filter(hasHeroSlideContent)
     // ⚠ Field-by-field, so a NEW slide field must be added here or it is
     // silently dropped from both the PATCH and the live preview — the draft
     // keeps it, the shop never sees it, and nothing fails.
     .map((s) => ({
       image: s.image ?? null,
+      mobileImage: s.mobileImage ?? null,
       focal: s.focal,
+      mobileFocal: s.mobileFocal,
       imageFit: s.imageFit,
       badge: s.badge?.trim() || undefined,
-      title: s.title.trim(),
+      title: s.title?.trim() || undefined,
       subtitle: s.subtitle?.trim() || undefined,
       buttonLabel: s.buttonLabel?.trim() || undefined,
       link: s.link?.trim() ? normalizeStoreLink(s.link) : undefined,

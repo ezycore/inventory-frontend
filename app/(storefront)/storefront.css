@@ -870,7 +870,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   margin: 0;
   font-size: clamp(17px, 2vw, 20px);
 }
-.sf-deals-heading span {
+.sf-deals-position {
+  /* Desktop shows every offer at once, so a carousel position is misleading. */
+  display: none;
   color: var(--muted);
   font-size: 12px;
   font-weight: 650;
@@ -887,6 +889,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
 }
 .sf-deals-controls { display: none; }
 @media (max-width: 640px) {
+  .sf-deals-position { display: inline; }
   .sf-deals-track {
     grid-auto-flow: column;
     grid-auto-columns: calc(100% - 28px);
@@ -1786,31 +1789,25 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   opacity: 1;
   pointer-events: auto;
 }
-/* The slide photo comes in as two custom properties set by `hero-carousel.tsx`
-   — `--sf-slide-img` (the 800px medium) and `--sf-slide-img-lg` (the 1600px
-   original) — because picking between them is a viewport question and the
-   carousel renders on the server. Above the phone breakpoint the hero is up to
-   1200px wide, where the medium was being upscaled 1.5x (3x on a 2x panel) and
-   read soft. The tinted no-image panel sets `background` inline, which outranks
-   these, so it is unaffected by the undefined var. */
-.sf-hero-art,
-.sf-hero-art-bg,
-.sf-hero-art-fg {
-  background-image: var(--sf-slide-img);
-}
-@media (min-width: 641px) {
-  .sf-hero-art,
-  .sf-hero-art-bg,
-  .sf-hero-art-fg {
-    background-image: var(--sf-slide-img-lg);
-  }
-}
-.sf-hero-art {
+/* Shared carousel/full-bleed media. `<HeroMedia>` publishes real `srcset`
+   candidates so the browser can choose resolution; these classes only decide
+   whether the photo fills from its focus point or preserves every edge. */
+.sf-hero-media {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  /* Overridden per slide by the merchant's focal point, when they set one. */
-  background-position: center;
+  overflow: hidden;
+}
+.sf-hero-media img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+.sf-hero-media-cover {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--sf-hero-desktop-focus, center);
 }
 /* Slide photo, split into two layers instead of one `cover` fill: a
    blurred/scaled copy behind (fills the box, whatever its ratio) and the
@@ -1821,21 +1818,50 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
    it extends the photo's own scenery instead of showing the card background
    through a seam. `inset: -6%` + `scale(1.02)` push the blur's own soft edge
    outside the frame so it can't leave a faint rim. */
-.sf-hero-art-bg {
-  position: absolute;
+.sf-hero-media-bg {
   inset: -6%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  object-position: var(--sf-hero-desktop-focus, center);
   filter: blur(26px) saturate(1.15) brightness(0.82);
   transform: scale(1.02);
 }
-.sf-hero-art-fg {
-  position: absolute;
+.sf-hero-media-fg {
   inset: 0;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+@media (max-width: 640px) {
+  .sf-hero-media-cover,
+  .sf-hero-media-bg {
+    object-position: var(
+      --sf-hero-mobile-focus,
+      var(--sf-hero-desktop-focus, center)
+    );
+  }
+}
+.sf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sf-media-cover,
+.sf-media-canvas-bg {
+  object-position: var(--sf-media-focus, center);
+}
+@media (max-width: 640px) {
+  .sf-media-cover,
+  .sf-media-canvas-bg {
+    object-position: var(--sf-media-mobile-focus, var(--sf-media-focus, center));
+  }
 }
 .sf-hero-scrim {
   position: absolute;
@@ -1992,36 +2018,54 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   }
 }
 @media (max-width: 640px) {
-  /* A RATIO, not a height — the single biggest reason merchant photos looked
-     wrong here. A 360px-wide phone with the old flat 430px got a 0.84:1 box, so
-     a 2.5:1 upload (what the slides panel asks for) was cropped to about a third
-     of its width; 4/3 roughly halves that loss and still leaves the copy room.
-     `min-height` is the floor for a slide with three lines of copy on a narrow
-     phone, and `max-height` keeps the viewport cap that stops the hero eating
-     the fold — `svh` (small viewport height) ignores the collapsing URL bar.
-     A browser without `svh` drops only the cap, and `aspect-ratio` still gives
-     the absolutely-positioned slides a height, so nothing collapses. */
+  /* One phone hero surface: mobile-specific artwork/focus handles composition;
+     a compact gradient overlay keeps title + action attached to that artwork.
+     A separate copy row made the hero needlessly tall and looked like a second
+     section. Lower-priority badge/subtitle yield on phones instead. */
   .sf-hero {
-    /* ⚠ `width: 100%` is LOAD-BEARING, not tidiness. With width left `auto`,
-       `aspect-ratio` resolves in whichever direction is free — and once
-       `min-height` raised the box to 300px, Chrome ran the ratio BACKWARDS and
-       made it 400px wide inside a 360px phone, scrolling the whole shop
-       sideways. A definite width forces the ratio to compute the height only. */
     width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    min-height: 300px;
-    max-height: 62svh;
+    height: clamp(220px, 62vw, 290px);
+    background: #171a2e;
+  }
+  .sf-hero-slide {
+    display: flex;
+    align-items: flex-end;
+    background: #171a2e;
+  }
+  .sf-hero-slide > .sf-hero-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .sf-hero-copy {
+    justify-content: flex-end;
+    max-width: min(92%, 430px);
+    padding: 18px 18px 44px;
   }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {
     background: linear-gradient(
       180deg,
-      rgba(10, 12, 24, 0.72) 8%,
-      rgba(10, 12, 24, 0.42) 62%,
-      rgba(10, 12, 24, 0.55) 100%
+      rgba(10, 12, 24, 0.02) 20%,
+      rgba(10, 12, 24, 0.38) 56%,
+      rgba(10, 12, 24, 0.86) 100%
     );
   }
+  .sf-hero-badge,
+  .sf-hero-sub { display: none; }
+  .sf-hero-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: clamp(22px, 7vw, 31px);
+    margin-bottom: 12px;
+  }
+  .sf-hero-copy a {
+    padding: 9px 18px !important;
+    font-size: 13px !important;
+  }
+  .sf-hero-dots { bottom: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sf-hero-slide { transition: none; }
@@ -2033,6 +2077,69 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   .sf-hero-fill {
     animation: none;
     transform: scaleX(1);
+  }
+}
+
+/* ---- Full-bleed home hero ---- */
+.sf-hero-fullbleed {
+  position: relative;
+  min-height: clamp(380px, 62vh, 640px);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--surface);
+}
+.sf-hero-fullbleed-image { background: var(--surface-2); }
+.sf-hero-fullbleed-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.12) 0%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+}
+.sf-hero-fullbleed-copy {
+  position: relative;
+  padding: clamp(28px, 6vw, 64px) var(--pad);
+}
+@media (max-width: 640px) {
+  .sf-hero-fullbleed:has(> .sf-hero-media) {
+    min-height: clamp(260px, 72vw, 390px);
+    display: flex;
+    align-items: flex-end;
+    background: #171a2e;
+  }
+  .sf-hero-fullbleed > .sf-hero-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .sf-hero-fullbleed-scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 12, 24, 0.02) 18%,
+      rgba(10, 12, 24, 0.38) 58%,
+      rgba(10, 12, 24, 0.88) 100%
+    );
+  }
+  .sf-hero-fullbleed-copy {
+    z-index: 2;
+    width: 100%;
+    padding: 22px var(--pad) 26px;
+  }
+  .sf-hero-fullbleed-badge,
+  .sf-hero-fullbleed-sub { display: none; }
+  .sf-hero-fullbleed-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: clamp(25px, 8vw, 36px) !important;
+    margin: 0 0 14px !important;
+  }
+  .sf-hero-fullbleed-copy > a {
+    padding: 10px 20px !important;
   }
 }
 

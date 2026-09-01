@@ -17,6 +17,7 @@ import { OptionCard } from "@/ui/components/option-card";
 import { BannerHeroFields } from "@/components/ecommerce/customize/banner-hero-fields";
 import { MediaField } from "@/components/ecommerce/customize/media-field";
 import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
+import { MobileHeroImageField } from "@/components/ecommerce/customize/mobile-hero-image-field";
 import {
   PartBlock,
   PartHint,
@@ -25,7 +26,7 @@ import {
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
 import { MAX_HERO_SLIDES } from "@/components/ecommerce/customize/hero-slides-panel";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
-import { RECOMMENDED } from "@/lib/image-ratio";
+import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 
 /**
  * Hero — what the top of the home page shows, and its content. The source
@@ -53,7 +54,7 @@ export function HeroPart({
   const slides = draft.heroSlides;
   const usesSlides = draft.templates.hero !== "banner";
   const heroApplies = draft.templates.home !== "minimal";
-  const untitled = slides.filter((s) => !s.title.trim()).length;
+  const emptySlides = slides.filter((s) => !hasHeroSlideContent(s)).length;
 
   const move = (i: number, dir: -1 | 1) => {
     const t = i + dir;
@@ -159,7 +160,7 @@ export function HeroPart({
                   <SlideThumb slide={s} className="h-8 w-[3.25rem]" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">
-                      {s.title.trim() || "Untitled slide"}
+                      {s.title?.trim() || (s.image || s.mobileImage ? "Image-only slide" : "Empty slide")}
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       {[s.badge?.trim(), s.image ? "has image" : "brand panel"]
@@ -173,7 +174,7 @@ export function HeroPart({
                       disabled={i === 0}
                       onClick={() => move(i, -1)}
                       className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground disabled:opacity-30"
-                      aria-label={`Move ${s.title.trim() || "slide"} up`}
+                      aria-label={`Move ${s.title?.trim() || "slide"} up`}
                     >
                       <ArrowUp className="h-3.5 w-3.5" />
                     </button>
@@ -182,7 +183,7 @@ export function HeroPart({
                       disabled={i === slides.length - 1}
                       onClick={() => move(i, 1)}
                       className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground disabled:opacity-30"
-                      aria-label={`Move ${s.title.trim() || "slide"} down`}
+                      aria-label={`Move ${s.title?.trim() || "slide"} down`}
                     >
                       <ArrowDown className="h-3.5 w-3.5" />
                     </button>
@@ -190,7 +191,7 @@ export function HeroPart({
                       type="button"
                       onClick={() => onEditSlide(i)}
                       className="inline-flex h-7 w-7 items-center justify-center rounded hover:text-foreground"
-                      aria-label={`Edit ${s.title.trim() || "slide"}`}
+                      aria-label={`Edit ${s.title?.trim() || "slide"}`}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -199,11 +200,11 @@ export function HeroPart({
               ))}
             </div>
           )}
-          {untitled > 0 ? (
+          {emptySlides > 0 ? (
             <PartHint tone="warn">
-              {untitled === 1 ? "One slide has" : `${untitled} slides have`} no
-              title, so {untitled === 1 ? "it won't" : "they won't"} be shown on
-              the shop.
+              {emptySlides === 1 ? "One slide is" : `${emptySlides} slides are`} completely
+              empty, so {emptySlides === 1 ? "it won't" : "they won't"} be shown on the
+              shop. An image-only slide is valid.
             </PartHint>
           ) : null}
         </div>
@@ -221,9 +222,15 @@ export function HeroPart({
           busy={media.isPending}
           onPick={uploadBanner}
           onRemove={settings.banner ? removeBanner : undefined}
-          hint="1200 × 900 px (4:3) works best."
-          recommended={RECOMMENDED.heroBanner}
+          hint="Recommended desktop canvas: 1200 × 900 px (4:3). This is guidance, not a requirement—other home layouts adapt it using the selected fit and focus."
         />
+        <p className="text-xs leading-snug text-muted-foreground">
+          <span className="font-medium text-foreground">
+            Recommended desktop canvas: 1200 × 900 px (4:3).
+          </span>{" "}
+          This is guidance, not a requirement—other home layouts adapt it using
+          the selected fit and focus.
+        </p>
         {/* The banner sits in a different frame in every hero — 4:3, 4:5, or
             the full width of a card — so how it handles a frame it doesn't
             match is a property of the photo, and it follows the photo into
@@ -236,6 +243,26 @@ export function HeroPart({
             onChange={(next) => patch({ heroBanner: { ...draft.heroBanner, ...next } })}
           />
         ) : null}
+        <MobileHeroImageField
+          desktopUrl={settings.banner?.mediumUrl || settings.banner?.url}
+          desktopFocal={draft.heroBanner?.focal}
+          desktopRatio="4 / 3"
+          image={draft.heroBanner?.mobileImage}
+          focal={draft.heroBanner?.mobileFocal}
+          imageFit={draft.heroBanner?.imageFit}
+          onImageReplace={(mobileImage) =>
+            patch({
+              heroBanner: {
+                ...draft.heroBanner,
+                mobileImage,
+                mobileFocal: undefined,
+              },
+            })
+          }
+          onFocalChange={(mobileFocal) =>
+            patch({ heroBanner: { ...draft.heroBanner, mobileFocal } })
+          }
+        />
       </PartBlock>
 
       {heroApplies && !usesSlides ? (

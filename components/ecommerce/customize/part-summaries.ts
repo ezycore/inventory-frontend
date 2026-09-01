@@ -11,6 +11,7 @@ import {
   getPreset,
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
+import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
@@ -85,7 +86,7 @@ export function partSummary(
       if (draft.templates.hero === "banner") {
         return settings.banner ? "Static banner image" : "Static banner — no image yet";
       }
-      const saveable = draft.heroSlides.filter((s) => s.title.trim()).length;
+      const saveable = draft.heroSlides.filter(hasHeroSlideContent).length;
       return saveable === 0
         ? "Slides carousel — no slides yet"
         : `Slides carousel · ${count(saveable, "slide")}`;

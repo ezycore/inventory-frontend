@@ -3,11 +3,9 @@
 /**
  * Hero-slide focal point — where a photo must not be cropped away.
  *
- * The hero box is a fixed HEIGHT, not a fixed ratio (`.sf-hero` in
- * storefront.css), so one upload is about 3:1 on a desktop and taller than it is
- * wide on a phone. A centred crop of the 2.5:1 image the slides panel asks for
- * therefore keeps roughly a third of its width on a phone — reliably the wrong
- * third, since the panel used to tell owners to put the subject off-centre.
+ * One upload fills a wide desktop hero and a 16:9 mobile photo row. A centred
+ * cover crop can still lose an off-centre face, product or logo, so this point
+ * records the subject that must survive both frames.
  *
  * This module is the ONE place a stored `{ x, y }` becomes the CSS that acts on
  * it, the same rule `mediaFitFor`/`mediaRatioFor` follow in

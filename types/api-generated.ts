@@ -11813,13 +11813,23 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                 } | null;
+                mobileImage?: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                } | null;
                 focal?: {
+                    x: number;
+                    y: number;
+                };
+                mobileFocal?: {
                     x: number;
                     y: number;
                 };
                 imageFit?: string;
                 badge?: string;
-                title: string;
+                title?: string;
                 subtitle?: string;
                 buttonLabel?: string;
                 link?: string;
@@ -11833,7 +11843,17 @@ export interface components {
                 secondaryLabel?: string;
                 secondaryLink?: string;
                 imageFit?: string;
+                mobileImage?: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                } | null;
                 focal?: {
+                    x: number;
+                    y: number;
+                };
+                mobileFocal?: {
                     x: number;
                     y: number;
                 };
@@ -18587,13 +18607,23 @@ export interface operations {
                             thumbnailUrl?: string;
                             publicId?: string;
                         } | null;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl?: string;
+                            thumbnailUrl?: string;
+                            publicId?: string;
+                        } | null;
                         focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
                             x: number;
                             y: number;
                         };
                         imageFit?: string;
                         badge?: string;
-                        title: string;
+                        title?: string;
                         subtitle?: string;
                         buttonLabel?: string;
                         link?: string;
@@ -18607,7 +18637,17 @@ export interface operations {
                         secondaryLabel?: string;
                         secondaryLink?: string;
                         imageFit?: string;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl?: string;
+                            thumbnailUrl?: string;
+                            publicId?: string;
+                        } | null;
                         focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
                             x: number;
                             y: number;
                         };

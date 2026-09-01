@@ -663,9 +663,9 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
         : { data: settings };
 
       // Re-seed from the saved response rather than from the draft, so the rail
-      // shows what the store actually has — untitled slides and blank footer
-      // groups were dropped on the way, and pretending otherwise is how the old
-      // page ended up previewing columns that never shipped.
+      // shows what the store actually has — completely empty slides and blank
+      // footer groups were dropped on the way, and pretending otherwise is how
+      // the old page ended up previewing columns that never shipped.
       if (res.data) {
         const fresh = { ...seedDraft(res.data), collections: d.collections };
         setDraft(fresh);
