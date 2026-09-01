@@ -36,6 +36,20 @@ describe("HeroCard", () => {
 
     expect(screen.getByText("Pickup available")).toBeInTheDocument();
   });
+
+  it("renders an image-only slide without an invented copy overlay", () => {
+    const { container } = render(
+      <HeroCard
+        {...props}
+        heroSlides={[{ image: { url: "/artwork.jpg" } }]}
+      />,
+    );
+
+    expect(container.querySelector(".sf-hero-media")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-copy")).not.toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-scrim")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+  });
 });
 
 describe("HeroFullBleed", () => {
@@ -72,5 +86,57 @@ describe("HeroFullBleed", () => {
   it("names slide-picker dots as navigation controls", () => {
     render(<HeroFullBleed {...props} heroSlides={slides} />);
     expect(screen.getByRole("button", { name: "Go to slide 1" })).toBeInTheDocument();
+  });
+
+  it("honours a slide's crop mode and focus point", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroSlides={[
+          {
+            ...slides![0],
+            image: { url: "/first.jpg" },
+            imageFit: "crop",
+            focal: { x: 78, y: 31 },
+          },
+          slides![1],
+        ]}
+      />,
+    );
+
+    expect(container.querySelector(".sf-hero-media-cover")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-media")).toHaveStyle({
+      "--sf-hero-focus": "78% 31%",
+    });
+  });
+
+  it("defaults a slide image to showing the whole photo", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroSlides={[
+          { ...slides![0], image: { url: "/first.jpg" } },
+          slides![1],
+        ]}
+      />,
+    );
+
+    expect(container.querySelector(".sf-hero-media-fg")).toBeInTheDocument();
+  });
+
+  it("keeps a single image-only slide free of banner fallback copy", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroBanner={{ title: "Banner fallback", primaryLabel: "Shop now" }}
+        heroSlides={[{ image: { url: "/artwork.jpg" } }]}
+      />,
+    );
+
+    expect(container.querySelector(".sf-hero-media")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-fullbleed-copy")).not.toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-fullbleed-scrim")).not.toBeInTheDocument();
+    expect(screen.queryByText("Banner fallback")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Shop now" })).not.toBeInTheDocument();
   });
 });

@@ -1,11 +1,11 @@
 "use client";
 // coding-standard: maintained
 
-import { type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import type { StoreHeroSlide } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
-import { Icon } from "@/components/storefront/sf-icons";
+import { HeroMedia } from "@/components/storefront/hero-media";
 import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
@@ -46,11 +46,10 @@ function SlideCta({ slide, base }: { slide: StoreHeroSlide; base: string }) {
  * Crossfade + staggered text rise, 5s autoplay (paused on hover/press, skipped
  * for reduced-motion), dots with a time-to-next fill, arrows, and swipe.
  * Slides without an image get a brand-tinted panel. With an image, the fill is
- * the slide's OWN choice (Customize → Hero → the slide's "This photo"): a blurred
- * fill (`.sf-hero-art-bg`) behind the full photo at `contain` (`.sf-hero-art-fg`,
- * the default, so a slide never loses its edges to a crop) or the `.sf-hero-art`
- * cover crop. Either way a scrim keeps the white text readable. Classes live in
- * storefront.css (.sf-hero-*).
+ * the slide's OWN choice (Customize → Hero → the slide's "This photo"). The
+ * shared `HeroMedia` renderer either preserves the whole photo over a soft fill
+ * or crops from the chosen focus point. On phones the photo and copy become two
+ * rows, so a desktop-shaped upload is not forced behind mobile text.
  *
  * ⚠ **This deliberately does NOT call `useStoreImageFit()`.** It used to, which
  * meant a hero followed *Product cards → Image fit* — so changing how product
@@ -88,60 +87,57 @@ export function HeroCarousel({
         {...swipeProps}
       >
         {slides.map((slide, i) => {
-          const img = slide.image?.mediumUrl || slide.image?.url;
-          // The two sources are published as custom properties rather than
-          // written into `background-image` here because which one is right is a
-          // VIEWPORT question, and this component renders on the server: the
-          // 800px `mediumUrl` was being stretched across a 1200px hero (and 2x
-          // that on a retina panel), which is the softness owners were seeing on
-          // desktop. storefront.css picks per breakpoint; see `.sf-hero-art`.
-          const artVars = img
-            ? ({
-                "--sf-slide-img": `url("${img}")`,
-                "--sf-slide-img-lg": `url("${slide.image?.url || img}")`,
-              } as CSSProperties)
-            : undefined;
+          const primaryImage = slide.image || slide.mobileImage;
+          const img = primaryImage?.mediumUrl || primaryImage?.url;
           // Each slide answers for itself; nothing else in the shop votes. An
           // unset or unrecognised id means "show the whole photo" — see the
           // warning in the block comment above.
           const slideFit = isImageFit(slide.imageFit)
             ? mediaFitFor(slide.imageFit)
             : "canvas";
-          // Only the CROPPING layers take the focal point. `-fg` is `contain`,
-          // so the whole photo is already visible and moving it would only slide
-          // it around inside its own letterbox.
+          // The full foreground stays centred in canvas mode; its blurred fill
+          // and every cropped image follow the merchant's chosen subject.
           const focal = focalPosition(slide.focal);
+          const title = slide.title?.trim();
+          const badge = slide.badge?.trim();
+          const subtitle = slide.subtitle?.trim();
+          const hasCopy = !!(
+            title ||
+            badge ||
+            subtitle ||
+            slide.buttonLabel?.trim()
+          );
           return (
             <section
               key={i}
               className={`sf-hero-slide${i === current ? " sf-hero-active" : ""}`}
-              style={artVars}
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== current}
             >
               {img ? (
-                slideFit === "cover" ? (
-                  <div className="sf-hero-art" style={{ backgroundPosition: focal }} />
-                ) : (
-                  <>
-                    <div className="sf-hero-art-bg" style={{ backgroundPosition: focal }} />
-                    <div className="sf-hero-art-fg" />
-                  </>
-                )
+                <HeroMedia
+                  image={primaryImage!}
+                  mobileImage={slide.mobileImage}
+                  fit={slideFit}
+                  focal={focal}
+                  mobileFocal={focalPosition(slide.mobileFocal || slide.focal)}
+                  eager={i === 0}
+                />
               ) : (
-                <div className="sf-hero-art" style={{ background: TINTS[i % TINTS.length] }} />
+                <div
+                  className="sf-hero-media sf-hero-media-empty"
+                  style={{ background: TINTS[i % TINTS.length] }}
+                />
               )}
-              <div className="sf-hero-scrim" />
-              <div className="sf-hero-copy">
-                {slide.badge?.trim() ? (
-                  <span className="sf-hero-badge">{slide.badge}</span>
-                ) : null}
-                <h1 className="sf-hero-title">{slide.title}</h1>
-                {slide.subtitle?.trim() ? (
-                  <p className="sf-hero-sub">{slide.subtitle}</p>
-                ) : null}
-                <SlideCta slide={slide} base={base} />
-              </div>
+              {hasCopy ? <div className="sf-hero-scrim" /> : null}
+              {hasCopy ? (
+                <div className="sf-hero-copy">
+                  {badge ? <span className="sf-hero-badge">{badge}</span> : null}
+                  {title ? <h1 className="sf-hero-title">{title}</h1> : null}
+                  {subtitle ? <p className="sf-hero-sub">{subtitle}</p> : null}
+                  <SlideCta slide={slide} base={base} />
+                </div>
+              ) : null}
             </section>
           );
         })}

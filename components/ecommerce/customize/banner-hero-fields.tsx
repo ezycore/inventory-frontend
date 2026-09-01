@@ -31,7 +31,9 @@ export function cleanHeroBanner(v: StorefrontHeroBanner): StorefrontHeroBanner {
       ? normalizeStoreLink(v.secondaryLink)
       : undefined,
     imageFit: v.imageFit,
+    mobileImage: v.mobileImage ?? null,
     focal: v.focal,
+    mobileFocal: v.mobileFocal,
   };
 }
 
@@ -80,7 +82,9 @@ export function BannerHeroFields({
   return (
     <div className="space-y-3">
       <p className="text-[11px] text-muted-foreground">
-        Shown when the home hero is the static banner.
+        Shown when the home hero is the static banner. Keep the headline,
+        price, and offer here instead of baking text into the image so it stays
+        readable on mobile.
       </p>
       <TextRow
         label="Badge"

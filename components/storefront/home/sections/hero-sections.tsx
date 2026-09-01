@@ -3,10 +3,13 @@
 
 import Link from "next/link";
 import type { StoreHeroSlide } from "@/lib/storefront-client";
+import { focalPosition } from "@/lib/storefront-focal";
 import { storeHref } from "@/lib/storefront-links";
+import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { HeroCarousel } from "@/components/storefront/hero-carousel";
+import { HeroMedia } from "@/components/storefront/hero-media";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 import { HeaderSearchBar } from "@/components/storefront/header-search";
 import {
@@ -148,6 +151,7 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }
             ratio="auto"
             radius={0}
             style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
+            {...bannerPhoto(hb)}
           />
         )}
       </div>
@@ -293,73 +297,79 @@ export function HeroManifesto({ base, t, store }: SectionProps) {
  * forever. Promising a slideshow and rendering a still is worse than either
  * choice made honestly.
  *
- * The single-slide look is unchanged — no dots, no timer, `heroBanner` copy
- * first — so a shop that never built a carousel sees exactly what it saw before.
+ * A single slide still has no dots or timer. Whenever slides exist, the selected
+ * slide owns both artwork and copy; this is what lets an artwork-only slide stay
+ * free of banner fallback text. On phones, compact optional copy overlays a
+ * bottom gradient on the same image surface.
  */
 export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
   const slides = heroSlides ?? [];
+  const hasSlides = slides.length > 0;
   const rotates = slides.length > 1;
   const { current, go, swipeProps } = useHeroRotation(slides.length);
-  /* **Copy ownership flips with the slide count, and that is the whole rule.**
-     One slide (or none) keeps the original precedence — `heroBanner` first,
-     which is the merchant's single hero headline. Two or more and the SLIDES
-     own the copy: pinning one `heroBanner` title over three rotating photographs
-     is a slideshow that says the same thing three times, which is worse than not
-     rotating at all. */
-  const slide = rotates ? slides[current] : slides[0];
-  const pick = <K extends "badge" | "title" | "subtitle">(
-    key: K,
-    fromBanner: string | undefined,
-  ) => (rotates ? slide?.[key] : fromBanner || slide?.[key]);
-  const badge = pick("badge", hb?.badge);
-  const title = pick("title", hb?.title) || store.name;
-  const subtitle = pick("subtitle", hb?.subtitle);
-  const ctaLabel =
-    (rotates ? slide?.buttonLabel : hb?.primaryLabel || slide?.buttonLabel) ||
-    t.startShopping;
-  const imageOf = (s?: StoreHeroSlide) =>
-    s?.image?.url || s?.image?.mediumUrl || banner;
-  const image = imageOf(slide);
+  // A selected slide owns its copy even when it is the only one. Falling back
+  // to banner defaults here made an intentional image-only slide grow a title
+  // and CTA it never asked for.
+  const slide = hasSlides ? slides[rotates ? current : 0] : undefined;
+  const badge = hasSlides ? slide?.badge?.trim() : hb?.badge?.trim();
+  const title = hasSlides
+    ? slide?.title?.trim()
+    : hb?.title?.trim() || store.name;
+  const subtitle = hasSlides ? slide?.subtitle?.trim() : hb?.subtitle?.trim();
+  const ctaLabel = hasSlides
+    ? slide?.buttonLabel?.trim()
+    : hb?.primaryLabel?.trim() || t.startShopping;
+  const hasCopy = !!(badge || title || subtitle || ctaLabel);
+  const slideHasImage = Boolean(slide?.image?.url || slide?.image?.mediumUrl);
+  const slideHasMobileImage = Boolean(
+    slide?.mobileImage?.url || slide?.mobileImage?.mediumUrl,
+  );
+  const slideHasArtwork = slideHasImage || slideHasMobileImage;
+  const image = slideHasImage
+    ? slide!.image!
+    : slideHasMobileImage
+      ? slide!.mobileImage!
+      : banner;
+  const imageFit = slideHasArtwork
+    ? isImageFit(slide?.imageFit)
+      ? mediaFitFor(slide.imageFit)
+      : "canvas"
+    : bannerPhoto(hb).fit;
+  const imageFocal = focalPosition(slideHasArtwork ? slide?.focal : hb?.focal);
+  const mobileImage = slideHasArtwork ? slide?.mobileImage : hb?.mobileImage;
+  const mobileFocal = focalPosition(
+    slideHasArtwork
+      ? slide?.mobileFocal || slide?.focal
+      : hb?.mobileFocal || hb?.focal,
+  );
   return (
     <section
+      className={`sf-hero-fullbleed${image ? " sf-hero-fullbleed-image" : ""}`}
       {...(rotates ? swipeProps : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
-      style={{
-        position: "relative",
-        minHeight: "clamp(380px, 62vh, 640px)",
-        display: "flex",
-        alignItems: "flex-end",
-        overflow: "hidden",
-        background: image ? "var(--surface-2)" : "var(--surface)",
-      }}
     >
       {/* Keep only the active photograph in the document. Painting every slide
           made the browser fetch the whole hero deck during the LCP path. */}
       {image ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <HeroMedia
           key={rotates ? current : "banner"}
-          src={image}
-          alt=""
-          aria-hidden="true"
-          fetchPriority={current === 0 ? "high" : "auto"}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          image={image}
+          mobileImage={mobileImage}
+          fit={imageFit}
+          focal={imageFocal}
+          mobileFocal={mobileFocal}
+          eager={current === 0}
         />
       ) : null}
       {/* Scrim, not a tint: type over an unknown photograph is unreadable
           without one, and the merchant's photo is genuinely unknown. */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.62) 100%)",
-        }}
-      />
-      <div style={{ ...wrap, position: "relative", padding: "clamp(28px,6vw,64px) var(--pad)" }}>
-        {badge ? <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+      {hasCopy ? <div className="sf-hero-fullbleed-scrim" /> : null}
+      {hasCopy ? <div className="sf-hero-fullbleed-copy" style={wrap}>
+        {badge ? <span className="sf-hero-fullbleed-badge" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
           {badge}
         </span> : null}
-        <h1
+        {title ? <h1
+          className="sf-hero-fullbleed-title"
           style={{
             fontSize: "var(--h1m)",
             lineHeight: 1.02,
@@ -372,13 +382,13 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
           }}
         >
           {title}
-        </h1>
-        {subtitle ? <p style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
+        </h1> : null}
+        {subtitle ? <p className="sf-hero-fullbleed-sub" style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
           {subtitle}
         </p> : null}
-        <HeroCtaLink
+        {ctaLabel ? <HeroCtaLink
           base={base}
-          link={rotates ? slide?.link : undefined}
+          link={hasSlides ? slide?.link : hb?.primaryLink}
           style={{
             display: "inline-block",
             background: "#fff",
@@ -390,13 +400,14 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
           }}
         >
           {ctaLabel}
-        </HeroCtaLink>
+        </HeroCtaLink> : null}
         {/* Dots, and they are not decoration: without them a shopper cannot tell
             the photograph is going to change, and cannot go back to the one they
             were reading. No arrows — this hero has no frame to hang them on, and
             the section is swipeable. */}
+      </div> : null}
         {rotates ? (
-          <div style={{ display: "flex", gap: 8, marginTop: 28 }}>
+          <div style={{ position: "absolute", zIndex: 3, display: "flex", gap: 8, left: "var(--pad)", bottom: 18 }}>
             {slides.map((s, i) => (
               <button
                 key={i}
@@ -419,7 +430,6 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             ))}
           </div>
         ) : null}
-      </div>
     </section>
   );
 }

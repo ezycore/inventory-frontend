@@ -19,9 +19,8 @@ import { Input } from "@/ui/components/input";
 import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 import { Label } from "@/ui/components/label";
 import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
+import { MobileHeroImageField } from "@/components/ecommerce/customize/mobile-hero-image-field";
 import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
-import { ImageRatioWarning } from "@/components/shared/image-ratio-warning";
-import { RECOMMENDED, checkImageRatio } from "@/lib/image-ratio";
 
 export const MAX_HERO_SLIDES = 5;
 
@@ -60,12 +59,6 @@ export function HeroSlidesPanel({
   // State, not a ref: the row renders "Uploading…" from it, and a ref read
   // during render doesn't repaint when it changes.
   const [uploadTarget, setUploadTarget] = useState<number | null>(null);
-  /**
-   * Shape warnings, keyed by slide index — one hidden input serves every row, so
-   * a single warning string would attach itself to whichever slide was touched
-   * last and follow the merchant around the panel.
-   */
-  const [ratioWarnings, setRatioWarnings] = useState<Record<number, string>>({});
   const [expanded, setExpanded] = useState<number | null>(
     initialExpanded ?? (slides.length === 0 ? 0 : null),
   );
@@ -80,19 +73,9 @@ export function HeroSlidesPanel({
 
   const patch = (i: number, p: Partial<StorefrontHeroSlide>) =>
     setSlides(slides.map((s, idx) => (idx === i ? { ...s, ...p } : s)));
-  /**
-   * Shape warnings are keyed by INDEX, so anything that renumbers the rows makes
-   * every one of them point at the wrong slide. Dropped wholesale rather than
-   * remapped: a warning is about a file the merchant just picked, it costs one
-   * click to see again, and a warning parked on the wrong picture is worse than
-   * none at all.
-   */
-  const forgetRatioWarnings = () => setRatioWarnings({});
-
   const remove = (i: number) => {
     setSlides(slides.filter((_, idx) => idx !== i));
     setExpanded(null);
-    forgetRatioWarnings();
   };
   const move = (i: number, dir: -1 | 1) => {
     const t = i + dir;
@@ -102,7 +85,6 @@ export function HeroSlidesPanel({
     setSlides(next);
     if (expanded === i) setExpanded(t);
     else if (expanded === t) setExpanded(i);
-    forgetRatioWarnings();
   };
   const add = () => {
     setSlides([...slides, newHeroSlide()]);
@@ -161,14 +143,6 @@ export function HeroSlidesPanel({
           const file = e.target.files?.[0];
           if (file && uploadTarget !== null) {
             const slide = uploadTarget;
-            void checkImageRatio(file, RECOMMENDED.heroSlide).then((message) =>
-              setRatioWarnings((prev) => {
-                const next = { ...prev };
-                if (message) next[slide] = message;
-                else delete next[slide];
-                return next;
-              }),
-            );
             void onFile(file, slide);
           }
           e.target.value = "";
@@ -193,7 +167,7 @@ export function HeroSlidesPanel({
                 <SlideThumb slide={s} className="h-8 w-[52px]" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">
-                    {s.title.trim() || "Untitled slide"}
+                    {s.title?.trim() || (s.image || s.mobileImage ? "Image-only slide" : "Empty slide")}
                   </span>
                   <span className="block text-xs text-muted-foreground">
                     {[s.badge?.trim(), s.image ? "has image" : "brand panel"]
@@ -233,11 +207,6 @@ export function HeroSlidesPanel({
                         className="text-red-600"
                         onClick={() => {
                           // No photo, nothing to be the wrong shape.
-                          setRatioWarnings((prev) => {
-                            const next = { ...prev };
-                            delete next[i];
-                            return next;
-                          });
                           patch(i, { image: null, focal: undefined });
                         }}
                       >
@@ -273,17 +242,15 @@ export function HeroSlidesPanel({
                       </button>
                     </span>
                   </div>
-                  {/* The hero is ~3:1 on desktop and much narrower on a phone,
-                      so a wide upload is always cropped somewhere. Fill + focus
-                      point below decide whether and where — which is why this no
-                      longer asks the owner to compose around a centred crop. The
-                      scrim note stays: the desktop hero darkens the left, where
-                      the slide's own copy sits. */}
+                  {/* One file serves two deliberately different compositions:
+                      edge-to-edge with overlaid copy on desktop, then photo over
+                      copy on mobile. Fit + focus below define the fallback, so
+                      there is no honest single-ratio requirement to enforce. */}
                   <p className="text-xs leading-snug text-muted-foreground">
-                    1600 × 640 px (2.5:1) works best. Leave the left clear — the
-                    title and button sit there on a wide screen.
+                    Use a clear, high-resolution landscape photo for desktop.
+                    Add optional phone artwork below only when the composition
+                    needs it; otherwise mobile safely reuses this photo.
                   </p>
-                  <ImageRatioWarning message={ratioWarnings[i] ?? null} />
                   {s.image?.mediumUrl || s.image?.url ? (
                     <PhotoFitField
                       url={s.image.mediumUrl || s.image.url || ""}
@@ -292,10 +259,21 @@ export function HeroSlidesPanel({
                       onChange={(next) => patch(i, next)}
                     />
                   ) : null}
+                  <MobileHeroImageField
+                    desktopUrl={s.image?.mediumUrl || s.image?.url}
+                    desktopFocal={s.focal}
+                    image={s.mobileImage}
+                    focal={s.mobileFocal}
+                    imageFit={s.imageFit}
+                    onImageReplace={(mobileImage) =>
+                      patch(i, { mobileImage, mobileFocal: undefined })
+                    }
+                    onFocalChange={(mobileFocal) => patch(i, { mobileFocal })}
+                  />
                   <div className="space-y-1">
-                    <Label className="text-xs">Title</Label>
+                    <Label className="text-xs">Title (optional)</Label>
                     <Input
-                      value={s.title}
+                      value={s.title ?? ""}
                       onChange={(e) => patch(i, { title: e.target.value })}
                       maxLength={90}
                       placeholder="Mega sale coming on 12th December"

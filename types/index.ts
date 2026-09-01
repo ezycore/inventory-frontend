@@ -268,7 +268,8 @@ export interface StorefrontFooterLink {
 }
 
 export interface StorefrontFooterGroup {
-  title: string;
+  /** Optional; an image can be the complete slide. */
+  title?: string;
   links: StorefrontFooterLink[];
 }
 
@@ -545,19 +546,27 @@ export interface StorefrontHeroBanner {
    * bare field shared with `og:image`, with no shape of its own.
    */
   imageFit?: string;
+  /** Optional phone artwork; desktop continues to use the top-level banner. */
+  mobileImage?: Image | null;
   /** Where to crop the banner from when cropped; unset = centre. */
   focal?: { x: number; y: number };
+  /** Phone crop anchor; unset falls back to `focal`. */
+  mobileFocal?: { x: number; y: number };
 }
 
 /** One home-page hero slide (owner-managed carousel, max 5). */
 export interface StorefrontHeroSlide {
   image?: Image | null;
+  /** Optional phone artwork; unset falls back to `image`. */
+  mobileImage?: Image | null;
   /**
    * Crop anchor in percent; unset = centre. Mirrors `StoreFocalPoint` in
    * `lib/storefront-focal.ts`, which owns the meaning and the CSS translation —
    * the admin types mirror the storefront ones here rather than import them.
    */
   focal?: { x: number; y: number };
+  /** Phone crop anchor; unset falls back to `focal`. */
+  mobileFocal?: { x: number; y: number };
   /**
    * How this slide's photo fills the hero ("crop" fills and trims, "fit" shows
    * all of it); unset means "fit", NOT "inherit" — the hero deliberately does

@@ -130,10 +130,14 @@ export function sectionRow(
 export function bannerPhoto(hb?: StoreHeroBanner): {
   fit: "cover" | "canvas";
   focal?: string;
+  mobileSrc?: string;
+  mobileFocal?: string;
 } {
   return {
     fit: isImageFit(hb?.imageFit) ? mediaFitFor(hb.imageFit) : "canvas",
     focal: focalPosition(hb?.focal),
+    mobileSrc: hb?.mobileImage?.mediumUrl || hb?.mobileImage?.url,
+    mobileFocal: focalPosition(hb?.mobileFocal || hb?.focal),
   };
 }
 
