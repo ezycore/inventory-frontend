@@ -99,6 +99,14 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
   // produced it. An edit has no such step: confirming is its own action, and an
   // edit that also reserved stock would hide that inside a "save".
   const [confirmImmediately, setConfirmImmediately] = useState(!initial);
+  /**
+   * Keep this order out of Meta's ad reporting (backend docs/plan/meta-pixel-capi.md D19).
+   *
+   * Offered at CREATION and not only on the order page, because `confirmImmediately` creates and
+   * confirms in one request — for that path there is no moment afterwards in which the merchant
+   * could exclude the order before it has already been queued to Meta.
+   */
+  const [excludeFromMeta, setExcludeFromMeta] = useState(false);
   const [pasted, setPasted] = useState("");
   const [coupon, setCoupon] = useState(initial?.coupon ?? "");
   const [discountType, setDiscountType] = useState<"fixed" | "percentage">(
@@ -317,7 +325,7 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
 
     if (!channel) return;
     createOrder.mutate(
-      { ...shared, channel, confirmImmediately },
+      { ...shared, channel, confirmImmediately, excludeFromMeta },
       {
         onSuccess: (res) => {
           // The server confirms best-effort: a stock shortfall leaves the order
@@ -372,6 +380,8 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
     shippingCharged,
     setShippingCharged,
     confirmImmediately,
+    excludeFromMeta,
+    setExcludeFromMeta,
     setConfirmImmediately,
     pasted,
     setPasted,

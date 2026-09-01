@@ -109,6 +109,14 @@ export interface CreateAdminOrderInput {
   shippingCharged?: number;
   /** Skip the separate Confirm click; a chat order is already agreed. */
   confirmImmediately?: boolean;
+  /**
+   * Keep this order out of Meta's ad reporting (backend docs/plan/meta-pixel-capi.md D19).
+   *
+   * Accepted at CREATION, not only on the order page: `confirmImmediately` creates and confirms
+   * in one request, so for that path there is no moment afterwards to exclude the order before
+   * it has already been queued to Meta.
+   */
+  excludeFromMeta?: boolean;
 }
 
 /**

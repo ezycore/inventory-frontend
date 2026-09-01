@@ -100,6 +100,21 @@ export const EFFECTS = {
     STOCK,
   ),
 
+  /**
+   * An order's Meta ad-reporting flag was flipped (docs/plan/meta-pixel-capi.md D19).
+   *
+   * Touches no stock and no money — it is a reporting label, exactly like `channel`. Two
+   * resources all the same: the order detail renders the flag, and the events log gains a
+   * `skipped(excluded)` row the next time the order transitions.
+   */
+  "order.metaExclusionChanged": [
+    k.storefrontOrders.all(),
+    k.metaEvents.all(),
+  ],
+
+  /** A queued Meta event was requeued by hand. Nothing but the events log changes. */
+  "meta.eventRetried": [k.metaEvents.all()],
+
   /** A storefront order changed state without touching stock or money (status, courier, tracking). */
   "order.changed": [
     k.storefrontOrders.all(),

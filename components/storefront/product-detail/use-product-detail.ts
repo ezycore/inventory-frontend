@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "@/lib/storefront-toast";
 import {
@@ -11,6 +11,7 @@ import {
   useStoreProducts,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
+import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
@@ -111,6 +112,27 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     variable && selectedVariant?.images?.length
       ? selectedVariant.images
       : (product?.images ?? []);
+
+  // Meta `ViewContent` — one per product the shopper opens.
+  //
+  // Keyed on the product id, NOT on this hook's render: it re-runs on every variant selection,
+  // quantity tap and related-products refetch, and reporting each of those as a fresh product
+  // view would multiply a single visit into a dozen. The variant is deliberately not part of the
+  // key either — picking a size is not viewing a second product.
+  const viewedProductId = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!product || viewedProductId.current === product._id) return;
+    viewedProductId.current = product._id;
+    trackMetaEvent(store, "ViewContent", {
+      currency: store?.currency,
+      value: price,
+      content_ids: [metaContentId(product._id)],
+      content_name: product.name,
+      content_type: "product",
+    });
+    // `price` is read but intentionally not a dependency — see the keying note above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?._id, store]);
 
   const add = (notify = true) => {
     if (!product) return;
