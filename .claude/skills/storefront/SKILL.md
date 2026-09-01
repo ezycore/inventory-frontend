@@ -675,11 +675,18 @@ had been modelled on the backend since the beginning and was **read by nothing**
   id. Two different axes that happened to share a word.
   It must **not** clip (`overflow: visible`): with no fill there is nothing to clip to, and hiding
   overflow cuts the hover flyout.
-- **`category-tiles` has two presentations, chosen by `templates.categoryTiles`, never by theme.**
-  `tile` (photo on a `--primary-soft` card, name underneath) and `overlay` (a 3:4 photo with the
-  name across it behind a scrim). Which reads better is a question about the merchant's own
+- **`category-tiles` has FOUR presentations, chosen by `templates.categoryTiles`, never by theme.**
+  `tile` (photo on a `--primary-soft` card, name underneath), `overlay` (a 3:4 photo with the
+  name across it behind a scrim), `disc` (a lettered disc per department, photographs refused
+  by design) and `circle` (2026-08-29 — that same photograph cropped ROUND, name underneath).
+  Which reads better is a question about the merchant.s own
   pictures — product shots vs scenes — so it is a setting they own, and it is the model for how to
   widen a section rather than branching it.
+  - `circle` exists because the two photo modes were both rectangles: a soft catalogue (baby,
+    gifts, beauty) had no way to lose the corners without also losing the pictures, since `disc`
+    refuses them. It degrades to `disc` when NO category has a photo, and an individual
+    unphotographed category falls through to the same lettered circle at the same 68px — so a
+    half-photographed catalogue stays one consistent row rather than two mixed shapes.
   - The no-image fallback's ground **depends on what it sits on**: `--card` inside `tile` (the card
     is already tinted, so a tinted fallback merged card and photo-slot into one flat blob of brand
     colour), `--primary-soft` in `overlay` (no card behind it).
@@ -816,9 +823,86 @@ custom-property declaration is substituted on the element that declares it, so a
 Content pages need no equivalent: their prose is already capped at fixed 680–860px measures in
 `content-frame.tsx`, and their banner strip is meant to span.
 
-**All four themes stay `contained`.** Widening an approved theme is a design decision, not a side
+**All five themes stay `contained`.** Widening an approved theme is a design decision, not a side
 effect of adding the control — and Classic in particular MUST equal the defaults or applying it would
 restyle every shop already on it (`apply-theme.test.ts` asserts this field by field).
+
+### Little Steps and the `nursery` surface (2026-08-29)
+
+The fifth theme, for baby/kids. It spends three things nothing else had:
+
+- **`surface: nursery`** — a fourth ground, and the second to use mist's INVERSION (tinted page,
+  pure-white card). Warm pink-neutral rather than parchment's yellow-tan. The card must stay pure
+  white: half a baby catalogue is a tin or a bottle shot on white, and a cream card behind a white
+  tin draws a visible rectangle around every product. Low chroma on purpose — a saturated pink turns
+  a shop that also sells ৳8,500 prams into a nursery decal.
+- **`font: rounded` + `radius: round`** — both had sat in the catalogue unused since they shipped,
+  and the font's own description already said "grocery, food, kids".
+- **`categoryTiles: circle`** and the **`age-chips`** section (below).
+
+**Its one structural argument: `trust-band` sits SECOND, above the catalogue.** Every other theme
+that composes it closes on it. A parent's objection is whether the formula is genuine and in date,
+and an answer below six rows of products is one they never read. That inversion is also what forced
+`SEED_TRUST_BADGES_BY_INDUSTRY` in the backend — see the `seeding` skill: the band renders nothing
+without badges, and nothing had ever seeded any, so the theme's most distinctive section was a blank
+gap on the shop it was drawn for.
+
+### Two heroes rotate, and they are not the same shape (2026-08-29)
+
+`heroSlides` reaches the page two different ways, and picking the wrong section is
+how you get a shop that reports "Slides carousel · 3 slides" in Customize and then
+shows one still photograph forever:
+
+| Section | Slides render as |
+|---|---|
+| `hero-card` / `hero-open` / `hero-split` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
+| `hero-fullbleed` | its **own** edge-to-edge rotation, no card, copy laid over the photo |
+
+`HeroFullBleed` used to take only `heroSlides[0]`, on the documented reasoning that
+"a carousel inside a full-bleed hero fights a single confident picture". That was
+overruled when `little-steps` became the first theme to compose the section: it
+seeds three slides, so the promise and the render disagreed. **A still that claims
+to be a slideshow is worse than either choice made honestly.**
+
+Both share `useHeroRotation` (`components/storefront/use-hero-rotation.ts`) — one
+5s beat, one set of pause/reduced-motion/swipe rules. Put timing changes there,
+never in a component.
+
+⚠ **Copy ownership flips with the slide count.** One slide keeps the old
+precedence (`heroBanner` first — the merchant's single headline); two or more and
+the slides own badge, title, subtitle and CTA. Pinning one `heroBanner` title over
+three rotating photographs is a slideshow that says the same thing three times.
+
+### `age-chips` — a facet that is not a category
+
+`AgeChips` (`sections/category-sections.tsx`) renders the store's AGE tags as a chip row, in the
+order a child grows (`AGE_BANDS`), each linking to `/products?tags=<slug>`.
+
+**Tag-backed, not variant-backed, and that is the load-bearing decision.** The same ages are also
+seeded as the `Size` variant attribute, which is the more "correct" home — but neither the collection
+page nor the backend product query has an attribute filter, while `?tags=` is OR-combined and works
+end to end today. So a chip is a link to a listing that already exists rather than a new query path
+down the stack.
+
+**Configured tag IDS first; name matching is only the fallback** (2026-08-29).
+`sectionConfig[].tagIds` holds the merchant's own tags in their own order, and the backend seeds it
+at signup for `BABY_KIDS_STORE`, so a real shop is never on the name path. That matters because
+matching names failed silently in three ways a merchant actually hits: rename `0-3M` to `0-3 Months`
+and the chip vanishes; run the shop in Bangla and the whole row vanishes; add `4-5Y` and it never
+appears. An id survives every rename and the chip reads its label off the tag, so the row can never
+disagree with Products → Tags. `age-chips.test.tsx` pins all three cases.
+
+The editor is `TagRowConfig` (`customize/tag-row-config.tsx`), reached from the Sections panel and
+gated by `isTagConfigurableSection` — **not** `isConfigurableSection`. That second set is what
+`configuredSections` walks to build a product QUERY per row, and `age-chips` renders tags the page
+already has, so joining it would cost every baby shop a wasted catalogue fetch.
+
+Two more things worth knowing: the section needs `tags` on `SectionProps` (fetched in the homepage's
+parallel batch, like everything else, so the Customize preview can add it without a round-trip), and
+the storefront's tags endpoint only returns tags that are actually IN USE — so a band with no
+products drops out of the row rather than leading to "no results". That is correct behaviour, and it
+is why the backend now seeds an age band onto each demo product instead of letting the random tag
+pick decide (three of eight rungs came back empty when it did).
 
 ### The `mist` surface, and the rail finally being used (2026-08-16)
 
@@ -893,13 +977,14 @@ while the request was still in flight.
 A merchant choosing their first theme is, by definition, a merchant with nothing in the shop — and
 every section that distinguishes one theme from another hides itself on no data. `RailShell` returns
 null without categories; so do `category-tiles`, `-chips` and `-links`. `deal-strip` returns null
-with no live campaign, `trust-band` with no `trustBadges`. So the four themes rendered as four
+with no live campaign, `trust-band` with no `trustBadges`. So the themes rendered as
 near-identical empty shells at exactly the moment the choice is made, and Meridian Care lost the
 department rail that is the whole reason to pick it.
 
 `lib/storefront-preview-samples.ts` fills those gaps, and `lib/storefront-theme-samples.ts` decides
 **with what** — a `ThemeSample` (categories, products, promises, campaign) carried by each bundle, so
-Meridian previews as a pharmacy and Fresh Market as a grocery. Illustrations live in `public/samples/`.
+Meridian previews as a pharmacy, Fresh Market as a grocery and Little Steps as a baby shop.
+Illustrations live in `public/samples/`.
 The campaign's `endsAt` is computed at render, never stored: a date baked into a bundle would preview
 an offer that expired months ago.
 
