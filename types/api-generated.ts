@@ -10260,6 +10260,9 @@ export interface components {
             urls: {
                 [key: string]: string;
             };
+            secrets: {
+                [key: string]: string | null;
+            };
         };
         CustomCourier: {
             _id: string;
@@ -10533,9 +10536,12 @@ export interface components {
                     normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                     history?: {
                         status: string;
-                        note?: string;
+                        code?: string;
+                        label?: string;
+                        group?: string;
                         /** Format: date-time */
                         at?: string;
+                        source?: string;
                         by?: string;
                     }[];
                     resolvedLocation?: {
@@ -10679,9 +10685,12 @@ export interface components {
                 normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                 history?: {
                     status: string;
-                    note?: string;
+                    code?: string;
+                    label?: string;
+                    group?: string;
                     /** Format: date-time */
                     at?: string;
+                    source?: string;
                     by?: string;
                 }[];
                 resolvedLocation?: {
@@ -10809,9 +10818,12 @@ export interface components {
                     normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                     history?: {
                         status: string;
-                        note?: string;
+                        code?: string;
+                        label?: string;
+                        group?: string;
                         /** Format: date-time */
                         at?: string;
+                        source?: string;
                         by?: string;
                     }[];
                     resolvedLocation?: {
@@ -12400,7 +12412,8 @@ export interface components {
                 normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                 history?: {
                     status: string;
-                    note?: string;
+                    label?: string;
+                    group?: string;
                     /** Format: date-time */
                     at?: string;
                 }[];
@@ -12478,7 +12491,8 @@ export interface components {
                 normalizedStatus?: string;
                 history: {
                     status: string;
-                    note?: string;
+                    label?: string;
+                    group?: string;
                     /** Format: date-time */
                     at?: string;
                 }[];
