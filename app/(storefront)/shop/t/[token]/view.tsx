@@ -10,7 +10,9 @@ import { storefront, useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
-import { money } from "@/components/storefront/format";
+import { TRACK_STATUS } from "@/lib/storefront-i18n";
+import { CourierFeed } from "@/components/storefront/courier-feed";
+import { dateTime, money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SkeletonLine } from "@/components/storefront/sf-skeleton";
 import { ghostBtn } from "@/components/storefront/checkout/checkout-bits";
@@ -53,23 +55,6 @@ const row: CSSProperties = {
 };
 
 const muted: CSSProperties = { color: "var(--muted)", fontSize: 13 };
-
-/** Status labels the buyer sees. Deliberately plainer than the admin vocabulary. */
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Order received",
-  confirmed: "Confirmed",
-  processing: "Being packed",
-  shipped: "On the way",
-  delivered: "Delivered",
-  ready_for_pickup: "Ready to collect",
-  picked_up: "Collected",
-  returned: "Returned",
-  cancelled: "Cancelled",
-  rejected: "Not accepted",
-};
-
-const formatDate = (value?: string) =>
-  value ? new Date(value).toLocaleString() : "";
 
 /** A `label ………… value` placeholder pair, matching `row` above. */
 function SkeletonRow({
@@ -176,7 +161,7 @@ export default function View() {
                 second form that will fail for the same reason. */}
             {dead ? (
               <Link href={storeHref(base, "/orders/track")} style={{ textDecoration: "underline" }}>
-                Look up an order
+                {t.trackLookUpOrder}
               </Link>
             ) : (
               <button
@@ -196,22 +181,37 @@ export default function View() {
 
   const currency = store?.currency;
   const courier = data.courier;
+  // Bound to the shopper's language, so the order's dates read the same way as the
+  // parcel feed's — a module-level helper could not see `langCode` and printed
+  // English dates under a Bangla timeline.
+  const formatDate = (value?: string) => dateTime(value, t.langCode);
+  // Falls back to the raw key rather than blanking: a status we have not worded
+  // yet must still name itself on the one page a guest can reach.
+  const statusLabel = (key: string) =>
+    TRACK_STATUS[key]?.[lang === "bn" ? "bn" : "en"] ?? key;
 
   return (
     <div style={wrap}>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-        {STATUS_LABEL[data.status] ?? data.status}
+        {statusLabel(data.status)}
       </div>
       <div style={{ ...muted, marginBottom: 18 }}>
-        Order {data.orderNumber} · {formatDate(data.placedAt)}
+        {t.orderNo} {data.orderNumber} · {formatDate(data.placedAt)}
       </div>
 
-      {courier?.trackingCode ? (
+      {/* Gated on a tracking code OR a feed, not on the code alone: a manual
+          courier often has no code at all, and hiding the card would then hide the
+          merchant's own progress updates from the one page a guest can reach. */}
+      {courier?.trackingCode || courier?.history?.length ? (
         <div style={card}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>
-            {courier.name ?? "Courier"}
+            {courier.name ?? t.trackCourier}
           </div>
-          <div style={muted}>Tracking code: {courier.trackingCode}</div>
+          {courier.trackingCode ? (
+            <div style={muted}>
+              {t.trackTrackingCode}: {courier.trackingCode}
+            </div>
+          ) : null}
           {courier.trackingUrl ? (
             <div style={{ marginTop: 10 }}>
               <a
@@ -222,6 +222,14 @@ export default function View() {
               >
                 Track with the courier <Icon name="arrowRight" size={13} />
               </a>
+            </div>
+          ) : null}
+          {/* The parcel's own event feed — the carrier's hub scans and rider
+              assignment, which is what a buyer opened this link for. The card
+              above it is the order; this is the parcel. */}
+          {courier.history?.length ? (
+            <div style={{ marginTop: 14 }}>
+              <CourierFeed history={courier.history} />
             </div>
           ) : null}
         </div>
@@ -237,39 +245,39 @@ export default function View() {
           </div>
         ))}
         <div style={{ ...row, ...muted }}>
-          <span>Subtotal</span>
+          <span>{t.subtotal}</span>
           <span>{money(data.subtotal, currency)}</span>
         </div>
         {data.discountAmount > 0 ? (
           <div style={{ ...row, ...muted }}>
-            <span>Discount</span>
+            <span>{t.discount}</span>
             <span>−{money(data.discountAmount, currency)}</span>
           </div>
         ) : null}
         {data.shippingCharged > 0 ? (
           <div style={{ ...row, ...muted }}>
-            <span>Delivery</span>
+            <span>{t.shipping}</span>
             <span>{money(data.shippingCharged, currency)}</span>
           </div>
         ) : null}
         <div style={{ ...row, fontWeight: 700, fontSize: 15 }}>
-          <span>Total</span>
+          <span>{t.total}</span>
           <span>{money(data.totalAmount, currency)}</span>
         </div>
       </div>
 
       <div style={card}>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>Progress</div>
+        <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.trackProgress}</div>
         {data.statusHistory.map((entry, index) => (
           <div key={`${entry.status}-${index}`} style={row}>
-            <span>{STATUS_LABEL[entry.status] ?? entry.status}</span>
+            <span>{statusLabel(entry.status)}</span>
             <span style={muted}>{formatDate(entry.at)}</span>
           </div>
         ))}
       </div>
 
       <div style={muted}>
-        {data.fulfillmentType === "pickup" ? "Collect from" : "Delivering to"}:{" "}
+        {data.fulfillmentType === "pickup" ? t.trackCollectFrom : t.trackDeliveringTo}:{" "}
         {data.shipTo.name}
         {data.shipTo.area ? `, ${data.shipTo.area}` : ""}
         {data.shipTo.district ? `, ${data.shipTo.district}` : ""}
@@ -277,7 +285,7 @@ export default function View() {
 
       <div style={{ marginTop: 18 }}>
         <Link href={storeHref(base, "/")} style={{ textDecoration: "underline" }}>
-          {lang === "bn" ? "দোকানে ফিরে যান" : "Back to the store"}
+          {t.trackBackToStore}
         </Link>
       </div>
     </div>

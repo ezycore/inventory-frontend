@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useSetCourierStatus, type AdminStorefrontOrder } from "@/services/api";
-import { COURIER_STATUS, courierStatusPresentation } from "@/lib/courier-status";
+import { COURIER_STATUS } from "@/lib/courier-status";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { CourierTimeline } from "./courier-timeline";
 
 /**
  * The merchant driving a manual courier's delivery status, and the progress feed
@@ -82,28 +83,13 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
       ) : null}
 
       {history.length > 0 ? (
-        <div className="space-y-1.5 border-t pt-3">
+        <div className="space-y-2 border-t pt-3">
           <div className="text-xs font-medium text-muted-foreground">
             Progress your customer sees
           </div>
-          {history.map((entry, i) => {
-            const presentation = courierStatusPresentation(entry.status);
-            return (
-              <div key={i} className="flex items-baseline gap-2 text-xs">
-                <span
-                  className="size-1.5 shrink-0 translate-y-[-1px] rounded-full"
-                  style={{ background: presentation.tone }}
-                />
-                <span className="font-medium">{presentation.admin}</span>
-                {entry.note ? (
-                  <span className="text-muted-foreground">— {entry.note}</span>
-                ) : null}
-                <span className="ml-auto shrink-0 text-muted-foreground">
-                  {entry.at ? new Date(entry.at).toLocaleString() : ""}
-                </span>
-              </div>
-            );
-          })}
+          {/* The same component the integrated couriers render, so a merchant
+              driving a parcel by hand reads it exactly as they read Pathao's. */}
+          <CourierTimeline history={history} />
         </div>
       ) : null}
     </div>

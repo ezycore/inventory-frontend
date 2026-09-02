@@ -3,6 +3,7 @@
 
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { courierStatusPresentation } from "@/lib/courier-status";
+import { CourierFeed } from "@/components/storefront/courier-feed";
 import type { StorefrontOrder } from "@/lib/storefront-client";
 
 type Courier = NonNullable<StorefrontOrder["courier"]>;
@@ -24,6 +25,7 @@ export function CourierProgress({ courier }: { courier: Courier }) {
   const p = courierStatusPresentation(courier.normalizedStatus);
   const carrier = courier.name || courier.provider;
   const tracking = courier.trackingCode || courier.consignmentId;
+
 
   return (
     <div style={{ marginTop: 9, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
@@ -63,32 +65,7 @@ export function CourierProgress({ courier }: { courier: Courier }) {
         </a>
       ) : null}
 
-      {courier.history?.length ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 2 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-            {t.deliveryUpdates}
-          </span>
-          {courier.history.map((entry, i) => {
-            const ep = courierStatusPresentation(entry.status);
-            return (
-              <div key={i} style={{ display: "flex", gap: 7, alignItems: "baseline" }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: ep.tone, flex: "none" }} />
-                <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.35 }}>
-                  <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
-                    {ep.shopper[bn ? "bn" : "en"]}
-                    {entry.note ? ` — ${entry.note}` : ""}
-                  </span>
-                  {entry.at ? (
-                    <span style={{ fontSize: 10, color: "var(--faint)" }}>
-                      {new Date(entry.at).toLocaleString(t.langCode)}
-                    </span>
-                  ) : null}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
+      <CourierFeed history={courier.history ?? []} />
     </div>
   );
 }
