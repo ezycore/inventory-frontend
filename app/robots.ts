@@ -33,6 +33,7 @@ const PUBLIC_FILES = [
   "/_next/image",
   "/sitemap.xml",
   "/favicon.ico",
+  "/icon.png",
 ];
 
 // The answer depends on the request host, so this can never be prerendered — one
@@ -78,8 +79,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
           // (blocking them has Google render the shop unstyled and index no
           // images), `/sitemap.xml` is the file the Sitemap line below points
           // at, and `/favicon.ico` has to be fetchable for the icon to show
-          // beside a search result. Every one is a longer path than `/`, so
-          // specificity lets them through without loosening anything else.
+          // beside a search result. `/icon.png` rides along because
+          // `app/favicon.ico/route.ts` redirects there for a store that has not
+          // uploaded an icon — a crawler blocked at the redirect target sees the
+          // same nothing as one blocked at the redirect. Every one is a longer
+          // path than `/`, so specificity lets them through without loosening
+          // anything else.
           {
             userAgent: "*",
             allow: [base, ...PUBLIC_FILES],

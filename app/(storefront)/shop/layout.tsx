@@ -7,6 +7,7 @@ import {
   getStoreCategories,
   getStorePages,
 } from "@/lib/storefront-server";
+import { faviconHref } from "@/lib/storefront-client";
 import { StoreShell } from "@/components/storefront/store-shell";
 import { MetaPixel } from "@/components/storefront/meta-pixel";
 
@@ -73,14 +74,20 @@ export default async function ShopLayout({
   // status.
   if (!store) return <BareStorefront>{children}</BareStorefront>;
 
-  const favicon = store?.favicon?.thumbnailUrl || store?.favicon?.url;
+  const favicon = faviconHref(store?.favicon);
 
   return (
     <>
       {/* The store's favicon as tab icon, in the SSR <head> from the first byte
           (see note above). The store logo is NOT a fallback here — the favicon
           is the only source of the tab icon — so without one the browser's
-          implicit /favicon.ico answers instead: render nothing. */}
+          implicit /favicon.ico answers instead (`app/favicon.ico/route.ts`,
+          which resolves the same store): render nothing.
+
+          ONE icon link, not one per format. This tag is also what Google reads
+          for the icon beside a search result, and `faviconHref` resolves to the
+          PNG precisely because Google cannot read webp — offering both would
+          just hand the crawler two candidates and no stated preference. */}
       {favicon ? <link rel="icon" href={favicon} /> : null}
       {/* Meta Pixel base tag. Rendered HERE, from the server, because `store` is already
           awaited above — so the id ships in the SSR HTML and the first PageView fires on first
