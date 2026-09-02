@@ -781,7 +781,7 @@ export interface StorefrontOrder {
      * own updates — the only delivery detail the shopper gets. The staff `by` is
      * stripped server-side.
      */
-    history?: { status: string; note?: string; at?: string }[];
+    history?: { status: string; label?: string; group?: string; at?: string }[];
   };
   createdAt: string;
   statusHistory?: { status: string; at: string }[];
@@ -839,7 +839,7 @@ export interface TrackedOrder {
     trackingCode?: string;
     trackingUrl?: string;
     normalizedStatus?: string;
-    history: { status: string; note?: string; at?: string }[];
+    history: { status: string; label?: string; group?: string; at?: string }[];
   };
   statusHistory: { status: string; at?: string }[];
 }

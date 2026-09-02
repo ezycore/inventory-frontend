@@ -64,3 +64,27 @@ export function discountPct(
   if (!compareAt || !price || compareAt <= price) return 0;
   return Math.round(((compareAt - price) / compareAt) * 100);
 }
+
+/**
+ * A timestamp for the buyer — `17 Aug 2026, 18:31`.
+ *
+ * Spelled out rather than left to `toLocaleString()` defaults, which is what the
+ * tracking page and the parcel feed each did separately and disagreed about: a
+ * bare `toLocaleString()` follows the *browser's* locale while
+ * `toLocaleString("en-BD")` resolves to US month-first, so one page printed
+ * `25/08/2026` above `8/17/2026` for dates two days apart. Day-first with a named
+ * month is unambiguous in either reading, and `bn-BD` renders it in Bangla
+ * numerals and month names for free.
+ */
+export function dateTime(value?: string | Date, langCode = "en-BD"): string {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(langCode, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
