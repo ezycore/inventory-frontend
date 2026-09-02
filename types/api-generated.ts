@@ -11846,6 +11846,7 @@ export interface components {
                 subtitle?: string;
                 buttonLabel?: string;
                 link?: string;
+                hideTextOnMobile?: boolean;
             }[];
             heroBanner?: {
                 badge?: string;
@@ -18654,6 +18655,7 @@ export interface operations {
                         subtitle?: string;
                         buttonLabel?: string;
                         link?: string;
+                        hideTextOnMobile?: boolean;
                     }[];
                     heroBanner?: {
                         badge?: string;

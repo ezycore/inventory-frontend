@@ -201,6 +201,7 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
             mobileImage,
             focal: { x: 70, y: 30 },
             mobileFocal: { x: 40, y: 65 },
+            hideTextOnMobile: true,
           },
         ],
         heroBanner: {
@@ -214,6 +215,7 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
     expect(result.heroSlides?.[0]).toMatchObject({
       mobileImage,
       mobileFocal: { x: 40, y: 65 },
+      hideTextOnMobile: true,
     });
     expect(result.heroBanner).toMatchObject({
       mobileImage,
