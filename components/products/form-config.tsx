@@ -423,6 +423,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             type: "custom",
             zodType: "number",
             label: tr('form.sellPrice', "Sell price (per unit)"),
+            required: true,
             columnSpan: 12,
             placeholder: "0.00",
             validation: { min: 0, max: 999999 },
@@ -498,7 +499,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
         // render here — per-variant stock lives in the Variants table. Combos hold
         // no inventory of their own, so the whole section is hidden for them.
         dependsOn: [
-          { field: "_id", condition: "falsy" },
+          { field: "_id", condition: "falsy", action: "show" },
           { field: "productType", value: "combo", condition: "ne" },
         ],
         headerAction: ({ control }: { control: any }) => (
