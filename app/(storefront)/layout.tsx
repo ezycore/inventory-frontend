@@ -24,9 +24,20 @@ export default function StorefrontGroupLayout({
 }) {
   return (
     <>
+      {/* `suppressHydrationWarning` because NO_FLASH below deliberately rewrites
+          this element's `data-theme` and `lang` BEFORE React hydrates — that is
+          the entire point of a no-flash script, and it guarantees the DOM will
+          not match the server HTML (which is always `light` and carries no
+          `lang`). Without this, every dark-mode or Bangla shopper got a React
+          hydration error on every storefront page.
+
+          It is shallow by design: it silences the mismatch on THIS element's own
+          attributes only, never its children, so a genuine hydration bug
+          anywhere inside still reports. */}
       <div
         className={`sf-root min-h-screen ${STOREFRONT_FONT_VARS}`}
         data-theme="light"
+        suppressHydrationWarning
       >
         <StorefrontUIProvider>{children}</StorefrontUIProvider>
       </div>

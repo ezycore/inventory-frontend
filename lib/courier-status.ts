@@ -63,6 +63,42 @@ export const COURIER_STATUS: Record<
   },
 };
 
+/**
+ * Bangla for the phase headings a carrier groups its events under — Pathao's
+ * `grouped_status`, the only source of them today.
+ *
+ * The headings arrive in the provider's English, and so do the event sentences
+ * beneath them ("Received at pickup hub: Rayerbag."), which we cannot translate:
+ * they are free text written by the courier, naming hubs and riders. Translating
+ * the *heading* is what makes the difference for a Bangla shopper — the phase is
+ * the part they need ("where is my parcel"), and it is a small closed vocabulary,
+ * while the detail underneath is a bonus either way.
+ *
+ * Keys are canonicalized the same way the backend canonicalizes them (lower-case,
+ * runs of spaces/underscores/hyphens collapsed to one space), so "Ready For
+ * Delivery" and `Ready_for_Delivery` are the same entry. An unknown heading falls
+ * back to the provider's own wording rather than disappearing — a carrier adding a
+ * phase must not blank the timeline.
+ */
+const COURIER_GROUP_BN: Record<string, string> = {
+  accepted: "গৃহীত",
+  picked: "পিকআপ হয়েছে",
+  "ready for delivery": "ডেলিভারির জন্য প্রস্তুত",
+  delivered: "ডেলিভারি হয়েছে",
+  "partial delivery": "আংশিক ডেলিভারি",
+  "on hold": "স্থগিত",
+  return: "ফেরত",
+  returned: "ফেরত",
+  cancelled: "বাতিল",
+};
+
+/** The carrier's phase heading in the shopper's language, or its own wording. */
+export function courierGroupLabel(group: string, bn: boolean): string {
+  if (!bn) return group;
+  const key = group.replace(/[\s_-]+/g, " ").trim().toLowerCase();
+  return COURIER_GROUP_BN[key] ?? group;
+}
+
 /** Resolve presentation for a status, falling back to `unknown` for any stray value. */
 export function courierStatusPresentation(
   status: string | null | undefined,

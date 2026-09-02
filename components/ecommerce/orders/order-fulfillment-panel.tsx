@@ -11,6 +11,7 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { cap } from "./order-detail-helpers";
 import { CourierDispatchForm } from "./courier-dispatch-form";
+import { CourierTimeline } from "./courier-timeline";
 import { CourierTrackingSummary } from "./courier-tracking-summary";
 import { ManualDispatchForm } from "./manual-dispatch-form";
 import { ManualStatusPanel } from "./manual-status-panel";
@@ -97,10 +98,22 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
             }
           />
           {/* Only a manual courier's status is ours to set — an integrated one
-              reports its own, and the sweep would overwrite anything typed here. */}
+              reports its own, and the sweep would overwrite anything typed here.
+              Its panel carries the feed itself, right under the control that
+              writes to it; an API courier gets the feed on its own. */}
           {order.courier?.integration === "manual" ? (
             <ManualStatusPanel order={order} />
-          ) : null}
+          ) : (
+            <div className="space-y-2 rounded-lg border p-3">
+              <div className="text-xs font-medium text-muted-foreground">
+                Parcel progress
+              </div>
+              <CourierTimeline
+                history={order.courier?.history ?? []}
+                emptyHint="No updates from the courier yet. Statuses refresh automatically every 30 minutes, or use Refresh above."
+              />
+            </div>
+          )}
         </>
       ) : canShip ? (
         !hasCourier ? (

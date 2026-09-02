@@ -220,6 +220,14 @@ export interface Dict {
   trackFailedTitle: string;
   trackFailedBody: string;
   tryAgain: string;
+  /** The tracking page's own chrome — the one surface a guest ever sees. */
+  trackCourier: string;
+  trackTrackingCode: string;
+  trackProgress: string;
+  trackDeliveringTo: string;
+  trackCollectFrom: string;
+  trackLookUpOrder: string;
+  trackBackToStore: string;
   /** Confirmation screen: the buyer's tracking link + its copy control. */
   trackYourOrder: string;
   /** Why a guest should keep that link — no account means no other way back. */
@@ -644,6 +652,13 @@ const en: Dict = {
   trackFailedBody:
     "Something went wrong at our end, not with your link. Try again in a moment.",
   tryAgain: "Try again",
+  trackCourier: "Courier",
+  trackTrackingCode: "Tracking code",
+  trackProgress: "Progress",
+  trackDeliveringTo: "Delivering to",
+  trackCollectFrom: "Collect from",
+  trackLookUpOrder: "Look up an order",
+  trackBackToStore: "Back to the store",
   trackYourOrder: "Track your order",
   guestKeepLink: "Save this link — without an account it's your only way back to this order.",
   copyLink: "Copy link",
@@ -1043,6 +1058,13 @@ const bn: Dict = {
   trackFailedBody:
     "সমস্যাটি আমাদের দিকে, আপনার লিংকে নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।",
   tryAgain: "আবার চেষ্টা করুন",
+  trackCourier: "কুরিয়ার",
+  trackTrackingCode: "ট্র্যাকিং কোড",
+  trackProgress: "অগ্রগতি",
+  trackDeliveringTo: "ডেলিভারি হচ্ছে",
+  trackCollectFrom: "সংগ্রহের স্থান",
+  trackLookUpOrder: "অর্ডার খুঁজুন",
+  trackBackToStore: "দোকানে ফিরে যান",
   trackYourOrder: "অর্ডার ট্র্যাক করুন",
   guestKeepLink: "লিংকটি সংরক্ষণ করুন — অ্যাকাউন্ট ছাড়া এই অর্ডারে ফিরে আসার এটিই একমাত্র উপায়।",
   copyLink: "লিংক কপি করুন",
@@ -1293,6 +1315,26 @@ export const ORDER_STATUS: Record<
   cancelled: { en: "Cancelled", bn: "বাতিল", c: "#b91c1c" },
   returned: { en: "Returned", bn: "ফেরত", c: "#b91c1c" },
   rejected: { en: "Rejected", bn: "বাতিল", c: "#b91c1c" },
+};
+
+/**
+ * The status wording on the **tracking link** — deliberately plainer than
+ * `ORDER_STATUS` above, which is the vocabulary the account view and the admin
+ * share ("Processing", "Shipped"). A guest following a link from a merchant has
+ * no context for those, so this map answers the only question they have: where is
+ * my order. Kept separate for that reason rather than merged into `ORDER_STATUS`.
+ */
+export const TRACK_STATUS: Record<string, { en: string; bn: string }> = {
+  pending: { en: "Order received", bn: "অর্ডার পেয়েছি" },
+  confirmed: { en: "Confirmed", bn: "নিশ্চিত হয়েছে" },
+  processing: { en: "Being packed", bn: "প্যাক করা হচ্ছে" },
+  shipped: { en: "On the way", bn: "পথে আছে" },
+  delivered: { en: "Delivered", bn: "ডেলিভারি হয়েছে" },
+  ready_for_pickup: { en: "Ready to collect", bn: "সংগ্রহের জন্য প্রস্তুত" },
+  picked_up: { en: "Collected", bn: "সংগ্রহ করা হয়েছে" },
+  returned: { en: "Returned", bn: "ফেরত গেছে" },
+  cancelled: { en: "Cancelled", bn: "বাতিল হয়েছে" },
+  rejected: { en: "Not accepted", bn: "গ্রহণ করা হয়নি" },
 };
 
 /** Order status pipeline for the tracking timeline. */

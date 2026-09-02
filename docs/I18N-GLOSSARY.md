@@ -109,6 +109,29 @@ sidebar must say which one it is opening.
 | Content | কনটেন্ট | transliterate | CMS pages |
 | Courier | কুরিয়ার | transliterate | Pathao / Steadfast / eCourier |
 | Cash on Delivery (COD) | ক্যাশ অন ডেলিভারি | transliterate | universally said in full or as "COD" |
+| Accepted (courier phase) | গৃহীত | translate | the carrier's own phase heading on the parcel timeline |
+| Picked (courier phase) | পিকআপ হয়েছে | mixed | matches `fulfillmentPickup` — পিকআপ is the term merchants use |
+| Ready for delivery (courier phase) | ডেলিভারির জন্য প্রস্তুত | mixed | rider assigned, not yet delivered |
+| Delivered (courier phase) | ডেলিভারি হয়েছে | mixed | the phase heading; the shopper STATUS label stays "রাইডার ডেলিভারি করেছেন" |
+| On hold (courier phase) | স্থগিত | translate | parcel paused at the carrier, not cancelled |
+| Order received (tracking) | অর্ডার পেয়েছি | translate | the tracking link's plainer status vocabulary — see `TRACK_STATUS` |
+| Being packed (tracking) | প্যাক করা হচ্ছে | mixed | what `processing` means to a buyer |
+| On the way (tracking) | পথে আছে | translate | what `shipped` means to a buyer |
+| Ready to collect (tracking) | সংগ্রহের জন্য প্রস্তুত | translate | pickup orders |
+| Not accepted (tracking) | গ্রহণ করা হয়নি | translate | `rejected`, worded so it does not read as the buyer's fault |
+| Tracking code | ট্র্যাকিং কোড | mixed | the carrier's own reference |
+| Progress | অগ্রগতি | translate | the order's step list on the tracking link |
+
+> **The tracking link has its own status vocabulary, `TRACK_STATUS` in `lib/storefront-i18n.ts`.**
+> It is deliberately plainer than `ORDER_STATUS` (which the account view and the admin share): a guest
+> following a merchant's link has no context for "Processing" or "Shipped", so it answers the only
+> question they have — where is my order.
+>
+> **Courier phase headings live in `lib/courier-status.ts`, not in `lib/storefront-i18n.ts`.**
+> They are the carrier's own grouping of a parcel's events (Pathao's `grouped_status`), and that file
+> already owns the bilingual courier-status vocabulary the same feed renders beside them. The event
+> *sentences* under each heading are the courier's free text — hub and rider names — and are not
+> translatable; the heading is, and it is the half a Bangla buyer actually needs.
 
 ## Statuses
 
