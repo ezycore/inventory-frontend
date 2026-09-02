@@ -1390,8 +1390,19 @@ resolved **per request from the host**, never baked.
   `<link rel="icon">` in `shop/layout.tsx`, deliberately **not** `metadata.icons` (see the note there).
   Its source is `store.favicon` — the **org-level favicon**, pre-resolved by the backend
   `getStoreInfo` — and **not** the store logo: the tab icon never falls back to a logo, so a store
-  without a favicon renders no `<link>` at all and the browser's implicit `/favicon.ico` answers.
+  without a favicon renders no `<link>` at all and the per-host `/favicon.ico` route answers.
   (The store *logo* keeps its own `settings.logo ?? org.logo` fallback; only the favicon is unchained.)
+  Always pick the variant with **`faviconHref`** (`lib/storefront-client.ts`), never
+  `favicon.thumbnailUrl` directly: it resolves `pngUrl` first, because Google Search cannot read
+  webp and the icon beside a search result comes from this exact tag. Emit ONE icon link — offering
+  webp alongside the PNG hands the crawler two candidates and no stated preference.
+- **`/favicon.ico` is per host** (`app/favicon.ico/route.ts`, `dynamic = "force-dynamic"`). It
+  resolves the store with the same `resolveStoreForHost` the proxy and `robots.ts` use, then 307s to
+  that store's icon; non-storefront hosts (tenant root, `app.`, `admin.<domain>`) get `/icon.png`.
+  This exists because the static `public/favicon.ico` served the EzyCore mark from *every* host,
+  merchant custom domains included — and because a crawler reads the icon off the **home page**,
+  which on a tenant subdomain is the admin app, not `/shop`. **`public/favicon.ico` must stay
+  deleted**: a file in `public/` is served ahead of any route and would shadow this silently.
 - **Content must be in the SSR HTML.** `page.tsx` fetches with `lib/storefront-server.ts` and passes
   the result to the client view as query `initialData` (`useStoreProduct` / `useStoreProducts` /
   `useStorePage` / `useStore` / `useStorePages` / `useStoreCampaigns` all take it). This was a real

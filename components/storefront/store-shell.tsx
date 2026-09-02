@@ -11,6 +11,7 @@ import type {
   StoreTemplates,
   StorefrontStore,
 } from "@/lib/storefront-client";
+import { faviconHref } from "@/lib/storefront-client";
 import { useStore, useStoreCategories } from "@/services/storefront/hooks";
 import { useFaviconOverride } from "@/hooks/use-favicon-override";
 import {
@@ -104,7 +105,7 @@ export function StoreShell({
   // fallback for the tab icon, and the preview-store override that feeds `logo`
   // is for the Customize editor's live brand preview, which has no business
   // repainting the tab icon while someone drags a logo around.
-  useFaviconOverride(store?.favicon?.thumbnailUrl || store?.favicon?.url);
+  useFaviconOverride(faviconHref(store?.favicon));
 
   if (isError) {
     return (

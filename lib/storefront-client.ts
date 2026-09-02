@@ -23,6 +23,33 @@ export interface StorefrontImage {
 }
 
 /**
+ * The favicon carries one variant the other images do not: a 96x96 **PNG**.
+ *
+ * Everything else we store is webp, which every browser reads and Google Search
+ * does not — its supported icon formats are BMP, GIF, ICO, PNG, JPEG, PPM and
+ * TIFF. A store whose icon is webp-only therefore renders correctly in the tab
+ * and shows nothing beside a search result. Optional because favicons uploaded
+ * before the PNG existed have not been backfilled yet.
+ */
+export interface StorefrontFavicon extends StorefrontImage {
+  pngUrl?: string;
+}
+
+/**
+ * The single rule for which favicon variant to render, everywhere.
+ *
+ * PNG first — it is the only variant Google can read, and it is the one sized
+ * and letterboxed for icon use (the 200px thumbnail is a `cover` crop meant for
+ * a card). The webp variants stay as the fallback for rows the backfill has not
+ * reached, since a webp tab icon still beats no tab icon. `undefined` means the
+ * merchant uploaded nothing: render no `<link>` and let `/favicon.ico` answer.
+ */
+export const faviconHref = (
+  favicon?: StorefrontFavicon | null,
+): string | undefined =>
+  favicon?.pngUrl || favicon?.thumbnailUrl || favicon?.url || undefined;
+
+/**
  * One homepage section instance on the public payload.
  *
  * A bare section id until 2026-08-15. It carries identity now because a flat id
@@ -174,7 +201,7 @@ export interface StorefrontStore {
    * cover-cropped to a square. Null ⇒ render no `<link rel="icon">` at all and
    * let the browser's implicit /favicon.ico request answer.
    */
-  favicon?: StorefrontImage | null;
+  favicon?: StorefrontFavicon | null;
   banner?: StorefrontImage | null;
   /**
    * Share-card image, already resolved server-side through
