@@ -43,7 +43,7 @@ export function ContactLauncher({
 
   const link = useContactLink(store, base);
   const cartOpen = useCartUI((s) => s.open);
-  const away = useContactHours(link?.hours);
+  const away = useContactHours(link?.hours, store?.timezone);
   const nudge = link?.nudge;
 
   // Escape and an outside click close the fan-out. A floating menu that survives

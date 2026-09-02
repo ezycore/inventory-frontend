@@ -42,6 +42,27 @@ describe("merchant promise sections", () => {
   });
 });
 
+describe("editorial split — QA-123 (must not repeat the hero's copy)", () => {
+  const heroBanner = {
+    title: "New collection, delivered to your door",
+    subtitle: "Saree, three piece, panjabi and everyday fashion.",
+    primaryLabel: "Shop now",
+  };
+  const t = {
+    editorialTitle: "Worth a closer look",
+    editorialSubtitle: "A few of our favourites, picked for you.",
+    shopNow: "Shop now",
+  };
+
+  it("renders its OWN headline/subtitle, not the hero's, even when both are on the page", () => {
+    render(<EditorialSplit {...props} t={t as SectionProps["t"]} heroBanner={heroBanner} />);
+    expect(screen.getByText("Worth a closer look")).toBeInTheDocument();
+    expect(screen.getByText("A few of our favourites, picked for you.")).toBeInTheDocument();
+    expect(screen.queryByText(heroBanner.title)).not.toBeInTheDocument();
+    expect(screen.queryByText(heroBanner.subtitle)).not.toBeInTheDocument();
+  });
+});
+
 describe("offer position", () => {
   it("is mobile-only because desktop already shows every offer", () => {
     render(
