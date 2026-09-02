@@ -92,12 +92,17 @@ export interface StoreHomeCollections {
 /** One home-page hero slide (owner-managed carousel). */
 export interface StoreHeroSlide {
   image?: StorefrontImage | null;
+  /** Optional phone artwork; unset falls back to `image`. */
+  mobileImage?: StorefrontImage | null;
   /** Crop anchor for narrow boxes; unset = centre. See `storefront-focal.ts`. */
   focal?: StoreFocalPoint;
+  /** Phone crop anchor; unset falls back to `focal`. */
+  mobileFocal?: StoreFocalPoint;
   /** How this slide's photo fills the hero; unset = show the whole photo. */
   imageFit?: string;
   badge?: string;
-  title: string;
+  /** Optional; an image can be the complete slide. */
+  title?: string;
   subtitle?: string;
   buttonLabel?: string;
   link?: string;
@@ -118,8 +123,12 @@ export interface StoreHeroBanner {
   secondaryLink?: string;
   /** How the banner photo fills its frame; unset = show the whole photo. */
   imageFit?: string;
+  /** Optional phone artwork; desktop continues to use the store banner. */
+  mobileImage?: StorefrontImage | null;
   /** Crop anchor for the banner; unset = centre. See `storefront-focal.ts`. */
   focal?: StoreFocalPoint;
+  /** Phone crop anchor; unset falls back to `focal`. */
+  mobileFocal?: StoreFocalPoint;
 }
 
 /** One channel on the public payload — `value` is resolved, `enabled` is gone. */

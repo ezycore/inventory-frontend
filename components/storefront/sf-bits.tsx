@@ -65,16 +65,20 @@ export function Placeholder({
  */
 export function Media({
   src,
+  mobileSrc,
   alt,
   label,
   ratio = "1 / 1",
   radius = 11,
   fit = "cover",
   focal,
+  mobileFocal,
   className,
   style,
 }: {
   src?: string | null;
+  /** Optional phone source; unset keeps using `src`. */
+  mobileSrc?: string | null;
   alt?: string;
   label?: string;
   ratio?: string;
@@ -88,10 +92,33 @@ export function Media({
    * is every product/thumbnail caller.
    */
   focal?: string;
+  /** Phone crop anchor; unset falls back to `focal`. */
+  mobileFocal?: string;
   className?: string;
   style?: CSSProperties;
 }) {
   if (src) {
+    const focusStyle = {
+      "--sf-media-focus": focal || "center",
+      "--sf-media-mobile-focus": mobileFocal || focal || "center",
+    } as CSSProperties;
+    const responsiveImage = (
+      imageClassName: string | undefined,
+      imageStyle: CSSProperties,
+      imageAlt: string,
+      hidden = false,
+    ) => (
+      <picture style={{ display: "contents" }}>
+        {mobileSrc ? <source media="(max-width: 640px)" srcSet={mobileSrc} /> : null}
+        <img
+          src={src}
+          alt={imageAlt}
+          aria-hidden={hidden || undefined}
+          className={imageClassName}
+          style={{ ...focusStyle, ...imageStyle }}
+        />
+      </picture>
+    );
     if (fit === "canvas") {
       return (
         <div
@@ -106,44 +133,37 @@ export function Media({
             ...style,
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt=""
-            aria-hidden="true"
-            style={{
+          {responsiveImage(
+            "sf-media-canvas-bg",
+            {
               position: "absolute",
               inset: "-8%",
               width: "116%",
               height: "116%",
               objectFit: "cover",
               filter: "blur(22px) saturate(1.2) brightness(0.88)",
-            }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt || ""}
-            style={{ position: "relative", width: "100%", height: "100%", objectFit: "contain" }}
-          />
+            },
+            "",
+            true,
+          )}
+          {responsiveImage(
+            "sf-media-canvas-fg",
+            { position: "relative", width: "100%", height: "100%", objectFit: "contain" },
+            alt || "",
+          )}
         </div>
       );
     }
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={alt || ""}
-        className={className}
-        style={{
+    return responsiveImage(
+      className ? `${className} sf-media-cover` : "sf-media-cover",
+      {
           aspectRatio: ratio,
           width: "100%",
           objectFit: "cover",
-          objectPosition: focal,
           borderRadius: radius,
           ...style,
-        }}
-      />
+      },
+      alt || "",
     );
   }
   return <Placeholder label={label} ratio={ratio} radius={radius} style={style} />;

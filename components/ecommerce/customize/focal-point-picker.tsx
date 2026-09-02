@@ -16,11 +16,8 @@ const NUDGE = 5;
 /**
  * Pick the part of a hero photo that must survive a crop.
  *
- * The hero is a fixed height rather than a fixed ratio, so the same upload is a
- * wide strip on a desktop and nearly square on a phone. Without this the crop is
- * always centred, which is why the panel used to ask owners to compose around
- * it — advice that could not work, since it asked them to put the subject
- * exactly where the phone throws away.
+ * The same upload fills a wide desktop hero and a compact mobile hero. Without
+ * this the crop is always centred, which can still lose an off-centre subject.
  *
  * **The click target is the `<img>`, not its padded box**, so a photo of any
  * ratio maps its own edges to 0% and 100%. Sizing the picker box instead and
@@ -32,11 +29,13 @@ export function FocalPointPicker({
   url,
   value,
   onChange,
+  previewLabel = "Crop preview",
 }: {
   url: string;
   value?: StoreFocalPoint;
   /** `undefined` clears the point back to centre. */
   onChange: (focal: StoreFocalPoint | undefined) => void;
+  previewLabel?: string;
 }) {
   const focal = value ?? CENTRE_FOCAL;
   const dragging = useRef(false);
@@ -117,14 +116,14 @@ export function FocalPointPicker({
           <div
             className="w-full overflow-hidden rounded-md border"
             style={{
-              aspectRatio: "4 / 3",
+              aspectRatio: "16 / 9",
               backgroundImage: `url("${url}")`,
               backgroundSize: "cover",
               backgroundPosition: focalPosition(focal),
             }}
           />
           <p className="text-center text-[10px] leading-tight text-muted-foreground">
-            Phone crop
+            {previewLabel}
           </p>
         </div>
       </div>
