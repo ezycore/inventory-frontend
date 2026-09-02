@@ -39,19 +39,20 @@ export const metadata = {
   // (auth) via its own metadata, (protected) via a raw <title> in the layout
   // JSX that React hoists, and the storefront via per-page generateMetadata.
   description: "Modern inventory management system for businesses",
-  // NOTE: deliberately NO `icons` here. The default favicon is served as the
-  // static file `public/favicon.ico` (the browser's implicit request), which
-  // Next does NOT manage in the <head>. Both the storefront (store logo) and
-  // the admin app (org logo) then swap the tab icon in client-side via
-  // useFaviconOverride (hooks/use-favicon-override).
+  // NOTE: deliberately NO `icons` here. The default favicon answers the
+  // browser's implicit /favicon.ico request via `app/favicon.ico/route.ts` — a
+  // Route Handler, not a file convention, so Next still does NOT manage a
+  // <link> in the <head>. Both the storefront (store favicon) and the admin app
+  // (org logo) then swap the tab icon in client-side via useFaviconOverride
+  // (hooks/use-favicon-override).
   //
   // Why not `metadata.icons`: Next owns that <link>, duplicates it on hydration,
   // and RE-ASSERTS it on every client navigation — so the hook's in-place swap
   // lost to a stale /icon.png, causing the "default → logo" blink on each nav
   // (and the wrong icon after reload). With no metadata icon, the hook owns the
   // only <link rel="icon"> and nothing fights it. File-convention icons
-  // (app/icon.*, app/favicon.ico) would re-introduce a Next-managed link — keep
-  // the default in /public instead.
+  // (app/icon.*, a static app/favicon.ico) would re-introduce a Next-managed
+  // link — the route handler deliberately is not one.
 };
 
 export default async function RootLayout({

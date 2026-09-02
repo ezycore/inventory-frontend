@@ -11293,6 +11293,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                pngUrl?: string;
             } | null;
             receiptSettings?: {
                 phone?: string;
@@ -12080,7 +12081,13 @@ export interface components {
             currency?: string;
             canonicalHost: string | null;
             logo?: unknown;
-            favicon?: unknown;
+            favicon?: {
+                url: string;
+                mediumUrl: string;
+                thumbnailUrl: string;
+                publicId: string;
+                pngUrl?: string;
+            } | null;
             banner?: unknown;
             socialImage?: unknown;
             contact?: unknown;
@@ -13247,6 +13254,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    pngUrl?: string;
                 } | null;
                 address?: string | null;
                 settings?: {
@@ -13366,6 +13374,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    pngUrl?: string;
                 } | null;
                 address?: string | null;
                 settings?: {
@@ -13489,6 +13498,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        pngUrl?: string;
                     } | null;
                     address?: string | null;
                     settings?: {
@@ -13609,6 +13619,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        pngUrl?: string;
                     } | null;
                     address?: string | null;
                     settings?: {
@@ -13769,6 +13780,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        pngUrl?: string;
                     } | null;
                     address?: string | null;
                     settings?: {
@@ -13912,6 +13924,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        pngUrl?: string;
                     } | null;
                     address?: string | null;
                     settings?: {
