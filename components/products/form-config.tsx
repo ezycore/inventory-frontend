@@ -118,6 +118,23 @@ const sectionIcon = (Icon: typeof Info) => (
  */
 function buildProductFormConfig(t?: Translator): DynamicFormConfig {
   const tr = (key: string, fallback: string) => (t ? t(key) : fallback)
+  const productTypeOptions = [
+    {
+      value: 'single',
+      label: tr('form.typeSingle', "Simple product"),
+      description: tr('form.typeSingleDescription', "One product, one price"),
+    },
+    {
+      value: 'variable',
+      label: tr('form.typeVariable', "Variable product"),
+      description: tr('form.typeVariableDescription', "Multiple variants (size, color...)"),
+    },
+    {
+      value: 'combo',
+      label: tr('form.typeCombo', "Combo / bundle"),
+      description: tr('form.typeComboDescription', "Several products sold as one priced unit"),
+    },
+  ]
   const taxTypeOptions = t
     ? getTaxTypeOptions(t)
     : [
@@ -171,13 +188,30 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             columnSpan: 12,
             defaultValue: "single",
             optionLayout: "cards",
+            lockedDisplay: (values) => {
+              const selectedType = productTypeOptions.find(
+                (option) => option.value === values.productType,
+              )
+
+              return (
+                <div className="space-y-0.5">
+                  <p className="font-medium text-foreground">
+                    {selectedType?.label || values.productType || "—"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedType?.description}
+                    {selectedType?.description ? " " : ""}
+                    {tr(
+                      'form.productTypeLockedHint',
+                      "Product type is set when the product is created and cannot be changed.",
+                    )}
+                  </p>
+                </div>
+              )
+            },
             // The 'combo' option is stripped in the products page when the org's
             // `combo` feature is off (see comboGatedFormConfig).
-            options: [
-              { value: 'single', label: tr('form.typeSingle', "Simple product"), description: tr('form.typeSingleDescription', "One product, one price") },
-              { value: 'variable', label: tr('form.typeVariable', "Variable product"), description: tr('form.typeVariableDescription', "Multiple variants (size, color...)") },
-              { value: 'combo', label: tr('form.typeCombo', "Combo / bundle"), description: tr('form.typeComboDescription', "Several products sold as one priced unit") },
-            ],
+            options: productTypeOptions,
           },
           {
             name: "categoryId",

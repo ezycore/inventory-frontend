@@ -110,6 +110,7 @@
       "typeVariableDescription": "Multiple variants (size, color...)",
       "typeCombo": "Combo / bundle",
       "typeComboDescription": "Several products sold as one priced unit",
+      "productTypeLockedHint": "Product type is set when the product is created and cannot be changed.",
       "category": "Category",
       "categoryPlaceholder": "Choose category",
       "brand": "Brand",
