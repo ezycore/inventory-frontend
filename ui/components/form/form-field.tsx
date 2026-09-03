@@ -31,7 +31,7 @@ function renderLockedDisplay(
 ): ReactNode {
   const display = field.lockedDisplay ? field.lockedDisplay(allValues) : fieldValue;
   return (
-    <div className="flex h-9 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+    <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
       {display || "—"}
     </div>
   );
@@ -223,15 +223,16 @@ export const FormField: FC<{
     shouldDisable,
   };
 
-  // A select locked in edit mode renders as static text — never mount the
-  // AdvancedSelect, so its option list is never fetched just to show one label.
-  const isLockedSelect =
+  // A locked field with an explicit display renders as static context rather
+  // than an input. Selects retain this behavior by default so their option
+  // lists are not fetched just to resolve one label.
+  const isLockedField =
     !!isFieldDisabledInEdit &&
-    (field.type === "select" || field.type === "fuseSelect");
+    (!!field.lockedDisplay || field.type === "select" || field.type === "fuseSelect");
 
   const fieldInput = viewMode
     ? renderFieldViewMode(field, fieldValue)
-    : isLockedSelect
+    : isLockedField
       ? renderLockedDisplay(field, allValues, fieldValue)
       : renderField(renderContext);
 

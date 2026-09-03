@@ -16,6 +16,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
+import { Switch } from "@/ui/components/switch";
 import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 import { Label } from "@/ui/components/label";
 import { PhotoFitField } from "@/components/ecommerce/customize/photo-fit-field";
@@ -268,6 +269,24 @@ export function HeroSlidesPanel({
                     }
                     onFocalChange={(mobileFocal) => patch(i, { mobileFocal })}
                   />
+                  <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                    <div className="min-w-0">
+                      <Label htmlFor={`hero-hide-mobile-text-${i}`} className="text-xs font-medium">
+                        Hide text and button on mobile
+                      </Label>
+                      <p className="mt-1 text-xs leading-snug text-muted-foreground">
+                        Show only the slide artwork and navigation dots on phones.
+                      </p>
+                    </div>
+                    <Switch
+                      id={`hero-hide-mobile-text-${i}`}
+                      checked={!!s.hideTextOnMobile}
+                      onCheckedChange={(hideTextOnMobile) =>
+                        patch(i, { hideTextOnMobile })
+                      }
+                      aria-label="Hide text and button on mobile"
+                    />
+                  </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Title (optional)</Label>
                     <Input

@@ -45,14 +45,26 @@ export function matchVariant(
   );
 }
 
-/** Default selection — the first in-stock variant (or just the first). */
+/**
+ * Default selection — the CHEAPEST sellable variant (or just the first).
+ *
+ * Cheapest, not first-in-list: the card headline follows this pick the moment
+ * the variants load, so a first-in-list default can turn "From \u09f3300" into
+ * \u09f3350 with no shopper action. The lowest price is the one the card already
+ * advertised, so the number never moves upward on its own. Ties keep the earlier
+ * variant, which is the previous behaviour for a product priced flat across its
+ * options. A backorder product reads 0 on every variant and still falls through
+ * to the first — `cartLineCap` is what decides whether that one is buyable.
+ */
 export function defaultSelection(
   variants: CatalogVariant[],
 ): Record<string, string> {
-  const pick =
-    variants.find((v) => v.availableQuantity > 0 && v.price != null) ??
-    variants[0];
-  return { ...(pick?.attributes ?? {}) };
+  let pick: CatalogVariant | undefined;
+  for (const v of variants) {
+    if (v.availableQuantity <= 0 || v.price == null) continue;
+    if (!pick || v.price < pick.price!) pick = v;
+  }
+  return { ...((pick ?? variants[0])?.attributes ?? {}) };
 }
 
 /** Widest single-axis chip row that still fits a card flyout at 2-column mobile. */
