@@ -90,6 +90,17 @@ export function useHeroRotation(count: number) {
   const swipeProps = {
     onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
       if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+      const target = e.target;
+      if (
+        target instanceof Element &&
+        target.closest("a, button, input, select, textarea, [role='button']")
+      ) {
+        // Interactive descendants own an ordinary press. Capturing it on the
+        // carousel retargets the eventual click and makes dots/CTAs look inert.
+        suppressClickUntil.current = 0;
+        resetPointer();
+        return;
+      }
       pointer.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
       suppressClickUntil.current = 0;
       e.currentTarget.setPointerCapture?.(e.pointerId);
