@@ -2040,7 +2040,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   .sf-hero-copy {
     justify-content: flex-end;
     max-width: min(92%, 430px);
-    padding: 18px 18px 44px;
+    padding: 14px 14px 40px;
   }
   .sf-hero-nav { display: none; } /* swipe instead */
   .sf-hero-scrim {
@@ -2058,14 +2058,19 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-    font-size: clamp(22px, 7vw, 31px);
-    margin-bottom: 12px;
+    font-size: clamp(18px, 5.8vw, 25px);
+    line-height: 1.08;
+    margin-bottom: 10px;
   }
   .sf-hero-copy a {
-    padding: 9px 18px !important;
-    font-size: 13px !important;
+    padding: 8px 15px !important;
+    font-size: 12px !important;
   }
   .sf-hero-dots { bottom: 7px; }
+  .sf-hero-slide[data-hide-mobile-copy="true"] .sf-hero-copy,
+  .sf-hero-slide[data-hide-mobile-copy="true"] .sf-hero-scrim {
+    display: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .sf-hero-slide { transition: none; }
@@ -2130,7 +2135,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   .sf-hero-fullbleed-copy {
     z-index: 2;
     width: 100%;
-    padding: 22px var(--pad) 26px;
+    padding: 18px var(--pad) 22px;
   }
   .sf-hero-fullbleed-badge,
   .sf-hero-fullbleed-sub { display: none; }
@@ -2139,11 +2144,17 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
-    font-size: clamp(25px, 8vw, 36px) !important;
-    margin: 0 0 14px !important;
+    font-size: clamp(20px, 6.2vw, 28px) !important;
+    line-height: 1.06 !important;
+    margin: 0 0 10px !important;
   }
   .sf-hero-fullbleed-copy > a {
-    padding: 10px 20px !important;
+    padding: 9px 18px !important;
+    font-size: 12px !important;
+  }
+  .sf-hero-fullbleed[data-hide-mobile-copy="true"] .sf-hero-fullbleed-copy,
+  .sf-hero-fullbleed[data-hide-mobile-copy="true"] .sf-hero-fullbleed-scrim {
+    display: none;
   }
 }
 

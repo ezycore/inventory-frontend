@@ -6,6 +6,7 @@ import type { StoreHeroSlide } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroMedia } from "@/components/storefront/hero-media";
+import { Icon } from "@/components/storefront/sf-icons";
 import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
@@ -117,6 +118,7 @@ export function HeroCarousel({
             <section
               key={i}
               className={`sf-hero-slide${i === current ? " sf-hero-active" : ""}`}
+              data-hide-mobile-copy={slide.hideTextOnMobile || undefined}
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== current}
             >
@@ -150,7 +152,7 @@ export function HeroCarousel({
 
         {count > 1 ? (
           <>
-            {/* <button
+            <button
               type="button"
               className="sf-hero-nav sf-hero-prev"
               aria-label="Previous slide"
@@ -165,7 +167,7 @@ export function HeroCarousel({
               onClick={() => go(current + 1)}
             >
               <Icon name="chevR" size={17} />
-            </button> */}
+            </button>
             <div className="sf-hero-dots">
               {slides.map((_, i) => (
                 <button

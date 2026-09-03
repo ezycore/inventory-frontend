@@ -110,6 +110,7 @@
       "typeVariableDescription": "একাধিক ভ্যারিয়েন্ট (আকার, রঙ...)",
       "typeCombo": "কম্বো / বান্ডেল",
       "typeComboDescription": "একটি নির্ধারিত মূল্যে একসাথে বিক্রি হওয়া একাধিক পণ্য",
+      "productTypeLockedHint": "পণ্য তৈরির সময় ধরন নির্ধারিত হয় এবং পরে এটি পরিবর্তন করা যায় না।",
       "category": "ক্যাটাগরি",
       "categoryPlaceholder": "ক্যাটাগরি বাছাই করুন",
       "brand": "ব্র্যান্ড",

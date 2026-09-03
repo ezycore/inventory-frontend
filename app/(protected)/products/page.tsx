@@ -196,6 +196,7 @@ export default function ProductsPage() {
     queryKey: queryKeys.products.all(),
     entityName: t("page.entity"),
     openInside: "drawer" as const,
+    disabledFieldsInEdit: ["productType"],
     onFieldChange: handleFieldChange,
     editTooltip: t("page.editTooltip"),
     deleteTooltip: t("page.deleteTooltip"),
