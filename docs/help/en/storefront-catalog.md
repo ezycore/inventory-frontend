@@ -131,6 +131,13 @@ frames under **This photo**:
 The title is optional. Leave every text field empty to show pure slider artwork: the store adds no
 fallback headline, button, copy panel, or dark text scrim. A completely empty slide is ignored.
 
+Some artwork already carries its own headline, and on a phone the slide's own title then prints the
+same words twice. Each slide has a **Hide text and button on mobile** switch under its phone image
+for exactly that: it hides that slide's title, subtitle, button and dark scrim on phones, and changes
+nothing on a computer. The button goes with the text, so a hidden slide is a picture and nothing
+else — use it where the artwork itself states the offer, and leave the switch off where the button is
+how a shopper acts on the slide.
+
 - **Full photo** — all of it stays visible, over a soft blurred backdrop. This is what a slide does
   until you say otherwise, and it is the right choice for a poster or anything with writing on it,
   which a crop would cut through.
