@@ -159,13 +159,19 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
         setRevealOnLoad(true);
         return;
       }
-      if (!selected || selected.price == null) return;
-      const cap = cartLineCap(selected.availableQuantity, canBackorder);
-      // The chips disable a sold-out value, but `defaultSelection` falls back to
-      // the first variant when none is in stock — so the committed one can still
-      // be empty. Checkout would reject it anyway; refusing here keeps it out of
-      // the cart instead of putting it there to fail later.
-      if (cap === 0) return;
+      const cap = selected
+        ? cartLineCap(selected.availableQuantity, canBackorder)
+        : 0;
+      // The chips strike out a sold-out value, but `defaultSelection` falls back
+      // to the first variant when none is in stock — so the committed one can
+      // still be empty. Checkout would reject it anyway; refusing here keeps it
+      // out of the cart instead of putting it there to fail later. It has to SAY
+      // so: a silent return under a live-looking button is the dead-CTA bug
+      // again, one stock level down.
+      if (!selected || selected.price == null || cap === 0) {
+        toast.error(t.outOfStock);
+        return;
+      }
       commit(
         {
           productId: product._id,
@@ -192,6 +198,7 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
       sheetOpen,
       simpleLine,
       soldOut,
+      t.outOfStock,
       variable,
     ],
   );
