@@ -236,4 +236,18 @@ describe("HeroFullBleed", () => {
       bottom: "18px",
     });
   });
+
+  it("marks an opted-in full-bleed slide for artwork-only mobile rendering", () => {
+    const { container } = render(
+      <HeroFullBleed
+        {...props}
+        heroSlides={[{ ...slides![0], hideTextOnMobile: true }, slides![1]]}
+      />,
+    );
+
+    expect(container.querySelector(".sf-hero-fullbleed")).toHaveAttribute(
+      "data-hide-mobile-copy",
+      "true",
+    );
+  });
 });

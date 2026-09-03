@@ -48,11 +48,10 @@ export type CardQuickBuy = ReturnType<typeof useCardQuickBuy>;
  * **The tiering rule** (`optionsFitInline`): no variants buys straight through;
  * one short axis reveals the in-card flyout; anything larger opens the sheet.
  *
- * **The first press always reveals, never buys.** With a variant preselected we
- * could add to the cart on the first tap, but that would put a size the shopper
- * never chose into their cart. So press one shows the options (with the default
- * highlighted) and press two commits — except for a product with no options,
- * which has nothing to reveal and buys immediately.
+ * **The first press always reveals, never buys.** Press one shows the options
+ * and their first sellable default. Once visible, that highlighted default is a
+ * real selection and the next Add/Buy press may commit it; choosing a chip
+ * replaces it. A product with no options still buys immediately.
  */
 export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   const { slug, base } = useStoreContext();
@@ -84,9 +83,11 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   // would leave the shopper with a chosen size and no button to commit it.
   const fitsInline =
     !ctaOwnsImage && variants.length > 0 && optionsFitInline(variants);
-  /** The shopper touched a chip — as opposed to `defaultSelection`'s highlight. */
-  const hasPicked = Object.keys(picked).length > 0;
-  const selection = hasPicked ? picked : defaultSelection(variants);
+  // The highlighted default is the effective choice until a chip replaces it.
+  // A control that looks selected must behave as selected when Add/Buy is used.
+  const selection = Object.keys(picked).length > 0
+    ? picked
+    : defaultSelection(variants);
   const selected = matchVariant(variants, selection);
 
   const canBackorder = product.outOfStockBehavior === "backorder";
@@ -158,24 +159,19 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
         setRevealOnLoad(true);
         return;
       }
-      // **A variant the shopper never chose is never committed.** `revealed` is
-      // also set by a 120ms mouse dwell, so without this a desktop shopper who
-      // brushed a card and then clicked Add bought whatever `defaultSelection`
-      // had highlighted — a size they never picked. Hover may reveal the
-      // options; only a pick may buy one.
-      if (!hasPicked) {
-        setRevealed(true);
-        if (fitsInline) setFlyoutOpen(true);
-        else setSheetOpen(true);
+      const cap = selected
+        ? cartLineCap(selected.availableQuantity, canBackorder)
+        : 0;
+      // The chips strike out a sold-out value, but `defaultSelection` falls back
+      // to the first variant when none is in stock — so the committed one can
+      // still be empty. Checkout would reject it anyway; refusing here keeps it
+      // out of the cart instead of putting it there to fail later. It has to SAY
+      // so: a silent return under a live-looking button is the dead-CTA bug
+      // again, one stock level down.
+      if (!selected || selected.price == null || cap === 0) {
+        toast.error(t.outOfStock);
         return;
       }
-      if (!selected || selected.price == null) return;
-      const cap = cartLineCap(selected.availableQuantity, canBackorder);
-      // The chips disable a sold-out value, but `defaultSelection` falls back to
-      // the first variant when none is in stock — so the committed one can still
-      // be empty. Checkout would reject it anyway; refusing here keeps it out of
-      // the cart instead of putting it there to fail later.
-      if (cap === 0) return;
       commit(
         {
           productId: product._id,
@@ -196,13 +192,13 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
       commit,
       fitsInline,
       flyoutOpen,
-      hasPicked,
       product,
       revealed,
       selected,
       sheetOpen,
       simpleLine,
       soldOut,
+      t.outOfStock,
       variable,
     ],
   );
@@ -237,14 +233,8 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
     detail,
     selection,
     selected,
-    /**
-     * The variant the shopper **explicitly picked**, as opposed to the one
-     * `defaultSelection` pre-highlights. The card prices off this: switching
-     * the headline price on a default nobody chose would silently rewrite
-     * "From ৳600" into a definite price the shopper never asked for. `press`
-     * refuses to commit without it, for the same reason.
-     */
-    chosen: hasPicked ? selected : undefined,
+    /** The highlighted default or the shopper's explicit replacement. */
+    chosen: selected,
     soldOut,
     pending,
     flyoutOpen,

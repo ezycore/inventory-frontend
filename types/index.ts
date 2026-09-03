@@ -579,6 +579,8 @@ export interface StorefrontHeroSlide {
   subtitle?: string;
   buttonLabel?: string;
   link?: string;
+  /** Hide the slide's copy, CTA, and scrim on phone-sized storefronts. */
+  hideTextOnMobile?: boolean;
 }
 
 export type UpdateStorefrontSettingsDto = Partial<

@@ -133,6 +133,7 @@ export interface StoreHeroSlide {
   subtitle?: string;
   buttonLabel?: string;
   link?: string;
+  hideTextOnMobile?: boolean;
 }
 
 /**

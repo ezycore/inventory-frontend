@@ -33,7 +33,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail,
   useSidebar,
 } from "@ui/components/sidebar";
 import {
@@ -334,7 +333,6 @@ export default function AppSidebar() {
           </SidebarMenu>
         </SidebarFooter>
       )}
-      <SidebarRail />
     </Sidebar>
   );
 }

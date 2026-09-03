@@ -54,6 +54,7 @@ const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
       subtitle: s.subtitle?.trim() || undefined,
       buttonLabel: s.buttonLabel?.trim() || undefined,
       link: s.link?.trim() ? normalizeStoreLink(s.link) : undefined,
+      hideTextOnMobile: s.hideTextOnMobile || undefined,
     }));
 
 const trimHeaderMenu = (items: StorefrontMenuItem[]): StorefrontMenuItem[] =>

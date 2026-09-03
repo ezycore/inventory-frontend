@@ -359,6 +359,7 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
   return (
     <section
       className={`sf-hero-fullbleed${image ? " sf-hero-fullbleed-image" : ""}`}
+      data-hide-mobile-copy={slide?.hideTextOnMobile || undefined}
       {...(rotates ? { ...hoverProps, ...focusProps, ...swipeProps } : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
     >
