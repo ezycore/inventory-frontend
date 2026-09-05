@@ -112,6 +112,11 @@
     "placeholder": "shop.yourbrand.com",
     "addButton": "Add",
     "empty": "No custom domains yet.",
+    "confirmRemove": {
+      "title": "Remove this domain?",
+      "description": "{domain} will stop serving your shop as soon as you remove it. Anyone using that address gets an error until you add it back and verify it again.",
+      "confirm": "Remove domain"
+    },
     "toasts": {
       "added": "Domain added",
       "addedDescription": "Add the DNS records shown, then re-check.",
@@ -719,6 +724,11 @@
     "singleLocation": {
       "notice": "Your workspace is set up for a single shop.",
       "enable": "Manage more than one location"
+    },
+    "planLimit": {
+      "count": "{used} of {limit} locations used.",
+      "reached": "That is all your plan includes.",
+      "upgrade": "Upgrade your plan"
     }
   },
   "taxRates": {

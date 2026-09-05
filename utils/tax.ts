@@ -131,10 +131,42 @@ export function computeOrderTax(
   const totalNet = round2(nets.reduce((sum, n) => sum + n, 0));
   const orderDiscount = Math.min(Math.max(0, safe(additionalDiscount)), totalNet);
 
-  const lines: TaxLineResult[] = items.map((input, i) => {
-    const net = nets[i];
+  // Spread the order discount, then reconcile what rounding lost.
+  //
+  // Each line's share is rounded to 2dp independently, so a discount that does
+  // not divide cleanly leaves the sum a paisa off the discount the merchant
+  // typed. On ৳100 / ৳5,200 / ৳600 less ৳150 the lines round to
+  // 97.46 + 5,067.80 + 584.75 = ৳5,750.01 against a ৳5,750.00 order — and the
+  // POS pre-fills Paid from the typed total, so the sale posted `partial` with
+  // a ৳0.01 due and a `CustomerDue` row nobody can ever collect (QA-T1-A).
+  //
+  // The residual lands on the LARGEST line: least likely to matter there, and
+  // it cannot push a line negative. Ties go to the first, so the result is
+  // deterministic. **Byte-identical to the backend's `applyLineTaxes`** — the
+  // two are a cross-repo contract with paired tests, and reconciling on only
+  // one side turns a rounding bug into a FE/BE mismatch.
+  const discountedNets = nets.map((net) => {
     const share = totalNet > 0 ? net / totalNet : 0;
-    const discountedNet = Math.max(0, round2(net - orderDiscount * share));
+    return Math.max(0, round2(net - orderDiscount * share));
+  });
+  if (discountedNets.length > 0) {
+    const target = round2(totalNet - orderDiscount);
+    const spread = round2(discountedNets.reduce((sum, n) => sum + n, 0));
+    const residual = round2(target - spread);
+    if (residual !== 0) {
+      let largest = 0;
+      for (let i = 1; i < nets.length; i++) {
+        if (nets[i] > nets[largest]) largest = i;
+      }
+      discountedNets[largest] = Math.max(
+        0,
+        round2(discountedNets[largest] + residual),
+      );
+    }
+  }
+
+  const lines: TaxLineResult[] = items.map((input, i) => {
+    const discountedNet = discountedNets[i];
     const taxType: TaxType = input.taxType ?? "inclusive";
     const { base, taxAmount, lineTotal } = splitTax(discountedNet, input.taxRate ?? 0, taxType);
     return { base, taxAmount, lineTotal, taxRate: safe(input.taxRate), taxType };

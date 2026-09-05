@@ -148,3 +148,88 @@ describe("computeOrderTax", () => {
     expect(r.breakdownByRate).toHaveLength(2);
   });
 });
+
+/**
+ * The order discount is granted in full, to the paisa.
+ *
+ * The mirror of the backend's `describe("order discount — rounding residual")`
+ * in `src/services/__tests__/tax-contract.test.ts`. Both sides spread the
+ * discount proportionally and rounded each line to 2dp without reconciling the
+ * sum, so a discount that did not divide cleanly left the order a paisa short —
+ * ৳100 / ৳5,200 / ৳600 less ৳150 came to ৳5,750.01 (QA-T1-A).
+ *
+ * Frontend and backend AGREED on the wrong number, which is why nothing caught
+ * it: the FE/BE contract test was green throughout. Reconciling on one side
+ * only would have converted a rounding bug into a preview/save mismatch, so
+ * these cases exist in both repos with the same figures.
+ */
+describe("computeOrderTax — order discount rounding residual", () => {
+  const cart: TaxLineInput[] = [
+    { price: 100, quantity: 1 },
+    { price: 5200, quantity: 1 },
+    { price: 600, quantity: 1 },
+  ];
+
+  it("grants the exact discount on the cart that found the bug", () => {
+    expect(computeOrderTax(cart, 150).grandTotal).toBe(5750);
+  });
+
+  it("lands the residual on the largest line", () => {
+    const r = computeOrderTax(cart, 150);
+
+    // The two small lines keep their own rounded shares; the big one absorbs
+    // the paisa, where it cannot round a line below zero or be noticed.
+    expect(r.lines[0].lineTotal).toBe(97.46);
+    expect(r.lines[2].lineTotal).toBe(584.75);
+    expect(r.lines[1].lineTotal).toBe(5067.79);
+  });
+
+  it("still grants it exactly with tax on top", () => {
+    const taxed: TaxLineInput[] = cart.map((l) => ({
+      ...l,
+      taxRate: 15,
+      taxType: "exclusive",
+    }));
+
+    expect(computeOrderTax(taxed, 150).grandTotal).toBe(6612.5);
+  });
+
+  it("leaves a discount that divides cleanly untouched", () => {
+    expect(
+      computeOrderTax(
+        [
+          { price: 500, quantity: 1 },
+          { price: 500, quantity: 1 },
+        ],
+        100,
+      ).grandTotal,
+    ).toBe(900);
+  });
+
+  it("grants the whole cart as a discount without going negative", () => {
+    const r = computeOrderTax(
+      [
+        { price: 33.33, quantity: 1 },
+        { price: 66.67, quantity: 1 },
+      ],
+      100,
+    );
+
+    expect(r.grandTotal).toBe(0);
+    expect(r.lines.every((l) => l.lineTotal >= 0)).toBe(true);
+  });
+
+  it("is a no-op with no discount", () => {
+    expect(computeOrderTax(cart, 0).grandTotal).toBe(5900);
+  });
+
+  it("handles a single line", () => {
+    expect(
+      computeOrderTax([{ price: 999.99, quantity: 1 }], 33.33).grandTotal,
+    ).toBe(966.66);
+  });
+
+  it("survives an empty cart", () => {
+    expect(computeOrderTax([], 50).grandTotal).toBe(0);
+  });
+});

@@ -384,6 +384,7 @@ export default function ProductsPage() {
               onEdit={actions.onEdit}
               onView={() => setSelectedProductId(row._id)}
               onDelete={actions.onDelete}
+              customActions={actions.customActions}
             />
           )}
           operations={sharedOperations}

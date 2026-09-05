@@ -21,6 +21,7 @@ import { DomainCard } from "@/components/domains/domain-card";
 import { Globe, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const errMessage = (error: unknown, fallback: string): string =>
   (error as { message?: string })?.message || fallback;
@@ -34,6 +35,7 @@ export default function DomainsSettingsPage() {
   const addDomain = useAddDomain();
   const verifyDomain = useVerifyDomain();
   const removeDomain = useRemoveDomain();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +77,21 @@ export default function DomainsSettingsPage() {
     });
   };
 
-  const handleRemove = (domain: string) => {
+  // Removing a domain takes the shop off an address customers already have.
+  // The DNS record survives, but the mapping does not, and re-adding starts the
+  // TXT verification over — so it is not a click to hand out unguarded, and it
+  // was the one destructive action on this page with no confirmation at all
+  // (QA-R19). The domain is named in the prompt because a merchant with two of
+  // them cannot otherwise tell which row they are about to unhook.
+  const handleRemove = async (domain: string) => {
+    const ok = await confirm({
+      title: t("confirmRemove.title"),
+      description: t("confirmRemove.description", { domain }),
+      confirmLabel: t("confirmRemove.confirm"),
+      confirmClassName: "bg-destructive hover:bg-destructive/90",
+    });
+    if (!ok) return;
+
     setPendingDomain(domain);
     removeDomain.mutate(domain, {
       onSuccess: () => toast.success(t("toasts.removed")),
@@ -150,6 +166,8 @@ export default function DomainsSettingsPage() {
           <p className="text-sm">{t("empty")}</p>
         </div>
       )}
+
+      <ConfirmDialog />
     </div>
   );
 }
