@@ -72,6 +72,35 @@ export interface OrganizationFeatures {
    * (constants/navItem.ts, docs/plan/onboarding-workspace.md §3.1).
    */
   multiLocation: boolean;
+  /**
+   * This business BUYS FROM SUPPLIERS — purchase orders, receiving, purchase
+   * returns, supplier records and supplier dues.
+   *
+   * Off means a merchant with no procurement workflow: an f-commerce seller who
+   * buys ad-hoc and books it as an expense, or a service business. **Suppliers
+   * are covered by this key** rather than having one of their own — a supplier
+   * with no purchase to raise against them is an address book.
+   *
+   * Mirrors the backend `OrganizationFeatures`; the two must stay in step.
+   */
+  purchases: boolean;
+  /**
+   * This business COUNTS STOCK.
+   *
+   * Off means no stock numbers anywhere, no movements, no reservations, no
+   * valuation, no low-stock alerts, no adjustments or transfers or batches. It
+   * does NOT mean the inventory row disappears: every sellable product still
+   * gets one, written `status: "inactive"`, because `SaleItem.inventoryId` is a
+   * required foreign key. The row is a link record and the home of the
+   * merchant's flat cost price.
+   *
+   * Distinct from `outOfStockBehavior: "backorder"`, which is a per-product
+   * policy about tracked stock. This is an org-level capability: the business
+   * has no concept of stock at all.
+   *
+   * Mirrors the backend `OrganizationFeatures`; the two must stay in step.
+   */
+  inventoryTracking: boolean;
 }
 
 /**
@@ -94,6 +123,8 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   combo: true,
   smsNotifications: true,
   multiLocation: true,
+  purchases: true,
+  inventoryTracking: true,
 };
 
 /**

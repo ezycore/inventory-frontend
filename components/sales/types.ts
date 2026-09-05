@@ -94,6 +94,16 @@ export interface ExtractedProduct {
   compareAt?: number;
   costPrice: number;
   availableQuantity: number;
+  /**
+   * `false` when the workspace keeps no stock, in which case
+   * `availableQuantity` is `Number.MAX_SAFE_INTEGER` and is not a count.
+   *
+   * The sentinel exists so every `> 0` test downstream keeps working unchanged,
+   * which it does — but the picker PRINTS the number, and a row reading
+   * "9007199254740991 in stock" is the one place that trade-off has to be paid
+   * for explicitly.
+   */
+  tracked?: boolean;
   productId: string;
   variantId: string | null;
   conversionFactor?: number;

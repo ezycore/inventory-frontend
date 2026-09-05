@@ -19,6 +19,8 @@ features:
   - sales
   - accounts
   - tax
+  - purchases
+  - inventoryTracking
 ui_labels:
   - reports:landing.subtitle
   - reports:purchases.subtitle

@@ -222,3 +222,63 @@ export const resolveApiTemplate = (
   // Replace placeholder with actual value
   return template.replace(match[0], String(actualValue));
 };
+
+/**
+ * Is this field CERTAINLY hidden right now?
+ *
+ * Used by `FormSectionComponent` to decide whether a section has anything left
+ * to show. It answers only when it is sure: `false` means "may be visible", not
+ * "is visible", so a section is hidden only when every field is definitely gone.
+ *
+ * The uncertainty is real and worth being explicit about. `FormField` enriches
+ * the primary dependency's value into the full `{ value, label }` option before
+ * comparing, and where that option list comes from `optionsApi` it arrives
+ * asynchronously — a hook this function cannot call, once per field, from inside
+ * a section. So a dependency reading a property off an API-backed select is
+ * reported as UNKNOWN and keeps its section alive. Getting that wrong in the
+ * other direction would hide a section whose field was about to appear, which is
+ * a worse bug than the empty card this exists to prevent.
+ *
+ * Static `options` need no hook, so those enrich here exactly as the field does.
+ */
+export const isFieldCertainlyHidden = (
+  field: {
+    name: string;
+    hidden?: boolean;
+    hideInEdit?: boolean;
+    dependsOn?: FieldDependencyConfig;
+  },
+  context: {
+    isEditMode?: boolean;
+    /** Watched value per dependency field name. */
+    valueByName: Record<string, any>;
+    /** Every field on the form, for looking up a dependency's own config. */
+    allFields?: { name: string; type?: string; options?: any[]; optionsApi?: any }[];
+  },
+): boolean => {
+  if (field.hidden) return true;
+  if (context.isEditMode && field.hideInEdit) return true;
+
+  const dependencies = normalizeDependencies(field.dependsOn);
+  if (!dependencies.length) return false;
+
+  const values = dependencies.map((dep, index) => {
+    const raw = context.valueByName[dep.field];
+    if (index !== 0 || !raw || typeof raw === "object") return raw;
+    const source = context.allFields?.find((f) => f.name === dep.field);
+    if (source?.type !== "select") return raw;
+    // Static options enrich synchronously, the way the field does.
+    if (source.options) {
+      return source.options.find((opt) => opt.value === raw) ?? raw;
+    }
+    // API-backed options do not. Signal uncertainty.
+    if (source.optionsApi && dep.matchWithProp) return UNRESOLVED;
+    return raw;
+  });
+
+  if (values.includes(UNRESOLVED)) return false;
+  return evaluateFieldDependencies(values, dependencies).shouldHide;
+};
+
+/** Sentinel for a dependency value this module cannot resolve without a hook. */
+const UNRESOLVED = Symbol("unresolved-dependency-value");

@@ -6,6 +6,13 @@ order: 40
 covers_routes:
   - /customers
   - /suppliers
+# Union of the gates on the routes above, which is what the freshness gate
+# checks — `/suppliers` needs `purchases`, `/customers` needs nothing. The page
+# is NOT hidden on this: nothing renders off `features`, it only keeps the
+# frontmatter honest about the nav. If that ever changes, split this page first
+# — a merchant with no purchasing still needs the customers half.
+features:
+  - purchases
 ui_labels:
   - customers:page.title
   - customers:page.subtitle

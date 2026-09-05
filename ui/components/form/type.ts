@@ -315,6 +315,14 @@ export interface FormFieldConfig {
 }
 
 export interface FormSection {
+  /**
+   * Stable identifier, independent of the translated `title`.
+   *
+   * Only needed by transforms that have to NAME a section — `moveFormField`
+   * relocating a field into it — because matching on `title` breaks the moment
+   * the form is rendered in Bangla. Sections nothing addresses can omit it.
+   */
+  id?: string;
   title: string;
   description?: string;
   icon?: ReactNode;

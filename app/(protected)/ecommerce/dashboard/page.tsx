@@ -6,12 +6,14 @@ import {
   Banknote,
   Clock,
   Package,
+  PackageX,
   ShoppingBag,
   ShoppingCart,
   TrendingDown,
   Wallet,
 } from "lucide-react";
 import { useEcommerceDashboard } from "@/services/api";
+import { RecentOrders } from "@/components/dashboard/recent-orders";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import { StoreStatusCard } from "@/components/ecommerce/store-status-card";
@@ -66,14 +68,34 @@ export default function EcommerceDashboardPage() {
           label="Today's orders"
           value={isLoading ? null : String(data?.stats.todayOrders ?? 0)}
         />
+        {/* Net, and labelled so. This tile used to read "Today's revenue" over
+            the gross value of today's orders — a parcel that came back in full
+            still counted for all of it, as did a doorstep concession. The day
+            that was found it showed ৳13,230 against ৳8,280 actually taken. */}
         <StatCard
           icon={<Banknote className="h-4 w-4" />}
-          label="Today's revenue"
+          label="Net revenue today"
           value={
             isLoading
               ? null
-              : formatMoney(data?.stats.todayRevenue ?? 0, currency)
+              : formatMoney(data?.stats.todayNetRevenue ?? 0, currency)
           }
+        />
+        {/* What came back today, so the tile beside it can be read honestly —
+            a net figure with nothing to compare it against just looks like a
+            slow day. Deliberately NOT the difference between gross and net:
+            this is scoped to when the return was TAKEN (a parcel shipped last
+            week and refused this morning is today's loss), while revenue is
+            scoped to orders placed today. The two do not subtract. */}
+        <StatCard
+          icon={<PackageX className="h-4 w-4" />}
+          label="Returned today"
+          value={
+            isLoading
+              ? null
+              : formatMoney(data?.stats.todayReturned ?? 0, currency)
+          }
+          href="/ecommerce/orders?status=returned"
         />
         <StatCard
           icon={<Clock className="h-4 w-4" />}
@@ -155,11 +177,33 @@ export default function EcommerceDashboardPage() {
                     confirmation
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Confirm to commit stock and start fulfillment.
+                    {/*
+                      Confirming is what reserves stock on a tracked tier and
+                      what simply starts fulfilment on a stock-free one, so the
+                      sentence has to drop the half that is not true rather than
+                      describe a step the merchant has no way to observe.
+                    */}
+                    {data.stockTracked === false
+                      ? "Confirm to start fulfillment."
+                      : "Confirm to commit stock and start fulfillment."}
                   </div>
                 </div>
               </Link>
 
+              {/*
+                Hidden outright for a merchant who keeps no stock, rather than
+                rendered empty.
+
+                The server already skips the query — the low-stock test is
+                `<= threshold`, which the untracked sentinel never satisfies, so
+                leaving it in would report every product as healthy. But a
+                skipped query and a shop with nothing running low are the same
+                empty array on the wire. Without `stockTracked` this panel
+                announced "Low-stock online products / No low-stock listed
+                products." to a business that does not count stock — an answer
+                to a question they never asked, and a reassuring one at that.
+              */}
+              {data.stockTracked !== false && (
               <div>
                 <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   <AlertTriangle className="h-3.5 w-3.5" /> Low-stock online
@@ -192,53 +236,13 @@ export default function EcommerceDashboardPage() {
                   </ul>
                 )}
               </div>
+              )}
             </div>
           )}
         </Card>
 
-        {/* Recent orders */}
-        <Card className="p-5 shadow-none">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Recent orders</h2>
-            <Link
-              href="/ecommerce/orders"
-              className="text-xs font-semibold text-primary"
-            >
-              View all
-            </Link>
-          </div>
-          {isLoading || !data ? (
-            <Skeleton className="h-48 w-full" />
-          ) : data.recentOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No orders yet.</p>
-          ) : (
-            <ul className="divide-y">
-              {data.recentOrders.map((o) => (
-                <li key={o._id}>
-                  <Link
-                    href={`/ecommerce/orders/${o._id}`}
-                    className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold">{o.orderNumber}</div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        {o.shippingAddress?.name} · {shortDate(o.createdAt)}
-                      </div>
-                    </div>
-                    <div className="text-right text-sm font-semibold tabular-nums">
-                      {formatMoney(o.totalAmount, currency)}
-                    </div>
-                    <StatusBadge
-                      status={ORDER_STATUS_BADGE[o.status] ?? "info"}
-                      label={labelFor(o.status)}
-                      size="sm"
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+        {/* Recent orders — shared with the main dashboard. */}
+        <RecentOrders />
       </div>
     </div>
   );

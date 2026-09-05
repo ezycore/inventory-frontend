@@ -17,6 +17,7 @@ import {
 } from "@/components/ecommerce/orders/order-detail-helpers";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { OrderActionBar } from "@/components/ecommerce/orders/order-action-bar";
 import { OrderActivityLog } from "@/components/ecommerce/orders/order-activity-log";
 import { OrderFraudPanel } from "@/components/ecommerce/orders/order-fraud-panel";
@@ -29,6 +30,7 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
+import { OrderCollectionSummary } from "@/components/ecommerce/orders/order-collection-summary";
 
 export default function AdminOrderDetailPage() {
   const id = String(useParams().id);
@@ -67,13 +69,24 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
   const { data: metaSettings } = useGetMetaSettings();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { labelFor } = useOrderStatusLabels();
+  const stockTracked = useStockTracked();
 
   const isPickup = order.fulfillmentType === "pickup";
   const isTerminalBad =
     order.status === "cancelled" || order.status === "rejected";
   const isReturned = order.status === "returned";
+  // Delivered, with part of the parcel refused at the door. Not a terminal state
+  // and not off the pipeline: the customer kept the rest and paid for it.
+  const isPartiallyReturned = order.status === "partially_returned";
   const steps = isPickup ? PICKUP_STEPS : DELIVERY_STEPS;
-  const currentStep = (steps as readonly string[]).indexOf(order.status);
+  // `indexOf` returns -1 for a status that is not a step, which would render every
+  // node grey — so a part-returned order sits on the step it actually reached.
+  const currentStep = (steps as readonly string[]).indexOf(
+    isPartiallyReturned ? "delivered" : order.status,
+  );
+  // A partial return does not set `returnedAt` — that marks the whole order coming
+  // back — so the date comes from the last entry in the return log.
+  const lastReturnAt = order.returns?.[order.returns.length - 1]?.at;
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
   const money = (n: number | undefined) => formatMoney(n ?? 0, currency);
 
@@ -126,8 +139,10 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           <div className="flex flex-wrap items-center gap-2.5 text-sm font-semibold text-gray-700">
             <RotateCcw className="h-5 w-5" />
             This order was returned
-            {order.returnedAt ? ` on ${longDate(order.returnedAt)}` : ""}. Stock
-            was restocked and the refund processed.
+            {order.returnedAt ? ` on ${longDate(order.returnedAt)}` : ""}.{" "}
+            {stockTracked
+              ? "Stock was restocked and the refund processed."
+              : "The refund was processed."}
             <Link
               href="/sales/returns"
               className="font-medium text-primary underline"
@@ -136,7 +151,27 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             </Link>
           </div>
         ) : (
-          <OrderStepper currentStep={currentStep} steps={steps} />
+          <>
+            <OrderStepper currentStep={currentStep} steps={steps} />
+            {isPartiallyReturned ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-sm text-muted-foreground">
+                <RotateCcw className="h-4 w-4 shrink-0" />
+                <span>
+                  Part of this order came back
+                  {lastReturnAt ? ` on ${longDate(lastReturnAt)}` : ""}.{" "}
+                  {stockTracked
+                    ? "Those items were restocked and the refund settled against the collection."
+                    : "The refund was settled against the collection."}
+                </span>
+                <Link
+                  href="/sales/returns"
+                  className="font-medium text-primary underline"
+                >
+                  View sales returns
+                </Link>
+              </div>
+            ) : null}
+          </>
         )}
       </Card>
 
@@ -147,6 +182,9 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
         {/* LEFT */}
         <div className="min-w-0 space-y-5">
           <OrderLineItems order={order} />
+          {/* Directly under the invoice it explains: the totals above are what
+              was asked for, this is what actually came back. */}
+          <OrderCollectionSummary order={order} />
           <OrderFulfillmentPanel order={order} />
 
           {/* Activity log */}

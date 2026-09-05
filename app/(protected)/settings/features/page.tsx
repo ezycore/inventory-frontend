@@ -27,10 +27,12 @@ import {
   CardTitle,
 } from "@/ui/components/card";
 import PageHeader from "@/ui/components/header";
+import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, RotateCcw } from "lucide-react";
 import { NavIcon } from "@/components/shared/nav-icon";
 import { useRouter } from "next/navigation";
+import { useApplyOnboardingStep } from "@/services/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -50,7 +52,9 @@ const FEATURE_ORDER: FeatureName[] = [
   "storefront",
   "multiLocation",
   "tax",
-  "combo"
+  "combo",
+  "purchases",
+  "inventoryTracking",
 ];
 
 export default function FeatureSettingsPage() {
@@ -62,6 +66,8 @@ export default function FeatureSettingsPage() {
 
   const { data: featuresData, isLoading } = useGetFeatures();
   const { mutate: updateFeatures } = useUpdateFeatures();
+  const { mutate: applyOnboardingStep, isPending: restarting } =
+    useApplyOnboardingStep();
 
   // Track only the feature currently being toggled so we disable just that one
   // switch — disabling them all (via the shared mutation isPending) makes every
@@ -79,6 +85,13 @@ export default function FeatureSettingsPage() {
   const features =
     featuresData?.data?.features ?? user?.organization?.features;
   const planFeatures = featuresData?.data?.planFeatures;
+  // `{ child: [parents] }`, straight from the backend's own `FEATURE_REQUIRES`
+  // rather than a second copy here — the two must never disagree about what
+  // depends on what, and a duplicated table drifts on the first dependency
+  // anyone adds. Empty until the stock key lands, which is why every switch
+  // still reads two-state today.
+  const featureRequires: Record<string, string[]> =
+    featuresData?.data?.featureRequires ?? {};
 
   const canManageSettings =
     user?.permissions?.includes("organization.edit") ?? false;
@@ -103,10 +116,16 @@ export default function FeatureSettingsPage() {
     }
   }, [user, canManageSettings, router, tShell]);
 
-  // Keep the auth store in sync with the fetched effective features.
+  // Keep the auth store in sync with the fetched features — BOTH maps. The
+  // ceiling is what lets a lock screen elsewhere say "not in your plan" rather
+  // than "switched off", so syncing only the effective half leaves every other
+  // screen guessing until the next full reload.
   useEffect(() => {
     if (featuresData?.data?.features) {
-      updateFeaturesStore(featuresData.data.features);
+      updateFeaturesStore(
+        featuresData.data.features,
+        featuresData.data.planFeatures,
+      );
     }
   }, [featuresData, updateFeaturesStore]);
 
@@ -122,6 +141,10 @@ export default function FeatureSettingsPage() {
       </div>
     );
   }
+
+  // Declared above the toggle handler, which names cascaded features in its
+  // confirm copy.
+  const featureNames = getFeatureDisplayNames(t);
 
   const applyToggle = (feature: FeatureName, next: boolean) => {
     setPendingFeature(feature);
@@ -140,7 +163,24 @@ export default function FeatureSettingsPage() {
       applyToggle(feature, true);
       return;
     }
-    const consequence = disableConsequence(feature, impactData?.data, t);
+    // Which OTHER capabilities go with this one. Derived from the same
+    // `featureRequires` table the backend enforces, so the warning cannot
+    // promise something the cascade does not do — and read against the CURRENT
+    // effective map, so a dependant the merchant had already switched off is
+    // not listed as something they are about to lose.
+    const cascaded = Object.entries(featureRequires)
+      .filter(
+        ([child, parents]) =>
+          parents.includes(feature) &&
+          features?.[child as FeatureName] === true,
+      )
+      .map(([child]) => featureNames[child as FeatureName]);
+    const consequence = disableConsequence(
+      feature,
+      impactData?.data,
+      t,
+      cascaded,
+    );
     if (!consequence) {
       applyToggle(feature, false);
       return;
@@ -148,7 +188,6 @@ export default function FeatureSettingsPage() {
     setConfirming({ feature, consequence });
   };
 
-  const featureNames = getFeatureDisplayNames(t);
   const featureDescriptions = getFeatureDescriptions(t);
 
   return (
@@ -156,6 +195,32 @@ export default function FeatureSettingsPage() {
       <PageHeader
         title={t("title")}
         subTitle={t("subtitle")}
+        // The way back into setup. Customize workspace is the canonical control
+        // and the wizard is a guided front-end onto the same write, so a
+        // merchant whose business has changed shape — started stocking, opened a
+        // counter, taken on suppliers — should not have to reconstruct the
+        // equivalent state by hand across a list of switches with no
+        // recommendation and no order.
+        //
+        // `restart` rather than a plain navigation: the resume point only ever
+        // advances, so `/onboarding` would render the review screen of a run
+        // that already finished.
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={restarting}
+            onClick={() =>
+              applyOnboardingStep(
+                { restart: true },
+                { onSuccess: () => router.push("/onboarding") },
+              )
+            }
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            {t("setUpAgain")}
+          </Button>
+        }
       />
 
       {needsStorefrontPublish && (
@@ -179,12 +244,23 @@ export default function FeatureSettingsPage() {
             ? planFeatures[feature] === true
             : (features?.[feature] ?? false);
           const isEnabled = features?.[feature] ?? false;
+          // The THIRD state, and the reason it needs its own branch: a
+          // dependant whose parent is off resolves to `false` in the effective
+          // map, so it renders identically to a capability the merchant
+          // deliberately declined — and the fix is completely different. This
+          // one costs nothing and needs no upgrade; it needs the named parent
+          // switched back on. The table comes from the backend so the two
+          // cannot disagree about what depends on what.
+          const blockedBy = (featureRequires[feature] ?? []).filter(
+            (parent) => features?.[parent as FeatureName] !== true,
+          ) as FeatureName[];
+          const unavailable = inPlan && blockedBy.length > 0;
 
           return (
             <Card
               key={feature}
               className={`transition-colors ${
-                !inPlan
+                !inPlan || unavailable
                   ? "border-dashed opacity-75"
                   : isEnabled
                     ? "border-primary/50 bg-primary/5"
@@ -206,19 +282,28 @@ export default function FeatureSettingsPage() {
                         className="h-5 w-5"
                       />
                     </div>
-                    <CardTitle className="text-base">
-                      {featureNames[feature]}
-                    </CardTitle>
+                    <div>
+                      <CardTitle className="text-base">
+                        {featureNames[feature]}
+                      </CardTitle>
+                      {unavailable && (
+                        <span className="text-xs text-muted-foreground">
+                          {t("needsParent", {
+                            parent: featureNames[blockedBy[0]],
+                          })}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {inPlan ? (
+                  {!inPlan || unavailable ? (
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  ) : (
                     <Switch
                       id={`feature-${feature}`}
                       checked={isEnabled}
                       disabled={pendingFeature === feature}
                       onCheckedChange={(next) => handleToggle(feature, next)}
                     />
-                  ) : (
-                    <Lock className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
               </CardHeader>
@@ -226,6 +311,13 @@ export default function FeatureSettingsPage() {
                 <CardDescription className="text-sm">
                   {featureDescriptions[feature]}
                 </CardDescription>
+                {unavailable && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("needsParentHint", {
+                      parent: featureNames[blockedBy[0]],
+                    })}
+                  </p>
+                )}
                 {!inPlan && (
                   <p className="mt-2 text-xs text-muted-foreground">
                     {t("notIncluded")}{" "}

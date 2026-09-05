@@ -11,6 +11,7 @@ import {
   type DashboardOverviewParams,
 } from '@/services/api'
 import { useAuthStore } from '@/services/stores/use-auth-store'
+import { isFeatureEnabled } from '@/lib/feature-utils'
 import { useCurrency } from '@/lib/currency'
 import {
   DollarSign,
@@ -28,6 +29,7 @@ import { LowStockAlerts } from '@/components/dashboard/low-stock-alerts'
 import { ActivitySection } from '@/components/dashboard/activity-section'
 import { FinancialInsights } from '@/components/dashboard/financial-insights'
 import { QuickActions } from '@/components/dashboard/quick-actions'
+import { RecentOrders } from '@/components/dashboard/recent-orders'
 import { ReportsRestricted } from '@/components/dashboard/reports-restricted'
 
 export default function DashboardPage() {
@@ -72,7 +74,12 @@ export default function DashboardPage() {
   const firstName = user?.firstName || tGreeting('fallbackName')
 
   // ── KPI Stats (period-based) ──
-  const salesChange = overview ? calcChange(overview.sales.total, overview.sales.previousTotal) : null
+  // Both sides of the trend are NET. Comparing this period's revenue after
+  // refunds against last period's before them invents a swing out of nothing —
+  // a quiet month following a month with one big refund reads as growth.
+  const salesChange = overview
+    ? calcChange(overview.netRevenue, overview.previousNetRevenue)
+    : null
   const purchasesChange = overview ? calcChange(overview.purchases.total, overview.purchases.previousTotal) : null
   // Gross profit headlines here rather than inside Financial Insights: it is the
   // number a merchant opens the page for. The panel keeps the rates and averages.
@@ -80,15 +87,41 @@ export default function DashboardPage() {
   // Margin is of NET revenue — `grossProfit` already has returns taken off both
   // revenue and COGS, so dividing by the gross `sales.total` understates it and
   // disagrees with the Profit & Loss report for the same period.
+  //
+  // Which is why the revenue tile beside it is net too. It was not: a workspace
+  // with two orders, one refused in full, printed "৳20,300" next to a 38% margin
+  // computed on ৳1,450 (QA-N9). The refund is disclosed under the tile rather
+  // than netted away silently — for cash-on-delivery trade a refused parcel is a
+  // KPI, and a merchant whose revenue halved needs the page to say why.
   const netRevenue = overview?.netRevenue ?? 0
+  const returnedAmount = overview?.returns.refund ?? 0
   const grossMargin = netRevenue > 0
     ? Math.round((grossProfit / netRevenue) * 100)
     : 0
 
+  // Degrade rather than print a structurally-zero figure. A merchant who does
+  // not buy from suppliers has no purchase cost by construction, so the tile
+  // would read "৳0" with a flat trend forever — a number that looks like a
+  // reporting bug rather than an accurate description of their business. The
+  // backend still returns the figures (history stays readable); this decides
+  // whether they are shown.
+  const purchasesTracked = overview?.purchasesTracked !== false
+  // Same rule for the stock half. A business that never held stock has no low
+  // stock and nothing out of stock — its inventory rows are inactive link
+  // records — so the panel would render a permanently empty "all good" state,
+  // which is a reassurance about a question the merchant never asked.
+  const stockTracked = overview?.stockTracked !== false
+  const storefrontEnabled =
+    isFeatureEnabled(user?.organization?.features, 'storefront') &&
+    (user?.permissions?.includes('storefront.orders.view') ?? false)
+
   const kpiStats: StatData[] = [
     {
       label: t('salesRevenue'),
-      value: formatCurrency(overview?.sales.total || 0),
+      value: formatCurrency(netRevenue),
+      description: returnedAmount > 0
+        ? t('afterReturns', { amount: formatCurrency(returnedAmount) })
+        : undefined,
       icon: DollarSign,
       variant: 'success',
       trend: salesChange && salesChange.direction !== 'neutral'
@@ -99,19 +132,24 @@ export default function DashboardPage() {
           }
         : undefined,
     },
-    {
-      label: t('purchaseCost'),
-      value: formatCurrency(overview?.purchases.total || 0),
-      icon: ArrowDownToLine,
-      variant: 'info',
-      trend: purchasesChange && purchasesChange.direction !== 'neutral'
-        ? {
-            value: `${purchasesChange.value}%`,
-            direction: purchasesChange.direction,
-            label: t('vsPrevious'),
-          }
-        : undefined,
-    },
+    ...(purchasesTracked
+      ? [
+          {
+            label: t('purchaseCost'),
+            value: formatCurrency(overview?.purchases.total || 0),
+            icon: ArrowDownToLine,
+            variant: 'info' as const,
+            trend:
+              purchasesChange && purchasesChange.direction !== 'neutral'
+                ? {
+                    value: `${purchasesChange.value}%`,
+                    direction: purchasesChange.direction,
+                    label: t('vsPrevious'),
+                  }
+                : undefined,
+          },
+        ]
+      : []),
     {
       label: t('grossProfit'),
       value: formatCurrency(grossProfit),
@@ -121,15 +159,22 @@ export default function DashboardPage() {
     },
     {
       label: t('transactions'),
-      value: (overview?.sales.count || 0) + (overview?.purchases.count || 0),
+      // The count follows the same rule as the tile above: adding a purchase
+      // count that is always zero makes the total read as "sales, but stated
+      // oddly", and the breakdown line beneath it names a half the merchant
+      // does not have.
+      value: purchasesTracked
+        ? (overview?.sales.count || 0) + (overview?.purchases.count || 0)
+        : overview?.sales.count || 0,
       icon: ShoppingCart,
       variant: 'primary',
-      description: overview
-        ? t('salesPurchaseCount', {
-            sales: overview.sales.count,
-            purchases: overview.purchases.count,
-          })
-        : undefined,
+      description:
+        overview && purchasesTracked
+          ? t('salesPurchaseCount', {
+              sales: overview.sales.count,
+              purchases: overview.purchases.count,
+            })
+          : undefined,
     },
   ]
 
@@ -149,10 +194,14 @@ export default function DashboardPage() {
             periodInfo={overview?.period}
           />
 
+          {/* Derived, never a fixed maximum. `kpiStats` drops the Purchase Cost
+              tile for a merchant who buys from nobody, and a hardcoded 4-wide
+              track then left a hole where it used to be (QA-R3). The Products
+              page already sizes its row this way. */}
           <StatsCard
             data={kpiStats}
             isLoading={overviewLoading}
-            columns={{ default: 2, lg: 4 }}
+            columns={{ default: 2, lg: kpiStats.length }}
           />
 
           <ChartSection
@@ -165,16 +214,24 @@ export default function DashboardPage() {
             <SummaryCards overview={overview} formatCurrency={formatCurrency} />
           )}
 
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* Drops to a single column when the stock panel is gone, rather than
+              leaving a half-width card beside dead space. */}
+          <div
+            className={`grid gap-6 grid-cols-1 ${
+              stockTracked ? "lg:grid-cols-2" : ""
+            }`}
+          >
             <TopSoldItems
               items={overview?.topSoldItems}
               isLoading={overviewLoading}
               formatCurrency={formatCurrency}
             />
-            <LowStockAlerts
-              lowStock={overview?.lowStock}
-              isLoading={overviewLoading}
-            />
+            {stockTracked && (
+              <LowStockAlerts
+                lowStock={overview?.lowStock}
+                isLoading={overviewLoading}
+              />
+            )}
           </div>
         </>
       ) : (
@@ -183,17 +240,27 @@ export default function DashboardPage() {
 
       <div
         className={
-          canViewReports
+          canViewReports && stockTracked
             ? 'grid gap-6 grid-cols-1 lg:grid-cols-2'
             : 'grid gap-6 grid-cols-1'
         }
       >
         {/* Stock movements are gated on `stock.view`, which every role that can
-            reach this page already has — so this panel stays for everyone. */}
+            reach this page already has — so PERMISSION keeps this panel for
+            everyone.
+
+            Stock tracking does not. An untracked sale writes no StockMovement
+            by design — that is what keeps the movement ledger honest, every row
+            describing stock that really moved — so this panel is permanently
+            empty for such a workspace, under a heading and a "View all" button
+            pointing at a screen the route guard now locks. Empty reads as "no
+            activity yet"; the truth is that there is no such thing here. */}
+        {stockTracked && (
         <ActivitySection
           stockMovements={stockMovements}
           isLoading={movementsLoading}
         />
+        )}
         {canViewReports && (
           <FinancialInsights
             overview={overview}
@@ -201,6 +268,13 @@ export default function DashboardPage() {
             formatCurrency={formatCurrency}
           />
         )}
+        {/* Fills the space the stock panels leave. A storefront merchant loses
+            the movement ledger, the low-stock list, the purchase chart and the
+            payable tile — and the page that remained said nothing about the
+            thing their business actually does (QA-R3). Orders are that thing.
+            Shown to every storefront merchant, stocked or not: a shop with both
+            channels still wants its online queue on the home screen. */}
+        {storefrontEnabled && <RecentOrders />}
       </div>
 
       <QuickActions />

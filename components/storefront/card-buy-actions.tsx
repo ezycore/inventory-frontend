@@ -55,6 +55,7 @@ export function CardVariantFlyout({ qb }: { qb: CardQuickBuy }) {
         compact
         variants={qb.variants}
         selection={qb.selection}
+        canBackorder={qb.canBackorder}
         onSelect={qb.pick}
       />
     </div>

@@ -86,9 +86,12 @@ export function QuickBuySheet({
 
   const variants = product.variants ?? [];
   const variable = product.productType === "variable";
+  // Ahead of `selection` because the default highlight branches on it, same as
+  // the chips do — a backorder product's options are all buyable.
+  const canBackorder = product.outOfStockBehavior === "backorder";
   const selection = Object.keys(picked).length
     ? picked
-    : defaultSelection(variants);
+    : defaultSelection(variants, canBackorder);
   const selected = variable ? matchVariant(variants, selection) : undefined;
 
   // Same resolution order as the PDP: a variable product prices, stocks and
@@ -101,7 +104,6 @@ export function QuickBuySheet({
   const availableQty = variable
     ? (selected?.availableQuantity ?? 0)
     : product.availableQuantity;
-  const canBackorder = product.outOfStockBehavior === "backorder";
   const outOfStock = availableQty <= 0;
   const soldOut = outOfStock && !canBackorder;
   const image =
@@ -200,6 +202,7 @@ export function QuickBuySheet({
             <VariantSelector
               variants={variants}
               selection={selection}
+              canBackorder={canBackorder}
               onSelect={(next) => {
                 setPicked(next);
                 setQty(1);

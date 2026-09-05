@@ -23,6 +23,8 @@ interface DetailStatsProps {
   stockValue: number
   /** Sales module gate — hide transactional sales tiles when off. */
   salesEnabled: boolean
+  /** Off for a business that never counts stock — see `useStockTracked`. */
+  stockTracked: boolean
   formatCurrency: (n: number) => string
 }
 
@@ -62,6 +64,7 @@ export function DetailStats({
   profitPerUnit,
   stockValue,
   salesEnabled,
+  stockTracked,
   formatCurrency,
 }: DetailStatsProps) {
   // Stock value and profit tiles are cost-derived — costs.view only.
@@ -69,13 +72,22 @@ export function DetailStats({
   const t = useTranslations('products.products.detail.stats')
 
   const stats: Stat[] = [
-    {
-      icon: ShieldCheck,
-      label: t('inStock'),
-      value: totalStock.toLocaleString(),
-      sub: t('acrossLocations', { count: locationCount }),
-    },
-    ...(canViewCosts
+    // Both stock tiles are structurally meaningless without stock tracking, and
+    // in opposite ways: "In stock" reads 0 off a ghost inventory row that exists
+    // only so `SaleItem.inventoryId` resolves, and stock value is that same 0
+    // times a cost price — a valuation needs a quantity (QA-N14). Cost price
+    // itself survives, in the Pricing card lower down.
+    ...(stockTracked
+      ? [
+          {
+            icon: ShieldCheck,
+            label: t('inStock'),
+            value: totalStock.toLocaleString(),
+            sub: t('acrossLocations', { count: locationCount }),
+          },
+        ]
+      : []),
+    ...(canViewCosts && stockTracked
       ? [
           {
             icon: Wallet,

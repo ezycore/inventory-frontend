@@ -39,6 +39,16 @@ export type SellOrderItem = OrderItem & {
   salePrice: number;
   total: number;
   availableQuantity: number | null;
+  /**
+   * `false` when the workspace keeps no stock, in which case
+   * `availableQuantity` is `Number.MAX_SAFE_INTEGER` rather than a count.
+   *
+   * Carried onto the line, not looked up at render time, because the line
+   * outlives the picker row it came from — an item added, then edited after the
+   * list refreshed, would otherwise lose the distinction and print the
+   * sentinel.
+   */
+  tracked?: boolean;
 }
 
 /**

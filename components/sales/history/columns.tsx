@@ -33,6 +33,14 @@ export const statusConfig: Record<
 export function getSalesHistoryColumns(
   formatCurrency: (n: number) => string,
   isAccountsEnabled: boolean,
+  /**
+   * Whether this workspace sells through BOTH the counter and the storefront.
+   *
+   * The column is omitted otherwise, and that is not tidiness: a shop with one
+   * channel would get a column reading "Counter" on every row forever, which
+   * costs width and answers a question nobody asked.
+   */
+  isMultiChannel: boolean,
   onViewPayments: (sale: Sale) => void,
   onMakePayment: (sale: Sale) => void,
   /** Caller's `t` bound to "sales.history" (docs/I18N.md). */
@@ -71,6 +79,28 @@ export function getSalesHistoryColumns(
       header: t('columns.saleDate'),
       cell: ({ row }) => <DateCell value={row.original.createdAt} />,
     },
+    // Online orders become Sales on confirm — same document, same accounting —
+    // so a merchant selling both ways had a history in which a counter sale and
+    // a storefront order were indistinguishable. `Sale.channel` has recorded the
+    // difference all along; nothing displayed it.
+    ...(isMultiChannel
+      ? [
+          {
+            accessorKey: 'channel',
+            header: t('columns.channel'),
+            cell: ({ row }: { row: { original: Sale } }) => {
+              // Absent reads as counter: `channel` defaults to "pos" on the
+              // model, and a Sale written before the field existed is one.
+              const online = row.original.channel === 'online';
+              return (
+                <Badge variant={online ? 'default' : 'secondary'}>
+                  {online ? t('channel.online') : t('channel.pos')}
+                </Badge>
+              );
+            },
+          } as ColumnDef<Sale>,
+        ]
+      : []),
     {
       accessorKey: 'customerId',
       header: t('columns.customer'),

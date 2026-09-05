@@ -235,8 +235,21 @@ export function AvailablePlans() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {groups.map((group) => {
+        {groups.map((group, index) => {
           const plan = variantFor(group, selectedMonths);
+          // The tier below, so each card can list what it ADDS rather than
+          // reciting the same eleven capabilities three times over. `groups`
+          // arrives in `groupRank` order — the same order that decides upgrade
+          // from downgrade — so the previous entry is the tier below by
+          // construction, not by coincidence of sorting.
+          //
+          // Compared at the same cadence: a yearly card must not be diffed
+          // against a monthly one, which could differ for reasons that have
+          // nothing to do with the ladder.
+          const below =
+            index > 0
+              ? variantFor(groups[index - 1], selectedMonths)?.features
+              : undefined;
           return (
             <PlanCard
               key={group.key}
@@ -245,6 +258,7 @@ export function AvailablePlans() {
               currency={currency}
               state={cardState(plan)}
               onChoose={() => handleChange(plan)}
+              previousFeatures={below}
             />
           );
         })}

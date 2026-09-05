@@ -100,8 +100,26 @@ export default function ProductsPage() {
 
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
 
+  // The Online tab manages a decision some tiers do not have.
+  //
+  // Listing is a separate act from stocking only when the two can diverge. A
+  // storefront merchant who tracks stock decides what to put online and when,
+  // so the tab is the screen for it. A storefront merchant who does NOT track
+  // stock has no such choice — `useFilteredFormConfig` already strips
+  // `isListed`/`onlinePrice`/`onlineDescription` from their product form on the
+  // grounds that "creating a product IS publishing it" — and leaving the tab up
+  // handed them a second, contradicting place to make a decision the form had
+  // just told them they do not make (QA-C3).
+  //
+  // This is deliberately NOT the "unify the two tables" fix the report asked
+  // for. The Online panel is a projection, not a rival catalogue: it sorts
+  // featured-first on purpose (`catalog.service.ts`) and its columns carry
+  // fields — listed, online price, featured, block reason — that do not exist on
+  // a product row. Merging them would flatten a real distinction. Removing the
+  // tab where the distinction is not real is the actual defect.
   const showOnlineTab =
     isFeatureEnabled(user?.organization?.features, 'storefront') &&
+    user?.organization?.features?.inventoryTracking !== false &&
     (user?.permissions?.includes('storefront.view') ?? false);
 
   // Clamp rather than trust the raw state: PageTabs renders nothing when it is
@@ -230,6 +248,25 @@ export default function ProductsPage() {
         // products stored it per variant only — fall back to the first variant so
         // the shared "Barcode type" field prefills correctly on edit.
         barcodeSymbology: item.barcodeSymbology || item.variants?.[0]?.barcodeSymbology,
+        // "Publish to store" is flat on the form and nested on the document, so
+        // the spread above reaches none of it. Left unflattened the three fields
+        // render empty on edit — and because the submit path sends anything that
+        // is not `undefined`, an untouched checkbox goes out as
+        // `isListed: false`. Renaming a product would take it off the storefront,
+        // with no error and nothing on screen to suggest it happened.
+        //
+        // `?? undefined`, never `?? false` or `?? ""`: absent must stay absent
+        // so the submit path omits it rather than writing a blank over a value
+        // this form was not shown.
+        isListed: item.storefront?.isListed ?? undefined,
+        onlinePrice: item.storefront?.onlinePrice ?? undefined,
+        onlineDescription: item.storefront?.onlineDescription ?? undefined,
+        // Same rule, same reason: this tier has no Online tab, so the form owns
+        // these two now. Unhydrated, an untouched "Feature on the homepage"
+        // checkbox would go out `false` on every edit and quietly un-feature the
+        // product, and the weight field would blank a real parcel weight.
+        featured: item.storefront?.featured ?? undefined,
+        weightKg: item.storefront?.weightKg ?? undefined,
         variants: transformedVariants,
       }
     },

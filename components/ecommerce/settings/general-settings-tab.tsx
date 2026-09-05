@@ -17,6 +17,7 @@ import {
   socialProfileError,
 } from "@/lib/storefront-social";
 import { Field, SaveBar, useStoreSettingsSave } from "./settings-form-shared";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
 
 /** Store-wide sold-out policy. A product can override it in Catalog → Products. */
 const OUT_OF_STOCK_OPTIONS = [
@@ -44,6 +45,7 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
   const [whatsapp, setWhatsapp] = useState(settings.social?.whatsapp ?? "");
   const [socialErrors, setSocialErrors] = useState<Record<string, string>>({});
   const [locationId, setLocationId] = useState(settings.storefrontLocationId ?? "");
+  const stockTracked = useStockTracked();
   const [outOfStock, setOutOfStock] = useState<OutOfStockBehavior>(
     settings.defaultOutOfStockBehavior ?? "show",
   );
@@ -101,9 +103,21 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
         </div>
       </Card>
       <Card className="space-y-4 p-5 shadow-none">
-        <div><h3 className="text-sm font-semibold">Fulfillment location <span className="text-red-600">*</span></h3><p className="text-xs text-muted-foreground">Which inventory location backs online stock. Required before publishing.</p></div>
+        {/* The location itself stays at every tier — an order has to be
+            fulfilled from somewhere, and `provisionUntrackedInventory` pins the
+            ghost row to it. Only the sentence changes: a business with no stock
+            has no "online stock" for a location to back (QA-N7). */}
+        <div><h3 className="text-sm font-semibold">Fulfillment location <span className="text-red-600">*</span></h3><p className="text-xs text-muted-foreground">{stockTracked ? "Which inventory location backs online stock. Required before publishing." : "Which location fulfils online orders. Required before publishing."}</p></div>
         <SimpleSelect value={locationId} onValueChange={setLocationId} options={options} placeholder="Select the location that ships online orders" className="max-w-sm" />
       </Card>
+      {/* Not merely cosmetic here — the setting has no effect at all without
+          stock tracking. `isStockTracked` is consulted BEFORE
+          `resolveOutOfStockBehavior` on the server, deliberately: backorder is a
+          per-product policy about tracked stock ("I have none right now, sell
+          anyway"), untracked is an org capability ("this business has no concept
+          of stock"). So this asked a merchant to choose between three outcomes
+          none of which could occur (QA-N7). */}
+      {stockTracked && (
       <Card className="space-y-4 p-5 shadow-none">
         <div><h3 className="text-sm font-semibold">When a product is out of stock</h3><p className="text-xs text-muted-foreground">Applies to every product in the store. A single product can override this from Catalog → Products → Edit online listing.</p></div>
         <SimpleSelect
@@ -116,6 +130,7 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
           <span className="font-medium">Hide</span> removes it from the store and 404s its page until it is back in stock · <span className="font-medium">Backorder</span> keeps it buyable past zero stock; those orders wait unreserved until you restock.
         </p>
       </Card>
+      )}
       <SaveBar pending={pending} onSave={() => {
         const errors = Object.fromEntries(
           SOCIAL_PROFILES.map(({ key }) => [key, socialProfileError(profiles[key] ?? "") ?? ""]),

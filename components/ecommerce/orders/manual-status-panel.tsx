@@ -77,7 +77,8 @@ export function ManualStatusPanel({ order }: { order: AdminStorefrontOrder }) {
           <AlertTriangle className="mt-px size-3.5 shrink-0" />
           <span>
             The parcel is marked returned, but the sale is still recorded. Use{" "}
-            <b>Return order</b> above to restock the items and settle the refund.
+            <b>Return whole order</b> above to restock the items and settle the
+            refund.
           </span>
         </p>
       ) : null}

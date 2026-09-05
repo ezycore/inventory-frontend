@@ -25,6 +25,8 @@ interface SellableProduct {
   costPrice: number;
   price: number;
   availableQuantity: number;
+  /** `false` when the org keeps no stock — see `ExtractedProduct.tracked`. */
+  tracked?: boolean;
   productId: string;
   variantId: string | null;
 }
@@ -185,6 +187,22 @@ export function ProductSearch({
                           ) : null}
                           {formatCurrency(product.price || 0)}
                         </div>
+                        {/*
+                          Nothing at all for a workspace that keeps no stock.
+
+                          `availableQuantity` is `UNTRACKED_AVAILABLE_QUANTITY`
+                          there, and the sentinel is designed to satisfy every
+                          `> 0` test downstream unchanged — which it does. This
+                          row is the exception, because it PRINTS the number:
+                          the thresholds below all fall to "plenty" and the line
+                          reads "9007199254740991 in stock".
+
+                          Hidden rather than replaced with "In stock": an
+                          untracked shop has no availability to report, and a
+                          reassuring label would be a claim about stock rather
+                          than the absence of one.
+                        */}
+                        {product.tracked !== false && (
                         <div
                           className={`text-xs font-medium ${product.availableQuantity <= 5
                             ? "text-red-500"
@@ -195,6 +213,7 @@ export function ProductSearch({
                         >
                           {product.availableQuantity} in stock
                         </div>
+                        )}
                       </div>
                     </CommandItem>
                   ))}

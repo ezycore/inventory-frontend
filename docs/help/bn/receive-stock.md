@@ -7,6 +7,8 @@ covers_routes:
   - /purchases
   - /purchases/orders
   - /purchases/history
+features:
+  - purchases
 ui_labels:
   - purchases:create.title
   - purchases:create.subtitle

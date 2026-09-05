@@ -31,6 +31,28 @@
     "onlineHint": "Facebook, WhatsApp, or your own store",
     "both": "Both"
   },
+  "stock": {
+    "lead": "Thanks.",
+    "question": "Do you keep stock of what you sell?",
+    "yes": "Yes, I hold stock",
+    "yesHint": "Counts go up when you buy and down when you sell",
+    "no": "No, I don't",
+    "noHint": "You make to order, sell services, or source each item as it's ordered"
+  },
+  "purchasing": {
+    "lead": "Good.",
+    "question": "Do you buy from suppliers to resell?",
+    "yes": "Yes, I buy to resell",
+    "yesHint": "Record purchase orders and receive stock against them",
+    "no": "No, I don't"
+  },
+  "accounts": {
+    "lead": "Almost there.",
+    "question": "Do you want to track money in EzyCore?",
+    "yes": "Yes, track my cash and bank",
+    "yesHint": "Income, expenses, and what each customer owes you",
+    "no": "No, I keep accounts elsewhere"
+  },
   "locations": {
     "lead": "Got it.",
     "question": "How many locations do you manage?",

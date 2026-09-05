@@ -17,7 +17,8 @@
     "marginOfSales": "{margin}% margin on sales",
     "transactions": "Transactions",
     "vsPrevious": "vs previous",
-    "salesPurchaseCount": "{sales} sales · {purchases} purchases"
+    "salesPurchaseCount": "{sales} sales · {purchases} purchases",
+    "afterReturns": "after {amount} returned"
   },
   "chart": {
     "title": "Sales vs Purchases",
@@ -29,7 +30,8 @@
     "groupingMonthly": "Monthly",
     "breakdownSuffix": "{grouping} breakdown",
     "emptyTitle": "No transaction data yet",
-    "emptyDescription": "Sales and purchase trends will appear here as you record transactions"
+    "emptyDescription": "Sales and purchase trends will appear here as you record transactions",
+    "salesTitle": "Sales"
   },
   "summary": {
     "receivable": "Receivable",

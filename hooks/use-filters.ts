@@ -2,7 +2,13 @@
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { OrganizationFeatures } from "@/types";
 import { FilterField, FilterValues } from "@/types/filter";
-import { omitFormFields } from "@/ui/components/form/form-utils";
+import {
+  moveFormField,
+  omitFormFields,
+  omitFormSections,
+  releaseFieldDependencies,
+  restrictSelectOptions,
+} from "@/ui/components/form/form-utils";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
 import { sanitize } from "@/utils";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -200,6 +206,8 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
       user?.organization?.settings?.excludedFields?.[module],
       "array",
     );
+    /** Sections dropped whole, by stable id — see `omitFormSections`. */
+    const hiddenSections: string[] = [];
     if (module === "product") {
       const expiryTrackingEnabled =
         user?.organization?.features?.expiryTracking;
@@ -221,8 +229,107 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
       if (!barcodeEnabled) {
         excludedFields.push("barcode", "barcodeSymbology");
       }
+      // Stock-free: the whole Inventory section goes, and cost price moves out
+      // of it first.
+      //
+      // Six of the seven fields describe quantities a business without stock
+      // does not have — the "Add to inventory" toggle itself, the location it
+      // would go to, opening stock, the low-stock threshold, and the opening
+      // batch and expiry date.
+      //
+      // **Cost price stays**, and it is the exception the plan's "strip seven
+      // fields" line got wrong. `costPrice` lives on the Inventory model and
+      // nowhere else, and it is what makes gross profit real rather than a
+      // permanent 100% margin for an f-commerce seller who knows exactly what
+      // they paid.
+      //
+      // But keeping it *in place* is what left the section standing — one field
+      // is enough to keep a section, so the form still carried an "Inventory"
+      // header reading "Stock levels and low-stock alerts" above a **Track
+      // stock** toggle, on a workspace that tracks none (QA-N1/C2). That toggle
+      // is a `headerAction`, not a field, so no amount of field-level exclusion
+      // could remove it. Relocating cost price to Pricing empties the section
+      // and `omitFormFields` then drops the header and the toggle together.
+      //
+      // Pricing is also where it belongs: the product detail page has always
+      // shown cost under Pricing, and at this tier
+      // `provisionUntrackedInventory` writes the number unconditionally, so it
+      // no longer has a stock question behind it to sit under.
+      const storefrontOn = user?.organization?.features?.storefront;
+      const stockOn = user?.organization?.features?.inventoryTracking;
+      // "Publish to store" belongs to exactly one tier: a storefront merchant
+      // who does not track stock, for whom creating a product IS publishing it.
+      // A stocked merchant keeps the Products → Online tab, where listing is a
+      // separate decision taken at a separate time; a merchant with no
+      // storefront has nothing to publish to.
+      // Dropped as a whole SECTION, not as a list of field names. The list
+      // named only the original three and the section had since grown
+      // `weightKg` and `featured`, so those two survived the gate — and being
+      // hidden by a `dependsOn` on the very `isListed` checkbox the gate had
+      // just removed, they rendered nothing. The section was left standing as
+      // an empty card: a "Publish to store" header, a subtitle promising the
+      // product goes live on save, and not a single control under it.
+      hiddenSections.push("publish-to-store");
+      if (!stockOn) {
+        excludedFields.push(
+          "addToInventory",
+          "locationId",
+          "openingStock",
+          "inventoryAlertLevel",
+          "batchNumber",
+          "expiryDate",
+        );
+      }
     }
-    return omitFormFields(formConfig, excludedFields);
+    // A default discount on a CUSTOMER is a sales tool and on a SUPPLIER a
+    // purchasing one, so each follows its own capability. Both read the same
+    // `Discount` records — the ones behind Pricing → Discounts, which is gated
+    // on either capability for the same reason.
+    if (module === "supplier" && !user?.organization?.features?.purchases) {
+      excludedFields.push("defaultDiscountId");
+    }
+    if (module === "customer" && !user?.organization?.features?.sales) {
+      excludedFields.push("defaultDiscountId");
+    }
+    // The Discount RECORD itself, as opposed to the field that references one.
+    // A discount carries `applicableTo: "sales" | "purchase" | "both"` and a
+    // default flag per side, so each half follows its own capability — and both
+    // halves can be absent at once here in a way they cannot on the customer and
+    // supplier forms above, which is why the select's options are narrowed
+    // rather than the field removed.
+    const salesOn = user?.organization?.features?.sales !== false;
+    const purchasesOn = user?.organization?.features?.purchases !== false;
+    const applicableTo: string[] = [];
+    if (module === "discount") {
+      if (!salesOn) excludedFields.push("isDefaultSales");
+      if (!purchasesOn) excludedFields.push("isDefaultPurchase");
+      if (salesOn) applicableTo.push("sales");
+      if (purchasesOn) applicableTo.push("purchase");
+      // "Both" means both, so it survives only when both do. Leaving it on a
+      // one-sided workspace is the same defect as leaving "Purchase Only"
+      // there: a saved record that applies to a module the merchant does not
+      // have, and nothing to tell them so.
+      if (salesOn && purchasesOn) applicableTo.push("both");
+    }
+    const stockFreeProduct =
+      module === "product" &&
+      !user?.organization?.features?.inventoryTracking;
+    // Order matters: cost price has to leave the Inventory section BEFORE the
+    // omit pass, or the section still holds a field when the empty-section
+    // filter runs and survives with its header and Track stock toggle intact.
+    const relocated = stockFreeProduct
+      ? moveFormField(formConfig, "costPrice", "pricing")
+      : formConfig;
+    const trimmed = restrictSelectOptions(
+      omitFormSections(omitFormFields(relocated, excludedFields), hiddenSections),
+      { applicableTo },
+    );
+    // Cost price outlives its trigger — see the note above. Its other rule
+    // (`productType === "single"`) is left alone, so combos and variable
+    // products still do not show it.
+    return stockFreeProduct
+      ? releaseFieldDependencies(trimmed, ["addToInventory"])
+      : trimmed;
   }, [formConfig, user, module]);
 }
 
@@ -246,7 +353,13 @@ function featureExcludedColumns(
   module: string,
 ): string[] {
   if (module !== "product") return [];
-  return features?.barcodeSystem ? [] : ["barcode"];
+  const excluded: string[] = [];
+  if (!features?.barcodeSystem) excluded.push("barcode");
+  // The server omits `totalStock` for a business that does not count stock, so
+  // the column would render an em dash on every row — and, worse, still sit in
+  // the Manage Columns picker as something a merchant could switch on.
+  if (features?.inventoryTracking === false) excluded.push("totalStock");
+  return excluded;
 }
 
 /**

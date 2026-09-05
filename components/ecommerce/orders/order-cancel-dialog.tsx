@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCancelOrder, type AdminStorefrontOrder } from "@/services/api";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import {
@@ -38,6 +39,7 @@ export function OrderCancelDialog({
   trigger: React.ReactNode;
 }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const stockTracked = useStockTracked();
   const cancel = useCancelOrder();
   const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
 
@@ -78,7 +80,12 @@ export function OrderCancelDialog({
           <DialogDescription>
             {reject
               ? "The shopper is notified the order was rejected. "
-              : "Reserved stock is released back to inventory. "}
+              : stockTracked
+                ? "Reserved stock is released back to inventory. "
+                // Confirm reserved nothing on a stock-free workspace, so there
+                // is no hold to give back (QA-N13). The half that stays true at
+                // both tiers is the sentence below.
+                : ""}
             No sale has been booked yet. This can&apos;t be undone.
           </DialogDescription>
         </DialogHeader>
@@ -149,7 +156,9 @@ export function OrderCancelDialog({
               ? "Processing…"
               : reject
                 ? "Reject order"
-                : "Cancel & release stock"}
+                : stockTracked
+                  ? "Cancel & release stock"
+                  : "Cancel order"}
           </Button>
         </DialogFooter>
       </DialogContent>

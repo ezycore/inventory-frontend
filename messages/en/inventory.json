@@ -210,7 +210,9 @@
     "batchUnlabelled": "unlabelled lot",
     "batchExpired": "Expired",
     "batchExistingShort": "Existing lot",
-    "batchNewShort": "New lot"
+    "batchNewShort": "New lot",
+    "quantityTooLarge": "Quantity cannot be more than {max}.",
+    "quantityNegativeHint": "This is the new total, not an amount to remove — it cannot be negative."
   },
   "transfers": {
     "title": "Transfer Stock",

@@ -10,6 +10,8 @@ import {
 } from "@/components/storefront/checkout/checkout-bits";
 import { FormAlert } from "@/components/storefront/checkout/checkout-field";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
+import { useStore } from "@/services/storefront/hooks";
+import { useStoreContext } from "@/services/storefront/store-context";
 
 /** Coupon field + apply button. */
 export function CouponRow({ api }: { api: CheckoutApi }) {
@@ -37,6 +39,11 @@ export function CouponRow({ api }: { api: CheckoutApi }) {
 /** Subtotal / discount / shipping / total, and the re-check footnote. */
 export function SummaryLines({ api, note = true }: { api: CheckoutApi; note?: boolean }) {
   const { t, lang, currency, subtotal, discount, applied, shipping, total, isPickup, zoned, zoneLabel } = api;
+  const { slug } = useStoreContext();
+  // `!== false` so a payload without the field reads as tracked — the same
+  // convention the server's `isStockTracked` applies, and the safe direction:
+  // over-promising a check that DOES run is not the failure mode here.
+  const stockTracked = useStore(slug).data?.tracked !== false;
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -59,9 +66,19 @@ export function SummaryLines({ api, note = true }: { api: CheckoutApi; note?: bo
       </div>
       {note ? (
         <p style={{ fontSize: 11.5, color: "var(--faint)", marginTop: 10, marginBottom: 0 }}>
-          {lang === "bn"
-            ? "অর্ডার করার সময় দাম ও স্টক যাচাই করা হবে।"
-            : "Stock & prices are re-checked when you place the order."}
+          {/* Prices are re-priced through the campaign pricer at placement on
+              every store; stock is only re-checked when the merchant tracks it —
+              `storefront-order-lines.service.ts` guards that branch on
+              `store.tracked`. Promising a stock check that cannot run told the
+              shopper their order was verified against something that does not
+              exist (QA-N8). */}
+          {stockTracked
+            ? lang === "bn"
+              ? "অর্ডার করার সময় দাম ও স্টক যাচাই করা হবে।"
+              : "Stock & prices are re-checked when you place the order."
+            : lang === "bn"
+              ? "অর্ডার করার সময় দাম যাচাই করা হবে।"
+              : "Prices are re-checked when you place the order."}
         </p>
       ) : null}
     </>

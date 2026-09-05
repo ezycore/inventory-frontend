@@ -85,7 +85,8 @@
       "status": "Status",
       "createdBy": "Created By",
       "copyInvoice": "Copy invoice number",
-      "invoice": "Invoice #"
+      "invoice": "Invoice #",
+      "channel": "Channel"
     },
     "actions": {
       "summary": "Summary",
@@ -192,6 +193,10 @@
       "partial": "Partial",
       "due": "Due",
       "cancelled": "Cancelled"
+    },
+    "channel": {
+      "pos": "Counter",
+      "online": "Online"
     }
   },
   "returns": {

@@ -18,6 +18,8 @@ import { cn } from '@/ui/lib/utils'
  *
  * - **Call itself a balance sheet.** There is no equity side and it does not balance in the
  *   accounting sense; the name invites someone to file it.
+ * - **Hide `basis.stockTracked === false`** — a business that does not count stock has no stock
+ *   asset, and printing ৳0 for it understates the asset total against a real liability side.
  * - **Hide `basis.cashTracked === false`** — with the `accounts` module off there are no wallets,
  *   so cash reads 0 because it is untracked, not because the drawer is empty.
  */
@@ -67,6 +69,13 @@ export function PositionReport() {
             </div>
           )}
 
+          {!data.basis.stockTracked && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/40">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-amber-900 dark:text-amber-200">{t('stockNotTracked')}</p>
+            </div>
+          )}
+
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -74,7 +83,12 @@ export function PositionReport() {
               </CardHeader>
               <CardContent className="divide-y">
                 <Row label={t('cash')} value={data.assets.cash} format={format} />
-                <Row label={t('stockValue')} value={data.assets.stockValue} format={format} />
+                {/* Dropped, not zeroed. "Stock ৳0" as an asset line reads as a
+                    shop that has sold out; the notice above says the truer
+                    thing, which is that this business does not carry stock. */}
+                {data.basis.stockTracked && (
+                  <Row label={t('stockValue')} value={data.assets.stockValue} format={format} />
+                )}
                 <Row label={t('receivables')} value={data.assets.receivables} format={format} />
                 <div className="flex items-center justify-between border-t-2 pt-3 font-semibold">
                   <span>{t('totalAssets')}</span>

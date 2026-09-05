@@ -42,6 +42,9 @@ const toPickerItem = (row: OrderableProduct): ExtractedProduct =>
     compareAt: row.compareAt,
     costPrice: 0,
     availableQuantity: row.availableQuantity,
+    // Same sentinel, same picker. The storefront's orderable-products list
+    // carries `tracked` for exactly this reason.
+    tracked: row.tracked,
     productId: row.productId,
     variantId: row.variantId ?? null,
     quantityAlert: 0,

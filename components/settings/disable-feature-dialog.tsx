@@ -27,33 +27,59 @@ export function disableConsequence(
   feature: FeatureName,
   impact: FeatureImpact | undefined,
   t: ReturnType<typeof useTranslations>,
+  /**
+   * Capabilities that switch off WITH this one, already resolved to display
+   * names. A row count says what data is affected; this says what other
+   * switches move, which for a parent capability is the larger surprise —
+   * turning stock off also takes Purchases, Suppliers, Expiry tracking, Bundles
+   * and unit conversion, and a merchant who is not told that discovers it by
+   * finding five menus gone.
+   */
+  cascaded: string[] = [],
 ): string | null {
   if (!impact) return null;
 
+  // A cascade is worth saying out loud even when nothing is at stake data-wise
+  // — it is the only warning for a change with no row count behind it. And it
+  // can promise the return honestly: the cascade is DERIVED inside
+  // `computeEffectiveFeatures` and never written to `featureOverrides`, so
+  // switching the parent back on restores each dependant to exactly the state
+  // the merchant last chose.
+  const cascadeLine =
+    cascaded.length > 0
+      ? t("disable.cascade", { features: cascaded.join(", ") })
+      : null;
+  const withCascade = (line: string | null) =>
+    [line, cascadeLine].filter(Boolean).join(" ") || null;
+
   switch (feature) {
+    case "inventoryTracking":
+      // No row count of its own: stock rows are not deleted, they stop being
+      // read. The cascade IS the consequence here.
+      return withCascade(t("disable.inventoryTracking"));
     case "storefront": {
       const n = impact.storefront.pendingOnlineOrders;
       // The one that genuinely bites: the public shop goes offline, and orders
       // already in the queue stop being visible to anyone.
-      return t("disable.storefront", { count: n });
+      return withCascade(t("disable.storefront", { count: n }));
     }
     case "expiryTracking": {
       const n = impact.expiryTracking.trackedBatches;
-      return n > 0 ? t("disable.expiryTracking", { count: n }) : null;
+      return withCascade(n > 0 ? t("disable.expiryTracking", { count: n }) : null);
     }
     case "multiLocation": {
       const n = impact.multiLocation.locations;
-      return n > 1 ? t("disable.multiLocation", { count: n }) : null;
+      return withCascade(n > 1 ? t("disable.multiLocation", { count: n }) : null);
     }
     case "returns": {
       // Both kinds: this feature gates the purchase-return routes as well as
       // the sales ones, so a merchant whose returns are all supplier-side used
       // to be told nothing would change.
       const n = impact.returns.salesReturns + impact.returns.purchaseReturns;
-      return n > 0 ? t("disable.returns", { count: n }) : null;
+      return withCascade(n > 0 ? t("disable.returns", { count: n }) : null);
     }
     default:
-      return null;
+      return cascadeLine;
   }
 }
 
