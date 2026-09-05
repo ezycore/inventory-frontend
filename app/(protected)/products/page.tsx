@@ -202,6 +202,32 @@ export default function ProductsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-check on a new delete error
   }, [deleteMutation.isError, deleteMutation.error, deleteMutation.variables])
 
+  // ONE array, handed to BOTH branches below.
+  //
+  // The table and the card are two components rendered behind a ViewToggle off
+  // the same page, and this used to be an inline literal on the table alone —
+  // so Print Label existed in table view and silently did not in card view,
+  // with `useViewMode` remembering the merchant's choice (QA-T1-E). Declaring
+  // it here rather than twice is the point: two literals kept in sync is the
+  // same defect waiting to come back on the next edit.
+  const rowActions = barcodeEnabled
+    ? [
+        {
+          type: "print-label",
+          placement: "cell" as const,
+          icon: <Printer className="h-4 w-4" />,
+          tooltip: t("page.printLabel"),
+          onClick: (row: any) => openLabelsFor([row]),
+          disabled: (row: any) =>
+            !row.barcode &&
+            !(
+              row.productType === "variable" &&
+              (row.variants || []).some((v: any) => v.barcode)
+            ),
+        },
+      ]
+    : undefined;
+
   // Shared operations config
   const sharedOperations = {
     formConfig: gatedFormConfig,
@@ -334,22 +360,7 @@ export default function ProductsPage() {
             preview: productsApi.importPreview,
             commit: productsApi.importCommit,
           }}
-          {...(barcodeEnabled
-            ? {
-                customActions: [
-                  {
-                    type: "print-label",
-                    placement: "cell",
-                    icon: <Printer className="h-4 w-4" />,
-                    tooltip: t("page.printLabel"),
-                    onClick: (row: any) => openLabelsFor([row]),
-                    disabled: (row: any) =>
-                      !row.barcode &&
-                      !(row.productType === "variable" && (row.variants || []).some((v: any) => v.barcode)),
-                  },
-                ],
-              }
-            : {})}
+          {...(rowActions ? { customActions: rowActions } : {})}
         />
       )}
 
@@ -378,6 +389,7 @@ export default function ProductsPage() {
             preview: productsApi.importPreview,
             commit: productsApi.importCommit,
           }}
+          {...(rowActions ? { customActions: rowActions } : {})}
           renderCard={(row: any, actions) => (
             <ProductCard
               product={row}
