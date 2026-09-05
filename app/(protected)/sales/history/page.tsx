@@ -12,11 +12,26 @@ import {
   SummaryCards,
   PaymentsDrawer,
 } from '@/components/sales/history';
+import { useAuthStore } from '@/services/stores/use-auth-store';
+import { isFeatureEnabled } from '@/lib/feature-utils';
 
 export default function SalesHistoryPage() {
   const t = useTranslations('sales.history');
   const router = useRouter();
   const ctx = useSalesHistoryPage();
+  // History stays READABLE when the counter is switched off — that is what
+  // `readOnly` on the nav item means, and why a year of sales does not vanish
+  // with the capability. It does not mean the screen never creates.
+  //
+  // What the flag never covered is this button, which pushes to `/sales` — a
+  // route the guard blocks once the capability is off. The twin screen
+  // `/purchases/history` was given this exact guard and this one was missed,
+  // so an online-only merchant is offered a counter sale they cannot start
+  // (QA-R23, same shape as QA-L6).
+  const canCreateSale = isFeatureEnabled(
+    useAuthStore((s) => s.user?.organization?.features),
+    'sales',
+  );
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -25,10 +40,12 @@ export default function SalesHistoryPage() {
           <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => router.push('/sales')}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('newSale')}
-        </Button>
+        {canCreateSale && (
+          <Button onClick={() => router.push('/sales')}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('newSale')}
+          </Button>
+        )}
       </div>
 
       {/* Summary Stats */}

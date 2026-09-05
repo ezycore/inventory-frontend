@@ -1,10 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Lock } from "lucide-react";
 
 import { useAuthStore } from "@/services/stores";
@@ -43,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/ui/components/alert-dialog";
 import { describeVatPeriodSplit } from "@/lib/vat-period-split";
+import { useRequireAccess } from "@/hooks/use-require-access";
 
 const REGISTRATION_TYPES: VatRegistrationType[] = [
   "standard_15",
@@ -60,7 +59,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 export default function VatSettingsPage() {
   const t = useTranslations("settings.vatSettings");
   const tShell = useTranslations("settings.shell");
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const updateTaxConfig = useAuthStore((s) => s.updateTaxConfig);
   const { mutateAsync, isPending } = useUpdateVatSettings();
@@ -99,12 +97,7 @@ export default function VatSettingsPage() {
     setFilingDay(vs?.filingDayOfMonth ?? 15);
   }
 
-  useEffect(() => {
-    if (user && !canManage) {
-      toast.error(tShell("noPermission"));
-      router.push("/");
-    }
-  }, [user, canManage, router, tShell]);
+  useRequireAccess([{ allowed: canManage, message: tShell("noPermission") }]);
 
   if (!canManage) return null;
 

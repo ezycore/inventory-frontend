@@ -64,12 +64,34 @@ export interface CardLayoutConfig {
 /**
  * Custom action configuration for cards
  */
+/** One `customAction` with its row already applied, ready for a card to render. */
+export interface BoundCardAction {
+  type: string;
+  label?: string;
+  tooltip?: string;
+  icon?: React.ReactNode;
+  href?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+}
+
 export interface CardCustomAction {
   /** Action type - use built-in types to replace default behavior */
   type: "edit" | "view" | "delete" | "create" | string;
 
-  /** Placement of the action */
-  placement: "header" | "footer" | "menu";
+  /**
+   * Where the action goes.
+   *
+   * `"cell"` exists because a page hands ONE `customActions` array to both the
+   * DataTable and the DataCard behind a ViewToggle, and the table's vocabulary
+   * has a per-row cell that a card does not. It used to be dropped silently
+   * here: `/products` declares Print Label as `placement: "cell"`, the printer
+   * shows in table view, and switching to cards lost label printing entirely
+   * until you switched back — with `useViewMode` remembering the choice
+   * (QA-T1-E, and the shared half of QA-R20). A card has no cells, so it lands
+   * in the kebab, which is the honest home for it.
+   */
+  placement: "header" | "footer" | "menu" | "cell";
 
   /** Link href (for Next.js Link) - takes precedence over onClick */
   href?: string | ((row?: any) => string);
@@ -299,6 +321,14 @@ export interface DataCardProps<TData, TValue = any> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
+      /**
+       * Per-row custom actions (`placement: "menu"` / `"cell"`), already bound
+       * to this row. A custom card owns its own layout, so WHERE these belong
+       * is its decision — but they are now handed over rather than withheld,
+       * which is what used to happen: a page that declared an action and also
+       * rendered its own card got neither the action nor a warning.
+       */
+      customActions?: BoundCardAction[];
     },
   ) => React.ReactNode;
 
@@ -413,6 +443,14 @@ export interface BaseDataCardProps<TData> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
+      /**
+       * Per-row custom actions (`placement: "menu"` / `"cell"`), already bound
+       * to this row. A custom card owns its own layout, so WHERE these belong
+       * is its decision — but they are now handed over rather than withheld,
+       * which is what used to happen: a page that declared an action and also
+       * rendered its own card got neither the action nor a warning.
+       */
+      customActions?: BoundCardAction[];
     },
   ) => React.ReactNode;
 
@@ -462,6 +500,14 @@ export interface CardItemProps<TData> {
       onEdit?: () => void;
       onView?: () => void;
       onDelete?: () => void;
+      /**
+       * Per-row custom actions (`placement: "menu"` / `"cell"`), already bound
+       * to this row. A custom card owns its own layout, so WHERE these belong
+       * is its decision — but they are now handed over rather than withheld,
+       * which is what used to happen: a page that declared an action and also
+       * rendered its own card got neither the action nor a warning.
+       */
+      customActions?: BoundCardAction[];
     },
   ) => React.ReactNode;
 }
