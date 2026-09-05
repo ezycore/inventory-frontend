@@ -29,6 +29,7 @@ import {
 } from "@/components/customers";
 import { StorefrontListPanel } from "@/components/customers/storefront-list-panel";
 import { PageTabs, type PageTab } from "@/ui/components/page-tabs";
+import { useFilteredFormConfig } from "@/hooks/use-filters";
 import StatsCard from "@/ui/components/StatsCard";
 import { formatCurrency } from "@/lib/currency";
 import { isFeatureEnabled } from "@/lib/feature-utils";
@@ -39,6 +40,15 @@ type CustomerTab = "all" | "accounts" | "subscribers";
 export default function CustomersPage() {
   const router = useRouter();
   const t = useTranslations("customers");
+  // Drops `defaultDiscountId` when the org has no `sales`. The rule has lived in
+  // `useFilteredFormConfig` since it was written — for `customer` and `supplier`
+  // both — but neither page called the hook, so it was dead code and a T3
+  // storefront-only merchant was offered a Default Discount pointing at
+  // `/discounts`, a screen its own nav gate blocks (QA-N15).
+  const filteredFormConfig = useFilteredFormConfig(
+    getCustomerFormConfig(t),
+    "customer",
+  );
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
@@ -172,7 +182,7 @@ export default function CustomersPage() {
         }
         customActions={customActions}
         operations={{
-          formConfig: getCustomerFormConfig(t),
+          formConfig: filteredFormConfig,
           defaultValues: defaultValues,
           getAllData: customersApi.getAll,
           createMutation: createCustomer,

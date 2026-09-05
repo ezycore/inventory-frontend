@@ -44,6 +44,7 @@ export function ProductBuyPanel({ d }: { d: ProductDetail }) {
         <VariantSelector
           variants={variants}
           selection={d.selection}
+          canBackorder={d.canBackorder}
           onSelect={(next) => {
             d.setPicked(next);
             d.setQty(1);

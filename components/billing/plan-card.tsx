@@ -47,16 +47,34 @@ export function PlanCard({
   currency,
   state,
   onChoose,
+  previousFeatures,
 }: {
   plan: AvailablePlan;
   name: string;
   currency?: string;
   state: PlanCardState;
   onChoose: () => void;
+  /**
+   * What the tier below this one grants. Given, the card lists only what this
+   * tier ADDS; absent (the entry tier) it lists everything.
+   *
+   * Three cards each reciting eleven identical capabilities is a wall of ticks
+   * a merchant has to diff by eye. Showing the delta is what makes a ladder
+   * legible — and it is only possible now that the tiers differ by capability
+   * at all.
+   */
+  previousFeatures?: string[];
 }) {
   const tPlans = useTranslations("settings.billing.plans");
   const tInterval = useTranslations("settings.billing.interval");
   const featureLabel = useFeatureLabel();
+
+  // What this tier adds over the one below. `plan.features` already arrives
+  // filtered to the granted keys — MC's `toPublicListing` drops the explicit
+  // falses — so a set difference is the whole computation.
+  const addedFeatures = previousFeatures
+    ? plan.features.filter((f) => !previousFeatures.includes(f))
+    : plan.features;
 
   // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
   const intervalSuffix = () => {
@@ -111,17 +129,24 @@ export function PlanCard({
       <CardContent className="space-y-4">
         <PlanLimits limits={plan.limits} />
 
-        {plan.features.length > 0 && (
-          <ul className="space-y-1.5">
-            {plan.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="size-4 text-emerald-500" />
-                {/* Was `capitalize` over a camelCase split, which rendered
-                    "Uom Conversion" and "Sms Notifications" (QA-049). */}
-                <span>{featureLabel(f)}</span>
-              </li>
-            ))}
-          </ul>
+        {addedFeatures.length > 0 && (
+          <div className="space-y-1.5">
+            {previousFeatures && (
+              <p className="text-xs font-medium text-muted-foreground">
+                {tPlans("everythingBelowPlus")}
+              </p>
+            )}
+            <ul className="space-y-1.5">
+              {addedFeatures.map((f) => (
+                <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="size-4 text-emerald-500" />
+                  {/* Was `capitalize` over a camelCase split, which rendered
+                      "Uom Conversion" and "Sms Notifications" (QA-049). */}
+                  <span>{featureLabel(f)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <PlanCardAction state={state} onChoose={onChoose} />

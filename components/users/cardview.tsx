@@ -14,7 +14,9 @@ import {
 } from "@/ui/components/dropdown-menu";
 import {
   AlertCircle,
+  Ban,
   Calendar,
+  CheckCircle,
   Edit2,
   Mail,
   MailCheck,
@@ -76,11 +78,27 @@ function getAvatarGradient(name: string) {
 
 /**
  * User card view – used as `renderCard` inside DataCard.
- * Signature: (item, { onEdit, onView, onDelete }) => ReactNode
+ * Signature: (item, { onEdit, onView, onDelete, onToggleStatus }) => ReactNode
+ *
+ * `onToggleStatus` is injected by the page, the way categories injects
+ * `onApplyVat`: a custom `renderCard` never receives the DataCard's
+ * `customActions` (`CardItem` forwards only edit/view/delete to it), so the
+ * table's Enable/Disable button had no counterpart here. The card showed an
+ * Active/Inactive badge and offered no way to change it — the only route was to
+ * switch to table view.
  */
 const UserCardView = (
   item: User,
-  { onEdit, onDelete }: { onEdit?: () => void; onView?: () => void; onDelete?: () => void },
+  {
+    onEdit,
+    onDelete,
+    onToggleStatus,
+  }: {
+    onEdit?: () => void;
+    onView?: () => void;
+    onDelete?: () => void;
+    onToggleStatus?: () => void;
+  },
   options: {
     roleLabel?: string;
     hasAllLocationAccess?: boolean;
@@ -142,6 +160,24 @@ const UserCardView = (
                 <Edit2 className="h-4 w-4 mr-2" />
                 {t("card.edit")}
               </DropdownMenuItem>
+              {/* Absent for your own row: `toggleUserStatus` refuses
+                  self-deactivation (SELF_DEACTIVATION_NOT_ALLOWED), so offering
+                  it would only produce an error. The page decides. */}
+              {onToggleStatus && (
+                <DropdownMenuItem onClick={onToggleStatus}>
+                  {isActive ? (
+                    <>
+                      <Ban className="h-4 w-4 mr-2" />
+                      {t("actions.disable")}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {t("actions.enable")}
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4 mr-2" />

@@ -30,6 +30,10 @@ export function useSalesHistoryPage() {
   // ── Auth & features ───────────────────────────────────────────
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  // Both channels on, or the column would read the same value on every row.
+  const isMultiChannel =
+    (user?.organization?.features?.sales ?? false) &&
+    (user?.organization?.features?.storefront ?? false);
   const { format: formatCurrency } = useCurrency();
   const router = useRouter();
 
@@ -201,8 +205,8 @@ export function useSalesHistoryPage() {
 
   // ── Table columns & actions (memoised) ────────────────────────
   const columns = useMemo(
-    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment, t),
-    [formatCurrency, isAccountsEnabled, handleViewSummary, handleMakePayment, t],
+    () => getSalesHistoryColumns(formatCurrency, isAccountsEnabled, isMultiChannel, handleViewSummary, handleMakePayment, t),
+    [formatCurrency, isAccountsEnabled, isMultiChannel, handleViewSummary, handleMakePayment, t],
   );
 
   const customActions = useMemo(

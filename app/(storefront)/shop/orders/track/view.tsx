@@ -1,13 +1,12 @@
 "use client";
 // coding-standard: maintained
 
-import { useRouter } from "next/navigation";
 import { useState, type CSSProperties, type FormEvent } from "react";
-import { storefrontApi } from "@/lib/storefront-client";
+import { storefrontApi, type TrackedOrder } from "@/lib/storefront-client";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { isValidBdPhone } from "@/services/storefront/bd-phone";
-import { storeHref } from "@/lib/storefront-links";
 import { ContentFrame } from "@/components/storefront/content-frame";
+import { TrackedOrderPanel } from "@/components/storefront/tracked-order-panel";
 
 /**
  * The recovery path for a buyer who lost their tracking link.
@@ -19,6 +18,14 @@ import { ContentFrame } from "@/components/storefront/content-frame";
  *
  * Deliberately linked from the footer rather than the main flow: the tracking link
  * is the primary surface, and this exists for the case where it was deleted.
+ *
+ * **The order renders here, in place.** This form used to push to
+ * `/orders/track/result` — a route that has never existed — so every successful
+ * lookup ended in a 404, on the one screen a guest who lost their link has left
+ * (QA-N12). Redirecting to the canonical token route is not available as a fix:
+ * `trackedOrderDto` withholds `trackToken` on purpose, and widening the allowlist
+ * to put a live credential in the URL bar would be a worse trade than sharing a
+ * component. The lookup response IS the tracked order, so it is what we show.
  */
 
 const input: CSSProperties = {
@@ -32,34 +39,32 @@ const input: CSSProperties = {
 };
 
 export default function View() {
-  const { slug, base } = useStoreContext();
-  const router = useRouter();
+  const { slug } = useStoreContext();
   const [orderNumber, setOrderNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [order, setOrder] = useState<TrackedOrder | null>(null);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError("");
     setBusy(true);
     try {
-      await storefrontApi.lookupOrder(slug, orderNumber.trim(), phone.trim());
-      // The lookup only proves the pair matches; the token route is the canonical
-      // surface, so send them there via the order number they just proved.
-      router.push(
-        storeHref(
-          base,
-          `/orders/track/result?orderNumber=${encodeURIComponent(orderNumber.trim())}&phone=${encodeURIComponent(phone.trim())}`,
-        ),
-      );
+      setOrder(await storefrontApi.lookupOrder(slug, orderNumber.trim(), phone.trim()));
     } catch {
       // ONE message for every failure — unknown order, wrong phone, expired.
       // Distinguishing them would confirm which order numbers exist.
       setError("We couldn't find an order with those details.");
+    } finally {
       setBusy(false);
     }
   };
+
+  // The same screen the tracking link opens. Nothing here is re-fetched or
+  // polled: the buyer proved the pair once, and a background refetch on an
+  // unauthenticated route is a lookup nobody asked for.
+  if (order) return <TrackedOrderPanel order={order} />;
 
   const ready = orderNumber.trim().length > 0 && isValidBdPhone(phone);
 

@@ -253,7 +253,16 @@ export function OnlineCatalogPanel() {
                       </div>
                     </td>
                     <td className="p-3 tabular-nums">
-                      {(p.availableQuantity ?? 0) <= 0 ? (
+                      {/*
+                        An untracked workspace has no count and no out-of-stock
+                        state: `availableQuantity` is the sentinel, so the badge
+                        never fires and the cell would print
+                        9007199254740991. An em dash says "not applicable here"
+                        without claiming a level.
+                      */}
+                      {p.tracked === false ? (
+                        <span className="text-muted-foreground">&mdash;</span>
+                      ) : (p.availableQuantity ?? 0) <= 0 ? (
                         <Badge
                           variant="outline"
                           className="border-red-300 text-[10px] text-red-600"

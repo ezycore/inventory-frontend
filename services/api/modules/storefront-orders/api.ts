@@ -7,6 +7,7 @@ import type {
   CourierLocation,
   CourierPackage,
   CourierPrice,
+  OrderReturnPreview,
   CourierRemoved,
   CourierStore,
   CourierTest,
@@ -23,6 +24,7 @@ import type {
 export type {
   AdminStorefrontOrder,
   CourierPrice,
+  OrderReturnPreview,
   OrderQuote,
   OrderStats,
   OrderableProduct,
@@ -332,6 +334,27 @@ export const storefrontOrdersApi = {
     accountId?: string,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/payment`, { accountId }),
+  /**
+   * What the courier actually handed over.
+   *
+   * Separate from `markPaid`, which can only settle the amount the system
+   * already believed. Anything short of the order total has to be explained by
+   * a return, a discount, or an amount left owing — the server refuses the
+   * request unless the parts reconcile.
+   */
+  recordCollection: (
+    id: string,
+    body: {
+      collected: number;
+      returnLines?: { productId: string; variantId?: string | null; quantity: number }[];
+      discount?: { amount: number; note: string };
+      stillOwed?: number;
+      accountId?: string;
+      refund?: { mode: "account" | "credit"; accountId?: string };
+      idempotencyKey?: string;
+    },
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/collection`, body),
   // Reverse a committed delivery order (RTO / post-delivery) with a full Sales Return.
   // `refund` routes the cash remainder of a *paid* order (account or store credit).
   returnOrder: (
@@ -363,6 +386,16 @@ export const storefrontOrdersApi = {
     apiClient.patch(`${base}/${id}/courier-status`, body),
   refreshTracking: (id: string): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/refresh-tracking`, {}),
+  /**
+   * What returning this order would move — the server's own arithmetic.
+   *
+   * Read rather than re-derived: the dialog used to compute the refund from the
+   * ORDER and guess at whether a refund destination was needed from
+   * `paymentStatus`, while the server computed it from the SALE. On a COD order
+   * with an advance they disagreed and the return became impossible.
+   */
+  returnPreview: (id: string): Promise<ApiResponse<OrderReturnPreview>> =>
+    apiClient.get(`${base}/${id}/return-preview`),
   courierPrice: (
     id: string,
     provider: string,

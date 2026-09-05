@@ -13,6 +13,8 @@ interface DetailInfoCardProps {
   product: any
   inventoryItems: InventoryItem[]
   expiryEnabled: boolean
+  /** Off for a business that never counts stock — see `useStockTracked`. */
+  stockTracked: boolean
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -24,7 +26,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-export function DetailInfoCard({ product, inventoryItems, expiryEnabled }: DetailInfoCardProps) {
+export function DetailInfoCard({ product, inventoryItems, expiryEnabled, stockTracked }: DetailInfoCardProps) {
   const t = useTranslations('products.products.detail.info')
   return (
     <Card>
@@ -56,7 +58,10 @@ export function DetailInfoCard({ product, inventoryItems, expiryEnabled }: Detai
           )}
         </div>
 
-        {inventoryItems.length > 0 && (
+        {/* The ghost inventory row a stock-free workspace carries is still a
+            row, so length alone let "Low Stock Alert · ≤ 0 units" onto a page
+            for a business with no such thing (QA-N14). */}
+        {stockTracked && inventoryItems.length > 0 && (
           <>
             <Separator className="my-4" />
             <Row label={t('lowStockAlert')} value={t('unitsThreshold', { count: inventoryItems[0]?.quantityAlert ?? 0 })} />

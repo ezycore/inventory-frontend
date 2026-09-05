@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@ui/components/card'
 import { Button } from '@ui/components/button'
+import { cn } from '@ui/lib/utils'
 import { useRouter } from 'next/navigation'
 import {
   ShoppingCart,
@@ -57,6 +58,10 @@ const ACTIONS: {
     icon: ArrowDownToLine,
     path: '/purchases',
     color: 'text-chart-2',
+    // Was the only action with a nav counterpart that gates on `purchases` and
+    // no gate of its own, so a storefront-only workspace got a shortcut onto a
+    // screen its own route guard blocks (QA-C1).
+    features: ['purchases'],
     permissions: ['purchases.create'],
   },
   {
@@ -80,6 +85,9 @@ const ACTIONS: {
     icon: BarChart3,
     path: '/inventory/adjust',
     color: 'text-chart-1',
+    // Nothing to adjust when nothing is counted — the inventory rows a
+    // stock-free workspace holds are inactive link records.
+    features: ['inventoryTracking'],
     permissions: ['stock.manage'],
   },
   {
@@ -90,6 +98,18 @@ const ACTIONS: {
     permissions: ['reports.view'],
   },
 ]
+
+/**
+ * Tailwind needs whole class names present in the source to emit them, so this
+ * is a lookup rather than a `lg:grid-cols-${n}` template.
+ */
+const LG_COLUMNS: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+};
 
 export function QuickActions() {
   const router = useRouter()
@@ -123,7 +143,15 @@ export function QuickActions() {
         <CardDescription>{t('subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Sized from what survives the gates, not from the six actions that
+            exist. A storefront-only shop keeps two, and a 5-wide track left
+            them huddled against three empty columns (QA-R3). */}
+        <div
+          className={cn(
+            "grid gap-3 grid-cols-2 sm:grid-cols-3",
+            LG_COLUMNS[Math.min(actions.length, 5)] ?? "lg:grid-cols-5",
+          )}
+        >
           {actions.map((action) => (
             <Button
               key={action.labelKey}

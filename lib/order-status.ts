@@ -31,6 +31,10 @@ export const ORDER_STATUS_BADGE: Record<string, StatusBadgeProps["status"]> = {
   ready_for_pickup: "shipped",
   picked_up: "delivered",
   returned: "returned",
+  // Reuses the returned variant: part of the parcel came back, so it reads as a
+  // return rather than as a completed delivery. The order is still payable —
+  // that distinction lives in the payment panel, not the badge.
+  partially_returned: "returned",
   cancelled: "cancelled",
   rejected: "rejected",
 };
@@ -45,6 +49,7 @@ export const DEFAULT_ORDER_STATUS_LABELS: Record<string, string> = {
   ready_for_pickup: "Ready for pickup",
   picked_up: "Picked up",
   returned: "Returned",
+  partially_returned: "Partly returned",
   cancelled: "Cancelled",
   rejected: "Rejected",
 };

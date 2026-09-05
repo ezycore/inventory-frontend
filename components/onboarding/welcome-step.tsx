@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, Percent, Sliders, Sparkles, Store } from "lucide-react";
 
 import { Button } from "@/ui/components/button";
-import { QUESTION_COUNT } from "./steps";
 
 /**
  * The opening screen — *"Let's get your workspace ready"*, which the plan's own
@@ -14,7 +13,7 @@ import { QUESTION_COUNT } from "./steps";
  *
  * Without it the merchant lands cold on "How do you sell to your customers?"
  * with no greeting, no idea how long this takes and no idea what it decides.
- * The three lines below are not decoration: they are what makes five questions
+ * The three lines below are not decoration: they are what makes the questions
  * feel bounded rather than open-ended.
  *
  * It is a *local* screen — it writes nothing and does not consume an
@@ -28,9 +27,17 @@ const TOPICS = [
 
 export function WelcomeStep({
   organizationName,
+  questionCount,
   onStart,
 }: {
   organizationName?: string;
+  /**
+   * How many questions this workspace is actually asked. Passed in rather than
+   * read from `QUESTION_COUNT`, because the plan can settle several of them
+   * before the merchant is asked anything — promising eight and delivering five
+   * is the wrong direction to be wrong in.
+   */
+  questionCount: number;
   onStart: () => void;
 }) {
   const t = useTranslations("onboarding");
@@ -50,7 +57,7 @@ export function WelcomeStep({
             // A workspace always has a name by now — signup requires it — but
             // the store rehydrates a frame later than this renders.
             organization: organizationName || t("welcome.yourBusiness"),
-            count: QUESTION_COUNT,
+            count: questionCount,
           })}
         </p>
       </div>

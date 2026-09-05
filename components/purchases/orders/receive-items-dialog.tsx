@@ -39,6 +39,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   buildReceiveItemsFromOrder,
+  clampReceiveQuantity,
   hasAnyReceivableItems,
 } from "./helpers";
 import type { ItemReceiveState } from "./types";
@@ -80,6 +81,10 @@ export function ReceiveItemsDialog({
   const [receiveItems, setReceiveItems] = useState<ItemReceiveState[]>([]);
   const [accountId, setAccountId] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
+  // Whether the merchant has typed in the paid field themselves. Once they have,
+  // the prefill below stops touching it — nothing is worse than a form that
+  // overwrites what you just entered.
+  const [paidTouched, setPaidTouched] = useState(false);
 
   // Re-initialize state every time a new order is opened. This synchronizes
   // local form state with the dialog's external inputs (open state, the
@@ -90,11 +95,36 @@ export function ReceiveItemsDialog({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setReceiveItems(buildReceiveItemsFromOrder(order));
       setPaidAmount(String(order.dueAmount ?? ""));
+      setPaidTouched(false);
       setAccountId(defaultAccount?._id ?? "");
     }
   }, [open, order, defaultAccount]);
 
   const currentDue = order?.dueAmount ?? 0;
+  // Is the whole outstanding order arriving? The dialog opens this way, so the
+  // common full receipt is unchanged: the field is prefilled with the due and
+  // one click still settles it.
+  const isFullReceive =
+    receiveItems.length > 0 &&
+    receiveItems.every((item) => item.receivedQuantity === item.maxQuantity);
+
+  /**
+   * The paid field was prefilled with the ENTIRE invoice no matter how much of
+   * the order had actually turned up: receiving 4 of 10 — ৳6,000 of goods —
+   * still offered ৳15,000, and a merchant clicking through paid the supplier for
+   * six units that were not on the van (QA-R16).
+   *
+   * It is cleared instead of being recomputed, deliberately: a line's payable
+   * share depends on per-line tax and the order's allocated additional discount,
+   * and re-deriving that money in the browser is how the two ends drift apart.
+   * The merchant knows what they handed over; the form should not guess.
+   */
+  useEffect(() => {
+    if (!open || paidTouched) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPaidAmount(isFullReceive ? String(currentDue || "") : "");
+  }, [open, paidTouched, isFullReceive, currentDue]);
+
   const parsedPaid = Math.max(0, parseFloat(paidAmount) || 0);
   const cappedPaid = Math.min(parsedPaid, currentDue);
   const remainingDue = Math.max(0, currentDue - cappedPaid);
@@ -112,6 +142,33 @@ export function ReceiveItemsDialog({
   const linesMissingExpiry = receiveItems.filter(
     (item) => item.receivedQuantity > 0 && !item.expiryDate,
   ).length;
+
+  /**
+   * Per-line received quantity — the control that makes a PARTIAL receipt
+   * possible.
+   *
+   * It was commented out of the table along with the Remaining column, which
+   * left every receipt an all-or-nothing one: the dialog rendered the ordered
+   * quantity as text and submitted the full amount. Everything around it kept
+   * working — `maxQuantity` is the remaining quantity, `status: "partial"`
+   * exists, the drawer prints a received/ordered counter, and the returns
+   * screen reads `receivedQuantity` — so the model supported a case no screen
+   * could express (QA-R15).
+   *
+   * Clamped through the shared helper rather than by the input's own `max`, so
+   * a paste or a spinner cannot exceed what is still outstanding.
+   */
+  const handleQuantityChange = (index: number, value: number | null) => {
+    setReceiveItems((prev) => {
+      if (!prev[index]) return prev;
+      const next = [...prev];
+      next[index] = {
+        ...next[index],
+        receivedQuantity: clampReceiveQuantity(value ?? 0, next[index].maxQuantity),
+      };
+      return next;
+    });
+  };
 
   const handleExpiryFieldChange = (
     index: number,
@@ -196,8 +253,8 @@ export function ReceiveItemsDialog({
                     <TableHead className="w-36">{t("colBatch")}</TableHead>
                   </>
                 )}
-                {/* <TableHead className="text-right">Remaining</TableHead> */}
-                {/* <TableHead className="text-right w-32">Receive Qty</TableHead> */}
+                <TableHead className="text-right">{t("colRemaining")}</TableHead>
+                <TableHead className="text-right w-32">{t("colReceiveQty")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,6 +294,23 @@ export function ReceiveItemsDialog({
                       </TableCell>
                     </>
                   )}
+                  <TableCell className="text-right text-muted-foreground tabular-nums">
+                    {item.maxQuantity}
+                  </TableCell>
+                  <TableCell>
+                    <NumberField
+                      precision={0}
+                      min={0}
+                      max={item.maxQuantity}
+                      value={item.receivedQuantity}
+                      onChange={(v) => handleQuantityChange(index, v)}
+                      className="h-8 text-right"
+                      // Named per row: every line otherwise announces the same
+                      // "Receive quantity", so a screen reader gives no way to
+                      // tell which product's field has focus.
+                      aria-label={`${t("colReceiveQty")} — ${item.productName}`}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -322,9 +396,17 @@ export function ReceiveItemsDialog({
                     min={0}
                     max={currentDue}
                     value={paidAmount === "" ? null : Number(paidAmount)}
-                    onChange={(v) => setPaidAmount(v == null ? "" : String(v))}
+                    onChange={(v) => {
+                      setPaidTouched(true);
+                      setPaidAmount(v == null ? "" : String(v));
+                    }}
                     placeholder="0.00"
                   />
+                  {!isFullReceive && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("partialReceiptPayHint")}
+                    </p>
+                  )}
                 </div>
               </div>
 

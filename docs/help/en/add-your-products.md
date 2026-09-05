@@ -19,8 +19,8 @@ ui_labels:
 
 # Add your products
 
-**Products** is the list of *All the products you stock and sell.* Everything else in EzyCore —
-stock counts, sales, purchases, reports — refers back to it.
+**Products** is the list of *Everything you sell.* Stock counts, sales, purchases and reports all
+refer back to it.
 
 ## Set up the basics first
 

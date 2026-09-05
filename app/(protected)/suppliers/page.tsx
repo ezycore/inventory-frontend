@@ -10,6 +10,7 @@ import type { CustomAction } from "@/types/DataTable";
 
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
+import { useFilteredFormConfig } from "@/hooks/use-filters";
 
 import {
   SupplierLedgerSheet,
@@ -29,6 +30,13 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 
 export default function SuppliersPage() {
   const t = useTranslations("suppliers");
+  // The purchases-side mirror of the customer gate — same dead rule, same fix.
+  // Not reported, because the QA pass ran on a tier where the Suppliers page is
+  // itself hidden; a Growth workspace with `purchases` off reaches it.
+  const filteredFormConfig = useFilteredFormConfig(
+    getSupplierFormConfig(t),
+    "supplier",
+  );
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
 
@@ -81,7 +89,7 @@ export default function SuppliersPage() {
         }
         customActions={customActions}
         operations={{
-          formConfig: getSupplierFormConfig(t),
+          formConfig: filteredFormConfig,
           defaultValues: supplierDefaultValues,
           getAllData: suppliersApi.getAll,
           createMutation: useCreateSupplier(),

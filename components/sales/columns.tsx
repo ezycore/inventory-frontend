@@ -97,7 +97,15 @@ export const getSalesColumns = (
       cell: ({ row }) => (
         <div className="min-w-[100px]">
           <span className="font-medium text-sm">{row.original.productName}</span>
-          {row.original.availableQuantity !== null && (
+          {/*
+            `tracked === false` hides it outright rather than printing the
+            untracked sentinel — "Available: 9007199254740991 units" under every
+            line on the sell page. A shop that counts nothing has no
+            availability to report, and any stand-in label would be a claim
+            about stock rather than the absence of one.
+          */}
+          {row.original.tracked !== false &&
+            row.original.availableQuantity !== null && (
             <div className="text-xs text-muted-foreground">
               Available: {row.original.availableQuantity} {row.original.unitName || "units"}
             </div>

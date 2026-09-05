@@ -12,11 +12,25 @@ import { Card, CardContent } from "@/ui/components/card";
 import { BaseDataTable } from "@/ui/components/dataTable/base-data-table ";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import { isFeatureEnabled } from "@/lib/feature-utils";
 
 export default function PurchaseHistoryPage() {
   const router = useRouter();
   const t = useTranslations("purchases");
   const ctx = usePurchaseHistoryPage();
+  // History stays READABLE when purchasing is switched off — that is what
+  // `readOnly` on the nav item means, and why a year of purchase records does
+  // not vanish with the capability. It does not mean the screen never creates.
+  //
+  // What the flag never covered is this button, which pushes to `/purchases` —
+  // a route the guard blocks once the capability is off. So an offer to start
+  // something the merchant cannot start, on the one purchasing screen they can
+  // still reach (QA-L6).
+  const canCreatePurchase = isFeatureEnabled(
+    useAuthStore((s) => s.user?.organization?.features),
+    "purchases",
+  );
 
   return (
     <div className="space-y-6">
@@ -28,10 +42,12 @@ export default function PurchaseHistoryPage() {
             {t("history.subtitle")}
           </p>
         </div>
-        <Button onClick={() => router.push("/purchases")}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("orders.newPurchase")}
-        </Button>
+        {canCreatePurchase && (
+          <Button onClick={() => router.push("/purchases")}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("orders.newPurchase")}
+          </Button>
+        )}
       </div>
 
       {/* Summary Stats */}

@@ -26,12 +26,43 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
   if (!data.purchaseUnit?.unitId) skipUOMKeys.add("purchaseUnit")
   if (!data.enableUOMConversion || !data.saleUnit?.unitId) skipUOMKeys.add("saleUnit")
 
+  // The "Publish to store" fields are flat on the form and nested on the wire.
+  //
+  // `storefrontObjectSchema` parses `storefront` as a JSON object, so these
+  // fields have to be collected before the loop below — which would otherwise
+  // send them as top-level keys the validator ignores, silently producing a
+  // product that saves fine and publishes nothing the merchant typed.
+  //
+  // Only assembled when the fields are actually present: `useFilteredFormConfig`
+  // strips the whole section for every other tier, and sending an empty
+  // `storefront` object would overwrite a stocked merchant's listing settings
+  // with nothing.
+  const storefrontKeys = [
+    "isListed",
+    "onlinePrice",
+    "onlineDescription",
+    "featured",
+    "weightKg",
+  ] as const;
+  const storefrontPatch: Record<string, unknown> = {};
+  for (const key of storefrontKeys) {
+    if (data[key] !== undefined && data[key] !== null && data[key] !== "") {
+      storefrontPatch[key] = data[key];
+    }
+  }
+  if (Object.keys(storefrontPatch).length > 0) {
+    formData.append("storefront", JSON.stringify(storefrontPatch));
+  }
+
   // Add all fields except images, variants, and _id
   for (const key in data) {
     if (
       key !== 'images' &&
       key !== 'variants' &&
       key !== '_id' &&
+      // Sent nested as `storefront` above; a duplicate flat key here would be
+      // ignored by the validator at best and shadow the object at worst.
+      !storefrontKeys.includes(key as (typeof storefrontKeys)[number]) &&
       !skipUOMKeys.has(key) &&
       data[key] !== undefined
     ) {

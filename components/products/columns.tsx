@@ -149,6 +149,31 @@ export const getProductColumns = (t: Translator): ColumnDef<any>[] => [
     }
   },
   {
+    // Summed across every active location — this list is org-scoped, so a
+    // product is one row however many warehouses hold it. `/inventory` is where
+    // the per-location split lives.
+    //
+    // Dropped entirely for a business that does not count stock, by
+    // `featureExcludedColumns`, which also keeps it out of the Manage Columns
+    // picker rather than offering a column that would always read zero.
+    header: t('columns.stock'),
+    accessorKey: 'totalStock',
+    cell: ({ row }) => {
+      const stock = row.original.totalStock
+      if (stock == null) return <span className="text-muted-foreground">—</span>
+      const unit = row.original.unit as { name?: string; shortName?: string } | undefined
+      const unitLabel = unit?.shortName || unit?.name
+      return (
+        <span className="text-sm tabular-nums">
+          {stock.toLocaleString()}
+          {unitLabel ? (
+            <span className="ml-1 text-xs text-muted-foreground">{unitLabel}</span>
+          ) : null}
+        </span>
+      )
+    }
+  },
+  {
     header: t('columns.status'),
     accessorKey: 'status',
     cell: ({ row }) => <StatusBadge status={row.original.status} />

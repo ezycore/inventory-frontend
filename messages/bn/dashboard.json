@@ -17,7 +17,8 @@
     "marginOfSales": "বিক্রয়ের উপর {margin}% মার্জিন",
     "transactions": "লেনদেন",
     "vsPrevious": "আগের তুলনায়",
-    "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়"
+    "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়",
+    "afterReturns": "{amount} ফেরতের পর"
   },
   "chart": {
     "title": "বিক্রয় বনাম ক্রয়",
@@ -29,7 +30,8 @@
     "groupingMonthly": "প্রতি মাস",
     "breakdownSuffix": "{grouping} বিভাজন",
     "emptyTitle": "এখনও কোনো লেনদেনের ডেটা নেই",
-    "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে"
+    "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে",
+    "salesTitle": "বিক্রয়"
   },
   "summary": {
     "receivable": "পাওনা",

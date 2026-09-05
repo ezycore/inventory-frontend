@@ -22,7 +22,8 @@
     "verify": "pnpm verify:api-types && pnpm docs:verify && pnpm help:verify && pnpm typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "gen:persona-appendix": "node scripts/gen-persona-appendix.mjs > ../inventory-backend/docs/features/merchant-persona-appendix.md"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

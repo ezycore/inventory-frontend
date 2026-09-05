@@ -9,6 +9,8 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { OrderPrepaymentDialog } from "./order-prepayment-dialog";
+import { OrderCollectionDialog } from "./order-collection-dialog";
+import { codToCollect } from "./order-detail-helpers";
 
 /**
  * Payment card. The "mark paid" affordance only appears once the order is
@@ -35,7 +37,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
 
   const prepaid = order.prepaidAmount ?? 0;
   const hasPrepayment = prepaid > 0;
-  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - prepaid);
+  const toCollect = codToCollect(order);
   // Mirrors the backend `recordPrepayment` guards: delivery, unpaid, before
   // dispatch, no consignment, none booked yet, and something to pay against (a
   // prepayment must be 0 < amount ≤ totalAmount).
@@ -73,7 +75,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
             <div className="flex justify-between">
               <span className="text-muted-foreground">COD to collect</span>
               <span className="font-semibold tabular-nums">
-                {money(codToCollect)}
+                {money(toCollect)}
               </span>
             </div>
           )}
@@ -115,6 +117,22 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
           >
             {order.paymentMethod === "cod" ? "Mark COD collected" : "Mark as paid"}
           </Button>
+          {/* The button above records the amount the system already believed.
+              This one records what the courier actually handed over, which on
+              cash on delivery is routinely a different number — part of the
+              parcel refused, or a price negotiated at the door. Offered beside
+              it rather than instead of it: a collection that matches in full is
+              still one click. */}
+          {order.paymentMethod === "cod" && (
+            <OrderCollectionDialog
+              order={order}
+              trigger={
+                <Button variant="outline" className="w-full">
+                  Collected a different amount…
+                </Button>
+              }
+            />
+          )}
         </div>
       )}
     </Card>

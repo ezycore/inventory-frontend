@@ -1,12 +1,15 @@
 'use client'
 // coding-standard: maintained
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useExportData, type ExportDataType } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Button } from '@ui/components/button'
 import { Skeleton } from '@ui/components/skeleton'
+import { useAuthStore } from '@/services/stores/use-auth-store'
+import { areAllFeaturesEnabled } from '@/lib/feature-utils'
+import type { OrganizationFeatures } from '@/types'
 import { useReportPeriod } from './use-report-period'
 import { ReportPeriodFilter } from './report-period-filter'
 import {
@@ -19,11 +22,22 @@ import {
   Truck,
 } from 'lucide-react'
 
+/**
+ * `features` follows the same all-of rule as `NavItem.features`: an export whose
+ * capability is off is not an empty CSV, it is a file about a part of the
+ * business that does not exist. Every other gated screen hides itself; these
+ * three offered Purchase, Inventory and Supplier data on a workspace with no
+ * suppliers, no purchasing and no stock (QA-N10).
+ *
+ * Sales, Products and Customers carry no gate on purpose — a storefront-only
+ * merchant has all three, and `sales` is the POS counter, not the sales ledger.
+ */
 const EXPORT_OPTIONS: {
   value: ExportDataType
   labelKey: string
   descriptionKey: string
   icon: typeof Download
+  features?: (keyof OrganizationFeatures)[]
 }[] = [
   {
     value: 'sales',
@@ -33,12 +47,14 @@ const EXPORT_OPTIONS: {
   },
   {
     value: 'purchases',
+    features: ['purchases'],
     labelKey: 'purchaseData',
     descriptionKey: 'purchaseDataDesc',
     icon: ShoppingBag,
   },
   {
     value: 'inventory',
+    features: ['inventoryTracking'],
     labelKey: 'inventoryData',
     descriptionKey: 'inventoryDataDesc',
     icon: Package,
@@ -57,6 +73,7 @@ const EXPORT_OPTIONS: {
   },
   {
     value: 'suppliers',
+    features: ['purchases'],
     labelKey: 'supplierData',
     descriptionKey: 'supplierDataDesc',
     icon: Truck,
@@ -114,6 +131,14 @@ export function ExportData() {
   const t = useTranslations('reports.export')
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
+  const features = useAuthStore((state) => state.user?.organization?.features)
+  const exportOptions = useMemo(
+    () =>
+      EXPORT_OPTIONS.filter(
+        (option) => !option.features || areAllFeaturesEnabled(features, option.features),
+      ),
+    [features],
+  )
   const [selectedType, setSelectedType] = useState<ExportDataType | null>(null)
   const [triggerExport, setTriggerExport] = useState(false)
 
@@ -155,7 +180,7 @@ export function ExportData() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {EXPORT_OPTIONS.map((option) => {
+        {exportOptions.map((option) => {
           const Icon = option.icon
           const isExporting = isFetching && selectedType === option.value && triggerExport
 

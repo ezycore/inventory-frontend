@@ -7,6 +7,7 @@ covers_routes:
   - /purchases/returns
 features:
   - returns
+  - purchases
 ui_labels:
   - purchases:returns.title
   - purchases:returns.findOrder

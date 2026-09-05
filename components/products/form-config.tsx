@@ -5,6 +5,7 @@ import { selectOptions } from "@/services/api/select-options";
 import type { DynamicFormConfig } from '@/ui/components/form/type'
 import { Controller } from 'react-hook-form'
 import {
+  Store,
   Info,
   Barcode,
   BadgeDollarSign,
@@ -445,6 +446,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
       // 5. PRICING --------------------------------------------------------------
       // Single-only: variable products carry a sell price per variant (Variants table).
       {
+        id: "pricing",
         title: tr('form.sections.pricingTitle', "Pricing"),
         description: tr('form.sections.pricingDescription', "Set the sell price"),
         icon: sectionIcon(BadgeDollarSign),
@@ -524,6 +526,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
 
       // 7. INVENTORY ------------------------------------------------------------
       {
+        id: "inventory",
         title: tr('form.sections.inventoryTitle', "Inventory"),
         description: tr('form.sections.inventoryDescription', "Stock levels and low-stock alerts"),
         icon: sectionIcon(Boxes),
@@ -705,6 +708,104 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             showPreview: true,
             dropzoneText: tr('form.imagesDropzone', "Square 1600 × 1600 px works best · PNG, JPG, WEBP up to 5MB · Max 5 images"),
             recommended: RECOMMENDED.product,
+          },
+        ],
+      },
+      {
+        /**
+         * Shown ONLY to a storefront merchant who does not track stock — the
+         * gate lives in `useFilteredFormConfig`, which strips the whole section
+         * otherwise.
+         *
+         * For that merchant, creating a product IS publishing it: `isListed`
+         * already defaults to `true` on the model, so the product goes live
+         * whether or not they visit a second screen. This section exists so
+         * the two or three things they might want to say about the listing are
+         * sayable at the moment they are thinking about the product, rather
+         * than on a Products → Online tab they have no reason to open. Stocked
+         * tiers keep that tab, because there listing genuinely is a second
+         * decision made at a different time.
+         *
+         * Five fields — everything `storefrontObjectSchema` accepts on create:
+         * `isListed`, `onlinePrice`, `onlineDescription`, `featured` and
+         * `weightKg`. It carried only the first three until this tier lost its
+         * Online tab, at which point the form became the merchant's ONLY editor
+         * and the two omissions became unreachable settings — parcel weight
+         * worst of all, since a consignment booked without one bills at the
+         * courier's fallback weight (QA-C3).
+         *
+         * `slug`, `onlineTitle` and the SEO pair are not here: the create
+         * validator does not accept them and they stay catalog-patch-only. And
+         * the sold-out policy is deliberately absent — a business with no stock
+         * has no out-of-stock state to have a policy about, which is the same
+         * reason `backorder` is not the mechanism behind this tier.
+         *
+         * Anything added here must ALSO join `projectListItem`'s storefront
+         * projection and the edit prefill: this section submits any value that
+         * is not `undefined`, so a field the list row does not hydrate is sent
+         * blank on every unrelated edit.
+         */
+        // Named so the tier gate can drop the SECTION rather than list its
+        // fields — see `omitFormSections`. A field added here is then covered
+        // automatically; a hand-kept name list was not.
+        id: "publish-to-store",
+        title: tr('form.sections.publishTitle', "Publish to store"),
+        description: tr('form.sections.publishDescription', "This product goes live on your store as soon as you save."),
+        icon: sectionIcon(Store),
+        collapsible: true,
+        fields: [
+          {
+            name: "isListed",
+            type: "checkbox",
+            zodType: "boolean",
+            label: tr('form.isListed', "Show on my store"),
+            columnSpan: 12,
+            defaultValue: true,
+          },
+          {
+            name: "onlinePrice",
+            type: "number",
+            precision: 2,
+            zodType: "number",
+            label: tr('form.onlinePrice', "Online price"),
+            placeholder: tr('form.onlinePricePlaceholder', "Same as the price above"),
+            columnSpan: 6,
+            validation: { min: 0 },
+            tooltip: tr('form.onlinePriceTooltip', "Leave empty to sell online at the same price you set above."),
+            dependsOn: { field: "isListed", condition: "truthy", action: "show" },
+          },
+          {
+            name: "weightKg",
+            type: "number",
+            precision: 3,
+            zodType: "number",
+            label: tr('form.weightKg', "Shipping weight (kg)"),
+            placeholder: "0.500",
+            columnSpan: 6,
+            // Matches `storefrontObjectSchema`'s courier per-parcel ceiling.
+            validation: { min: 0, max: 10 },
+            tooltip: tr('form.weightKgTooltip', "Used to book courier consignments. Left empty, the courier bills at its own fallback weight — usually more than the parcel actually weighs."),
+            dependsOn: { field: "isListed", condition: "truthy", action: "show" },
+          },
+          {
+            name: "onlineDescription",
+            type: "textarea",
+            zodType: "string",
+            label: tr('form.onlineDescription', "Description shown to shoppers"),
+            columnSpan: 12,
+            rows: 3,
+            validation: { maxLength: 1000 },
+            dependsOn: { field: "isListed", condition: "truthy", action: "show" },
+          },
+          {
+            name: "featured",
+            type: "checkbox",
+            zodType: "boolean",
+            label: tr('form.featured', "Feature on the homepage"),
+            columnSpan: 12,
+            defaultValue: false,
+            tooltip: tr('form.featuredTooltip', "Surfaces this product in your storefront's featured rails."),
+            dependsOn: { field: "isListed", condition: "truthy", action: "show" },
           },
         ],
       },

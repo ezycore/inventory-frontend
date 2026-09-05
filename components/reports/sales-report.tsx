@@ -38,7 +38,11 @@ export function SalesReport() {
   const { data, isLoading } = useSalesReport(params)
   const { format: formatCurrency } = useCurrency()
 
-  const salesChange = data ? calcChange(data.summary.totalSales, data.summary.previousTotal) : null
+  // Both sides net, or a quiet period following one with a big refund reads as
+  // growth. Same rule as the dashboard's revenue trend.
+  const salesChange = data
+    ? calcChange(data.summary.netSales, data.summary.previousNetSales)
+    : null
 
   return (
     <div className="space-y-6">
@@ -76,9 +80,19 @@ export function SalesReport() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
+                {/* Net, and the refund disclosed beneath it. Gross put a fully
+                    refunded order's full value in this tile while Paid and Due
+                    both excluded it, so the number matched neither (QA-R1). */}
                 <div className="text-2xl font-bold">
-                  {formatCurrency(data.summary.totalSales)}
+                  {formatCurrency(data.summary.netSales)}
                 </div>
+                {data.summary.returns.refund > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('afterReturns', {
+                      amount: formatCurrency(data.summary.returns.refund),
+                    })}
+                  </p>
+                )}
                 {salesChange && salesChange.direction !== 'neutral' && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     {salesChange.direction === 'up' ? (
@@ -101,10 +115,13 @@ export function SalesReport() {
                   {formatCurrency(data.summary.grossProfit)}
                 </div>
                 <p className="text-xs text-muted-foreground">
+                  {/* Margin OF net revenue: `grossProfit` already has returns
+                      off both legs, so a gross denominator understates it and
+                      disagrees with the P&L for the same period. */}
                   {t('margin', {
                     value:
-                      data.summary.totalSales > 0
-                        ? Math.round((data.summary.grossProfit / data.summary.totalSales) * 100)
+                      data.summary.netSales > 0
+                        ? Math.round((data.summary.grossProfit / data.summary.netSales) * 100)
                         : 0,
                   })}
                 </p>
