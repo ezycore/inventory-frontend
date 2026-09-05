@@ -13352,6 +13352,8 @@ export interface components {
                 customerId: string | null;
                 customerName?: string | null;
                 totalSpent: number;
+                grossSpent: number;
+                refunded: number;
                 totalDue: number;
                 orderCount: number;
             }[];

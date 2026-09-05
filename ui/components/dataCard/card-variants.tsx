@@ -110,8 +110,13 @@ function ActionButtons({
   const hasEdit = actions?.editable && onEdit;
   const hasView = actions?.viewable && onView;
   const hasDelete = actions?.deletable && onDelete;
-  // Filter customActions to only show 'menu' placement
-  const menuActions = customActions?.filter((a) => a.placement === "menu");
+  // A card has no row cell and no toolbar of its own, so both per-row
+  // placements land in the kebab. Dropping `"cell"` is what lost `/products`
+  // its Print Label button the moment a merchant switched to card view
+  // (QA-T1-E) — `header`/`footer` are page-level and stay out.
+  const menuActions = customActions?.filter(
+    (a) => a.placement === "menu" || a.placement === "cell",
+  );
   const hasCustom = menuActions && menuActions.length > 0;
 
   if (!hasEdit && !hasView && !hasDelete && !hasCustom) return null;
@@ -773,19 +778,48 @@ function DetailedCard<TData extends { _id: string }>({
 export function CardItem<TData extends { _id: string }>(
   props: CardItemProps<TData>
 ) {
-  const { renderCard, variant = "default", data, onEdit, onView, onDelete } = props;
+  const {
+    renderCard,
+    variant = "default",
+    data,
+    onEdit,
+    onView,
+    onDelete,
+    customActions,
+  } = props;
 
   // Custom render takes precedence.
   //
-  // ⚠️ `customActions` are NOT forwarded here — a custom card owns its own
-  // layout, so where an extra action belongs is its decision, not ours. Passing
-  // `customActions` to a DataCard that also has a `renderCard` therefore does
-  // nothing: the users page remapped its Enable/Disable action to
-  // `placement: "menu"` and it reached no one, leaving the card with an
-  // Active/Inactive badge and no way to change it. Inject the handler into the
-  // card instead — see `onToggleStatus` (users) and `onApplyVat` (categories).
+  // `customActions` ARE forwarded, bound to this row. A custom card still owns
+  // its own layout — where an extra action belongs is its decision — but it is
+  // now given the choice. Withholding them silently cost two pages a real
+  // control: the users card had an Active/Inactive badge and no way to change
+  // it (QA-R20), and the products card lost Print Label (QA-T1-E). A card that
+  // ignores this array is exactly as it was; one that renders it stops needing
+  // a hand-injected handler.
   if (renderCard) {
-    return <>{renderCard(data, { onEdit, onView, onDelete })}</>;
+    const bound = (customActions ?? [])
+      .filter((a) => a.placement === "menu" || a.placement === "cell")
+      .map((a) => ({
+        type: a.type,
+        label: a.label,
+        tooltip: a.tooltip,
+        icon: a.icon,
+        href: typeof a.href === "function" ? a.href(data) : a.href,
+        disabled:
+          typeof a.disabled === "function" ? a.disabled(data) : a.disabled,
+        onClick: a.onClick ? () => a.onClick?.(data) : undefined,
+      }));
+    return (
+      <>
+        {renderCard(data, {
+          onEdit,
+          onView,
+          onDelete,
+          customActions: bound,
+        })}
+      </>
+    );
   }
 
   // Variant-based rendering

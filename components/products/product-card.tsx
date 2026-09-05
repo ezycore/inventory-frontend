@@ -11,6 +11,7 @@ import { Button } from "@/ui/components/button";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { CategoryPath } from "@/components/shared/category-path";
 import { TagChips } from "@/components/shared/tag-chips";
+import type { BoundCardAction } from "@/types/DataCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,9 +25,22 @@ interface ProductCardProps {
   onEdit?: () => void;
   onView?: () => void;
   onDelete?: () => void;
+  /**
+   * Per-row actions the page declared, handed over by `CardItem` already bound
+   * to this product. Print Label arrives this way: it is declared once on the
+   * page as `placement: "cell"`, the table renders it in the row, and without
+   * this the card silently had no printer at all (QA-T1-E).
+   */
+  customActions?: BoundCardAction[];
 }
 
-export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onEdit,
+  onView,
+  onDelete,
+  customActions,
+}: ProductCardProps) {
   const t = useTranslations("products.products");
   const thumbnailUrl = product.images?.[0]?.thumbnailUrl || product.images?.[0]?.url;
   const brandName = product.brand?.name;
@@ -81,6 +95,16 @@ export function ProductCard({ product, onEdit, onView, onDelete }: ProductCardPr
                   {t("card.edit")}
                 </DropdownMenuItem>
               )}
+              {customActions?.map((action) => (
+                <DropdownMenuItem
+                  key={action.type}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                >
+                  {action.icon && <span className="mr-2">{action.icon}</span>}
+                  {action.label ?? action.tooltip ?? action.type}
+                </DropdownMenuItem>
+              ))}
               {onDelete && (
                 <>
                   <DropdownMenuSeparator />

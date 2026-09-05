@@ -12,10 +12,10 @@ import type { Translator } from "@/i18n/config";
 import PageHeader from "@/ui/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import { Loader2, Package, Star, Tag, Tags } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
-import { toast } from "sonner";
 import { useUpdateFormSettings } from "@/services/api";
+import { useRequireAccess } from "@/hooks/use-require-access";
 
 const getModules = (t: Translator) => [
   {
@@ -49,7 +49,6 @@ const validTabs = ["product", "brand", "category", "tag"];
 function FieldSettingsForm() {
   const t = useTranslations("settings.fields");
   const tShell = useTranslations("settings.shell");
-  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const defaultTab = validTabs.includes(tabParam || "") ? tabParam! : "product";
@@ -63,12 +62,9 @@ function FieldSettingsForm() {
   const [activeTab, setActiveTab] = React.useState(defaultTab);
 
   // Redirect if user doesn't have permission
-  React.useEffect(() => {
-    if (user && !canManageSettings) {
-      toast.error(tShell("noPermission"));
-      router.push("/");
-    }
-  }, [user, canManageSettings, router, tShell]);
+  useRequireAccess([
+    { allowed: canManageSettings, message: tShell("noPermission") },
+  ]);
 
   // Don't render if no permission
   if (!canManageSettings) {
