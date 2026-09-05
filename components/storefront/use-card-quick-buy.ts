@@ -83,14 +83,16 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   // would leave the shopper with a chosen size and no button to commit it.
   const fitsInline =
     !ctaOwnsImage && variants.length > 0 && optionsFitInline(variants);
+  const canBackorder = product.outOfStockBehavior === "backorder";
   // The highlighted default is the effective choice until a chip replaces it.
   // A control that looks selected must behave as selected when Add/Buy is used.
-  const selection = Object.keys(picked).length > 0
+  /** The shopper touched a chip — as opposed to `defaultSelection`'s highlight. */
+  const hasPicked = Object.keys(picked).length > 0;
+  const selection = hasPicked
     ? picked
-    : defaultSelection(variants);
+    : defaultSelection(variants, canBackorder);
   const selected = matchVariant(variants, selection);
 
-  const canBackorder = product.outOfStockBehavior === "backorder";
   const soldOut = product.availableQuantity <= 0 && !canBackorder;
   // Pending covers the gap between the first press and the variants landing —
   // without it the card looks inert for the length of a network round trip.
@@ -229,6 +231,8 @@ export function useCardQuickBuy(product: CatalogProduct, ctaOwnsImage = false) {
   return {
     variable,
     variants,
+    /** Passed to the flyout's chips so a backorder option stays pickable. */
+    canBackorder,
     fitsInline,
     detail,
     selection,

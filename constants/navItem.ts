@@ -109,6 +109,9 @@ export const navGroups: NavGroup[] = [
           {
             title: "Sales History",
             url: "/sales/history",
+            // Read-only: `sales.routes.ts` gates writes alone, so this data stays
+            // reachable after the capability is switched off.
+            readOnly: true,
             permissions: ["sales.view"],
             icon: "clock",
             anyFeatures: ["sales", "storefront"],
@@ -244,6 +247,12 @@ export const navGroups: NavGroup[] = [
         url: "/purchases",
         permissions: ["purchases.view", "returns.view", "purchases.create"],
         icon: "shopping-bag",
+        // Declared on the parent AND repeated on each child below. The
+        // repetition is the house convention here (every `/ecommerce` child
+        // restates `storefront`), and `featuresForPath` accumulates down the
+        // chain either way — but a child that ever moves out from under this
+        // parent must not quietly lose its gate.
+        features: ["purchases"],
         isActive: false,
         items: [
           {
@@ -251,25 +260,31 @@ export const navGroups: NavGroup[] = [
             url: "/purchases",
             permissions: ["purchases.create"],
             icon: "packages",
+            features: ["purchases"],
           },
           {
             title: "Purchase Orders",
             url: "/purchases/orders",
             permissions: ["purchases.view"],
             icon: "file-plus",
+            features: ["purchases"],
           },
           {
             title: "Purchase History",
             url: "/purchases/history",
+            // Read-only: `purchase-orders.routes.ts` gates writes alone, so this data stays
+            // reachable after the capability is switched off.
+            readOnly: true,
             permissions: ["purchases.view"],
             icon: "clock",
+            features: ["purchases"],
           },
           {
             title: "Purchase Returns",
             url: "/purchases/returns",
             permissions: ["returns.view"],
             icon: "package-minus",
-            features: ["returns"],
+            features: ["returns", "purchases"],
           },
         ],
       },
@@ -278,6 +293,9 @@ export const navGroups: NavGroup[] = [
         url: "/suppliers",
         permissions: ["suppliers.view"],
         icon: "truck",
+        // Folded into `purchases` rather than gated on its own: a supplier with
+        // no purchase to raise against them is an address book.
+        features: ["purchases"],
         isActive: false,
         items: [],
       },
@@ -288,22 +306,46 @@ export const navGroups: NavGroup[] = [
     label: "Stock",
     items: [
       {
+        // The whole group goes when the business does not count stock. Every
+        // screen under here — current stock, low stock, adjustments, transfers,
+        // the movement ledger — describes quantities that a stock-free
+        // workspace has none of, and its inventory rows exist only so the
+        // required `SaleItem.inventoryId` resolves.
+        //
+        // Declared on the parent AND repeated on each child, per the convention
+        // this table already follows for `storefront`.
         title: "Inventory",
         url: "/inventory",
         permissions: ["stock.view", "stock.manage"],
         icon: "database",
         isActive: false,
+        features: ["inventoryTracking"],
         items: [
-          { title: "Current Stock", url: "/inventory", permissions: ["stock.view"], icon: "list" },
+          {
+            title: "Current Stock",
+            url: "/inventory",
+            permissions: ["stock.view"],
+            icon: "list",
+            features: ["inventoryTracking"],
+          },
           {
             title: "Low Stock",
             url: "/inventory/lowstock",
             permissions: ["stock.view"],
             icon: "clipboard-list",
+            features: ["inventoryTracking"],
           },
-          { title: "Adjust Stock", url: "/inventory/adjust", permissions: ["stock.manage"], icon: "edit" },
           {
-            // Nothing to transfer between when there is one location.
+            title: "Adjust Stock",
+            url: "/inventory/adjust",
+            permissions: ["stock.manage"],
+            icon: "edit",
+            features: ["inventoryTracking"],
+          },
+          {
+            // Nothing to transfer between when there is one location — and
+            // `multiLocation` now requires `inventoryTracking`, so the cascade
+            // takes this one either way.
             title: "Transfer Stock",
             url: "/inventory/transfers",
             permissions: ["stock.manage"],
@@ -313,8 +355,12 @@ export const navGroups: NavGroup[] = [
           {
             title: "Stock History",
             url: "/inventory/movements",
+            // Read-only: `inventory.routes.ts` gates writes alone, so this data stays
+            // reachable after the capability is switched off.
+            readOnly: true,
             permissions: ["stock.view"],
             icon: "arrow-right-left",
+            features: ["inventoryTracking"],
           },
         ],
       },
@@ -367,6 +413,9 @@ export const navGroups: NavGroup[] = [
           {
             title: "Transactions",
             url: "/accounts/transactions",
+            // Read-only: `transactions.routes.ts` gates writes alone, so this data stays
+            // reachable after the capability is switched off.
+            readOnly: true,
             permissions: ["transactions.view"],
             icon: "arrow-right-left",
             features: ["accounts"],
@@ -394,19 +443,31 @@ export const navGroups: NavGroup[] = [
             url: "/reports/inventory",
             permissions: ["reports.view"],
             icon: "file-text",
+            features: ["inventoryTracking"],
           },
           {
+            // Reads the sales LEDGER, so it follows the same any-of rule as
+            // Sales History and the Sales group itself — see the note at the top
+            // of this file. `features: ["sales"]` gated it on the POS counter
+            // instead, which hid an online seller's sales report on a workspace
+            // that had booked real online sales (QA-L1).
             title: "Sales Report",
             url: "/reports/sales",
             permissions: ["reports.view"],
             icon: "bar-chart-2",
-            features: ["sales"],
+            anyFeatures: ["sales", "storefront"],
           },
           {
+            // The one report that reads purchase documents exclusively, so it
+            // has nothing to show without the capability. P&L and Business
+            // Position also touch purchase data but stay ungated on purpose —
+            // they DEGRADE (see `expensesTracked`), reporting the sections they
+            // can compute rather than vanishing.
             title: "Purchase Report",
             url: "/reports/purchases",
             permissions: ["reports.view"],
             icon: "file-text",
+            features: ["purchases"],
           },
           {
             title: "Profit & Loss",
@@ -435,10 +496,13 @@ export const navGroups: NavGroup[] = [
             features: ["tax"],
           },
           {
+            // A valuation needs a quantity to multiply the cost by. A stock-free
+            // merchant has a cost price on every product and nothing to value.
             title: "Stock Value",
             url: "/reports/valuation",
             permissions: ["reports.view"],
             icon: "database",
+            features: ["inventoryTracking"],
           },
           {
             title: "Expiry Report",
@@ -448,10 +512,19 @@ export const navGroups: NavGroup[] = [
             features: ["expiryTracking"],
           },
           {
+            // Attributes sales to the employee who rang them up, which is a
+            // counter fact. An online order originates with the shopper — staff
+            // only confirm, ship and collect — so on a storefront-only workspace
+            // every row credits the admin who pressed Confirm, beside a purchase
+            // column that can never fill (QA-C4/N11).
+            //
+            // Any-of rather than `sales`, matching Sales Report above: a POS-less
+            // wholesaler still has staff raising purchase orders.
             title: "Staff Report",
             url: "/reports/employees",
             permissions: ["reports.view"],
             icon: "user-check",
+            anyFeatures: ["sales", "purchases"],
           },
           {
             title: "Export Data",
@@ -476,6 +549,19 @@ export const navGroups: NavGroup[] = [
         permissions: ["locations.view", "stock.view"],
         icon: "map-pin",
         isActive: false,
+        // Hidden entirely for a stock-free workspace, which reverses the
+        // reasoning in the child comment below — and the reversal is only safe
+        // because of two facts. The printed address is `Organization.address`,
+        // written at signup and edited under Settings → Organization, NOT this
+        // location record; and the one shopper-facing use of the location's own
+        // address is store pickup, which `storefront.service` reads only when
+        // `pickup.enabled`. So the address a stock-free merchant might still
+        // need to edit belongs beside the pickup toggle on Store Settings, not
+        // on a Locations screen they have no other reason to visit.
+        //
+        // A stock-free org always has exactly one location, because
+        // `multiLocation` requires `inventoryTracking`.
+        features: ["inventoryTracking"],
         items: [
           // Deliberately ungated. With `multiLocation` off this list holds the
           // org's single signup-created location, which carries the shop's own
@@ -499,7 +585,22 @@ export const navGroups: NavGroup[] = [
         icon: "tags",
         isActive: false,
         items: [
-          { title: "Discounts", url: "/discounts", permissions: ["discounts.view"], icon: "tag" },
+          {
+            title: "Discounts",
+            url: "/discounts",
+            // The `Discount` model is a SALES/PURCHASE tool, not a storefront
+            // one — it carries `applicableTo: "sales" | "purchase"` and
+            // surfaces as the default-discount field on customer and supplier
+            // forms. Storefront promotions are `Coupon` and `Campaign` and
+            // never touch it, so a storefront-only merchant keeps discounting
+            // through those and loses nothing here.
+            //
+            // Any-of, not all-of: either side alone makes the screen useful,
+            // and requiring both would take it from a POS-less wholesaler.
+            anyFeatures: ["sales", "purchases"],
+            permissions: ["discounts.view"],
+            icon: "tag",
+          },
           {
             title: "VAT Rates",
             url: "/taxes",

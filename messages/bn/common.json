@@ -289,7 +289,16 @@
   },
   "access": {
     "restrictedTitle": "প্রবেশাধিকার সীমিত",
-    "restrictedDescription": "এই পৃষ্ঠা দেখার অনুমতি আপনার নেই। প্রয়োজন হলে একজন অ্যাডমিনের সাথে যোগাযোগ করুন।"
+    "restrictedDescription": "এই পৃষ্ঠা দেখার অনুমতি আপনার নেই। প্রয়োজন হলে একজন অ্যাডমিনের সাথে যোগাযোগ করুন।",
+    "lockedOffTitle": "{feature} বন্ধ করা আছে",
+    "lockedOffDescription": "এই পৃষ্ঠাটি {feature}-এর অংশ, যা আপনার ওয়ার্কস্পেসে বন্ধ করা আছে। আবার চালু করলে সবকিছু আগের অবস্থায় ফিরে আসবে।",
+    "lockedOffAction": "ওয়ার্কস্পেস কাস্টমাইজ করুন",
+    "lockedPlanTitle": "{feature} আপনার প্ল্যানে নেই",
+    "lockedPlanDescription": "এই পৃষ্ঠাটি {feature}-এর অংশ। আপনার বর্তমান প্ল্যানে এটি অন্তর্ভুক্ত নয়।",
+    "lockedPlanWithTier": "{plan} থেকে পাওয়া যাবে।",
+    "lockedPlanAction": "প্ল্যান তুলনা করুন",
+    "lockedParentTitle": "{feature}-এর জন্য {parent} দরকার",
+    "lockedParentDescription": "{feature} নির্ভর করে {parent}-এর উপর, যা এখন বন্ধ আছে। {parent} আবার চালু করলে এটি আগের অবস্থায় ফিরে আসবে।"
   },
   "copy": {
     "done": "কপি হয়েছে!",

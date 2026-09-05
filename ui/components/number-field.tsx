@@ -18,7 +18,14 @@ export interface NumberFieldProps extends NativeInputProps {
   min?: number;
   max?: number;
   step?: number;
-  /** Decimal places to round to. Omit for unrestricted floats. */
+  /**
+   * Decimal places to keep. Omit for unrestricted floats.
+   *
+   * `0` means whole units, and it TRUNCATES rather than rounds: a quantity field
+   * must never commit more units than the digits typed. Rounding sent 3.7 to a
+   * transfer as 4 and 2.5 to a return as 3 — moving stock and refunding money
+   * the merchant never asked for, silently (QA-R14).
+   */
   precision?: number;
   /** Show +/- stepper buttons. */
   showSteppers?: boolean;
@@ -42,7 +49,10 @@ function clamp(n: number, min?: number, max?: number): number {
 }
 
 function round(n: number, precision?: number): number {
-  return precision === undefined ? n : Number(n.toFixed(precision));
+  if (precision === undefined) return n;
+  // Whole units truncate toward zero — never up. See `precision` above.
+  if (precision === 0) return Math.trunc(n);
+  return Number(n.toFixed(precision));
 }
 
 function toDraft(value: number | null): string {

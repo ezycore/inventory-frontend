@@ -4,18 +4,17 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { type CSSProperties } from "react";
 import { StorefrontApiError, storefrontApi } from "@/lib/storefront-client";
-import { storefront, useStore } from "@/services/storefront/hooks";
+import { storefront } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
-import { TRACK_STATUS } from "@/lib/storefront-i18n";
-import { CourierFeed } from "@/components/storefront/courier-feed";
-import { dateTime, money } from "@/components/storefront/format";
-import { Icon } from "@/components/storefront/sf-icons";
 import { SkeletonLine } from "@/components/storefront/sf-skeleton";
 import { ghostBtn } from "@/components/storefront/checkout/checkout-bits";
+import {
+  TrackedOrderPanel,
+  trackStyles,
+} from "@/components/storefront/tracked-order-panel";
 
 /**
  * Public order tracking — the page a tracking link opens.
@@ -30,31 +29,12 @@ import { ghostBtn } from "@/components/storefront/checkout/checkout-bits";
  * the link (the merchant sends it), and they have no account to sign into. So the
  * failure state matters as much as the success one: a dead link has to say what
  * to do next rather than 404 into a void.
+ *
+ * The order itself renders through `TrackedOrderPanel`, shared with the lost-link
+ * lookup so the two entry points cannot drift into different screens.
  */
 
-const wrap: CSSProperties = {
-  maxWidth: 640,
-  margin: "0 auto",
-  width: "100%",
-  padding: "22px var(--pad) 40px",
-};
-
-const card: CSSProperties = {
-  background: "var(--surface)",
-  borderRadius: 12,
-  padding: 18,
-  marginBottom: 14,
-};
-
-const row: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 12,
-  padding: "6px 0",
-  fontSize: 14,
-};
-
-const muted: CSSProperties = { color: "var(--muted)", fontSize: 13 };
+const { wrap, card, row, muted } = trackStyles;
 
 /** A `label ………… value` placeholder pair, matching `row` above. */
 function SkeletonRow({
@@ -105,10 +85,9 @@ function TrackSkeleton({ label }: { label: string }) {
 
 export default function View() {
   const { slug, base } = useStoreContext();
-  const { t, lang } = useStorefrontUI();
+  const { t } = useStorefrontUI();
   const params = useParams<{ token: string }>();
   const token = String(params?.token ?? "");
-  const store = useStore(slug).data;
 
   const { data, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: storefront.trackedOrder(slug, token),
@@ -179,115 +158,5 @@ export default function View() {
     );
   }
 
-  const currency = store?.currency;
-  const courier = data.courier;
-  // Bound to the shopper's language, so the order's dates read the same way as the
-  // parcel feed's — a module-level helper could not see `langCode` and printed
-  // English dates under a Bangla timeline.
-  const formatDate = (value?: string) => dateTime(value, t.langCode);
-  // Falls back to the raw key rather than blanking: a status we have not worded
-  // yet must still name itself on the one page a guest can reach.
-  const statusLabel = (key: string) =>
-    TRACK_STATUS[key]?.[lang === "bn" ? "bn" : "en"] ?? key;
-
-  return (
-    <div style={wrap}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-        {statusLabel(data.status)}
-      </div>
-      <div style={{ ...muted, marginBottom: 18 }}>
-        {t.orderNo} {data.orderNumber} · {formatDate(data.placedAt)}
-      </div>
-
-      {/* Gated on a tracking code OR a feed, not on the code alone: a manual
-          courier often has no code at all, and hiding the card would then hide the
-          merchant's own progress updates from the one page a guest can reach. */}
-      {courier?.trackingCode || courier?.history?.length ? (
-        <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>
-            {courier.name ?? t.trackCourier}
-          </div>
-          {courier.trackingCode ? (
-            <div style={muted}>
-              {t.trackTrackingCode}: {courier.trackingCode}
-            </div>
-          ) : null}
-          {courier.trackingUrl ? (
-            <div style={{ marginTop: 10 }}>
-              <a
-                href={courier.trackingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: "underline" }}
-              >
-                Track with the courier <Icon name="arrowRight" size={13} />
-              </a>
-            </div>
-          ) : null}
-          {/* The parcel's own event feed — the carrier's hub scans and rider
-              assignment, which is what a buyer opened this link for. The card
-              above it is the order; this is the parcel. */}
-          {courier.history?.length ? (
-            <div style={{ marginTop: 14 }}>
-              <CourierFeed history={courier.history} />
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div style={card}>
-        {data.items.map((item, index) => (
-          <div key={`${item.productName}-${index}`} style={row}>
-            <span>
-              {item.productName} × {item.quantity}
-            </span>
-            <span>{money(item.subtotal, currency)}</span>
-          </div>
-        ))}
-        <div style={{ ...row, ...muted }}>
-          <span>{t.subtotal}</span>
-          <span>{money(data.subtotal, currency)}</span>
-        </div>
-        {data.discountAmount > 0 ? (
-          <div style={{ ...row, ...muted }}>
-            <span>{t.discount}</span>
-            <span>−{money(data.discountAmount, currency)}</span>
-          </div>
-        ) : null}
-        {data.shippingCharged > 0 ? (
-          <div style={{ ...row, ...muted }}>
-            <span>{t.shipping}</span>
-            <span>{money(data.shippingCharged, currency)}</span>
-          </div>
-        ) : null}
-        <div style={{ ...row, fontWeight: 700, fontSize: 15 }}>
-          <span>{t.total}</span>
-          <span>{money(data.totalAmount, currency)}</span>
-        </div>
-      </div>
-
-      <div style={card}>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.trackProgress}</div>
-        {data.statusHistory.map((entry, index) => (
-          <div key={`${entry.status}-${index}`} style={row}>
-            <span>{statusLabel(entry.status)}</span>
-            <span style={muted}>{formatDate(entry.at)}</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={muted}>
-        {data.fulfillmentType === "pickup" ? t.trackCollectFrom : t.trackDeliveringTo}:{" "}
-        {data.shipTo.name}
-        {data.shipTo.area ? `, ${data.shipTo.area}` : ""}
-        {data.shipTo.district ? `, ${data.shipTo.district}` : ""}
-      </div>
-
-      <div style={{ marginTop: 18 }}>
-        <Link href={storeHref(base, "/")} style={{ textDecoration: "underline" }}>
-          {t.trackBackToStore}
-        </Link>
-      </div>
-    </div>
-  );
+  return <TrackedOrderPanel order={data} />;
 }

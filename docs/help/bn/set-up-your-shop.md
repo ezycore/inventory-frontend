@@ -10,6 +10,7 @@ covers_routes:
   - /locations/stock-report
 features:
   - multiLocation
+  - inventoryTracking
 ui_labels:
   - settings:organization.tab.faviconSectionLabel
   - settings:features.title

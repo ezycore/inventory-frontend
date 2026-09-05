@@ -148,6 +148,7 @@ Default `defaultPageSize` is `12` (vs `10` for DataTable).
 - **DO** use `getNestedValue`-friendly keys for fields/image (`"category.name"`, `"images"` then array auto-extract).
 - **DON'T** expect `customActions` `placement: "cell"` — that's DataTable's vocabulary. Use `"menu"` for per-card actions.
 - **DON'T** rely on `placement: "footer"` for customActions — it's typed but unused in the rendered variants today.
+- **DON'T** expect `customActions` to reach a custom `renderCard` AT ALL — `CardItem` forwards only `{ onEdit, onView, onDelete }`, at any `placement`. Inject the handler into the card's own props instead (`onToggleStatus` on the users card, `onApplyVat` on the categories card) and render it where the card's layout wants it.
 - **DON'T** expect `cardClassName` / `shadow` / `rounded` / `enableCardHover` to apply when using `renderCard` — they only affect built-in variants.
 - **DON'T** rely on `module` doing anything — typed but **deprecated / not implemented**.
 - **DON'T** click a non-existent "view" action from `compact` if you didn't pass `isViewAvailable`. Compact variant uses the icons row, not a dropdown — actions only appear when their corresponding flag/mutation is provided.
@@ -173,7 +174,7 @@ Default `defaultPageSize` is `12` (vs `10` for DataTable).
 ## Common Pitfalls
 
 - **No actions appear** — `actions` only render when `operations` provides the matching mutation (`updateMutation` → edit, `deleteMutation` → delete) or `isViewAvailable: true`.
-- **`customActions` per row not appearing** — used `placement: "cell"`. Switch to `"menu"`.
+- **`customActions` per row not appearing** — on a built-in variant: used `placement: "cell"`, switch to `"menu"`. **With a custom `renderCard`, no placement works** — they are never forwarded; inject the handler into the card instead. (This one shipped: the users card carried an Active/Inactive badge and no way to change it, because its Enable/Disable action was remapped to `"menu"` and reached nothing.)
 - **Image broken / placeholder shown** — `src` field returned an array; `CardImage` extracts `value[0]?.thumbnail?.url || value[0]?.url`. If your shape differs, pass `src: (row) => extractUrl(row)`.
 - **Footer row empty** — no fields with `inFooter: true`, OR you're on `compact` variant (compact has no footer).
 - **`renderCard` cards have no shadow / hover** — by design. Apply your own classes.

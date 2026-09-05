@@ -21,9 +21,10 @@ import {
   Wallet,
   Building2,
   Smartphone,
-  ArrowRightLeft,
+  ReceiptText,
   TrendingUp,
 } from "lucide-react";
+import { TransferDialog } from "@/components/accounts/transactions/transaction-dialogs";
 import { Button } from "@/ui/components/button";
 import Link from "next/link";
 import { useCurrency } from "@/lib/currency";
@@ -307,12 +308,24 @@ export default function AccountsPage() {
           title={t("page.title")}
           subTitle={t("page.subtitle")}
         />
-        <Link href="/accounts/transactions">
-          <Button variant="outline" className="rounded-xl">
-            <ArrowRightLeft className="mr-2 h-4 w-4" />
-            {t("page.transactions")}
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Moving money between accounts is an ACCOUNTS action, and this is
+              the page that shows the balances it moves between. It lived only
+              on Transactions, one click away from where a merchant notices the
+              cash drawer is short. The dialog is self-contained and shares the
+              same mutation, so both entry points stay in step.
+
+              The dialog's trigger already carries the two-arrow glyph, so the
+              Transactions link takes a receipt icon rather than sitting beside
+              an identical one. */}
+          <TransferDialog />
+          <Link href="/accounts/transactions">
+            <Button variant="outline" className="rounded-xl">
+              <ReceiptText className="mr-2 h-4 w-4" />
+              {t("page.transactions")}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Stats summary ───────────────────────────────────────── */}

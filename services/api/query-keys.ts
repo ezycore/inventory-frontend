@@ -303,6 +303,13 @@ export const queryKeys = {
      * refreshes the prices the merchant is about to quote.
      */
     products: () => ["storefront-orders", "products"] as const,
+    /**
+     * What returning one order would move. Under the orders root so anything
+     * that changes the order's money — a payment recorded, an advance taken —
+     * drops a preview that no longer describes it.
+     */
+    returnPreview: (id: string) =>
+      ["storefront-orders", "return-preview", id] as const,
   },
 
   /** Courier provider config — a sibling of orders, not a part of them. */

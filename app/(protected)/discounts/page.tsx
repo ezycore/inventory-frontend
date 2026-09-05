@@ -18,6 +18,7 @@ import {
   useDiscountStats,
 } from "@/services/api";
 import { discountsApi } from "@/services/api";
+import { useFilteredFormConfig } from "@/hooks/use-filters";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 import type { Translator, AppLocale } from "@/i18n/config";
@@ -118,9 +119,16 @@ export default function DiscountsPage() {
   const t = useTranslations("settings.discounts");
   const locale = useLocale() as AppLocale;
   const { data: statsData, isLoading: statsLoading } = useDiscountStats();
+  const filteredFormConfig = useFilteredFormConfig(
+    getDiscountFormConfig(t),
+    "discount",
+  );
 
   const sharedOperations = {
-    formConfig: getDiscountFormConfig(t),
+    // Feature-filtered: a workspace without the purchasing module must not be
+    // offered "Purchase Only" or a "Default for purchase" flag, and the mirror
+    // holds for a storefront-only merchant with no counter.
+    formConfig: filteredFormConfig,
     defaultValues,
     getAllData: discountsApi.getAll,
     createMutation: useCreateDiscount(),

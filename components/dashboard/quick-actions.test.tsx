@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders, screen } from "@/tests/test-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import type { OrganizationFeatures } from "@/types";
+import { DEFAULT_ORGANIZATION_FEATURES, type OrganizationFeatures } from "@/types";
 import { QuickActions } from "./quick-actions";
 
 // The card navigates imperatively; there is no app router in the test tree.
@@ -44,7 +44,28 @@ const ALL_PERMISSIONS = [
   "stock.manage",
   "reports.view",
 ];
-const ALL_FEATURES = { sales: true, multiLocation: true };
+/**
+ * Every feature on — **derived, never listed by hand.**
+ *
+ * This was `{ sales: true, multiLocation: true }`, which named itself ALL and
+ * was not: `areAllFeaturesEnabled` tests `=== true`, so every feature the object
+ * omitted read as OFF. That was harmless only while `sales` and `multiLocation`
+ * were the sole gates declared. When Purchase and Adjust Stock gained theirs —
+ * they had none, so a storefront-only dashboard offered shortcuts onto two
+ * screens its own route guard blocks (QA-C1) — four tests failed on rows the
+ * merchant can see perfectly well.
+ *
+ * The fixture was wrong, not the gates. Same lesson, and the same fix, as
+ * `ALL_PERMISSIONS` in `constants/__tests__/navItem.test.ts`: derive it, so
+ * adding an action can never break this file again.
+ */
+const ALL_FEATURES: OrganizationFeatures = {
+  ...DEFAULT_ORGANIZATION_FEATURES,
+  sales: true,
+  purchases: true,
+  inventoryTracking: true,
+  multiLocation: true,
+};
 
 const labels = () => screen.getAllByRole("button").map((b) => b.textContent);
 
@@ -99,5 +120,42 @@ describe("QuickActions", () => {
 
     // Not just "no buttons" — the whole card, heading included, must be gone.
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+/**
+ * The tier the gates were added for: a storefront-only shop with no counter, no
+ * purchasing and no stock. Every shortcut it keeps must land somewhere it can
+ * actually go.
+ */
+describe("QuickActions — storefront-only", () => {
+  const STOREFRONT_ONLY: OrganizationFeatures = {
+    ...DEFAULT_ORGANIZATION_FEATURES,
+    sales: false,
+    purchases: false,
+    inventoryTracking: false,
+    multiLocation: false,
+    storefront: true,
+  };
+
+  it("offers nothing that lands on a blocked screen", () => {
+    signIn(ALL_PERMISSIONS, STOREFRONT_ONLY);
+    renderWithProviders(<QuickActions />);
+
+    // Permissions are full here on purpose — this is the FEATURE axis. A
+    // merchant holding `purchases.create` on a plan without purchasing still
+    // must not be handed a shortcut to `/purchases`.
+    expect(labels()).toEqual(["Add Product", "View Reports"]);
+  });
+
+  it("brings Purchase back the moment purchasing is switched on", () => {
+    // The gate has to be a live read, not a tier assumption: features are
+    // per-org toggles, so a merchant enabling purchasing mid-life gets the
+    // shortcut without anything else changing.
+    signIn(ALL_PERMISSIONS, { ...STOREFRONT_ONLY, purchases: true });
+    renderWithProviders(<QuickActions />);
+
+    expect(labels()).toContain("Purchase");
+    expect(labels()).not.toContain("Adjust Stock");
   });
 });

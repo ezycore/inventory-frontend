@@ -350,3 +350,67 @@ describe("navGroups — a parent never gates out its own children", () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * Report gates, against the rule the file states about itself.
+ *
+ * `navItem.ts` opens with an explicit rule: `sales` is the POS **counter**, not
+ * the sales ledger, so anything that READS the ledger gates on `anyFeatures`.
+ * Sales History followed it; Sales Report did not, and an online seller with
+ * real online sales opened `/reports/sales` to "Sales Management is switched
+ * off" (QA-L1). Staff Report had no gate at all, so the mirror-image bug showed
+ * it to the same merchant where it means almost nothing (QA-C4).
+ */
+describe("report gates follow the ledger rule, not the counter", () => {
+  const storefrontOnly = withFeatures({
+    sales: false,
+    purchases: false,
+    inventoryTracking: false,
+    storefront: true,
+  });
+
+  it("keeps Sales Report for a storefront-only merchant", () => {
+    // The workspace that found this had booked real online sales. A report over
+    // them cannot be gated on the counter that did not ring them up.
+    expect(childrenOf(storefrontOnly, "Reports")).toContain("Sales Report");
+  });
+
+  it("keeps Sales Report for a counter-only merchant", () => {
+    const counterOnly = withFeatures({ sales: true, storefront: false });
+    expect(childrenOf(counterOnly, "Reports")).toContain("Sales Report");
+  });
+
+  it("drops Sales Report only when neither channel exists", () => {
+    const neither = withFeatures({ sales: false, storefront: false });
+    expect(childrenOf(neither, "Reports")).not.toContain("Sales Report");
+  });
+
+  it("hides Staff Report where staff do not originate the sale", () => {
+    // Online orders originate with the shopper; staff only confirm, ship and
+    // collect. Attributing revenue to an employee there credits whoever pressed
+    // Confirm, beside a purchase column that can never fill.
+    expect(childrenOf(storefrontOnly, "Reports")).not.toContain("Staff Report");
+  });
+
+  it("keeps Staff Report for a POS-less wholesaler", () => {
+    // Any-of, not `sales`: staff raising purchase orders are still staff.
+    const wholesaler = withFeatures({ sales: false, purchases: true });
+    expect(childrenOf(wholesaler, "Reports")).toContain("Staff Report");
+  });
+
+  it("keeps Sales History and Sales Report agreeing with each other", () => {
+    // These two read the same ledger. Any feature set that shows one must show
+    // the other, or the merchant can list a sale they cannot report on.
+    for (const features of [
+      storefrontOnly,
+      withFeatures({ sales: true, storefront: false }),
+      withFeatures({ sales: false, storefront: false }),
+      withFeatures({ sales: true, storefront: true }),
+    ]) {
+      const titles = visibleTitles(features);
+      expect(titles.includes("Sales Report")).toBe(
+        titles.includes("Sales History"),
+      );
+    }
+  });
+});

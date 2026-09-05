@@ -184,6 +184,14 @@ export interface StoreContactButton {
 }
 
 export interface StorefrontStore {
+  /**
+   * Does this merchant count stock? Mirrors `storeInfoDto.tracked`.
+   *
+   * Optional on the client so a cached payload from before the field reads as
+   * `undefined` — every consumer must test `!== false`, the same convention the
+   * server's `isStockTracked` applies.
+   */
+  tracked?: boolean;
   name: string;
   slug: string;
   currency?: string;

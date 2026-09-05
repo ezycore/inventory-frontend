@@ -3541,13 +3541,13 @@ export interface paths {
         };
         /**
          * GET /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:18`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:29`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers"];
         put?: never;
         /**
          * POST /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:50`. Requires permission `suppliers.create`.
+         * @description Defined in `src/routes/suppliers.routes.ts:61`. Requires permission `suppliers.create`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers"];
         delete?: never;
@@ -3565,7 +3565,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/active
-         * @description Defined in `src/routes/suppliers.routes.ts:26`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:37`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_active"];
         put?: never;
@@ -3585,7 +3585,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/slug/:slug
-         * @description Defined in `src/routes/suppliers.routes.ts:34`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:45`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_slug_slug"];
         put?: never;
@@ -3605,18 +3605,18 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:42`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:53`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_id"];
         /**
          * PUT /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:58`. Requires permission `suppliers.edit`.
+         * @description Defined in `src/routes/suppliers.routes.ts:69`. Requires permission `suppliers.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         put: operations["put_api_suppliers_id"];
         post?: never;
         /**
          * DELETE /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:66`. Requires permission `suppliers.delete`.
+         * @description Defined in `src/routes/suppliers.routes.ts:77`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         delete: operations["delete_api_suppliers_id"];
         options?: never;
@@ -3635,7 +3635,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/suppliers/bulk-delete
-         * @description Defined in `src/routes/suppliers.routes.ts:74`. Requires permission `suppliers.delete`.
+         * @description Defined in `src/routes/suppliers.routes.ts:85`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers_bulk_delete"];
         delete?: never;
@@ -3653,7 +3653,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/ledger
-         * @description Defined in `src/routes/suppliers.routes.ts:82`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:93`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_ledger"];
         put?: never;
@@ -3673,7 +3673,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/statement
-         * @description Defined in `src/routes/suppliers.routes.ts:89`. Requires permission `suppliers.view`.
+         * @description Defined in `src/routes/suppliers.routes.ts:100`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_statement"];
         put?: never;
@@ -3693,13 +3693,13 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders
-         * @description Defined in `src/routes/purchase-orders.routes.ts:43`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:50`. Requires permission `purchases.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders"];
         put?: never;
         /**
          * POST /api/purchases/orders
-         * @description Defined in `src/routes/purchase-orders.routes.ts:34`. Requires permission `purchases.create`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:41`. Requires permission `purchases.create`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders"];
         delete?: never;
@@ -3717,7 +3717,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/summary
-         * @description Defined in `src/routes/purchase-orders.routes.ts:52`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:59`. Requires permission `purchases.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_summary"];
         put?: never;
@@ -3737,7 +3737,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/returns/supplier/:supplierId/pending-dues
-         * @description Defined in `src/routes/purchase-orders.routes.ts:66`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:73`. Requires permission `returns.view`. Gated by organization feature `purchases`, `returns`, `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_returns_supplier_supplierId_pending_dues"];
         put?: never;
@@ -3757,13 +3757,13 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/returns
-         * @description Defined in `src/routes/purchase-orders.routes.ts:85`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:92`. Requires permission `returns.view`. Gated by organization feature `purchases`, `returns` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_returns"];
         put?: never;
         /**
          * POST /api/purchases/orders/returns
-         * @description Defined in `src/routes/purchase-orders.routes.ts:76`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:83`. Requires permission `returns.create`. Gated by organization feature `purchases`, `returns` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_returns"];
         delete?: never;
@@ -3781,7 +3781,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/returns/summary
-         * @description Defined in `src/routes/purchase-orders.routes.ts:95`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:102`. Requires permission `returns.view`. Gated by organization feature `purchases`, `returns` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_returns_summary"];
         put?: never;
@@ -3801,7 +3801,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/returns/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:103`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:110`. Requires permission `returns.view`. Gated by organization feature `purchases`, `returns` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_returns_id"];
         put?: never;
@@ -3821,7 +3821,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:purchaseOrderId/returns
-         * @description Defined in `src/routes/purchase-orders.routes.ts:112`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:119`. Requires permission `returns.view`. Gated by organization feature `purchases`, `returns` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_purchaseOrderId_returns"];
         put?: never;
@@ -3841,21 +3841,21 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:121`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:128`. Requires permission `purchases.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/purchases/orders/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:190`. Requires permission `purchases.delete`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:197`. Requires permission `purchases.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         delete: operations["delete_api_purchases_orders_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/purchases/orders/:id
-         * @description Defined in `src/routes/purchase-orders.routes.ts:131`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:138`. Requires permission `purchases.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         patch: operations["patch_api_purchases_orders_id"];
         trace?: never;
@@ -3871,7 +3871,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/receive
-         * @description Defined in `src/routes/purchase-orders.routes.ts:139`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:146`. Requires permission `purchases.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_id_receive"];
         delete?: never;
@@ -3891,7 +3891,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/cancel
-         * @description Defined in `src/routes/purchase-orders.routes.ts:147`. Requires permission `purchases.delete`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:154`. Requires permission `purchases.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_id_cancel"];
         delete?: never;
@@ -3911,7 +3911,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/finalize
-         * @description Defined in `src/routes/purchase-orders.routes.ts:156`. Requires permission `purchases.edit`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:163`. Requires permission `purchases.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_id_finalize"];
         delete?: never;
@@ -3931,7 +3931,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/purchases/orders/:id/payment
-         * @description Defined in `src/routes/purchase-orders.routes.ts:164`. Requires permission `purchases.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:171`. Requires permission `purchases.edit`. Gated by organization feature `purchases`, `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_purchases_orders_id_payment"];
         delete?: never;
@@ -3949,7 +3949,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:id/payments
-         * @description Defined in `src/routes/purchase-orders.routes.ts:173`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:180`. Requires permission `purchases.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_id_payments"];
         put?: never;
@@ -3969,7 +3969,7 @@ export interface paths {
         };
         /**
          * GET /api/purchases/orders/:id/transactions
-         * @description Defined in `src/routes/purchase-orders.routes.ts:182`. Requires permission `purchases.view`.
+         * @description Defined in `src/routes/purchase-orders.routes.ts:189`. Requires permission `purchases.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_purchases_orders_id_transactions"];
         put?: never;
@@ -4333,13 +4333,13 @@ export interface paths {
         };
         /**
          * GET /api/inventory
-         * @description Defined in `src/routes/inventory.routes.ts:20`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:37`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory"];
         put?: never;
         /**
          * POST /api/inventory
-         * @description Defined in `src/routes/inventory.routes.ts:145`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:165`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory"];
         delete?: never;
@@ -4357,7 +4357,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/shortlist
-         * @description Defined in `src/routes/inventory.routes.ts:27`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:44`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_shortlist"];
         put?: never;
@@ -4377,7 +4377,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/analytics/product/:productId
-         * @description Defined in `src/routes/inventory.routes.ts:36`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:53`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_analytics_product_productId"];
         put?: never;
@@ -4397,7 +4397,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/analytics/item/:inventoryId
-         * @description Defined in `src/routes/inventory.routes.ts:42`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:59`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_analytics_item_inventoryId"];
         put?: never;
@@ -4417,7 +4417,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/sellable-products
-         * @description Defined in `src/routes/inventory.routes.ts:48`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:65`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_sellable_products"];
         put?: never;
@@ -4437,7 +4437,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/adjustable-products
-         * @description Defined in `src/routes/inventory.routes.ts:54`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:71`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_adjustable_products"];
         put?: never;
@@ -4457,7 +4457,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/purchasable-products
-         * @description Defined in `src/routes/inventory.routes.ts:60`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:77`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_purchasable_products"];
         put?: never;
@@ -4477,7 +4477,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/expiry/expiring
-         * @description Defined in `src/routes/inventory.routes.ts:69`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:89`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking`, `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_expiry_expiring"];
         put?: never;
@@ -4497,7 +4497,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/expiry/expired
-         * @description Defined in `src/routes/inventory.routes.ts:77`. Requires permission `stock.view`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:97`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking`, `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_expiry_expired"];
         put?: never;
@@ -4519,7 +4519,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/batches/:batchId/assign-expiry
-         * @description Defined in `src/routes/inventory.routes.ts:89`. Requires permission `stock.manage`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:109`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking`, `expiryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory_batches_batchId_assign_expiry"];
         delete?: never;
@@ -4537,7 +4537,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/:productId/batches
-         * @description Defined in `src/routes/inventory.routes.ts:103`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:123`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_productId_batches"];
         put?: never;
@@ -4557,7 +4557,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/export
-         * @description Defined in `src/routes/inventory.routes.ts:110`. Requires permission `stock.export`.
+         * @description Defined in `src/routes/inventory.routes.ts:130`. Requires permission `stock.export`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_export"];
         put?: never;
@@ -4577,7 +4577,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/export/batch
-         * @description Defined in `src/routes/inventory.routes.ts:117`. Requires permission `stock.export`. Gated by organization feature `expiryTracking` — returns 403 when disabled.
+         * @description Defined in `src/routes/inventory.routes.ts:137`. Requires permission `stock.export`. Gated by organization feature `inventoryTracking`, `expiryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_export_batch"];
         put?: never;
@@ -4597,7 +4597,7 @@ export interface paths {
         };
         /**
          * GET /api/inventory/import/template
-         * @description Defined in `src/routes/inventory.routes.ts:125`. Requires permission `stock.import`.
+         * @description Defined in `src/routes/inventory.routes.ts:145`. Requires permission `stock.import`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_import_template"];
         put?: never;
@@ -4619,7 +4619,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/import
-         * @description Defined in `src/routes/inventory.routes.ts:132`. Requires permission `stock.import`.
+         * @description Defined in `src/routes/inventory.routes.ts:152`. Requires permission `stock.import`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory_import"];
         delete?: never;
@@ -4637,18 +4637,18 @@ export interface paths {
         };
         /**
          * GET /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:139`. Requires permission `stock.view`.
+         * @description Defined in `src/routes/inventory.routes.ts:159`. Requires permission `stock.view`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         get: operations["get_api_inventory_id"];
         /**
          * PUT /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:152`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:172`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         put: operations["put_api_inventory_id"];
         post?: never;
         /**
          * DELETE /api/inventory/:id
-         * @description Defined in `src/routes/inventory.routes.ts:159`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:179`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         delete: operations["delete_api_inventory_id"];
         options?: never;
@@ -4667,7 +4667,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-delete
-         * @description Defined in `src/routes/inventory.routes.ts:166`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:186`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory_bulk_delete"];
         delete?: never;
@@ -4687,7 +4687,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-adjust
-         * @description Defined in `src/routes/inventory.routes.ts:172`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:192`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory_bulk_adjust"];
         delete?: never;
@@ -4707,7 +4707,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/inventory/bulk-transfer
-         * @description Defined in `src/routes/inventory.routes.ts:181`. Requires permission `stock.manage`.
+         * @description Defined in `src/routes/inventory.routes.ts:201`. Requires permission `stock.manage`. Gated by organization feature `inventoryTracking` — returns 403 when disabled.
          */
         post: operations["post_api_inventory_bulk_transfer"];
         delete?: never;
@@ -5121,13 +5121,13 @@ export interface paths {
         };
         /**
          * GET /api/accounts
-         * @description Defined in `src/routes/accounts.routes.ts:19`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:21`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts"];
         put?: never;
         /**
          * POST /api/accounts
-         * @description Defined in `src/routes/accounts.routes.ts:80`. Requires permission `accounts.create`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:82`. Requires permission `accounts.create`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_accounts"];
         delete?: never;
@@ -5145,7 +5145,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/payment-options
-         * @description Defined in `src/routes/accounts.routes.ts:43`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:45`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_payment_options"];
         put?: never;
@@ -5165,7 +5165,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/summary
-         * @description Defined in `src/routes/accounts.routes.ts:58`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:60`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_summary"];
         put?: never;
@@ -5185,7 +5185,7 @@ export interface paths {
         };
         /**
          * GET /api/accounts/default
-         * @description Defined in `src/routes/accounts.routes.ts:65`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:67`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_default"];
         put?: never;
@@ -5205,18 +5205,18 @@ export interface paths {
         };
         /**
          * GET /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:72`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:74`. Requires permission `accounts.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_accounts_id"];
         /**
          * PUT /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:88`. Requires permission `accounts.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:90`. Requires permission `accounts.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         put: operations["put_api_accounts_id"];
         post?: never;
         /**
          * DELETE /api/accounts/:id
-         * @description Defined in `src/routes/accounts.routes.ts:96`. Requires permission `accounts.delete`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/accounts.routes.ts:98`. Requires permission `accounts.delete`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         delete: operations["delete_api_accounts_id"];
         options?: never;
@@ -5413,13 +5413,13 @@ export interface paths {
         };
         /**
          * GET /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:43`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:54`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales"];
         put?: never;
         /**
          * POST /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:34`. Requires permission `sales.create`.
+         * @description Defined in `src/routes/sales.routes.ts:44`. Requires permission `sales.create`. Gated by organization feature `sales` — returns 403 when disabled.
          */
         post: operations["post_api_sales"];
         delete?: never;
@@ -5437,7 +5437,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/summary
-         * @description Defined in `src/routes/sales.routes.ts:52`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:63`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_summary"];
         put?: never;
@@ -5457,7 +5457,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/customer/:customerId/pending-dues
-         * @description Defined in `src/routes/sales.routes.ts:66`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:77`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_customer_customerId_pending_dues"];
         put?: never;
@@ -5477,13 +5477,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:94`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:105`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns"];
         put?: never;
         /**
          * POST /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:76`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:87`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         post: operations["post_api_sales_returns"];
         delete?: never;
@@ -5501,7 +5501,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/summary
-         * @description Defined in `src/routes/sales.routes.ts:86`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:97`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_summary"];
         put?: never;
@@ -5521,7 +5521,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/:id
-         * @description Defined in `src/routes/sales.routes.ts:103`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:114`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_id"];
         put?: never;
@@ -5541,21 +5541,21 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:112`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:123`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:182`. Requires permission `sales.delete`.
+         * @description Defined in `src/routes/sales.routes.ts:193`. Requires permission `sales.delete`.
          */
         delete: operations["delete_api_sales_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:165`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:176`. Requires permission `sales.edit`.
          */
         patch: operations["patch_api_sales_id"];
         trace?: never;
@@ -5569,7 +5569,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:saleId/returns
-         * @description Defined in `src/routes/sales.routes.ts:120`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:131`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_saleId_returns"];
         put?: never;
@@ -5591,7 +5591,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/payment
-         * @description Defined in `src/routes/sales.routes.ts:129`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:140`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_id_payment"];
         delete?: never;
@@ -5609,7 +5609,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/payments
-         * @description Defined in `src/routes/sales.routes.ts:138`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:149`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_payments"];
         put?: never;
@@ -5631,7 +5631,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/email-receipt
-         * @description Defined in `src/routes/sales.routes.ts:146`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:157`. Requires permission `sales.view`.
          */
         post: operations["post_api_sales_id_email_receipt"];
         delete?: never;
@@ -5649,7 +5649,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/transactions
-         * @description Defined in `src/routes/sales.routes.ts:155`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:166`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_transactions"];
         put?: never;
@@ -5671,7 +5671,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/finalize
-         * @description Defined in `src/routes/sales.routes.ts:174`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:185`. Requires permission `sales.edit`.
          */
         post: operations["post_api_sales_id_finalize"];
         delete?: never;
@@ -6089,13 +6089,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:75`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:76`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders"];
         put?: never;
         /**
          * POST /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:39`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:40`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders"];
         delete?: never;
@@ -6115,7 +6115,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/quote
-         * @description Defined in `src/routes/storefront-orders.routes.ts:50`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:51`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_quote"];
         delete?: never;
@@ -6133,7 +6133,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/products
-         * @description Defined in `src/routes/storefront-orders.routes.ts:60`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:61`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_products"];
         put?: never;
@@ -6155,7 +6155,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/bulk-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:68`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:69`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_bulk_consignment"];
         delete?: never;
@@ -6173,7 +6173,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/stats
-         * @description Defined in `src/routes/storefront-orders.routes.ts:82`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:83`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_stats"];
         put?: never;
@@ -6193,7 +6193,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:87`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:88`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id"];
         put?: never;
@@ -6203,7 +6203,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:96`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:97`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id"];
         trace?: never;
@@ -6217,7 +6217,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/fraud-check
-         * @description Defined in `src/routes/storefront-orders.routes.ts:102`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:103`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_fraud_check"];
         put?: never;
@@ -6239,7 +6239,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/confirm
-         * @description Defined in `src/routes/storefront-orders.routes.ts:108`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:109`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_confirm"];
         delete?: never;
@@ -6263,7 +6263,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:114`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:115`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_status"];
         trace?: never;
@@ -6279,7 +6279,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/cancel
-         * @description Defined in `src/routes/storefront-orders.routes.ts:120`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:121`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_cancel"];
         delete?: never;
@@ -6303,7 +6303,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-cost
-         * @description Defined in `src/routes/storefront-orders.routes.ts:126`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:127`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
@@ -6319,7 +6319,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/prepayment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:132`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:133`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_prepayment"];
         delete?: never;
@@ -6339,9 +6339,29 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/payment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:138`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:139`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_payment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/orders/{id}/collection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/orders/:id/collection
+         * @description Defined in `src/routes/storefront-orders.routes.ts:149`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_orders_id_collection"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6359,7 +6379,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/return
-         * @description Defined in `src/routes/storefront-orders.routes.ts:144`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:155`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_return"];
         delete?: never;
@@ -6379,7 +6399,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/resolve-location
-         * @description Defined in `src/routes/storefront-orders.routes.ts:150`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:161`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_resolve_location"];
         delete?: never;
@@ -6399,7 +6419,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:156`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:167`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_consignment"];
         delete?: never;
@@ -6419,7 +6439,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/manual-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:162`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:173`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_manual_consignment"];
         delete?: never;
@@ -6443,7 +6463,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:168`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:179`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_status"];
         trace?: never;
@@ -6459,9 +6479,29 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/refresh-tracking
-         * @description Defined in `src/routes/storefront-orders.routes.ts:174`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:185`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_refresh_tracking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/orders/{id}/return-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/orders/:id/return-preview
+         * @description Defined in `src/routes/storefront-orders.routes.ts:193`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_orders_id_return_preview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6477,7 +6517,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/courier-price
-         * @description Defined in `src/routes/storefront-orders.routes.ts:180`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:199`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_courier_price"];
         put?: never;
@@ -7143,6 +7183,23 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
             }[];
+            storefront?: {
+                isListed?: boolean;
+                onlinePrice?: number;
+                compareAtPrice?: number;
+                featured?: boolean;
+                slug?: string;
+                onlineTitle?: string;
+                onlineDescription?: string;
+                seo?: {
+                    title?: string;
+                    description?: string;
+                };
+                /** @enum {string} */
+                outOfStockBehavior?: "hide" | "show" | "backorder";
+                weightKg?: number;
+            };
+            totalStock?: number;
             categoryId?: string;
             subcategoryId?: string | null;
             brandId?: string;
@@ -7221,22 +7278,6 @@ export interface components {
             }[];
             variant_count?: number;
             organizationId: string;
-            storefront?: {
-                isListed?: boolean;
-                onlinePrice?: number;
-                compareAtPrice?: number;
-                featured?: boolean;
-                slug?: string;
-                onlineTitle?: string;
-                onlineDescription?: string;
-                seo?: {
-                    title?: string;
-                    description?: string;
-                };
-                /** @enum {string} */
-                outOfStockBehavior?: "hide" | "show" | "backorder";
-                weightKg?: number;
-            };
             isDemoData?: boolean;
         };
         ProductListItem: {
@@ -7277,6 +7318,14 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
             }[];
+            storefront?: {
+                isListed?: boolean;
+                onlinePrice?: number | null;
+                onlineDescription?: string | null;
+                featured?: boolean;
+                weightKg?: number | null;
+            };
+            totalStock?: number;
             categoryId?: string;
             subcategoryId?: string | null;
             brandId?: string;
@@ -7918,6 +7967,7 @@ export interface components {
             quantity: number;
             reservedQuantity: number;
             availableQuantity: number;
+            tracked?: boolean;
             quantityAlert: number;
             isLowStock?: boolean;
             /** @enum {string} */
@@ -8125,7 +8175,7 @@ export interface components {
             } | null;
         };
         PurchasableProduct: {
-            _id: string;
+            _id: string | null;
             name: string;
             price: number;
             costPrice?: number;
@@ -8147,6 +8197,7 @@ export interface components {
             price: number;
             costPrice?: number;
             quantity: number;
+            tracked?: boolean;
             productId: string;
             variantId: string | null;
             unitName: string | null;
@@ -8529,6 +8580,7 @@ export interface components {
             paidAmount: number;
             refundCreditApplied?: number;
             refundedAmount?: number;
+            postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
             /** @enum {string} */
@@ -8636,6 +8688,7 @@ export interface components {
             paidAmount: number;
             refundCreditApplied?: number;
             refundedAmount?: number;
+            postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
             /** @enum {string} */
@@ -8709,6 +8762,7 @@ export interface components {
             paidAmount: number;
             refundCreditApplied?: number;
             refundedAmount?: number;
+            postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
             /** @enum {string} */
@@ -8856,6 +8910,7 @@ export interface components {
                 paidAmount: number;
                 refundCreditApplied?: number;
                 refundedAmount?: number;
+                postSaleDiscount?: number;
                 dueAmount: number;
                 costPrice: number;
                 /** @enum {string} */
@@ -10041,6 +10096,7 @@ export interface components {
                 weightKg?: number;
             };
             availableQuantity: number;
+            tracked?: boolean;
         };
         CatalogList: {
             items: {
@@ -10077,6 +10133,7 @@ export interface components {
                     weightKg?: number;
                 };
                 availableQuantity: number;
+                tracked?: boolean;
             }[];
             pagination: {
                 page: number;
@@ -10332,6 +10389,15 @@ export interface components {
             shippingCharged: number;
             totalAmount: number;
         };
+        OrderReturnPreview: {
+            goodsRefund: number;
+            deduction: number;
+            saleDue: number;
+            appliedToDue: number;
+            refundRemainder: number;
+            refundModeRequired: boolean;
+            shippingRetained: number;
+        };
         OrderStats: {
             pending: {
                 count: number;
@@ -10354,6 +10420,14 @@ export interface components {
                 value: number;
             };
             collectedToday: {
+                count: number;
+                value: number;
+            };
+            fullyReturnedToday: {
+                count: number;
+                value: number;
+            };
+            partlyReturnedToday: {
                 count: number;
                 value: number;
             };
@@ -10389,6 +10463,7 @@ export interface components {
             price: number;
             compareAt?: number;
             availableQuantity: number;
+            tracked?: boolean;
         };
         ShopperDetail: {
             customer: {
@@ -10424,7 +10499,7 @@ export interface components {
             _id: string;
             orderNumber: string;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
             /** @enum {string} */
             paymentStatus: "pending" | "paid" | "refunded";
             /** @enum {string} */
@@ -10439,9 +10514,11 @@ export interface components {
             currency?: string;
             customDomain: string | null;
             fulfillmentLocationSet: boolean;
+            stockTracked: boolean;
             stats: {
                 todayOrders: number;
-                todayRevenue: number;
+                todayNetRevenue: number;
+                todayReturned: number;
                 pendingCount: number;
                 liveProducts: number;
                 abandonedCarts: number;
@@ -10480,7 +10557,7 @@ export interface components {
                 shippingCost?: number;
                 totalAmount: number;
                 /** @enum {string} */
-                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
                 /** @enum {string} */
                 fulfillmentType?: "delivery" | "pickup";
                 pickupLocationId?: string | null;
@@ -10516,7 +10593,30 @@ export interface components {
                 prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
-                salesReturnId?: string | null;
+                returns?: {
+                    salesReturnId: string;
+                    idempotencyKey?: string | null;
+                    amount?: number | null;
+                    /** Format: date-time */
+                    at?: string | null;
+                }[];
+                collectionDiscount?: number;
+                collectionDiscountNote?: string | null;
+                collections?: {
+                    expected: number;
+                    collected: number;
+                    returnedValue?: number;
+                    returnedLines?: {
+                        productId: string;
+                        variantId?: string | null;
+                        quantity: number;
+                    }[];
+                    discount?: number;
+                    stillOwed?: number;
+                    /** Format: date-time */
+                    at?: string | null;
+                    by?: string | null;
+                }[];
                 rtoChargeTxnId?: string | null;
                 rtoCollectedTxnId?: string | null;
                 /** Format: date-time */
@@ -10585,6 +10685,7 @@ export interface components {
                 name: string;
                 image?: string;
                 availableQuantity: number;
+                tracked?: boolean;
             }[];
             channelMix: {
                 windowDays: number;
@@ -10596,6 +10697,21 @@ export interface components {
                     share: number;
                 }[];
             };
+            fulfillmentMix: {
+                delivered: number;
+                cancelled: number;
+                returned: number;
+                byCourier: {
+                    [key: string]: number;
+                };
+            };
+            topSelling: {
+                _id: string;
+                name: string;
+                units: number;
+                revenue: number;
+            }[];
+            newCustomers: number;
         };
         StorefrontOrder: {
             _id: string;
@@ -10629,7 +10745,7 @@ export interface components {
             shippingCost?: number;
             totalAmount: number;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
             /** @enum {string} */
             fulfillmentType?: "delivery" | "pickup";
             pickupLocationId?: string | null;
@@ -10665,7 +10781,30 @@ export interface components {
             prepaidAt?: string | null;
             /** Format: date-time */
             paidAt?: string | null;
-            salesReturnId?: string | null;
+            returns?: {
+                salesReturnId: string;
+                idempotencyKey?: string | null;
+                amount?: number | null;
+                /** Format: date-time */
+                at?: string | null;
+            }[];
+            collectionDiscount?: number;
+            collectionDiscountNote?: string | null;
+            collections?: {
+                expected: number;
+                collected: number;
+                returnedValue?: number;
+                returnedLines?: {
+                    productId: string;
+                    variantId?: string | null;
+                    quantity: number;
+                }[];
+                discount?: number;
+                stillOwed?: number;
+                /** Format: date-time */
+                at?: string | null;
+                by?: string | null;
+            }[];
             rtoChargeTxnId?: string | null;
             rtoCollectedTxnId?: string | null;
             /** Format: date-time */
@@ -10762,7 +10901,7 @@ export interface components {
                 shippingCost?: number;
                 totalAmount: number;
                 /** @enum {string} */
-                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+                status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
                 /** @enum {string} */
                 fulfillmentType?: "delivery" | "pickup";
                 pickupLocationId?: string | null;
@@ -10798,7 +10937,30 @@ export interface components {
                 prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
-                salesReturnId?: string | null;
+                returns?: {
+                    salesReturnId: string;
+                    idempotencyKey?: string | null;
+                    amount?: number | null;
+                    /** Format: date-time */
+                    at?: string | null;
+                }[];
+                collectionDiscount?: number;
+                collectionDiscountNote?: string | null;
+                collections?: {
+                    expected: number;
+                    collected: number;
+                    returnedValue?: number;
+                    returnedLines?: {
+                        productId: string;
+                        variantId?: string | null;
+                        quantity: number;
+                    }[];
+                    discount?: number;
+                    stillOwed?: number;
+                    /** Format: date-time */
+                    at?: string | null;
+                    by?: string | null;
+                }[];
                 rtoChargeTxnId?: string | null;
                 rtoCollectedTxnId?: string | null;
                 /** Format: date-time */
@@ -11218,6 +11380,7 @@ export interface components {
             /** Format: date-time */
             completedAt: string | null;
             step: number;
+            answeredThrough: number;
         };
         OnboardingStepResult: {
             features: {
@@ -11233,6 +11396,8 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -11247,11 +11412,20 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
+            };
+            featureRequires: {
+                [key: string]: string[];
+            };
+            featureOverrides: {
+                [key: string]: boolean;
             };
             onboarding: {
                 /** Format: date-time */
                 completedAt: string | null;
                 step: number;
+                answeredThrough: number;
             };
             vatRegistrationHistory: {
                 /** @enum {string} */
@@ -11360,6 +11534,8 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -11395,6 +11571,8 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -11412,6 +11590,7 @@ export interface components {
             /** Format: date-time */
             onboardingCompletedAt?: string | null;
             onboardingStep?: number;
+            onboardingAnsweredThrough?: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -11431,6 +11610,8 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -11445,11 +11626,20 @@ export interface components {
                 combo: boolean;
                 smsNotifications: boolean;
                 multiLocation: boolean;
+                purchases: boolean;
+                inventoryTracking: boolean;
+            };
+            featureRequires: {
+                [key: string]: string[];
+            };
+            featureOverrides: {
+                [key: string]: boolean;
             };
             onboarding: {
                 /** Format: date-time */
                 completedAt: string | null;
                 step: number;
+                answeredThrough: number;
             };
         };
         OrganizationFeatures: {
@@ -11465,6 +11655,8 @@ export interface components {
             combo: boolean;
             smsNotifications: boolean;
             multiLocation: boolean;
+            purchases: boolean;
+            inventoryTracking: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -12093,6 +12285,7 @@ export interface components {
             slug: string;
             currency?: string;
             canonicalHost: string | null;
+            tracked: boolean;
             logo?: unknown;
             favicon?: {
                 url: string;
@@ -12273,6 +12466,7 @@ export interface components {
             productType: string;
             hasVariants: boolean;
             availableQuantity: number;
+            tracked?: boolean;
             unitLabel?: string;
             /** @enum {string} */
             outOfStockBehavior?: "hide" | "show" | "backorder";
@@ -12295,6 +12489,7 @@ export interface components {
                     publicId: string;
                 }[];
                 availableQuantity: number;
+                tracked?: boolean;
             }[];
         };
         StorefrontProductList: {
@@ -12324,6 +12519,7 @@ export interface components {
                 productType: string;
                 hasVariants: boolean;
                 availableQuantity: number;
+                tracked?: boolean;
                 unitLabel?: string;
                 /** @enum {string} */
                 outOfStockBehavior?: "hide" | "show" | "backorder";
@@ -12346,6 +12542,7 @@ export interface components {
                         publicId: string;
                     }[];
                     availableQuantity: number;
+                    tracked?: boolean;
                 }[];
             }[];
             pagination: {
@@ -12378,7 +12575,7 @@ export interface components {
             shippingCharged?: number;
             totalAmount: number;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
             /** @enum {string} */
             fulfillmentType?: "delivery" | "pickup";
             pickupLocationId?: string | null;
@@ -12461,7 +12658,7 @@ export interface components {
         TrackedOrder: {
             orderNumber: string;
             /** @enum {string} */
-            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "cancelled" | "rejected";
+            status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
             /** @enum {string} */
             fulfillmentType?: "delivery" | "pickup";
             /** @enum {string} */
@@ -12758,6 +12955,8 @@ export interface components {
                 /** @enum {string} */
                 chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
             };
+            purchasesTracked: boolean;
+            stockTracked: boolean;
             sales: {
                 total: number;
                 paid: number;
@@ -12818,6 +13017,12 @@ export interface components {
             };
             grossProfit: number;
             netRevenue: number;
+            previousNetRevenue: number;
+            returns: {
+                refund: number;
+                cogs: number;
+                count: number;
+            };
             totalCOGS: number;
         };
         DashboardStats: {
@@ -13002,6 +13207,7 @@ export interface components {
                 /** @enum {string} */
                 stockValuation: "cost";
                 cashTracked: boolean;
+                stockTracked: boolean;
             };
         };
         ProfitLossReport: {
@@ -13016,6 +13222,7 @@ export interface components {
                 revenue: {
                     gross: number;
                     returns: number;
+                    discounts: number;
                     net: number;
                     saleCount: number;
                     returnCount: number;
@@ -13107,6 +13314,7 @@ export interface components {
             };
             summary: {
                 totalSales: number;
+                netSales: number;
                 totalPaid: number;
                 totalDue: number;
                 totalCost: number;
@@ -13114,7 +13322,14 @@ export interface components {
                 count: number;
                 totalItems: number;
                 previousTotal: number;
+                previousNetSales: number;
                 previousCount: number;
+                returns: {
+                    refund: number;
+                    cogs: number;
+                    count: number;
+                };
+                discounts: number;
             };
             chartData: {
                 label: string | null;
@@ -13293,6 +13508,24 @@ export interface components {
                     combo: boolean;
                     smsNotifications: boolean;
                     multiLocation: boolean;
+                    purchases: boolean;
+                    inventoryTracking: boolean;
+                };
+                planFeatures?: {
+                    sales: boolean;
+                    accounts: boolean;
+                    expiryTracking: boolean;
+                    barcodeSystem: boolean;
+                    invoicePrinting: boolean;
+                    returns: boolean;
+                    uomConversion: boolean;
+                    storefront: boolean;
+                    tax: boolean;
+                    combo: boolean;
+                    smsNotifications: boolean;
+                    multiLocation: boolean;
+                    purchases: boolean;
+                    inventoryTracking: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -13413,6 +13646,24 @@ export interface components {
                     combo: boolean;
                     smsNotifications: boolean;
                     multiLocation: boolean;
+                    purchases: boolean;
+                    inventoryTracking: boolean;
+                };
+                planFeatures?: {
+                    sales: boolean;
+                    accounts: boolean;
+                    expiryTracking: boolean;
+                    barcodeSystem: boolean;
+                    invoicePrinting: boolean;
+                    returns: boolean;
+                    uomConversion: boolean;
+                    storefront: boolean;
+                    tax: boolean;
+                    combo: boolean;
+                    smsNotifications: boolean;
+                    multiLocation: boolean;
+                    purchases: boolean;
+                    inventoryTracking: boolean;
                 };
                 receiptSettings?: {
                     phone?: string;
@@ -13537,6 +13788,24 @@ export interface components {
                         combo: boolean;
                         smsNotifications: boolean;
                         multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
+                    };
+                    planFeatures?: {
+                        sales: boolean;
+                        accounts: boolean;
+                        expiryTracking: boolean;
+                        barcodeSystem: boolean;
+                        invoicePrinting: boolean;
+                        returns: boolean;
+                        uomConversion: boolean;
+                        storefront: boolean;
+                        tax: boolean;
+                        combo: boolean;
+                        smsNotifications: boolean;
+                        multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13658,6 +13927,24 @@ export interface components {
                         combo: boolean;
                         smsNotifications: boolean;
                         multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
+                    };
+                    planFeatures?: {
+                        sales: boolean;
+                        accounts: boolean;
+                        expiryTracking: boolean;
+                        barcodeSystem: boolean;
+                        invoicePrinting: boolean;
+                        returns: boolean;
+                        uomConversion: boolean;
+                        storefront: boolean;
+                        tax: boolean;
+                        combo: boolean;
+                        smsNotifications: boolean;
+                        multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13819,6 +14106,24 @@ export interface components {
                         combo: boolean;
                         smsNotifications: boolean;
                         multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
+                    };
+                    planFeatures?: {
+                        sales: boolean;
+                        accounts: boolean;
+                        expiryTracking: boolean;
+                        barcodeSystem: boolean;
+                        invoicePrinting: boolean;
+                        returns: boolean;
+                        uomConversion: boolean;
+                        storefront: boolean;
+                        tax: boolean;
+                        combo: boolean;
+                        smsNotifications: boolean;
+                        multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -13963,6 +14268,24 @@ export interface components {
                         combo: boolean;
                         smsNotifications: boolean;
                         multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
+                    };
+                    planFeatures?: {
+                        sales: boolean;
+                        accounts: boolean;
+                        expiryTracking: boolean;
+                        barcodeSystem: boolean;
+                        invoicePrinting: boolean;
+                        returns: boolean;
+                        uomConversion: boolean;
+                        storefront: boolean;
+                        tax: boolean;
+                        combo: boolean;
+                        smsNotifications: boolean;
+                        multiLocation: boolean;
+                        purchases: boolean;
+                        inventoryTracking: boolean;
                     };
                     receiptSettings?: {
                         phone?: string;
@@ -14224,6 +14547,9 @@ export interface components {
             }[];
             permissions: string[];
             features: string[];
+            featureRequires: {
+                [key: string]: string[];
+            };
             roles: {
                 name: string;
                 permissions: string[];
@@ -18144,6 +18470,8 @@ export interface operations {
                     storefront?: boolean;
                     smsNotifications?: boolean;
                     multiLocation?: boolean;
+                    purchases?: boolean;
+                    inventoryTracking?: boolean;
                 };
             };
         };
@@ -18258,12 +18586,15 @@ export interface operations {
                         multiLocation?: boolean;
                         tax?: boolean;
                         combo?: boolean;
+                        purchases?: boolean;
+                        inventoryTracking?: boolean;
                     };
                     vatRegistration?: {
                         /** @enum {string} */
                         type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
                     };
                     complete?: boolean;
+                    restart?: boolean;
                 };
             };
         };
@@ -25806,7 +26137,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25873,7 +26204,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25944,7 +26275,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25998,7 +26329,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26061,7 +26392,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26139,7 +26470,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26202,7 +26533,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26280,7 +26611,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26325,7 +26656,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26379,7 +26710,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26460,7 +26791,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26488,7 +26819,7 @@ export interface operations {
                     items: {
                         productId: string;
                         variantId?: string;
-                        inventoryId: string;
+                        inventoryId?: string;
                         productName: string;
                         quantity: number;
                         price: number;
@@ -26557,7 +26888,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26600,7 +26931,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27042,7 +27373,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27105,7 +27436,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27144,7 +27475,7 @@ export interface operations {
                     items?: {
                         productId: string;
                         variantId?: string;
-                        inventoryId: string;
+                        inventoryId?: string;
                         productName: string;
                         quantity: number;
                         price: number;
@@ -27202,7 +27533,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27285,7 +27616,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27348,7 +27679,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27387,7 +27718,7 @@ export interface operations {
                     items?: {
                         productId: string;
                         variantId?: string;
-                        inventoryId: string;
+                        inventoryId?: string;
                         productName: string;
                         quantity: number;
                         price: number;
@@ -27454,7 +27785,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27595,7 +27926,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27658,7 +27989,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29056,7 +29387,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29127,7 +29458,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29198,7 +29529,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29243,7 +29574,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29297,7 +29628,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29349,7 +29680,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29392,7 +29723,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29405,7 +29736,18 @@ export interface operations {
     };
     get_api_inventory_purchasable_products: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: string;
+                start_date?: string;
+                end_date?: string;
+            };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
                 "X-Active-Location"?: string;
@@ -29426,6 +29768,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Missing or invalid credentials */
             401: {
                 headers: {
@@ -29435,7 +29786,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29696,7 +30047,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29746,7 +30097,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29828,7 +30179,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29871,7 +30222,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29916,7 +30267,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -29987,7 +30338,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -30050,7 +30401,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -30113,7 +30464,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -30203,7 +30554,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -30279,7 +30630,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -33311,7 +33662,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -36289,6 +36640,92 @@ export interface operations {
             };
         };
     };
+    post_api_ecommerce_orders_id_collection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    collected: number;
+                    returnLines?: {
+                        productId: string;
+                        variantId?: string | null;
+                        quantity: number;
+                    }[];
+                    discount?: {
+                        amount: number;
+                        note: string;
+                    };
+                    stillOwed?: number;
+                    accountId?: string;
+                    refund?: {
+                        /** @enum {string} */
+                        mode: "account" | "credit";
+                        accountId?: string;
+                    };
+                    idempotencyKey?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontOrder"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     post_api_ecommerce_orders_id_return: {
         parameters: {
             query?: never;
@@ -36312,6 +36749,12 @@ export interface operations {
                         mode: "account" | "credit";
                         accountId?: string;
                     };
+                    returnLines?: {
+                        productId: string;
+                        variantId?: string | null;
+                        quantity: number;
+                    }[];
+                    idempotencyKey?: string;
                 };
             };
         };
@@ -36676,6 +37119,69 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["StorefrontOrder"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_orders_id_return_preview: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrderReturnPreview"];
                     };
                 };
             };

@@ -85,7 +85,8 @@
       "status": "স্ট্যাটাস",
       "createdBy": "তৈরি করেছেন",
       "copyInvoice": "চালান নম্বর কপি করুন",
-      "invoice": "চালান #"
+      "invoice": "চালান #",
+      "channel": "চ্যানেল"
     },
     "actions": {
       "summary": "সারাংশ",
@@ -192,6 +193,10 @@
       "partial": "আংশিক",
       "due": "বাকি",
       "cancelled": "বাতিল"
+    },
+    "channel": {
+      "pos": "কাউন্টার",
+      "online": "অনলাইন"
     }
   },
   "returns": {

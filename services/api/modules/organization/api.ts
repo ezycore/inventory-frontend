@@ -102,12 +102,43 @@ export interface FeatureImpact {
 /** Shared by GET/PUT features and the onboarding endpoint — one shape, one DTO. */
 export interface OnboardingState {
   completedAt: string | null;
+  /** Where the wizard reopens. Zeroed by "Set up again". */
   step: number;
+  /**
+   * How many questions have EVER been answered — never walked backwards, so it
+   * survives a restart that `step` does not.
+   *
+   * The wizard pre-fills from this, not from `step`. `featureOverrides` is
+   * sparse (absent = "left on"), so an answer can only be read back as far as
+   * the merchant demonstrably got; with `step` zeroed by a restart that was
+   * nowhere, and re-entry showed eight blank questions over a workspace that
+   * still held every answer.
+   */
+  answeredThrough: number;
 }
 
 export interface FeatureState {
   features: OrganizationFeatures;
   planFeatures: OrganizationFeatures;
+  /**
+   * `{ child: [parents] }` — the backend's `FEATURE_REQUIRES`, on the wire so
+   * this side never keeps a second copy of it. A capability whose parent is off
+   * is suppressed in `features` and so reads identically to one the merchant
+   * switched off; only this table separates them, and only that separation lets
+   * a locked switch say "turn Stock back on" instead of offering an upgrade
+   * that would change nothing.
+   */
+  featureRequires: Record<string, string[]>;
+  /**
+   * The merchant's own explicit disables — sparse, so an absent key means "on".
+   *
+   * Distinct from `features`, which is DERIVED (plan ceiling ∧ overrides, then
+   * the dependency cascade). The setup wizard must read answers back from THIS
+   * map: the derived one shows capabilities the cascade suppressed as though
+   * the merchant had declined them, and advancing the wizard would then write
+   * those back as real choices, destroying the intent it was reading.
+   */
+  featureOverrides: Partial<OrganizationFeatures>;
   onboarding: OnboardingState;
 }
 
@@ -131,6 +162,18 @@ export interface OnboardingStepPayload {
   features?: Partial<OrganizationFeatures>;
   vatRegistration?: { type: VatRegistrationType };
   complete?: boolean;
+  /**
+   * Re-run setup from the start ("Set up again" on Customize workspace).
+   *
+   * A flag of its own rather than `step: 0`, because the backend's resume point
+   * only ever advances — `Math.max`, deliberately, so tapping Back mid-wizard
+   * cannot lose ground. That makes a restart inexpressible as an ordinary step
+   * write, and an entry point without this would look wired up and do nothing.
+   *
+   * Touches no feature: the merchant's current setup is what the re-entered
+   * wizard pre-fills from.
+   */
+  restart?: boolean;
 }
 
 export const organizationApi = {

@@ -382,7 +382,7 @@ export function useSellPage() {
         toast.error(t("toasts.outOfStock", { name: product.label }));
         return;
       }
-      const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity } = product;
+      const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity, tracked } = product;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
       const { discount, salePrice } = applyDiscountWithPriority({
@@ -393,6 +393,9 @@ export function useSellPage() {
       addItem({
         inventoryId, productId, variantId, productName, quantity: 1, costPrice, price,
         discountType, discountValue, discount, salePrice, availableQuantity,
+        // Onto the line, so the row keeps knowing its number is a sentinel long
+        // after the picker list it came from has been replaced.
+        tracked,
         unitName: product.unitName, saleUnitName: product.saleUnitName,
         hasExpiry: product.hasExpiry,
         taxRate: product.taxRate ?? 0,
@@ -419,6 +422,7 @@ export function useSellPage() {
             price: r.price,
             costPrice: r.costPrice,
             availableQuantity: r.quantity,
+            tracked: (r as { tracked?: boolean }).tracked,
             productId: (r as any).comboProductId,
             variantId: null,
             conversionFactor: 1,
@@ -444,6 +448,7 @@ export function useSellPage() {
           price: r.price,
           costPrice: r.costPrice,
           availableQuantity: r.quantity,
+          tracked: (r as { tracked?: boolean }).tracked,
           productId: r.productId,
           variantId: r.variantId,
           conversionFactor: 1,

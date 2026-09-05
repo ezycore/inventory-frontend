@@ -242,6 +242,39 @@ export const useMarkOrderPaid = () => {
   });
 };
 
+/**
+ * Record a collection.
+ *
+ * `idempotencyKey` is minted here, once per dialog submission, rather than by
+ * the server: a retry after a timeout and a second genuine collection are the
+ * same request, and only the client knows which it is sending.
+ */
+export const useRecordCollection = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      collected: number;
+      returnLines?: { productId: string; variantId?: string | null; quantity: number }[];
+      discount?: { amount: number; note: string };
+      stillOwed?: number;
+      accountId?: string;
+      idempotencyKey: string;
+    }) => {
+      const { id, ...body } = v;
+      return storefrontOrdersApi.recordCollection(id, body);
+    },
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Collection recorded");
+      // Touches stock, the Sale and the ledger — the widest invalidation the
+      // order events offer, because a partial return moves all three.
+      invalidate(qc, "order.returned");
+      invalidate(qc, "order.settled");
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useReturnOrder = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -345,6 +378,20 @@ export const useResolveLocation = () => {
     onError: handleMutationError,
   });
 };
+
+/**
+ * What returning this order would move, straight from the server.
+ *
+ * `enabled` so it only runs once the dialog is actually open — the preview reads
+ * the Sale, and an order list has no business fetching one per row.
+ */
+export const useOrderReturnPreview = (id: string, enabled: boolean) =>
+  useQuery({
+    queryKey: queryKeys.storefrontOrders.returnPreview(id),
+    queryFn: () => storefrontOrdersApi.returnPreview(id),
+    select: (r) => r.data,
+    enabled: enabled && !!id,
+  });
 
 // A pre-dispatch delivery-price quote (no cache change — read-only).
 export const useCourierPrice = () =>

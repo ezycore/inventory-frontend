@@ -23,6 +23,7 @@ import { DetailHero } from './detail/detail-hero'
 import { DetailStats } from './detail/detail-stats'
 import { DetailCharts } from './detail/detail-charts'
 import { DetailInfoCard } from './detail/detail-info-card'
+import { useStockTracked } from '@/hooks/use-stock-tracked'
 import { DetailVariants } from './detail/detail-variants'
 import { DetailActivity } from './detail/detail-activity'
 import { DetailPricing } from './detail/detail-pricing'
@@ -48,6 +49,12 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   const t = useTranslations('products.products.detail')
   const { format: formatCurrency } = useCurrency()
   const organization = useAuthStore((s) => s.user?.organization)
+  // Up here with the other hooks, NOT down beside the module gates it belongs
+  // to: everything below the loading and not-found returns runs only once the
+  // product has resolved, so a hook called there is skipped on the first render
+  // and present on the next — "React has detected a change in the order of Hooks
+  // called by ProductDetail", every time the page was opened cold.
+  const stockTracked = useStockTracked()
 
   // Resolve the product by whichever key the caller provided. Both hooks are
   // always called (rules of hooks); each self-disables when its key is empty.
@@ -199,6 +206,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
         profitPerUnit={profitPerUnit}
         stockValue={stockValue}
         salesEnabled={salesEnabled}
+        stockTracked={stockTracked}
         formatCurrency={formatCurrency}
       />
 
@@ -206,11 +214,22 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
         <DetailCharts analytics={analytics} salesEnabled={salesEnabled} formatCurrency={formatCurrency} />
       )}
 
-      <DetailInfoCard product={product} inventoryItems={scopedInventoryItems} expiryEnabled={expiryEnabled} />
+      <DetailInfoCard
+        product={product}
+        inventoryItems={scopedInventoryItems}
+        expiryEnabled={expiryEnabled}
+        stockTracked={stockTracked}
+      />
 
       {hasVariants && <DetailVariants variants={product.variants} formatCurrency={formatCurrency} />}
 
-      <DetailActivity movements={movements} timezone={organization?.timezone} viewAllHref={activityHref} />
+      {/* An untracked sale writes no StockMovement by design, so this ledger is
+          permanently empty at that tier — under a heading and a "View all"
+          pointing at a route the guard locks. Same call the dashboard's
+          ActivitySection makes. */}
+      {stockTracked && (
+        <DetailActivity movements={movements} timezone={organization?.timezone} viewAllHref={activityHref} />
+      )}
 
       {product.storefront && (
         <DetailStorefront storefront={product.storefront} formatCurrency={formatCurrency} />

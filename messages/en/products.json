@@ -2,7 +2,7 @@
   "products": {
     "page": {
       "title": "Products",
-      "subtitle": "All the products you stock and sell.",
+      "subtitle": "Everything you sell.",
       "allProductsTitle": "All Products",
       "searchPlaceholder": "Search products by name...",
       "exportNote": "Only single products are exported — variant & combo products aren't supported in CSV export; manage them in the product form.",
@@ -35,7 +35,8 @@
       "type": "Type",
       "price": "Price",
       "status": "Status",
-      "tags": "Tags"
+      "tags": "Tags",
+      "stock": "Stock"
     },
     "filters": {
       "searchLabel": "Search product",
@@ -94,7 +95,9 @@
         "comboTitle": "Combo composition",
         "comboDescription": "The products bundled into this combo and how many of each",
         "mediaTitle": "Media",
-        "mediaDescription": "Up to 5 images. First image is the primary."
+        "mediaDescription": "Up to 5 images. First image is the primary.",
+        "publishTitle": "Publish to store",
+        "publishDescription": "This product goes live on your store as soon as you save."
       },
       "trackStock": "Track stock",
       "name": "Product name",
@@ -162,7 +165,16 @@
       "subcategory": "Sub-category",
       "subcategoryPlaceholder": "Choose sub-category",
       "tags": "Tags",
-      "tagsPlaceholder": "Add tags"
+      "tagsPlaceholder": "Add tags",
+      "isListed": "Show on my store",
+      "onlinePrice": "Online price",
+      "onlinePricePlaceholder": "Same as the price above",
+      "onlinePriceTooltip": "Leave empty to sell online at the same price you set above.",
+      "onlineDescription": "Description shown to shoppers",
+      "weightKg": "Shipping weight (kg)",
+      "weightKgTooltip": "Used to book courier consignments. Left empty, the courier bills at its own fallback weight — usually more than the parcel actually weighs.",
+      "featured": "Feature on the homepage",
+      "featuredTooltip": "Surfaces this product in your storefront's featured rails."
     },
     "taxType": {
       "inclusive": "Inclusive",

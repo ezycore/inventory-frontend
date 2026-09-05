@@ -21,6 +21,21 @@ export const PICKUP_STEPS = [
 // every admin surface, because merchants can rename the steps per organization.
 // Read them through `useOrderStatusLabels()`, never from a local copy.
 
+/**
+ * What the courier is actually asked to bring back: the order total less any
+ * advance already taken.
+ *
+ * One function because three panels and the collection dialog all show this
+ * number, and the dialog once computed it as the bare `totalAmount` — so a
+ * ৳3,450 order with ৳150 prepaid asked the rider for the full ৳3,450 while the
+ * panel beside it said ৳3,300, and no honest collection could reconcile.
+ * The backend derives `expected` the same way.
+ */
+export const codToCollect = (order: {
+  totalAmount?: number;
+  prepaidAmount?: number;
+}) => Math.max(0, (order.totalAmount ?? 0) - (order.prepaidAmount ?? 0));
+
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const longDate = (iso: string) =>

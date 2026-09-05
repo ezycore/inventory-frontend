@@ -214,13 +214,16 @@
     "account": "Account",
     "selectAccount": "Select account",
     "paidAmount": "Paid Amount",
+    "partialReceiptPayHint": "Only part of this order is arriving — enter what you are paying now, not the whole invoice.",
     "paidCapped": "Paid amount capped at current due ({amount}).",
     "editOrder": "Edit Order",
     "processing": "Processing...",
     "confirmReceipt": "Confirm Receipt",
     "enterQtyOneItem": "Please enter quantity for at least one item",
     "selectPaymentAccount": "Please select a payment account",
-    "missingExpiryWarning": "{count, plural, =1 {# line has no expiry date} other {# lines have no expiry date}} — they will be received into the product's Unknown expiry batch. You can assign a date later from the stock detail page."
+    "missingExpiryWarning": "{count, plural, =1 {# line has no expiry date} other {# lines have no expiry date}} — they will be received into the product's Unknown expiry batch. You can assign a date later from the stock detail page.",
+    "colRemaining": "Remaining",
+    "colReceiveQty": "Receive"
   },
   "edit": {
     "title": "Edit Purchase Order",

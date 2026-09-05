@@ -9,7 +9,8 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
-import { cap } from "./order-detail-helpers";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
+import { cap, codToCollect } from "./order-detail-helpers";
 import { CourierDispatchForm } from "./courier-dispatch-form";
 import { CourierTimeline } from "./courier-timeline";
 import { CourierTrackingSummary } from "./courier-tracking-summary";
@@ -32,6 +33,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   const { labelFor } = useOrderStatusLabels();
   const { data: couriersData } = useCouriers();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const stockTracked = useStockTracked();
 
   const [selected, setSelected] = useState("");
   // Re-dispatch reopens the picker for a cancelled consignment (the sale already
@@ -58,7 +60,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   // A recorded prepayment shrinks what the courier collects COD — to nothing at
   // all when the shopper prepaid the whole order.
   const prepaid = order.prepaidAmount ?? 0;
-  const codToCollect = Math.max(0, (order.totalAmount ?? 0) - prepaid);
+  const toCollect = codToCollect(order);
 
   if (order.fulfillmentType === "pickup") {
     return (
@@ -132,7 +134,12 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
             <p className="text-xs text-muted-foreground">
               {reDispatch
                 ? "The previous consignment was cancelled. Re-dispatching books a fresh consignment (same courier or another) — the sale is already recorded."
-                : "Dispatching books the sale (consuming the reserved stock) and marks the order shipped."}
+                : stockTracked
+                  ? "Dispatching books the sale (consuming the reserved stock) and marks the order shipped."
+                  // Nothing was reserved at confirm on a stock-free workspace,
+                  // so there is nothing to consume here either (QA-N6). The
+                  // sale and the status change are real at both tiers.
+                  : "Dispatching books the sale and marks the order shipped."}
             </p>
             {reDispatch ? (
               <button
@@ -151,7 +158,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                   {formatMoney(prepaid, currency)} prepaid)
                 </span>
                 <span className="font-semibold tabular-nums">
-                  {formatMoney(codToCollect, currency)}
+                  {formatMoney(toCollect, currency)}
                 </span>
               </div>
             )}

@@ -154,6 +154,8 @@ export type CourierStore = Schemas["CourierStore"];
 export type CourierPackage = Schemas["CourierPackage"];
 export type CourierLocation = Schemas["CourierLocation"];
 export type CourierPrice = Schemas["CourierPrice"];
+/** What returning an order would move — read, never re-derived, by the return dialog. */
+export type OrderReturnPreview = Schemas["OrderReturnPreview"];
 export type CourierWebhook = Schemas["CourierWebhook"];
 export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];

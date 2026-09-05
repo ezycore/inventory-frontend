@@ -11,6 +11,7 @@ covers_routes:
   - /inventory/transfers
 features:
   - multiLocation
+  - inventoryTracking
 ui_labels:
   - inventory:stock.title
   - inventory:stock.subtitle

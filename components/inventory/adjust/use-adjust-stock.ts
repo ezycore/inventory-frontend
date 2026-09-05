@@ -22,6 +22,14 @@ export type BatchTarget = 'new' | 'existing'
 export type AdjustStockContext = ReturnType<typeof useAdjustStock>
 
 /** State, derived values, and handlers for the Adjust Stock page. */
+/**
+ * The server's per-transaction ceiling — `MAX_TRANSACTION_QUANTITY` in
+ * `inventory-backend/src/constants/inventory.ts`. Mirrored rather than imported
+ * because the two repos share no runtime module; if the server's cap moves,
+ * this moves with it.
+ */
+export const MAX_TRANSACTION_QUANTITY = 1_000_000_000
+
 export function useAdjustStock() {
   const t = useTranslations('inventory')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -98,6 +106,32 @@ export function useAdjustStock() {
 
   const effectiveNewQuantity = computedBaseQuantity
 
+  /**
+   * A negative "New quantity" is a typo, and it used to be a catastrophic one.
+   *
+   * The field clamped through `Math.max(0, …)` AND through `NumberField`'s own
+   * `min={0}`, so typing `-5` silently became `0` — a legal value the API is
+   * right to accept. The row then read "Units to remove: −61", submitted 200,
+   * and zeroed every lot at the location. The guard on the server never fired
+   * because it never saw a negative number (QA-R13).
+   *
+   * So the clamps are gone and the number is judged here instead. Rejecting it
+   * visibly is the whole point: a merchant who meant "remove 5" must be told
+   * this field is an absolute count, not a delta, rather than have the input
+   * quietly rewritten into the most destructive value it could hold.
+   */
+  const isNegativeQuantity = effectiveNewQuantity < 0
+  /**
+   * Matches the server's ceiling (`constants/inventory.ts`). The API enforces it;
+   * without it here the merchant only learns after submitting (QA-T2.4.5).
+   */
+  const exceedsMaxQuantity = effectiveNewQuantity > MAX_TRANSACTION_QUANTITY
+  const quantityError = isNegativeQuantity
+    ? "negative"
+    : exceedsMaxQuantity
+      ? "max"
+      : null
+
   const currentQuantity = selectedProduct?.quantity ?? 0
   const isIncrease = effectiveNewQuantity > currentQuantity
   const isDecrease = effectiveNewQuantity < currentQuantity
@@ -146,8 +180,16 @@ export function useAdjustStock() {
       toast.error(t('shared.selectProductFirst'))
       return
     }
-    if (effectiveNewQuantity < 0) {
+    // This negative guard was already here and had never once run: the field
+    // clamped at zero on the way in, so the handler could not see a negative
+    // even when the merchant typed one (QA-R13). The clamps are gone; this now
+    // fires.
+    if (isNegativeQuantity) {
       toast.error(t('adjust.quantityNonNegative'))
+      return
+    }
+    if (exceedsMaxQuantity) {
+      toast.error(t('adjust.quantityTooLarge', { max: MAX_TRANSACTION_QUANTITY }))
       return
     }
     // #0: an adjustment that lands on the quantity already held books nothing.
@@ -386,6 +428,7 @@ export function useAdjustStock() {
     removedQuantity,
     needsCost,
     isNoChange,
+    quantityError,
     hasForeignLocationItems,
     addedInventoryIds,
     // store + mutation

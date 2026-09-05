@@ -775,7 +775,15 @@ export function CardItem<TData extends { _id: string }>(
 ) {
   const { renderCard, variant = "default", data, onEdit, onView, onDelete } = props;
 
-  // Custom render takes precedence
+  // Custom render takes precedence.
+  //
+  // ⚠️ `customActions` are NOT forwarded here — a custom card owns its own
+  // layout, so where an extra action belongs is its decision, not ours. Passing
+  // `customActions` to a DataCard that also has a `renderCard` therefore does
+  // nothing: the users page remapped its Enable/Disable action to
+  // `placement: "menu"` and it reached no one, leaving the card with an
+  // Active/Inactive badge and no way to change it. Inject the handler into the
+  // card instead — see `onToggleStatus` (users) and `onApplyVat` (categories).
   if (renderCard) {
     return <>{renderCard(data, { onEdit, onView, onDelete })}</>;
   }
