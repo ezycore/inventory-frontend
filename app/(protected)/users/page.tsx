@@ -264,11 +264,15 @@ export default function UsersPage() {
                   item,
                   {
                     ...actions,
-                    // Injected rather than passed as a `customAction`: a custom
-                    // `renderCard` never receives them — `CardItem` forwards only
-                    // edit/view/delete — so remapping the table's cell action to
-                    // a menu one reached nothing, and the card had no way to
-                    // enable or disable anyone. Same pattern as categories'
+                    // Injected rather than passed as a `customAction`.
+                    //
+                    // `CardItem` now DOES forward custom actions to a custom
+                    // `renderCard` (QA-T1-E), so that route is open — but this
+                    // one stays injected on purpose: it is a per-row control
+                    // whose availability depends on WHO the row is, and the
+                    // card decides that inline below. A `customAction` would
+                    // push the same decision into a `disabled` predicate and
+                    // still render a dead item. Same pattern as categories'
                     // `onApplyVat`.
                     //
                     // Omitted for your own row: the server refuses

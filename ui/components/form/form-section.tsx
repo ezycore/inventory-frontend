@@ -210,12 +210,28 @@ export const FormSectionComponent: FC<{
       return (
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-baseline gap-2 min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-foreground truncate">
+            {/*
+              Two truncating children on one baseline row split the width
+              between them, so the TITLE lost its last character while the
+              description beside it had room to spare — "Your organization"
+              rendered at 109px against 119px of text (QA-N4). This is a shared
+              component, so it clipped every plain-chrome section, not just the
+              one it was spotted on.
+
+              The title is identity and must read in full; the description is
+              supplementary and is the half that may be cut. So the title sizes
+              to its content (`shrink-0`) and only truncates in the pathological
+              case where it alone cannot fit (`max-w-full`), while the
+              description takes what is left. `basis-40` gives it a floor: below
+              ~10rem it wraps to its own line and truncates there rather than
+              being squeezed to nothing.
+            */}
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-foreground shrink-0 max-w-full truncate">
                 {section.title}
               </h3>
               {section.description && (
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-xs text-muted-foreground min-w-0 flex-1 basis-40 truncate">
                   {section.description}
                 </p>
               )}
