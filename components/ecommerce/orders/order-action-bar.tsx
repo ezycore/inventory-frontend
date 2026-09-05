@@ -7,6 +7,7 @@ import {
 } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
@@ -26,6 +27,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
   const updateStatus = useUpdateOrderStatus();
   const markPaid = useMarkOrderPaid();
   const { accountsEnabled } = useOrderAccountOptions();
+  const stockTracked = useStockTracked();
   // Each button names the step it moves the order INTO, so a renamed pipeline
   // reads as one vocabulary — a "Mark processing" button under a stepper the
   // merchant relabelled "Packing" is the mismatch this avoids.
@@ -61,10 +63,22 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           <OrderConfirmDialog
             trigger={<Button size="sm">Confirm order</Button>}
             title="Confirm this order?"
-            description={`This reserves stock for ${itemCount} item${plural} from the fulfillment location — no sale is booked yet. The sale is created when you ${
-              isPickup ? "mark it ready for pickup" : "ship it"
-            }. You can cancel until then to release the reservation.`}
-            actionLabel="Confirm & reserve stock"
+            // Two tiers, two truths. `reservationLines` returns an empty list
+            // for an org that does not count stock, so `reserveStock` is a
+            // no-op and `reservedQuantity` never moves — a dialog naming a
+            // quantity and offering to release it later described something
+            // that had not happened (QA-N5). What IS true at both tiers is the
+            // sale timing, so that is what the stock-free wording keeps.
+            description={
+              stockTracked
+                ? `This reserves stock for ${itemCount} item${plural} from the fulfillment location — no sale is booked yet. The sale is created when you ${
+                    isPickup ? "mark it ready for pickup" : "ship it"
+                  }. You can cancel until then to release the reservation.`
+                : `This accepts the order — no sale is booked yet. The sale is created when you ${
+                    isPickup ? "mark it ready for pickup" : "ship it"
+                  }. You can cancel until then.`
+            }
+            actionLabel={stockTracked ? "Confirm & reserve stock" : "Confirm order"}
             onConfirm={() => confirm.mutate(order._id)}
           />
         </>
@@ -140,8 +154,12 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           </Button>
         )}
 
-      {/* RTO / post-delivery return — only for a committed delivery order that has
-          shipped or delivered (matches the backend guard). */}
+      {/* RTO / post-delivery return of the WHOLE parcel — only for a committed
+          delivery order that has shipped or delivered (matches the backend guard).
+          Named for its scope: a part of the parcel coming back is a collection,
+          recorded through `OrderCollectionDialog`, and a merchant who reads this
+          as "the return button" reverses the entire sale to handle one refused
+          item. */}
       {!isPickup &&
         !!order.saleId &&
         (order.status === "shipped" || order.status === "delivered") && (
@@ -149,7 +167,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             order={order}
             trigger={
               <Button variant="outline" size="sm">
-                Return order
+                Return whole order
               </Button>
             }
           />

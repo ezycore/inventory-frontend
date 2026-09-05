@@ -96,6 +96,9 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     costPrice: item.costPrice,
     price: item.price, // Match form field name
     availableQuantity: item.quantity,
+    // Travels with the quantity or the picker cannot tell a count from the
+    // untracked sentinel — and prints the sentinel.
+    tracked: (item as { tracked?: boolean }).tracked,
     conversionFactor: item?.conversionFactor,
     productId: item.productId,
     variantId: item.variantId,
@@ -161,6 +164,7 @@ export const extractProductValue = (val: any): ExtractedProduct | null => {
       price: val.price ?? 0,
       costPrice: val.costPrice ?? 0,
       availableQuantity: val.availableQuantity ?? 0,
+      tracked: (val as any).tracked,
       productId: (val as any).productId ?? "",
       variantId: (val as any).variantId ?? null,
       conversionFactor: (val as any).conversionFactor ?? 1,

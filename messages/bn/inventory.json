@@ -210,7 +210,9 @@
     "batchUnlabelled": "নামহীন ব্যাচ",
     "batchExpired": "মেয়াদোত্তীর্ণ",
     "batchExistingShort": "বিদ্যমান ব্যাচ",
-    "batchNewShort": "নতুন ব্যাচ"
+    "batchNewShort": "নতুন ব্যাচ",
+    "quantityTooLarge": "পরিমাণ {max}-এর বেশি হতে পারে না।",
+    "quantityNegativeHint": "এটি নতুন মোট পরিমাণ, কমানোর পরিমাণ নয় — ঋণাত্মক হতে পারে না।"
   },
   "transfers": {
     "title": "স্টক স্থানান্তর",

@@ -27,7 +27,7 @@ import {
 import { formatCurrency } from '@/lib/currency'
 import { InventorySearch } from '@/components/inventory/inventory-search'
 import { fromBaseUnit, formatQuantity } from '@/utils/uom-conversion'
-import type { AdjustStockContext } from './use-adjust-stock'
+import { MAX_TRANSACTION_QUANTITY, type AdjustStockContext } from './use-adjust-stock'
 
 /** The "Add/Edit Adjustment" card: product search, quantity, notes, expiry batch. */
 export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
@@ -61,6 +61,7 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
     removedQuantity,
     needsCost,
     isNoChange,
+    quantityError,
     addedInventoryIds,
     handleProductSelect,
     handleAddOrUpdate,
@@ -183,12 +184,20 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                   )}
                 </div>
                 <div className="relative">
+                  {/* NO `min`, and no `Math.max` on the way in — both silently
+                      rewrote a mistyped `-5` into `0`, which is a legal
+                      quantity meaning "set this location's stock to nothing".
+                      A merchant who meant "remove 5" wrote off every unit they
+                      held, with the API's own guard never seeing a negative to
+                      reject (QA-R13). `NumberField` clamps to `min` on blur, so
+                      leaving `min={0}` here would have kept the bug after the
+                      `Math.max` was removed. The number now lands as typed and
+                      is judged below. */}
                   <NumberField
                     id="newQuantity"
                     precision={hasUOM && inputInPurchaseUnit ? undefined : 0}
-                    min={0}
                     value={inputValue}
-                    onChange={(v) => setInputValue(Math.max(0, v ?? 0))}
+                    onChange={(v) => setInputValue(v ?? 0)}
                     placeholder={t('shared.enterQuantityIn', {
                       unit: hasUOM && inputInPurchaseUnit ? selectedProduct.purchaseUnitName : (selectedProduct.baseUnitName || t('shared.unitsFallback')),
                     })}
@@ -300,7 +309,7 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
               {/* An unchanged quantity books nothing — the row would be skipped. */}
               <Button
                 onClick={handleAddOrUpdate}
-                disabled={isNoChange}
+                disabled={isNoChange || !!quantityError}
                 className="gap-2"
               >
                 {editingId ? (
@@ -320,11 +329,19 @@ export function AdjustmentFormCard({ ctx }: { ctx: AdjustStockContext }) {
                   {tCommon('cancel')}
                 </Button>
               )}
-              {isNoChange && (
+              {quantityError === 'negative' ? (
+                <p className="text-xs text-destructive">
+                  {t('adjust.quantityNegativeHint')}
+                </p>
+              ) : quantityError === 'max' ? (
+                <p className="text-xs text-destructive">
+                  {t('adjust.quantityTooLarge', { max: MAX_TRANSACTION_QUANTITY })}
+                </p>
+              ) : isNoChange ? (
                 <p className="text-xs text-muted-foreground">
                   {t('adjust.noChangeError')}
                 </p>
-              )}
+              ) : null}
             </div>
           </>
         )}

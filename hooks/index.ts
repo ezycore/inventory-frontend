@@ -7,6 +7,7 @@ export * from "../utils";
 // Export page management hooks
 export { useCrudModal } from "./use-crud-handlers";
 export { useHasPermission, PERMISSIONS } from "./use-has-permission";
+export { useStockTracked } from "./use-stock-tracked";
 export { useCostGatedColumns } from "./use-cost-gated-columns";
 export { usePaginationHandler } from "./use-pagination-handler";
 export { useHydrated } from "./use-hydrated";

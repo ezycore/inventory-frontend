@@ -46,7 +46,7 @@ export function SetupProgress({ control }: { control: Control<any> }) {
     <ol className="flex items-center gap-3">
       {steps.map((step, i) => (
         <li key={step.label} className="flex flex-1 items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <span
               aria-hidden
               className={cn(
@@ -60,7 +60,11 @@ export function SetupProgress({ control }: { control: Control<any> }) {
             </span>
             <span
               className={cn(
-                "text-xs font-medium whitespace-nowrap",
+                // NOT `whitespace-nowrap`: the rail is a flex row with a
+                // `flex-1` divider, so a label that will not wrap gets clipped
+                // instead — "Your organiza…" on a narrow viewport (QA-N4). Let
+                // it wrap and keep the step from being squeezed to nothing.
+                "text-xs font-medium",
                 step.done ? "text-foreground" : "text-muted-foreground",
               )}
             >

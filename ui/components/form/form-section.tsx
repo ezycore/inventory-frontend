@@ -10,7 +10,11 @@ import {
   CollapsibleTrigger,
 } from "../collapsible";
 import type { FormFieldConfig, FormSection } from "./type";
-import { evaluateFieldDependencies, normalizeDependencies } from "./dependency-utils";
+import {
+  evaluateFieldDependencies,
+  isFieldCertainlyHidden,
+  normalizeDependencies,
+} from "./dependency-utils";
 import { getNestedValue } from "./form-utils";
 import { FormField } from "./form-field";
 
@@ -59,6 +63,57 @@ export const FormSectionComponent: FC<{
     }, [formState?.errors, section.fields]);
     const effectiveOpen = isOpen || hasSectionError;
 
+    /**
+     * A section with nothing left to show renders NOTHING — no card, no header,
+     * no promise.
+     *
+     * Every field can hide itself, but the section around them could not, so a
+     * group whose fields were all conditionally hidden left its shell behind.
+     * "Publish to store" shipped that way: a header, a subtitle reading "This
+     * product goes live on your store as soon as you save", and not one control
+     * beneath it, because the tier gate had removed the `isListed` checkbox its
+     * remaining fields keyed their `dependsOn` on.
+     *
+     * `isFieldCertainlyHidden` only answers when it is sure, so a field whose
+     * visibility depends on an API-backed select keeps the section alive. Hiding
+     * a section whose field was about to appear is the worse failure.
+     *
+     * A `headerAction` is content in its own right — the Inventory section's
+     * "Track stock" toggle lives there and is the whole point of that section on
+     * a workspace with no fields left — so a section carrying one always renders.
+     */
+    const fieldDependencyNames = useMemo(() => {
+      const names = section.fields.flatMap((field) =>
+        normalizeDependencies(field.dependsOn).map((dep) => dep.field),
+      );
+      return Array.from(new Set(names));
+    }, [section.fields]);
+    const fieldDependencyValues = useWatch({
+      control,
+      name: fieldDependencyNames.length ? fieldDependencyNames : ["__none__"],
+      disabled: fieldDependencyNames.length === 0,
+    }) as any[];
+    const everyFieldHidden = useMemo(() => {
+      const valueByName = Object.fromEntries(
+        fieldDependencyNames.map((name, index) => [
+          name,
+          fieldDependencyValues?.[index],
+        ]),
+      );
+      return section.fields.every((field) =>
+        isFieldCertainlyHidden(field, {
+          isEditMode,
+          valueByName,
+          allFields: allFields.length ? allFields : section.fields,
+        }),
+      );
+    }, [
+      section.fields,
+      fieldDependencyNames,
+      fieldDependencyValues,
+      isEditMode,
+      allFields,
+    ]);
     // Section-level dependency evaluation — hide the whole section when the
     // condition (single or AND-group) is not met.
     const sectionDependencies = normalizeDependencies(section.dependsOn);
@@ -76,6 +131,9 @@ export const FormSectionComponent: FC<{
       );
       if (shouldHide) return null;
     }
+
+    if (everyFieldHidden && !section.headerAction) return null;
+
 
     const content = (
       <CardContent className={cn("px-4 pt-3 pb-4 sm:px-6 sm:pb-5", section.className)}>

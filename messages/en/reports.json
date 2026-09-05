@@ -38,7 +38,8 @@
     "colCombo": "Combo",
     "colUnitsSold": "Units sold",
     "colSales": "Sales",
-    "colRevenue": "Revenue"
+    "colRevenue": "Revenue",
+    "afterReturns": "after {amount} returned"
   },
   "purchases": {
     "title": "Purchase Report",
@@ -276,6 +277,7 @@
     "totalLiabilities": "Total liabilities",
     "netPosition": "Net position",
     "cashNotTracked": "The Accounts module is off, so cash and bank balances are not tracked. Cash shows as zero — it does not mean your drawer is empty.",
-    "basisNote": "Stock is valued at cost, not at what you would sell it for. This is a snapshot of today, not a balance sheet — it has no owner's equity side and is not an audited financial statement."
+    "basisNote": "Stock is valued at cost, not at what you would sell it for. This is a snapshot of today, not a balance sheet — it has no owner's equity side and is not an audited financial statement.",
+    "stockNotTracked": "This business does not track stock, so there is no stock value to include in assets."
   }
 }

@@ -17,6 +17,7 @@ interface ChartSectionProps {
 
 export function ChartSection({ overview, isLoading, formatCurrency }: ChartSectionProps) {
   const t = useTranslations('dashboard.chart')
+  const purchasesTracked = overview?.purchasesTracked !== false
   if (isLoading) {
     return (
       <Card className="p-5">
@@ -40,19 +41,27 @@ export function ChartSection({ overview, isLoading, formatCurrency }: ChartSecti
     return (
       <AreaChart
         data={overview!.chartData}
+        // The purchases series is a flat zero line for a merchant who buys from
+        // nobody, under a title naming a comparison they cannot make (QA-C1).
+        // Same degrade the Purchase Cost KPI already applies off the same flag —
+        // the data still ships, this decides whether it is drawn.
         series={[
           {
             dataKey: 'sales',
             name: t('sales'),
             color: 'var(--color-primary)',
           },
-          {
-            dataKey: 'purchases',
-            name: t('purchases'),
-            color: 'var(--color-chart-2)',
-          },
+          ...(purchasesTracked
+            ? [
+                {
+                  dataKey: 'purchases',
+                  name: t('purchases'),
+                  color: 'var(--color-chart-2)',
+                },
+              ]
+            : []),
         ]}
-        title={t('title')}
+        title={purchasesTracked ? t('title') : t('salesTitle')}
         subtitle={t('breakdownSuffix', { grouping: groupingLabel })}
         height={260}
         className="overflow-hidden"

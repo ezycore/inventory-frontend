@@ -279,6 +279,13 @@ export function ProductOnlineEditor({
           </div>
 
           {/* Stock (read-only) */}
+          {/*
+            The whole row goes for a workspace that keeps no stock. There is no
+            live level to report — `availableQuantity` is the untracked sentinel
+            — so the `> 0` branch wins and the row would read
+            "9007199254740991 in stock" under a label promising a live figure.
+          */}
+          {product.tracked !== false && (
           <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2.5 text-sm">
             <span className="text-muted-foreground">
               Live stock at fulfillment location
@@ -287,6 +294,7 @@ export function ProductOnlineEditor({
               {stock > 0 ? `${stock} in stock` : "Out of stock"}
             </span>
           </div>
+          )}
 
           {/* Pricing — variable products are priced per variant */}
           {isVariable ? (

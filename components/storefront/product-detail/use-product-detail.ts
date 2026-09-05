@@ -89,8 +89,16 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
   const variable = product?.productType === "variable";
   const variants: CatalogVariant[] = product?.variants ?? [];
 
-  // Selected variant: shopper's picks win, else default to first in-stock.
-  const selection = Object.keys(picked).length ? picked : defaultSelection(variants);
+  // Backorder products stay buyable past zero stock, on every surface that
+  // branches on stock: the buy button, the quantity stepper, the cart cap AND
+  // the variant chips. Declared before `selection` because the default
+  // highlight is one of those branches.
+  const canBackorder = product?.outOfStockBehavior === "backorder";
+
+  // Selected variant: shopper's picks win, else default to first buyable.
+  const selection = Object.keys(picked).length
+    ? picked
+    : defaultSelection(variants, canBackorder);
   const selectedVariant = variable ? matchVariant(variants, selection) : undefined;
 
   // Variable products price/stock/gallery from the selected variant; a variant
@@ -101,13 +109,11 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     ? (selectedVariant?.availableQuantity ?? 0)
     : (product?.availableQuantity ?? 0);
   const outOfStock = availableQty <= 0;
-  // Backorder products stay buyable past zero stock; only "show"/"hide" products
-  // are truly sold out. `soldOut` gates the buy buttons + the red stock badge —
-  // and it is the ONLY stock fact the page states, deliberately: a backorder
-  // product is presented as an ordinary available one (see the badge in
-  // `view.tsx`). Nothing downstream needs the raw `outOfStock`, which is why it
-  // is not returned.
-  const canBackorder = product?.outOfStockBehavior === "backorder";
+  // Only "show"/"hide" products are truly sold out. `soldOut` gates the buy
+  // buttons + the red stock badge — and it is the ONLY stock fact the page
+  // states, deliberately: a backorder product is presented as an ordinary
+  // available one (see the badge in `view.tsx`). Nothing downstream needs the
+  // raw `outOfStock`, which is why it is not returned.
   const images =
     variable && selectedVariant?.images?.length
       ? selectedVariant.images

@@ -15,7 +15,6 @@ import { usersApi } from "@/services/api";
 import { queryKeys } from "@/services/api/query-keys";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { CustomAction } from "@/types/DataTable";
-import type { CardCustomAction } from "@/types/DataCard";
 import type { User } from "@/types/users";
 import { Button } from "@/ui/components/button";
 import { DataTable } from "@/ui/components/dataTable";
@@ -261,15 +260,35 @@ export default function UsersPage() {
               }}
               filterConfig={getUserFilterConfig(t)}
               renderCard={(item, actions) =>
-                UserCardView(item, actions, {
-                  roleLabel: roleLabels.get(item.role),
-                  hasAllLocationAccess: allLocationRoleSlugs.has(item.role),
-                  t,
-                  locale,
-                })
+                UserCardView(
+                  item,
+                  {
+                    ...actions,
+                    // Injected rather than passed as a `customAction`: a custom
+                    // `renderCard` never receives them — `CardItem` forwards only
+                    // edit/view/delete — so remapping the table's cell action to
+                    // a menu one reached nothing, and the card had no way to
+                    // enable or disable anyone. Same pattern as categories'
+                    // `onApplyVat`.
+                    //
+                    // Omitted for your own row: the server refuses
+                    // self-deactivation, so the item would only ever error.
+                    ...(item._id === currentUser?.id
+                      ? {}
+                      : {
+                          onToggleStatus: () =>
+                            toggleStatusMutation.mutate(item._id),
+                        }),
+                  },
+                  {
+                    roleLabel: roleLabels.get(item.role),
+                    hasAllLocationAccess: allLocationRoleSlugs.has(item.role),
+                    t,
+                    locale,
+                  },
+                )
               }
               loadingRenderCard={UserCardLoading}
-              customActions={customActions.map((a) => ({ ...a, placement: a.placement === "cell" ? "menu" : a.placement })) as CardCustomAction[]}
               operations={sharedOperations}
             />
           )}

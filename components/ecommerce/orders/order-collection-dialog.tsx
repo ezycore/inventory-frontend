@@ -1,0 +1,287 @@
+"use client";
+// coding-standard: maintained
+
+import { useMemo, useState } from "react";
+import { useRecordCollection, type AdminStorefrontOrder } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import { formatMoney } from "@/components/storefront/format";
+import { Button } from "@/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/components/dialog";
+import { Input } from "@/ui/components/input";
+import { Label } from "@/ui/components/label";
+import { NumberField } from "@/ui/components/number-field";
+import { SimpleSelect } from "@/ui/components/simple-select";
+import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
+import { useStockTracked } from "@/hooks/use-stock-tracked";
+import { codToCollect } from "./order-detail-helpers";
+
+/**
+ * Record what the courier actually handed over.
+ *
+ * `markPaid` can only settle the amount the system already believed, and on cash
+ * on delivery that is routinely not the amount that comes back. Two things
+ * happen at a Bangladeshi door and they are opposite in the books:
+ *
+ * - the customer **refuses part of the parcel** — goods return, stock and COGS
+ *   reverse;
+ * - the customer **negotiates the price down** to keep it — nothing returns, and
+ *   the concession lands entirely on margin.
+ *
+ * Both can happen at once, which is why the reasons below are amounts that must
+ * SUM rather than a radio group.
+ *
+ * The dialog will not submit until they add up. That is the design, not a
+ * validation nicety: making the merchant account for the gap is what stops it
+ * silently becoming fabricated cash (mark paid in full) or a phantom receivable
+ * (record the short amount and leave the rest owing forever).
+ */
+export function OrderCollectionDialog({
+  order,
+  trigger,
+}: {
+  order: AdminStorefrontOrder;
+  trigger: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const record = useRecordCollection();
+  const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const stockTracked = useStockTracked();
+
+  // What the COURIER was asked to bring back — the order total net of any
+  // advance. The prepayment's shipping leg is already banked and its goods leg
+  // already settled part of the Sale, so neither is money that can arrive at the
+  // door. Same figure as the payment panel's "COD to collect"; the server
+  // computes it the same way and refuses anything that does not reconcile to it.
+  const prepaid = order.prepaidAmount ?? 0;
+  const expected = codToCollect(order);
+  const [collected, setCollected] = useState<number>(expected);
+  const [accountId, setAccountId] = useState("");
+  const [discount, setDiscount] = useState<number>(0);
+  const [discountNote, setDiscountNote] = useState("");
+  const [stillOwed, setStillOwed] = useState<number>(0);
+  /** productId → units coming back. */
+  const [returning, setReturning] = useState<Record<string, number>>({});
+
+  const money = (n: number) => formatMoney(n, currency);
+
+  const returnLines = useMemo(
+    () =>
+      Object.entries(returning)
+        .filter(([, quantity]) => quantity > 0)
+        .map(([productId, quantity]) => ({ productId, variantId: null, quantity })),
+    [returning],
+  );
+
+  // Priced off the ORDER's own lines, which is what the merchant is looking at.
+  // The server re-derives it from the Sale and refuses the request if the two
+  // disagree — this is the preview, not the authority.
+  const returnValue = useMemo(
+    () =>
+      (order.items ?? []).reduce((sum, item) => {
+        const qty = returning[String(item.productId)] ?? 0;
+        if (qty <= 0) return sum;
+        return sum + (item.subtotal / item.quantity) * qty;
+      }, 0),
+    [order.items, returning],
+  );
+
+  const accounted = collected + returnValue + discount + stillOwed;
+  const difference = Math.round((expected - accounted) * 100) / 100;
+  const reconciles = Math.abs(difference) < 0.01;
+  const needsNote = discount > 0 && !discountNote.trim();
+
+  const submit = async () => {
+    await record.mutateAsync({
+      id: order._id,
+      collected,
+      returnLines: returnLines.length ? returnLines : undefined,
+      discount: discount > 0 ? { amount: discount, note: discountNote.trim() } : undefined,
+      stillOwed: stillOwed > 0 ? stillOwed : undefined,
+      accountId: accountId || undefined,
+      // Minted per submission, so a retry after a timeout is recognisable and a
+      // second genuine collection is not.
+      idempotencyKey:
+        globalThis.crypto?.randomUUID?.() ??
+        `${order._id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Record collection</DialogTitle>
+          <DialogDescription>
+            What the courier handed over. Anything short of {money(expected)} has
+            to be accounted for below.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-1 rounded-lg bg-muted p-3 text-sm">
+            {prepaid > 0 && (
+              <>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Order total</span>
+                  <span className="tabular-nums">
+                    {money(order.totalAmount ?? 0)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Already prepaid</span>
+                  <span className="tabular-nums">−{money(prepaid)}</span>
+                </div>
+              </>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Expected</span>
+              <span className="font-semibold tabular-nums">
+                {money(expected)}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="collected">Collected</Label>
+            <NumberField
+              id="collected"
+              precision={2}
+              min={0}
+              max={expected}
+              value={collected}
+              onChange={(v) => setCollected(v ?? 0)}
+            />
+          </div>
+
+          {/* Goods coming back. Hidden on a workspace with no stock: nothing is
+              restocked there, so the line picker would promise a movement that
+              does not happen — the concession below is the only shape a short
+              collection can take. */}
+          {stockTracked && (order.items ?? []).length > 0 && (
+            <div className="space-y-2">
+              <Label>Goods coming back</Label>
+              <div className="space-y-1.5 rounded-md border p-3">
+                {(order.items ?? []).map((item) => (
+                  <div
+                    key={String(item.productId)}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {item.productName}
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        × {item.quantity}
+                      </span>
+                    </span>
+                    <NumberField
+                      precision={0}
+                      min={0}
+                      max={item.quantity}
+                      value={returning[String(item.productId)] ?? 0}
+                      onChange={(v) =>
+                        setReturning((prev) => ({
+                          ...prev,
+                          [String(item.productId)]: v ?? 0,
+                        }))
+                      }
+                      className="h-8 w-24"
+                      aria-label={`Return ${item.productName}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="discount">Discount given</Label>
+              <NumberField
+                id="discount"
+                precision={2}
+                min={0}
+                value={discount}
+                onChange={(v) => setDiscount(v ?? 0)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="stillOwed">Still owed</Label>
+              <NumberField
+                id="stillOwed"
+                precision={2}
+                min={0}
+                value={stillOwed}
+                onChange={(v) => setStillOwed(v ?? 0)}
+              />
+            </div>
+          </div>
+
+          {discount > 0 && (
+            <div className="space-y-1.5">
+              <Label htmlFor="discountNote">Why the discount was given</Label>
+              <Input
+                id="discountNote"
+                value={discountNote}
+                onChange={(e) => setDiscountNote(e.target.value)}
+                placeholder="Customer negotiated at the door"
+              />
+              {/* Required, following the rule that a reversal's note is the
+                  entire value of the entry. An unexplained margin hole is worse
+                  than no record at all. */}
+              {needsNote && (
+                <p className="text-xs text-destructive">
+                  A reason is required — it is the only record of the concession.
+                </p>
+              )}
+            </div>
+          )}
+
+          {accountsEnabled && (
+            <div className="space-y-1.5">
+              <Label>Into which account</Label>
+              <SimpleSelect
+                value={accountId}
+                onValueChange={setAccountId}
+                options={accountOptions}
+                placeholder="Use the store default"
+              />
+            </div>
+          )}
+
+          <div
+            className={`flex items-center justify-between rounded-lg p-3 text-sm ${
+              reconciles ? "bg-muted" : "bg-destructive/10 text-destructive"
+            }`}
+          >
+            <span>{reconciles ? "Accounted for" : "Unaccounted"}</span>
+            <span className="font-semibold tabular-nums">
+              {reconciles ? money(expected) : money(difference)}
+            </span>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={!reconciles || needsNote || record.isPending}
+          >
+            {record.isPending ? "Recording…" : "Record collection"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -53,6 +53,17 @@ export interface User {
       excludedColumns?: { [key: string]: string[] };
     };
     features?: OrganizationFeatures;
+    /**
+     * The plan CEILING, alongside the enforced `features` above.
+     *
+     * Both are needed or no screen can tell "you switched this off" from "your
+     * plan does not include this" — the first is one free click, the second
+     * costs money, and a lock screen that cannot distinguish them can only show
+     * a generic error. `RouteAccessGuard` reads exactly this pair. Must stay in
+     * the `populate` select in the backend `auth.service`, or it silently
+     * arrives undefined and every lock degrades to the upsell.
+     */
+    planFeatures?: OrganizationFeatures;
     /** Admin-configurable VAT settings (BIN, default rate, price semantics). */
     vatSettings?: VatSettings;
     /**
@@ -120,7 +131,10 @@ interface AuthActions {
   clearAuth: () => void;
   hydrateAuth: () => void;
   setActiveLocation: (locationId: string) => void;
-  updateFeatures: (features: OrganizationFeatures) => void;
+  updateFeatures: (
+    features: OrganizationFeatures,
+    planFeatures?: OrganizationFeatures,
+  ) => void;
   /** Mark the setup wizard finished so the workspace gate stops redirecting. */
   setOnboardingCompleted: (completedAt: string) => void;
   updateTaxConfig: (config: {
@@ -214,12 +228,27 @@ export const useAuthStore = create<AuthStore>()(
             }
           }
         },
-        updateFeatures: (features: OrganizationFeatures) => {
+        /**
+         * Sync the feature pair after a toggle or a fresh read.
+         *
+         * `planFeatures` is optional only because it rarely moves — a merchant
+         * toggle never changes the ceiling. Pass it whenever the response
+         * carries it (the features endpoint returns both), because the lock
+         * screens read the two TOGETHER to tell "you switched this off" from
+         * "not in your plan". Storing one and not the other is the same shape
+         * of bug as a field left out of the org update block: correct after a
+         * reload, wrong until then.
+         */
+        updateFeatures: (
+          features: OrganizationFeatures,
+          planFeatures?: OrganizationFeatures,
+        ) => {
           const currentUser = get().user;
           if (currentUser) {
             const updatedOrganization = {
               ...currentUser.organization,
               features,
+              ...(planFeatures ? { planFeatures } : {}),
             };
             const updatedUser = {
               ...currentUser,

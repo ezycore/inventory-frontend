@@ -7,8 +7,16 @@ import type { CatalogVariant } from "@/lib/storefront-client";
 /**
  * Attribute-axis chip selector for a variable product's PDP. Axes are derived
  * from the variants' `attributes` maps (e.g. Size → 1L/4L/10L, or Color + Size
- * for multi-axis products). A value chip is disabled when no in-stock variant
+ * for multi-axis products). A value chip is disabled when no BUYABLE variant
  * matches it combined with the other selected axes.
+ *
+ * "Buyable" is not "in stock": a `backorder` product sells past zero on purpose,
+ * so `canBackorder` has to reach this file or the chips contradict the store's
+ * own policy. Without it a backorder product's options were all struck through
+ * except the one `defaultSelection` happened to land on — the shopper could buy
+ * that single variant and nothing else, on a product the backend would have
+ * accepted any line of (`storefront-order-lines.service.ts` resolves the same
+ * behaviour and skips the stock check).
  */
 
 /** Ordered attribute axes (key + unique values) across all variants. */
@@ -46,26 +54,41 @@ export function matchVariant(
 }
 
 /**
- * Default selection — the CHEAPEST sellable variant (or just the first).
+ * Default selection — the CHEAPEST buyable variant (or just the first).
  *
  * Cheapest, not first-in-list: the card headline follows this pick the moment
- * the variants load, so a first-in-list default can turn "From \u09f3300" into
- * \u09f3350 with no shopper action. The lowest price is the one the card already
+ * the variants load, so a first-in-list default can turn "From ৳300" into
+ * ৳350 with no shopper action. The lowest price is the one the card already
  * advertised, so the number never moves upward on its own. Ties keep the earlier
  * variant, which is the previous behaviour for a product priced flat across its
- * options. A backorder product reads 0 on every variant and still falls through
- * to the first — `cartLineCap` is what decides whether that one is buyable.
+ * options.
+ *
+ * "Buyable" is `isBuyable`, not `availableQuantity > 0` — the same predicate the
+ * chips gate on, so the highlighted default is always one the shopper can
+ * actually commit. It also keeps the price promise above intact on a backorder
+ * product: every variant reads 0 there, so a stock-only test finds no candidate
+ * at all and falls through to `variants[0]` — the first variant regardless of
+ * price, which is the headline jump the cheapest rule exists to prevent.
  */
 export function defaultSelection(
   variants: CatalogVariant[],
+  canBackorder = false,
 ): Record<string, string> {
   let pick: CatalogVariant | undefined;
   for (const v of variants) {
-    if (v.availableQuantity <= 0 || v.price == null) continue;
+    if (!isBuyable(v, canBackorder) || v.price == null) continue;
     if (!pick || v.price < pick.price!) pick = v;
   }
   return { ...((pick ?? variants[0])?.attributes ?? {}) };
 }
+
+/**
+ * Can this variant be put in a cart? Stock on hand, or none needed because the
+ * product backorders. The single rule behind both the default highlight and the
+ * chip gating, so the two can't drift apart.
+ */
+const isBuyable = (v: CatalogVariant, canBackorder: boolean) =>
+  canBackorder || v.availableQuantity > 0;
 
 /** Widest single-axis chip row that still fits a card flyout at 2-column mobile. */
 const INLINE_MAX_VALUES = 6;
@@ -85,11 +108,18 @@ export function VariantSelector({
   variants,
   selection,
   onSelect,
+  canBackorder = false,
   compact = false,
 }: {
   variants: CatalogVariant[];
   selection: Record<string, string>;
   onSelect: (next: Record<string, string>) => void;
+  /**
+   * The product's `outOfStockBehavior === "backorder"` — already resolved
+   * (product override → store default) by the backend, so it arrives on the
+   * catalog payload ready to use. Keeps a sold-out option pickable.
+   */
+  canBackorder?: boolean;
   /**
    * Card-flyout density: no axis headings, tighter chips, no trailing margin.
    * Only ever used where `optionsFitInline` passed, i.e. a single axis — which
@@ -99,13 +129,13 @@ export function VariantSelector({
 }) {
   const axes = variantAxes(variants);
 
-  // A chip is pickable when some in-stock variant has this value AND agrees
+  // A chip is pickable when some buyable variant has this value AND agrees
   // with the values currently selected on the OTHER axes.
   const canPick = (axis: string, value: string) =>
     variants.some(
       (v) =>
         v.attributes?.[axis] === value &&
-        v.availableQuantity > 0 &&
+        isBuyable(v, canBackorder) &&
         v.price != null &&
         Object.entries(selection).every(
           ([name, sel]) => name === axis || v.attributes?.[name] === sel,

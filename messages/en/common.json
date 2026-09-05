@@ -289,7 +289,16 @@
   },
   "access": {
     "restrictedTitle": "Access restricted",
-    "restrictedDescription": "You do not have permission to view this page. Ask an administrator if you need access."
+    "restrictedDescription": "You do not have permission to view this page. Ask an administrator if you need access.",
+    "lockedOffTitle": "{feature} is switched off",
+    "lockedOffDescription": "This screen is part of {feature}, which your workspace has turned off. Switching it back on restores everything as you left it.",
+    "lockedOffAction": "Customize workspace",
+    "lockedPlanTitle": "{feature} is not in your plan",
+    "lockedPlanDescription": "This screen is part of {feature}. Your current plan does not include it.",
+    "lockedPlanWithTier": "Available from {plan}.",
+    "lockedPlanAction": "Compare plans",
+    "lockedParentTitle": "{feature} needs {parent}",
+    "lockedParentDescription": "{feature} depends on {parent}, which is currently switched off. Turn {parent} back on and this returns as you left it."
   },
   "copy": {
     "done": "Copied!",
