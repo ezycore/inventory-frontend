@@ -35,7 +35,7 @@ import { useRouter } from "next/navigation";
 import { useApplyOnboardingStep } from "@/services/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useRequireAccess } from "@/hooks/use-require-access";
 
 // Define feature order for display
 // `smsNotifications` is deliberately absent: it costs real money per message and
@@ -109,12 +109,9 @@ export default function FeatureSettingsPage() {
     isStorefrontEnabled && storefrontSettings && !storefrontSettings.published;
 
   // Redirect if user doesn't have permission
-  useEffect(() => {
-    if (user && !canManageSettings) {
-      toast.error(tShell("noPermission"));
-      router.push("/");
-    }
-  }, [user, canManageSettings, router, tShell]);
+  useRequireAccess([
+    { allowed: canManageSettings, message: tShell("noPermission") },
+  ]);
 
   // Keep the auth store in sync with the fetched features — BOTH maps. The
   // ceiling is what lets a lock screen elsewhere say "not in your plan" rather

@@ -477,6 +477,30 @@ that page's default). Add a key to the shared type and wire it in **both** compo
   All four share one rule: **a description that repeats what the control already shows is height with no information in it.** `SegmentedField`, `SwatchField` and `TemplatePicker` therefore render the sentence *once, under the control, for the selected option only* (their `caption` prop, on by default) rather than under every tile — a per-tile description in a 3-up grid inside the 380px Customize rail is read at ~95px and wraps to four lines. The storefront Customize editor is the reference implementation; see the `storefront` skill.
 - **Grouping controls inside one panel:** `PartBlock` (`components/ecommerce/customize/part-group.tsx`) is one slot per question and costs `py-4`; **`PartField`** is the compact sibling for several settings sharing a slot. Six settings as six `PartBlock`s spend 192px on block padding before drawing a single control.
 
+### Permission guards and plan ceilings (shared hooks)
+
+Two hooks own questions that were previously answered inline on every page that asked them, and both
+were wrong in the same direction — acting on an answer that had not arrived yet.
+
+- **`useRequireAccess(requirements[])`** (`hooks/use-require-access.ts`) — redirect off a screen the
+  signed-in user may not use. Five settings pages each carried their own
+  `if (user && !canManage) { toast; push("/") }`, and **a truthy `user` does not mean `permissions`
+  has arrived**: any render with a session but no permission list read as "signed in, allowed
+  nothing" and threw the merchant to the dashboard with a false message (QA-R21). The hook acts only
+  when the session is staying *and* `permissions` is an actual array — **absent is not empty**, and
+  only empty is grounds to act. Requirements are checked in order, first failure wins, so
+  "no permission" and "feature off" never race two toasts to the same screen.
+- **`usePlanLimit(key)`** (`hooks/use-plan-limit.ts`) — where the workspace stands against a plan
+  ceiling (`locations`, `users`, `inventory`, `salesToday`, `purchasesToday`), with the same alias
+  list the backend enforces (`utils/plan-limits.ts`). Show the count **before** it bites: a merchant
+  at 3 of 3 locations used to see an enabled Add button, fill the form in and get a 403, with no
+  count on screen and nothing linking to the upgrade (QA-R11). Returns `known: false` — never
+  `atLimit: true` — when the count cannot be read: the usage endpoint needs `organization.view`, and
+  blocking a merchant who has room is worse than the bug. `storageGb` is deliberately absent; it is
+  published on the pricing page but nothing meters bytes.
+
+Neither replaces backend enforcement. Both exist so the answer is visible before the work is done.
+
 ### Navigation labels are translated, the constants are not
 
 `constants/navItem.ts` keeps **English titles as identity** — they are the message-key source

@@ -1,12 +1,10 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/config";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-
 import { useAuthStore } from "@/services/stores";
 import { useGetOrganizationApi, useReceiptSettings } from "@/hooks";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -27,6 +25,7 @@ import {
   renderReceiptPreview,
   type PaperSize,
 } from "@/utils/print-documents";
+import { useRequireAccess } from "@/hooks/use-require-access";
 
 // Visible paper width in the preview so thermal receipts read as a narrow slip
 // centered on a "desk", not a wide document with dead white space beside it.
@@ -100,16 +99,10 @@ export default function ReceiptSettingsPage() {
   const previewState = useDebounce(state, 250);
 
   // Redirect users without the manage permission or the printing feature.
-  useEffect(() => {
-    if (!user) return;
-    if (!canManage) {
-      toast.error(tShell("noPermission"));
-      router.push("/");
-    } else if (!canPrint) {
-      toast.error(t("notEnabled"));
-      router.push("/");
-    }
-  }, [user, canManage, canPrint, router, t, tShell]);
+  useRequireAccess([
+    { allowed: canManage, message: tShell("noPermission") },
+    { allowed: canPrint, message: t("notEnabled") },
+  ]);
 
   // The live preview reuses the exact renderer the printout uses (over a sample
   // invoice), so what's shown here is what prints. Logo + address come from the

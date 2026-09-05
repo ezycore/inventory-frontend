@@ -1,10 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { AlertCircle, Plus } from "lucide-react";
 import { RoleDeleteDialog } from "@/components/settings/roles/role-delete-dialog";
 import { RoleDetailsSheet } from "@/components/settings/roles/role-details-sheet";
@@ -22,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/ui/components/tooltip";
 import type { OrganizationRole } from "@/types/users";
+import { useRequireAccess } from "@/hooks/use-require-access";
 
 /** Mirrors MAX_CUSTOM_ROLES_PER_ORG in the backend's constants/permissions.ts. */
 const MAX_CUSTOM_ROLES = 50;
@@ -29,7 +28,6 @@ const MAX_CUSTOM_ROLES = 50;
 export default function RolesSettingsPage() {
   const t = useTranslations("settings.roles");
   const tShell = useTranslations("settings.shell");
-  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const canViewRoles = useHasPermission(PERMISSIONS.rolesView);
   const canManageUsers = useHasPermission(PERMISSIONS.usersManage);
@@ -60,12 +58,7 @@ export default function RolesSettingsPage() {
    */
   const [session, setSession] = useState(0);
 
-  useEffect(() => {
-    if (user && !canView) {
-      toast.error(tShell("noPermission"));
-      router.push("/");
-    }
-  }, [user, canView, router, tShell]);
+  useRequireAccess([{ allowed: canView, message: tShell("noPermission") }]);
 
   const roles = useMemo(() => data?.data ?? [], [data]);
   const customCount = useMemo(

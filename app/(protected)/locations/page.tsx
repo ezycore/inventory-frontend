@@ -41,6 +41,7 @@ import PageHeader from "@/ui/components/header";
 import { sanitize } from "@/utils";
 import { fullName } from "@/utils/user-name";
 import { useViewMode } from "@/hooks/use-view-mode";
+import { usePlanLimit } from "@/hooks/use-plan-limit";
 import { cn } from "@/ui/lib/utils";
 import { isPermissionDeniedError } from "@/lib/api-client";
 import {
@@ -343,6 +344,13 @@ export default function LocationsPage() {
     currentUser?.organization?.features,
     "multiLocation",
   );
+  // The SECOND ceiling, and the one that used to be invisible. `multiLocation`
+  // says the merchant may have more than one; the plan says how many. A
+  // workspace at 3 of 3 kept an enabled Add button and only found out on submit
+  // (QA-R11). Degrades to today's behaviour when the count is unreadable — see
+  // `usePlanLimit`.
+  const locationLimit = usePlanLimit("locations");
+  const atPlanCeiling = locationLimit.atLimit;
   const [viewMode, setViewMode] = useViewMode("locations", 'card');
   const { data: statsData, isLoading: statsLoading, error: statsError } = useLocationStats?.() ?? { data: undefined, isLoading: false, error: undefined };
   const canManageUsers = !!currentUser?.permissions?.includes("users.manage");
@@ -406,7 +414,8 @@ export default function LocationsPage() {
     formConfig: roleAwareLocationFormConfig,
     defaultValues: defaultValues,
     getAllData: locationsApi.getAll,
-    createMutation: canAddLocation ? createLocation : undefined,
+    createMutation:
+      canAddLocation && !atPlanCeiling ? createLocation : undefined,
     updateMutation: useUpdateLocation(),
     deleteMutation: useDeleteLocation(),
     queryKey: queryKeys.locations.all(),
@@ -445,6 +454,40 @@ export default function LocationsPage() {
         isLoading={statsLoading}
         isPermissionDenied={isPermissionDeniedError(statsError)}
       />
+
+      {/* Where the workspace stands against its plan, shown BEFORE it bites
+          rather than as a 403 after the form is filled in. Rendered whenever
+          the ceiling is readable, not only at the limit — "2 of 3" is the part
+          that lets a merchant plan, and it was the piece missing entirely. */}
+      {canAddLocation && typeof locationLimit.limit === "number" && (
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-4 py-3 text-sm",
+            atPlanCeiling
+              ? "border-dashed bg-muted/40 text-muted-foreground"
+              : "border-transparent bg-muted/30 text-muted-foreground",
+          )}
+        >
+          <MapPin className="h-4 w-4 shrink-0" />
+          <span>
+            {t("planLimit.count", {
+              used: locationLimit.used ?? 0,
+              limit: locationLimit.limit,
+            })}
+          </span>
+          {atPlanCeiling && (
+            <>
+              <span>{t("planLimit.reached")}</span>
+              <Link
+                href="/dashboard/billing"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {t("planLimit.upgrade")}
+              </Link>
+            </>
+          )}
+        </div>
+      )}
 
       {/* The switch belongs where the need appears: a merchant wanting a second
           shop comes here, not to a settings page they have no reason to open. */}
