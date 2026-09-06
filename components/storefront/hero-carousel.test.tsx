@@ -137,3 +137,106 @@ describe("HeroCarousel swipe", () => {
     );
   });
 });
+
+// The link used to be reachable only through the button, so a slide with a
+// destination and no button label stored a URL and did nothing.
+describe("HeroCarousel whole-slide link", () => {
+  const linkOnly = [
+    { image: { url: "/a.jpg" }, link: "/sale" },
+    { title: "Second", image: { url: "/b.jpg" } },
+  ];
+
+  it("makes a picture-only slide clickable when it has a link but no button", () => {
+    const { container } = render(
+      <HeroCarousel slides={linkOnly} base="/shop" storeName="Test store" />,
+    );
+    const link = container.querySelector<HTMLAnchorElement>(
+      ".sf-hero-slide-link",
+    )!;
+
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute("href")).toBe("/shop/sale");
+    // Nothing else on the slide names it, so the label has to be synthesised.
+    expect(link).toHaveAttribute("aria-label", "Slide 1 of 2");
+  });
+
+  it("leaves the photo inert when the slide has a button to carry the link", () => {
+    const { container } = render(
+      <HeroCarousel slides={slides} base="/shop" storeName="Test store" />,
+    );
+
+    expect(
+      container.querySelectorAll(".sf-hero-slide")[0].querySelector(
+        ".sf-hero-slide-link",
+      ),
+    ).toBeNull();
+    expect(screen.getByText("Browse")).toBeInTheDocument();
+  });
+
+  it("adds no link to a slide that has no destination", () => {
+    const { container } = render(
+      <HeroCarousel slides={linkOnly} base="/shop" storeName="Test store" />,
+    );
+
+    // `storeLinkHref` falls back to /products for an empty link, so a slide
+    // without one must never reach it.
+    expect(
+      container.querySelectorAll(".sf-hero-slide")[1].querySelector(
+        ".sf-hero-slide-link",
+      ),
+    ).toBeNull();
+  });
+
+  it("still swipes when the drag starts on the whole-slide link", () => {
+    const { container } = render(
+      <HeroCarousel slides={linkOnly} base="/shop" storeName="Test store" />,
+    );
+    const link = container.querySelector<HTMLElement>(".sf-hero-slide-link")!;
+
+    fireEvent.pointerDown(link, {
+      pointerId: 3,
+      pointerType: "touch",
+      isPrimary: true,
+      clientX: 300,
+      clientY: 100,
+    });
+    fireEvent.pointerUp(link, {
+      pointerId: 3,
+      pointerType: "touch",
+      isPrimary: true,
+      clientX: 140,
+      clientY: 104,
+    });
+
+    expect(container.querySelectorAll(".sf-hero-slide")[1]).toHaveClass(
+      "sf-hero-active",
+    );
+  });
+
+  it("swallows the click a completed swipe synthesises on the slide link", () => {
+    const { container } = render(
+      <HeroCarousel slides={linkOnly} base="/shop" storeName="Test store" />,
+    );
+    const link = container.querySelector<HTMLElement>(".sf-hero-slide-link")!;
+
+    fireEvent.pointerDown(link, {
+      pointerId: 4,
+      pointerType: "touch",
+      isPrimary: true,
+      clientX: 300,
+      clientY: 100,
+    });
+    fireEvent.pointerUp(link, {
+      pointerId: 4,
+      pointerType: "touch",
+      isPrimary: true,
+      clientX: 140,
+      clientY: 104,
+    });
+
+    // A swipe must change the slide, not navigate to it.
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+    link.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+  });
+});

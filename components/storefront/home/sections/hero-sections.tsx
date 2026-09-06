@@ -16,6 +16,7 @@ import {
   bannerPhoto,
   campaignBadge,
   HeroCtaLink,
+  HeroSlideLink,
   heroBtns,
   wrap,
   type SectionProps,
@@ -421,6 +422,16 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             were reading. No arrows — this hero has no frame to hang them on, and
             the section is swipeable. */}
       </div> : null}
+      {/* Same fallback as the carousel: a destination with no button becomes the
+          slide itself. Placed after the copy so it covers the photograph, and
+          before the dots, which carry `zIndex: 3` and stay clickable. */}
+      {!ctaLabel ? (
+        <HeroSlideLink
+          base={base}
+          link={hasSlides ? slide?.link : hb?.primaryLink}
+          label={title || badge || store.name}
+        />
+      ) : null}
         {rotates ? (
           <div className="sf-hero-fullbleed-dots" style={{ position: "absolute", zIndex: 3, display: "flex", gap: 8, right: "var(--pad)", bottom: 18 }}>
             {slides.map((s, i) => (
