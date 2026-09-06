@@ -97,7 +97,10 @@ describe("the theme catalogue", () => {
   // was designed as — a failure with no error anywhere.
   it("only composes sections the registry can render", () => {
     for (const theme of READY_MADE_THEMES) {
-      for (const id of theme.sections) {
+      for (const entry of theme.sections) {
+        // An entry is a bare id, or an id carrying the config its default
+        // composition implies.
+        const id = typeof entry === "string" ? entry : entry.type;
         expect(SECTION_IDS, `${theme.id} → ${id}`).toContain(id);
       }
     }
@@ -359,34 +362,37 @@ describe("isThemeModified", () => {
  * an ordered whole. If per-row config lived inside those entries, applying a
  * theme would delete every collection the merchant pointed a row at. It lives
  * in a sibling block instead, so the rule is structural rather than remembered.
+ *
+ * The patch DOES carry `sectionConfig` now, because a theme's own rows may
+ * arrive configured. So the assertion is the guarantee rather than the
+ * mechanism: the merchant's entries come through untouched, and a theme may
+ * only ADD to them.
  */
 describe("applyThemeToDraft — sectionConfig", () => {
   const theme = getReadyMadeTheme("muslin")!;
 
   it("does not touch a merchant's per-section config", () => {
-    const configured = draft({
-      sectionConfig: [
-        { key: "r1", source: "category", categoryId: "cat-skin", title: "Skin care", limit: 6 },
-      ],
-    });
-    const patch = applyThemeToDraft(configured, theme);
+    const own = [
+      { key: "r1", source: "category" as const, categoryId: "cat-skin", title: "Skin care", limit: 6 },
+    ];
+    const patch = applyThemeToDraft(draft({ sectionConfig: own }), theme);
 
-    // Not "unchanged" by luck — absent from the patch entirely, so there is no
-    // value a future edit to this function could accidentally overwrite it with.
-    expect(patch).not.toHaveProperty("sectionConfig");
+    // Byte-identical, and the whole of it: this theme implies no config, so
+    // there is nothing for the merchant's entries to sit beside.
+    expect(patch.sectionConfig).toEqual(own);
   });
 
   it("leaves the config intact through three applies in a row", () => {
     // A merchant trying themes must still have every collection they chose.
-    let current = draft({
-      sectionConfig: [{ key: "r1", source: "category", categoryId: "cat-skin" }],
-    });
+    const own = { key: "r1", source: "category" as const, categoryId: "cat-skin" };
+    let current = draft({ sectionConfig: [own] });
     for (const id of ["classic", "muslin", "classic"]) {
       current = { ...current, ...applyThemeToDraft(current, getReadyMadeTheme(id)!) };
     }
-    expect(current.sectionConfig).toEqual([
-      { key: "r1", source: "category", categoryId: "cat-skin" },
-    ]);
+    expect(current.sectionConfig).toContainEqual(own);
+    // Classic implies ONE row of its own (its new-arrivals grid) and applying
+    // it twice must not stack a second copy — the merge is keyed, not appended.
+    expect(current.sectionConfig).toHaveLength(2);
   });
 });
 
@@ -446,8 +452,10 @@ describe("applyHomeTemplateToDraft — the starting-layout picker", () => {
     const patch = applyHomeTemplateToDraft(composed, "minimal");
 
     expect(patch.templates?.header).toBe("boutique");
-    // Same rule as a theme apply: the config outlives the composition.
-    expect(patch).not.toHaveProperty("sectionConfig");
+    // Same rule as a theme apply: the config outlives the composition. The
+    // patch carries it because a preset's rows may arrive configured — what
+    // must hold is that the merchant's own entries are all still there.
+    expect(patch.sectionConfig).toEqual(composed.sectionConfig);
     expect(patch).not.toHaveProperty("footerText");
   });
 

@@ -11,6 +11,7 @@ import {
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
 import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
+import { mergeSectionConfig } from "@/lib/storefront-sections";
 import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
@@ -456,6 +457,7 @@ export function applyThemeToDraft(
   draft: CustomizeDraft,
   theme: ReadyMadeTheme,
 ): Partial<CustomizeDraft> {
+  const composition = sectionInstances(theme.sections);
   return {
     preset: "default",
     brandColor: theme.brandColor,
@@ -477,7 +479,13 @@ export function applyThemeToDraft(
     // `isThemeModified` below report a theme as edited the instant it was
     // applied. A theme bundle stays a list of TYPES — it has no business
     // inventing instance identity.
-    homepageSections: sectionInstances(theme.sections),
+    homepageSections: composition.sections,
+    // A theme's own rows may arrive configured ("a grid, sourced newest"), and
+    // that config has to land in the draft or the row renders as its bare
+    // default. Folded UNDER the merchant's own entries, never over them: a
+    // collection someone pointed a row at survives trying three themes, which
+    // is the whole reason `sectionConfig` sits outside `theme` to begin with.
+    sectionConfig: mergeSectionConfig(composition.config, draft.sectionConfig),
     appliedThemeId: theme.id,
   };
 }
@@ -497,9 +505,10 @@ export function applyThemeToDraft(
  * Seeded the way `applyThemeToDraft` does, and for the same reasons: replaced
  * outright rather than merged (a homepage is an ordered whole), with instances
  * minted deterministically so picking a layout twice yields the same keys.
- * `sectionConfig` is deliberately left alone — orphans are dropped in
- * `toSettingsPayload`, and a row the merchant pointed at a collection keeps it
- * when the same key comes back.
+ * The merchant's `sectionConfig` is preserved entry for entry and only ADDED to
+ * — orphans are dropped in `toSettingsPayload`, a row the merchant pointed at a
+ * collection keeps it when the same key comes back, and the new layout's own
+ * implied config fills whatever it does not already cover.
  */
 export function applyHomeTemplateToDraft(
   draft: CustomizeDraft,
@@ -514,11 +523,17 @@ export function applyHomeTemplateToDraft(
   if (value === draft.templates.home) return {};
 
   const preset = HOME_PRESET_SECTIONS[value];
+  const composition = preset ? sectionInstances(preset) : null;
   return {
     templates: { ...draft.templates, home: value },
     // An id with no preset (retired, or from a newer build) still sets the
     // template — but must not blank the page, which an empty list would mean.
-    ...(preset ? { homepageSections: sectionInstances(preset) } : {}),
+    ...(composition
+      ? {
+          homepageSections: composition.sections,
+          sectionConfig: mergeSectionConfig(composition.config, draft.sectionConfig),
+        }
+      : {}),
   };
 }
 

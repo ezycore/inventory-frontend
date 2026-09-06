@@ -19,10 +19,8 @@ import {
   CategoryTiles,
 } from "@/components/storefront/home/sections/category-sections";
 import {
-  FeaturedGrid,
-  LatestGrid,
   MinimalPicks,
-  PicksGrid,
+  ProductGrid,
   ProductRail,
 } from "@/components/storefront/home/sections/product-sections";
 import {
@@ -75,10 +73,9 @@ export const SECTION_COMPONENTS = {
   "category-links": CategoryLinks,
   "category-tiles": CategoryTiles,
   "age-chips": AgeChips,
-  // Product rows.
-  "featured-grid": FeaturedGrid,
-  "latest-grid": LatestGrid,
-  "picks-grid": PicksGrid,
+  // Product rows. One grid, pointed by its `sectionConfig.source` — the id is
+  // kept as `featured-grid` because 28 stored documents already name it.
+  "featured-grid": ProductGrid,
   "product-rail": ProductRail,
   "minimal-picks": MinimalPicks,
   // Full-width bands.

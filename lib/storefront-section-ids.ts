@@ -1,4 +1,6 @@
 // coding-standard: maintained
+import type { StoreSectionConfig } from "@/lib/storefront-client";
+
 /**
  * The homepage section VOCABULARY — every id, its merchant-facing label, and
  * the default composition each `templates.home` implies.
@@ -46,10 +48,10 @@ export const SECTION_IDS = [
   // Age, not department. A baby shop's primary facet: a parent shops for
   // "my six-month-old" long before they think about "Feeding".
   "age-chips",
-  // Product rows.
+  // Product rows. ONE grid — `latest-grid` and `picks-grid` were the same
+  // component drawing from a different fallback list, which `sectionConfig`
+  // answers per instance. See `product-sections.tsx`.
   "featured-grid",
-  "latest-grid",
-  "picks-grid",
   "product-rail",
   "minimal-picks",
   // Full-width bands.
@@ -106,6 +108,20 @@ export const isSectionId = (value: unknown): value is SectionId =>
   typeof value === "string" && SECTION_ID_SET.has(value);
 
 /**
+ * One entry in a preset's list: a bare id, or an id carrying the config that
+ * default composition implies.
+ *
+ * The object form is what lets a preset say "a product grid, sourced newest"
+ * rather than needing a `latest-grid` section type to mean the same thing. The
+ * loose structural twin `HomeSectionEntry` in `storefront-templates.ts` is what
+ * the resolver takes — this one is the strict, typo-proof form the vocabulary
+ * itself is written in.
+ */
+export type HomePresetEntry =
+  | SectionId
+  | { type: SectionId; config?: Omit<StoreSectionConfig, "key"> };
+
+/**
  * The section list each legacy `templates.home` value produces.
  *
  * These three reproduce the pre-registry pages exactly, so a store that has
@@ -113,10 +129,36 @@ export const isSectionId = (value: unknown): value is SectionId =>
  * survives as "which default composition", not as a component switch — and a
  * merchant who reorders sections simply stops using the default.
  */
-export const HOME_PRESET_SECTIONS: Record<string, SectionId[]> = {
-  classic: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
-  "hero-split": ["hero-split", "picks-grid"],
+export const HOME_PRESET_SECTIONS: Record<string, readonly HomePresetEntry[]> = {
+  /* The fourth entry IS the retired `latest-grid`, expressed as what it always
+     was: a second product grid, sourced newest. This is the reason a preset
+     entry can carry config at all — without it, applying Classic would leave
+     every shop with two identical Featured rows. */
+  classic: [
+    "hero-card",
+    "category-chips",
+    "featured-grid",
+    { type: "featured-grid", config: { source: "newest" } },
+  ],
+  "hero-split": ["hero-split", "featured-grid"],
   minimal: ["hero-manifesto", "category-links", "minimal-picks"],
+};
+
+/**
+ * A catalogue-wide source, as a merchant-facing row name.
+ *
+ * Since the three grids merged, the source is what distinguishes one product
+ * grid from another — so it is what names the row wherever a composition is
+ * listed: the Sections editor, and the theme picker's running order. Shared
+ * rather than written twice, because two lists disagreeing about what the same
+ * row is called is exactly how "campaign strip" went wrong.
+ *
+ * `category` and `manual` are absent on purpose: those rows are named by the
+ * collection or the count they carry, which only the editor has to hand.
+ */
+export const SOURCE_LABELS: Record<string, string> = {
+  featured: "Featured products",
+  newest: "New arrivals",
 };
 
 /** Merchant-facing names for the Customize → Sections editor. */
@@ -131,9 +173,11 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   "category-links": "Category links",
   "category-tiles": "Category photo tiles",
   "age-chips": "Shop by age",
-  "featured-grid": "Featured products",
-  "latest-grid": "New arrivals",
-  "picks-grid": "Weekly picks",
+  /* The label a row falls back to. A CONFIGURED row is named by its content in
+     the editor (`sectionLabel`) and by its source on the shop (`sectionTitle`,
+     which returns the localized "New arrivals" for a `newest` row) — so this
+     names the unconfigured default, not every instance. */
+  "featured-grid": "Product grid",
   "product-rail": "Product rail (side-scroll)",
   "minimal-picks": "Selected products",
   "trust-band": "Your promises band",

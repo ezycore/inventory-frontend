@@ -576,8 +576,15 @@ Do not restate the gate table here.
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
 `components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
-over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.home` now selects a
-*default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+over `resolveSections(store, { draft, sectionConfig, isSectionId, presets })`. **`templates.home` now
+selects a *default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+
+⚠ **`resolveSections` returns `{ sections, config }` and callers must read that config, not
+`store.sectionConfig`** (2026-09-06). A preset entry may be `{ type, config? }` rather than a bare
+id, so on a shop with no stored list the effective config is the preset's with the merchant's folded
+over it — merchant always wins, `mergeSectionConfig` joins on the key `sectionInstances` minted for
+both halves. Reading the stored array directly renders those rows unconfigured, which is how a "New
+arrivals" row becomes a second Featured row with nothing on screen to explain it.
 
 `home-classic.tsx`, `home-hero-split.tsx` and `home-minimal.tsx` are **gone** — removed by the owner's
 decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
@@ -592,6 +599,30 @@ changed nothing a shopper could see — the whole "Starting layout" picker was i
 `patchHomeTemplate` writes the key *and* reseeds the list from `HOME_PRESET_SECTIONS`, exactly the
 way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
 does.
+
+### One product grid, pointed by its source (2026-09-06)
+
+`featured-grid`, `latest-grid` and `picks-grid` were the same component drawing from a different
+store-wide fallback list. `sectionConfig.source` answers that per instance, so the three are one
+**`featured-grid`** rendered by `ProductGrid`, and `Grid` no longer takes a density — that flag was
+only consulted for `productCard: "standard"`, which made it a second, hidden answer to what
+Customize → Product cards asks.
+
+- **The stored id stays `featured-grid`.** 28 documents already say it; the merchant-facing label is
+  "Product grid". A configured row is named by its source (`SOURCE_LABELS`) in the editor, the theme
+  card's running order, and by `sectionTitle` on the shop — one constant, three lists, because two
+  lists calling the same row different things is how "campaign strip" went wrong.
+- **"Featured products" and "New arrivals" are still two chips in the picker** (`ADD_ENTRIES`). Both
+  add the same component with a different `source`. "Product grid, then set its source" is not
+  something anyone would find.
+- ⚠ **The Sections editor writes BOTH halves on every edit.** `toSettingsPayload` drops any
+  `sectionConfig` entry whose key is not in `homepageSections`, so on the 14 shops with no stored
+  list, configuring a row was silently discarded at Save. Writing both also means a removal and its
+  config drop happen in one commit, so neither call can undo the other.
+- Retiring a section id means a **migration**, not just a registry edit:
+  `resolveSections` drops an unrenderable type and only falls back when *nothing* survives, so the
+  page keeps rendering and is quietly one row shorter. See
+  `../inventory-backend/src/migrations/20260906000000-merge-product-grid-sections.ts`.
 
 ⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
 correct and their second was not, because between the two a colleague had committed them back on

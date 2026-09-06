@@ -36,7 +36,7 @@
  */
 
 import type { StoreDesign } from "@/lib/storefront-theme";
-import type { SectionId } from "@/lib/storefront-section-ids";
+import type { HomePresetEntry } from "@/lib/storefront-section-ids";
 import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
@@ -65,7 +65,7 @@ export interface ReadyMadeTheme {
    * structurally different rather than differently painted** — they compose
    * different sections, not different arrangements of the same four.
    */
-  sections: SectionId[];
+  sections: HomePresetEntry[];
   /**
    * What the PREVIEW fills a merchant's empty shop with — see
    * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
@@ -129,7 +129,13 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
     },
     homeCollections: { layout: "strip", align: "left" },
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
-    sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
+    sections: [
+      "hero-card",
+      "category-chips",
+      "featured-grid",
+      // The retired `latest-grid`: the same grid, sourced newest.
+      { type: "featured-grid", config: { source: "newest" } },
+    ],
     templates: {
       home: "classic",
       header: "classic",
@@ -495,7 +501,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       "trust-band",
       "age-chips",
       "category-tiles",
-      "picks-grid",
+      "featured-grid",
       "deal-strip",
       "product-rail",
     ],

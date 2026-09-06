@@ -24,7 +24,6 @@ import type {
   CatalogCategory,
   StoreHomeSection,
   StoreSectionConfig,
-  StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 
@@ -41,8 +40,6 @@ const clampLimit = (n: number | undefined) =>
 /** The section types that read config. Everything else ignores it. */
 const CONFIGURABLE = new Set([
   "featured-grid",
-  "latest-grid",
-  "picks-grid",
   "product-rail",
   "minimal-picks",
 ]);
@@ -76,6 +73,30 @@ export function configFor(
   key: string,
 ): StoreSectionConfig | undefined {
   return config?.find((c) => c.key === key);
+}
+
+/**
+ * Fold the config a DEFAULT composition implies under the merchant's own.
+ *
+ * A preset (and a ready-made theme) may now describe a configured row — "a
+ * product grid, sourced newest" — rather than only naming a section type. That
+ * implied config has to reach the page exactly the way a stored one does, or
+ * the section renders its bare built-in source and the row silently changes
+ * meaning.
+ *
+ * **The merchant's entry always wins.** A default that could overwrite an edit
+ * is not a default. The two lists join on `key`, which is safe only because
+ * `sectionInstances` mints both halves together — a config keyed by hand would
+ * drift from its section and quietly do nothing.
+ */
+export function mergeSectionConfig(
+  implied: readonly StoreSectionConfig[],
+  own: readonly StoreSectionConfig[] | undefined,
+): StoreSectionConfig[] {
+  const mine = own ? [...own] : [];
+  if (!implied.length) return mine;
+  const claimed = new Set(mine.map((c) => c.key));
+  return [...implied.filter((c) => !claimed.has(c.key)), ...mine];
 }
 
 /**
@@ -229,15 +250,18 @@ export function sectionTitle(
  */
 export function configuredSections(
   sections: StoreHomeSection[],
-  store: Pick<StorefrontStore, "sectionConfig"> | null | undefined,
+  /* The RESOLVED config, not `store.sectionConfig` — a preset's implied rows
+     are configured rows and must be fetched for like any other. `resolveSections`
+     returns the merged list; passing the raw stored one skips them. */
+  config: StoreSectionConfig[] | undefined,
   categories: CatalogCategory[],
 ): { key: string; query: Record<string, string | number> }[] {
   const rows: { key: string; query: Record<string, string | number> }[] = [];
   for (const section of sections) {
     if (!isConfigurableSection(section.type)) continue;
-    const config = configFor(store?.sectionConfig, section.key);
-    if (!config) continue;
-    const query = sectionQuery(config, categories);
+    const own = configFor(config, section.key);
+    if (!own) continue;
+    const query = sectionQuery(own, categories);
     if (query) rows.push({ key: section.key, query });
   }
   return rows;

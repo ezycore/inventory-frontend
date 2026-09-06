@@ -45,7 +45,9 @@ export function HomePart({
   CustomizeDraftApi,
   "draft" | "patch" | "patchTemplate" | "patchHomeTemplate"
 >) {
-  const effectiveSections = resolveSections(
+  // Only the TYPES matter here — these two blocks ask whether a category row is
+  // on the page at all, not how any row is configured.
+  const { sections: effectiveSections } = resolveSections(
     {
       theme: { homepageSections: draft.homepageSections },
       templates: { home: draft.templates.home },

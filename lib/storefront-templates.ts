@@ -4,10 +4,12 @@ import type {
   StoreHomeCollections,
   StoreHomeSection,
   StoreLogoStyle,
+  StoreSectionConfig,
   StoreTemplates,
   StoreTemplatesRaw,
   StorefrontStore,
 } from "@/lib/storefront-client";
+import { mergeSectionConfig } from "@/lib/storefront-sections";
 
 /** Default page variants when the store hasn't selected one (or backend omits it). */
 export const DEFAULT_TEMPLATES: StoreTemplates = {
@@ -215,8 +217,30 @@ export function isImageFit(value: unknown): value is StoreTemplates["imageFit"] 
 }
 
 /**
- * Turn a preset's bare section ids into instances, minting keys from the id and
- * its position.
+ * One entry in a DEFAULT composition — a home preset's list, or a ready-made
+ * theme's.
+ *
+ * A bare id is a section with nothing more to say, which is most of them. The
+ * object form is for a section whose default is a *configured* one: "a product
+ * grid, sourced newest" is something a composition has to be able to express,
+ * and a flat id list cannot — which is the only reason `latest-grid` ever had
+ * to exist as a section type of its own.
+ */
+export type HomeSectionEntry =
+  | string
+  | { type: string; config?: Omit<StoreSectionConfig, "key"> };
+
+/** A composition's instances and the config they imply, keyed to each other. */
+export interface HomeSectionInstances {
+  sections: StoreHomeSection[];
+  /** Usually empty — only entries written in the object form contribute. */
+  config: StoreSectionConfig[];
+}
+
+/**
+ * Turn a default composition — a home preset's list, or a ready-made theme's —
+ * into instances, minting keys from the type and its position, and the config
+ * its entries imply alongside them.
  *
  * **Deterministic, never random.** The same preset must mint the same keys every
  * time: keys are what per-section config joins on, and what `isThemeModified`
@@ -224,10 +248,28 @@ export function isImageFit(value: unknown): value is StoreTemplates["imageFit"] 
  * merchant's config would detach from its section and a freshly applied theme
  * would report itself as edited one second later.
  *
- * The index is in the key because a preset may legitimately repeat a type.
+ * The index is in the key because a preset may legitimately repeat a type — and
+ * with config on the entry it now has a reason to: two grids differing only in
+ * where their products come from is one composition, not two section types.
  */
-export function sectionInstances(types: readonly string[]): StoreHomeSection[] {
-  return types.map((type, i) => ({ key: `${type}-${i}`, type }));
+export function sectionInstances(
+  entries: readonly HomeSectionEntry[],
+): HomeSectionInstances {
+  const sections: StoreHomeSection[] = [];
+  const config: StoreSectionConfig[] = [];
+  entries.forEach((entry, i) => {
+    const type = typeof entry === "string" ? entry : entry.type;
+    const key = `${type}-${i}`;
+    sections.push({ key, type });
+    /* Minted HERE, beside the key it belongs to, and nowhere else. The join
+       between a section and its config IS the key, so a config list built
+       separately would drift the first time an entry moved — and a config whose
+       key drifted does not fail, it silently does nothing. */
+    if (typeof entry !== "string" && entry.config) {
+      config.push({ key, ...entry.config });
+    }
+  });
+  return { sections, config };
 }
 
 /**
@@ -243,28 +285,37 @@ export function sectionInstances(types: readonly string[]): StoreHomeSection[] {
  * a newer build, must not reach `SECTION_COMPONENTS[type]` and blow up the page.
  * The caller passes the registry's guard so this module stays free of component
  * imports — `lib/` must not depend on `components/`.
+ *
+ * **Returns the config too, and callers must read it rather than the store's
+ * own.** A preset can describe a configured row, so on a shop that has never
+ * composed its page the effective config is the preset's with the merchant's
+ * folded over it. Reading `store.sectionConfig` directly renders those rows
+ * unconfigured — which is how a "New arrivals" row becomes a second Featured
+ * one with nothing on screen to explain it.
  */
 export function resolveSections(
   store: Pick<StorefrontStore, "theme" | "templates"> | null | undefined,
   options: {
     draft?: StoreHomeSection[] | null;
+    /** The merchant's own per-section config — the draft's under preview. */
+    sectionConfig?: StoreSectionConfig[] | null;
     isSectionId: (value: unknown) => boolean;
-    presets: Record<string, readonly string[]>;
+    presets: Record<string, readonly HomeSectionEntry[]>;
   },
-): StoreHomeSection[] {
-  const { draft, isSectionId, presets } = options;
+): HomeSectionInstances {
+  const { draft, sectionConfig, isSectionId, presets } = options;
   const saved = store?.theme?.homepageSections;
   const home = pick(HOME, store?.templates?.home, DEFAULT_TEMPLATES.home);
-  const fallback = sectionInstances(presets[home] ?? presets.classic ?? []);
-  const chosen =
-    (draft?.length ? draft : undefined) ??
-    (saved?.length ? saved : undefined) ??
-    fallback;
-  // `entry?.type` rather than `entry.type`: `chosen` comes off a stored document
+  const own = (draft?.length ? draft : undefined) ?? (saved?.length ? saved : undefined);
+  // `entry?.type` rather than `entry.type`: `own` comes off a stored document
   // and a store written before instances holds bare strings, where `.type` is
   // `undefined` — dropped by the guard, which is what makes the fallback below
   // catch the whole legacy shape instead of throwing on it.
-  const known = chosen.filter((entry) => isSectionId(entry?.type));
+  const known = own?.filter((entry) => isSectionId(entry?.type)) ?? [];
+  // A merchant who has composed their own page gets no implied config: the
+  // preset is not in use, so its rows are not on the page to configure.
+  if (known.length) return { sections: known, config: sectionConfig ? [...sectionConfig] : [] };
+
   // ⚠ If NOTHING survives the filter, fall back rather than returning `[]` — an
   // empty list renders a blank homepage. This is not theoretical: every seeded
   // store carried four ids from the pre-registry catalogue (`banner`,
@@ -272,7 +323,11 @@ export function resolveSections(
   // the strict version would have blanked the homepage of every demo shop while
   // leaving stores with an unset value working perfectly. The same guard now
   // absorbs a store still holding the pre-instance `string[]`.
-  return known.length ? known : fallback.filter((entry) => isSectionId(entry.type));
+  const fallback = sectionInstances(presets[home] ?? presets.classic ?? []);
+  return {
+    sections: fallback.sections.filter((entry) => isSectionId(entry.type)),
+    config: mergeSectionConfig(fallback.config, sectionConfig ?? undefined),
+  };
 }
 
 /** Narrows a raw/draft id to a known ratio — the guard `useStoreImageRatio` uses. */

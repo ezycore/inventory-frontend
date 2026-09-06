@@ -94,7 +94,6 @@ export function StoreHome({
   const previewSamples = useSfPreview((s) => s.samples);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
-  const sectionConfig = previewSectionConfig ?? store.sectionConfig;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
@@ -120,8 +119,12 @@ export function StoreHome({
   const previewStore = previewHome
     ? { ...store, templates: { ...store.templates, home: previewHome } }
     : store;
-  const sections = resolveSections(previewStore, {
+  // The config comes back OUT of the resolver, folded over whatever the preset
+  // implies — a shop still on a default composition has configured rows it
+  // never typed, and reading the stored list alone would render them bare.
+  const { sections, config: sectionConfig } = resolveSections(previewStore, {
     draft: previewSections,
+    sectionConfig: previewSectionConfig ?? store.sectionConfig,
     isSectionId,
     presets: HOME_PRESET_SECTIONS,
   });

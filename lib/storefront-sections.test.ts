@@ -150,7 +150,7 @@ describe("configuredSections", () => {
         { key: "r2", source: "newest" as const },
       ],
     };
-    const out = configuredSections(sections, store, categories);
+    const out = configuredSections(sections, store.sectionConfig, categories);
     // `hero` is not a product section, and `r3` has no config — both skipped.
     expect(out.map((r) => r.key)).toEqual(["r1", "r2"]);
   });
@@ -159,13 +159,13 @@ describe("configuredSections", () => {
     const store = {
       sectionConfig: [{ key: "r1", source: "category" as const, categoryId: "gone" }],
     };
-    expect(configuredSections(sections, store, categories)).toEqual([]);
+    expect(configuredSections(sections, store.sectionConfig, categories)).toEqual([]);
   });
 
   it("returns nothing when the store has no config at all", () => {
     // The untouched store: every section renders its built-in source and the
     // page makes no extra queries.
-    expect(configuredSections(sections, {}, categories)).toEqual([]);
+    expect(configuredSections(sections, undefined, categories)).toEqual([]);
   });
 });
 

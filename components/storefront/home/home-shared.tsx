@@ -275,14 +275,23 @@ export function ViewAll({ href, label }: { href: string; label: string }) {
   );
 }
 
+/**
+ * The product grid every product row renders through.
+ *
+ * **No density prop.** It took a `variant` until the three grid sections became
+ * one, and that flag was only ever consulted for `productCard: "standard"` —
+ * `compact`, `bold` and `editorial` each override it outright. So it was a
+ * second, hidden answer to a question the merchant already answers in Customize
+ * → Product cards, and the only way to reach it was to pick a different section
+ * type. Density is one decision for the whole shop now, in the panel named
+ * after it.
+ */
 export function Grid({
   products,
   currency,
-  variant,
 }: {
   products: CatalogProduct[];
   currency?: string;
-  variant?: "full" | "compact";
 }) {
   return (
     <div
@@ -293,7 +302,7 @@ export function Grid({
       }}
     >
       {products.map((p) => (
-        <ProductCard key={p._id} product={p} currency={currency} variant={variant} />
+        <ProductCard key={p._id} product={p} currency={currency} />
       ))}
     </div>
   );
