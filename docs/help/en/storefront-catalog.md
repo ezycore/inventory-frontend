@@ -150,16 +150,44 @@ still show a banner whole.
 
 When a slide is cropped, each frame starts from the middle unless you say otherwise — that is what
 **Focus point** is for. Tap the part that must stay visible — a face, the product, your logo — and
-the small **Phone crop** preview beside it shows the 16:9 mobile frame. Leave it untouched and the
-photo stays centred.
+the small **Phone crop** preview beside it shows the mobile frame. Leave it untouched and the photo
+stays centred.
 
-Use **1600 × 640 px (5:2)** as the recommended desktop canvas for a slider image. For the reusable
-static **Banner image**, use **1200 × 900 px (4:3)**. Add **Mobile image (optional)** at
-**1200 × 675 px (16:9)** when the desktop composition cannot crop well on a phone; otherwise mobile
-automatically uses the desktop photo and focus. These are composition guides, not upload
-requirements: **Full photo** preserves every edge, while **Cropped** and separate desktop and mobile
-focus points control each frame. The editor labels both preview ratios before saving. Keep prices,
-offers, and headlines in the text fields—not inside the image—so they can reflow and remain readable.
+**Build your slides at 1600 × 640 px (5:2), and 1200 × 675 px (16:9) for the phone image.** Those are
+not approximations — they are the exact shapes the hero renders, so a slide made at them fills the
+frame with nothing trimmed and nothing letterboxed, and **Full photo** and **Cropped** look
+identical. That is the whole reason to hit the size: it takes the choice away.
+
+Those exact shapes belong to the **contained** hero — the bordered card used by Classic, Hero Split
+and Hero Open. One hero does not have them: **Hero Full-bleed** runs the photo edge to edge, so its
+shape is your shopper's screen, anywhere from about 1.4:1 on a phone to 5:1 on an ultrawide monitor.
+No single image can fit that, and none is meant to: set those slides to **Cropped** with a focus
+point, and keep your wording in the text fields, where it reflows instead of being sliced. If your
+artwork has words baked into it, use a contained hero.
+
+Make the phone image a **recomposition, not a resize**. The two frames are genuinely different
+shapes, so a wide desktop slide squeezed into a phone frame puts your subject in the wrong place
+even when the pixels are right. Re-frame the shot for the taller crop and move the wording with it.
+
+Other sizes still work — **Full photo** preserves every edge over a soft blurred backdrop, and
+**Cropped** plus a focus point controls what survives — but an off-size slide is where those two
+settings start to disagree with each other. If two of your slides look like they are at different
+zoom levels, check that both are the same size *and* on the same setting before you touch anything
+else.
+
+For the reusable static **Banner image** the shape is different: use **1200 × 900 px (4:3)**, with
+**1200 × 675 px (16:9)** for its optional phone image. Leave any **Mobile image** empty and the
+phone reuses the desktop photo and focus automatically.
+
+The editor labels both preview ratios before saving. Keep prices, offers, and headlines in the text
+fields—not inside the image—so they can reflow and remain readable.
+
+One thing the size cannot fix: if two slides are drawn at different scales — one with its headline
+half again as large as the other's, or sitting higher in the frame — they will still look
+inconsistent as the slider rotates, because that difference is inside the artwork rather than in how
+the store displays it. Compose the set on one template: same text block, same baseline, same type
+sizes. Keep wording inside the middle 85% horizontally and clear of the top and bottom 5%, so a
+merchant on the widest **Page width** setting never loses a word to the edge.
 
 ### Home page → Sections
 
