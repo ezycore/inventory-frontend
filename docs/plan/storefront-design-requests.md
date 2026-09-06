@@ -99,12 +99,33 @@ question every quarter.
 | Request | Trade | Merchants | First seen | The setting that would close it | Seen | State |
 |---|---|---|---|---|---|---|
 | A few departments shown as large promo cards — photo, name, a line of copy, a Shop Now button | *not recorded* | *not recorded* | *not recorded* | `category-banners` section + `sectionConfig.categoryIds` | 1 | `shipped` 2026-09-06 |
+| A promo card with the photograph **beside** the copy rather than above it | Home textiles (cushions, floor mats) | 1 | 2026-09-07 | `sectionConfig.cardShape: "split"` | 1 | `shipped` 2026-09-07 |
+| The category row's cards are too small and don't line up with the hero | Home textiles | 1 | 2026-09-07 | *(none — the merchant was on `category-tiles`, which is capped small by design; answered by moving them to `category-banners`)* | 1 | `declined` 2026-09-07 |
+| Two promo cards side by side on a **phone** | — | 0 | — | a phone override for `cardShape` | 0 | `open` — speculative, logged so it is counted rather than guessed |
 
-**The one row is the worked example of the whole loop, including its failure.** It shipped on one
+**The first row is the worked example of the whole loop, including its failure.** It shipped on one
 sighting rather than three — correctly, because a second argument carried it (a catalogue with few
 departments has nothing else to merchandise with, and the shape is standard across ecommerce) — but
 the three fields this register exists to capture were already lost when it was built. That is what
 the empty cells are for: they are not tidy, and they are the point.
+
+**Rows two and three are one conversation, and splitting them is the useful part.** The merchant said
+*"the size I can't control from here"* and sent a screenshot. Grouped by their words that is one
+request for a size control. Grouped by *the setting that would close it* — the rule this register
+insists on — it is two: a composition that did not exist, and a section being used for the wrong job.
+The first shipped; the second is a **`declined`** with the reason on the row, so nobody counts it
+again toward widening a wayfinding row.
+
+The general test that fell out of it, worth applying to the next size request:
+
+> **If the pick count already sets the size, the missing thing is a shape.**
+
+Two promo cards fill half the row each and three fill a third, so width was never the variable. A
+merchant asking for a size control there is describing a composition they cannot name.
+
+**Row four is logged at zero on purpose.** A 2-up phone row is trivially expressible in CSS, which is
+exactly why it belongs here rather than in the product: nobody has asked for it. If it is ever built,
+it should be because this cell reads three.
 
 ## Unshaped
 

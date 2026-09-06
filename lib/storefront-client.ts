@@ -96,6 +96,11 @@ export interface StoreSectionConfig {
    * field, so changing either would silently change the other.
    */
   categoryIds?: string[];
+  /**
+   * How a promo card composes its picture against its copy. Read only by
+   * `category-banners`; unset ⇒ `stacked`. See `resolveCardShape`.
+   */
+  cardShape?: "stacked" | "split";
   title?: string;
   /** Ignored by a `manual` row — the picked list is the row's length. */
   limit?: number;

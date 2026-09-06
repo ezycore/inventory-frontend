@@ -231,6 +231,14 @@ export interface StorefrontSectionConfig {
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
   source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
+  /**
+   * The collections a `category-banners` row advertises, in the merchant's
+   * order. Distinct from `categoryId` above, which names the ONE collection a
+   * product row draws FROM.
+   */
+  categoryIds?: string[];
+  /** A promo card's composition. Unset ⇒ `stacked` (photo above the copy). */
+  cardShape?: "stacked" | "split";
   title?: string;
   /** 4–12. Unset ⇒ the section's own default. Ignored by a `manual` row. */
   limit?: number;

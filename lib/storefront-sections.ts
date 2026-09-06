@@ -66,6 +66,27 @@ export const sectionConfigKind = (
   type: string,
 ): SectionConfigKind | undefined => CONFIG_KIND[type];
 
+/** How a `category-banners` card arranges its photograph against its copy. */
+export type SectionCardShape = "stacked" | "split";
+
+/**
+ * The promo card's composition, with the unset case decided in ONE place.
+ *
+ * Only an explicit `split` moves the picture beside the copy. Anything else —
+ * unset, null, a value from an older payload — is a shop that has never been
+ * asked, and it draws the stacked card every row drew before the choice
+ * existed. The same rule `resolveHomeCollections` follows, for the same reason:
+ * flipping the fallback would restyle every existing homepage without its owner
+ * touching anything.
+ *
+ * Shared because the storefront and the editor must not disagree about what
+ * "unset" looks like — the editor's selected pill and the rendered card are the
+ * same answer shown twice.
+ */
+export const resolveCardShape = (
+  config: { cardShape?: string | null } | null | undefined,
+): SectionCardShape => (config?.cardShape === "split" ? "split" : "stacked");
+
 /**
  * Does this section earn a catalogue fetch? Only a product row does — which is
  * what `configuredSections` walks. A tag or promo-card row renders from data

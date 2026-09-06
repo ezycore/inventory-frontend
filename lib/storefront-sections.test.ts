@@ -13,6 +13,7 @@ import {
   configuredSections,
   findSectionCategory,
   isConfigurableSection,
+  resolveCardShape,
   sectionConfigKind,
   sectionQuery,
   sectionSignature,
@@ -225,5 +226,34 @@ describe("sectionConfigKind", () => {
     expect(isConfigurableSection("featured-grid")).toBe(true);
     expect(isConfigurableSection("tag-chips")).toBe(false);
     expect(isConfigurableSection("category-banners")).toBe(false);
+  });
+});
+
+/**
+ * The promo card's composition, and specifically what "not chosen" means.
+ *
+ * The storefront and the editor both read this, and the whole reason it is a
+ * function rather than an `=== "split"` at each end is that they must not
+ * disagree about the fallback — the editor's selected pill and the rendered
+ * card are one answer shown twice.
+ */
+describe("resolveCardShape", () => {
+  it("falls back to the card every row drew before the choice existed", () => {
+    expect(resolveCardShape(undefined)).toBe("stacked");
+    expect(resolveCardShape(null)).toBe("stacked");
+    expect(resolveCardShape({})).toBe("stacked");
+  });
+
+  it("moves the picture only on an explicit split", () => {
+    expect(resolveCardShape({ cardShape: "split" })).toBe("split");
+    expect(resolveCardShape({ cardShape: "stacked" })).toBe("stacked");
+  });
+
+  // A value from an older payload, a hand-written API call, or a field that
+  // survived a rename. Anything unrecognised is a shop that has not chosen, and
+  // must land on the default rather than on an empty class name.
+  it("treats an unrecognised value as not chosen", () => {
+    expect(resolveCardShape({ cardShape: "beside" })).toBe("stacked");
+    expect(resolveCardShape({ cardShape: null })).toBe("stacked");
   });
 });

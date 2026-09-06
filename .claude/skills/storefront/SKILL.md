@@ -704,6 +704,47 @@ line, a button.
   configurable ones; `tag-chips` and `category-banners` are repeatable now, and both name themselves
   in the editor list after what they hold rather than after their section type.
 
+#### `cardShape` — photo on top, or photo beside (2026-09-07)
+
+`sectionConfig[].cardShape: "stacked" | "split"`, unset ⇒ `stacked`. Read through
+`resolveCardShape` (`lib/storefront-sections.ts`), never compared inline — the storefront card and
+the editor's selected pill are one answer shown twice and must not disagree about the fallback.
+
+- ⚠ **The merchant asked for a SIZE and the answer was a SHAPE.** The request arrives as "my two
+  categories look tiny, I can't control the size" — and a width control is the wrong answer to it.
+  How wide a card is was already decided by how many collections were picked (two fill half the row
+  each, three fill a third), which is also how the reference layouts merchants point at work. What
+  was missing was where the picture goes. Reach for this distinction before adding a dimension to
+  anything here: if the count already sets the size, the gap is a composition.
+- ⚠ **A merchant showing this complaint is usually on the wrong section.** `category-tiles` caps its
+  track at 148px *by design* — it is wayfinding — so two categories there will always be a small
+  centred island under a full-width hero, and no setting on it changes that. Move them to
+  `category-banners`; do not widen the tiles. (The tile at that width is a 1:1 photo with the name
+  under it, so half a 1200px page would render a 590px square.)
+- ⚠ **`split` exists only inside the `min-width: 680px` block, and that is the enforcement.** A phone
+  renders the stacked card whatever is stored, because no rule outside that block mentions `--split`
+  — there is no JS check and no viewport read, which there could not be on a server-rendered page.
+  Half a 390px card is ~170px a column and carries neither the picture nor the sentence. The editor
+  **states** this ("on a phone these always stack one per row") rather than leaving the merchant to
+  set it, check the phone preview, and read the fallback as the setting being broken.
+- **No mobile override, deliberately.** Add one only if merchants actually ask for a 2-up phone row —
+  a row in `docs/plan/storefront-design-requests.md`, not a hunch.
+- **The photo's aspect ratio is `--sf-bc-ratio`, set in CSS, referenced inline.** `Media` writes
+  `aspect-ratio` inline from its `ratio` prop, so a class could never beat it; passing
+  `style={{ aspectRatio: "var(--sf-bc-ratio)" }}` is what lets a breakpoint reach inside. This is
+  **not** the banned inline-var pattern — the component writes the *reference*, the stylesheet owns
+  the *value*, so media queries still decide (16:9 stacked, 4:3 split).
+- **Clearing back to `stacked` drops the field**, and drops the whole config entry when nothing else
+  is on the row — same rule the collection picker follows. A stored `"stacked"` would put that row
+  outside any future change to what the default means.
+- **The button is a real button in both shapes** (`--primary` fill, `--on-primary` ink), not the
+  arrow link a product row ends with. That link is a navigation affordance beside a heading; this is
+  the call to action of an advertisement.
+- ⚠ **Four layers in one change, `organization.dto.ts` included.** `tagIds` sat on the model and the
+  validator for weeks while missing from the DTO — in `API_CONTRACT_MODE=enforce` that deletes the
+  field from the response and the editor redraws the row as unconfigured. Verified here by parsing a
+  payload through the validator *and* the DTO before shipping.
+
 ### Per-section mobile visibility (2026-09-06)
 
 `homepageSections[].showOnDesktop` / `showOnMobile`. **Both unset ⇒ everywhere**, so no existing shop

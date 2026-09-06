@@ -1013,6 +1013,19 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   grid-template-columns: 1fr;
 }
 .sf-banner-card {
+  /* The photograph's aspect box, as a TOKEN the stylesheet owns rather than a
+     number the component passes.
+
+     ⚠ This is the one inline-var shape that is safe, and it is worth being
+     clear about why, because the note at the top of this file forbids the other
+     one. The banned pattern is a component writing a VALUE inline
+     (`--gap: 8px`), which outranks every media query and freezes the phone.
+     Here the component writes only the REFERENCE —
+     `aspect-ratio: var(--sf-bc-ratio)` — and these rules own the value, so the
+     breakpoint still decides. `Media` sets `aspect-ratio` inline from its
+     `ratio` prop, so a class alone could never win; this is how a breakpoint
+     reaches inside it at all. */
+  --sf-bc-ratio: 16 / 9;
   display: block;
   overflow: hidden;
   color: inherit;
@@ -1021,6 +1034,13 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 .sf-banner-card:hover {
   border-color: var(--border-strong) !important;
+}
+/* The copy block. In CSS rather than inline on the component because the split
+   card wants its own padding at its own breakpoint, and an inline value cannot
+   be reached by a media query — the rule this file opens with. */
+.sf-banner-body {
+  display: block;
+  padding: 14px 16px 16px;
 }
 /* Two lines, then an ellipsis. The merchant writes this once and it is printed
    at four different widths across this block's breakpoints, so a long line has
@@ -1039,6 +1059,43 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 @media (min-width: 680px) {
   .sf-banner-row {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  /* ---- The `split` card: photograph BESIDE the copy ----
+     A composition, not a size. How wide a card is was already answered by how
+     many collections the merchant picked (`auto-fit` above); what was missing
+     was where the picture goes, which is a question about the merchant's own
+     pictures rather than about their theme.
+
+     ⚠ **Deliberately inside the breakpoint, with no phone counterpart.** Split
+     at 390px is two ~170px columns, and neither the photograph nor the sentence
+     survives that — so a phone renders the stacked card whatever this is set
+     to, by the plain fact that no rule outside this block mentions `--split`.
+     That is the same reasoning the section's own one-card-per-row premise is
+     built on, and it is why the editor says "on a phone these always stack"
+     rather than leaving the merchant to discover it. */
+  .sf-banner-card--split {
+    --sf-bc-ratio: 4 / 3;
+    display: grid;
+    /* The copy takes the larger share. A promo card's photograph is the hook
+       and its sentence is the pitch, and an even split leaves the pitch
+       wrapping to four lines while the hook has room to spare. */
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+  }
+  /* Whichever child the photo branch produced — `Media` returns a bare `<img>`
+     for `cover` and a wrapping `<div>` for `canvas`, so this cannot name an
+     element. It fills the card's height when the copy is the taller of the two,
+     rather than floating in a band of card colour. */
+  .sf-banner-card--split > :first-child {
+    align-self: stretch;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sf-banner-card--split .sf-banner-body {
+    /* Its own padding, because the stacked card's is tuned to sit under a
+       photograph and this one sits beside it. */
+    padding: clamp(14px, 2vw, 22px) clamp(16px, 2.2vw, 26px);
   }
 }
 

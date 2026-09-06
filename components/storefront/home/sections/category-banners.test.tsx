@@ -51,7 +51,7 @@ const withClient = (ui: React.ReactElement) =>
 
 /** Only the props `CategoryBanners` reads; the rest of `SectionProps` is unused. */
 const renderBanners = (
-  config?: { key: string; categoryIds?: string[] },
+  config?: { key: string; categoryIds?: string[]; cardShape?: "stacked" | "split" },
   categories: CatalogCategory[] = CATEGORIES,
 ) =>
   withClient(
@@ -111,5 +111,41 @@ describe("CategoryBanners", () => {
   it("links each card at its own collection", () => {
     renderBanners({ key: "k", categoryIds: ["b"] });
     expect(screen.getByRole("link")).toHaveAttribute("href", "/devices");
+  });
+
+  /* ---- `cardShape` ----
+     The class is the whole contract between this component and the stylesheet,
+     and it is the only half of the feature testable here: whether `split`
+     actually puts the photograph beside the copy is decided by a `min-width`
+     rule, and jsdom applies no stylesheet. So these pin what the component
+     promises, and the phone half is verified in a browser (see the QA doc). */
+
+  it("draws the stacked card when the merchant has never chosen", () => {
+    renderBanners({ key: "k", categoryIds: ["b"] });
+    expect(screen.getByRole("link").className).not.toContain("sf-banner-card--split");
+  });
+
+  it("draws the split card when the merchant chose it", () => {
+    renderBanners({ key: "k", categoryIds: ["b"], cardShape: "split" });
+    expect(screen.getByRole("link").className).toContain("sf-banner-card--split");
+  });
+
+  // Only an explicit `split` moves the picture. A stored `"stacked"` — which
+  // the editor never writes, but an older document or a direct API call might —
+  // must land on the same card as unset, not on some third thing.
+  it("treats a stored stacked value as the default card", () => {
+    renderBanners({ key: "k", categoryIds: ["b"], cardShape: "stacked" });
+    expect(screen.getByRole("link").className).not.toContain("sf-banner-card--split");
+  });
+
+  // The shape is a look, not a pick: a merchant may choose it before curating,
+  // and the block still has to render its fallback collections.
+  it("applies the shape to an unpicked block", () => {
+    renderBanners({ key: "k", cardShape: "split" });
+    const cards = screen.getAllByRole("link");
+    expect(cards).toHaveLength(2);
+    cards.forEach((card) =>
+      expect(card.className).toContain("sf-banner-card--split"),
+    );
   });
 });
