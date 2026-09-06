@@ -91,10 +91,16 @@ export function useHeroRotation(count: number) {
     onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
       if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
       const target = e.target;
-      if (
-        target instanceof Element &&
-        target.closest("a, button, input, select, textarea, [role='button']")
-      ) {
+      const control =
+        target instanceof Element
+          ? target.closest("a, button, input, select, textarea, [role='button']")
+          : null;
+      // The whole-slide link (`HeroSlideLink`) matches that selector but covers
+      // the entire slide, so treating it as a control would disable swipe on
+      // exactly the slides a shopper is most likely to swipe. It is the slide,
+      // not a target within it: let the drag start, and let the
+      // `suppressClickUntil` guard below decide whether the release navigates.
+      if (control && !control.hasAttribute("data-hero-slide-link")) {
         // Interactive descendants own an ordinary press. Capturing it on the
         // carousel retargets the eventual click and makes dots/CTAs look inert.
         suppressClickUntil.current = 0;
