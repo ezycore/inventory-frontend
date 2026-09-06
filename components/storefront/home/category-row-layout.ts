@@ -124,6 +124,12 @@ export function categoryTileRowLayout(
   const variables = {
     "--tile-min": `${tileMin}px`,
     "--tile-max": `${tileMax}px`,
+    /* The PHONE column count, emitted whether or not the merchant set a desktop
+       one — the two are independent settings and the phone rule reads only this
+       (see `.sf-cat-tiles` in storefront.css). Sent as a reference the
+       stylesheet resolves, never as a resolved width, which is the rule that
+       keeps a breakpoint able to overrule it. */
+    "--sf-ct-mcols": row.mobileColumns,
   } as CSSProperties;
 
   if (row.layout === "strip") {

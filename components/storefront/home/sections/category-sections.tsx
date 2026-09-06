@@ -412,14 +412,20 @@ export function CategoryTiles(props: SectionProps) {
  * depends on the merchant's own pictures, not on their theme, so it is theirs
  * to answer — the same argument `templates.categoryTiles` settles for tiles.
  *
- * ⚠ `split` applies from the tablet breakpoint up. **A phone always draws the
- * stacked card**, which is the one-card-per-row premise above applied one level
- * down: half of a 390px card is ~170px per column, and a photograph and a
- * sentence sharing that carries neither. There is no mobile override and
- * deliberately no control for one — the editor states the behaviour instead, so
- * a merchant is told rather than left to discover it. Enforced entirely by
- * `storefront.css` mentioning `--split` only inside its `min-width: 680px`
- * block, so this component never asks about a viewport it cannot see.
+ * ⚠ `split` draws a DIFFERENT card on a phone, not the same one narrower. Even
+ * columns need a full row to divide — half of a 390px card is ~170px each and
+ * carries neither the photograph nor the sentence — so the phone runs the
+ * picture as a thumbnail down the side (~30%, capped) with the copy taking the
+ * rest. That shipped after the setting was reported as broken on a phone, which
+ * it effectively was: the panel offered a choice that changed nothing on the
+ * device carrying nearly all of this platform's traffic. It also gives the
+ * section its only real answer to length — a stacked card is a 16:9 photograph
+ * plus copy plus a button, so two of them are the phone's whole home page.
+ *
+ * Both compositions live entirely in `storefront.css` (`.sf-banner-card--split`
+ * appears in a `max-width: 679px` block and a `min-width: 680px` one), so this
+ * component never asks about a viewport it cannot see — it sets the class and
+ * the ratio VARIABLE, and the breakpoint decides the value.
  *
  * Renders nothing without categories, like every section in this file.
  */

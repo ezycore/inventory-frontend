@@ -162,6 +162,20 @@ export interface StoreHomeCollections {
   layout?: "strip" | "grid";
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
   columns?: number;
+  /**
+   * Columns per row in `grid` **on a phone** (2–4). Unset ⇒ 2, which is what
+   * every phone drew before this existed.
+   *
+   * Its own number rather than something derived from `columns`: a desktop row
+   * divides a 1200px page and a phone row divides ~360px, so a merchant with
+   * fourteen departments wants four across on a phone while a merchant with two
+   * wants them big. It also caps lower — six 48px tracks on a phone are below
+   * the touch target the tile has to be.
+   *
+   * ⚠ Read by the `category-tiles` section too. Both category grids on the home
+   * page take their layout from this object.
+   */
+  mobileColumns?: number;
   align?: "left" | "center" | "right";
   /**
    * `false` draws the row as pictures only. Honored ONLY when every listed

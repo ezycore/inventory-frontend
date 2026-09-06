@@ -92,12 +92,20 @@ describe("CategoryRowConfig — card shape", () => {
     expect(onChange).toHaveBeenCalledWith({ cardShape: "split" });
   });
 
-  // A merchant who picks the split card and then checks the phone preview sees
-  // the stacked one. Told here, or read as the setting being broken.
-  it("says what a phone does with the choice", () => {
+  /* The hint follows the CHOICE, because the two shapes now do different things
+     on a phone — a thumbnail beside the words, or a full-width picture above
+     them. It used to say the phone ignored the setting, which was true and was
+     reported as a bug anyway; a hint that names what will change is the only
+     kind worth pinning. */
+  it("says what a phone does with the stacked card", () => {
     renderPanel();
+    expect(screen.getByText(/full width above the words/i)).toBeInTheDocument();
+  });
+
+  it("says what a phone does with the split card", () => {
+    renderPanel({ key: "k", cardShape: "split" });
     expect(
-      screen.getByText(/on a phone these always stack one per row/i),
+      screen.getByText(/small square beside the words/i),
     ).toBeInTheDocument();
   });
 });

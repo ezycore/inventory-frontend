@@ -478,8 +478,10 @@ export interface ResolvedHomeCollections {
   /** `plain` draws names only; `card` is the picture tile. */
   style: "card" | "plain";
   layout: "strip" | "grid";
-  /** Desktop columns in `grid`. Narrow screens pin to 2 — see storefront.css. */
+  /** Desktop columns in `grid`. A phone reads `mobileColumns` instead. */
   columns: number;
+  /** Phone columns in `grid` (2–4). Both category grids honour it. */
+  mobileColumns: number;
   align: "left" | "center" | "right";
   /**
    * The merchant's PREFERENCE, not the answer. Whether the names actually come
@@ -506,6 +508,11 @@ export function resolveHomeCollections(
     style: raw?.style === "plain" ? "plain" : "card",
     layout: raw?.layout === "grid" ? "grid" : "strip",
     columns: clampInt(raw?.columns, 2, 6, 4),
+    /* Two, the count every phone drew before this setting existed — so a shop
+       that never opens the control is unchanged. The ceiling is four rather
+       than six: a 360px screen minus padding is ~336px, and six tracks of 48px
+       are below the size a tile has to be to be tapped. */
+    mobileColumns: clampInt(raw?.mobileColumns, 2, 4, 2),
     align:
       raw?.align === "center" || raw?.align === "right" ? raw.align : "left",
     // Only an explicit `false` hides the names. Anything else — unset, null, a
