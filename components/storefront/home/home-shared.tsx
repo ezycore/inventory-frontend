@@ -295,6 +295,10 @@ export function HeroSlideLink({
     "data-hero-slide-link": "",
     "aria-label": label,
     tabIndex: reachable ? undefined : -1,
+    // An anchor is draggable by default, so a mouse drag across a link the size
+    // of the hero starts a native link-drag with its ghost image instead of
+    // reading as a press on the photograph.
+    draggable: false,
   };
   return /^https?:\/\//i.test(target) ? (
     <a href={target} target="_blank" rel="noopener noreferrer" {...shared} />
