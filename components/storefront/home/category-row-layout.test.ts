@@ -27,6 +27,7 @@ describe("categoryTileRowLayout", () => {
   it("turns the shared grid setting into bounded tile-grid variables", () => {
     const result = categoryTileRowLayout(
       {
+        style: "card",
         layout: "grid",
         columns: 5,
         align: "right",
@@ -52,6 +53,7 @@ describe("categoryTileRowLayout", () => {
   it("hands a strip nothing but its tile variables", () => {
     const result = categoryTileRowLayout(
       {
+        style: "card",
         layout: "strip",
         columns: 4,
         align: "center",

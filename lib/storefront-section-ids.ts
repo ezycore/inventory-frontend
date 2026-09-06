@@ -1,4 +1,6 @@
 // coding-standard: maintained
+import type { StoreSectionConfig } from "@/lib/storefront-client";
+
 /**
  * The homepage section VOCABULARY — every id, its merchant-facing label, and
  * the default composition each `templates.home` implies.
@@ -30,26 +32,38 @@
  * variant multiplies every future change by the number of themes.
  */
 export const SECTION_IDS = [
-  // Heroes — a page uses one.
+  /* Heroes — a page uses one, and the three are points on ONE axis: how framed.
+     `hero-split` (the middle) and `hero-manifesto` (centred, pictureless)
+     retired on 2026-09-06; alignment is `theme.heroAlign` now, and a merchant
+     choosing between four shades of one decision was not choosing anything.
+     `search-hero` went with them — nothing composed it. */
   "hero-card",
   // Frameless — the copy sits on the page itself. The only hero that lets a
-  // themed ground be seen on the first screen.
+  // themed ground be seen on the first screen, and the one that reads
+  // `theme.heroAlign`.
   "hero-open",
-  "hero-split",
-  "hero-manifesto",
   "hero-fullbleed",
-  "search-hero",
-  // Ways into the catalogue.
+  /* Ways into the catalogue. `category-links` merged into `category-chips` on
+     2026-09-06 — it was the same row drawn quietly, and the treatment is
+     `theme.homeCollections.style` now. */
   "category-chips",
-  "category-links",
   "category-tiles",
-  // Age, not department. A baby shop's primary facet: a parent shops for
-  // "my six-month-old" long before they think about "Feeding".
-  "age-chips",
-  // Product rows.
+  /* A handful of departments advertised as promo cards. NOT a third way to list
+     the catalogue — see the note on `CategoryBanners`: the other two are
+     wayfinding, this one is merchandising, and the difference is what stops it
+     from being a tile row with the type turned up. */
+  "category-banners",
+  /* A row of TAG chips — a facet the merchant chooses. Called `age-chips`
+     until 2026-09-06 and described as a baby-shop section, which is what it was
+     built for and never what it does: it renders `sectionConfig.tagIds` and
+     takes each label off the tag, so the same row is shop-by-brand,
+     shop-by-material or shop-by-occasion. Only the untouched default is an age
+     ladder. Nothing stored used the old id, so the rename was free. */
+  "tag-chips",
+  // Product rows. ONE grid — `latest-grid` and `picks-grid` were the same
+  // component drawing from a different fallback list, which `sectionConfig`
+  // answers per instance. See `product-sections.tsx`.
   "featured-grid",
-  "latest-grid",
-  "picks-grid",
   "product-rail",
   "minimal-picks",
   // Full-width bands.
@@ -64,10 +78,7 @@ export type SectionId = (typeof SECTION_IDS)[number];
 export const HOME_PRIMARY_HEADING_SECTIONS: ReadonlySet<SectionId> = new Set([
   "hero-card",
   "hero-open",
-  "hero-split",
-  "hero-manifesto",
   "hero-fullbleed",
-  "search-hero",
 ]);
 
 /**
@@ -106,6 +117,20 @@ export const isSectionId = (value: unknown): value is SectionId =>
   typeof value === "string" && SECTION_ID_SET.has(value);
 
 /**
+ * One entry in a preset's list: a bare id, or an id carrying the config that
+ * default composition implies.
+ *
+ * The object form is what lets a preset say "a product grid, sourced newest"
+ * rather than needing a `latest-grid` section type to mean the same thing. The
+ * loose structural twin `HomeSectionEntry` in `storefront-templates.ts` is what
+ * the resolver takes — this one is the strict, typo-proof form the vocabulary
+ * itself is written in.
+ */
+export type HomePresetEntry =
+  | SectionId
+  | { type: SectionId; config?: Omit<StoreSectionConfig, "key"> };
+
+/**
  * The section list each legacy `templates.home` value produces.
  *
  * These three reproduce the pre-registry pages exactly, so a store that has
@@ -113,27 +138,55 @@ export const isSectionId = (value: unknown): value is SectionId =>
  * survives as "which default composition", not as a component switch — and a
  * merchant who reorders sections simply stops using the default.
  */
-export const HOME_PRESET_SECTIONS: Record<string, SectionId[]> = {
-  classic: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
-  "hero-split": ["hero-split", "picks-grid"],
-  minimal: ["hero-manifesto", "category-links", "minimal-picks"],
+export const HOME_PRESET_SECTIONS: Record<string, readonly HomePresetEntry[]> = {
+  /* The fourth entry IS the retired `latest-grid`, expressed as what it always
+     was: a second product grid, sourced newest. This is the reason a preset
+     entry can carry config at all — without it, applying Classic would leave
+     every shop with two identical Featured rows. */
+  classic: [
+    "hero-card",
+    "category-chips",
+    "featured-grid",
+    { type: "featured-grid", config: { source: "newest" } },
+  ],
+  /* The KEY is a `templates.home` value, not a section id — one stored document
+     still names it, so it stays and composes the closest surviving hero rather
+     than falling through to Classic and silently restyling that shop. */
+  "hero-split": ["hero-open", "featured-grid"],
+  minimal: ["hero-open", "category-chips", "minimal-picks"],
+};
+
+/**
+ * A catalogue-wide source, as a merchant-facing row name.
+ *
+ * Since the three grids merged, the source is what distinguishes one product
+ * grid from another — so it is what names the row wherever a composition is
+ * listed: the Sections editor, and the theme picker's running order. Shared
+ * rather than written twice, because two lists disagreeing about what the same
+ * row is called is exactly how "campaign strip" went wrong.
+ *
+ * `category` and `manual` are absent on purpose: those rows are named by the
+ * collection or the count they carry, which only the editor has to hand.
+ */
+export const SOURCE_LABELS: Record<string, string> = {
+  featured: "Featured products",
+  newest: "New arrivals",
 };
 
 /** Merchant-facing names for the Customize → Sections editor. */
 export const SECTION_LABELS: Record<SectionId, string> = {
   "hero-card": "Hero card",
   "hero-open": "Open hero (no card)",
-  "hero-split": "Split hero",
-  "hero-manifesto": "Centred statement",
   "hero-fullbleed": "Full-width photo hero",
-  "search-hero": "Search bar hero",
-  "category-chips": "Category chips",
-  "category-links": "Category links",
+  "category-chips": "Collections row",
   "category-tiles": "Category photo tiles",
-  "age-chips": "Shop by age",
-  "featured-grid": "Featured products",
-  "latest-grid": "New arrivals",
-  "picks-grid": "Weekly picks",
+  "category-banners": "Category promo cards",
+  "tag-chips": "Shop by tag",
+  /* The label a row falls back to. A CONFIGURED row is named by its content in
+     the editor (`sectionLabel`) and by its source on the shop (`sectionTitle`,
+     which returns the localized "New arrivals" for a `newest` row) — so this
+     names the unconfigured default, not every instance. */
+  "featured-grid": "Product grid",
   "product-rail": "Product rail (side-scroll)",
   "minimal-picks": "Selected products",
   "trust-band": "Your promises band",

@@ -16,6 +16,7 @@ import { fullImageUrl } from "@/lib/storefront-image";
 import { StoreHome } from "@/components/storefront/store-home";
 import { resolveSections } from "@/lib/storefront-templates";
 import {
+  DEFAULT_SECTION_LIMIT,
   configFor,
   configuredSections,
   sectionSignature,
@@ -100,16 +101,16 @@ export default async function StoreHomePage() {
     // products — they sit at zero stock on purpose and still sell. That is the
     // behaviour this row wants; see the validator's note on why there is only
     // one flag for it.
-    getStoreProducts(slug, { featured: "true", limit: 8, inStock: "1" }),
+    getStoreProducts(slug, { featured: "true", limit: DEFAULT_SECTION_LIMIT, inStock: "1" }),
     // `sort: "newest"` is REQUIRED, not a tidy-up. The catalogue's default sort
     // is `{ storefront.featured: -1, createdAt: -1 }` — featured first — which
     // is right for a collection page and wrong for a row headed "New arrivals":
     // omitting it made this section open with the same products, in the same
     // order, as the Featured row directly above it.
-    getStoreProducts(slug, { limit: 8, sort: "newest", inStock: "1" }),
+    getStoreProducts(slug, { limit: DEFAULT_SECTION_LIMIT, sort: "newest", inStock: "1" }),
     getStoreCategories(slug),
     getStoreCampaigns(slug),
-    // The tag facet, for `age-chips`. Joins the batch rather than being fetched
+    // The tag facet, for `tag-chips`. Joins the batch rather than being fetched
     // inside the section for the same reason everything else here does: the
     // Customize preview can add that section without a round-trip.
     getStoreTags(slug),
@@ -126,19 +127,37 @@ export default async function StoreHomePage() {
   // This runs after `store`/`categories` and cannot be folded into the batch
   // above: which queries to make is read off the merchant's own settings and
   // resolved against their category tree, neither of which exists yet up there.
-  const sections = resolveSections(store, {
+  // `config` rather than `store.sectionConfig`: a shop that has never composed
+  // its own page renders the preset's list, and a preset entry may carry config
+  // of its own. Fetching against the stored list alone would ask the catalogue
+  // for the wrong products on exactly those shops.
+  const { sections, config: sectionConfig } = resolveSections(store, {
     isSectionId,
     presets: HOME_PRESET_SECTIONS,
+    sectionConfig: store.sectionConfig,
   });
   const signatures = new Map<string, Record<string, string | number>>();
-  for (const { key, query } of configuredSections(sections, store, categories ?? [])) {
-    const config = configFor(store.sectionConfig, key);
+  for (const { key, query } of configuredSections(sections, sectionConfig, categories ?? [])) {
+    const config = configFor(sectionConfig, key);
     if (config) signatures.set(sectionSignature(config), query);
   }
+  /* The batch above ALREADY answers two of these. Since the three grids merged,
+     a "New arrivals" row is a product grid sourced `newest` at the default
+     limit — which is the batch's second query exactly — so the default homepage
+     would otherwise fetch the same eight products twice, on a connection where
+     that is the expensive part. Both signatures are derived rather than typed,
+     so a change to either query above cannot silently stop matching. */
+  const alreadyFetched = new Map([
+    [sectionSignature({ key: "", source: "featured" }), featured?.items ?? []],
+    [sectionSignature({ key: "", source: "newest" }), latest?.items ?? []],
+  ]);
   const rows = await Promise.all(
     [...signatures].map(async ([signature, query]) => ({
       signature,
-      items: (await getStoreProducts(slug, query))?.items ?? [],
+      items:
+        alreadyFetched.get(signature) ??
+        (await getStoreProducts(slug, query))?.items ??
+        [],
     })),
   );
 

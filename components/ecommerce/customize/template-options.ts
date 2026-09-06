@@ -1,5 +1,7 @@
 // coding-standard: maintained
 
+import { MOBILE_TEMPLATE_OPTIONS } from "@/lib/storefront-mobile";
+
 /**
  * The catalogue of per-page layout options a merchant can pick in Customize —
  * the admin half of `lib/storefront-templates.ts`, whose `resolveTemplates` maps
@@ -16,6 +18,16 @@ export interface TemplateOption {
 }
 
 export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
+  /**
+   * **Derived, not written.** The mobile templates are a registry
+   * (`lib/storefront-mobile.ts`) whose entries already carry the label and the
+   * sentence, so re-typing them here would be a second list to keep in step —
+   * and the failure mode is a picker offering an id the storefront cannot draw,
+   * or hiding one it can. Adding a mobile template is that one object; this line
+   * picks it up. (The other keys below are written out because their options are
+   * components, not data.)
+   */
+  mobile: [...MOBILE_TEMPLATE_OPTIONS],
   home: [
     { value: "classic", label: "Classic", description: "Hero card, category chips, product rails" },
     { value: "hero-split", label: "Hero Split", description: "Split hero and weekly picks" },

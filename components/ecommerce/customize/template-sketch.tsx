@@ -68,6 +68,33 @@ function TopBar() {
 }
 
 /**
+ * A phone-shaped frame — narrow, centred, with room under it.
+ *
+ * The mobile options are the only ones in the panel describing a 390px screen,
+ * and drawing them in the landscape `Frame` the page layouts use would compare
+ * them at the wrong aspect entirely: "tabs along the bottom" is not a claim you
+ * can make about a wide box.
+ */
+function Phone({ children }: { children?: ReactNode }) {
+  return (
+    <span className="flex h-16 w-full items-center justify-center rounded-md border bg-muted/30 p-1.5">
+      <span className="flex h-full w-8 flex-col gap-0.5 overflow-hidden rounded-[3px] border border-border bg-background p-0.5">
+        {children}
+      </span>
+    </span>
+  );
+}
+
+/** One bar inside a `Phone` — the top chrome, or the tab row. */
+function MRow({ children }: { children?: ReactNode }) {
+  return (
+    <span className="flex flex-none items-center gap-0.5 rounded-[1px] bg-muted-foreground/10 px-0.5 py-[3px]">
+      {children}
+    </span>
+  );
+}
+
+/**
  * Every option that has a wireframe, keyed `<templateKey>:<value>`.
  *
  * ⚠ **A missing key is not a missing decoration — it is an unusable control.**
@@ -77,6 +104,80 @@ function TopBar() {
  * the ones still outstanding.
  */
 const SKETCHES: Record<string, ReactNode> = {
+  /* -------------------------------------------------------------- mobile */
+  /* Drawn as a PHONE, not a page: these are the only options in the panel
+     describing a 390px screen, and a wireframe in the usual landscape frame
+     would say nothing about the one decision that matters — whether the
+     navigation is a bar at the top or a row of tabs under the thumb. `Phone`
+     narrows the frame and `MRow` draws one bar inside it. */
+  "mobile:tabs": (
+    <Phone>
+      <MRow>
+        <span className={cn(BAR, "h-1 w-3")} />
+        <span className="ml-auto flex gap-0.5">
+          <span className={cn(BAR, "h-0.5 w-1.5")} />
+          <span className={cn(BAR, "h-0.5 w-1.5")} />
+        </span>
+      </MRow>
+      <span className={cn(BOX, "h-1.5 w-full flex-none")} />
+      <span className="flex-1" />
+      {/* The whole point of this template: four labelled tabs at the bottom. */}
+      <MRow>
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={cn(CTA, "h-1.5 flex-1")} />
+        ))}
+      </MRow>
+    </Phone>
+  ),
+  "mobile:drawer": (
+    <Phone>
+      <MRow>
+        <span className={cn(BAR, "h-1 w-2")} />
+        <span className={cn(IMG, "mx-auto h-2 w-3.5")} />
+        <span className="flex gap-0.5">
+          <span className={cn(BAR, "h-1 w-1")} />
+          <span className={cn(BAR, "h-1 w-1")} />
+        </span>
+      </MRow>
+      <span className="flex-1" />
+    </Phone>
+  ),
+  "mobile:search": (
+    <Phone>
+      <MRow>
+        <span className={cn(BAR, "h-1 w-1.5")} />
+        <span className={cn(IMG, "h-1.5 w-2")} />
+        <span className={cn(BOX, "h-1.5 flex-1")} />
+        <span className={cn(BAR, "h-1 w-1")} />
+      </MRow>
+      <span className="flex-1" />
+    </Phone>
+  ),
+  "mobile:minimal": (
+    <Phone>
+      <MRow>
+        <span className={cn(IMG, "h-2 w-3.5")} />
+        <span className={cn(BAR, "ml-auto h-1 w-1")} />
+      </MRow>
+      <span className="flex-1" />
+    </Phone>
+  ),
+  "mobile:browse": (
+    <Phone>
+      <MRow>
+        <span className={cn(BAR, "h-1 w-2")} />
+        <span className={cn(IMG, "mx-auto h-2 w-3.5")} />
+        <span className={cn(BAR, "h-1 w-1")} />
+      </MRow>
+      {/* The chip row — the thing this template adds. */}
+      <span className="flex flex-none gap-0.5">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={cn(BOX, "h-1.5 w-3 rounded-full")} />
+        ))}
+      </span>
+      <span className="flex-1" />
+    </Phone>
+  ),
   /* ---------------------------------------------------------------- home */
   "home:classic": (
     <Frame>
@@ -99,25 +200,38 @@ const SKETCHES: Record<string, ReactNode> = {
       </span>
     </Frame>
   ),
+  /* NO border: this layout composes the OPEN hero, whose whole point is that the
+     copy sits on the page rather than in a card. It drew a bordered card until
+     2026-09-06, when `hero-split` (the framed middle of that axis) retired and
+     this preset moved to `hero-open`. A sketch that promises a frame the shop
+     does not draw is the picker lying about what the tile does. */
   "home:hero-split": (
     <Frame>
-      <span className="flex flex-1 overflow-hidden rounded-[3px] border border-border">
-        <span className="flex flex-1 flex-col justify-center gap-1 p-1.5">
+      <span className="flex flex-1 items-center gap-1.5">
+        <span className="flex flex-1 flex-col justify-center gap-1">
           <span className={cn(BAR, "h-1 w-3/4")} />
           <span className={cn(BAR, "h-1 w-1/2")} />
           <span className={cn(CTA, "h-1.5 w-6")} />
         </span>
-        <span className={cn(IMG, "w-2/5 rounded-none")} />
+        <span className={cn(IMG, "w-2/5")} />
       </span>
       <Cards n={3} />
     </Frame>
   ),
+  /* Centred copy, a chip row, then a sparse edit — `hero-open` centred,
+     `category-chips`, `minimal-picks`. The chips and the products were missing
+     from this sketch while the preset composed `hero-manifesto`, which is a
+     hero and nothing else. */
   "home:minimal": (
-    <Frame className="items-center justify-center">
-      <span className={cn(BAR, "h-0.5 w-6")} />
+    <Frame className="items-center">
       <span className={cn(BAR, "h-1.5 w-3/5 bg-muted-foreground/60")} />
       <span className={cn(BAR, "h-1 w-2/5")} />
-      <span className={cn(BAR, "mt-0.5 h-2 w-8 rounded-[2px] bg-muted-foreground/60")} />
+      <span className="flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(BAR, "h-1 w-4")} />
+        ))}
+      </span>
+      <Cards n={3} />
     </Frame>
   ),
 

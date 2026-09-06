@@ -2,7 +2,7 @@
 /**
  * Storefront type families — the `theme.design.font` axis.
  *
- * Six options, each a **pair**: a Latin face chained to a Bengali face chosen to
+ * Eight options, each a **pair**: a Latin face chained to a Bengali face chosen to
  * sit with it. The storefront is EN/BN, so a Latin-only option renders half the
  * market's copy in whatever the browser falls back to — which is the one defect
  * no typecheck, lint or test can see. `storefront.css` builds the actual stack
@@ -18,17 +18,19 @@
  *
  * **Only the default pair preloads.** `next/font` preloads every declared family
  * by default, so without `preload: false` each store would ship preload hints for
- * nine families it isn't using. Non-preloaded faces still self-host and still
+ * a dozen families it isn't using. Non-preloaded faces still self-host and still
  * subset — they are simply fetched when first used, which for the one family a
  * given store actually selected is immediately.
  *
- * Weights are omitted wherever the family is variable (all but Hind Siliguri);
+ * Weights are omitted wherever the family is variable (all but Hind Siliguri and
+ * Tiro Bangla);
  * passing a `weight` array there would force static instances and ship more CSS.
  */
 
 import {
   Anek_Bangla,
   Baloo_Da_2,
+  Bitter,
   Caprasimo,
   Figtree,
   Hind_Siliguri,
@@ -38,7 +40,9 @@ import {
   Noto_Sans_Bengali,
   Noto_Serif_Bengali,
   Nunito,
+  Playfair_Display,
   Space_Grotesk,
+  Tiro_Bangla,
 } from "next/font/google";
 
 // ---- sans (default) — the storefront exactly as it has always looked ----
@@ -142,7 +146,44 @@ const figtree = Figtree({
   preload: false,
 });
 
-// The one non-variable family here, so it declares its weights explicitly.
+// ---- slab — solid and catalogue-like (hardware, parts, wholesale) ----
+// Bitter is a TEXT slab, not a display one, which is the same constraint the
+// `serif` option is written against: this family sets the prices and the form
+// labels as well as the headings.
+const bitter = Bitter({
+  subsets: ["latin"],
+  variable: "--font-bitter",
+  display: "swap",
+  preload: false,
+});
+
+// ---- boutique — an EDITORIAL display serif on the headings, plain text under ----
+// The second option to split `--font-display` from `--font-storefront`, and the
+// proof that `market` was a mechanism rather than a one-off. Playfair is the
+// face that most obviously cannot set a 13px form label — which is exactly why
+// it is confined to h1–h4 here and Figtree carries everything else.
+//
+// Its Bengali partner is Tiro Bangla, the only high-contrast Bengali serif in
+// the set: Noto Serif Bengali beside Playfair reads as a caption next to a
+// headline, and a headline that changes weight when the shopper switches to
+// Bengali is the defect this pairing rule exists to prevent.
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+  preload: false,
+});
+
+const tiroBangla = Tiro_Bangla({
+  subsets: ["bengali"],
+  weight: ["400"],
+  variable: "--font-tiro-bangla",
+  display: "swap",
+  preload: false,
+});
+
+// The one non-variable Bengali TEXT family here, so it declares its weights
+// explicitly.
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali"],
   weight: ["400", "500", "600", "700"],
@@ -169,4 +210,7 @@ export const STOREFRONT_FONT_VARS = [
   hindSiliguri.variable,
   caprasimo.variable,
   figtree.variable,
+  bitter.variable,
+  playfair.variable,
+  tiroBangla.variable,
 ].join(" ");

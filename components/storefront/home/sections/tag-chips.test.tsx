@@ -1,6 +1,6 @@
 // coding-standard: maintained
 /**
- * `age-chips` — which tags it shows, and in what order.
+ * `tag-chips` — which tags it shows, and in what order.
  *
  * Two things are pinned here, and the second is the reason the section was
  * rewritten: **configured tag ids beat name matching**, so a merchant who
@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   AGE_BANDS,
-  AgeChips,
+  TagChips,
 } from "@/components/storefront/home/sections/category-sections";
 import type { StoreTag } from "@/lib/storefront-client";
 import { I18N } from "@/lib/storefront-i18n";
@@ -29,13 +29,13 @@ const tag = (id: string, name: string): StoreTag => ({
   productCount: 3,
 });
 
-/** Only the props `AgeChips` actually reads; the rest of `SectionProps` is unused. */
+/** Only the props `TagChips` actually reads; the rest of `SectionProps` is unused. */
 const renderChips = (props: {
   tags?: StoreTag[];
   config?: { key: string; tagIds?: string[] };
 }) =>
   render(
-    <AgeChips
+    <TagChips
       base=""
       featured={[]}
       latest={[]}
@@ -50,7 +50,7 @@ const renderChips = (props: {
 const chipTexts = () =>
   screen.getAllByRole("link").map((a) => a.textContent?.trim());
 
-describe("AgeChips", () => {
+describe("TagChips", () => {
   it("mirrors the backend's AGE_BAND_NAMES, in growth order", () => {
     expect([...AGE_BANDS]).toEqual([
       "Newborn",
@@ -76,7 +76,7 @@ describe("AgeChips", () => {
   it("renders configured tags by id, in the merchant's order", () => {
     renderChips({
       tags: [tag("a", "Newborn"), tag("b", "6-12M"), tag("c", "0-3M")],
-      config: { key: "age-chips-0", tagIds: ["b", "c", "a"] },
+      config: { key: "tag-chips-0", tagIds: ["b", "c", "a"] },
     });
     expect(chipTexts()).toEqual(["6-12M", "0-3M", "Newborn"]);
   });
@@ -84,7 +84,7 @@ describe("AgeChips", () => {
   it("keeps renamed and translated tags — the bug this replaced", () => {
     renderChips({
       tags: [tag("a", "0-3 Months"), tag("b", "৬-১২ মাস"), tag("c", "4-5Y")],
-      config: { key: "age-chips-0", tagIds: ["a", "b", "c"] },
+      config: { key: "tag-chips-0", tagIds: ["a", "b", "c"] },
     });
     // None of these match AGE_BANDS; under name matching the row rendered
     // nothing at all.
@@ -94,7 +94,7 @@ describe("AgeChips", () => {
   it("drops a configured tag the store no longer has", () => {
     renderChips({
       tags: [tag("a", "Newborn")],
-      config: { key: "age-chips-0", tagIds: ["a", "deleted"] },
+      config: { key: "tag-chips-0", tagIds: ["a", "deleted"] },
     });
     expect(chipTexts()).toEqual(["Newborn"]);
   });

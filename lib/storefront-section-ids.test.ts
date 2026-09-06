@@ -5,6 +5,7 @@ import {
   SECTION_IDS,
   resolveHomePrimaryHeading,
 } from "@/lib/storefront-section-ids";
+import { sectionInstances } from "@/lib/storefront-templates";
 
 describe("storefront section availability", () => {
   it("does not expose sections backed by invented promotional claims", () => {
@@ -22,7 +23,10 @@ describe("resolveHomePrimaryHeading", () => {
   const sectionsFor = (themeId: string) => {
     const theme = READY_MADE_THEMES.find((candidate) => candidate.id === themeId);
     if (!theme) throw new Error(`Missing theme: ${themeId}`);
-    return theme.sections.map((type, index) => ({ key: `${type}-${index}`, type }));
+    // Minted the way the storefront mints them — a theme entry may be an
+    // object carrying config, where a template literal would key the section
+    // "[object Object]-3".
+    return sectionInstances(theme.sections).sections;
   };
 
   it("keeps the built-in hero heading for Classic and Fresh Market", () => {

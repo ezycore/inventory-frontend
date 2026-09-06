@@ -13,6 +13,8 @@ import {
   configuredSections,
   findSectionCategory,
   isConfigurableSection,
+  resolveCardShape,
+  sectionConfigKind,
   sectionQuery,
   sectionSignature,
   sectionTitle,
@@ -150,7 +152,7 @@ describe("configuredSections", () => {
         { key: "r2", source: "newest" as const },
       ],
     };
-    const out = configuredSections(sections, store, categories);
+    const out = configuredSections(sections, store.sectionConfig, categories);
     // `hero` is not a product section, and `r3` has no config — both skipped.
     expect(out.map((r) => r.key)).toEqual(["r1", "r2"]);
   });
@@ -159,13 +161,13 @@ describe("configuredSections", () => {
     const store = {
       sectionConfig: [{ key: "r1", source: "category" as const, categoryId: "gone" }],
     };
-    expect(configuredSections(sections, store, categories)).toEqual([]);
+    expect(configuredSections(sections, store.sectionConfig, categories)).toEqual([]);
   });
 
   it("returns nothing when the store has no config at all", () => {
     // The untouched store: every section renders its built-in source and the
     // page makes no extra queries.
-    expect(configuredSections(sections, {}, categories)).toEqual([]);
+    expect(configuredSections(sections, undefined, categories)).toEqual([]);
   });
 });
 
@@ -190,5 +192,68 @@ describe("configFor / findSectionCategory / isConfigurableSection", () => {
     // A hero has no products to source, so config would be an empty control.
     expect(isConfigurableSection("hero-card")).toBe(false);
     expect(isConfigurableSection("trust-band")).toBe(false);
+  });
+});
+
+/**
+ * The three config kinds, and the two questions they answer.
+ *
+ * These were two overlapping sets — `CONFIGURABLE` and `TAG_CONFIGURABLE` —
+ * answering "which editor does this section get?" and "does this row earn a
+ * catalogue fetch?" at the same time, and agreeing only by accident. A third
+ * section with a third control is where that would have broken: it would have
+ * been silently treated as a product row by whichever caller reached it first.
+ */
+describe("sectionConfigKind", () => {
+  it("names the control a configurable section gets", () => {
+    expect(sectionConfigKind("featured-grid")).toBe("products");
+    expect(sectionConfigKind("product-rail")).toBe("products");
+    expect(sectionConfigKind("minimal-picks")).toBe("products");
+    expect(sectionConfigKind("tag-chips")).toBe("tags");
+    expect(sectionConfigKind("category-banners")).toBe("categories");
+  });
+
+  it("says nothing about a section that ignores config", () => {
+    expect(sectionConfigKind("hero-card")).toBeUndefined();
+    expect(sectionConfigKind("trust-band")).toBeUndefined();
+    expect(sectionConfigKind("category-tiles")).toBeUndefined();
+  });
+
+  // Only a product row does. A tag or promo-card row renders from data the
+  // homepage already loaded, so listing one here would cost every shop that
+  // composes it a round trip for products it never shows.
+  it("earns a catalogue fetch for product rows only", () => {
+    expect(isConfigurableSection("featured-grid")).toBe(true);
+    expect(isConfigurableSection("tag-chips")).toBe(false);
+    expect(isConfigurableSection("category-banners")).toBe(false);
+  });
+});
+
+/**
+ * The promo card's composition, and specifically what "not chosen" means.
+ *
+ * The storefront and the editor both read this, and the whole reason it is a
+ * function rather than an `=== "split"` at each end is that they must not
+ * disagree about the fallback — the editor's selected pill and the rendered
+ * card are one answer shown twice.
+ */
+describe("resolveCardShape", () => {
+  it("falls back to the card every row drew before the choice existed", () => {
+    expect(resolveCardShape(undefined)).toBe("stacked");
+    expect(resolveCardShape(null)).toBe("stacked");
+    expect(resolveCardShape({})).toBe("stacked");
+  });
+
+  it("moves the picture only on an explicit split", () => {
+    expect(resolveCardShape({ cardShape: "split" })).toBe("split");
+    expect(resolveCardShape({ cardShape: "stacked" })).toBe("stacked");
+  });
+
+  // A value from an older payload, a hand-written API call, or a field that
+  // survived a rename. Anything unrecognised is a shop that has not chosen, and
+  // must land on the default rather than on an empty class name.
+  it("treats an unrecognised value as not chosen", () => {
+    expect(resolveCardShape({ cardShape: "beside" })).toBe("stacked");
+    expect(resolveCardShape({ cardShape: null })).toBe("stacked");
   });
 });

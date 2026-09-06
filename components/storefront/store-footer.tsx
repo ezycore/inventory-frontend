@@ -21,6 +21,7 @@ import {
   RichFooter,
   SimpleFooter,
 } from "@/components/storefront/footer/footer-variants";
+import { logoImageUrl } from "@/lib/storefront-image";
 
 const FOOTER_VARIANTS: readonly string[] = [
   "columns",
@@ -77,7 +78,7 @@ export function StoreFooter({
     store,
     t,
     name: store?.name ?? "Store",
-    logo: logo?.url || logo?.thumbnailUrl,
+    logo: logoImageUrl(logo),
     phone: store?.contact?.phone ?? "",
     // Draft groups win — an empty array is a real draft ("all groups removed"),
     // so this must not collapse to the saved value on falsiness.

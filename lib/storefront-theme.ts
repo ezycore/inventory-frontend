@@ -5,6 +5,8 @@
  * maps to. The merchant picks a preset and may override brand/accent colors.
  */
 
+import { isDarkBackground } from "@/lib/color-contrast";
+
 export interface ThemePreset {
   id: string;
   label: string;
@@ -88,6 +90,12 @@ export const DESIGN_FONTS: DesignOption[] = [
      have a voice in its headlines without setting its prices and form labels in
      a face never drawn below 20px. See the note in `fonts.ts`. */
   { id: "market", label: "Display + text", description: "Bold headline face over plain body text — market, deli, bakery" },
+  { id: "slab", label: "Sturdy slab", description: "Solid, catalogue-like type — hardware, parts, wholesale" },
+  /* The SECOND paired option, and the reason `market` was written as a
+     mechanism rather than an exception: a display serif on the headings over
+     the plain text face. `market`'s display is a fat poster face; this one is
+     high-contrast and quiet, which is the other half of the request. */
+  { id: "boutique", label: "Editorial display", description: "High-contrast headlines over plain text — fashion, jewellery, beauty" },
 ];
 
 /**
@@ -117,6 +125,18 @@ export const DESIGN_SURFACES: DesignOption[] = [
   // wheel. Parchment is the only other warm ground and it is yellow-tan, which
   // reads as bakery paper; this is a pink-neutral that reads as a nursery.
   { id: "nursery", label: "Soft nursery", description: "White cards on a warm blush page — baby, kids, gifts" },
+  // Nursery's structure in the two hue families the catalogue had no entry for.
+  // Both stay low-chroma for the same reason nursery does: the ground is behind
+  // every product photo in the shop, not a decoration on one screen.
+  { id: "sage", label: "Herb garden", description: "White cards on a soft green page — herbal, organic, plants, home care" },
+  { id: "bloom", label: "Petal", description: "White cards on a soft lilac page — beauty, cosmetics, skincare" },
+  // The value end rather than a hue: a page grey enough that a white card reads
+  // as a physical card. `mist` is the same structure two steps lighter and blue,
+  // which is a different answer to "is this shop soft or is it a catalogue".
+  { id: "slate", label: "Grey catalogue", description: "White cards that float on a plain grey page — electronics, hardware, wholesale" },
+  // The one dark ground. See `isDarkSurface` for what a surface being dark
+  // changes beyond these twelve tokens.
+  { id: "midnight", label: "Midnight", description: "A dark shop — pale type on near-black — gadgets, gaming, streetwear" },
 ];
 
 /**
@@ -139,11 +159,34 @@ const SURFACE_SWATCH: Record<string, [string, string, string]> = {
   parchment: ["#f5ead8", "#f9f4ed", "#ebddc5"],
   mist: ["#eef2f5", "#ffffff", "#e2e9ee"],
   nursery: ["#faf3ef", "#ffffff", "#f4e8e2"],
+  sage: ["#eef3ec", "#ffffff", "#e2ebdf"],
+  bloom: ["#f3f0f7", "#ffffff", "#e9e4f1"],
+  slate: ["#dfe3e7", "#ffffff", "#d0d6db"],
+  midnight: ["#0f1115", "#191c22", "#23272f"],
 };
 
 /** The swatch for a surface id, falling back to the built-in look. */
 export const surfaceSwatch = (id: string) =>
   SURFACE_SWATCH[id] ?? SURFACE_SWATCH.default;
+
+/**
+ * Is this surface a DARK ground?
+ *
+ * Four things follow the ground rather than the shopper's light/dark toggle, and
+ * all four are silent when missed: the brand colour must use its lifted variant
+ * or a navy button vanishes on near-black; the accent likewise; the skeleton
+ * shimmer is a white sweep that glares; and `color-scheme` decides whether the
+ * browser draws scrollbars and native controls light or dark. `designAttrs`
+ * stamps one `data-ground="dark"` attribute for all four, so `storefront.css`
+ * asks the question once per concern instead of listing surface ids in four
+ * places — the fifth of which would be forgotten.
+ *
+ * **Derived from the swatch, not a second table.** The swatch's first entry IS
+ * the page colour, so a surface cannot be dark in the CSS and light here: the
+ * answer comes from the same literal the merchant is shown.
+ */
+export const isDarkSurface = (id: string) =>
+  isDarkBackground(surfaceSwatch(id)[0]);
 
 /** Heading size ramp. Drives `--h1`/`--h1m`/`--h2`. */
 export const DESIGN_SCALES: DesignOption[] = [
@@ -273,5 +316,8 @@ export function designAttrs(design: StoreDesign) {
     "data-density": omitDefault(design.density, DEFAULT_DESIGN.density),
     "data-radius": omitDefault(design.radius, DEFAULT_DESIGN.radius),
     "data-width": omitDefault(design.width, DEFAULT_DESIGN.width),
+    /* DERIVED, not an axis the merchant sets — see `isDarkSurface`. Omitted on
+       a light ground, so the default shop stamps nothing here either. */
+    "data-ground": isDarkSurface(design.surface) ? "dark" : undefined,
   };
 }

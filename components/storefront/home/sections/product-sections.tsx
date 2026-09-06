@@ -19,20 +19,37 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /**
- * The product-row family. Four ways to show the same products, and the choice
- * says more about a shop than its colour does: a dense grid reads as a
- * supermarket, a horizontal rail as a convenience app, a bare grid as a boutique.
+ * The product-row family: a grid, a rail and a bare boutique edit. The choice
+ * says more about a shop than its colour does — a grid reads as the catalogue,
+ * a horizontal rail as a convenience app, a bare grid as a boutique.
+ *
+ * **Three grids became one on 2026-09-06.** `featured-grid`, `latest-grid` and
+ * `picks-grid` all called this same `Grid` through this same `sectionRow`; what
+ * separated them was which fallback list they drew from — and `sectionConfig`
+ * answered that for every row the moment it shipped. What was left was a
+ * density flag `templates.productCard` overrides for three of its four values.
+ * So the section type was carrying a decision the merchant makes elsewhere, and
+ * the picker asked them to choose a component when they meant to choose
+ * products. One grid, pointed by its source.
  *
  * Every one renders nothing when its list is empty — a reordered page must not
  * grow holes.
  */
 
-/** Featured, full cards. */
-export function FeaturedGrid(props: SectionProps) {
+/**
+ * A grid of products under a heading — the one product row a merchant points
+ * wherever they want it.
+ *
+ * Unconfigured it shows the store's featured products, which is what
+ * `featured-grid` has always done, so a page that has never been configured is
+ * unchanged. A row sourced `newest` says "New arrivals" in the shopper's
+ * language (`sectionTitle`), which is the whole of what the retired
+ * `latest-grid` contributed beyond its density.
+ */
+export function ProductGrid(props: SectionProps) {
   const { currency, featured, t } = props;
   const row = sectionRow(props, { products: featured, title: t.featured });
   if (!row.products.length) return null;
-  const products = gridProducts(row);
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
       <SectionTitle
@@ -40,47 +57,7 @@ export function FeaturedGrid(props: SectionProps) {
       >
         {row.title}
       </SectionTitle>
-      <Grid products={products} currency={currency} variant="full" />
-    </div>
-  );
-}
-
-/** New arrivals, dense cards. */
-export function LatestGrid(props: SectionProps) {
-  const { currency, latest, t } = props;
-  const row = sectionRow(props, { products: latest, title: t.newArrivals });
-  if (!row.products.length) return null;
-  const products = gridProducts(row);
-  return (
-    <div style={{ ...wrap, padding: "22px var(--pad) 10px" }}>
-      <SectionTitle
-        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
-      >
-        {row.title}
-      </SectionTitle>
-      <Grid products={products} currency={currency} variant="compact" />
-    </div>
-  );
-}
-
-/** "Weekly picks" — featured products under the edit's own heading. */
-export function PicksGrid(props: SectionProps) {
-  const { currency, featured, t } = props;
-  const row = sectionRow(props, { products: featured, title: t.weeklyPicks });
-  if (!row.products.length) return null;
-  return (
-    <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-      <SectionTitle
-        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
-      >
-        {row.title}
-      </SectionTitle>
-      {/* `row.products`, NOT `featured`. This read `featured` until 2026-09-06,
-          which meant a CONFIGURED Weekly picks row drew its heading and its
-          "View all" from the merchant's chosen collection and its products from
-          the store-wide featured list — and `picks-grid` is in `CONFIGURABLE`,
-          so the page had already paid for a query whose result was discarded. */}
-      <Grid products={gridProducts(row)} currency={currency} variant="compact" />
+      <Grid products={gridProducts(row)} currency={currency} />
     </div>
   );
 }

@@ -18,7 +18,7 @@ const draftFor = (
   const theme = getReadyMadeTheme(themeId)!;
   return {
     templates: { ...theme.templates },
-    homepageSections: sectionInstances(theme.sections),
+    homepageSections: sectionInstances(theme.sections).sections,
     homeCollections: {},
     sectionConfig: [],
     collections,

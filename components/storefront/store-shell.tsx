@@ -25,9 +25,13 @@ import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
 import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
 import { shellCrumbLabel } from "@/lib/storefront-shell-breadcrumb";
-import { ShellBottomNav } from "@/components/storefront/shells/shell-parts";
+import {
+  ShellBottomNav,
+  ShellMobileOverlays,
+} from "@/components/storefront/shells/shell-parts";
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
 import { RailShell } from "@/components/storefront/shells/rail-shell";
+import { useHasMobileTabs } from "@/components/storefront/mobile/mobile-chrome";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -77,6 +81,11 @@ export function StoreShell({
   // would not run on every render.
   const previewShell = useSfPreview((s) => s.shell);
   const logo = useSfPreviewImage("logo", store?.logo);
+  /* Whether this shop's mobile template ends in a bottom tab bar. Declared up
+     here with the other hooks for the same reason `previewShell` is — the
+     `isError` early return below is a conditional, and a hook after it would not
+     run on every render. */
+  const hasMobileTabs = useHasMobileTabs(store);
 
   /* The admin's Collections panel streams its unsaved draft; prefer it so
      reordering/hiding previews live instead of waiting on a save + refetch.
@@ -200,6 +209,15 @@ export function StoreShell({
         className="sf-shell"
         data-brand={brandColor ? "" : undefined}
         data-accent={accent ? "" : undefined}
+        /* Reserves — or releases — the 56px the fixed tab bar stands in.
+           `--sf-bottom-nav-h` is not decoration: the sticky buy bar, the contact
+           launcher and the page's own bottom padding all stack on it
+           (storefront.css), so a template with no tab bar has to zero it in ONE
+           place or every one of those floats 56px above nothing. An attribute
+           rather than an inline var deliberately — the var is redefined inside a
+           media query, and an inline style would outrank it and freeze the
+           reservation on at desktop widths too. */
+        data-sf-tabs={hasMobileTabs ? "1" : "0"}
         {...designAttributes}
         style={{
           ...shellVars,
@@ -227,8 +245,10 @@ export function StoreShell({
         {/* Mobile bottom tab bar (hidden ≥680px). Outside the shell because
             every skeleton wants it in the same place — pinned to the viewport,
             not to a layout. */}
-        <ShellBottomNav
-          slug={slug}
+        <ShellBottomNav slug={slug} base={base} store={store} />
+
+        {/* The menu panel + search takeover, mounted once for every template. */}
+        <ShellMobileOverlays
           base={base}
           store={store}
           categories={categories ?? []}

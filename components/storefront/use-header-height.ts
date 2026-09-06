@@ -14,9 +14,11 @@ import { useEffect, type RefObject } from "react";
  * shopper scrolls.
  *
  * MEASURED, not a constant, for a reason no default-size screenshot shows: the
- * storefront has **five** header templates of different heights, the mobile bar
- * is a different height again, and both grow with the shopper's font size. A
- * number that is right for Classic on desktop is wrong for four other themes.
+ * storefront has **six** desktop header templates of different heights and
+ * **five mobile ones** (`templates.mobile`) that range from a single 56px bar to
+ * a logo row over a search field over a chip row — and every one of them grows
+ * with the shopper's font size. A number that is right for Classic on desktop is
+ * wrong for everything else.
  *
  * Takes the two bars separately rather than an array because that is what
  * exists — `StoreHeader` renders exactly one of each, switched by

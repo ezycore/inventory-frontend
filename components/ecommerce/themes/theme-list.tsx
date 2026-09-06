@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import type { ReadyMadeTheme } from "@/lib/storefront-themes";
 import { surfaceSwatch } from "@/lib/storefront-theme";
 import { cn } from "@/ui/lib/utils";
@@ -24,6 +24,7 @@ export function ThemeList({
   themes,
   selectedId,
   activeId,
+  recommendedId,
   modified,
   onSelect,
 }: {
@@ -31,6 +32,12 @@ export function ThemeList({
   selectedId: string;
   /** The theme the shop is actually running — marked, never auto-selected. */
   activeId?: string;
+  /**
+   * The theme drawn for the trade this merchant signed up as. Marked so the
+   * choice starts as "this one, unless you disagree" rather than "judge five" —
+   * which is the version of the question a non-designer can answer.
+   */
+  recommendedId?: string;
   /** Active, but the merchant has since changed something the theme set. */
   modified: boolean;
   onSelect: (id: string) => void;
@@ -44,6 +51,9 @@ export function ThemeList({
       {themes.map((theme) => {
         const selected = theme.id === selectedId;
         const live = theme.id === activeId;
+        // Only until it is running: once a theme is live, "Live" is the more
+        // useful thing to say and two badges on one row is neither.
+        const suggested = !live && theme.id === recommendedId;
         const [page, , panel] = surfaceSwatch(theme.design.surface);
         return (
           <button
@@ -82,6 +92,11 @@ export function ThemeList({
                   <span className="flex flex-none items-center gap-0.5 rounded-full bg-primary/15 px-1.5 py-px text-[10px] font-semibold text-primary">
                     <Check className="h-2.5 w-2.5" />
                     {modified ? "Live · edited" : "Live"}
+                  </span>
+                ) : suggested ? (
+                  <span className="flex flex-none items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-px text-[10px] font-semibold text-amber-700 dark:text-amber-500">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    For your shop
                   </span>
                 ) : null}
               </span>
