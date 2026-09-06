@@ -21,6 +21,15 @@ every store; **the host picks the store**.
   fully self-serve: add domain in settings → TXT verify → Caddy on-demand cert → live.
   A custom domain serves the SHOP at root — the admin stays on `{slug}.ezycore.com`.
 
+> **A merchant asked for a look you cannot give them? Log it.**
+> [`docs/plan/storefront-design-requests.md`](../../../docs/plan/storefront-design-requests.md) is the
+> register, and the trigger is the sentence *"Customize can't do that"* — write the row in the same
+> message that says it. **Three distinct merchants promotes a request to a candidate setting**; the
+> trade column says whether the answer is a setting (different trades) or a theme (the same one).
+> A request that is not written down at the moment it arrives is lost, and "common across merchants"
+> quietly becomes "whoever asked most recently". The one request this product already had — the promo
+> cards that became `category-banners` — was built with its merchant, trade and date already gone.
+
 > **Paired backend skills — the server rules are NOT duplicated here.** The shopper→order→confirm→Sale
 > pipeline (Shopper ≠ Customer), coupons/campaigns, and the custom-domain lifecycle are owned by the
 > backend:
@@ -128,11 +137,12 @@ reads as two filters at once.
   inline, and **may be near-black — never rely on `var(--primary)` being visible on dark cards**
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
 - **Design tokens (`theme.design`) — the merchant's typeface, ground + rhythm.** Five axes —
-  `font` (6 curated Latin+Bengali pairs), `surface` (`--page/--card/--surface/--text/--border`),
+  `font` (**8** curated Latin+Bengali pairs), `surface` (**8** grounds: `--page/--card/--surface/--text/--border`),
   `scale` (`--h1/--h1m/--h2`), `density`
   (`--pad/--gap/--cols`) and `radius` (`--radius-sm/md/lg`) — catalogued with their resolver in `lib/storefront-theme.ts`
   (`DESIGN_FONTS`/`DESIGN_SURFACES`/`DESIGN_SCALES`/`DESIGN_DENSITIES`, `resolveDesign`, `designAttrs`), edited in
-  Customize → **Design**, and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
+  Customize → **Look** (Brand and Design merged into it on 2026-09-06 — see `parts/look-part.tsx`),
+  and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
   `storefront.css`. Six rules, and the first two are the ones that bite:
   - **Never stamp these as inline style vars.** `--pad/--gap/--cols/--h1/--h1m/--h2` are redefined
     at `680px` and `1000px`; an inline var outranks every media query and freezes a themed store at
@@ -175,6 +185,23 @@ reads as two filters at once.
     four typefaces and four page skeletons and still looked related, because all four were white
     cards on a near-white page — the first thing a shopper's eye registers, and the last thing any
     other axis could touch.
+    ⚠ **A new surface must be distinguishable in its three-colour SWATCH**, which is what the merchant
+    actually picks from — `SURFACE_SWATCH` in `lib/storefront-theme.ts`, a hand-copied literal because
+    the admin is not inside `.sf-root`. An option whose difference is ink weight or hairline strength
+    is invisible there and is not an option. That test is why the catalogue stopped at eight.
+    ⚠ **There is no white-cards-on-DARK-ground surface, and it is not an oversight.** `--text` is one
+    token spent on both the page and the card, so a dark page under white cards has no readable ink to
+    pick; it needs a second ink token before it can be expressed.
+    ⚠ **A DARK ground changes four things beyond the twelve tokens** — the brand and the accent must
+    take their *lifted* variants (`--sf-brand-dark`, already on the shell), the skeleton shimmer must
+    not be a white sweep, and `color-scheme` must go dark. All four were keyed on `[data-theme="dark"]`,
+    which is the **shopper's toggle** and the wrong question for a shop that is dark in both themes.
+    They hang off one `data-ground="dark"` attribute, stamped by `designAttrs` and **derived from the
+    swatch** (`isDarkSurface`) so it cannot disagree with the CSS. Adding another dark palette needs no
+    new selector; adding a fifth concern needs exactly one.
+    ⚠ **`lib/storefront-surface-css.test.ts` walks the stylesheet** and will fail a surface missing any
+    of the above — twelve tokens light and dark, both `body` rules, a swatch matching the CSS — plus a
+    `var(--font-*)` the font module never declared. Nothing in the TS build can see any of it.
   - ⚠ **`surface` is the ONE axis declared on `.sf-root`, not `.sf-shell`** — keyed off the shell with
     `:has()` (`.sf-root:has(.sf-shell[data-surface="parchment"])`). Every other axis sets tokens only
     its own descendants read, so the shell is the right home for them. `--page` is different:
@@ -630,6 +657,40 @@ a question a merchant can answer."** No migration — no live document used any 
   knows by itself is the age ladder; a generic "Shop by tag" over eight age rungs reads as
   unfinished.
 
+### `category-banners` — promo cards, the thirteenth section (2026-09-06)
+
+The first id added since the vocabulary was cut to twelve, and the only Phase 2 gap with a real
+merchant request behind it: one to four departments as promo cards — photo, name, the merchant's own
+line, a button.
+
+- ⚠ **Answer this before touching either it or `category-tiles`:** tiles are **wayfinding** (every
+  department, small, scannable, sized so a row never outweighs the products), banners are
+  **merchandising** (a handful the merchant chose, drawn large enough to sell). That is why the count
+  is capped at four and the collections are *picked* — a promo block showing all fourteen departments
+  is a tile row with the type turned up. It is also why the description shows here and is suppressed
+  on most tile modes.
+- **`sectionConfig[].categoryIds`, a NEW field beside `categoryId`.** `categoryId` names the one
+  collection a product row draws its products *from*; this names the collections a block *advertises*.
+  Merging them would make two different questions one field. `assertSectionCategories` on the backend
+  sweeps **both** shapes — the promo row carries no `source`, and the old guard keyed on
+  `source === "category"`.
+- **On a phone: one card per row, full width** (`.sf-banner-row`, `auto-fit` only past 680px). The
+  premise is a card big enough to hold a photograph, a sentence and a button; at half a 375px screen
+  it holds none of them. Page length is the cost, and the section's own show-on control is the lever.
+- **Unpicked shows the first two collections, not nothing.** A blank section looks broken in the
+  preview the merchant is staring at, having just added it — the same reason every product row has a
+  built-in source.
+- A pick that no longer resolves is **skipped, never pruned**, matching the hand-picked product row.
+- ⚠ **`CONFIGURABLE` + `TAG_CONFIGURABLE` are now one `sectionConfigKind` map** (`products` | `tags` |
+  `categories`). Two sets were answering "which editor?" and "does this row earn a catalogue fetch?"
+  at the same time and agreeing by accident. `isConfigurableSection` is still the fetch predicate, and
+  is now derived from the kind.
+- ⚠ **A section may be added more than once exactly when its CONFIG can tell two instances apart** —
+  so any section with a `sectionConfigKind`, not just a product row. The picker's predicate was
+  `isConfigurableSection`, which gave the same answer only while product rows were the only
+  configurable ones; `tag-chips` and `category-banners` are repeatable now, and both name themselves
+  in the editor list after what they hold rather than after their section type.
+
 ### Per-section mobile visibility (2026-09-06)
 
 `homepageSections[].showOnDesktop` / `showOnMobile`. **Both unset ⇒ everywhere**, so no existing shop
@@ -1002,14 +1063,18 @@ returns null under `rail`, and the rail is `sf-desktop-only` (verified hidden at
 
 **The composition rule this theme is built on.** With a rail carrying departments and a `clinical`
 header carrying the search, a hero could only repeat one of them — so the theme has **no hero and no
-category section**. Its five sections are the ones the shell cannot say: `trust-row` (promises),
-`deal-strip` (a live campaign), `featured-grid`, `product-rail`, `promo-tiles`. Two constraints ride
-with that and must not be undone:
+category section**. Its four sections are the ones the shell cannot say: `deal-strip` (a live
+campaign), `featured-grid`, `product-rail`, `trust-band` (the promises). Two constraints ride with
+that and must not be undone:
 
-- `trust-row` reads `trustBadges`, so **`trust-band` must never join it** and the footer must not be
-  `rich` — both print the same three promises.
-- The `clinical` header carries the only search, so **no `search-hero`**. The first draft of this
-  theme had both, which is the fifth time this storefront has shipped that class of bug.
+- `trust-band` reads `trustBadges`, so **the footer must not be `rich`** — both print the same three
+  promises.
+- The `clinical` header carries the only search, so nothing in the bundle may print a second one.
+  The first draft of this theme paired it with a search hero, which was the fifth time this
+  storefront shipped that class of bug. (That section, `search-hero`, retired on 2026-09-06.)
+
+*(This passage named `trust-row` and `promo-tiles` until 2026-09-06 — two ids the registry never
+held and no component ever answered to. The bundle above is what the theme actually composes.)*
 
 `TrustRow`'s icon moved from a bare `--primary` glyph to `--accent` on an `--accent-soft` disc.
 Reassurance is what a second colour is *for*; a shop whose promises are painted in the same hue as its
@@ -1219,21 +1284,50 @@ to "restore" the old look: a per-tile description is read at ~95px inside the
 ~1,870px and Product cards to ~1,240px before this split. `SegmentedField` and
 `SwatchField` (`ui/components/`) follow the same rule.
 
-The Design part is the worked example: six axes in **one** `PartGroup` slot
-(`PartField`, not six `PartBlock`s — that alone was 192px of block padding),
-typeface as a described `SimpleSelect`, surface as a `SwatchField`, the four
-ramps as `SegmentedField`s with the glyphs in `parts/design-glyphs.tsx`, and
-corners + page width folded behind **More options** — opened automatically when
-either is already off its default, so the fold never hides a merchant's own answer.
+The **Look** part's `Type and rhythm` block is the worked example: six axes in
+**one** `PartGroup` slot (`PartField`, not six `PartBlock`s — that alone was
+192px of block padding), typeface as a described `SimpleSelect`, palette as a
+`SwatchField`, the four ramps as `SegmentedField`s with the glyphs in
+`parts/design-glyphs.tsx`, and corners + page width folded behind **More
+options** — opened automatically when either is already off its default, so the
+fold never hides a merchant's own answer.
+
+### The Customize rail (2026-09-06)
+
+`Brand` and `Design` merged into **`look`**, and the rail is grouped.
+
+- **Why they merged:** both sat at 12% adoption while parts named after something a merchant can see
+  on their own website sat at 51-67% — and colour lived in *both* (`brandColor`/`accentColor` in one,
+  `surface` in the other), so "how do I change my shop's colours?" had two equally abstract answers.
+  One panel, one row, **no setting added or removed**.
+- **Five groups: Look · Home page · Shop pages · Buying · Site frame.** Group by the *merchant's*
+  question; order **inside** a group by the shopper's journey — announcement bar, campaign strip,
+  hero, sections is the order they appear down the page. The flat list ordered the whole rail that
+  way, which is a good principle serving the wrong reader: a merchant is hunting for one thing.
+- ⚠ **`look` sits ABOVE the groups, not in one of its own.** It is the only part that changes every
+  other one, and a heading called Look over a row called Look reads as a rendering fault.
+- ⚠ **`parts-rail.test.ts` asserts the grouping reaches every `PartId`.** The flat list held them in
+  one array where an omission was visible; split across five, a part that is saved by the payload,
+  tracked by the save bar and rendered nowhere would not be.
+- **`?part=brand` and `?part=design` still resolve** (`RETIRED_PART_IDS` → `look`) — `?part=` is a
+  documented deep link.
+- **`StartHere`** (`parts/start-here.tsx`) heads the panel with the three moves at 5%/5%/12% reach —
+  pick a theme, add a logo, choose a palette — and names the theme drawn for the merchant's trade
+  (`recommendedThemeFor`). It deep-links `?part=look&theme=…`, which stages the theme as an *unsaved*
+  edit rather than navigating away. The store dashboard carries the same prompt
+  (`components/ecommerce/store-look-card.tsx`), because putting the fix behind one more click into the
+  panel nobody opens repeats the failure one level down. Both read `lookProgress`
+  (`lib/storefront-look-progress.ts`) so they can never disagree about what is still outstanding.
 
 **Adding a whole new surface:** extract a `use<Surface>` hook first, then the
 shared blocks, then the layouts — in that order. Writing the layouts first is how
 the logic ends up copied four times. Then wire the key through: backend
 types/validator/model/`organization.dto`, `StoreTemplatesRaw`, `StoreTemplates`,
 `DEFAULT_TEMPLATES`, the `pick()` map, `TEMPLATE_OPTIONS`, `draft-payloads`,
-`preview-bridge`, `use-sf-preview-store` (4 places), `PART_SLICE`, `PARTS` +
-`PART_TEMPLATE_KEY`, and all four theme bundles. The backend stores a loose
-string, so the OpenAPI contract only changes because the DTO gained a field.
+`preview-bridge`, `use-sf-preview-store` (4 places), `PART_SLICE`, the rail's
+`RAIL_GROUPS` + `PART_TEMPLATE_KEY`, and all five theme bundles. The backend
+stores a loose string, so the OpenAPI contract only changes because the DTO
+gained a field.
 
 ### Ready-made themes (Online Store → Themes)
 
@@ -1286,8 +1380,10 @@ consumes resolved names (`"grid4"`); comparing the strings would pass while the 
 ⚠ **Every bundle must open on something.** A homepage whose first block is a grid of category tiles
 reads as a directory, not a shop — it was the first thing the owner said on seeing the build. Each
 bundle's first section is therefore deliberate and is the theme's "banner": `hero-card` (Classic),
-`promo-tiles` (Fresh Market — the offer pair *is* its banner), `trust-band` (Meridian Care — the
-promises are structural in a pharmacy, not a footer afterthought), `editorial-split` (Muslin).
+`hero-open` (Fresh Market — the unframed hero is what lets the parchment ground introduce itself on
+the first screen), `deal-strip` (Meridian Care — a live offer is what a dispensary leads with, and
+the rail already carries the departments), `editorial-split` (Muslin), `hero-fullbleed` (Little
+Steps).
 
 ⚠ **Two sections can print the same merchant content — compose bundles, don't just stack sections.**
 Browser QA (and only browser QA) caught all three:
@@ -1295,14 +1391,17 @@ Browser QA (and only browser QA) caught all three:
   the merchant's three promises appeared twice, a hundred pixels apart. Now `footer: "columns"`.
 - Meridian Care stacked `trust-band` under `search-hero`, which already prints the badges as a tick
   row *inside its own tinted block* — two tinted bands running together, promises written twice.
-  `search-hero` is gone; the band leads the page and the `classic` header carries the search.
+  `search-hero` is gone; `deal-strip` leads the page, the band closes it, and the `clinical` header
+  carries the search.
 - Muslin led with `hero-fullbleed` **and** `editorial-split` — both render the same `banner` image,
   so the merchant's one photograph appeared twice, a screen apart.
 
-⚠ **`meridian-care` and `classic` deliberately share the `classic` header.** A pharmacy shopper
-arrives with a name to type ("Napa", "omeprazole"), so the bar has to carry a real search field, and
-`centered`'s search is an icon. Header uniqueness across the catalogue is a nice-to-have; hiding the
-one control a trade needs is not. Don't "fix" it by switching Meridian to `centered`.
+⚠ **`meridian-care` must keep a header with a REAL search field.** A pharmacy shopper arrives with a
+name to type ("Napa", "omeprazole"), and `centered`'s search is an icon. Header uniqueness across the
+catalogue is a nice-to-have; hiding the one control a trade needs is not — so don't "fix" it by
+switching Meridian to `centered`. (It shared `classic` with the Classic bundle when this was written;
+it is on `clinical` now, which is the same requirement met by a header built entirely around the
+field.)
 
 ⚠ **A theme changes the footer LAYOUT, so check that every layout still draws the merchant's
 words.** Muslin (formerly Fashion Shine) selects `footer: "newsletter"`, and that layout used to lead with the bare

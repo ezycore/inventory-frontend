@@ -8,7 +8,6 @@ import {
   DESIGN_SCALES,
   DESIGN_SURFACES,
   DESIGN_WIDTHS,
-  getPreset,
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
@@ -34,6 +33,22 @@ const count = (n: number, one: string, many = `${one}s`) =>
   `${n} ${n === 1 ? one : many}`;
 
 /**
+ * One design ramp, but only when the merchant moved it off the default —
+ * see the note in the `look` summary. `noun` names what the step applies to
+ * ("Statement headings"); page width already reads as one ("Full width").
+ */
+const ramp = (
+  options: { id: string; label: string }[],
+  value: string | undefined,
+  fallback: string,
+  noun?: string,
+): string => {
+  if (!value || value === fallback) return "";
+  const label = options.find((o) => o.id === value)?.label ?? value;
+  return noun ? `${label} ${noun}` : label;
+};
+
+/**
  * The per-breakpoint half of a strip's summary. Empty when it shows on both,
  * so the common case does not pay for a clause that says nothing.
  */
@@ -52,32 +67,37 @@ export function partSummary(
   const listed = draft.collections.filter((c) => c.isListed).length;
 
   switch (id) {
-    case "brand": {
-      const preset = getPreset(draft.preset);
-      const tuned =
-        draft.brandColor !== preset.brandColor ||
-        draft.accentColor !== preset.accentColor;
+    case "look": {
+      const surface = DESIGN_SURFACES.find((o) => o.id === draft.design.surface);
+      const font = DESIGN_FONTS.find((o) => o.id === draft.design.font);
       const logo = settings.logo
         ? "custom logo"
         : orgHasLogo
           ? "organization logo"
           : "no logo";
-      return `${preset.label}${tuned ? " (tuned)" : ""} · ${draft.brandColor} · ${logo}`;
-    }
-    case "design": {
-      const font = DESIGN_FONTS.find((o) => o.id === draft.design.font);
-      const surface = DESIGN_SURFACES.find((o) => o.id === draft.design.surface);
-      const scale = DESIGN_SCALES.find((o) => o.id === draft.design.scale);
-      const density = DESIGN_DENSITIES.find((o) => o.id === draft.design.density);
-      const radius = DESIGN_RADII.find((o) => o.id === draft.design.radius);
-      // Width is appended only when it is NOT the default. Five axes already
-      // fill this row, and "Contained" on every untouched shop would push the
-      // axes a merchant actually changed off the end of the line.
-      const width =
-        draft.design.width && draft.design.width !== DEFAULT_DESIGN.width
-          ? ` · ${DESIGN_WIDTHS.find((o) => o.id === draft.design.width)?.label ?? draft.design.width}`
-          : "";
-      return `${font?.label ?? draft.design.font} · ${surface?.label ?? draft.design.surface} · ${scale?.label ?? draft.design.scale} headings · ${density?.label ?? draft.design.density} spacing · ${radius?.label ?? draft.design.radius} corners${width}`;
+      /* Three facts, then only the ramps a merchant actually moved.
+         `brand` and `design` used to be two rows summarising eight settings
+         between them, and listing all eight here would have made the longest
+         line in the rail out of the part with the lowest adoption. The four
+         ramps sit at their default on nearly every shop, so spelling them out
+         said "Balanced headings · Cozy spacing · Soft corners" on a shop whose
+         owner had chosen none of it — noise in a line whose whole job is to
+         report what this shop HAS. Off their default they are exactly the
+         opposite, so they are appended then.
+         The brand colour is not here either: the row already carries it as a
+         live gradient swatch, and a hex code reads to nobody. */
+      const moved = [
+        ramp(DESIGN_SCALES, draft.design.scale, DEFAULT_DESIGN.scale, "headings"),
+        ramp(DESIGN_DENSITIES, draft.design.density, DEFAULT_DESIGN.density, "spacing"),
+        ramp(DESIGN_RADII, draft.design.radius, DEFAULT_DESIGN.radius, "corners"),
+        ramp(DESIGN_WIDTHS, draft.design.width, DEFAULT_DESIGN.width),
+      ].filter(Boolean);
+      return [
+        surface?.label ?? draft.design.surface,
+        font?.label ?? draft.design.font,
+        logo,
+        ...moved,
+      ].join(" · ");
     }
     case "announcement": {
       if (!draft.announcement.enabled) return "Off";

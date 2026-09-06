@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useGetStorefrontSettings } from "@/services/api";
-import { READY_MADE_THEMES } from "@/lib/storefront-themes";
+import { READY_MADE_THEMES, recommendedThemeFor } from "@/lib/storefront-themes";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { resolveDesign } from "@/lib/storefront-theme";
 import { ThemeList } from "@/components/ecommerce/themes/theme-list";
 import { ThemeStage } from "@/components/ecommerce/themes/theme-stage";
@@ -26,15 +27,23 @@ import { ThemeStage } from "@/components/ecommerce/themes/theme-stage";
 export default function ThemesPage() {
   const { data: settings, isLoading } = useGetStorefrontSettings();
   const activeId = settings?.theme?.appliedThemeId;
+  const industry = useAuthStore((s) => s.user?.organization?.industry);
+  const recommended = recommendedThemeFor(industry);
 
   /* Selection starts on nothing and RESOLVES to the live theme, rather than
      being seeded from `activeId` once it loads. Seeding would need an effect
      that fires after the settings query resolves, and that effect would fight a
      merchant who clicked a row while the request was still in flight. */
   const [picked, setPicked] = useState<string | null>(null);
+  /* A shop with no theme applied opens on the one drawn for its trade, not on
+     Classic. Classic is first in the catalogue because it is the reset, and
+     previewing the reset to a merchant who came here to change their look shows
+     them the shop they already have — the least persuasive frame available for
+     a page whose whole job is to move them off the default. */
   const selected =
-    READY_MADE_THEMES.find((t) => t.id === (picked ?? activeId)) ??
-    READY_MADE_THEMES[0];
+    READY_MADE_THEMES.find(
+      (t) => t.id === (picked ?? activeId ?? recommended?.id),
+    ) ?? READY_MADE_THEMES[0];
 
   // "Edited" compares only what a theme writes, so a merchant who rewrote their
   // footer — which no theme can touch — is not told their theme was changed.
@@ -64,6 +73,7 @@ export default function ThemesPage() {
             themes={READY_MADE_THEMES}
             selectedId={selected.id}
             activeId={activeId}
+            recommendedId={recommended?.id}
             modified={modified}
             onSelect={setPicked}
           />

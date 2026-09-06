@@ -11913,6 +11913,7 @@ export interface components {
                 /** @enum {string} */
                 source?: "featured" | "newest" | "category" | "manual";
                 categoryId?: string;
+                categoryIds?: string[];
                 title?: string;
                 limit?: number;
                 tagIds?: string[];
@@ -18904,6 +18905,7 @@ export interface operations {
                         /** @enum {string} */
                         source?: "featured" | "newest" | "category" | "manual";
                         categoryId?: string;
+                        categoryIds?: string[];
                         title?: string;
                         limit?: number;
                         tagIds?: string[];

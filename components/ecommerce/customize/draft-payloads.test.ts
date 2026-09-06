@@ -281,7 +281,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
         hoursDays: [1, 3, 5],
       },
     });
-    const patch = toSettingsPatch(value, ["design"]);
+    const patch = toSettingsPatch(value, ["look"]);
     expect(Object.keys(patch)).toEqual(["theme"]);
     expect(patch).not.toHaveProperty("contactButton");
   });

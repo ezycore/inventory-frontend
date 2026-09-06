@@ -251,12 +251,24 @@
   --font-storefront: var(--font-manrope), var(--font-hind-siliguri),
     ui-sans-serif, system-ui, sans-serif;
 }
-/* The one option whose headings and text are different families. */
+.sf-shell[data-font="slab"] {
+  --font-storefront: var(--font-bitter), var(--font-noto-serif-bengali),
+    ui-serif, Georgia, "Times New Roman", serif;
+}
+/* The TWO options whose headings and text are different families. Everything
+   else here sets one variable; these set both, and `--font-display` is spent
+   only on h1–h4 and `.sf-display` (see the block under this one). */
 .sf-shell[data-font="market"] {
   --font-storefront: var(--font-figtree), var(--font-noto-bengali),
     ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-caprasimo), var(--font-baloo-da), ui-serif, Georgia,
     serif;
+}
+.sf-shell[data-font="boutique"] {
+  --font-storefront: var(--font-figtree), var(--font-noto-bengali),
+    ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), var(--font-tiro-bangla), ui-serif,
+    Georgia, "Times New Roman", serif;
 }
 
 /* Where --font-display is spent.
@@ -371,6 +383,96 @@
   --discount: #b0442f;
   --discount-soft: #f8e0d8;
 }
+/* SAGE and BLOOM — nursery's structure (tinted page, pure-white card) in the two
+   hue families the catalogue had no entry for at all. Adding a hue is the
+   cheapest way to widen what a shop can look like without adding a control: the
+   merchant answers by looking, and there is no combination they can set that
+   reads badly. Both stay low-chroma for nursery's reason — this ground sits
+   behind every product photo in the shop, not on one screen. */
+.sf-root:has(.sf-shell[data-surface="sage"]) {
+  --page: #eef3ec;
+  --card: #ffffff;
+  --surface: #e2ebdf;
+  --surface-2: #d2dfce;
+  --text: #17231a;
+  --muted: #5f705f;
+  --faint: #8b9a8a;
+  --border: #dde7da;
+  --border-strong: #c1d0bd;
+  --header: rgba(255, 255, 255, 0.92);
+  /* Green is the one ground where the default crimson goes muddy rather than
+     pink — red on green is the lowest-separation pair in the catalogue — so the
+     sale colour is pulled warm and light, the same fix parchment makes. */
+  --discount: #b0341f;
+  --discount-soft: #f8e2da;
+}
+.sf-root:has(.sf-shell[data-surface="bloom"]) {
+  --page: #f3f0f7;
+  --card: #ffffff;
+  --surface: #e9e4f1;
+  --surface-2: #dcd4e8;
+  --text: #221c2c;
+  --muted: #6b6279;
+  --faint: #958ca4;
+  --border: #e5dff0;
+  --border-strong: #cdc3de;
+  --header: rgba(255, 255, 255, 0.92);
+  /* A crimson sits INSIDE a lilac palette and stops announcing anything, so
+     this is pushed to a warm brick that could not belong to the ground. */
+  --discount: #bd2f2a;
+  --discount-soft: #fbe0dc;
+}
+/* SLATE — mist's structure at the other end of the VALUE axis rather than a
+   fourth hue: a page grey enough that a white card reads as a physical card
+   rather than a lighter patch of the same sheet. That is the whole point for a
+   utility catalogue, where the photo is a part on a white background and the
+   card edge is the only thing separating one SKU from the next. Deliberately
+   neutral — mist is this shape two steps lighter and blue, which reads clinical;
+   this one reads like a printed parts catalogue. */
+.sf-root:has(.sf-shell[data-surface="slate"]) {
+  --page: #dfe3e7;
+  --card: #ffffff;
+  --surface: #d0d6db;
+  --surface-2: #bec6cd;
+  --text: #14181c;
+  --muted: #56606a;
+  --faint: #7d8894;
+  --border: #cdd4da;
+  --border-strong: #aab4bd;
+  --header: rgba(255, 255, 255, 0.94);
+  --discount: #b3241c;
+  --discount-soft: #fbe2e0;
+}
+/* MIDNIGHT — the one DARK ground, and the only surface where the light and dark
+   themes are both dark.
+   It is a fifth structure, not a fifth hue: everything above prints ink on
+   paper, and this prints paper on ink. A merchant selling gadgets, gaming gear
+   or streetwear has been asking for it by picking a near-black brand colour and
+   getting a white shop with a black button.
+   ⚠ A dark ground changes four things beyond these twelve tokens — the brand
+   and accent must use their LIFTED variants, the skeleton shimmer must not be a
+   white sweep, and `color-scheme` must tell the browser to draw native controls
+   dark. All four hang off `[data-ground="dark"]`, stamped by `designAttrs` and
+   handled in one place below; nothing here needs to know about them.
+   ⚠ There is no white-card-on-dark-ground surface, and it is not an oversight:
+   `--text` is one token spent on both the page and the card, so a dark page
+   under white cards needs a second ink token before it can be expressed. */
+.sf-root:has(.sf-shell[data-surface="midnight"]) {
+  --page: #0f1115;
+  --card: #191c22;
+  --surface: #23272f;
+  --surface-2: #31363f;
+  --text: #f2f4f7;
+  --muted: #a3abb8;
+  --faint: #79808d;
+  --border: #23272f;
+  --border-strong: #3a404a;
+  --header: rgba(15, 17, 21, 0.86);
+  /* Light, not dark: on a near-black page a deep crimson is invisible, so the
+     sale colour inverts the way the built-in dark theme's does. */
+  --discount: #fb7185;
+  --discount-soft: #3f1d24;
+}
 /* Warm dark, cocoa rather than the default zinc — the same "same shop with the
    lights off" rule parchment follows. */
 .sf-root[data-theme="dark"]:has(.sf-shell[data-surface="nursery"]) {
@@ -418,6 +520,106 @@
   --discount: #f0a58a;
   --discount-soft: #452b1f;
 }
+/* Deep forest rather than zinc, so the shopper's toggle stays the same shop with
+   the lights off — parchment's rule, applied to the newer grounds. */
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="sage"]) {
+  --page: #0e130f;
+  --card: #171d18;
+  --surface: #202821;
+  --surface-2: #2c352d;
+  --text: #eaf1e8;
+  --muted: #a3b3a2;
+  --faint: #7b8a7a;
+  --border: #202821;
+  --border-strong: #333d34;
+  --header: rgba(14, 19, 15, 0.86);
+  --discount: #f0a58a;
+  --discount-soft: #40261d;
+}
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="bloom"]) {
+  --page: #121016;
+  --card: #1b1822;
+  --surface: #24202d;
+  --surface-2: #302b3b;
+  --text: #f0ecf5;
+  --muted: #a89fb5;
+  --faint: #7f7789;
+  --border: #24202d;
+  --border-strong: #383243;
+  --header: rgba(18, 16, 22, 0.86);
+  --discount: #f79a8f;
+  --discount-soft: #41231f;
+}
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="slate"]) {
+  --page: #0d1013;
+  --card: #171b1f;
+  --surface: #21262b;
+  --surface-2: #2e343a;
+  --text: #eef1f4;
+  --muted: #a0a9b2;
+  --faint: #78818a;
+  --border: #21262b;
+  --border-strong: #363d44;
+  --header: rgba(13, 16, 19, 0.87);
+  --discount: #f87171;
+  --discount-soft: #3f1d1d;
+}
+/* Midnight is already dark, so its dark variant is a STEP, not a switch: one
+   notch deeper, which is what "lights off" can still mean on a shop whose lights
+   were never on. Dropping this block would be worse than it sounds — the shopper
+   would land on the default zinc dark and lose the shop's own blue-black. */
+.sf-root[data-theme="dark"]:has(.sf-shell[data-surface="midnight"]) {
+  --page: #07080a;
+  --card: #111318;
+  --surface: #1a1d23;
+  --surface-2: #272b33;
+  --text: #f7f8fa;
+  --muted: #99a1ad;
+  --faint: #6e7681;
+  --border: #1a1d23;
+  --border-strong: #313640;
+  --header: rgba(7, 8, 10, 0.88);
+  --discount: #fb7185;
+  --discount-soft: #3f1d24;
+}
+
+/* ---- What a DARK GROUND changes beyond its twelve tokens ----
+   `designAttrs` stamps `data-ground="dark"` for any surface whose page colour is
+   dark (derived from its swatch — `isDarkSurface` in lib/storefront-theme.ts),
+   so these four rules ask the question once each instead of naming surface ids
+   in four places, the fifth of which would be forgotten.
+
+   Each one is otherwise keyed on `[data-theme="dark"]`, which is the SHOPPER's
+   toggle — the wrong question for a shop that is dark in both themes. */
+.sf-root:has(.sf-shell[data-ground="dark"]) {
+  /* Scrollbars, form controls, and the browser's own UI over the page. */
+  color-scheme: dark;
+}
+/* A navy brand on a near-black page is a button nobody can see. `--sf-brand-dark`
+   is already on the shell (StoreShell publishes both variants); this is the same
+   swap the dark theme makes, made for the ground instead. */
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-shell[data-brand] {
+  --primary: var(--sf-brand-dark);
+  --primary-hover: var(--sf-brand-dark);
+  --on-primary: var(--sf-brand-on-dark);
+  --primary-soft: color-mix(in srgb, var(--sf-brand-dark) 16%, transparent);
+}
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-shell[data-accent] {
+  --accent: var(--sf-accent-dark);
+  --on-accent: var(--sf-accent-on-dark);
+  --accent-soft: color-mix(in srgb, var(--sf-accent-dark) 22%, transparent);
+}
+/* The loading sweep at light-mode strength glares on a near-black page — the
+   same fix as `.sf-root[data-theme="dark"] .sf-skeleton` further down, applied
+   to the ground rather than the toggle. */
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0) 75%
+  );
+}
 
 /* The OVERSCROLL CANVAS. The browser paints the area past the top and bottom of
    the document from `<body>` (or `<html>`), and neither is ours — the root
@@ -456,6 +658,30 @@ body:has(.sf-shell[data-surface="nursery"]) {
 }
 body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   background: #171211;
+}
+body:has(.sf-shell[data-surface="sage"]) {
+  background: #eef3ec;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="sage"]) {
+  background: #0e130f;
+}
+body:has(.sf-shell[data-surface="bloom"]) {
+  background: #f3f0f7;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="bloom"]) {
+  background: #121016;
+}
+body:has(.sf-shell[data-surface="slate"]) {
+  background: #dfe3e7;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="slate"]) {
+  background: #0d1013;
+}
+body:has(.sf-shell[data-surface="midnight"]) {
+  background: #0f1115;
+}
+body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
+  background: #07080a;
 }
 
 /* Heading ramp (mobile base — see both @media blocks for the rest). */
@@ -765,6 +991,50 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
    can win. */
 .sf-strip-hidden {
   display: none !important;
+}
+
+/* ---- Category promo cards (`category-banners`) ----
+   ONE card per row on a phone, and that is the section's whole premise: a promo
+   card exists to carry a photograph, a sentence and a button, and at half a
+   375px screen it carries none of them — at which point it is a worse version
+   of the tile row that already exists. Page length is the cost, and the
+   section's own show-on control is the merchant's lever for it.
+   `auto-fit` past the breakpoint means the merchant's own pick count decides the
+   width — two cards go half and half, four go a quarter each — with no count
+   plumbed through from the component. */
+.sf-banner-row {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: 1fr;
+}
+.sf-banner-card {
+  display: block;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.sf-banner-card:hover {
+  border-color: var(--border-strong) !important;
+}
+/* Two lines, then an ellipsis. The merchant writes this once and it is printed
+   at four different widths across this block's breakpoints, so a long line has
+   to stop somewhere the card can absorb; the full text heads the collection
+   page the card leads to. */
+.sf-banner-copy {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+@media (min-width: 680px) {
+  .sf-banner-row {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
 }
 
 /* ---- Product grids ---- */

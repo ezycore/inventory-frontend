@@ -12,6 +12,7 @@ import {
 import {
   TagChips,
   CategoryChips,
+  CategoryBanners,
   CategoryTiles,
 } from "@/components/storefront/home/sections/category-sections";
 import {
@@ -67,6 +68,7 @@ export const SECTION_COMPONENTS = {
   // plain names — `homeCollections.style`, not a second section.
   "category-chips": CategoryChips,
   "category-tiles": CategoryTiles,
+  "category-banners": CategoryBanners,
   "tag-chips": TagChips,
   // Product rows. One grid, pointed by its `sectionConfig.source` — the id is
   // kept as `featured-grid` because 28 stored documents already name it.

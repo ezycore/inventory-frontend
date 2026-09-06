@@ -16,13 +16,14 @@ import {
   MIN_SECTION_LIMIT,
   configFor,
   isConfigurableSection,
-  isTagConfigurableSection,
   mergeSectionConfig,
+  sectionConfigKind,
 } from "@/lib/storefront-sections";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type { CollectionRowValue } from "@/components/ecommerce/collections/collection-row";
 import { Button } from "@/ui/components/button";
 import { PartHint } from "@/components/ecommerce/customize/part-group";
+import { CategoryRowConfig } from "@/components/ecommerce/customize/category-row-config";
 import { TagRowConfig } from "@/components/ecommerce/customize/tag-row-config";
 import { ProductRowConfig } from "@/components/ecommerce/customize/product-row-config";
 import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
@@ -167,13 +168,19 @@ export function SectionsEditor({
     onConfigChange(nextConfig);
   };
 
-  // A product section may be added MORE THAN ONCE — that is what `key` is for,
-  // and what makes "here is the skin care, here are the devices" expressible.
-  // Everything else stays one-per-page: two heroes or two footers is a mistake,
-  // not an intent, and there is no config that would tell them apart.
+  /* A section may be added MORE THAN ONCE exactly when its CONFIG can tell two
+     instances apart — that is what `key` is for, and what makes "here is the
+     skin care, here are the devices" expressible. Everything else stays
+     one-per-page: two heroes or two footers is a mistake, not an intent.
+
+     The predicate was `isConfigurableSection` — "is this a product row" — which
+     answered the same way only by accident, and stopped doing so the moment a
+     second kind of configurable section existed. A promo-card block pointed at
+     two collections and a tag row of brands beside one of occasions are both
+     ordinary things to want, and both are distinguishable in the list. */
   const used = new Set(effective.map((s) => s.type));
   const available = ADD_ENTRIES.filter(
-    (entry) => isConfigurableSection(entry.type) || !used.has(entry.type),
+    (entry) => sectionConfigKind(entry.type) || !used.has(entry.type),
   );
 
   const setConfig = (key: string, patch: Partial<StoreSectionConfig> | null) => {
@@ -182,15 +189,15 @@ export function SectionsEditor({
       return;
     }
     const existing = configFor(effectiveConfig, key);
-    // A NEW product row needs a source — it is the whole point of configuring
-    // one. A tag row does not: `source` means nothing to `tag-chips`, and
-    // storing "featured" on it would make the saved config read as a product
-    // row to anyone debugging the document.
-    const seed = isTagConfigurableSection(
+    /* A NEW product row needs a source — it is the whole point of configuring
+       one. A tag or promo-card row does not: `source` means nothing to either,
+       and storing "featured" on one would make the saved config read as a
+       product row to anyone debugging the document. */
+    const kind = sectionConfigKind(
       effective.find((s) => s.key === key)?.type ?? "",
-    )
-      ? { key }
-      : { key, source: "featured" as const };
+    );
+    const seed =
+      kind === "products" ? { key, source: "featured" as const } : { key };
     commit(
       effective,
       existing
@@ -275,9 +282,15 @@ export function SectionsEditor({
               </Button>
             </div>
           </div>
-          {isTagConfigurableSection(section.type) ? (
+          {sectionConfigKind(section.type) === "tags" ? (
             <TagRowConfig
               config={configFor(effectiveConfig, section.key)}
+              onChange={(patch) => setConfig(section.key, patch)}
+            />
+          ) : sectionConfigKind(section.type) === "categories" ? (
+            <CategoryRowConfig
+              config={configFor(effectiveConfig, section.key)}
+              collections={collections}
               onChange={(patch) => setConfig(section.key, patch)}
             />
           ) : isConfigurableSection(section.type) ? (
@@ -632,6 +645,24 @@ function sectionLabel(
   if (!own) return base;
   const title = own.title?.trim();
   if (title) return `${title} · ${base}`;
+  /* The two sections configured by PICKING rather than by source name themselves
+     after what they hold, for the same reason a collection row does: both may
+     appear twice on one page, and "Category promo cards" or "Shop by tag" listed
+     twice says nothing about which is which. Neither carries a `source`, so both
+     are checked before the source branches below. */
+  if (own.categoryIds?.length) {
+    const names = own.categoryIds
+      .map((id) => collections.find((c) => c._id === id))
+      .filter(Boolean)
+      .map((c) => c!.displayName || c!.name);
+    if (names.length) return `${names.join(", ")} · ${base}`;
+  }
+  /* A tag row names its COUNT, not its tags: the editor holds the merchant's
+     collections but not their tags (the picker fetches those itself), so the
+     names are not available here — and a count still tells two rows apart. */
+  if (own.tagIds?.length) {
+    return `${own.tagIds.length} tag${own.tagIds.length === 1 ? "" : "s"} · ${base}`;
+  }
   if (own.source === "category") {
     const picked = collections.find((c) => c._id === own.categoryId);
     return picked ? `${picked.displayName || picked.name} · ${base}` : `Pick a collection · ${base}`;

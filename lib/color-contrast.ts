@@ -31,12 +31,34 @@ function relativeLuminance([r, g, b]: Rgb): number {
   return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
 }
 
+/**
+ * The luminance above which white text drops under 3:1 contrast. Named once
+ * because two questions share it — "what ink goes on this?" and "is this ground
+ * dark?" — and answering them from two different numbers is how a surface ends
+ * up with white text and a light-mode skeleton shimmer.
+ */
+const DARK_GROUND_MAX_LUMINANCE = 0.3;
+
 /** Pick a readable foreground (near-black or white) for an arbitrary background. */
 export function readableTextOn(bg: string, fallback = "#ffffff"): string {
   const rgb = parseHex(bg);
   if (!rgb) return fallback;
-  // Above ~0.3 white text drops under 3:1 contrast — switch to near-black.
-  return relativeLuminance(rgb) > 0.3 ? "#111827" : "#ffffff";
+  return relativeLuminance(rgb) > DARK_GROUND_MAX_LUMINANCE
+    ? "#111827"
+    : "#ffffff";
+}
+
+/**
+ * Is this colour a DARK ground — one that wants light ink, a lifted brand and
+ * dark native controls on top of it?
+ *
+ * Unparseable input answers `false`: the storefront's built-in ground is light,
+ * so an unreadable colour must not flip a shop into dark-ground treatment.
+ */
+export function isDarkBackground(color: string): boolean {
+  const rgb = parseHex(color);
+  if (!rgb) return false;
+  return relativeLuminance(rgb) <= DARK_GROUND_MAX_LUMINANCE;
 }
 
 /**

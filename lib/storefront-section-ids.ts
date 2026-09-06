@@ -48,6 +48,11 @@ export const SECTION_IDS = [
      `theme.homeCollections.style` now. */
   "category-chips",
   "category-tiles",
+  /* A handful of departments advertised as promo cards. NOT a third way to list
+     the catalogue — see the note on `CategoryBanners`: the other two are
+     wayfinding, this one is merchandising, and the difference is what stops it
+     from being a tile row with the type turned up. */
+  "category-banners",
   /* A row of TAG chips — a facet the merchant chooses. Called `age-chips`
      until 2026-09-06 and described as a baby-shop section, which is what it was
      built for and never what it does: it renders `sectionConfig.tagIds` and
@@ -175,6 +180,7 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   "hero-fullbleed": "Full-width photo hero",
   "category-chips": "Collections row",
   "category-tiles": "Category photo tiles",
+  "category-banners": "Category promo cards",
   "tag-chips": "Shop by tag",
   /* The label a row falls back to. A CONFIGURED row is named by its content in
      the editor (`sectionLabel`) and by its source on the shop (`sectionTitle`,

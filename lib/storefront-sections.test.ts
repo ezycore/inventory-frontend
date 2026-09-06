@@ -13,6 +13,7 @@ import {
   configuredSections,
   findSectionCategory,
   isConfigurableSection,
+  sectionConfigKind,
   sectionQuery,
   sectionSignature,
   sectionTitle,
@@ -190,5 +191,39 @@ describe("configFor / findSectionCategory / isConfigurableSection", () => {
     // A hero has no products to source, so config would be an empty control.
     expect(isConfigurableSection("hero-card")).toBe(false);
     expect(isConfigurableSection("trust-band")).toBe(false);
+  });
+});
+
+/**
+ * The three config kinds, and the two questions they answer.
+ *
+ * These were two overlapping sets — `CONFIGURABLE` and `TAG_CONFIGURABLE` —
+ * answering "which editor does this section get?" and "does this row earn a
+ * catalogue fetch?" at the same time, and agreeing only by accident. A third
+ * section with a third control is where that would have broken: it would have
+ * been silently treated as a product row by whichever caller reached it first.
+ */
+describe("sectionConfigKind", () => {
+  it("names the control a configurable section gets", () => {
+    expect(sectionConfigKind("featured-grid")).toBe("products");
+    expect(sectionConfigKind("product-rail")).toBe("products");
+    expect(sectionConfigKind("minimal-picks")).toBe("products");
+    expect(sectionConfigKind("tag-chips")).toBe("tags");
+    expect(sectionConfigKind("category-banners")).toBe("categories");
+  });
+
+  it("says nothing about a section that ignores config", () => {
+    expect(sectionConfigKind("hero-card")).toBeUndefined();
+    expect(sectionConfigKind("trust-band")).toBeUndefined();
+    expect(sectionConfigKind("category-tiles")).toBeUndefined();
+  });
+
+  // Only a product row does. A tag or promo-card row renders from data the
+  // homepage already loaded, so listing one here would cost every shop that
+  // composes it a round trip for products it never shows.
+  it("earns a catalogue fetch for product rows only", () => {
+    expect(isConfigurableSection("featured-grid")).toBe(true);
+    expect(isConfigurableSection("tag-chips")).toBe(false);
+    expect(isConfigurableSection("category-banners")).toBe(false);
   });
 });

@@ -546,3 +546,43 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
 
 export const getReadyMadeTheme = (id?: string | null): ReadyMadeTheme | undefined =>
   READY_MADE_THEMES.find((t) => t.id === id);
+
+/**
+ * The theme drawn for a trade, keyed by the `industry` the merchant picked at
+ * signup (`INDUSTRY_TYPES` on the backend organization model).
+ *
+ * **Why a recommendation and not a default.** Two of 43 storefronts have ever
+ * applied a theme and five have touched any design axis, so the catalogue is
+ * not failing to be good — it is failing to be *found*, by merchants who have no
+ * reason to open a panel called Design. Naming the one theme built for their
+ * trade turns "browse five and judge" into "this one, unless you disagree",
+ * which is the only version of the question a non-designer can answer quickly.
+ *
+ * **A trade with no entry gets no recommendation, deliberately.** Falling back
+ * to Classic would dress the shop as it already looks and call it a suggestion,
+ * and pointing an electronics shop at a grocery theme is worse than silence.
+ * Five of the twelve trades are unlisted for exactly this reason; each becomes a
+ * row here when a theme is actually drawn for it, and not before.
+ *
+ * ⚠ `bestFor` on each theme is the merchant-facing half of the same claim.
+ * Change one and the other reads as a different suggestion — keep them agreeing.
+ */
+const THEME_BY_INDUSTRY: Record<string, string> = {
+  GROCERY_STORE: "fresh-market",
+  // A restaurant or takeaway sells the same way a grocer does — a short menu of
+  // departments, repeat buyers, everything in reach — and Fresh Market is the
+  // theme drawn for that shape.
+  RESTAURANT_FNB: "fresh-market",
+  PHARMACY: "meridian-care",
+  FASHION_APPAREL: "muslin",
+  BABY_KIDS_STORE: "little-steps",
+  // The Facebook/Instagram seller. Photo-led is the shape of the shop they
+  // already run, whatever they sell — the picture IS the listing.
+  ONLINE_SHOP: "muslin",
+};
+
+/** The theme drawn for this trade, or `undefined` when none has been. */
+export const recommendedThemeFor = (
+  industry?: string | null,
+): ReadyMadeTheme | undefined =>
+  getReadyMadeTheme(THEME_BY_INDUSTRY[industry ?? ""]);

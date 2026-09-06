@@ -37,28 +37,43 @@ const clampLimit = (n: number | undefined) =>
     ? Math.min(MAX_SECTION_LIMIT, Math.max(MIN_SECTION_LIMIT, Math.round(n)))
     : DEFAULT_SECTION_LIMIT;
 
-/** The section types that read config. Everything else ignores it. */
-const CONFIGURABLE = new Set([
-  "featured-grid",
-  "product-rail",
-  "minimal-picks",
-]);
+/**
+ * What a section's config PICKS, for the sections that have one.
+ *
+ * Three kinds, because three different controls answer them and only one of
+ * them costs a request: a product row is configured by source and earns a
+ * catalogue query per instance; a tag row and a promo-card row are configured by
+ * picking from lists the page already has, so they cost nothing extra. That
+ * distinction is why this is a kind rather than a boolean — it was two
+ * overlapping sets (`CONFIGURABLE` and `TAG_CONFIGURABLE`) until a third
+ * section needed a third control, at which point the sets were answering
+ * "which editor?" and "does it fetch?" at the same time and agreeing only by
+ * accident.
+ *
+ * A section absent here ignores config entirely.
+ */
+export type SectionConfigKind = "products" | "tags" | "categories";
 
-export const isConfigurableSection = (type: string) => CONFIGURABLE.has(type);
+const CONFIG_KIND: Record<string, SectionConfigKind> = {
+  "featured-grid": "products",
+  "product-rail": "products",
+  "minimal-picks": "products",
+  "tag-chips": "tags",
+  "category-banners": "categories",
+};
+
+export const sectionConfigKind = (
+  type: string,
+): SectionConfigKind | undefined => CONFIG_KIND[type];
 
 /**
- * Sections configured by TAG rather than by product source.
- *
- * Deliberately not folded into `CONFIGURABLE`: that set is what
- * `configuredSections` walks to build a product QUERY per row, so an entry
- * there earns a catalogue fetch. `tag-chips` renders tags the page already has
- * and needs no query at all — adding it would cost every baby shop an extra
- * round trip for products it never shows.
+ * Does this section earn a catalogue fetch? Only a product row does — which is
+ * what `configuredSections` walks. A tag or promo-card row renders from data
+ * the homepage already loaded, and adding one here would cost every shop that
+ * composes it an extra round trip for products it never shows.
  */
-const TAG_CONFIGURABLE = new Set(["tag-chips"]);
-
-export const isTagConfigurableSection = (type: string) =>
-  TAG_CONFIGURABLE.has(type);
+export const isConfigurableSection = (type: string) =>
+  CONFIG_KIND[type] === "products";
 
 /**
  * One section's config, by key.

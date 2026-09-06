@@ -395,7 +395,7 @@ export function toSettingsPatch(
     (patch as Record<keyof UpdateStorefrontSettingsDto, unknown>)[key] = full[key];
   };
 
-  if (["brand", "design", "home"].some((part) => dirty.has(part as PartId))) {
+  if (["look", "home"].some((part) => dirty.has(part as PartId))) {
     take("theme");
   }
   if (dirty.has("home")) take("sectionConfig");

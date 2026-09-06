@@ -84,6 +84,16 @@ export interface StoreSectionConfig {
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
   source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
+  /**
+   * The collections a promo-card row features, in the merchant's order. Read
+   * only by `category-banners`; unset ⇒ the shop's first two collections.
+   *
+   * Deliberately not `categoryId` above, which names the ONE collection a
+   * product row draws its products FROM. Merging them would make "which
+   * collection do I sell from" and "which collections do I advertise" one
+   * field, so changing either would silently change the other.
+   */
+  categoryIds?: string[];
   title?: string;
   /** Ignored by a `manual` row — the picked list is the row's length. */
   limit?: number;
@@ -99,7 +109,7 @@ export interface StoreSectionConfig {
   /** Show the row's button. Unset ⇒ true, as every row did before. */
   showCta?: boolean;
   /**
-   * Tags this row renders, in the merchant's order. Read only by `age-chips`.
+   * Tags this row renders, in the merchant's order. Read only by `tag-chips`.
    *
    * Ids, never names: the section shipped matching an English list against tag
    * NAMES, so renaming `0-3M` or translating it to Bangla silently dropped the

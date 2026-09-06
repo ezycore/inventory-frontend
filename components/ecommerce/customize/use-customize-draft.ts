@@ -208,10 +208,18 @@ export interface CustomizeDraft {
   collections: CollectionRowValue[];
 }
 
-/** One row of the rail. Order = the order a shopper meets the part. */
+/**
+ * One row of the rail.
+ *
+ * `look` was two rows — `brand` (preset, colours, logo) and `design` (type,
+ * surface, spacing) — until 2026-09-06. Both sat at 12% adoption while the rows
+ * named after something a merchant can see on their own site sat at 51-67%, and
+ * between them they held every colour control in the product: a merchant asking
+ * "how do I change my shop's colours?" had to guess which of two abstract names
+ * hid the half they wanted. One row, one question.
+ */
 export type PartId =
-  | "brand"
-  | "design"
+  | "look"
   | "announcement"
   | "campaign"
   | "header"
@@ -235,8 +243,7 @@ export type PartId =
  * to forget.
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
-  brand: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle],
-  design: (d) => d.design,
+  look: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle, d.design],
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
@@ -282,7 +289,12 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   checkout: (d) => d.templates.checkout,
 };
 
-const PART_IDS = Object.keys(PART_SLICE) as PartId[];
+/**
+ * Every part id, derived from the dirty-tracking map so there is one list. The
+ * rail's own grouping is checked against it: an id here that no group renders is
+ * a setting a merchant cannot reach, and nothing else would notice.
+ */
+export const PART_IDS = Object.keys(PART_SLICE) as PartId[];
 
 /**
  * Seed every template id from the saved object, keeping keys no picker owns so
