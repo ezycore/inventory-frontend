@@ -697,6 +697,77 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
     display: none !important;
   }
 }
+/* ---- Site-wide strips: announcement bar + campaign strip ----
+
+   The presets resolve HERE, not in JS, for the same reason `--pad`/`--gap`/
+   `--h1` do (see "Why attributes and not inline style vars" above): they are
+   RESPONSIVE, and an inline style wins over every media query. Both strips used
+   to write `padding: 14px 32px` inline, which froze one value at every width —
+   so "Roomy sides" cost 4.4% of a 1440px desktop and 17% of a 375px phone.
+
+   That is not merely wasteful. Both strips are `flex-wrap: wrap` carrying a
+   whole sentence, so narrowing the usable width forces another wrapped line:
+   a HORIZONTAL setting silently became a taller strip on the device with the
+   least vertical room. A preset now means "roomy for this screen".
+
+   The ≥680px column is the value each strip shipped with, so nothing changes on
+   desktop; phones simply stop paying desktop's spacing. The two keep separate
+   scales because the announcement bar couples text and height into one "size"
+   axis while the campaign strip splits them into three. */
+[data-sf-strip] {
+  /* Minimum side padding when a dismiss button is present: the button is 26px
+     wide at an 8px inset, so anything under 34px puts the label under it and
+     pulls the centring off-axis. */
+  --strip-dismiss-pad: 34px;
+}
+[data-sf-strip="campaign"][data-strip-size="sm"] { --strip-font: 12px; }
+[data-sf-strip="campaign"][data-strip-size="md"] { --strip-font: 13px; }
+[data-sf-strip="campaign"][data-strip-size="lg"] { --strip-font: 14px; }
+[data-sf-strip="campaign"][data-strip-pad-y="sm"] { --strip-pad-y: 3px; }
+[data-sf-strip="campaign"][data-strip-pad-y="md"] { --strip-pad-y: 6px; }
+[data-sf-strip="campaign"][data-strip-pad-y="lg"] { --strip-pad-y: 10px; }
+[data-sf-strip="campaign"][data-strip-pad-x="sm"] { --strip-pad-x: 6px; }
+[data-sf-strip="campaign"][data-strip-pad-x="md"] { --strip-pad-x: 10px; }
+[data-sf-strip="campaign"][data-strip-pad-x="lg"] { --strip-pad-x: 16px; }
+[data-sf-strip="announcement"] { --strip-pad-x: 12px; }
+[data-sf-strip="announcement"][data-strip-size="sm"] { --strip-font: 11.5px; --strip-pad-y: 6px; }
+[data-sf-strip="announcement"][data-strip-size="md"] { --strip-font: 13px; --strip-pad-y: 8px; }
+[data-sf-strip="announcement"][data-strip-size="lg"] { --strip-font: 14px; --strip-pad-y: 9px; }
+
+@media (min-width: 680px) {
+  [data-sf-strip] { --strip-dismiss-pad: 40px; }
+  [data-sf-strip="campaign"][data-strip-size="sm"] { --strip-font: 13px; }
+  [data-sf-strip="campaign"][data-strip-size="md"] { --strip-font: 14.5px; }
+  [data-sf-strip="campaign"][data-strip-size="lg"] { --strip-font: 16px; }
+  [data-sf-strip="campaign"][data-strip-pad-y="sm"] { --strip-pad-y: 4px; }
+  [data-sf-strip="campaign"][data-strip-pad-y="md"] { --strip-pad-y: 8px; }
+  [data-sf-strip="campaign"][data-strip-pad-y="lg"] { --strip-pad-y: 14px; }
+  [data-sf-strip="campaign"][data-strip-pad-x="sm"] { --strip-pad-x: 8px; }
+  [data-sf-strip="campaign"][data-strip-pad-x="md"] { --strip-pad-x: 14px; }
+  [data-sf-strip="campaign"][data-strip-pad-x="lg"] { --strip-pad-x: 24px; }
+  [data-sf-strip="announcement"] { --strip-pad-x: 16px; }
+  [data-sf-strip="announcement"][data-strip-size="sm"] { --strip-font: 12.5px; --strip-pad-y: 7px; }
+  [data-sf-strip="announcement"][data-strip-size="md"] { --strip-font: 14px; --strip-pad-y: 9px; }
+  [data-sf-strip="announcement"][data-strip-size="lg"] { --strip-font: 15.5px; --strip-pad-y: 11px; }
+}
+/* Only the horizontal axis takes a third step, and only for the campaign strip:
+   side space is the one token whose cost is a RATIO of the viewport, so it is
+   the one that still has room to grow past a tablet. Text and height reach
+   their final value at 680px — a 27" monitor does not want a taller strip. */
+@media (min-width: 1000px) {
+  [data-sf-strip="campaign"][data-strip-pad-x="md"] { --strip-pad-x: 16px; }
+  [data-sf-strip="campaign"][data-strip-pad-x="lg"] { --strip-pad-x: 32px; }
+}
+
+/* A site-wide strip (announcement / campaign) switched off on BOTH breakpoints.
+   Reachable state: the two are independent switches with no cross-validation,
+   and "hidden everywhere" is a legitimate way to park a strip without losing
+   its wording and colours. Not folded into `display: none` on the element
+   itself — the strips paint `display` inline, so only a class with `!important`
+   can win. */
+.sf-strip-hidden {
+  display: none !important;
+}
 
 /* ---- Product grids ---- */
 .sf-grid-4 {

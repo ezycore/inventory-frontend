@@ -22,6 +22,8 @@ import type { CollectionRowValue } from "@/components/ecommerce/collections/coll
 import { Button } from "@/ui/components/button";
 import { PartHint } from "@/components/ecommerce/customize/part-group";
 import { TagRowConfig } from "@/components/ecommerce/customize/tag-row-config";
+import { ProductRowConfig } from "@/components/ecommerce/customize/product-row-config";
+import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
 
 /**
  * Customize → Home page → **Sections**: the merchant's homepage as an ordered,
@@ -172,6 +174,7 @@ export function SectionsEditor({
             <RowConfig
               config={configFor(config, section.key)}
               collections={collections}
+              sectionType={section.type}
               onChange={(patch) => setConfig(section.key, patch)}
             />
           ) : null}
@@ -259,10 +262,13 @@ export function SectionsEditor({
 function RowConfig({
   config,
   collections,
+  sectionType,
   onChange,
 }: {
   config: StoreSectionConfig | undefined;
   collections: CollectionRowValue[];
+  /** Passed down so the picker can say when a section draws fewer than it holds. */
+  sectionType?: string;
   onChange: (patch: Partial<StoreSectionConfig> | null) => void;
 }) {
   const source = config?.source;
@@ -273,18 +279,36 @@ function RowConfig({
         <select
           className="h-7 min-w-0 flex-1 rounded-md border bg-background px-1.5 text-xs"
           value={config ? source : ""}
-          onChange={(e) =>
-            e.target.value
-              ? onChange({ source: e.target.value as StoreSectionConfig["source"] })
-              : onChange(null)
-          }
+          onChange={(e) => {
+            const next = e.target.value as StoreSectionConfig["source"] | "";
+            if (!next) return onChange(null);
+            /* Leaving `manual` DROPS the picks. Patches are merged, so without
+               this the ids stay on the document forever — invisible in the
+               editor (the picker is only rendered for `manual`) and read by
+               nobody except `orderByIds`, which used them to reorder whatever
+               row the merchant switched to. The storefront now ignores them
+               too; clearing here is what stops them accumulating. */
+            onChange({
+              source: next,
+              ...(next === "manual" ? {} : { productIds: undefined }),
+            });
+          }}
         >
           <option value="">Default for this section</option>
           <option value="featured">Featured products</option>
           <option value="newest">New arrivals</option>
           <option value="category">One collection</option>
+          <option value="manual">Products I pick</option>
         </select>
       </div>
+
+      {source === "manual" ? (
+        <ProductRowConfig
+          config={config}
+          sectionType={sectionType}
+          onChange={onChange}
+        />
+      ) : null}
 
       {source === "category" ? (
         <>
@@ -339,18 +363,69 @@ function RowConfig({
               onChange={(e) => onChange({ title: e.target.value || undefined })}
             />
           </div>
+          {/* Hidden for a hand-picked row: the picked list IS the length, and
+              a "show 8" that silently truncates a merchant's 10 chosen
+              products — or pads to 8 when they picked 3 — is the row
+              disagreeing with the picker directly above it. */}
+          {source === "manual" ? null : (
+            <div className="flex items-center gap-2">
+              <label className="w-16 flex-none text-[11px] text-muted-foreground">Show</label>
+              <input
+                type="number"
+                className="h-7 w-20 rounded-md border bg-background px-2 text-xs"
+                min={MIN_SECTION_LIMIT}
+                max={MAX_SECTION_LIMIT}
+                value={config.limit ?? DEFAULT_SECTION_LIMIT}
+                onChange={(e) => onChange({ limit: Number(e.target.value) || undefined })}
+              />
+              <span className="text-[11px] text-muted-foreground">products</span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
-            <label className="w-16 flex-none text-[11px] text-muted-foreground">Show</label>
-            <input
-              type="number"
-              className="h-7 w-20 rounded-md border bg-background px-2 text-xs"
-              min={MIN_SECTION_LIMIT}
-              max={MAX_SECTION_LIMIT}
-              value={config.limit ?? DEFAULT_SECTION_LIMIT}
-              onChange={(e) => onChange({ limit: Number(e.target.value) || undefined })}
-            />
-            <span className="text-[11px] text-muted-foreground">products</span>
+            <label className="w-16 flex-none text-[11px] text-muted-foreground">Button</label>
+            <label className="flex items-center gap-1.5 text-[11px]">
+              <input
+                type="checkbox"
+                /* Unset means shown — every row had a "View all" before this
+                   existed, so an absent flag must not remove it. */
+                checked={config.showCta ?? true}
+                onChange={(e) => onChange({ showCta: e.target.checked })}
+              />
+              Show
+            </label>
           </div>
+
+          {(config.showCta ?? true) ? (
+            <>
+              <div className="flex items-center gap-2">
+                <label className="w-16 flex-none text-[11px] text-muted-foreground">Label</label>
+                <input
+                  className="h-7 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs"
+                  placeholder="View all"
+                  maxLength={40}
+                  value={config.ctaLabel ?? ""}
+                  onChange={(e) => onChange({ ctaLabel: e.target.value || undefined })}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="w-16 flex-none text-[11px] text-muted-foreground">Links to</label>
+                <input
+                  className="h-7 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs"
+                  /* A hand-picked row is the reason this exists: it has no
+                     collection to derive a destination from, so the default
+                     lands on the full catalogue. */
+                  placeholder={
+                    source === "manual" ? "/products" : "Where the products live"
+                  }
+                  maxLength={300}
+                  value={config.ctaHref ?? ""}
+                  onChange={(e) => onChange({ ctaHref: e.target.value || undefined })}
+                />
+              </div>
+              <StoreLinkHint value={config.ctaHref ?? ""} />
+            </>
+          ) : null}
         </>
       ) : null}
     </div>
@@ -398,6 +473,15 @@ function sectionLabel(
   if (own.source === "category") {
     const picked = collections.find((c) => c._id === own.categoryId);
     return picked ? `${picked.displayName || picked.name} · ${base}` : `Pick a collection · ${base}`;
+  }
+  // A hand-picked row names its size, since it has no source to name it after —
+  // and "Pick products" is the same nudge the empty collection row gives, for
+  // the same half-finished state the API refuses on save.
+  if (own.source === "manual") {
+    const count = own.productIds?.length ?? 0;
+    return count
+      ? `${count} chosen product${count === 1 ? "" : "s"} · ${base}`
+      : `Pick products · ${base}`;
   }
   return base;
 }

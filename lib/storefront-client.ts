@@ -71,10 +71,23 @@ export interface StoreHomeSection {
  */
 export interface StoreSectionConfig {
   key: string;
-  source?: "featured" | "newest" | "category";
+  /** `manual` = the merchant picked `productIds` by hand, in that order. */
+  source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
   title?: string;
+  /** Ignored by a `manual` row — the picked list is the row's length. */
   limit?: number;
+  /**
+   * A hand-picked row's products, in the merchant's order. `$in` returns no
+   * order, so the storefront re-sorts the response against this list.
+   */
+  productIds?: string[];
+  /** "View all" wording override. Blank ⇒ the localized default. */
+  ctaLabel?: string;
+  /** "View all" destination override. Blank ⇒ the derived one. */
+  ctaHref?: string;
+  /** Show the row's button. Unset ⇒ true, as every row did before. */
+  showCta?: boolean;
   /**
    * Tags this row renders, in the merchant's order. Read only by `age-chips`.
    *
@@ -507,6 +520,36 @@ export interface StoreAnnouncement {
   overlayOpacity?: number;
   /** cover = photo backdrop (center-cropped); tile = repeating pattern. */
   bgFit?: "cover" | "tile";
+  /** Render above the storefront's 680px breakpoint. Default true. */
+  showOnDesktop?: boolean;
+  /** Render at 680px and below. Default true. */
+  showOnMobile?: boolean;
+}
+
+/** Which pages a site-wide strip appears on. */
+export type StoreStripScope = "all" | "home";
+
+/** Spacing preset — resolved to pixels by `resolveCampaignStrip`. */
+export type StoreStripSpace = "sm" | "md" | "lg";
+
+/**
+ * Presentation of the live-campaign strip (Customize → Campaign strip).
+ *
+ * **Presentation only.** The campaign's own start/end window decides whether
+ * there is a campaign to show; every field here decides how it looks and where
+ * it appears. Nothing in this block can surface an expired campaign.
+ */
+export interface StoreCampaignStrip {
+  enabled?: boolean;
+  showOn?: StoreStripScope;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  bgColor?: string;
+  textColor?: string;
+  size?: "sm" | "md" | "lg";
+  paddingY?: StoreStripSpace;
+  paddingX?: StoreStripSpace;
+  dismissible?: boolean;
 }
 
 export interface StoreNav {
@@ -515,6 +558,7 @@ export interface StoreNav {
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StoreFooterContentPages;
   announcement?: StoreAnnouncement;
+  campaignStrip?: StoreCampaignStrip;
 }
 
 /**

@@ -35,6 +35,22 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     heroBanner: { title: "Our banner" },
     navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
     announcement: {} as CustomizeDraft["announcement"],
+    // Not an empty cast like the two beside it: `validateCustomizeDraft` reads
+    // the two colours, and `seedDraft` guarantees every field is defined (the
+    // editor's inputs are controlled), so an empty object is a shape the real
+    // draft never has.
+    campaignStrip: {
+      enabled: true,
+      showOn: "all",
+      showOnDesktop: true,
+      showOnMobile: true,
+      bgColor: "",
+      textColor: "",
+      size: "sm",
+      paddingY: "md",
+      paddingX: "md",
+      dismissible: false,
+    },
     contactButton: {} as CustomizeDraft["contactButton"],
     footerGroups: [{ title: "Help", links: [] }],
     footerContentPages: { show: true, title: "Info" },
@@ -266,6 +282,8 @@ describe("Customize draft safeguards", () => {
     overlay: "",
     overlayOpacity: 40,
     bgFit: "cover",
+    showOnDesktop: true,
+    showOnMobile: true,
   };
   const row = {
     _id: "c1",

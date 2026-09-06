@@ -24,6 +24,8 @@ import type {
   StorefrontLogoStyle,
   StorefrontMenuItem,
   StorefrontSettings,
+  StorefrontStripScope,
+  StorefrontStripSpace,
   StorefrontTrustBadge,
 } from "@/types";
 import { toSettingsPatch } from "@/components/ecommerce/customize/draft-payloads";
@@ -53,6 +55,32 @@ export interface AnnouncementDraft {
   overlay: string;
   overlayOpacity: number;
   bgFit: "cover" | "tile";
+  showOnDesktop: boolean;
+  showOnMobile: boolean;
+}
+
+/**
+ * Campaign-strip draft (Customize → Campaign strip).
+ *
+ * Presentation only, and deliberately so: there is no date, no discount and no
+ * campaign picker here. What the strip *says* comes from the running campaign
+ * in Marketing → Campaigns, and whether one is running is that campaign's own
+ * schedule — a merchant must not be able to extend a finished sale from the
+ * look-and-feel editor. Every field is defined so the inputs stay controlled.
+ */
+export interface CampaignStripDraft {
+  enabled: boolean;
+  showOn: StorefrontStripScope;
+  showOnDesktop: boolean;
+  showOnMobile: boolean;
+  /** Empty ⇒ the theme's soft primary. */
+  bgColor: string;
+  /** Empty ⇒ auto-contrast on `bgColor`, else the theme's primary. */
+  textColor: string;
+  size: "sm" | "md" | "lg";
+  paddingY: StorefrontStripSpace;
+  paddingX: StorefrontStripSpace;
+  dismissible: boolean;
 }
 
 /**
@@ -131,6 +159,7 @@ export interface CustomizeDraft {
   heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
+  campaignStrip: CampaignStripDraft;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerContentPages: FooterContentPagesDraft;
@@ -173,6 +202,7 @@ export type PartId =
   | "brand"
   | "design"
   | "announcement"
+  | "campaign"
   | "header"
   | "hero"
   | "home"
@@ -197,6 +227,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   brand: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle],
   design: (d) => d.design,
   announcement: (d) => d.announcement,
+  campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
   // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
@@ -311,6 +342,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
   const c = settings.copy ?? {};
   const presetDefaults = getPreset(t.preset);
   const a = settings.nav?.announcement;
+  const cs = settings.nav?.campaignStrip;
   return {
     preset: t.preset ?? "default",
     brandColor: t.brandColor ?? presetDefaults.brandColor,
@@ -350,6 +382,25 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       overlay: a?.overlay ?? "#000000",
       overlayOpacity: a?.overlayOpacity ?? 40,
       bgFit: a?.bgFit ?? "cover",
+      // Both breakpoints on by default: the bar predates these switches, and an
+      // unset field must not hide a bar the merchant already had running.
+      showOnDesktop: a?.showOnDesktop ?? true,
+      showOnMobile: a?.showOnMobile ?? true,
+    },
+    // Defaults reproduce the hard-coded strip exactly (13px text, 8px/16px
+    // padding, every page, both breakpoints), so seeding a store that has never
+    // opened this part cannot change how its storefront looks.
+    campaignStrip: {
+      enabled: cs?.enabled ?? true,
+      showOn: cs?.showOn ?? "all",
+      showOnDesktop: cs?.showOnDesktop ?? true,
+      showOnMobile: cs?.showOnMobile ?? true,
+      bgColor: cs?.bgColor ?? "",
+      textColor: cs?.textColor ?? "",
+      size: cs?.size ?? "sm",
+      paddingY: cs?.paddingY ?? "md",
+      paddingX: cs?.paddingX ?? "md",
+      dismissible: cs?.dismissible ?? false,
     },
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
@@ -502,6 +553,7 @@ export interface CustomizeDraftApi {
   /** `templates.home` + the section list it seeds — never `patchTemplate("home")`. */
   patchHomeTemplate: (value: string) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
+  patchCampaignStrip: (p: Partial<CampaignStripDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
   patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
   /**
@@ -605,6 +657,11 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
       setDraft((d) => ({ ...d, announcement: { ...d.announcement, ...p } })),
     [],
   );
+  const patchCampaignStrip = useCallback(
+    (p: Partial<CampaignStripDraft>) =>
+      setDraft((d) => ({ ...d, campaignStrip: { ...d.campaignStrip, ...p } })),
+    [],
+  );
   const patchContactButton = useCallback(
     (p: Partial<ContactButtonDraft>) =>
       setDraft((d) => ({ ...d, contactButton: { ...d.contactButton, ...p } })),
@@ -693,6 +750,7 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patchTemplate,
     patchHomeTemplate,
     patchAnnouncement,
+    patchCampaignStrip,
     patchContactButton,
     patchContentPages,
     applyTheme,
@@ -718,5 +776,8 @@ export function validateCustomizeDraft(draft: CustomizeDraft): string[] {
   if (!isValidHexColor(draft.announcement.bgColor, false)) errors.push("Announcement background is invalid");
   if (!isValidHexColor(draft.announcement.textColor)) errors.push("Announcement text colour is invalid");
   if (!isValidHexColor(draft.announcement.overlay)) errors.push("Announcement overlay is invalid");
+  // Both blank-allowed: an empty colour is the documented "follow the theme".
+  if (!isValidHexColor(draft.campaignStrip.bgColor)) errors.push("Campaign strip background is invalid");
+  if (!isValidHexColor(draft.campaignStrip.textColor)) errors.push("Campaign strip text colour is invalid");
   return errors;
 }

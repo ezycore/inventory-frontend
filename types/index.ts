@@ -217,11 +217,22 @@ export interface StorefrontHomeSection {
  */
 export interface StorefrontSectionConfig {
   key: string;
-  source?: "featured" | "newest" | "category";
+  /** `manual` = the merchant picked `productIds` by hand, in that order. */
+  source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
   title?: string;
-  /** 4–12. Unset ⇒ the section's own default. */
+  /** 4–12. Unset ⇒ the section's own default. Ignored by a `manual` row. */
   limit?: number;
+  /** Tags an `age-chips` row renders, in the merchant's order. */
+  tagIds?: string[];
+  /** A `manual` row's products, in the merchant's order. */
+  productIds?: string[];
+  /** "View all" wording override. Blank ⇒ the localized default. */
+  ctaLabel?: string;
+  /** "View all" destination override. Blank ⇒ the derived one. */
+  ctaHref?: string;
+  /** Show the row's button. Unset ⇒ true. */
+  showCta?: boolean;
 }
 
 export interface StorefrontTheme {
@@ -339,6 +350,38 @@ export interface StorefrontAnnouncement {
   overlayOpacity?: number;
   /** cover = photo backdrop; tile = repeating pattern. */
   bgFit?: "cover" | "tile";
+  /** Render above the storefront's 680px breakpoint. Default true. */
+  showOnDesktop?: boolean;
+  /** Render at 680px and below. Default true. */
+  showOnMobile?: boolean;
+}
+
+/** Which pages a site-wide strip appears on. */
+export type StorefrontStripScope = "all" | "home";
+
+/** Spacing preset — never a raw pixel value (resolved in `storefront.css`). */
+export type StorefrontStripSpace = "sm" | "md" | "lg";
+
+/**
+ * Presentation of the live-campaign strip under the header.
+ *
+ * **Presentation only** — the campaign's own start/end window still decides
+ * whether a campaign is live at all. `enabled: false` hides a running campaign;
+ * nothing here can surface an expired one.
+ */
+export interface StorefrontCampaignStrip {
+  enabled?: boolean;
+  showOn?: StorefrontStripScope;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  /** Blank ⇒ the theme's soft primary. */
+  bgColor?: string;
+  /** Blank ⇒ auto-contrast against `bgColor`, else the theme's primary. */
+  textColor?: string;
+  size?: "sm" | "md" | "lg";
+  paddingY?: StorefrontStripSpace;
+  paddingX?: StorefrontStripSpace;
+  dismissible?: boolean;
 }
 
 export interface StorefrontNav {
@@ -347,6 +390,8 @@ export interface StorefrontNav {
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;
+  /** Presentation of the campaign strip; not its schedule. */
+  campaignStrip?: StorefrontCampaignStrip;
 }
 
 export interface StorefrontCheckout {

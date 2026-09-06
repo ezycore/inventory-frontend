@@ -44,7 +44,9 @@ product page, cart, and after checkout identifies the shopper's zone. Leave them
 cannot promise a window; the shop then tells shoppers that delivery options appear at checkout.
 
 In Customize, the announcement bar can use the current free-delivery threshold instead of typed
-copy. If zone pricing is enabled, its threshold is the one advertised. Store links are relative to
+copy. Both the announcement bar and the campaign strip can be shown or hidden separately on desktop
+and on mobile — useful when a message that reads well on a wide screen crowds a phone. Switching both
+off hides the bar everywhere, and the editor warns you when you have done that. If zone pricing is enabled, its threshold is the one advertised. Store links are relative to
 the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
 saved, and full `https://` links remain external.
 

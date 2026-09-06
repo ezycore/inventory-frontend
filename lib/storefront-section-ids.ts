@@ -137,6 +137,12 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   "product-rail": "Product rail (side-scroll)",
   "minimal-picks": "Selected products",
   "trust-band": "Your promises band",
-  "deal-strip": "Live campaign strip",
+  /* NOT "campaign strip" — that name belongs to the shell bar under the header
+     (Customize → Campaign strip), which is a different component with its own
+     colour, size and spacing settings. Two merchant-facing controls reading
+     "campaign strip" sent people to the wrong one: style the shell bar green and
+     this section stays theme-coloured, with nothing on screen explaining why.
+     Named for the heading it actually renders (`t.campaignOffers`). */
+  "deal-strip": "Campaign offers row",
   "editorial-split": "Editorial split",
 };

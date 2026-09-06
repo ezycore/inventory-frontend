@@ -11905,10 +11905,15 @@ export interface components {
             sectionConfig?: {
                 key: string;
                 /** @enum {string} */
-                source?: "featured" | "newest" | "category";
+                source?: "featured" | "newest" | "category" | "manual";
                 categoryId?: string;
                 title?: string;
                 limit?: number;
+                tagIds?: string[];
+                productIds?: string[];
+                ctaLabel?: string;
+                ctaHref?: string;
+                showCta?: boolean;
             }[];
             copy?: {
                 footerText?: string;
@@ -11966,6 +11971,24 @@ export interface components {
                     overlayOpacity?: number;
                     /** @enum {string} */
                     bgFit?: "cover" | "tile";
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
+                campaignStrip?: {
+                    enabled?: boolean;
+                    /** @enum {string} */
+                    showOn?: "all" | "home";
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    bgColor?: string;
+                    textColor?: string;
+                    /** @enum {string} */
+                    size?: "sm" | "md" | "lg";
+                    /** @enum {string} */
+                    paddingY?: "sm" | "md" | "lg";
+                    /** @enum {string} */
+                    paddingX?: "sm" | "md" | "lg";
+                    dismissible?: boolean;
                 };
             };
             checkout?: {
@@ -15570,6 +15593,7 @@ export interface operations {
                 tags?: string;
                 brandId?: string;
                 featured?: "true" | "false";
+                ids?: string;
                 minPrice?: number;
                 maxPrice?: number;
                 inStock?: "1" | "true";
@@ -15736,6 +15760,7 @@ export interface operations {
                 categoryPath?: string;
                 tags?: string;
                 brandId?: string;
+                ids?: string;
                 minPrice?: number;
                 maxPrice?: number;
                 inStock?: "1" | "true";
@@ -15788,6 +15813,7 @@ export interface operations {
                 categoryPath?: string;
                 tags?: string;
                 brandId?: string;
+                ids?: string;
                 minPrice?: number;
                 maxPrice?: number;
                 inStock?: "1" | "true";
@@ -18864,11 +18890,15 @@ export interface operations {
                     sectionConfig?: {
                         key: string;
                         /** @enum {string} */
-                        source?: "featured" | "newest" | "category";
+                        source?: "featured" | "newest" | "category" | "manual";
                         categoryId?: string;
                         title?: string;
                         limit?: number;
                         tagIds?: string[];
+                        productIds?: string[];
+                        ctaLabel?: string;
+                        ctaHref?: string;
+                        showCta?: boolean;
                     }[];
                     nav?: {
                         header?: {
@@ -18916,6 +18946,24 @@ export interface operations {
                             overlayOpacity?: number;
                             /** @enum {string} */
                             bgFit?: "cover" | "tile";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        campaignStrip?: {
+                            enabled?: boolean;
+                            /** @enum {string} */
+                            showOn?: "all" | "home";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            bgColor?: "" | string;
+                            textColor?: "" | string;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingY?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingX?: "sm" | "md" | "lg";
+                            dismissible?: boolean;
                         };
                     };
                     checkout?: {
@@ -24193,6 +24241,7 @@ export interface operations {
                 subcategoryId?: string;
                 brandId?: string;
                 tags?: string | string[];
+                ids?: string | string[];
                 inventory?: string | boolean;
             };
             header?: {
