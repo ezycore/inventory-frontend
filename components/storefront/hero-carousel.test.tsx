@@ -240,3 +240,71 @@ describe("HeroCarousel whole-slide link", () => {
     expect(click.defaultPrevented).toBe(true);
   });
 });
+
+/**
+ * jsdom implements no pointer capture, so the bug these guard was invisible to
+ * every other test here: capturing a press that started on the whole-slide link
+ * retargets the click to the hero, the anchor never receives it, and the slide
+ * does nothing. Only desktop showed it — a touch's compatibility click comes
+ * from the touch target, not the captured element. Stub the method so the
+ * decision is asserted rather than silently skipped.
+ */
+describe("HeroCarousel pointer capture", () => {
+  const linkOnly = [
+    { image: { url: "/a.jpg" }, link: "/floormat" },
+    { title: "Second", image: { url: "/b.jpg" } },
+  ];
+
+  const withCaptureStub = (fn: (capture: ReturnType<typeof vi.fn>) => void) => {
+    const capture = vi.fn();
+    const proto = Element.prototype as unknown as Record<string, unknown>;
+    const had = "setPointerCapture" in proto;
+    const prev = proto.setPointerCapture;
+    proto.setPointerCapture = capture;
+    try {
+      fn(capture);
+    } finally {
+      if (had) proto.setPointerCapture = prev;
+      else delete proto.setPointerCapture;
+    }
+  };
+
+  it("does not capture a press that starts on the whole-slide link", () => {
+    withCaptureStub((capture) => {
+      const { container } = render(
+        <HeroCarousel slides={linkOnly} base="/shop" storeName="Test store" />,
+      );
+      const link = container.querySelector<HTMLElement>(".sf-hero-slide-link")!;
+
+      fireEvent.pointerDown(link, {
+        pointerId: 11,
+        pointerType: "mouse",
+        isPrimary: true,
+        button: 0,
+        clientX: 200,
+        clientY: 100,
+      });
+
+      expect(capture).not.toHaveBeenCalled();
+    });
+  });
+
+  it("still captures an ordinary press on the photo", () => {
+    withCaptureStub((capture) => {
+      const { container } = render(
+        <HeroCarousel slides={slides} base="/shop" storeName="Test store" />,
+      );
+      const hero = container.querySelector<HTMLElement>(".sf-hero")!;
+
+      fireEvent.pointerDown(hero, {
+        pointerId: 12,
+        pointerType: "touch",
+        isPrimary: true,
+        clientX: 200,
+        clientY: 100,
+      });
+
+      expect(capture).toHaveBeenCalledWith(12);
+    });
+  });
+});

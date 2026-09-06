@@ -12,6 +12,7 @@ import {
   Library,
   Megaphone,
   MessageCircle,
+  Percent,
   Package,
   PanelBottom,
   PanelTop,
@@ -26,6 +27,7 @@ import { Switch } from "@/ui/components/switch";
 import { PartGroup } from "@/components/ecommerce/customize/part-group";
 import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
+import { CampaignStripPart } from "@/components/ecommerce/customize/parts/campaign-strip-part";
 import { BrandPart } from "@/components/ecommerce/customize/parts/brand-part";
 import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
@@ -56,6 +58,9 @@ const PARTS: { id: PartId; title: string; icon?: LucideIcon }[] = [
   { id: "design", title: "Design", icon: Type },
   { id: "announcement", title: "Announcement bar", icon: Megaphone },
   { id: "header", title: "Header", icon: PanelTop },
+  // Under the header, which is where the rail puts it — the order of this list
+  // is the order a shopper meets each part, and the strip renders below the nav.
+  { id: "campaign", title: "Campaign strip", icon: Percent },
   { id: "hero", title: "Hero", icon: GalleryHorizontalEnd },
   { id: "home", title: "Home page", icon: Home },
   { id: "cards", title: "Product cards", icon: LayoutGrid },
@@ -160,6 +165,15 @@ export function PartsRail({
                   }}
                   aria-label="Show the announcement bar"
                 />
+              ) : part.id === "campaign" ? (
+                <Switch
+                  checked={draft.campaignStrip.enabled}
+                  onCheckedChange={(enabled) => {
+                    api.patchCampaignStrip({ enabled });
+                    if (enabled && open !== "campaign") onToggle("campaign");
+                  }}
+                  aria-label="Show the campaign strip"
+                />
               ) : part.id === "contact" ? (
                 <Switch
                   checked={draft.contactButton.enabled}
@@ -188,6 +202,11 @@ export function PartsRail({
                 settings={settings}
                 draft={draft}
                 patchAnnouncement={api.patchAnnouncement}
+              />
+            ) : part.id === "campaign" ? (
+              <CampaignStripPart
+                draft={draft}
+                patchCampaignStrip={api.patchCampaignStrip}
               />
             ) : part.id === "header" ? (
               <HeaderPart

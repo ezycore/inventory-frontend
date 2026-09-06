@@ -1,0 +1,175 @@
+// coding-standard: maintained
+
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
+import { CampaignStrip } from "@/components/storefront/campaign-strip";
+
+/* The strip reads four sources. Campaigns and the pathname are what the tests
+   drive; categories and tags only resolve the CTA target, and the preview store
+   is inert outside Customize. */
+const state = vi.hoisted(() => ({
+  campaigns: [] as StoreCampaign[],
+  pathname: "/shop",
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => state.pathname,
+}));
+vi.mock("@/services/storefront/hooks", () => ({
+  useStoreCampaigns: () => ({ data: state.campaigns }),
+  useStoreCategories: () => ({ data: [] }),
+  useStoreTags: () => ({ data: [] }),
+}));
+vi.mock("@/services/stores/use-sf-preview-store", () => ({
+  useSfPreview: (select: (s: Record<string, unknown>) => unknown) =>
+    select({ campaignStrip: undefined, active: false }),
+}));
+
+const live: StoreCampaign = {
+  _id: "c1",
+  name: "Mega Sale",
+  type: "percentage",
+  value: 20,
+  scope: "storewide",
+};
+
+const renderStrip = (config?: StoreCampaignStrip, pathname = "/shop") => {
+  state.pathname = pathname;
+  return render(
+    <CampaignStrip slug="rmc" base="/shop" config={config} />,
+  );
+};
+
+const strip = () => document.querySelector("[data-sf-campaign-strip]");
+
+beforeEach(() => {
+  state.campaigns = [live];
+  state.pathname = "/shop";
+  localStorage.clear();
+});
+
+describe("CampaignStrip — the campaign's schedule outranks every setting", () => {
+  /* This is the invariant the settings must never be able to break. The backend
+     serves only campaigns whose start/end window contains now, so an empty list
+     IS "the sale is over" — and no combination of presentation settings may
+     put an expired campaign back on the storefront. */
+  it("renders nothing once no campaign is live, however the strip is configured", () => {
+    state.campaigns = [];
+    renderStrip({
+      enabled: true,
+      showOn: "all",
+      showOnDesktop: true,
+      showOnMobile: true,
+      dismissible: false,
+    });
+    expect(strip()).toBeNull();
+    expect(screen.queryByText("Mega Sale")).not.toBeInTheDocument();
+  });
+
+  it("still renders a live campaign when the merchant has never opened the editor", () => {
+    renderStrip(undefined);
+    expect(screen.getByText("Mega Sale")).toBeInTheDocument();
+  });
+
+  it("lets the merchant hide a running campaign", () => {
+    renderStrip({ enabled: false });
+    expect(strip()).toBeNull();
+  });
+});
+
+describe("CampaignStrip page scope", () => {
+  it("shows on a non-home page by default", () => {
+    renderStrip(undefined, "/shop/products");
+    expect(screen.getByText("Mega Sale")).toBeInTheDocument();
+  });
+
+  it("hides off the home page when scoped to home", () => {
+    renderStrip({ showOn: "home" }, "/shop/products");
+    expect(strip()).toBeNull();
+  });
+
+  it("still shows on the home page when scoped to home", () => {
+    renderStrip({ showOn: "home" }, "/shop");
+    expect(screen.getByText("Mega Sale")).toBeInTheDocument();
+  });
+
+  it("treats a trailing slash as the home page", () => {
+    // `pageOf` normalises the base prefix; a shopper landing on "/shop/" must
+    // not lose a home-scoped strip.
+    renderStrip({ showOn: "home" }, "/shop/");
+    expect(screen.getByText("Mega Sale")).toBeInTheDocument();
+  });
+});
+
+describe("CampaignStrip presentation", () => {
+  it("carries no visibility class when it shows on both breakpoints", () => {
+    renderStrip({ showOnDesktop: true, showOnMobile: true });
+    expect(strip()?.className).toBe("sf-noprint");
+  });
+
+  it("hides on mobile via the storefront's own responsive class", () => {
+    renderStrip({ showOnDesktop: true, showOnMobile: false });
+    expect(strip()).toHaveClass("sf-desktop-only");
+  });
+
+  it("hides on desktop via the storefront's own responsive class", () => {
+    renderStrip({ showOnDesktop: false, showOnMobile: true });
+    expect(strip()).toHaveClass("sf-mobile-only");
+  });
+
+  it("marks a strip switched off on both breakpoints", () => {
+    renderStrip({ showOnDesktop: false, showOnMobile: false });
+    expect(strip()).toHaveClass("sf-strip-hidden");
+  });
+
+  it("applies the merchant's colours inline", () => {
+    renderStrip({ bgColor: "#123456", textColor: "#ffffff" });
+    const el = strip() as HTMLElement;
+    expect(el.style.background).toBe("rgb(18, 52, 86)");
+    expect(el.style.color).toBe("rgb(255, 255, 255)");
+  });
+
+  it("hands size and spacing to the stylesheet as attributes", () => {
+    /* Not as pixels. The tokens are redefined per breakpoint in
+       storefront.css, and an inline value outranks every media query — which
+       is how the strip wore a 1440px screen's spacing on a 375px phone. */
+    renderStrip({ size: "lg", paddingY: "lg", paddingX: "sm" });
+    const el = strip() as HTMLElement;
+    expect(el).toHaveAttribute("data-sf-strip", "campaign");
+    expect(el).toHaveAttribute("data-strip-size", "lg");
+    expect(el).toHaveAttribute("data-strip-pad-y", "lg");
+    expect(el).toHaveAttribute("data-strip-pad-x", "sm");
+
+    const link = el.querySelector("a") as HTMLElement;
+    expect(link.style.fontSize).toBe("var(--strip-font)");
+    expect(link.style.paddingBlock).toBe("var(--strip-pad-y)");
+    expect(link.style.paddingInline).toBe("var(--strip-pad-x)");
+    // No frozen pixel on the three properties that must scale. `gap` stays a
+    // literal on purpose — 9px between two words costs the same on any screen.
+    expect(link.getAttribute("style")).not.toMatch(
+      /(font-size|padding-block|padding-inline):[^;]*\d+px/,
+    );
+  });
+
+  it("clears the dismiss button with a floor, not a fixed inset", () => {
+    renderStrip({ dismissible: true, paddingX: "sm" });
+    const link = strip()!.querySelector("a") as HTMLElement;
+    expect(link.style.paddingInline).toBe(
+      "max(var(--strip-pad-x), var(--strip-dismiss-pad))",
+    );
+  });
+
+  it("has no dismiss button unless the merchant asked for one", () => {
+    renderStrip({ dismissible: false });
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("keeps the dismiss button outside the link", () => {
+    // A <button> nested in an <a> is invalid HTML and the browser's fix-up
+    // leaves the dismiss click navigating instead of closing.
+    renderStrip({ dismissible: true });
+    const button = screen.getByRole("button");
+    expect(button.closest("a")).toBeNull();
+  });
+});

@@ -218,6 +218,7 @@ function toPreviewContactButton(
 
 function toNav(draft: CustomizeDraft): StorefrontNav {
   const a = draft.announcement;
+  const cs = draft.campaignStrip;
   return {
     header: trimHeaderMenu(draft.navHeader),
     footer: trimFooterGroups(draft.footerGroups),
@@ -239,6 +240,23 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       overlay: a.overlay,
       overlayOpacity: a.overlayOpacity,
       bgFit: a.bgFit,
+      showOnDesktop: a.showOnDesktop,
+      showOnMobile: a.showOnMobile,
+    },
+    campaignStrip: {
+      enabled: cs.enabled,
+      showOn: cs.showOn,
+      showOnDesktop: cs.showOnDesktop,
+      showOnMobile: cs.showOnMobile,
+      // Blank ⇒ omitted, which is what makes the strip follow the theme's
+      // primary pair. Sending "" would store an empty string that the
+      // storefront then has to re-trim on every render.
+      bgColor: cs.bgColor.trim() || undefined,
+      textColor: cs.textColor.trim() || undefined,
+      size: cs.size,
+      paddingY: cs.paddingY,
+      paddingX: cs.paddingX,
+      dismissible: cs.dismissible,
     },
   };
 }
@@ -381,7 +399,7 @@ export function toSettingsPatch(
   }
   if (dirty.has("home")) take("sectionConfig");
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
-  if (["announcement", "header", "footer"].some((part) => dirty.has(part as PartId))) {
+  if (["announcement", "campaign", "header", "footer"].some((part) => dirty.has(part as PartId))) {
     take("nav");
   }
   if (dirty.has("hero")) {

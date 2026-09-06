@@ -130,6 +130,15 @@ export function sectionQuery(
   categories: CatalogCategory[],
 ): Record<string, string | number> | null {
   const limit = clampLimit(config.limit);
+  /* A hand-picked row asks for exactly its picks and nothing else. `limit` is
+     the picked count, NOT `clampLimit` — that clamps to 4-12, and this list is
+     the row's length rather than a pool it draws from, so a merchant who picked
+     three would silently get a fourth product they never chose. */
+  if (config.source === "manual") {
+    const ids = config.productIds ?? [];
+    if (ids.length === 0) return null;
+    return { ids: ids.join(","), limit: ids.length, inStock: "1" };
+  }
   if (config.source === "featured") return { featured: "true", limit, inStock: "1" };
   if (config.source === "newest") return { limit, sort: "newest", inStock: "1" };
   if (config.source !== "category") return null;
@@ -151,7 +160,37 @@ export function sectionQuery(
  * renaming a row must not throw away products the server already fetched.
  */
 export function sectionSignature(config: StoreSectionConfig): string {
-  return `${config.source ?? ""}:${config.categoryId ?? ""}:${clampLimit(config.limit)}`;
+  // `productIds` is in here for the same reason `categoryId` is: changing the
+  // picks changes the products, so a preview matching on the old signature
+  // would draw the previous selection under the new one. The CTA fields are
+  // deliberately OUT, alongside `title` — re-labelling a button must not throw
+  // away products the server already fetched.
+  const picks = config.productIds?.join(",") ?? "";
+  return `${config.source ?? ""}:${config.categoryId ?? ""}:${clampLimit(config.limit)}:${picks}`;
+}
+
+/**
+ * Put a hand-picked row's products back into the merchant's order.
+ *
+ * The query sends ids to `$in`, which returns them in whatever order the index
+ * yields — so without this a curated row is a curated SET, and the merchant's
+ * lead product lands wherever Mongo felt like putting it. Ordering is the whole
+ * difference between a merchant picking eight products and picking a sequence.
+ *
+ * Products whose id is not in the list keep their relative position at the end,
+ * so a non-manual row passed through here is unchanged.
+ */
+export function orderByIds<T extends { _id: string }>(
+  products: T[],
+  ids: string[] | undefined,
+): T[] {
+  if (!ids?.length) return products;
+  const rank = new Map(ids.map((id, i) => [id, i]));
+  return [...products].sort(
+    (a, b) =>
+      (rank.get(a._id) ?? Number.MAX_SAFE_INTEGER) -
+      (rank.get(b._id) ?? Number.MAX_SAFE_INTEGER),
+  );
 }
 
 /**
@@ -175,6 +214,8 @@ export function sectionTitle(
   if (config.source === "category") {
     return findSectionCategory(categories, config.categoryId)?.category.name ?? fallback;
   }
+  // A hand-picked row has no source to name itself after, so it keeps the
+  // section's own built-in heading until the merchant types one.
   return fallback;
 }
 

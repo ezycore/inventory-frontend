@@ -96,6 +96,12 @@ interface OptionParams {
    * `{{categoryId}}` in a filter bar (resolved from the sibling filter).
    */
   parentId?: string;
+  /** Server-side term for a searchable picker (a catalogue is too big for `all=true`). */
+  search?: string;
+  /** Page size. Pair with `all: false` — `all=true` ignores it. */
+  limit?: number;
+  /** Comma-separated id whitelist, for resolving labels of an already-chosen set. */
+  ids?: string;
 }
 
 /**
