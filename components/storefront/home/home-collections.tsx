@@ -167,6 +167,13 @@ function CollectionTile({
         flex: "none",
         display: "flex",
         flexDirection: "column",
+        // The PICTURE is centred in the chip's column; the LABEL under it is
+        // left-aligned (below). A centred label under a left-edge-aligned
+        // column of tiles gives every name a different starting x, so a row of
+        // them has no vertical line for the eye to follow — the names read as
+        // scattered rather than as a list. Names also wrap to two lines at
+        // different points, and a centred second line hangs under the middle of
+        // the first.
         alignItems: "center",
         gap: 8,
         width: strip ? "var(--sf-chip)" : undefined,
@@ -203,7 +210,13 @@ function CollectionTile({
             fontSize: 11.5,
             fontWeight: 500,
             color: "var(--text)",
-            textAlign: "center",
+            // Left, always — see the note on the column above. `alignSelf`
+            // because the column itself centres its children, and `width:100%`
+            // so the text box fills the chip rather than shrink-wrapping the
+            // word (which would re-centre it by the back door).
+            alignSelf: "flex-start",
+            width: "100%",
+            textAlign: "left",
             lineHeight: 1.2,
           }}
         >

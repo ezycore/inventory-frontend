@@ -31,6 +31,21 @@ its own. No one has to remember to switch it off at midnight, which is exactly w
 Set the end date when you create it, even for something you intend to run indefinitely. A forgotten
 campaign is a permanent price cut you are not aware of.
 
+### The strip that announces it
+
+While a campaign is running, your shop shows a strip under the header naming the sale and linking to
+it. It appears and disappears with the campaign's dates on its own — you never switch it on for a
+sale or off after one.
+
+How it looks is yours to set, in **Customize → Campaign strip**: background and text colour, text
+size, how much space it takes, whether shoppers can close it, and whether it shows on desktop,
+mobile, or both. You can also keep it to the home page only, though leaving it on every page is
+usually better — a shopper reading a product page is the one deciding whether to buy.
+
+Nothing in that panel changes the sale itself. It cannot start a campaign, extend one, or bring back
+one that has ended; the dates on the campaign decide that. If the strip is missing when you expect
+it, check the campaign's dates first — an ended campaign has nothing to announce.
+
 ## Coupons
 
 Coupons let you *Create and manage storefront discount codes.* Each has a code the shopper enters,

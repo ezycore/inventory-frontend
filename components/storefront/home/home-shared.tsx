@@ -16,7 +16,7 @@ import type {
 import type { Dict } from "@/lib/storefront-i18n";
 import { collectionHref, storeHref, storeLinkHref } from "@/lib/storefront-links";
 import { focalPosition } from "@/lib/storefront-focal";
-import { findSectionCategory, sectionTitle } from "@/lib/storefront-sections";
+import { findSectionCategory, orderByIds, sectionTitle } from "@/lib/storefront-sections";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { ProductCard } from "@/components/storefront/product-card";
 import { money } from "@/components/storefront/format";
@@ -90,25 +90,79 @@ export interface SectionProps {
 export function sectionRow(
   props: SectionProps,
   fallback: { products: CatalogProduct[]; title: string },
-): { products: CatalogProduct[]; title: string; href: string } {
+): {
+  products: CatalogProduct[];
+  title: string;
+  href: string;
+  /** Button wording; blank-safe, already localized. */
+  ctaLabel: string;
+  /** False when the merchant switched the row's button off. */
+  showCta: boolean;
+  /**
+   * The merchant hand-picked this row's products. Grids read it to skip the
+   * whole-row trim — see `gridProducts`.
+   */
+  isManual: boolean;
+} {
   const { config, items, categories, base, t } = props;
   if (!config) {
     return {
       products: fallback.products,
       title: fallback.title,
       href: storeHref(base, "/products"),
+      ctaLabel: t.viewAll,
+      showCta: true,
+      isManual: false,
     };
   }
   const found =
     config.source === "category"
       ? findSectionCategory(categories, config.categoryId)
       : null;
+  // "View all" goes where the row's own products live — the collection page for
+  // a category row, the full catalogue for the catalogue-wide sources. A
+  // hand-picked row has no such destination, which is why `ctaHref` exists; an
+  // explicit one wins for every source.
+  const derived = found
+    ? collectionHref(base, found.category)
+    : storeHref(base, "/products");
+  const ownHref = config.ctaHref?.trim();
+  /* A config with NO source is the editor's own "Default for this section", and
+     it is reachable rather than theoretical: emptying a hand-picked row that
+     also carries a heading or a button keeps those and drops `source` plus
+     `productIds` (see `ProductRowConfig.set`). Such a row must draw the
+     section's OWN products.
+
+     Without this it drew nothing at all, and silently: `sectionQuery` returns
+     `null` for a sourceless config, so `configuredSections` never fetched for
+     that key, `items` arrived undefined, and `items ?? []` — correct for a row
+     that asked a real question and got an empty answer — became an empty grid
+     that every section hides itself for. Writing a heading on a row and then
+     clearing its picks made the whole section disappear from the homepage. */
+  const sourced = !!config.source;
   return {
-    products: items ?? [],
+    /* Re-sorted into the merchant's pick order: the query sends ids to `$in`,
+       which returns no order at all.
+
+       ⚠ Gated on the source, not just on `productIds` being present. The editor
+       MERGES config patches, so switching a row from "Products I pick" back to
+       Featured leaves the old `productIds` on the document — nothing clears it
+       and the validator only requires the list for `manual`, never rejects it
+       elsewhere. Ungated, those stale ids silently hoisted their products to
+       the front of an unrelated row for as long as they stayed in it. The
+       editor now clears them on the way out too; this half also fixes the
+       documents that were already saved. */
+    products: sourced
+      ? orderByIds(
+          items ?? [],
+          config.source === "manual" ? config.productIds : undefined,
+        )
+      : fallback.products,
     title: sectionTitle(config, t, categories, fallback.title),
-    // "View all" goes where the row's own products live — the collection page
-    // for a category row, the full catalogue for the two catalogue-wide sources.
-    href: found ? collectionHref(base, found.category) : storeHref(base, "/products"),
+    href: ownHref ? storeLinkHref(base, ownHref) : derived,
+    ctaLabel: config.ctaLabel?.trim() || t.viewAll,
+    showCta: config.showCta ?? true,
+    isManual: config.source === "manual",
   };
 }
 
@@ -137,6 +191,35 @@ export function trimToWholeRows<T>(items: readonly T[]): T[] {
   if (items.length <= ROW_COLS) return [...items];
   const whole = Math.floor(items.length / ROW_COLS) * ROW_COLS;
   return items.slice(0, whole || ROW_COLS);
+}
+
+/**
+ * What a product GRID actually renders — the trim applied only where it means
+ * something.
+ *
+ * ⚠ **A hand-picked row is never trimmed.** `trimToWholeRows` exists to hide the
+ * orphans an arbitrary catalogue count leaves in a fixed-column grid; on a
+ * curated list there are no orphans, only products the merchant chose. Trimming
+ * one is a silent edit of their decision, and a bad one: five picks rendered
+ * four, six rendered four, seven rendered four, nine rendered eight. It also
+ * contradicted every other half of this feature — `sectionQuery` sets
+ * `limit: ids.length` rather than clamping precisely so nobody gains a product
+ * they did not pick, and the editor hides the "Show N" input for these rows
+ * because the list IS the length.
+ *
+ * It bit hardest in combination with `inStock`: pick eight, two sell out, six
+ * come back, and the trim took it to four.
+ *
+ * The three grids share this rather than each deciding, for the same reason
+ * they share `sectionRow` — three copies of one rule is two chances to drift.
+ * `ProductRail` (a scroller, no rows to leave ragged) and `MinimalPicks` (its
+ * own fixed cap of six) deliberately call neither.
+ */
+export function gridProducts(row: {
+  products: CatalogProduct[];
+  isManual: boolean;
+}): CatalogProduct[] {
+  return row.isManual ? [...row.products] : trimToWholeRows(row.products);
 }
 
 /**
@@ -295,6 +378,10 @@ export function HeroSlideLink({
     "data-hero-slide-link": "",
     "aria-label": label,
     tabIndex: reachable ? undefined : -1,
+    // An anchor is draggable by default, so a mouse drag across a link the size
+    // of the hero starts a native link-drag with its ghost image instead of
+    // reading as a press on the photograph.
+    draggable: false,
   };
   return /^https?:\/\//i.test(target) ? (
     <a href={target} target="_blank" rel="noopener noreferrer" {...shared} />

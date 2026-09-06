@@ -33,6 +33,16 @@ const labelOf = (key: string, value: string) =>
 const count = (n: number, one: string, many = `${one}s`) =>
   `${n} ${n === 1 ? one : many}`;
 
+/**
+ * The per-breakpoint half of a strip's summary. Empty when it shows on both,
+ * so the common case does not pay for a clause that says nothing.
+ */
+function stripWhere(showOnDesktop: boolean, showOnMobile: boolean): string {
+  if (showOnDesktop && showOnMobile) return "";
+  if (!showOnDesktop && !showOnMobile) return "hidden on every screen";
+  return showOnDesktop ? "desktop only" : "mobile only";
+}
+
 export function partSummary(
   id: PartId,
   draft: CustomizeDraft,
@@ -69,11 +79,29 @@ export function partSummary(
           : "";
       return `${font?.label ?? draft.design.font} · ${surface?.label ?? draft.design.surface} · ${scale?.label ?? draft.design.scale} headings · ${density?.label ?? draft.design.density} spacing · ${radius?.label ?? draft.design.radius} corners${width}`;
     }
-    case "announcement":
+    case "announcement": {
       if (!draft.announcement.enabled) return "Off";
-      return draft.announcement.text.trim()
+      const where = stripWhere(
+        draft.announcement.showOnDesktop,
+        draft.announcement.showOnMobile,
+      );
+      const message = draft.announcement.text.trim()
         ? `On — “${draft.announcement.text.trim()}”`
         : "On, but no message written yet";
+      return where ? `${message} · ${where}` : message;
+    }
+    case "campaign": {
+      const c = draft.campaignStrip;
+      if (!c.enabled) return "Off";
+      const where = stripWhere(c.showOnDesktop, c.showOnMobile);
+      const pages = c.showOn === "home" ? "Home page only" : "All pages";
+      // Deliberately says "when a campaign is running": the strip is invisible
+      // with no live campaign, and a merchant reading "On" against an empty
+      // storefront would go looking for a bug that isn't there.
+      return [`On when a campaign is running · ${pages}`, where]
+        .filter(Boolean)
+        .join(" · ");
+    }
     case "header": {
       const menu =
         draft.templates.headerMenu === "collections"
