@@ -1860,6 +1860,22 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   height: 100%;
   object-fit: contain;
 }
+/* Whole-slide link, for a slide with a destination but no button (see
+   `HeroSlideLink`). It carries no z-index deliberately: inside the slide it
+   paints last and so covers the photo, while the arrows and dots are later
+   SIBLINGS of the slide and keep painting above it. Give it a z-index and they
+   go dead. The focus ring is inset because the ring of a box the size of the
+   hero would otherwise be clipped away by the card's `overflow: hidden`. */
+.sf-hero-slide-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+}
+.sf-hero-slide-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
 @media (max-width: 640px) {
   .sf-hero-media-cover,
   .sf-hero-media-bg {

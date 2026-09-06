@@ -334,7 +334,7 @@ export function HeroSlidesPanel({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Button link</Label>
+                    <Label className="text-xs">Link</Label>
                     <Input
                       value={s.link ?? ""}
                       onChange={(e) => patch(i, { link: e.target.value })}
@@ -342,6 +342,14 @@ export function HeroSlidesPanel({
                       placeholder="/products or https://…"
                       className="h-9"
                     />
+                    {/* Renamed from "Button link": without a button label the
+                        link now belongs to the slide, so the old name described
+                        a control that is not there. */}
+                    <p className="text-xs leading-snug text-muted-foreground">
+                      {s.buttonLabel?.trim()
+                        ? "Opens when the button is clicked."
+                        : "No button label, so the whole slide opens this."}
+                    </p>
                   </div>
                 </div>
               )}
