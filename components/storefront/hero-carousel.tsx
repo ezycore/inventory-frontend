@@ -7,7 +7,7 @@ import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroMedia } from "@/components/storefront/hero-media";
 import { Icon } from "@/components/storefront/sf-icons";
-import { HeroCtaLink, wrap } from "@/components/storefront/home/home-shared";
+import { HeroCtaLink, HeroSlideLink, wrap } from "@/components/storefront/home/home-shared";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
 /** Brand-tinted panel backgrounds for slides without an image (alternating). */
@@ -145,6 +145,19 @@ export function HeroCarousel({
                   {subtitle ? <p className="sf-hero-sub">{subtitle}</p> : null}
                   <SlideCta slide={slide} base={base} />
                 </div>
+              ) : null}
+              {/* Last child on purpose: it covers the slide, and the arrows and
+                  dots are LATER SIBLINGS of this section, so they still paint
+                  and click above it without either side needing a z-index.
+                  Outside the `hasCopy` branch because a picture-only slide is
+                  the main reason this exists. */}
+              {!slide.buttonLabel?.trim() ? (
+                <HeroSlideLink
+                  base={base}
+                  link={slide.link}
+                  label={title || badge || `Slide ${i + 1} of ${count}`}
+                  reachable={i === current}
+                />
               ) : null}
             </section>
           );

@@ -243,12 +243,15 @@ export function HeroSlidesPanel({
                       </button>
                     </span>
                   </div>
-                  {/* Recommendations describe the editor's two preview canvases,
-                      while fit + focus still make off-ratio uploads safe. */}
+                  {/* `.sf-hero` IS 5:2, so this size is an exact match rather
+                      than a suggestion: at it, Full photo and Cropped render the
+                      same pixels. Off-ratio uploads still work — fit + focus
+                      handle them — but they are the case that needs a choice. */}
                   <p className="text-xs leading-snug text-muted-foreground">
-                    Recommended desktop canvas: 1600 × 640 px (5:2). This is
-                    guidance, not a requirement—Full photo or Cropped + focus
-                    safely handles other shapes.
+                    Recommended desktop canvas: 1600 × 640 px (5:2) — the exact
+                    hero shape, so nothing is cropped or letterboxed and both
+                    photo modes look identical. Other sizes still work: Full photo
+                    or Cropped + focus handles them.
                   </p>
                   {s.image?.mediumUrl || s.image?.url ? (
                     <PhotoFitField
@@ -331,7 +334,7 @@ export function HeroSlidesPanel({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Button link</Label>
+                    <Label className="text-xs">Link</Label>
                     <Input
                       value={s.link ?? ""}
                       onChange={(e) => patch(i, { link: e.target.value })}
@@ -339,6 +342,14 @@ export function HeroSlidesPanel({
                       placeholder="/products or https://…"
                       className="h-9"
                     />
+                    {/* Renamed from "Button link": without a button label the
+                        link now belongs to the slide, so the old name described
+                        a control that is not there. */}
+                    <p className="text-xs leading-snug text-muted-foreground">
+                      {s.buttonLabel?.trim()
+                        ? "Opens when the button is clicked."
+                        : "No button label, so the whole slide opens this."}
+                    </p>
                   </div>
                 </div>
               )}

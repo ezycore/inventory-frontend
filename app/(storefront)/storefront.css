@@ -1764,16 +1764,43 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
-  /* The 70svh cap only bites on short viewports — a landscape phone is past the
-     640px breakpoint below, so without it the hero took 89% of the screen and
-     the header stack took the rest, leaving zero product content visible. On a
-     desktop 70svh is well above the 430px cap, so nothing changes there.
-     The first declaration is a REQUIRED fallback, not redundancy: the slides are
-     `position: absolute`, so the hero has no intrinsic height, and a browser
-     without `svh` (pre-Chrome 108 / Safari 15.4) would drop the second line and
-     collapse the hero to nothing. */
-  height: clamp(320px, 40vw, 430px);
-  height: min(clamp(320px, 40vw, 430px), 70svh);
+  /* The frame IS the canvas the slide editor recommends (5:2 = 1600 × 640), not
+     a fixed height that approximated it. Until 2026-09-06 this read
+     `height: min(clamp(320px, 40vw, 430px), 70svh)` — fluid width against a
+     pinned height — so the real ratio ran 2.53 at the default page width, 3.53
+     on `wide` and past 4.2 on `full`. A correct 1600 × 640 upload therefore
+     still had slack on one axis, and the two photo modes disagreed about where
+     to spend it: `Full photo` pillarboxed it against the blurred fill, `Cropped`
+     trimmed the top and bottom. Two banners built to spec rendered differently
+     for no reason the merchant could see. Pinned, both modes are pixel-identical
+     and neither has anything left to do.
+     `max-height` is the short-viewport guard: a landscape phone is past the
+     640px breakpoint below, and without it the hero took 89% of the screen,
+     leaving zero product content visible. It is also the one thing that can
+     reopen the gap — on `full` at a very wide viewport 5:2 exceeds it — but that
+     degrades to blurred fill, never a crop, which is the right way round.
+     No `height` fallback is needed now the height is derived: `aspect-ratio`
+     predates the `:has()` this stylesheet already relies on, so any browser that
+     gets here supports it. */
+  /* `width` must stay DEFINITE or `max-height` resizes the wrong axis. With
+     `width: auto`, a capped height makes `aspect-ratio` shrink the WIDTH to keep
+     the ratio, so on a short viewport the hero went narrow and left-aligned —
+     310px of dead space beside it at `wide`, 299px on a landscape phone. Pinning
+     the width means the cap clamps the height instead: full-bleed as always, and
+     the ratio (not the layout) is what gives. The mobile block below always set
+     this, which is why only desktop ever showed it. */
+  width: 100%;
+  aspect-ratio: 5 / 2;
+  max-height: 70svh;
+  /* Stays on the global `border-box` reset. `aspect-ratio` shapes whichever box
+     `box-sizing` names and the photo lays out against the PADDING box
+     (`.sf-hero-media` is `inset: 0`), so the 1px border costs the image 0.27% of
+     the ratio — 1118 × 446 rather than 1118 × 447.2, about 1.5px of blurred fill
+     at the extreme edge. `content-box` removes exactly that and was tried; with
+     the `width: 100%` above it also pushes the border box 2px past the
+     container, so the hero stops aligning with every other section. A 2px
+     layout overflow is a real defect and 1.5px of fill under a blur is not, so
+     the border keeps its 2px and the photo keeps its rounding. */
   touch-action: pan-y;
 }
 .sf-hero-slide {
@@ -1832,6 +1859,22 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+/* Whole-slide link, for a slide with a destination but no button (see
+   `HeroSlideLink`). It carries no z-index deliberately: inside the slide it
+   paints last and so covers the photo, while the arrows and dots are later
+   SIBLINGS of the slide and keep painting above it. Give it a z-index and they
+   go dead. The focus ring is inset because the ring of a box the size of the
+   hero would otherwise be clipped away by the card's `overflow: hidden`. */
+.sf-hero-slide-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+}
+.sf-hero-slide-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
 }
 @media (max-width: 640px) {
   .sf-hero-media-cover,
@@ -2024,7 +2067,16 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
      section. Lower-priority badge/subtitle yield on phones instead. */
   .sf-hero {
     width: 100%;
-    height: clamp(220px, 62vw, 290px);
+    /* 16:9 is the 1200 × 675 phone canvas the editor has always recommended, and
+       now the frame the phone actually draws. The old
+       `clamp(220px, 62vw, 290px)` rendered ~1.48 (358 × 242 at 390px) — a 20%
+       mismatch against its own published size, wider than the desktop one it sat
+       beside, so a phone image built exactly to spec was still letterboxed.
+       Matching the recommendation costs ~40px of hero height on a typical phone
+       versus that clamp; the alternative was reshooting every mobile banner to
+       fit a number no merchant had been given. `max-height` carries down from
+       the base rule. */
+    aspect-ratio: 16 / 9;
     background: #171a2e;
   }
   .sf-hero-slide {
