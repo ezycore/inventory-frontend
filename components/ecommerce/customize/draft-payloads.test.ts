@@ -120,6 +120,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   logoStyle: {},
   homeCollections: {},
   design: DEFAULT_DESIGN,
+  heroAlign: "left",
   homepageSections: [],
   sectionConfig: [],
   templates: {},

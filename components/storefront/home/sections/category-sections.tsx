@@ -28,16 +28,33 @@ import { wrap, type SectionProps } from "@/components/storefront/home/home-share
  * keeps a reordered page from growing holes.
  */
 
-/** Chips row — the merchant's own layout (Customize → Home page). */
-export function CategoryChips({ base, categories, categoryRowDefault }: SectionProps) {
+/**
+ * The collections row — every way a shop offers its departments on the home
+ * page, in one section.
+ *
+ * **`category-links` merged in here on 2026-09-06.** It drew the same
+ * collections, in the same order, to the same links, in plain text between
+ * hairlines — and the difference was a treatment, not a section. Swapping
+ * components to get a quieter row also silently discarded the merchant's
+ * layout, column and label settings, because those live on
+ * `theme.homeCollections` and only the chips row read them.
+ *
+ * Now it is `homeCollections.style`, and the row keeps everything else it knows
+ * about itself.
+ */
+export function CategoryChips({ base, categories, categoryRowDefault, store }: SectionProps) {
+  const row = useCategoryRowLayout(store, categoryRowDefault);
   if (!categories.length) return null;
+  if (row.style === "plain") return <CategoryLinkRow base={base} categories={categories} />;
   return (
     /* `StoreHome` stacks sections with no gap between them, so a section's own
        padding is the ONLY thing separating it from the one above. This row's top
        padding was 0, which is fine under a section that ends in whitespace and
-       broken under one that ends in a ground: after `search-hero` (a full-bleed
-       `--primary-soft` band) the tiles sat flush against the tint with their top
-       edge touching it, reading as a row clipped by the band. Sections are
+       broken under one that ends in a ground: under a full-bleed tinted band
+       (it was `search-hero`, retired 2026-09-06; `hero-fullbleed` and the
+       campaign strip are the same shape of risk) the tiles sat flush against
+       the tint with their top edge touching it, reading as a row clipped by
+       the band. Sections are
        merchant-ordered, so "what is above" is not knowable here — the row has to
        carry its own clearance. Matches `CategoryTiles` below, which is the same
        idea drawn as photos and always had it. */
@@ -67,7 +84,7 @@ export function CategoryChips({ base, categories, categoryRowDefault }: SectionP
  * never appears. `sectionConfig.tagIds` is the real answer — ids survive every
  * rename and the chip reads its label off the tag. A seeded `BABY_KIDS_STORE`
  * shop is configured that way at signup, so this path only runs for a merchant
- * who added `age-chips` to some other theme and has not picked their tags yet.
+ * who added `tag-chips` to some other theme and has not picked their tags yet.
  *
  * Order is the order a child grows, and that is the only order this row may
  * render in: alphabetical reads "0-3M, 12-18M, 18-24M, 2-3Y, 3-4Y, 3-6M…", so a
@@ -98,7 +115,7 @@ export const AGE_BANDS = [
  * Renders nothing when the store has no age tags, like every section here: a
  * shop that does not sell by age simply does not compose this one.
  */
-export function AgeChips({ base, tags, t, config }: SectionProps) {
+export function TagChips({ base, tags, t, config }: SectionProps) {
   /* Configured ids first, in the merchant's own order — an id the store no
      longer has is dropped rather than rendered as a dead chip, which is what
      happens when a tag is deleted after being picked.
@@ -127,8 +144,13 @@ export function AgeChips({ base, tags, t, config }: SectionProps) {
           marginBottom: 14,
         }}
       >
+        {/* The merchant's own heading wins. Without one the row falls back to
+            "Shop by age" — which is honest, because the only tag list this
+            section knows by itself IS the age ladder, and a shop that pointed
+            it at brands has a heading to type. A generic "Shop by tag" would
+            read as unfinished on the shops that never configured it. */}
         <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0 }}>
-          {t.shopByAge}
+          {config?.title?.trim() || t.shopByAge}
         </h2>
       </div>
       {/* Scrolls on a phone rather than wrapping to three ragged rows — eight
@@ -166,9 +188,22 @@ export function AgeChips({ base, tags, t, config }: SectionProps) {
   );
 }
 
-/** Quiet centred text links between hairlines — the editorial answer. */
-export function CategoryLinks({ base, categories }: SectionProps) {
-  if (!categories.length) return null;
+/**
+ * The `plain` treatment: quiet centred text links between hairlines.
+ *
+ * Not a section any more — `CategoryChips` renders it when the merchant sets
+ * `homeCollections.style: "plain"`. Kept as its own component because it shares
+ * nothing with the tile row but its data: no pictures, no track, no columns.
+ *
+ * **On a phone this is the shorter row, which is the point.** The tile grid is
+ * pinned to two columns on narrow screens whatever the merchant picked, so a
+ * ten-department shop spends five rows of screen on pictures; the same ten
+ * names wrap into two or three lines. A quieter row is also a shorter one.
+ */
+function CategoryLinkRow({
+  base,
+  categories,
+}: Pick<SectionProps, "base" | "categories">) {
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(40px,6vw,64px)" }}>
       <div

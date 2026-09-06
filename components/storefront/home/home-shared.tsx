@@ -42,7 +42,7 @@ export interface SectionProps {
   featured: CatalogProduct[];
   latest: CatalogProduct[];
   categories: CatalogCategory[];
-  /** The store's tag facet — `age-chips` is the only section that reads it. */
+  /** The store's tag facet — `tag-chips` is the only section that reads it. */
   tags?: StoreTag[];
   campaigns: StoreCampaign[];
   t: Dict;
@@ -57,6 +57,16 @@ export interface SectionProps {
   primaryHeading?: boolean;
   /** Historical fallback until the merchant explicitly chooses grid or strip. */
   categoryRowDefault?: "strip" | "grid";
+  /**
+   * Where the open hero's copy sits (Customize → Hero). Resolved once in
+   * `StoreHome` so the section never reads a raw stored id, and so the draft
+   * value reaches the Customize preview the same way every other look does.
+   *
+   * Read only by `hero-open`. `hero-card` sets its copy beside a photo and
+   * `hero-fullbleed` lays type over one, so neither has an alignment worth
+   * asking about.
+   */
+  heroAlign?: "left" | "center";
   /**
    * This INSTANCE's config, when the merchant has given it one. Absent means
    * "render your built-in source", which is what every section did before
@@ -404,9 +414,22 @@ export function heroBtns(
   t: Dict,
   primaryLabel: string,
   hb?: StoreHeroBanner,
+  /** Follows the hero's own alignment — see `align` on `SectionProps`. */
+  align: "left" | "center" = "left",
 ) {
   return (
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+    /* `justifyContent`, not `textAlign`: the buttons are flex children, so
+       centring the text around them leaves the row itself hard left. That is
+       the exact failure a centred hero shows first — a centred headline over a
+       left-aligned button pair reads as a layout bug rather than a choice. */
+    <div
+      style={{
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap",
+        justifyContent: align === "center" ? "center" : undefined,
+      }}
+    >
       <HeroCtaLink
         base={base}
         link={hb?.primaryLink}

@@ -33,6 +33,7 @@ export function StorePreviewBridge() {
         logoStyle: p.theme?.logo,
         homeCollections: p.theme?.homeCollections,
         design: p.theme?.design,
+        heroAlign: p.theme?.heroAlign,
         homepageSections: p.theme?.homepageSections,
         // Sent beside the section list, never inside it — the preview has to
         // show a re-pointed row's real products, and the row's collection lives

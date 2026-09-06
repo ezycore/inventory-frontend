@@ -10,7 +10,11 @@ import {
 } from "@/services/api";
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
-import { resolveHeaderMenu, sectionInstances } from "@/lib/storefront-templates";
+import {
+  resolveHeaderMenu,
+  resolveHeroAlign,
+  sectionInstances,
+} from "@/lib/storefront-templates";
 import { mergeSectionConfig } from "@/lib/storefront-sections";
 import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
@@ -172,6 +176,12 @@ export interface CustomizeDraft {
   /** Type family + spatial rhythm (Customize → Design). Always complete. */
   design: StoreDesign;
   /**
+   * Where the open hero's copy sits (Customize → Hero). Always concrete, never
+   * unset — the picker is a controlled input, so an absent value would show
+   * nothing selected while the storefront happily renders left.
+   */
+  heroAlign: "left" | "center";
+  /**
    * The homepage as an ordered section list (Customize → Home page → Sections).
    * Empty means "the merchant switched everything off", which the storefront
    * resolver treats as unset rather than rendering a blank page.
@@ -230,7 +240,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
-  hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner],
+  hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner, d.heroAlign],
   // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
   // belong to this slice — they moved here from `collections` with their
   // controls on 2026-08-18. A setting left in the wrong slice marks the wrong
@@ -357,6 +367,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     // retired) axis has to arrive as a concrete id or its tile shows nothing
     // selected while the storefront happily renders the default.
     design: resolveDesign(t.design),
+    heroAlign: resolveHeroAlign(t.heroAlign),
     // Seeded from the saved list, else empty so the storefront falls back to the
     // section list implied by the home template.
     homepageSections: t.homepageSections ?? [],
@@ -463,6 +474,10 @@ export function applyThemeToDraft(
     brandColor: theme.brandColor,
     accentColor: theme.accentColor,
     design: resolveDesign(theme.design),
+    // Part of the LOOK, so a theme owns it and Classic resets it — a merchant
+    // who centred their hero and then applied a theme built around a left one
+    // must get the theme they picked, not a half of it.
+    heroAlign: resolveHeroAlign(theme.heroAlign),
     // Category-row geometry is part of the look. Without resetting it here,
     // Fresh Market inherits Classic's saved strip and stops looking like its
     // own theme in both the picker preview and the applied storefront.
@@ -549,6 +564,7 @@ export function isThemeModified(draft: CustomizeDraft): boolean {
   return (
     draft.brandColor !== applied.brandColor ||
     draft.accentColor !== applied.accentColor ||
+    draft.heroAlign !== applied.heroAlign ||
     !same(draft.design, applied.design) ||
     !same(draft.homeCollections, applied.homeCollections) ||
     !same(draft.templates, applied.templates) ||

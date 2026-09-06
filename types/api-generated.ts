@@ -11877,6 +11877,8 @@ export interface components {
                 homepageSections?: {
                     key: string;
                     type: string;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
                 }[];
                 logo?: {
                     background?: string;
@@ -11885,6 +11887,8 @@ export interface components {
                     radius?: number;
                 };
                 homeCollections?: {
+                    /** @enum {string} */
+                    style?: "card" | "plain";
                     /** @enum {string} */
                     layout?: "strip" | "grid";
                     columns?: number;
@@ -11901,6 +11905,8 @@ export interface components {
                     width?: string;
                 };
                 appliedThemeId?: string;
+                /** @enum {string} */
+                heroAlign?: "left" | "center";
             };
             sectionConfig?: {
                 key: string;
@@ -18852,6 +18858,8 @@ export interface operations {
                         homepageSections?: {
                             key: string;
                             type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
                         }[];
                         logo?: {
                             background?: "" | string;
@@ -18860,6 +18868,8 @@ export interface operations {
                             radius?: number;
                         };
                         homeCollections?: {
+                            /** @enum {string} */
+                            style?: "card" | "plain";
                             /** @enum {string} */
                             layout?: "strip" | "grid";
                             columns?: number;
@@ -18875,6 +18885,8 @@ export interface operations {
                             radius?: string;
                             width?: string;
                         };
+                        /** @enum {string} */
+                        heroAlign?: "left" | "center";
                         appliedThemeId?: string;
                     };
                     copy?: {

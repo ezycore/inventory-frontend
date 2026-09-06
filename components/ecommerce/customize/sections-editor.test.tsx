@@ -99,3 +99,51 @@ describe("SectionsEditor on a shop still running the preset", () => {
     expect(config.some((c: { key: string }) => c.key === "featured-grid-2")).toBe(false);
   });
 });
+
+/**
+ * Where a section shows — the one mobile-specific control in this plan.
+ *
+ * Three states rather than the two switches the announcement bar and campaign
+ * strip use: "nowhere" is what Remove already means, so the invalid
+ * combination those two have to warn about simply does not exist here.
+ */
+describe("SectionsEditor — per-section visibility", () => {
+  const pick = (row: number, label: string) =>
+    screen.getAllByRole("button", { name: label })[row];
+
+  it("defaults every section to Everywhere and stores nothing for it", () => {
+    const { onChange } = renderEditor();
+    expect(pick(0, "Everywhere")).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(pick(0, "Desktop only"));
+    const [next] = onChange.mock.calls[0];
+    expect(next[0]).toEqual({
+      ...classic.sections[0],
+      showOnDesktop: true,
+      showOnMobile: false,
+    });
+    // Only the section that was clicked.
+    expect(next[1]).toEqual(classic.sections[1]);
+  });
+
+  it("REMOVES both fields when the merchant goes back to Everywhere", () => {
+    const onChange = vi.fn();
+    render(
+      <SectionsEditor
+        sections={[{ key: "band-0", type: "trust-band", showOnDesktop: true, showOnMobile: false }]}
+        config={[]}
+        collections={[]}
+        homeTemplate="classic"
+        onChange={onChange}
+        onConfigChange={vi.fn()}
+      />,
+    );
+    expect(pick(0, "Desktop only")).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(pick(0, "Everywhere"));
+    const [next] = onChange.mock.calls[0];
+    // Not `showOnDesktop: true` — absent. "Everywhere" is the shape a section
+    // that was never asked has, and the two must be indistinguishable.
+    expect(next[0]).toEqual({ key: "band-0", type: "trust-band" });
+  });
+});

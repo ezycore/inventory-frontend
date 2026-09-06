@@ -195,7 +195,7 @@ reads as two filters at once.
     on `.sf-shell` reported the correct `--page` the whole time. Walking up from
     `document.elementFromPoint(x, y)` to the first ancestor with a non-transparent background is what
     exposed the layer above it still painting slate-white. When a colour "looks wrong" but the token
-  - ⚠ **`hero-card`, `hero-split` and `search-hero` all paint `--card`, so on a themed ground the
+  - ⚠ **`hero-card` paints `--card`, so on a themed ground the
     FIRST SCREEN is near-white.** That is the loudest defect a `surface` can have: the ground never
     gets to introduce itself. `hero-open` exists for this — copy on the page, picture in an
     `--accent-soft` panel, no frame at all. **Pick it whenever the page's own colour is meant to be
@@ -600,6 +600,53 @@ changed nothing a shopper could see — the whole "Starting layout" picker was i
 way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
 does.
 
+### Three heroes, one collections row, one tag row (2026-09-06)
+
+Six sections retired in one pass; the bar each merge cleared was **"the setting that replaces it is
+a question a merchant can answer."** No migration — no live document used any of these four.
+
+| Retired | Replaced by |
+|---|---|
+| `hero-split` | nothing. It was the middle of one axis (how framed), and the ends are the decision |
+| `hero-manifesto` | `hero-open` + `theme.heroAlign: "center"` |
+| `search-hero` | nothing. The `search-first` header carries the search on **every** page |
+| `category-links` | `category-chips` + `theme.homeCollections.style: "plain"` |
+| `age-chips` | renamed **`tag-chips`** — it always rendered `sectionConfig.tagIds`, not ages |
+
+- ⚠ **`heroAlign` is read by `hero-open` ONLY**, and the Hero panel hides the control unless the page
+  composes it. `hero-card` sets copy beside a photo, `hero-fullbleed` lays type over one — neither
+  has an alignment worth asking about, and a control that does nothing is worse than none.
+- ⚠ **Centring is a type decision, so it needs no mobile variant.** `--herocols` is `1fr` on a phone,
+  so the open hero is already one column there. The thing to test is the button row: buttons are
+  flex children, so `textAlign` alone leaves them hard left — `heroBtns` takes the alignment and sets
+  `justify-content`.
+- ⚠ **Retiring `hero-manifesto` un-hid a whole panel.** `HeroPart` gated itself on
+  `templates.home !== "minimal"` because Minimal composed a section that ignored slides and banners.
+  Minimal composes `hero-open` now, so the gate was hiding working controls. Removed.
+- **`plain` hides the row's other controls rather than disabling them** — no pictures means no
+  layout, columns or labels to set — but it KEEPS their values, so switching back restores the row
+  the merchant built. Swapping sections used to discard them.
+- **`tag-chips` takes `config.title`** and still falls back to "Shop by age". The only tag list it
+  knows by itself is the age ladder; a generic "Shop by tag" over eight age rungs reads as
+  unfinished.
+
+### Per-section mobile visibility (2026-09-06)
+
+`homepageSections[].showOnDesktop` / `showOnMobile`. **Both unset ⇒ everywhere**, so no existing shop
+changes and a shop that never opens this stores nothing.
+
+- Rendered through the **existing** `stripVisibilityClass` — the 680px `sf-desktop-only` /
+  `sf-mobile-only` pair the announcement bar and campaign strip already share. Never `matchMedia`:
+  the page is server-rendered and a JS check paints the wrong state first.
+- ⚠ **The wrapper `<div>` only exists when a section is actually hidden somewhere.** Wrapping every
+  section would change the DOM of every shop to express "shown everywhere", which is what no wrapper
+  already says.
+- **Three chips, not the shared switch pair.** `StripVisibilityField`'s distinguishing feature is a
+  warning for "off on both" — a state a section does not need, because Remove means that. One
+  choice, no invalid combination.
+- Page length is the problem it solves: a five-entry promises band is a five-row stack on a phone,
+  and an editorial split spends most of a screen on a photograph before any product.
+
 ### One product grid, pointed by its source (2026-09-06)
 
 `featured-grid`, `latest-grid` and `picks-grid` were the same component drawing from a different
@@ -883,7 +930,7 @@ shows one still photograph forever:
 
 | Section | Slides render as |
 |---|---|
-| `hero-card` / `hero-open` / `hero-split` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
+| `hero-card` / `hero-open` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
 | `hero-fullbleed` | its **own** edge-to-edge rotation, no card, copy laid over the photo |
 
 `HeroFullBleed` used to take only `heroSlides[0]`, on the documented reasoning that

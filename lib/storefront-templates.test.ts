@@ -3,6 +3,8 @@ import {
   isImageRatio,
   mediaRatioFor,
   resolveHeaderMenu,
+  resolveHeroAlign,
+  resolveHomeCollections,
   resolveSections,
   resolveTemplates,
 } from "@/lib/storefront-templates";
@@ -377,5 +379,47 @@ describe("resolveSections — config carried by a preset", () => {
     expect(resolveSections(legacy, opts).config).toEqual([
       { key: "featured-grid-2", source: "newest" },
     ]);
+  });
+});
+
+/* The two settings that absorbed a retired SECTION each. Both default to what
+   every shop already rendered, because an unset value means "never asked". */
+describe("resolveHeroAlign", () => {
+  it("is left for anything unset or unrecognised", () => {
+    expect(resolveHeroAlign(undefined)).toBe("left");
+    expect(resolveHeroAlign(null)).toBe("left");
+    expect(resolveHeroAlign("")).toBe("left");
+    // A stored id from a newer build must not centre a shop nobody centred.
+    expect(resolveHeroAlign("justify")).toBe("left");
+  });
+
+  it("centres only on an explicit center", () => {
+    expect(resolveHeroAlign("center")).toBe("center");
+  });
+});
+
+describe("resolveHomeCollections — style", () => {
+  it("is card for anything unset or unrecognised", () => {
+    expect(resolveHomeCollections(undefined).style).toBe("card");
+    expect(resolveHomeCollections({}).style).toBe("card");
+    expect(resolveHomeCollections({ style: "cards" as never }).style).toBe("card");
+  });
+
+  // What `category-links` used to be.
+  it("goes plain only on an explicit plain", () => {
+    expect(resolveHomeCollections({ style: "plain" }).style).toBe("plain");
+  });
+
+  // The other three keep working under `plain` — the storefront ignores them
+  // rather than the setting dropping them, so switching back restores the row
+  // the merchant had built.
+  it("keeps the rest of the row's settings under plain", () => {
+    const row = resolveHomeCollections({
+      style: "plain",
+      layout: "grid",
+      columns: 5,
+      align: "center",
+    });
+    expect(row).toMatchObject({ layout: "grid", columns: 5, align: "center" });
   });
 });

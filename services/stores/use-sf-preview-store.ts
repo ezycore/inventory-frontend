@@ -55,6 +55,8 @@ interface SfPreviewState {
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
   header: string | null;
+  /** Raw open-hero alignment (left | center) the editor is drafting. */
+  heroAlign: string | null;
   /** Raw product-card style (standard | compact | bold) the editor is drafting. */
   cardStyle: string | null;
   /** Raw card CTA layout (add | add-buy | icons | buy-first | reveal | icon-only). */
@@ -176,6 +178,7 @@ interface SfPreviewState {
     sectionConfig?: StoreSectionConfig[];
     footer?: string;
     header?: string;
+    heroAlign?: string;
     cardStyle?: string;
     cardActions?: string;
     imageFit?: string;
@@ -226,6 +229,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   sectionConfig: null,
   footer: null,
   header: null,
+  heroAlign: null,
   cardStyle: null,
   cardActions: null,
   imageFit: null,
@@ -277,6 +281,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.sectionConfig !== undefined ? patch.sectionConfig : s.sectionConfig,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
+      heroAlign: patch.heroAlign !== undefined ? patch.heroAlign : s.heroAlign,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,

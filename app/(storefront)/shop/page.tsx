@@ -110,7 +110,7 @@ export default async function StoreHomePage() {
     getStoreProducts(slug, { limit: DEFAULT_SECTION_LIMIT, sort: "newest", inStock: "1" }),
     getStoreCategories(slug),
     getStoreCampaigns(slug),
-    // The tag facet, for `age-chips`. Joins the batch rather than being fetched
+    // The tag facet, for `tag-chips`. Joins the batch rather than being fetched
     // inside the section for the same reason everything else here does: the
     // Customize preview can add that section without a round-trip.
     getStoreTags(slug),

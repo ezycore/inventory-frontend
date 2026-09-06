@@ -99,25 +99,38 @@ const SKETCHES: Record<string, ReactNode> = {
       </span>
     </Frame>
   ),
+  /* NO border: this layout composes the OPEN hero, whose whole point is that the
+     copy sits on the page rather than in a card. It drew a bordered card until
+     2026-09-06, when `hero-split` (the framed middle of that axis) retired and
+     this preset moved to `hero-open`. A sketch that promises a frame the shop
+     does not draw is the picker lying about what the tile does. */
   "home:hero-split": (
     <Frame>
-      <span className="flex flex-1 overflow-hidden rounded-[3px] border border-border">
-        <span className="flex flex-1 flex-col justify-center gap-1 p-1.5">
+      <span className="flex flex-1 items-center gap-1.5">
+        <span className="flex flex-1 flex-col justify-center gap-1">
           <span className={cn(BAR, "h-1 w-3/4")} />
           <span className={cn(BAR, "h-1 w-1/2")} />
           <span className={cn(CTA, "h-1.5 w-6")} />
         </span>
-        <span className={cn(IMG, "w-2/5 rounded-none")} />
+        <span className={cn(IMG, "w-2/5")} />
       </span>
       <Cards n={3} />
     </Frame>
   ),
+  /* Centred copy, a chip row, then a sparse edit — `hero-open` centred,
+     `category-chips`, `minimal-picks`. The chips and the products were missing
+     from this sketch while the preset composed `hero-manifesto`, which is a
+     hero and nothing else. */
   "home:minimal": (
-    <Frame className="items-center justify-center">
-      <span className={cn(BAR, "h-0.5 w-6")} />
+    <Frame className="items-center">
       <span className={cn(BAR, "h-1.5 w-3/5 bg-muted-foreground/60")} />
       <span className={cn(BAR, "h-1 w-2/5")} />
-      <span className={cn(BAR, "mt-0.5 h-2 w-8 rounded-[2px] bg-muted-foreground/60")} />
+      <span className="flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={cn(BAR, "h-1 w-4")} />
+        ))}
+      </span>
+      <Cards n={3} />
     </Frame>
   ),
 

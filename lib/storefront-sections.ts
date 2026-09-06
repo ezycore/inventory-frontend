@@ -51,11 +51,11 @@ export const isConfigurableSection = (type: string) => CONFIGURABLE.has(type);
  *
  * Deliberately not folded into `CONFIGURABLE`: that set is what
  * `configuredSections` walks to build a product QUERY per row, so an entry
- * there earns a catalogue fetch. `age-chips` renders tags the page already has
+ * there earns a catalogue fetch. `tag-chips` renders tags the page already has
  * and needs no query at all — adding it would cost every baby shop an extra
  * round trip for products it never shows.
  */
-const TAG_CONFIGURABLE = new Set(["age-chips"]);
+const TAG_CONFIGURABLE = new Set(["tag-chips"]);
 
 export const isTagConfigurableSection = (type: string) =>
   TAG_CONFIGURABLE.has(type);

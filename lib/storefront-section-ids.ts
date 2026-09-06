@@ -32,22 +32,29 @@ import type { StoreSectionConfig } from "@/lib/storefront-client";
  * variant multiplies every future change by the number of themes.
  */
 export const SECTION_IDS = [
-  // Heroes — a page uses one.
+  /* Heroes — a page uses one, and the three are points on ONE axis: how framed.
+     `hero-split` (the middle) and `hero-manifesto` (centred, pictureless)
+     retired on 2026-09-06; alignment is `theme.heroAlign` now, and a merchant
+     choosing between four shades of one decision was not choosing anything.
+     `search-hero` went with them — nothing composed it. */
   "hero-card",
   // Frameless — the copy sits on the page itself. The only hero that lets a
-  // themed ground be seen on the first screen.
+  // themed ground be seen on the first screen, and the one that reads
+  // `theme.heroAlign`.
   "hero-open",
-  "hero-split",
-  "hero-manifesto",
   "hero-fullbleed",
-  "search-hero",
-  // Ways into the catalogue.
+  /* Ways into the catalogue. `category-links` merged into `category-chips` on
+     2026-09-06 — it was the same row drawn quietly, and the treatment is
+     `theme.homeCollections.style` now. */
   "category-chips",
-  "category-links",
   "category-tiles",
-  // Age, not department. A baby shop's primary facet: a parent shops for
-  // "my six-month-old" long before they think about "Feeding".
-  "age-chips",
+  /* A row of TAG chips — a facet the merchant chooses. Called `age-chips`
+     until 2026-09-06 and described as a baby-shop section, which is what it was
+     built for and never what it does: it renders `sectionConfig.tagIds` and
+     takes each label off the tag, so the same row is shop-by-brand,
+     shop-by-material or shop-by-occasion. Only the untouched default is an age
+     ladder. Nothing stored used the old id, so the rename was free. */
+  "tag-chips",
   // Product rows. ONE grid — `latest-grid` and `picks-grid` were the same
   // component drawing from a different fallback list, which `sectionConfig`
   // answers per instance. See `product-sections.tsx`.
@@ -66,10 +73,7 @@ export type SectionId = (typeof SECTION_IDS)[number];
 export const HOME_PRIMARY_HEADING_SECTIONS: ReadonlySet<SectionId> = new Set([
   "hero-card",
   "hero-open",
-  "hero-split",
-  "hero-manifesto",
   "hero-fullbleed",
-  "search-hero",
 ]);
 
 /**
@@ -140,8 +144,11 @@ export const HOME_PRESET_SECTIONS: Record<string, readonly HomePresetEntry[]> = 
     "featured-grid",
     { type: "featured-grid", config: { source: "newest" } },
   ],
-  "hero-split": ["hero-split", "featured-grid"],
-  minimal: ["hero-manifesto", "category-links", "minimal-picks"],
+  /* The KEY is a `templates.home` value, not a section id — one stored document
+     still names it, so it stays and composes the closest surviving hero rather
+     than falling through to Classic and silently restyling that shop. */
+  "hero-split": ["hero-open", "featured-grid"],
+  minimal: ["hero-open", "category-chips", "minimal-picks"],
 };
 
 /**
@@ -165,14 +172,10 @@ export const SOURCE_LABELS: Record<string, string> = {
 export const SECTION_LABELS: Record<SectionId, string> = {
   "hero-card": "Hero card",
   "hero-open": "Open hero (no card)",
-  "hero-split": "Split hero",
-  "hero-manifesto": "Centred statement",
   "hero-fullbleed": "Full-width photo hero",
-  "search-hero": "Search bar hero",
-  "category-chips": "Category chips",
-  "category-links": "Category links",
+  "category-chips": "Collections row",
   "category-tiles": "Category photo tiles",
-  "age-chips": "Shop by age",
+  "tag-chips": "Shop by tag",
   /* The label a row falls back to. A CONFIGURED row is named by its content in
      the editor (`sectionLabel`) and by its source on the shop (`sectionTitle`,
      which returns the localized "New arrivals" for a `newest` row) — so this

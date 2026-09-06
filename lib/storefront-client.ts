@@ -60,6 +60,16 @@ export const faviconHref = (
 export interface StoreHomeSection {
   key: string;
   type: string;
+  /**
+   * Which screens this instance appears on. **Both unset ⇒ everywhere**, which
+   * is what every section did before this existed.
+   *
+   * Rendered as a CSS class (`stripVisibilityClass`), never `matchMedia`: the
+   * page is server-rendered and the server cannot know the viewport, so a JS
+   * check paints the wrong state and corrects it after hydration.
+   */
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
 }
 
 /**
@@ -116,6 +126,21 @@ export interface StoreLogoStyle {
 
 /** Owner layout for homepage category rows (Customize → Home page). */
 export interface StoreHomeCollections {
+  /**
+   * How a collection is DRAWN. `card` (default) is the picture tile every shop
+   * has always had; `plain` is names only, centred between hairlines.
+   *
+   * This was a separate section — `category-links` — until 2026-09-06. It drew
+   * the same collections, in the same order, to the same links; the only
+   * difference was the treatment, and the chips row already owned every other
+   * decision about itself through this object. A merchant asking for a quieter
+   * row should not have to swap components and lose their layout, columns and
+   * label settings to get one.
+   *
+   * `plain` has no pictures, so `layout`, `columns` and `showLabels` do not
+   * apply to it — the panel says so rather than leaving dead controls on.
+   */
+  style?: "card" | "plain";
   /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
   layout?: "strip" | "grid";
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
@@ -284,6 +309,12 @@ export interface StorefrontStore {
       density?: string;
       radius?: string;
     };
+    /**
+     * Where the OPEN hero's copy sits. Unset ⇒ left, which every hero was
+     * before this existed. Read through `resolveHeroAlign` so an unknown
+     * stored value cannot reach the DOM — the same rule `design` follows.
+     */
+    heroAlign?: string;
   };
   /**
    * Words the merchant wrote — a SIBLING of `theme`, not part of it.

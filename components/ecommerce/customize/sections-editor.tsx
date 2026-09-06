@@ -56,6 +56,42 @@ const ADD_ENTRIES: AddEntry[] = SECTION_IDS.flatMap((id): AddEntry[] =>
 );
 
 /**
+ * Where a section appears — the one mobile-specific control on the homepage.
+ *
+ * **Three states, not two switches.** The announcement bar and the campaign
+ * strip each use a pair of switches and have to warn when both are off; a
+ * section does not need that state, because "nowhere" is what the Remove button
+ * already means. One choice with no invalid combination is the simpler question
+ * for a merchant, and it cannot be answered wrong.
+ *
+ * Page length is the problem this solves. A promises band with five entries is
+ * a five-row stack on a phone, and an editorial split spends most of a screen
+ * on one photograph before any product — both earn their place on a desktop
+ * homepage, and until now the choice was keep it everywhere or lose it
+ * everywhere.
+ *
+ * `undefined` on both fields is "everywhere", so a shop that never opens this
+ * stores nothing.
+ */
+const WHERE_OPTIONS: {
+  label: string;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+}[] = [
+  { label: "Everywhere" },
+  { label: "Desktop only", showOnDesktop: true, showOnMobile: false },
+  { label: "Mobile only", showOnDesktop: false, showOnMobile: true },
+];
+
+/** Which of the three a stored instance is in. Anything unset ⇒ everywhere. */
+function whereIndex(section: StoreHomeSection): number {
+  const desktop = section.showOnDesktop ?? true;
+  const mobile = section.showOnMobile ?? true;
+  if (desktop && mobile) return 0;
+  return desktop ? 1 : 2;
+}
+
+/**
  * Customize → Home page → **Sections**: the merchant's homepage as an ordered,
  * toggleable list.
  *
@@ -147,7 +183,7 @@ export function SectionsEditor({
     }
     const existing = configFor(effectiveConfig, key);
     // A NEW product row needs a source — it is the whole point of configuring
-    // one. A tag row does not: `source` means nothing to `age-chips`, and
+    // one. A tag row does not: `source` means nothing to `tag-chips`, and
     // storing "featured" on it would make the saved config read as a product
     // row to anyone debugging the document.
     const seed = isTagConfigurableSection(
@@ -252,6 +288,49 @@ export function SectionsEditor({
               onChange={(patch) => setConfig(section.key, patch)}
             />
           ) : null}
+
+          {/* Where it shows. Under the row's own config rather than beside the
+              name: it is the last question a merchant asks about a section, and
+              a chip group on the title line would crowd the three buttons. */}
+          <div className="flex flex-wrap items-center gap-1.5 border-t px-2.5 py-2">
+            <span className="mr-1 text-[11px] text-muted-foreground">Show on</span>
+            {WHERE_OPTIONS.map((option, index) => (
+              <button
+                key={option.label}
+                type="button"
+                aria-pressed={whereIndex(section) === index}
+                onClick={() =>
+                  commit(
+                    effective.map((entry) =>
+                      entry.key === section.key
+                        ? {
+                            key: entry.key,
+                            type: entry.type,
+                            // Rebuilt rather than spread: "Everywhere" has to
+                            // REMOVE the two fields, and spreading would leave
+                            // the old pair sitting under the new answer.
+                            ...(option.showOnDesktop === undefined
+                              ? {}
+                              : {
+                                  showOnDesktop: option.showOnDesktop,
+                                  showOnMobile: option.showOnMobile,
+                                }),
+                          }
+                        : entry,
+                    ),
+                    effectiveConfig,
+                  )
+                }
+                className={`rounded-md border px-2 py-0.5 text-[11px] ${
+                  whereIndex(section) === index
+                    ? "border-primary bg-primary/10 font-medium text-primary"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
           </li>
         );
         })}

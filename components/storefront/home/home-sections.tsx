@@ -8,14 +8,10 @@ import {
   HeroCard,
   HeroOpen,
   HeroFullBleed,
-  HeroManifesto,
-  HeroSplit,
-  SearchHero,
 } from "@/components/storefront/home/sections/hero-sections";
 import {
-  AgeChips,
+  TagChips,
   CategoryChips,
-  CategoryLinks,
   CategoryTiles,
 } from "@/components/storefront/home/sections/category-sections";
 import {
@@ -59,20 +55,19 @@ import {
  */
 
 export const SECTION_COMPONENTS = {
-  // Heroes — a page uses one.
+  // Heroes — a page uses one, and the three answer one question each: how
+  // framed. See the family note in `hero-sections.tsx`.
   "hero-card": HeroCard,
   // Frameless — the copy sits on the page itself. The only hero that lets a
-  // themed ground be seen on the first screen.
+  // themed ground be seen on the first screen, and the one that reads
+  // `theme.heroAlign`.
   "hero-open": HeroOpen,
-  "hero-split": HeroSplit,
-  "hero-manifesto": HeroManifesto,
   "hero-fullbleed": HeroFullBleed,
-  "search-hero": SearchHero,
-  // Ways into the catalogue.
+  // Ways into the catalogue. The chips row draws itself as picture tiles or as
+  // plain names — `homeCollections.style`, not a second section.
   "category-chips": CategoryChips,
-  "category-links": CategoryLinks,
   "category-tiles": CategoryTiles,
-  "age-chips": AgeChips,
+  "tag-chips": TagChips,
   // Product rows. One grid, pointed by its `sectionConfig.source` — the id is
   // kept as `featured-grid` because 28 stored documents already name it.
   "featured-grid": ProductGrid,

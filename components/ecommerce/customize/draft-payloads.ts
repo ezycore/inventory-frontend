@@ -287,6 +287,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
       design: draft.design,
+      heroAlign: draft.heroAlign,
       // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
       // shop shows no sections at all", where unset means "use the default the
       // home template implies" — the difference between a blank page and a
@@ -464,6 +465,7 @@ export function toPreviewPayload(
       logo: draft.logoStyle,
       homeCollections: draft.homeCollections,
       design: draft.design,
+      heroAlign: draft.heroAlign,
       homepageSections: draft.homepageSections,
     },
     sectionConfig: draft.sectionConfig,

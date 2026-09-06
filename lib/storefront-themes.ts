@@ -67,6 +67,11 @@ export interface ReadyMadeTheme {
    */
   sections: HomePresetEntry[];
   /**
+   * Where the open hero's copy sits. Part of the LOOK, so a theme owns it —
+   * and Classic sets `"left"` explicitly because Classic is the reset.
+   */
+  heroAlign?: "left" | "center";
+  /**
    * What the PREVIEW fills a merchant's empty shop with — see
    * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
    * without one would preview another trade's stock, which is the bug this
@@ -128,6 +133,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       width: "contained",
     },
     homeCollections: { layout: "strip", align: "left" },
+    // Spelled out because Classic is the RESET: a merchant who centred their
+    // hero and then reached for "start over" must actually get it back.
+    heroAlign: "left",
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
     sections: [
       "hero-card",
@@ -492,14 +500,14 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
        sell", it is whether the formula is genuine and in date, and an answer
        below six rows of products is an answer they never read.
 
-       `age-chips` third, because a parent shops for their six-month-old long
+       `tag-chips` third, because a parent shops for their six-month-old long
        before they think about "Feeding" — it renders nothing unless the shop
        actually keeps age tags, so a gift shop applying this theme simply does
        not get the row. */
     sections: [
       "hero-fullbleed",
       "trust-band",
-      "age-chips",
+      "tag-chips",
       "category-tiles",
       "featured-grid",
       "deal-strip",

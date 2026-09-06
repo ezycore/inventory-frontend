@@ -63,7 +63,6 @@
   --herocols: 1fr;
   --bandcols: 2;
   --splitcols: 1fr;
-  --splith: 200px;
   --trustcols: 1fr;
   --promocols: 1fr;
   --mincols: 2;
@@ -522,7 +521,6 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="nursery"]) {
     --herocols: 1.1fr 1fr;
     --bandcols: 4;
     --splitcols: 1fr 1fr;
-    --splith: 340px;
     --trustcols: 3;
     --promocols: 1fr 1fr;
     --mincols: 3;

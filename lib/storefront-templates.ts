@@ -447,8 +447,28 @@ export function resolveLogoStyle(
   };
 }
 
+/**
+ * Where the OPEN hero's copy sits — `theme.heroAlign` narrowed to something the
+ * DOM may see.
+ *
+ * `left` is the fallback for anything unset or unrecognised, because that is
+ * what every hero rendered before this control existed: an unknown stored id
+ * must not centre a shop nobody asked to centre.
+ *
+ * This is the whole of what the retired `hero-manifesto` section contributed.
+ * It was `hero-open` with no picture and centred type, and `hero-open` already
+ * collapses to one column when no banner is set — so a merchant who wanted
+ * centred copy had to choose a different SECTION, and doing so silently
+ * discarded the banner they had uploaded.
+ */
+export function resolveHeroAlign(raw: string | null | undefined): "left" | "center" {
+  return raw === "center" ? "center" : "left";
+}
+
 /** Homepage collections row layout with the owner's overrides applied. */
 export interface ResolvedHomeCollections {
+  /** `plain` draws names only; `card` is the picture tile. */
+  style: "card" | "plain";
   layout: "strip" | "grid";
   /** Desktop columns in `grid`. Narrow screens pin to 2 — see storefront.css. */
   columns: number;
@@ -473,6 +493,9 @@ export function resolveHomeCollections(
   raw: StoreHomeCollections | null | undefined,
 ): ResolvedHomeCollections {
   return {
+    // Only an explicit `plain` drops the pictures. This is what the retired
+    // `category-links` section drew, and `card` is every shop that never asked.
+    style: raw?.style === "plain" ? "plain" : "card",
     layout: raw?.layout === "grid" ? "grid" : "strip",
     columns: clampInt(raw?.columns, 2, 6, 4),
     align:
