@@ -108,6 +108,10 @@ export function HomePart({
           <HomeCollectionsField
             value={draft.homeCollections}
             defaultLayout={hasCategoryTiles ? "grid" : "strip"}
+            // Named in the phone-columns hint: that count drives the tile row
+            // too, and a merchant should be told which sections a control moves
+            // before they wonder why a second one shifted.
+            hasCategoryTiles={hasCategoryTiles}
             unphotographed={
               draft.collections.filter((c) => c.isListed && !c.hasImage).length
             }
@@ -179,6 +183,11 @@ const ALIGNMENTS: {
 ];
 
 const COLUMN_CHOICES = [2, 3, 4, 5, 6];
+/* Phones stop at four. A 360px screen minus padding is ~336px, so five columns
+   is a 60px track and six is 48px — under the size a tile has to be to be
+   tapped, and far under what the name beneath it needs. Its own list rather
+   than a slice of the one above, so the two bounds can move apart. */
+const MOBILE_COLUMN_CHOICES = [2, 3, 4];
 
 const CONTENTS: { showLabels: boolean; label: string }[] = [
   { showLabels: true, label: "Picture and name" },
@@ -209,19 +218,20 @@ const CONTENTS: { showLabels: boolean; label: string }[] = [
 function HomeCollectionsField({
   value,
   defaultLayout,
+  hasCategoryTiles,
   unphotographed,
   onChange,
 }: {
   value: StorefrontHomeCollections;
   defaultLayout: "strip" | "grid";
+  /** The tile row is composed too, so the phone count governs both. */
+  hasCategoryTiles: boolean;
   /** Listed collections with no picture — the exact thing standing in the way. */
   unphotographed: number;
   onChange: (next: StorefrontHomeCollections) => void;
 }) {
-  const { style, layout, columns, align, showLabels } = resolveCategoryRowLayout(
-    value,
-    defaultLayout,
-  );
+  const { style, layout, columns, mobileColumns, align, showLabels } =
+    resolveCategoryRowLayout(value, defaultLayout);
   // A plain row is names between hairlines: no track to scroll, no columns to
   // count, no picture to take a name off. Hiding those beats disabling them —
   // the same rule the column count already follows under `strip`.
@@ -271,19 +281,50 @@ function HomeCollectionsField({
       </div>
 
       {layout === "grid" ? (
-        <PartField label="Collections per row">
-          <div className="flex flex-wrap gap-2">
-            {COLUMN_CHOICES.map((n) => (
-              <OptionChip
-                key={n}
-                selected={columns === n}
-                onSelect={() => patch({ columns: n })}
-              >
-                {n}
-              </OptionChip>
-            ))}
-          </div>
-        </PartField>
+        <>
+          <PartField label="Collections per row" hint="On a computer screen.">
+            <div className="flex flex-wrap gap-2">
+              {COLUMN_CHOICES.map((n) => (
+                <OptionChip
+                  key={n}
+                  selected={columns === n}
+                  onSelect={() => patch({ columns: n })}
+                >
+                  {n}
+                </OptionChip>
+              ))}
+            </div>
+          </PartField>
+
+          {/* ⚠ Its own count, not a scale of the one above, and the panel says
+              which row it governs — the phone number also drives the Category
+              photo tiles section, because both grids read this one object. A
+              merchant with fourteen departments wants four across on a phone
+              while a merchant with two wants them big, and neither answer can
+              be derived from what they chose for a 1200px page. Every phone
+              drew two before this control existed, so an untouched shop does
+              not move. */}
+          <PartField
+            label="Collections per row on a phone"
+            hint={
+              hasCategoryTiles
+                ? "Also sets the Category photo tiles row. Most phones fit three comfortably; four suits short names."
+                : "Most phones fit three comfortably; four suits short names."
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              {MOBILE_COLUMN_CHOICES.map((n) => (
+                <OptionChip
+                  key={n}
+                  selected={mobileColumns === n}
+                  onSelect={() => patch({ mobileColumns: n })}
+                >
+                  {n}
+                </OptionChip>
+              ))}
+            </div>
+          </PartField>
+        </>
       ) : null}
 
       <PartField label="Alignment">

@@ -182,6 +182,13 @@ export interface StorefrontHomeCollections {
   layout?: "strip" | "grid";
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
   columns?: number;
+  /**
+   * Columns per row in `grid` **on a phone** (2–4). Unset ⇒ 2, the count every
+   * phone drew before this existed. Its own number, not a scale of `columns`:
+   * a desktop row divides a 1200px page and a phone row ~360px, so the answers
+   * are unrelated. Governs the `category-tiles` section as well as this row.
+   */
+  mobileColumns?: number;
   align?: "left" | "center" | "right";
   /**
    * `false` draws the row as pictures only. Honored ONLY when every listed
