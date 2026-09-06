@@ -1002,8 +1002,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    ONE card per row on a phone, and that is the section's whole premise: a promo
    card exists to carry a photograph, a sentence and a button, and at half a
    375px screen it carries none of them — at which point it is a worse version
-   of the tile row that already exists. Page length is the cost, and the
-   section's own show-on control is the merchant's lever for it.
+   of the tile row that already exists. Page length is the cost; the section's
+   own show-on control is one lever for it, and the `split` card's phone shape
+   (a thumbnail beside the copy — see the block below) is the other. Note that
+   split does NOT put two cards on a phone row: it makes each ROW shorter, which
+   is the same premise held, not dropped.
    `auto-fit` past the breakpoint means the merchant's own pick count decides the
    width — two cards go half and half, four go a quarter each — with no count
    plumbed through from the component. */
@@ -1056,6 +1059,51 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   line-height: 1.5;
   color: var(--muted);
 }
+/* ---- The `split` card on a PHONE: photograph as a thumbnail beside the copy ----
+   ⚠ This block is NOT the desktop split card shrunk, and the difference is the
+   whole reason it may exist at all.
+
+   The original rule was that split had no phone counterpart: half of a 390px
+   card is ~170px a column, and neither the photograph nor the sentence survives
+   that. True — of an EVEN split. What a phone can carry is a thumbnail: the
+   picture takes a third at most and the words keep two thirds, which is the
+   shape a shopper already knows from every order list and search result on
+   their phone. So the setting stops being dead weight on the device that is
+   nearly all of this platform's traffic, and it earns its place by what it
+   fixes: a stacked promo card is a 16:9 photograph plus copy plus a button,
+   ~300px of a ~700px screen, so two cards ARE the phone's whole home page.
+   Three of these fit in the same room.
+
+   The photo column is a clamp rather than a percentage so it stays a thumbnail
+   at 320px and never grows into the even split this block exists to avoid. */
+@media (max-width: 679px) {
+  .sf-banner-card--split {
+    --sf-bc-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: clamp(96px, 30%, 132px) minmax(0, 1fr);
+    align-items: center;
+  }
+  /* Whichever child the photo branch produced — see the note in the desktop
+     block; `Media` returns a bare `<img>` for `cover` and a wrapper for
+     `canvas`, so this cannot name an element. */
+  .sf-banner-card--split > :first-child {
+    align-self: stretch;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sf-banner-card--split .sf-banner-body {
+    /* Tighter than the stacked card's: this copy sits beside a picture in a
+       ~240px column, not under a full-width one. */
+    padding: 11px 13px 12px;
+  }
+  /* One line beside a thumbnail. Two would push the card past the thumbnail's
+     own height and leave the picture floating in a band of card colour, which
+     is the failure the desktop split rule already guards with `stretch`. */
+  .sf-banner-card--split .sf-banner-copy {
+    -webkit-line-clamp: 1;
+    margin-top: 4px;
+  }
+}
 @media (min-width: 680px) {
   .sf-banner-row {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1067,13 +1115,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      was where the picture goes, which is a question about the merchant's own
      pictures rather than about their theme.
 
-     ⚠ **Deliberately inside the breakpoint, with no phone counterpart.** Split
-     at 390px is two ~170px columns, and neither the photograph nor the sentence
-     survives that — so a phone renders the stacked card whatever this is set
-     to, by the plain fact that no rule outside this block mentions `--split`.
-     That is the same reasoning the section's own one-card-per-row premise is
-     built on, and it is why the editor says "on a phone these always stack"
-     rather than leaving the merchant to discover it. */
+     ⚠ **The phone draws its own split card** (the block above), and it is a
+     different composition rather than this one at a smaller width: a thumbnail
+     beside the copy, not two even columns. This rule stays inside the
+     breakpoint because the even split it describes is only survivable once
+     there is a full row's width to divide. */
   .sf-banner-card--split {
     --sf-bc-ratio: 4 / 3;
     display: grid;
@@ -1125,12 +1171,37 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-home-collections {
   display: grid;
   gap: var(--gap);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* The merchant's phone count, two unless they said otherwise — the number
+     every phone drew before the control existed. `--sf-hc-cols` is the DESKTOP
+     one and is deliberately not consulted here: a six-column page row is six
+     unreadable slivers at 360px, so the two are separate settings rather than
+     one scaled. */
+  grid-template-columns: repeat(var(--sf-hc-mcols, 2), minmax(0, 1fr));
   row-gap: 16px;
+  /* ⚠ The PHONE value, because this is the phone's rule — the desktop disc is
+     restored inside the breakpoint below.
+
+     A phone grid is two columns whatever the merchant set, so a column is
+     ~179px on a 390px screen; the 60px thumb this row shipped with sat as a
+     speck in the middle of it, beside a photo-tile row that fills its column.
+     Full width is the fix, and it is a variable rather than a literal on the
+     component so the breakpoint can still reach it (the rule this file opens
+     with). */
+  --sf-hc-thumb: 100%;
 }
 @media (min-width: 680px) {
   .sf-home-collections {
     grid-template-columns: repeat(var(--sf-hc-cols, 4), minmax(0, 1fr));
+    /* Past the breakpoint the column is the merchant's own count wide, so a
+       full-width thumb would blow the tile up to ~160px on a four-column row
+       and turn a wayfinding strip into a second product grid. The disc is the
+       size this row has always drawn on a desktop. */
+    --sf-hc-thumb: 60px;
+  }
+  /* No caption to leave room for, so the picture takes the track back — the
+     `.sf-chip-row--bare` bargain, at the grid's own sizes. */
+  .sf-home-collections--bare {
+    --sf-hc-thumb: 76px;
   }
 }
 
@@ -1929,7 +2000,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: grid;
   gap: var(--gap);
   justify-content: var(--sf-ct-justify, center);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Phone base. `--sf-ct-mcols` is the merchant's phone count (2–4, default 2)
+     and is the SAME setting the collections row reads — both category grids
+     take their layout from `theme.homeCollections`, so a shop answers "how many
+     across on a phone" once. */
+  grid-template-columns: repeat(var(--sf-ct-mcols, 2), minmax(0, 1fr));
 }
 @media (min-width: 681px) {
   .sf-cat-tiles {
@@ -1946,8 +2021,14 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 @media (max-width: 680px) {
+  /* Same count as the uncontrolled row above; the cap is what still differs.
+     `minmax(0, …)` lets the track shrink below the maximum, so four columns
+     divide a 336px phone into ~78px tracks rather than overflowing it. */
   .sf-cat-tiles--controlled {
-    grid-template-columns: repeat(2, minmax(0, var(--tile-max, 148px)));
+    grid-template-columns: repeat(
+      var(--sf-ct-mcols, 2),
+      minmax(0, var(--tile-max, 148px))
+    );
   }
 }
 

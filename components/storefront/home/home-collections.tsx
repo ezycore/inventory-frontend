@@ -12,10 +12,12 @@
  * - **`strip`** — the original: fixed-width chips, horizontally scrollable, so
  *   any number of collections fits without wrapping. `CategoryStrip` supplies
  *   the track and the arrows that replaced its scrollbar.
- * - **`grid`** — equal columns filling the content width, `columns` per row on
- *   desktop. Narrow screens pin to 2 regardless (see `.sf-home-collections` in
- *   storefront.css): a 6-column grid on a 360px phone is six unreadable slivers,
- *   and inline styles cannot carry a media query.
+ * - **`grid`** — equal columns filling the content width: `columns` per row on
+ *   desktop, `mobileColumns` on a phone (2–4, default 2). Two counts rather
+ *   than one, because a 6-column desktop row is six unreadable slivers at 360px
+ *   and a merchant with fourteen departments still wants more than two across
+ *   there. Both ride out as custom properties and the breakpoints in
+ *   `.sf-home-collections` pick — an inline style cannot carry a media query.
  *
  * Either shape can drop the names (Customize → Collections row → "Picture
  * only"), but only for a fully photographed catalogue — see
@@ -39,19 +41,22 @@ import {
 import { CategoryStrip } from "@/components/storefront/home/category-strip";
 
 /**
- * Grid thumb size. The STRIP's sizing is not here — its track width and its
- * thumb are `.sf-chip-row` in storefront.css, because both change on a phone
- * and an inline value cannot carry a breakpoint. A grid column has no such
- * problem: it is already fluid, and a percentage thumb inside one would blow a
- * 60px disc up to 160px on a four-column desktop row.
+ * Grid thumb size lives in `.sf-home-collections` (storefront.css), NOT here.
+ *
+ * ⚠ It was two inline constants — 60px captioned, 76px bare — and on a phone
+ * that was the row's whole problem. A phone grid is pinned to two columns, so
+ * a column is `(390 - 2*12 - 8) / 2 ≈ 179px`, and a 60px picture centred in it
+ * filled a third of its track: two specks marooned in white, reading as images
+ * that failed to load rather than as a row of departments. The tile row two
+ * sections up fills its column, which is exactly the comparison a merchant
+ * makes.
+ *
+ * The original note against a percentage was right about DESKTOP — 71% of a
+ * four-column desktop track blows the 60px disc up to ~160px — and wrong to
+ * conclude the value could not move at all. It is a custom property now: a
+ * fixed disc past the breakpoint, the full column beneath it, which is the same
+ * shape of answer `.sf-chip-row` already gives the strip.
  */
-const THUMB = 60;
-/**
- * A nameless thumb leaves a quarter of its track empty and reads as type that
- * failed to load. Without a caption the picture IS the tile, so it takes most
- * of the track back.
- */
-const THUMB_BARE = 76;
 
 /**
  * A grid already spans the full content width, so there is no row left to
@@ -72,7 +77,7 @@ export function HomeCollections({
 }) {
   const { slug } = useStoreContext();
   const { data: store } = useStore(slug);
-  const { layout, columns, align, showLabels } = useCategoryRowLayout(
+  const { layout, columns, mobileColumns, align, showLabels } = useCategoryRowLayout(
     store,
     defaultLayout,
   );
@@ -113,11 +118,20 @@ export function HomeCollections({
   // inline style cannot. The count rides in as a custom property.
   return (
     <div
-      className="sf-home-collections"
+      /* Pictures-only takes a modifier rather than an inline width, for the
+         same reason the column count does: the bare thumb is bigger only where
+         a caption would otherwise have taken the room, and that is a
+         breakpoint's decision. */
+      className={
+        labels ? "sf-home-collections" : "sf-home-collections sf-home-collections--bare"
+      }
       style={
         {
           justifyItems: GRID_ALIGN[align],
           "--sf-hc-cols": columns,
+          // The phone's own count — see `mobileColumns`. Independent of the
+          // desktop one, because the two divide very different widths.
+          "--sf-hc-mcols": mobileColumns,
         } as CSSProperties
       }
     >
@@ -142,8 +156,9 @@ function CollectionTile({
   const imgSrc = thumbImageUrl(category.image);
   /* In the strip the thumb is a PERCENTAGE of its track, so it follows the tile
      when the phone widens it — and 71% of the 84px desktop track is the 60px
-     this row has always drawn, which is why desktop does not move. A grid
-     column is already fluid, so there the thumb stays the fixed disc. */
+     this row has always drawn, which is why desktop does not move. The grid
+     thumb reaches the same place by its own route: a variable the breakpoint
+     sets, fixed disc above, full column below. */
   /* A PERCENTAGE radius in the strip, because that box is now 60px on a desktop
      and 90px on a phone: a literal 11px is 18% of the small one and 12% of the
      large one, so the same tile arrives as a soft chip on one and a slab on the
@@ -151,9 +166,13 @@ function CollectionTile({
   const thumbSize: CSSProperties = strip
     ? { width: "var(--sf-chip-thumb)", aspectRatio: "1 / 1", borderRadius: "18%" }
     : {
-        width: showLabel ? THUMB : THUMB_BARE,
-        height: showLabel ? THUMB : THUMB_BARE,
-        borderRadius: 11,
+        /* The grid thumb, sized by the row's own breakpoint — see the note at
+           the top of this file. A literal corner is wrong once the box grows
+           from a 60px disc to a 179px tile, so it takes the theme's own radius
+           token, which is what the photo tile beside it already uses. */
+        width: "var(--sf-hc-thumb)",
+        aspectRatio: "1 / 1",
+        borderRadius: "var(--radius-md)",
       };
   return (
     <Link

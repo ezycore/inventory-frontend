@@ -30,6 +30,7 @@ describe("categoryTileRowLayout", () => {
         style: "card",
         layout: "grid",
         columns: 5,
+        mobileColumns: 3,
         align: "right",
         showLabels: true,
         columnsExplicit: true,
@@ -44,6 +45,9 @@ describe("categoryTileRowLayout", () => {
         "--tile-min": "100px",
         "--tile-max": "150px",
         "--sf-ct-cols": 5,
+        // The phone count rides out whether or not a desktop one was set: the
+        // two are separate settings, and the phone rule reads only this.
+        "--sf-ct-mcols": 3,
         "--sf-ct-justify": "end",
       },
       strip: false,
@@ -56,6 +60,7 @@ describe("categoryTileRowLayout", () => {
         style: "card",
         layout: "strip",
         columns: 4,
+        mobileColumns: 2,
         align: "center",
         showLabels: true,
         columnsExplicit: true,
@@ -72,7 +77,24 @@ describe("categoryTileRowLayout", () => {
     expect(result.style).toEqual({
       "--tile-min": "150px",
       "--tile-max": "210px",
+      "--sf-ct-mcols": 2,
     });
+  });
+
+  /* The phone count is its own setting, so an untouched shop still gets the two
+     columns every phone drew before the control existed — and setting a desktop
+     count must not move it. */
+  it("defaults the phone column count to two, independent of the desktop one", () => {
+    const row = resolveCategoryRowLayout({ layout: "grid", columns: 6 }, "grid");
+    expect(row.mobileColumns).toBe(2);
+    expect(categoryTileRowLayout(row, 96, 148).style).toMatchObject({
+      "--sf-ct-mcols": 2,
+    });
+  });
+
+  it("clamps the phone column count to the range a phone can draw", () => {
+    expect(resolveCategoryRowLayout({ mobileColumns: 6 }, "grid").mobileColumns).toBe(4);
+    expect(resolveCategoryRowLayout({ mobileColumns: 1 }, "grid").mobileColumns).toBe(2);
   });
 
   it("keeps a theme's unmodified tile grid adaptive", () => {
