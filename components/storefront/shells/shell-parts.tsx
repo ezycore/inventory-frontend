@@ -89,6 +89,7 @@ export function ShellCampaignStrip({
       slug={slug}
       base={base}
       currency={store?.currency}
+      config={store?.nav?.campaignStrip}
       initialCampaigns={initialCampaigns}
     />
   );

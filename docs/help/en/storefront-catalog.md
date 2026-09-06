@@ -213,6 +213,19 @@ appears on your home page with its own heading. Add as many as you want — "Ski
 Any product block can be re-pointed the same way: open it and change **Products** to Featured, New
 arrivals, or one collection, then set the heading and how many products to show (4 to 12).
 
+**Or pick the products yourself.** Set **Products** to *Products I pick*, search for each one, and
+add it. The row then shows exactly those products, **in the order you arranged them** — use the
+arrows to move your best one to the front. There is no "how many" to set: the list you build is the
+row. Up to 24; beyond that you want a collection page.
+
+A product you later delete or take offline simply drops out of the row, and the rest still show.
+Put it back online and it returns to its place — your picks are never quietly deleted for you.
+
+**The button under a row** — the "View all" — is yours too. Rename it ("See the edit"), point it
+somewhere specific, or switch it off for a row that is complete in itself. A row of products you
+picked by hand has nowhere obvious to send people, so it is worth either giving it a destination or
+turning the button off.
+
 Leave a block's **heading** blank and your shop writes its own, translated for each shopper. Type one
 and it is used exactly as you wrote it, in every language — worth it for something like "Eid picks",
 not worth it for "New arrivals".

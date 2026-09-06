@@ -12,8 +12,8 @@ import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import {
   Grid,
   ViewAll,
+  gridProducts,
   sectionRow,
-  trimToWholeRows,
   wrap,
   type SectionProps,
 } from "@/components/storefront/home/home-shared";
@@ -32,10 +32,12 @@ export function FeaturedGrid(props: SectionProps) {
   const { currency, featured, t } = props;
   const row = sectionRow(props, { products: featured, title: t.featured });
   if (!row.products.length) return null;
-  const products = trimToWholeRows(row.products);
+  const products = gridProducts(row);
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+      <SectionTitle
+        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
+      >
         {row.title}
       </SectionTitle>
       <Grid products={products} currency={currency} variant="full" />
@@ -48,10 +50,12 @@ export function LatestGrid(props: SectionProps) {
   const { currency, latest, t } = props;
   const row = sectionRow(props, { products: latest, title: t.newArrivals });
   if (!row.products.length) return null;
-  const products = trimToWholeRows(row.products);
+  const products = gridProducts(row);
   return (
     <div style={{ ...wrap, padding: "22px var(--pad) 10px" }}>
-      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+      <SectionTitle
+        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
+      >
         {row.title}
       </SectionTitle>
       <Grid products={products} currency={currency} variant="compact" />
@@ -66,10 +70,17 @@ export function PicksGrid(props: SectionProps) {
   if (!row.products.length) return null;
   return (
     <div style={{ ...wrap, padding: "22px var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+      <SectionTitle
+        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
+      >
         {row.title}
       </SectionTitle>
-      <Grid products={trimToWholeRows(featured)} currency={currency} variant="compact" />
+      {/* `row.products`, NOT `featured`. This read `featured` until 2026-09-06,
+          which meant a CONFIGURED Weekly picks row drew its heading and its
+          "View all" from the merchant's chosen collection and its products from
+          the store-wide featured list — and `picks-grid` is in `CONFIGURABLE`,
+          so the page had already paid for a query whose result was discarded. */}
+      <Grid products={gridProducts(row)} currency={currency} variant="compact" />
     </div>
   );
 }
@@ -98,7 +109,9 @@ export function ProductRail(props: SectionProps) {
   return (
     <section style={{ background: "var(--surface)" }}>
     <div style={{ ...wrap, padding: "clamp(20px,3vw,32px) var(--pad)" }}>
-      <SectionTitle action={<ViewAll href={row.href} label={t.viewAll} />}>
+      <SectionTitle
+        action={row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
+      >
         {row.title}
       </SectionTitle>
       {/* `grid-auto-flow: column` + an explicit track width, because a flex row
@@ -148,7 +161,7 @@ export function MinimalPicks(props: SectionProps) {
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(48px,7vw,80px)" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 28 }}>
         <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{row.title}</h2>
-        <ViewAll href={row.href} label={t.viewAll} />
+        {row.showCta ? <ViewAll href={row.href} label={row.ctaLabel} /> : null}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--mincols), minmax(0,1fr))", gap: "clamp(20px,3vw,40px)" }}>
         {picks.map((p) => (

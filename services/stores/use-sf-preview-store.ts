@@ -6,6 +6,7 @@ import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import type {
   CatalogCategory,
   StoreAnnouncement,
+  StoreCampaignStrip,
   StoreContactButton,
   StoreFooterContentPages,
   StoreFooterGroup,
@@ -94,6 +95,8 @@ interface SfPreviewState {
   navHeader: StoreMenuItem[] | null;
   /** Draft announcement bar (Customize → Announcement bar). */
   announcement: StoreAnnouncement | null;
+  /** Draft campaign strip (Customize → Campaign strip). */
+  campaignStrip: StoreCampaignStrip | null;
   /**
    * Draft contact launcher (Customize → WhatsApp button), already resolved by
    * the editor into the PUBLIC shape the storefront renders.
@@ -193,6 +196,7 @@ interface SfPreviewState {
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
+    campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
     collections?: CatalogCategory[];
@@ -242,6 +246,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   headerMenuSrc: null,
   navHeader: null,
   announcement: null,
+  campaignStrip: null,
   contactButton: undefined,
   collections: null,
   footerGroups: null,

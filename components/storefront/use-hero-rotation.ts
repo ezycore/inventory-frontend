@@ -109,7 +109,19 @@ export function useHeroRotation(count: number) {
       }
       pointer.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
       suppressClickUntil.current = 0;
-      e.currentTarget.setPointerCapture?.(e.pointerId);
+      // **Never capture a press that began on the whole-slide link.** Capture
+      // retargets the eventual CLICK to the capture element, and the browser
+      // derives that target from the pointerdown/pointerup pair — so releasing
+      // capture on pointerup is already too late. The anchor never sees the
+      // click and the slide silently does nothing. Only desktop showed it: a
+      // touch's compatibility click is generated from the touch target rather
+      // than the captured one, so phones navigated fine while mice did not.
+      // The swipe still works from the overlay because these handlers sit on
+      // the hero and the events bubble to them; what capture buys is a finger
+      // that wanders off the element, and losing that is worth a link that
+      // works. (jsdom implements no pointer capture, so only a real browser
+      // reproduces this — the guard test stubs the method to keep it honest.)
+      if (!control) e.currentTarget.setPointerCapture?.(e.pointerId);
     },
     onPointerUp: (e: ReactPointerEvent<HTMLElement>) => {
       const start = pointer.current;

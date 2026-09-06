@@ -4,20 +4,18 @@
 import { type CSSProperties, useState } from "react";
 import type { StoreAnnouncement } from "@/lib/storefront-client";
 import { readableTextOn } from "@/lib/color-contrast";
+import {
+  announcementStripAttrs,
+  announcementVisibilityClass,
+  stripPaddingInline,
+  STRIP_FONT_SIZE,
+  STRIP_PADDING_BLOCK,
+} from "@/lib/storefront-strip-display";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { HeroCtaLink } from "@/components/storefront/home/home-shared";
 import { Icon } from "@/components/storefront/sf-icons";
-
-const SIZE: Record<
-  NonNullable<StoreAnnouncement["size"]>,
-  { fontSize: number; padY: number }
-> = {
-  sm: { fontSize: 12.5, padY: 7 },
-  md: { fontSize: 14, padY: 9 },
-  lg: { fontSize: 15.5, padY: 11 },
-};
 
 /**
  * The single-line announcement bar above the header (admin Navigation tab).
@@ -26,6 +24,10 @@ const SIZE: Record<
  * Optional leading emoji + CTA button. Dismissible bars persist per-device
  * until the message changes — and never hide inside the live preview so the
  * owner always sees what they're editing.
+ *
+ * Per-breakpoint visibility is a CSS class, not a `matchMedia` branch — see
+ * `stripVisibilityClass`. The bar is server-rendered, so a JS viewport check
+ * would paint the wrong state and correct it after hydration.
  */
 export function AnnouncementBar({
   announcement,
@@ -82,7 +84,11 @@ export function AnnouncementBar({
       : announcement.bgColor
         ? readableTextOn(announcement.bgColor)
         : "var(--on-primary)";
-  const { fontSize, padY } = SIZE[announcement.size ?? "sm"];
+  // Size and height are `data-*` attributes the stylesheet resolves, so one
+  // preset means one thing per breakpoint (see the strip block in
+  // storefront.css). Resolving them to pixels here is what froze the bar at
+  // desktop spacing on a phone.
+  const stripAttrs = announcementStripAttrs(announcement.size);
   const link = announcement.link?.trim();
   const cta = announcement.ctaLabel?.trim();
 
@@ -132,7 +138,7 @@ export function AnnouncementBar({
             borderRadius: 999,
             padding: "2px 12px",
             fontWeight: 700,
-            fontSize: fontSize - 1,
+            fontSize: `calc(${STRIP_FONT_SIZE} - 1px)`,
           }}
         >
           {cta}
@@ -161,14 +167,18 @@ export function AnnouncementBar({
 
   return (
     <div
-      className="sf-noprint"
+      className={["sf-noprint", announcementVisibilityClass(announcement)]
+        .filter(Boolean)
+        .join(" ")}
+      {...stripAttrs}
       style={{
         position: "relative",
         color: fg,
         textAlign: "center",
-        fontSize,
+        fontSize: STRIP_FONT_SIZE,
         fontWeight: 500,
-        padding: `${padY}px ${dismissible ? 40 : 16}px`,
+        paddingBlock: STRIP_PADDING_BLOCK,
+        paddingInline: stripPaddingInline(dismissible),
         ...bgStyle,
       }}
     >
