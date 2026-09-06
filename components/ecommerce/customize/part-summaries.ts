@@ -196,5 +196,25 @@ export function partSummary(
       return labelOf("contentLayout", draft.templates.contentLayout);
     case "shell":
       return labelOf("shell", draft.templates.shell);
+    case "mobile": {
+      const m = draft.mobile;
+      /* Names the layout, then the two facts a merchant is actually checking:
+         whether their phone has a bottom bar, and whether search is on screen.
+         Not a list of every slot — the live preview beside the rail already
+         shows the arrangement far better than a sentence can. */
+      const tabs = m.tabs.length
+        ? `${count(m.tabs.length, "tab")} at the bottom`
+        : "no bottom bar";
+      const search = m.searchInline
+        ? "search in the bar"
+        : m.row === "search"
+          ? "search under it"
+          : m.row === "chips"
+            ? "category strip"
+            : "";
+      return [labelOf("mobile", draft.templates.mobile), tabs, search]
+        .filter(Boolean)
+        .join(" · ");
+    }
   }
 }

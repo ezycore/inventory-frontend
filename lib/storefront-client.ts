@@ -13,6 +13,8 @@ import type { CourierNormalizedStatus } from "@/lib/courier-status";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
+import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -261,6 +263,17 @@ export interface StorefrontStore {
   favicon?: StorefrontFavicon | null;
   banner?: StorefrontImage | null;
   /**
+   * Phone artwork for the header, when the desktop mark does not survive the
+   * trip down to 390px.
+   *
+   * A separate FILE rather than a crop of `logo`, because the two are usually
+   * different drawings: a wide wordmark reads at 200px on a desktop bar and
+   * becomes an illegible smear in a 36px-tall mobile slot, where the merchant
+   * wants their icon alone. Unset ⇒ the header falls back to `logo` (and that
+   * to the organization's), so this is an override nobody has to set.
+   */
+  mobileLogo?: StorefrontImage | null;
+  /**
    * Share-card image, already resolved server-side through
    * socialImage → banner → logo. Chained there, like `favicon` is not, because
    * every fallback is a real image the merchant owns — there is no platform
@@ -304,6 +317,14 @@ export interface StorefrontStore {
     homepageSections?: StoreHomeSection[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
+    /**
+     * The merchant's edits to their mobile chrome, laid over the template named
+     * by `templates.mobile`. **Only the fields that differ**, so a shop that
+     * took a template and left it alone stores nothing — see `mobileOverrides`.
+     * Loose on purpose: `resolveMobileChrome` is the only thing that may read it
+     * raw, exactly like `design`.
+     */
+    mobile?: MobileChromeOverrides;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */
     homeCollections?: StoreHomeCollections;
     /**
@@ -429,6 +450,8 @@ export interface StoreTemplatesRaw {
   contentLayout?: string;
   cartLayout?: string;
   shell?: string;
+  /** Which mobile chrome — see `lib/storefront-mobile.ts`. */
+  mobile?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -501,6 +524,14 @@ export interface StoreTemplates {
    * KIND of site a shop is rather than what it contains — see store-shell.tsx.
    */
   shell: "stacked" | "rail";
+  /**
+   * The phone chrome — which bar sits at the top and which tabs (if any) at the
+   * bottom. A **loose string**, unlike every other key here, and deliberately:
+   * the options live in `lib/storefront-mobile.ts` as data, so pinning a union
+   * here would mean editing this file to add one, which is exactly the coupling
+   * that registry exists to remove. `resolveMobileChrome` narrows it.
+   */
+  mobile: string;
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

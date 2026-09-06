@@ -20,6 +20,7 @@ import {
   type StoreDesign,
 } from "@/lib/storefront-theme";
 import { RECOMMENDED } from "@/lib/image-ratio";
+import { logoImageUrl } from "@/lib/storefront-image";
 import { SegmentedField, type SegmentedOption } from "@/ui/components/segmented-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { SwatchField, type SwatchOption } from "@/ui/components/swatch-field";
@@ -78,13 +79,13 @@ export function LookPart({
   // uploaded (the public payload falls back server-side the same way).
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   const logoInput = useRef<HTMLInputElement>(null);
-  // The mark actually on the shop right now — the store's own, else the
-  // organization's, matching what the public payload resolves to.
-  const logoUrl =
-    settings.logo?.thumbnailUrl ||
-    settings.logo?.url ||
-    orgLogo?.thumbnailUrl ||
-    orgLogo?.url;
+  /* The mark actually on the shop right now — the store's own, else the
+     organization's, matching what the public payload resolves to.
+     Through `logoImageUrl`, which is what the shop header uses: this read the
+     200×200 thumbnail first, and that variant is a `fit: "cover"` centre crop,
+     so every preview in this panel showed a merchant the middle slice of their
+     own wordmark while the real shop beside it rendered it in full. */
+  const logoUrl = logoImageUrl(settings.logo) ?? logoImageUrl(orgLogo);
 
   const set = (axis: Partial<StoreDesign>) =>
     patch({ design: { ...draft.design, ...axis } });

@@ -10,6 +10,7 @@ import type {
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { mergeSectionConfig } from "@/lib/storefront-sections";
+import { DEFAULT_MOBILE_TEMPLATE, mobileTemplate } from "@/lib/storefront-mobile";
 
 /** Default page variants when the store hasn't selected one (or backend omits it). */
 export const DEFAULT_TEMPLATES: StoreTemplates = {
@@ -30,6 +31,7 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   contentLayout: "centered",
   cartLayout: "panel",
   shell: "stacked",
+  mobile: DEFAULT_MOBILE_TEMPLATE,
 };
 
 // The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
@@ -196,6 +198,12 @@ export function resolveTemplates(
     ),
     cartLayout: pick(CARTLAYOUT, t.cartLayout, DEFAULT_TEMPLATES.cartLayout),
     shell: pick(SHELL, t.shell, DEFAULT_TEMPLATES.shell),
+    // Not a `pick` over a local map, unlike every line above it: the mobile
+    // options are a registry in `lib/storefront-mobile.ts` so that adding one is
+    // a single object there. `mobileTemplate` is that registry's own narrowing —
+    // it falls back to the default template for an unknown id, which is exactly
+    // what `pick` does for the fixed axes.
+    mobile: mobileTemplate(t.mobile).id,
   };
 }
 

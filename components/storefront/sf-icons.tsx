@@ -8,6 +8,15 @@ import type { CSSProperties } from "react";
  */
 const PATHS: Record<string, string> = {
   cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.2l2.2 11.2a1.1 1.1 0 0 0 1.1.9h8.7a1.1 1.1 0 0 0 1.1-.85L20.5 7H6"/>',
+  /* The mobile chrome's swappable glyphs (see `lib/storefront-mobile.ts`).
+     `list` was the closest thing to a hamburger and it is a BULLETED list —
+     three lines with dots — so every drawer button drawn with it read as
+     "list view", not "menu". These are the plain shapes a shopper recognises. */
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  menuAlt: '<path d="M4 8h16M4 16h10"/>',
+  dots: '<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  bag: '<path d="M5.5 7.5h13l1 13h-15z"/><path d="M8.8 10V6.8a3.2 3.2 0 0 1 6.4 0V10"/>',
+  basket: '<path d="M3 9.5h18l-1.6 9a1.5 1.5 0 0 1-1.5 1.2H6.1a1.5 1.5 0 0 1-1.5-1.2z"/><path d="m8 9.5 2.5-5.5M16 9.5 13.5 4"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>',
   zoomIn: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/><path d="M8.4 11h5.2M11 8.4v5.2"/>',
   phone: '<path d="M6.5 3.5h3l1.4 4-1.8 1.2a12 12 0 0 0 5.2 5.2l1.2-1.8 4 1.4v3a1.6 1.6 0 0 1-1.7 1.6A16.5 16.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.5 3.5Z"/>',

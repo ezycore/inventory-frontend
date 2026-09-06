@@ -96,6 +96,12 @@ export interface ReadyMadeTheme {
     contentLayout: string;
     cartLayout: string;
     shell: string;
+    /**
+     * The PHONE chrome. Required like the rest: a theme that left it unset would
+     * restyle a shop's desktop entirely and leave its phone header untouched,
+     * which on this platform's traffic is the half most shoppers see.
+     */
+    mobile: string;
   };
 }
 
@@ -166,6 +172,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       cartLayout: "panel",
       // …and the one page skeleton the storefront has always had.
       shell: "stacked",
+      // …and the phone chrome it has always had: search under the logo, four
+      // tabs at the bottom. Spelled out because Classic is the RESET.
+      mobile: "tabs",
     },
   },
   {
@@ -290,6 +299,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          stamp and the Customize → Page layout picker offers it to every
          merchant; it simply is not what this design is. */
       shell: "stacked",
+      /* A grocery phone is a search box and a basket, not a browse. The desktop
+         header is already `search-first` for exactly this reason; picking a
+         different answer on the screen where most of the shopping happens would
+         be the theme contradicting itself. */
+      mobile: "search",
     },
   },
   {
@@ -385,6 +399,10 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          `rail` has been registered and offered in Customize since 2026-08-14
          with nothing stamping it; this is what it was built for. */
       shell: "rail",
+      /* The rail is desktop-only by design, so the phone needs the departments
+         somewhere — the drawer is where they go. Search still leads the bar, as
+         it does on the desktop header. */
+      mobile: "browse",
     },
   },
   {
@@ -462,6 +480,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // moment of purchase.
       cartLayout: "editorial",
       shell: "stacked",
+      // A shop with no borders anywhere does not wear four tabs across the
+      // bottom of the phone either. Logo and cart, nothing else.
+      mobile: "minimal",
     },
   },
   {
@@ -540,6 +561,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       contentLayout: "centered",
       cartLayout: "panel",
       shell: "stacked",
+      // The shape the Bangladeshi shops this theme is drawn from actually run:
+      // hamburger, centred logo, search and cart. No bottom bar.
+      mobile: "drawer",
     },
   },
 ];

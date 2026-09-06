@@ -43,6 +43,7 @@ import {
 } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 import { isFeatureEnabled } from "@/lib/feature-utils";
+import { logoImageUrl } from "@/lib/storefront-image";
 
 export function OrganizationTab() {
   const t = useTranslations("settings.organization");
@@ -71,7 +72,9 @@ export function OrganizationTab() {
   // are separate uploads because they do separate jobs: the logo is a brand
   // mark rendered large, the favicon is the sole source of the browser-tab icon
   // and is never derived from the logo.
-  const logoField = useImageUploadField(logo?.thumbnailUrl ?? logo?.url);
+  // The logo takes `logoImageUrl` (never the square crop — see the helper);
+  // the favicon is genuinely square, so its thumbnail is the right variant.
+  const logoField = useImageUploadField(logoImageUrl(logo));
   const faviconField = useImageUploadField(
     favicon?.thumbnailUrl ?? favicon?.url,
   );

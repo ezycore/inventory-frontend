@@ -350,6 +350,8 @@ reads as two filters at once.
     `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
     which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
     when the other three were found to be unpreviewable.
+- **Mobile chrome** (`templates.mobile`, default `tabs`) — its own axis, and a **registry**, not a
+  set of components. See *The MOBILE axis* below before adding a phone layout.
 - **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
   product card, orthogonal to `productCard`**, which now means *density only*. Values:
   `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
@@ -532,8 +534,19 @@ Four files, in payload order:
   settings and an upload in Customize is a store-only override (remove ⇒ back to inherited). The
   editor must send `settings.logo ?? orgLogo ?? null` or removing the override blanks the previewed
   header instead of reverting to the org mark.
+  - ⚠ **`mobileLogo` is the exception, and streams RAW.** The storefront falls back from it to the
+    desktop logo *itself* (`useMobileBrandLogo`), and the backend deliberately does not chain it in
+    `getStoreInfo` — the client has to tell "the merchant uploaded a phone mark" apart from "use the
+    desktop one". Resolving it in the editor would make removing the phone mark preview as though
+    nothing had happened, which is the same class of bug the `useSfPreviewImage` rule above exists
+    for, one level up.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+- **A control also belongs to the part whose preview DEVICE renders it** (2026-09-06). The same
+  argument as the page rule below, one axis over: the Phone bar part's controls change nothing
+  against a desktop frame, so opening it nudges the preview to mobile (`previewDeviceForPart` in
+  `parts-rail.tsx`, applied during render in `BrowserPreview` so the desktop frame is never painted
+  first). A nudge, not a lock — the toggle stays live.
 - **A control belongs to the part whose PREVIEW PAGE renders it** (browser QA, 2026-08-18).
   Opening a part points the preview at one page (`PART_PAGE` in `parts-rail.tsx`), so a block whose
   subject lives on a different page can never be judged from the part holding it. Collections points
@@ -851,6 +864,81 @@ had been modelled on the backend since the beginning and was **read by nothing**
     rather than the min**, which is why a 132px cap put only *two* tiles on a 358px phone row. The
     component supplies `--tile-min` / `--tile-max`; the media query is the CSS's.
 
+### The MOBILE axis — a registry, not a set of components (2026-09-06)
+
+**`templates.mobile` picks the phone chrome, and the templates are DATA.** Read this before adding a
+mobile layout: there is nothing to add a component for.
+
+Until now the phone bar was one fixed thing shared by all six desktop header anatomies — logo, the
+two toggles, a search field, and a Home/Menu/Cart/Account tab bar underneath — on the reasoning that
+below 680px the desktop variants all collapse to the same thing anyway. True of those six, and the
+wrong conclusion: **what a phone header should be is its own question.** A hamburger with a centred
+logo, a search box filling the bar, four tabs under the thumb — none of those follow from the desktop
+choice, and the shops these merchants compete with pick them independently.
+
+| Piece | Lives in | Owned by |
+|---|---|---|
+| Which template | `templates.mobile` | a theme may stamp it |
+| The arrangement over it | `theme.mobile` — **only the fields that differ** | a theme resets it |
+| The phone artwork | `mobileLogo`, beside `logo`/`banner` | the merchant; a theme never touches media |
+
+**One renderer draws every template.** `lib/storefront-mobile.ts` holds the registry;
+`components/storefront/mobile/` draws whatever a `MobileChrome` value says, with **no `switch` on the
+template id anywhere**. So:
+
+> **Adding a mobile template is one object in `MOBILE_TEMPLATES` plus one wireframe in
+> `template-sketch.tsx`.** Nothing else. Not the preview store, not the validator, not the DTOs, not
+> the model, not the Customize picker (`TEMPLATE_OPTIONS.mobile` is *derived* from the registry), and
+> not a line of this renderer. `storefront-mobile.test.ts` asserts the derivation and the sketch
+> coverage, so a template added without its wireframe fails rather than shipping a blank tile.
+
+Adding a bar ACTION (a wishlist button, say) is the one thing that costs two files — an entry in
+`MOBILE_ACTIONS` and a branch in `mobile-actions.tsx` — because an action is *behaviour*, not
+arrangement. The Customize slot editor picks it up from the registry with no edit.
+
+The five shipped templates: `tabs` (the chrome the storefront always had, and the default),
+`drawer` (hamburger / centred logo / search + cart), `search` (a search box in the bar itself),
+`minimal` (logo, cart, menu), `browse` (drawer plus a scrolling category strip).
+
+⚠ **`tabs` must stay byte-for-byte what the storefront rendered before this axis existed.** Every
+store with nothing stored resolves to it, so a drift silently re-chromes the whole platform.
+`storefront-mobile.test.ts` pins it field by field.
+
+⚠ **Only the DIFF is stored.** The draft holds the resolved chrome (every field concrete, so the slot
+editor's inputs stay controlled) and `mobileOverrides` diffs it back on the way out — so a shop that
+took a template and left it alone stores *nothing*. At this platform's scale a full config object on
+every settings document is a real cost for a value identical to a constant the frontend already has.
+Switching template recomputes the diff against the new one, which is what makes the switch a true
+reset.
+
+⚠ **Merchant ids are narrowed on read, never trusted.** `resolveMobileChrome` drops unknown actions,
+de-duplicates (two of one id would mount two components on one React key), caps the slots at what
+390px draws, refuses a glyph the action does not offer, and clamps the logo height. Same rule as
+`resolveDesign` and `pick()` in `storefront-templates.ts`, and for the same reason: these are stored
+merchant strings.
+
+⚠ **The menu panel is the ONLY category navigation a phone has.** The header's dropdown row and the
+rail are both desktop-only, so a chrome with no `menu` anywhere strands a shopper — `canBrowse()` is
+that question and a registry test enforces it on every shipped template. It caught `minimal`, which
+shipped as "logo and cart, navigation lives on the page" and left phone shoppers with nowhere to go
+but the cart. Customize *warns* rather than forbids when a merchant empties the slots themselves.
+
+⚠ **`--sf-bottom-nav-h` is now conditional.** Four of the five templates have no tab bar, and the
+sticky buy bar, the WhatsApp launcher and the page's own bottom padding all stack on that var —
+so `StoreShell` stamps `data-sf-tabs` and `.sf-shell[data-sf-tabs="1"]` is the only thing that
+reserves the 56px. Reserving it unconditionally floats all three above nothing.
+
+⚠ **The panel and the search takeover are mounted ONCE, by the shell** (`ShellMobileOverlays`), and
+driven by `useMobileNav`. The hamburger in the bar and the Menu *tab* open the same panel; a copy per
+surface is two drawers racing one body-scroll lock. `HeaderSearchMobile` is controlled for the same
+reason — search is an action a merchant can place in either slot, in a tab, or on the row under the
+brand, and those four entry points open one sheet.
+
+Opening the Phone bar part in Customize nudges the preview onto its 390px frame
+(`previewDeviceForPart`) — its controls change nothing visible against a desktop, which is the same
+broken-control problem `PART_PAGE` solves one axis over. A nudge, not a lock: the device toggle stays
+live.
+
 ### The SHELL axis — what makes two shops different KINDS of site (2026-08-14)
 
 Read this before adding another header, section or page layout to "make the themes more different".
@@ -887,8 +975,9 @@ The rule this generalises: **a section renders nothing when it has nothing to AD
 add" now includes "the shell is already saying it".
 
 ⚠ **The rail is `sf-desktop-only`, not a collapsible drawer.** A 218px column on a 390px screen is
-not navigation, and the mobile bottom nav plus the header search already cover the job. A second
-mobile nav competing with the bottom bar is how a shopper ends up with two half-answers.
+not navigation, and the phone chrome (`templates.mobile`) already owns that question — its menu panel
+is where a phone's departments live. A second mobile nav competing with the one the merchant chose is
+how a shopper ends up with two half-answers.
   - ⚠ **`.sf-rail-grid` must only claim two columns when a rail is actually rendered.**
     `RailShell` returns `null` for the aside when the store has no categories, and a grid whose first
     child is missing puts the CONTENT into the first track — the whole page rendered inside 218px,
@@ -1871,14 +1960,27 @@ resolved **per request from the host**, never baked.
     searched next to the field it overrides.** This is also why the search list row shows chips: a
     row whose name contains none of the typed words is not a bug, and the chip is the only thing on
     screen explaining the match. One endpoint, so the header typeahead inherits all of it.
-- **Image variant per use site** — `lib/storefront-image.ts`, one of three helpers, never a hand-rolled
-  `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl` (row thumb,
-  avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD). The backend stores
+- **Image variant per use site** — `lib/storefront-image.ts`, one of **four** helpers, never a
+  hand-rolled `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl`
+  (row thumb, avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD), and
+  **`logoImageUrl` (any logo, at any size)**. The backend stores
   `url` ≤1600w, `mediumUrl` 800w and `thumbnailUrl` as a **200×200 `fit:"cover"` square crop**
   (`inventory-backend/src/utils/imageUpload.ts`) — only the thumbnail changes aspect ratio, so
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+  - ⚠ **A logo is a MARK, not a photo, and `logoImageUrl` puts the thumbnail LAST.** A 200×200 centre
+    crop of a wide wordmark is not a smaller version of it — it is an unreadable slice of the middle.
+    `cardImageUrl` is not a substitute (its *second* choice is that crop), and neither is
+    `thumbImageUrl`, however small the logo is drawn: the crop is the problem, not the pixel count.
+    This shipped as a live bug until 2026-09-06 — a merchant whose logo read "Uriibaba" saw "riiba"
+    in the Customize logo tile, its two-theme preview and the admin sidebar, while the shop itself
+    rendered it in full, because the storefront asked for `url` first and the previews asked for
+    `thumbnailUrl` first. The helper exists so that ordering is decided once. (The backend learned the
+    same rule on the write side: the 96×96 favicon rendition is generated `fit:"contain"`.)
+  - **It is used by the ADMIN too** — `app-title.tsx`, `organization-tab.tsx`, `parts/look-part.tsx` —
+    which is why the module's doc says so. The variants are the backend's, not a storefront concept,
+    and a second module answering the same question is how a call site ends up on the wrong one.
   - **`<Media fit>`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it" box:
     `fit="canvas"` shows the full photo at `object-fit: contain` over a blurred, scaled copy of the
     same `src` filling the frame behind it; `fit="cover"` (default) crops to fill, as before. Which

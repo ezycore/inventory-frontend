@@ -908,11 +908,16 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-desktop-only {
     display: none !important;
   }
-  /* Reserve room for the fixed bottom nav so the footer/last content clears it. */
-  .sf-root {
+  /* Reserve room for the fixed bottom nav so the footer/last content clears it.
+     Scoped to a shop whose mobile template HAS a tab bar — `StoreShell` stamps
+     `data-sf-tabs`, and four of the five templates have none. It is set HERE
+     rather than on `.sf-root` because that is where the flag is, and every
+     consumer sits inside the shell: the WhatsApp launcher (`.sf-contact`), the
+     owner admin bar and the product page's sticky buy bar all anchor themselves
+     off this var, so leaving it at 56px for a shop with no tab bar floats all
+     three above nothing. */
+  .sf-shell[data-sf-tabs="1"] {
     --sf-bottom-nav-h: calc(56px + env(safe-area-inset-bottom));
-  }
-  .sf-shell {
     padding-bottom: var(--sf-bottom-nav-h);
   }
 }
@@ -1359,12 +1364,53 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
+/* ---- Mobile chrome: the category-chip row (`row: "chips"`) ---- */
+/*
+ * One line, always. This row is CHROME — it is on every page, above the fold,
+ * on the smallest screen the shop is seen on — so it must not wrap or grow: a
+ * shop with twenty departments scrolls sideways rather than pushing its own
+ * products off the screen. The scrollbar is hidden for the same reason the
+ * category strip hides its own (`.sf-cat-strip-track`): raw browser chrome under
+ * a designed row, and a thumb swipes the track natively anyway.
+ */
+.sf-mchips {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Bleeds into the bar's own padding so the first chip starts at the page edge
+     and the last one can scroll fully clear of it. */
+  margin: 0 -14px;
+  padding: 2px 14px;
+}
+.sf-mchips::-webkit-scrollbar {
+  display: none;
+}
+.sf-mchip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  /* 8px + a ~19px line box = 35px. Under the 40px tap floor the rest of the
+     storefront holds, and deliberately: these sit inside a bar that is already
+     a tap target field, and a 40px chip row costs a fifth of the fold. */
+  padding: 8px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* ---- Contact launcher (floating chat button) ---- */
 /*
  * Anchored off BOTH bottom-bar variables, so one rule serves phone and desktop
- * with no media query: --sf-bottom-nav-h is 56px+safe-area under 680px and 0
- * above it, and --sf-buybar-h is set only while the product page's sticky buy
- * bar is mounted.
+ * with no media query: --sf-bottom-nav-h is 56px+safe-area under 680px **on a
+ * shop whose mobile template has a tab bar** and 0 otherwise, and --sf-buybar-h
+ * is set only while the product page's sticky buy bar is mounted.
  *
  * z-index 45 is chosen against the storefront's existing ladder, not picked:
  * above the header (30) and the bottom nav / header nav (40) which it must

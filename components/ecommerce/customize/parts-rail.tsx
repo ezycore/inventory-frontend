@@ -16,6 +16,7 @@ import {
   Package,
   PanelBottom,
   PanelTop,
+  Smartphone,
   ShoppingCart,
   UserRound,
 } from "lucide-react";
@@ -35,6 +36,7 @@ import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
 import { HomePart } from "@/components/ecommerce/customize/parts/home-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
+import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
@@ -104,6 +106,10 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
     title: "Site frame",
     parts: [
       { id: "header", title: "Header", icon: PanelTop },
+      /* Directly under Header, because it answers the same question for the
+         other screen — and above Footer, because for these merchants far more
+         shoppers see this bar than ever reach a footer. */
+      { id: "mobile", title: "Phone bar", icon: Smartphone },
       { id: "footer", title: "Footer", icon: PanelBottom },
       { id: "shell", title: "Page layout", icon: Columns2 },
       { id: "contact", title: "WhatsApp button", icon: MessageCircle },
@@ -129,6 +135,16 @@ const PART_TEMPLATE_KEY: Partial<Record<PartId, string>> = {
 
 export const previewPageForPart = (id: PartId): PreviewPage =>
   PART_PAGE[id] ?? "home";
+
+/**
+ * Which device a part is about. Everything is "desktop" except the one part that
+ * is only visible on a phone — opening it against a desktop frame gives the
+ * merchant a panel of controls that change nothing on screen, which is the same
+ * broken-control problem `PART_PAGE` exists to solve one axis over.
+ */
+export const previewDeviceForPart = (
+  id: PartId | null,
+): "desktop" | "mobile" => (id === "mobile" ? "mobile" : "desktop");
 
 /**
  * Ids that used to be rows. `?part=` is a documented deep link, so a bookmark or
@@ -251,6 +267,13 @@ export function PartsRail({
         <CampaignStripPart
           draft={draft}
           patchCampaignStrip={api.patchCampaignStrip}
+        />
+      ) : part.id === "mobile" ? (
+        <MobilePart
+          settings={settings}
+          draft={draft}
+          patchMobile={api.patchMobile}
+          patchMobileTemplate={api.patchMobileTemplate}
         />
       ) : part.id === "header" ? (
         <HeaderPart

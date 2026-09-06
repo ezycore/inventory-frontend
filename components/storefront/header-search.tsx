@@ -194,12 +194,28 @@ export function HeaderSearchIcon({ categories }: { categories: CatalogCategory[]
 }
 
 /**
- * Mobile search — a full-width field that opens a full-screen takeover sheet
- * (auto-focused input + results list). Same typeahead, phone-shaped.
+ * Mobile search — the full-screen takeover sheet (auto-focused input + results
+ * list). Same typeahead, phone-shaped.
+ *
+ * **Controlled, and mounted once by the mobile chrome.** It owned its own state
+ * and drew its own full-width trigger until the chrome became configurable, at
+ * which point search stopped being one fixed field under the logo: it is an
+ * `openSearch` action a merchant can put in either bar slot, in a tab, or on the
+ * row under the brand. One sheet with the trigger outside it is what lets those
+ * four entry points open the same panel instead of four copies of it — see
+ * `components/storefront/mobile/`.
  */
-export function HeaderSearchMobile({ categories }: { categories: CatalogCategory[] }) {
+export function HeaderSearchMobile({
+  categories,
+  open,
+  onOpenChange,
+}: {
+  categories: CatalogCategory[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { t } = useStorefrontUI();
-  const [open, setOpen] = useState(false);
+  const setOpen = onOpenChange;
   const historyMarker = `sf-search-${useId()}`;
   const previousStateRef = useRef<unknown>(null);
 
@@ -228,7 +244,6 @@ export function HeaderSearchMobile({ categories }: { categories: CatalogCategory
         window.location.href,
       );
     }
-    setOpen(true);
   }, [historyMarker]);
 
   const c = useHeaderSearch(close, open);
@@ -285,19 +300,18 @@ export function HeaderSearchMobile({ categories }: { categories: CatalogCategory
     </div>
   ) : null;
 
-  return (
-    <>
-      <button
-        type="button"
-        onClick={openSheet}
-        style={{ width: "100%", minHeight: 40, display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--muted)", cursor: "pointer", fontFamily: "inherit" }}
-      >
-        <Icon name="search" size={18} />
-        <span style={{ fontSize: 13 }}>{t.searchPh}</span>
-      </button>
-      {sheet && typeof document !== "undefined"
-        ? createPortal(sheet, document.querySelector<HTMLElement>(".sf-root") ?? document.body)
-        : null}
-    </>
+  /* The synthetic history entry is pushed when the sheet OPENS, and the caller
+     now owns that flag — so the push has to follow `open` rather than sit in a
+     click handler that no longer exists here. Without it the Android back
+     button leaves the shop instead of closing the search, which on a phone is
+     the difference between a dismissable panel and a trap. */
+  useEffect(() => {
+    if (open) openSheet();
+  }, [open, openSheet]);
+
+  if (typeof document === "undefined" || !sheet) return null;
+  return createPortal(
+    sheet,
+    document.querySelector<HTMLElement>(".sf-root") ?? document.body,
   );
 }

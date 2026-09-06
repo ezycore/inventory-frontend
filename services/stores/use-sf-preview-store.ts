@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import type { StoreDesign } from "@/lib/storefront-theme";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type {
   CatalogCategory,
   StoreAnnouncement,
@@ -75,6 +76,17 @@ interface SfPreviewState {
   cartLayout: string | null;
   /** Raw page skeleton (stacked | rail) the editor is drafting. */
   shell: string | null;
+  /** Raw mobile-chrome template id (see `lib/storefront-mobile.ts`). */
+  mobile: string | null;
+  /**
+   * Draft mobile-chrome overrides — the slot editor's unsaved arrangement.
+   *
+   * Two keys rather than one because the picker and the slot editor are separate
+   * controls: a merchant who has only switched template has drafted `mobile`
+   * with no `mobileChrome`, and folding them together would make the second one
+   * override the first with a stale arrangement.
+   */
+  mobileChrome: MobileChromeOverrides | null;
   /** Raw listing pagination mode (pages | infinite | load-more) the editor is drafting. */
   pagination: string | null;
   /** Raw collection-page layout (grid-3 | grid-4 | sidebar) the editor is drafting. */
@@ -140,6 +152,12 @@ interface SfPreviewState {
   logo?: StorefrontImage | null;
   banner?: StorefrontImage | null;
   /**
+   * Draft phone artwork. `undefined`/`null` carry the same distinction the two
+   * above do — `null` means the merchant removed it, so a consumer must fall
+   * back to the desktop logo rather than to the SAVED mobile one.
+   */
+  mobileLogo?: StorefrontImage | null;
+  /**
    * Draft collections from the Customize collections panel: already ordered
    * and filtered to the listed ones, with display names applied. Overrides the
    * fetched category list everywhere it's shown (header links + home chips), so
@@ -188,6 +206,8 @@ interface SfPreviewState {
     contentLayout?: string;
     cartLayout?: string;
     shell?: string;
+    mobile?: string;
+    mobileChrome?: MobileChromeOverrides;
     pagination?: string;
     collection?: string;
     product?: string;
@@ -212,6 +232,7 @@ interface SfPreviewState {
     // `null` is meaningful (image removed), so these are nullable in the patch too.
     logo?: StorefrontImage | null;
     banner?: StorefrontImage | null;
+    mobileLogo?: StorefrontImage | null;
     logoStyle?: StoreLogoStyle;
     homeCollections?: StoreHomeCollections;
     design?: StoreDesign;
@@ -239,6 +260,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   contentLayout: null,
   cartLayout: null,
   shell: null,
+  mobile: null,
+  mobileChrome: null,
   pagination: null,
   collection: null,
   product: null,
@@ -261,6 +284,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footerNewsletter: null,
   logo: undefined,
   banner: undefined,
+  mobileLogo: undefined,
   logoStyle: null,
   homeCollections: null,
   design: null,
@@ -297,6 +321,9 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       cartLayout:
         patch.cartLayout !== undefined ? patch.cartLayout : s.cartLayout,
       shell: patch.shell !== undefined ? patch.shell : s.shell,
+      mobile: patch.mobile !== undefined ? patch.mobile : s.mobile,
+      mobileChrome:
+        patch.mobileChrome !== undefined ? patch.mobileChrome : s.mobileChrome,
       pagination: patch.pagination !== undefined ? patch.pagination : s.pagination,
       collection: patch.collection !== undefined ? patch.collection : s.collection,
       product: patch.product !== undefined ? patch.product : s.product,
@@ -334,6 +361,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
           : s.footerNewsletter,
       logo: patch.logo !== undefined ? patch.logo : s.logo,
       banner: patch.banner !== undefined ? patch.banner : s.banner,
+      mobileLogo:
+        patch.mobileLogo !== undefined ? patch.mobileLogo : s.mobileLogo,
       logoStyle: patch.logoStyle !== undefined ? patch.logoStyle : s.logoStyle,
       homeCollections:
         patch.homeCollections !== undefined
@@ -353,7 +382,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
  * plus the home banner — one helper so the rule is stated once and can't be half-remembered.
  */
 export const useSfPreviewImage = (
-  field: "logo" | "banner",
+  field: "logo" | "banner" | "mobileLogo",
   saved?: StorefrontImage | null,
 ): StorefrontImage | null | undefined => {
   const draft = useSfPreview((s) => s[field]);

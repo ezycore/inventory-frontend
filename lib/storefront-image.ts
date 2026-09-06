@@ -8,8 +8,12 @@
  * picking it for anything wider than ~100px both upscales a 200px source and
  * crops the product out of frame.
  *
- * Images imported by URL store the same URL in all three fields, so both
- * helpers degrade to that one URL on their own.
+ * Images imported by URL store the same URL in all three fields, so every
+ * helper degrades to that one URL on its own.
+ *
+ * Used by the storefront AND the admin — `logoImageUrl` in particular. The
+ * variants are the backend's, not a storefront concept, and a second module
+ * answering the same question is how a call site ends up on the wrong one.
  */
 import type { StorefrontImage } from "@/lib/storefront-client";
 
@@ -26,4 +30,31 @@ export function thumbImageUrl(img?: StorefrontImage | null): string | undefined 
 /** Zoomable gallery, share/OG preview, JSON-LD — anything that wants the largest. */
 export function fullImageUrl(img?: StorefrontImage | null): string | undefined {
   return img?.url || img?.mediumUrl || img?.thumbnailUrl;
+}
+
+/**
+ * A LOGO, at any size — the shop header, the admin sidebar, every preview of one.
+ *
+ * The thumbnail is last, and that ordering is the whole point of the helper.
+ * A logo is a **mark, not a photo**: a 200×200 `fit: "cover"` crop of a wide
+ * wordmark is not a smaller version of it, it is an unreadable slice of the
+ * middle. A merchant whose logo reads "Uriibaba" saw "riiba" in three separate
+ * admin previews — the Customize logo tile, its two-theme preview, and the admin
+ * sidebar — while the shop itself rendered it correctly, because the storefront
+ * happened to ask for `url` first and the previews happened to ask for
+ * `thumbnailUrl` first.
+ *
+ * `cardImageUrl` is not a substitute: its second choice IS the square crop,
+ * which is survivable for a product photo and never for a mark. Nor is
+ * `thumbImageUrl`, however small the logo is drawn — the crop is the problem,
+ * not the pixel count.
+ *
+ * The backend already learned this once: the 96×96 favicon rendition is
+ * generated with `fit: "contain"` for exactly this reason (`imageUpload.ts`).
+ * This is the read-side half of the same rule.
+ */
+export function logoImageUrl(
+  img?: { url?: string; mediumUrl?: string; thumbnailUrl?: string } | null,
+): string | undefined {
+  return img?.mediumUrl || img?.url || img?.thumbnailUrl;
 }

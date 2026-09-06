@@ -16,6 +16,11 @@ import {
   sectionInstances,
 } from "@/lib/storefront-templates";
 import { mergeSectionConfig } from "@/lib/storefront-sections";
+import {
+  mobileTemplate,
+  resolveMobileChrome,
+  type MobileChrome,
+} from "@/lib/storefront-mobile";
 import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
@@ -159,6 +164,18 @@ export interface CustomizeDraft {
   homeCollections: StorefrontHomeCollections;
   /** Every `templates.*` id, including `hero` and `headerMenu`. */
   templates: Record<string, string>;
+  /**
+   * The phone chrome, **complete** — the merchant's overrides already merged
+   * onto the template in `templates.mobile`.
+   *
+   * Held resolved rather than as a diff for the same reason `design` and
+   * `heroAlign` are: the slot editor is a set of controlled inputs, and a
+   * partial value would leave a toggle showing nothing while the storefront
+   * happily rendered the template's answer. The diff is computed back on the way
+   * out (`mobileOverrides` in `draft-payloads.ts`), so what gets STORED is still
+   * only what the merchant changed.
+   */
+  mobile: MobileChrome;
   badges: StorefrontTrustBadge[];
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
@@ -223,6 +240,7 @@ export type PartId =
   | "announcement"
   | "campaign"
   | "header"
+  | "mobile"
   | "hero"
   | "home"
   | "cards"
@@ -247,6 +265,10 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
+  // The template id and the arrangement over it are one visible thing to a
+  // merchant — their phone header — so they share a slice. Splitting them would
+  // let the save bar name a part the merchant never opened.
+  mobile: (d) => [d.templates.mobile, d.mobile],
   hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner, d.heroAlign],
   // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
   // belong to this slice — they moved here from `collections` with their
@@ -386,6 +408,9 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
     templates: seedTemplates(settings),
+    // Resolved, like `design` above and for the same reason — the slot editor's
+    // inputs are controlled, so every field has to arrive concrete.
+    mobile: resolveMobileChrome(settings.templates, t.mobile),
     // The API supports zero to four; preserve the complete ordered list.
     badges: settings.trustBadges ?? [],
     heroSlides: settings.heroSlides ?? [],
@@ -495,6 +520,12 @@ export function applyThemeToDraft(
     // own theme in both the picker preview and the applied storefront.
     homeCollections: { ...theme.homeCollections },
     templates: { ...draft.templates, ...theme.templates },
+    // The phone chrome follows the template the theme just stamped, arrangement
+    // and all. Without this a merchant who had rearranged their bar would apply
+    // a theme, get its mobile template, and see it wearing the previous one's
+    // slots — the same half-applied theme `homeCollections` above exists to
+    // prevent, on the surface most of their shoppers actually use.
+    mobile: resolveMobileChrome({ mobile: theme.templates.mobile }, undefined),
     // The homepage composition — the half that makes themes structurally
     // different rather than repainted. Replaced outright, not merged: a theme's
     // page is an ordered whole, and spreading the previous list over it would
@@ -595,6 +626,16 @@ export interface CustomizeDraftApi {
   patchTemplate: (key: string, value: string) => void;
   /** `templates.home` + the section list it seeds — never `patchTemplate("home")`. */
   patchHomeTemplate: (value: string) => void;
+  /**
+   * `templates.mobile` + the arrangement it seeds — never
+   * `patchTemplate("mobile")`, for the same reason `patchHomeTemplate` exists:
+   * switching template has to RESET the slots, or a merchant who moved the cart
+   * on one template and then picked another would get the new bar wearing the
+   * old one's arrangement and no way back to what the tile showed them.
+   */
+  patchMobileTemplate: (value: string) => void;
+  /** One field of the resolved mobile chrome (slot editor). */
+  patchMobile: (p: Partial<MobileChrome>) => void;
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchCampaignStrip: (p: Partial<CampaignStripDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
@@ -687,6 +728,21 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
   );
   const patchHomeTemplate = useCallback(
     (value: string) => setDraft((d) => ({ ...d, ...applyHomeTemplateToDraft(d, value) })),
+    [],
+  );
+  const patchMobileTemplate = useCallback((value: string) => {
+    // The picked template's own values, wholesale — see `patchMobileTemplate`
+    // on the api interface for why this is a reset rather than a merge.
+    const next = mobileTemplate(value);
+    setDraft((d) => ({
+      ...d,
+      templates: { ...d.templates, mobile: next.id },
+      mobile: resolveMobileChrome({ mobile: next.id }, undefined),
+    }));
+  }, []);
+  const patchMobile = useCallback(
+    (p: Partial<MobileChrome>) =>
+      setDraft((d) => ({ ...d, mobile: { ...d.mobile, ...p } })),
     [],
   );
   const applyTheme = useCallback((themeId: string) => {
@@ -792,6 +848,8 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     patch,
     patchTemplate,
     patchHomeTemplate,
+    patchMobileTemplate,
+    patchMobile,
     patchAnnouncement,
     patchCampaignStrip,
     patchContactButton,

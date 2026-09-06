@@ -9,6 +9,7 @@ import type {
   SalePayment as ApiSalePayment,
   SaleTransactions as ApiSaleTransactions,
 } from "./api";
+import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 
 // Common enums
 export enum ProductStatus {
@@ -251,6 +252,13 @@ export interface StorefrontTheme {
   accentColor?: string;
   homepageSections?: StorefrontHomeSection[];
   logo?: StorefrontLogoStyle;
+  /**
+   * The merchant's edits to their mobile chrome, over the template named by
+   * `templates.mobile` — only the fields that differ from it. See
+   * `lib/storefront-mobile.ts`; `MobileChromeOverrides` is that registry's own
+   * type, so the admin and the storefront cannot drift on the shape.
+   */
+  mobile?: MobileChromeOverrides;
   homeCollections?: StorefrontHomeCollections;
   /**
    * Type family + spatial rhythm (Customize → Design). Ids only — the catalogue
@@ -464,6 +472,12 @@ export interface StorefrontTemplates {
    * control shipped.
    */
   pagination?: string;
+  /**
+   * Which PHONE chrome the shop wears — its own axis, not a consequence of
+   * `header`. The catalogue is `lib/storefront-mobile.ts`; unset ⇒ "tabs", the
+   * chrome every store rendered before this existed.
+   */
+  mobile?: string;
 }
 
 export interface StorefrontCustomersConfig {
@@ -480,6 +494,11 @@ export interface StorefrontSettings {
   /** Share-card image (1200×630). Unset ⇒ the public payload falls back to
    *  banner → logo; this field is the merchant's own upload only. */
   socialImage?: Image | null;
+  /**
+   * Phone artwork for the storefront header. Unset ⇒ the mobile bar falls back
+   * to `logo`, so it is an override rather than a second required upload.
+   */
+  mobileLogo?: Image | null;
   storefrontLocationId?: string;
   /**
    * Store-wide default for what the shop does with a sold-out product. A

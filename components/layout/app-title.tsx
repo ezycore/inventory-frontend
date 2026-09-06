@@ -9,6 +9,7 @@ import {
 } from "@ui/components/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/components/avatar";
 import { BRAND } from "@/constants/brand";
+import { logoImageUrl } from "@/lib/storefront-image";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -19,10 +20,9 @@ export function AppTitle() {
   const user = useAuthStore((state) => state.user);
 
   const orgName = user?.organization?.name || BRAND.name;
-  const logoUrl =
-    user?.organization?.logo?.thumbnailUrl ||
-    user?.organization?.logo?.url ||
-    null;
+  // `logoImageUrl`, never the thumbnail: that variant is a 200×200 centre crop,
+  // so a wide wordmark rendered here as an unreadable slice of its own middle.
+  const logoUrl = logoImageUrl(user?.organization?.logo) ?? null;
 
   // Deterministic initials for the fallback tile (max 2 chars).
   const initials = orgName
