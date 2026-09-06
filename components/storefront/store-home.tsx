@@ -9,8 +9,13 @@ import type {
   StoreTag,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { resolveSections, resolveTemplates } from "@/lib/storefront-templates";
+import {
+  resolveHeroAlign,
+  resolveSections,
+  resolveTemplates,
+} from "@/lib/storefront-templates";
 import { configFor, sectionSignature } from "@/lib/storefront-sections";
+import { stripVisibilityClass } from "@/lib/storefront-strip-display";
 import {
   padCampaignsForPreview,
   padForPreview,
@@ -89,12 +94,12 @@ export function StoreHome({
   const previewHeroBanner = useSfPreview((s) => s.heroBanner);
   const previewCollections = useSfPreview((s) => s.collections);
   const previewSectionConfig = useSfPreview((s) => s.sectionConfig);
+  const previewHeroAlign = useSfPreview((s) => s.heroAlign);
   // Sent only by the Themes page; null in Customize, where the shop is real —
   // and null is what switches the padding below off. See the note there.
   const previewSamples = useSfPreview((s) => s.samples);
   const previewBanner = useSfPreviewImage("banner", store.banner);
   const resolved = resolveTemplates(store);
-  const sectionConfig = previewSectionConfig ?? store.sectionConfig;
 
   const banner = previewBanner?.mediumUrl || previewBanner?.url;
   // Hero source (templates.hero): "banner" forces the static hero even when
@@ -120,8 +125,12 @@ export function StoreHome({
   const previewStore = previewHome
     ? { ...store, templates: { ...store.templates, home: previewHome } }
     : store;
-  const sections = resolveSections(previewStore, {
+  // The config comes back OUT of the resolver, folded over whatever the preset
+  // implies — a shop still on a default composition has configured rows it
+  // never typed, and reading the stored list alone would render them bare.
+  const { sections, config: sectionConfig } = resolveSections(previewStore, {
     draft: previewSections,
+    sectionConfig: previewSectionConfig ?? store.sectionConfig,
     isSectionId,
     presets: HOME_PRESET_SECTIONS,
   });
@@ -165,6 +174,10 @@ export function StoreHome({
     heroSlides,
     heroBanner: previewHeroBanner ?? store.heroBanner,
     store: padStoreForPreview(store, previewSamples),
+    // Resolved ONCE here rather than inside the hero, so the section never sees
+    // a raw stored id and the Customize draft reaches it the same way every
+    // other look does. Only `hero-open` reads it.
+    heroAlign: resolveHeroAlign(previewHeroAlign ?? store.theme?.heroAlign),
     // Classic's chips have always scrolled; photo/disc themes have always used
     // a grid. Preserve that look until the merchant explicitly chooses a mode.
     categoryRowDefault: sections.some((section) => section.type === "category-tiles")
@@ -180,10 +193,23 @@ export function StoreHome({
       {sections.map((section) => {
         const Section = SECTION_COMPONENTS[section.type as SectionId];
         const config = configFor(sectionConfig, section.key);
+        /* Per-breakpoint visibility, as a CLASS — the same pair the
+           announcement bar and the campaign strip already use, and for the same
+           reason: this page is server-rendered, so a `matchMedia` check would
+           paint the wrong state and correct it after hydration.
+
+           The wrapper only exists when the merchant has actually hidden the
+           section somewhere. `undefined` is the overwhelming majority, and a
+           div around every section would change the DOM of every shop to
+           express "shown everywhere", which is what no wrapper already says. */
+        const hidden = stripVisibilityClass(
+          section.showOnDesktop,
+          section.showOnMobile,
+        );
         // Keyed by the INSTANCE key, not the type: a page may carry the same
         // section twice, and keying by type would collide the pair into one.
         // Not the index either — that re-mounts every section below a reorder.
-        return (
+        const rendered = (
           <Section
             key={section.key}
             {...shared}
@@ -191,6 +217,13 @@ export function StoreHome({
             config={config}
             items={config ? rowItems.get(section.key) : undefined}
           />
+        );
+        return hidden ? (
+          <div key={section.key} className={hidden}>
+            {rendered}
+          </div>
+        ) : (
+          rendered
         );
       })}
     </div>

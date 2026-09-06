@@ -31,8 +31,10 @@ export function StorePreviewBridge() {
         brand: p.theme?.brandColor,
         accent: p.theme?.accentColor,
         logoStyle: p.theme?.logo,
+        mobileChrome: p.theme?.mobile,
         homeCollections: p.theme?.homeCollections,
         design: p.theme?.design,
+        heroAlign: p.theme?.heroAlign,
         homepageSections: p.theme?.homepageSections,
         // Sent beside the section list, never inside it — the preview has to
         // show a re-pointed row's real products, and the row's collection lives
@@ -51,6 +53,7 @@ export function StorePreviewBridge() {
         contentLayout: p.templates?.contentLayout,
         cartLayout: p.templates?.cartLayout,
         shell: p.templates?.shell,
+        mobile: p.templates?.mobile,
         collection: p.templates?.collection,
         product: p.templates?.product,
         checkout: p.templates?.checkout,
@@ -78,6 +81,7 @@ export function StorePreviewBridge() {
         // on why these two can't use a `?? saved` fallback downstream.
         logo: p.logo,
         banner: p.banner,
+        mobileLogo: p.mobileLogo,
       });
       /* Tell the editor the draft is IN. Without this the editor has no way to
          know when the page stopped showing the merchant's saved theme, so it

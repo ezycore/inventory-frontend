@@ -9,6 +9,7 @@ import type {
   SalePayment as ApiSalePayment,
   SaleTransactions as ApiSaleTransactions,
 } from "./api";
+import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 
 // Common enums
 export enum ProductStatus {
@@ -170,6 +171,13 @@ export interface StorefrontLogoStyle {
 
 /** Layout of the collections row on the storefront homepage. */
 export interface StorefrontHomeCollections {
+  /**
+   * How a collection is DRAWN: `card` (default) is a picture tile, `plain` is
+   * names only between hairlines — what the retired `category-links` section
+   * used to be. `plain` has no pictures, so `layout`, `columns` and
+   * `showLabels` do not apply to it.
+   */
+  style?: "card" | "plain";
   /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
   layout?: "strip" | "grid";
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
@@ -206,6 +214,9 @@ export interface StorefrontFooterNewsletter {
 export interface StorefrontHomeSection {
   key: string;
   type: string;
+  /** Which screens this instance appears on. Both unset ⇒ everywhere. */
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
 }
 
 /**
@@ -220,10 +231,18 @@ export interface StorefrontSectionConfig {
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
   source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
+  /**
+   * The collections a `category-banners` row advertises, in the merchant's
+   * order. Distinct from `categoryId` above, which names the ONE collection a
+   * product row draws FROM.
+   */
+  categoryIds?: string[];
+  /** A promo card's composition. Unset ⇒ `stacked` (photo above the copy). */
+  cardShape?: "stacked" | "split";
   title?: string;
   /** 4–12. Unset ⇒ the section's own default. Ignored by a `manual` row. */
   limit?: number;
-  /** Tags an `age-chips` row renders, in the merchant's order. */
+  /** Tags a `tag-chips` row renders, in the merchant's order. */
   tagIds?: string[];
   /** A `manual` row's products, in the merchant's order. */
   productIds?: string[];
@@ -241,6 +260,13 @@ export interface StorefrontTheme {
   accentColor?: string;
   homepageSections?: StorefrontHomeSection[];
   logo?: StorefrontLogoStyle;
+  /**
+   * The merchant's edits to their mobile chrome, over the template named by
+   * `templates.mobile` — only the fields that differ from it. See
+   * `lib/storefront-mobile.ts`; `MobileChromeOverrides` is that registry's own
+   * type, so the admin and the storefront cannot drift on the shape.
+   */
+  mobile?: MobileChromeOverrides;
   homeCollections?: StorefrontHomeCollections;
   /**
    * Type family + spatial rhythm (Customize → Design). Ids only — the catalogue
@@ -248,6 +274,12 @@ export interface StorefrontTheme {
    * what each id renders as.
    */
   design?: StorefrontDesign;
+  /**
+   * Where the open hero's copy sits (Customize → Hero). Unset ⇒ `"left"`, which
+   * is what every hero rendered before this existed. Read only by `hero-open`;
+   * the other two heroes have no alignment worth asking about.
+   */
+  heroAlign?: "left" | "center";
   /**
    * Which ready-made theme was last applied. **Provenance, not config:** applying
    * a theme stamps its values into `theme`/`templates`, so nothing renders from
@@ -448,6 +480,12 @@ export interface StorefrontTemplates {
    * control shipped.
    */
   pagination?: string;
+  /**
+   * Which PHONE chrome the shop wears — its own axis, not a consequence of
+   * `header`. The catalogue is `lib/storefront-mobile.ts`; unset ⇒ "tabs", the
+   * chrome every store rendered before this existed.
+   */
+  mobile?: string;
 }
 
 export interface StorefrontCustomersConfig {
@@ -464,6 +502,11 @@ export interface StorefrontSettings {
   /** Share-card image (1200×630). Unset ⇒ the public payload falls back to
    *  banner → logo; this field is the merchant's own upload only. */
   socialImage?: Image | null;
+  /**
+   * Phone artwork for the storefront header. Unset ⇒ the mobile bar falls back
+   * to `logo`, so it is an override rather than a second required upload.
+   */
+  mobileLogo?: Image | null;
   storefrontLocationId?: string;
   /**
    * Store-wide default for what the shop does with a sold-out product. A

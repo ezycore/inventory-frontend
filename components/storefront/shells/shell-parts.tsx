@@ -14,7 +14,10 @@ import { storeHref } from "@/lib/storefront-links";
 import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { CampaignStrip } from "@/components/storefront/campaign-strip";
 import { StoreHeader } from "@/components/storefront/store-header";
-import { StoreBottomNav } from "@/components/storefront/store-bottom-nav";
+import {
+  MobileOverlays,
+  MobileTabs,
+} from "@/components/storefront/mobile/mobile-chrome";
 import { StoreFooter } from "@/components/storefront/store-footer";
 
 /**
@@ -134,13 +137,30 @@ export function ShellFooter({
   );
 }
 
+/**
+ * The bottom tab bar — **and nothing when the store's mobile template has no
+ * tabs**, which is four of the five. `StoreShell` stops reserving its 56px in
+ * the same breath; see the `data-sf-tabs` note there.
+ */
 export function ShellBottomNav({
   slug,
   base,
   store,
+}: Pick<ShellProps, "slug" | "base" | "store">) {
+  return <MobileTabs slug={slug} base={base} store={store} />;
+}
+
+/**
+ * The menu panel and the search takeover, mounted once for the whole shop.
+ *
+ * Beside the tab bar rather than inside the header on purpose: the hamburger in
+ * the bar and the Menu TAB at the bottom open the same panel, and one copy per
+ * surface is two drawers competing for one body scroll lock.
+ */
+export function ShellMobileOverlays({
+  base,
+  store,
   categories,
-}: Pick<ShellProps, "slug" | "base" | "store" | "categories">) {
-  return (
-    <StoreBottomNav slug={slug} base={base} store={store} categories={categories} />
-  );
+}: Pick<ShellProps, "base" | "store" | "categories">) {
+  return <MobileOverlays base={base} store={store} categories={categories} />;
 }

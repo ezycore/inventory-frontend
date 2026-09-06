@@ -49,6 +49,7 @@ export function BrowserPreview({
   draft,
   logo,
   banner,
+  mobileLogo = null,
   page,
   onPageChange,
   /** Force the preview to show slides / collections while their panel is open. */
@@ -58,6 +59,7 @@ export function BrowserPreview({
   hasCollections = true,
   samples,
   viewportHeight = "calc(100vh - 11rem)",
+  deviceRequest,
 }: {
   slug?: string;
   /**
@@ -70,6 +72,12 @@ export function BrowserPreview({
   /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
   logo: Image | null;
   banner: Image | null;
+  /**
+   * The merchant's phone artwork, raw — deliberately NOT resolved to the desktop
+   * logo. The storefront owns that fallback, so resolving it here would make
+   * removing the image in the editor preview as "nothing changed".
+   */
+  mobileLogo?: Image | null;
   page: PreviewPage;
   onPageChange: (page: PreviewPage) => void;
   forceHeroSlides: boolean;
@@ -86,9 +94,45 @@ export function BrowserPreview({
    * height inside a modal that is itself capped at `90vh` overflows the dialog.
    */
   viewportHeight?: string;
+  /**
+   * Nudge the frame onto a device when the merchant opens a part that only
+   * exists there — the Phone bar panel is the case, and its controls change
+   * nothing visible while the preview is showing a desktop.
+   *
+   * A NUDGE, not a lock: the toggle stays live afterwards, so a merchant who
+   * wants to see how their phone choices leave the desktop can just switch back
+   * and stay there. Keyed by an incrementing token rather than a bare value so
+   * re-opening the same part nudges again, while an unrelated re-render does not
+   * yank the frame back out from under someone who has switched.
+   */
+  deviceRequest?: { device: "desktop" | "mobile"; token: number };
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  /* The last nudge this frame has acted on.
+
+     `-1`, not `0`, and that is the whole of a shipped bug: the workspace mints
+     its FIRST request as `token: 0`, so a marker starting at `0` read the
+     opening request as one it had already applied. Clicking the Phone bar row
+     worked (that increments to 1) while `?part=mobile` — the documented deep
+     link, and what a reload restores — silently left the merchant on the desktop
+     frame, looking at a panel of controls that change nothing on screen. No
+     token is ever negative, so this cannot collide with a real one.
+
+     ⚠ **State, not a ref, and the difference is not stylistic.** This is React's
+     documented "adjust state when a prop changes" escape hatch: a `set` called
+     during render re-runs this component before it commits, so the phone frame
+     is the first thing painted. A ref did the same job and was the thing the
+     React Compiler rejects outright (`react-hooks/refs`, an ERROR — reading or
+     writing `.current` during render is how a component silently fails to
+     update). An effect is the other obvious move and is the one behaviour we
+     cannot have: it paints the desktop frame, commits, then swaps — a visible
+     flicker on the panel whose entire job is to show the phone. */
+  const [appliedRequest, setAppliedRequest] = useState(-1);
+  if (deviceRequest && deviceRequest.token !== appliedRequest) {
+    setAppliedRequest(deviceRequest.token);
+    if (deviceRequest.device !== device) setDevice(deviceRequest.device);
+  }
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(
     device === "desktop",
   );
@@ -168,11 +212,13 @@ export function BrowserPreview({
         socialWhatsapp,
         hasCollections,
         samples,
+        mobileLogo,
       }),
     [
       draft,
       logo,
       banner,
+      mobileLogo,
       forceHeroSlides,
       forceCollectionsMenu,
       socialWhatsapp,

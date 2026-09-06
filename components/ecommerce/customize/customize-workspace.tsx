@@ -14,6 +14,7 @@ import { HeroSlidesPanel } from "@/components/ecommerce/customize/hero-slides-pa
 import {
   PartsRail,
   asPartId,
+  previewDeviceForPart,
   previewPageForPart,
 } from "@/components/ecommerce/customize/parts-rail";
 import {
@@ -66,6 +67,13 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   const [page, setPage] = useState<PreviewPage>(() =>
     openPart ? previewPageForPart(openPart) : "home",
   );
+  /* Which device the preview should jump to, and a token so re-opening the same
+     part jumps again. Only the Phone bar part asks for one — see
+     `previewDeviceForPart`. */
+  const [deviceRequest, setDeviceRequest] = useState(() => ({
+    device: previewDeviceForPart(openPart),
+    token: 0,
+  }));
 
   // Drop `?theme=` once it has been staged, so reloading after a Discard does
   // not silently re-stage the theme the merchant just rejected. In an effect
@@ -91,7 +99,13 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   const togglePart = (id: PartId) => {
     const next = openPart === id ? null : id;
     setOpenPart(next);
-    if (next) setPage(previewPageForPart(next));
+    if (next) {
+      setPage(previewPageForPart(next));
+      setDeviceRequest((r) => ({
+        device: previewDeviceForPart(next),
+        token: r.token + 1,
+      }));
+    }
   };
 
   return (
@@ -136,6 +150,7 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
           draft={api.draft}
           page={page}
           onPageChange={setPage}
+          deviceRequest={deviceRequest}
           // While a panel is open, force-preview its own subject even if the
           // saved setting points elsewhere — otherwise reordering collections or
           // writing slides changes nothing on screen.
@@ -149,6 +164,10 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
           // than from the draft.
           logo={settings.logo ?? orgLogo ?? null}
           banner={settings.banner ?? null}
+          // Raw, with no fallback chain: the storefront falls back from this to
+          // the desktop logo itself, so resolving it here would make removing
+          // the phone mark preview as though nothing had changed.
+          mobileLogo={settings.mobileLogo ?? null}
         />
       </div>
     </div>

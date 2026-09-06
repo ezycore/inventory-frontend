@@ -16,6 +16,7 @@ import { useEcommerceDashboard } from "@/services/api";
 import { RecentOrders } from "@/components/dashboard/recent-orders";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
+import { StoreLookCard } from "@/components/ecommerce/store-look-card";
 import { StoreStatusCard } from "@/components/ecommerce/store-status-card";
 import { storefrontUrl } from "@/lib/storefront-url";
 import { cn } from "@/ui/lib/utils";
@@ -60,6 +61,10 @@ export default function EcommerceDashboardPage() {
           customDomain={data.customDomain}
         />
       )}
+
+      {/* Only while the shop still looks like every other EzyCore shop; the card
+          removes itself once it has a theme, a logo and a palette. */}
+      <StoreLookCard />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

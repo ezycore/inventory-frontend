@@ -55,7 +55,19 @@ export function SwatchField({
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <div role="group" aria-label={label} className="flex gap-2">
+      {/* A WRAPPING grid, not a flex row. This started as `flex gap-2` with
+          `flex-1` tiles, which is the same thing while a catalogue has three or
+          four entries and silently wrong past that: at eight surfaces inside a
+          390px rail every tile fell to ~40px and its name wrapped to four lines
+          of two characters. `auto-fit` keeps the small case identical — three
+          options still fill the row one third each — and wraps the large one
+          into rows of four rather than shrinking past legibility. */}
+      <div
+        role="group"
+        aria-label={label}
+        className="grid gap-2"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))" }}
+      >
         {options.map((o) => {
           const on = o.value === value;
           const [ground, ...bands] = o.colors;
@@ -67,7 +79,7 @@ export function SwatchField({
               aria-pressed={on}
               title={o.description}
               className={cn(
-                "min-w-0 flex-1 rounded-lg border p-1 transition-colors outline-none",
+                "min-w-0 rounded-lg border p-1 transition-colors outline-none",
                 "focus-visible:ring-3 focus-visible:ring-ring/50",
                 on
                   ? "border-primary ring-2 ring-primary/30"

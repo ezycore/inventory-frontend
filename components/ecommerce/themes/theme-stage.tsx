@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react";
 import type { ReadyMadeTheme } from "@/lib/storefront-themes";
 import type { StorefrontSettings } from "@/types";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { SECTION_LABELS } from "@/lib/storefront-section-ids";
+import { SECTION_LABELS, SOURCE_LABELS } from "@/lib/storefront-section-ids";
 import {
   BrowserPreview,
   type PreviewPage,
@@ -126,12 +126,19 @@ export function ThemeStage({
           two themes that both look fine. */}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span className="font-medium text-foreground">Home page:</span>
-        {theme.sections.map((id, i) => (
-          <span key={id}>
-            {i > 0 ? <span className="mr-2 opacity-40">→</span> : null}
-            {SECTION_LABELS[id] ?? id}
-          </span>
-        ))}
+        {/* Keyed by position, not by type: a composition may name the same
+            section twice — a featured grid and a new-arrivals grid are one
+            component now — and a repeated type would collide the pair. */}
+        {theme.sections.map((entry, i) => {
+          const type = typeof entry === "string" ? entry : entry.type;
+          const source = typeof entry === "string" ? undefined : entry.config?.source;
+          return (
+            <span key={`${type}-${i}`}>
+              {i > 0 ? <span className="mr-2 opacity-40">→</span> : null}
+              {(source && SOURCE_LABELS[source]) || SECTION_LABELS[type] || type}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

@@ -45,7 +45,9 @@ export function HomePart({
   CustomizeDraftApi,
   "draft" | "patch" | "patchTemplate" | "patchHomeTemplate"
 >) {
-  const effectiveSections = resolveSections(
+  // Only the TYPES matter here — these two blocks ask whether a category row is
+  // on the page at all, not how any row is configured.
+  const { sections: effectiveSections } = resolveSections(
     {
       theme: { homepageSections: draft.homepageSections },
       templates: { home: draft.templates.home },
@@ -142,6 +144,23 @@ export function HomePart({
   );
 }
 
+/**
+ * How a collection is DRAWN, which is the first question — a plain row has no
+ * pictures, so every control under it stops applying.
+ *
+ * `plain` was the `category-links` SECTION until 2026-09-06. Swapping sections
+ * to get a quieter row also discarded the layout, column and label settings the
+ * merchant had already made, because those live here and only the chips row
+ * read them.
+ */
+const STYLES: {
+  value: NonNullable<StorefrontHomeCollections["style"]>;
+  label: string;
+}[] = [
+  { value: "card", label: "Picture tiles" },
+  { value: "plain", label: "Just names" },
+];
+
 const LAYOUTS: {
   value: NonNullable<StorefrontHomeCollections["layout"]>;
   label: string;
@@ -199,10 +218,14 @@ function HomeCollectionsField({
   unphotographed: number;
   onChange: (next: StorefrontHomeCollections) => void;
 }) {
-  const { layout, columns, align, showLabels } = resolveCategoryRowLayout(
+  const { style, layout, columns, align, showLabels } = resolveCategoryRowLayout(
     value,
     defaultLayout,
   );
+  // A plain row is names between hairlines: no track to scroll, no columns to
+  // count, no picture to take a name off. Hiding those beats disabling them —
+  // the same rule the column count already follows under `strip`.
+  const plain = style === "plain";
   const patch = (p: Partial<StorefrontHomeCollections>) =>
     onChange({ ...value, ...p });
   /* Mirrors `categoryLabelsVisible` on the storefront: the names come off only
@@ -212,6 +235,29 @@ function HomeCollectionsField({
 
   return (
     <div className="space-y-2.5">
+      <PartField
+        label="Style"
+        hint={
+          plain
+            ? "Category names only, centred between two lines. The shortest row on a phone."
+            : "A picture per collection."
+        }
+      >
+        <div className="flex flex-wrap gap-2">
+          {STYLES.map((option) => (
+            <OptionChip
+              key={option.value}
+              selected={style === option.value}
+              onSelect={() => patch({ style: option.value })}
+            >
+              {option.label}
+            </OptionChip>
+          ))}
+        </div>
+      </PartField>
+
+      {plain ? null : (
+      <>
       <div className="flex flex-wrap gap-2">
         {LAYOUTS.map((l) => (
           <OptionChip
@@ -279,6 +325,8 @@ function HomeCollectionsField({
           ))}
         </div>
       </PartField>
+      </>
+      )}
     </div>
   );
 }

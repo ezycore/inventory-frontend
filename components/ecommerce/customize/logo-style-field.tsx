@@ -29,6 +29,14 @@ const DEFAULT_HEIGHT = 42;
  * a logo that has vanished on the light one. The grounds are the storefront's
  * real `--page` values, hardcoded here because this is admin chrome rendering a
  * storefront swatch — it has no access to those CSS vars.
+ *
+ * **A backdrop is the exception, not the starting point.** Most uploaded marks
+ * are multi-tone or coloured and read on both grounds unchanged, which is what
+ * an empty backdrop gives them — so the preview's job is usually to confirm that
+ * no backdrop is needed. `ColorField` shows an empty value as a transparency
+ * checkerboard and offers a one-click clear for exactly this reason: a native
+ * colour input cannot express "none", and a white `fallback` behind an empty
+ * field looks identical to a white backdrop somebody chose.
  */
 export function LogoStyleField({
   value,
@@ -53,7 +61,12 @@ export function LogoStyleField({
         value={value.background ?? ""}
         fallback="#ffffff"
         onChange={(background) => patch({ background })}
-        hint="Leave empty for no backdrop (transparent)."
+        /* Renders in the inline layout as of 2026-09-06 — it was accepted and
+           silently dropped before that, so this control shipped with the one
+           sentence explaining its empty state written in the source and visible
+           nowhere. A merchant asked how to make the backdrop transparent while
+           looking straight at the field that does it. */
+        hint="Empty means no backdrop — the right answer for a colourful mark, which reads on both shop themes as it is. Add one only if your logo is a single flat colour that disappears against one of them."
       />
 
       <div className="grid grid-cols-3 gap-2">

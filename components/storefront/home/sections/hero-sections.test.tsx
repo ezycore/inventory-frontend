@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   HeroCard,
   HeroFullBleed,
-  HeroSplit,
+  HeroOpen,
 } from "@/components/storefront/home/sections/hero-sections";
 import type { SectionProps } from "@/components/storefront/home/home-shared";
 
@@ -67,25 +67,65 @@ describe("HeroCard", () => {
   });
 });
 
-describe("HeroSplit", () => {
+/**
+ * The alignment that replaced the `hero-manifesto` SECTION.
+ *
+ * The failure to watch for is a half-centred hero: a centred headline over a
+ * button row still pinned hard left, which reads as a layout bug rather than a
+ * choice. The buttons are flex children, so `textAlign` alone does not move
+ * them — `heroBtns` takes the alignment and sets `justifyContent`.
+ */
+describe("HeroOpen alignment", () => {
+  const banner = { title: "Handmade in Dhaka", subtitle: "Small batches." };
+
+  it("is left-aligned when the merchant has never chosen", () => {
+    const { container } = render(<HeroOpen {...props} heroBanner={banner} />);
+    expect(container.querySelector('[style*="text-align: center"]')).toBeNull();
+  });
+
+  it("centres the copy AND the buttons under it", () => {
+    const { container } = render(
+      <HeroOpen {...props} heroBanner={banner} heroAlign="center" />,
+    );
+    expect(container.querySelector('[style*="text-align: center"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('[style*="justify-content: center"]'),
+    ).toBeInTheDocument();
+  });
+
+  // What `hero-manifesto` was: centred, no picture, one column. The merchant
+  // keeps the banner they uploaded instead of the section discarding it.
+  it("still shows the banner when centred", () => {
+    const { container } = render(
+      <HeroOpen {...props} heroBanner={banner} heroAlign="center" banner="/banner.jpg" />,
+    );
+    expect(container.querySelector("img")).toBeInTheDocument();
+  });
+});
+
+describe("HeroFullBleed", () => {
+  /* Moved here from `HeroSplit` when that section retired: this is the only
+     caller left passing `bannerPhoto(hb, "cover")`, and the default is what
+     stops an owner's static banner being letterboxed inside a full-bleed
+     section it was cropped for. */
   it("preserves the legacy cover default while honoring a deliberate fit choice", () => {
     const { container, rerender } = render(
-      <HeroSplit {...props} banner="/banner.jpg" />,
+      <HeroFullBleed {...props} banner="/banner.jpg" />,
     );
-    expect(container.querySelector(".sf-media-cover")).toBeInTheDocument();
+    // `HeroMedia` paints one cover image, or a blurred bg + contained fg.
+    expect(container.querySelector(".sf-hero-media-cover")).toBeInTheDocument();
 
     rerender(
-      <HeroSplit
+      <HeroFullBleed
         {...props}
         banner="/banner.jpg"
         heroBanner={{ imageFit: "fit" }}
       />,
     );
-    expect(container.querySelector(".sf-media-canvas-fg")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-media-cover")).toBeNull();
+    expect(container.querySelector(".sf-hero-media-fg")).toBeInTheDocument();
   });
-});
 
-describe("HeroFullBleed", () => {
   const slides = [
     { title: "First", buttonLabel: "First CTA", link: "/shop" },
     { title: "Second", buttonLabel: "Second CTA", link: "/products" },

@@ -36,7 +36,7 @@
  */
 
 import type { StoreDesign } from "@/lib/storefront-theme";
-import type { SectionId } from "@/lib/storefront-section-ids";
+import type { HomePresetEntry } from "@/lib/storefront-section-ids";
 import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
@@ -65,7 +65,12 @@ export interface ReadyMadeTheme {
    * structurally different rather than differently painted** — they compose
    * different sections, not different arrangements of the same four.
    */
-  sections: SectionId[];
+  sections: HomePresetEntry[];
+  /**
+   * Where the open hero's copy sits. Part of the LOOK, so a theme owns it —
+   * and Classic sets `"left"` explicitly because Classic is the reset.
+   */
+  heroAlign?: "left" | "center";
   /**
    * What the PREVIEW fills a merchant's empty shop with — see
    * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
@@ -91,6 +96,12 @@ export interface ReadyMadeTheme {
     contentLayout: string;
     cartLayout: string;
     shell: string;
+    /**
+     * The PHONE chrome. Required like the rest: a theme that left it unset would
+     * restyle a shop's desktop entirely and leave its phone header untouched,
+     * which on this platform's traffic is the half most shoppers see.
+     */
+    mobile: string;
   };
 }
 
@@ -128,8 +139,17 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       width: "contained",
     },
     homeCollections: { layout: "strip", align: "left" },
+    // Spelled out because Classic is the RESET: a merchant who centred their
+    // hero and then reached for "start over" must actually get it back.
+    heroAlign: "left",
     // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
-    sections: ["hero-card", "category-chips", "featured-grid", "latest-grid"],
+    sections: [
+      "hero-card",
+      "category-chips",
+      "featured-grid",
+      // The retired `latest-grid`: the same grid, sourced newest.
+      { type: "featured-grid", config: { source: "newest" } },
+    ],
     templates: {
       home: "classic",
       header: "classic",
@@ -152,6 +172,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       cartLayout: "panel",
       // …and the one page skeleton the storefront has always had.
       shell: "stacked",
+      // …and the phone chrome it has always had: search under the logo, four
+      // tabs at the bottom. Spelled out because Classic is the RESET.
+      mobile: "tabs",
     },
   },
   {
@@ -276,6 +299,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          stamp and the Customize → Page layout picker offers it to every
          merchant; it simply is not what this design is. */
       shell: "stacked",
+      /* A grocery phone is a search box and a basket, not a browse. The desktop
+         header is already `search-first` for exactly this reason; picking a
+         different answer on the screen where most of the shopping happens would
+         be the theme contradicting itself. */
+      mobile: "search",
     },
   },
   {
@@ -371,6 +399,10 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          `rail` has been registered and offered in Customize since 2026-08-14
          with nothing stamping it; this is what it was built for. */
       shell: "rail",
+      /* The rail is desktop-only by design, so the phone needs the departments
+         somewhere — the drawer is where they go. Search still leads the bar, as
+         it does on the desktop header. */
+      mobile: "browse",
     },
   },
   {
@@ -448,6 +480,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // moment of purchase.
       cartLayout: "editorial",
       shell: "stacked",
+      // A shop with no borders anywhere does not wear four tabs across the
+      // bottom of the phone either. Logo and cart, nothing else.
+      mobile: "minimal",
     },
   },
   {
@@ -486,16 +521,16 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
        sell", it is whether the formula is genuine and in date, and an answer
        below six rows of products is an answer they never read.
 
-       `age-chips` third, because a parent shops for their six-month-old long
+       `tag-chips` third, because a parent shops for their six-month-old long
        before they think about "Feeding" — it renders nothing unless the shop
        actually keeps age tags, so a gift shop applying this theme simply does
        not get the row. */
     sections: [
       "hero-fullbleed",
       "trust-band",
-      "age-chips",
+      "tag-chips",
       "category-tiles",
-      "picks-grid",
+      "featured-grid",
       "deal-strip",
       "product-rail",
     ],
@@ -526,9 +561,52 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       contentLayout: "centered",
       cartLayout: "panel",
       shell: "stacked",
+      // The shape the Bangladeshi shops this theme is drawn from actually run:
+      // hamburger, centred logo, search and cart. No bottom bar.
+      mobile: "drawer",
     },
   },
 ];
 
 export const getReadyMadeTheme = (id?: string | null): ReadyMadeTheme | undefined =>
   READY_MADE_THEMES.find((t) => t.id === id);
+
+/**
+ * The theme drawn for a trade, keyed by the `industry` the merchant picked at
+ * signup (`INDUSTRY_TYPES` on the backend organization model).
+ *
+ * **Why a recommendation and not a default.** Two of 43 storefronts have ever
+ * applied a theme and five have touched any design axis, so the catalogue is
+ * not failing to be good — it is failing to be *found*, by merchants who have no
+ * reason to open a panel called Design. Naming the one theme built for their
+ * trade turns "browse five and judge" into "this one, unless you disagree",
+ * which is the only version of the question a non-designer can answer quickly.
+ *
+ * **A trade with no entry gets no recommendation, deliberately.** Falling back
+ * to Classic would dress the shop as it already looks and call it a suggestion,
+ * and pointing an electronics shop at a grocery theme is worse than silence.
+ * Five of the twelve trades are unlisted for exactly this reason; each becomes a
+ * row here when a theme is actually drawn for it, and not before.
+ *
+ * ⚠ `bestFor` on each theme is the merchant-facing half of the same claim.
+ * Change one and the other reads as a different suggestion — keep them agreeing.
+ */
+const THEME_BY_INDUSTRY: Record<string, string> = {
+  GROCERY_STORE: "fresh-market",
+  // A restaurant or takeaway sells the same way a grocer does — a short menu of
+  // departments, repeat buyers, everything in reach — and Fresh Market is the
+  // theme drawn for that shape.
+  RESTAURANT_FNB: "fresh-market",
+  PHARMACY: "meridian-care",
+  FASHION_APPAREL: "muslin",
+  BABY_KIDS_STORE: "little-steps",
+  // The Facebook/Instagram seller. Photo-led is the shape of the shop they
+  // already run, whatever they sell — the picture IS the listing.
+  ONLINE_SHOP: "muslin",
+};
+
+/** The theme drawn for this trade, or `undefined` when none has been. */
+export const recommendedThemeFor = (
+  industry?: string | null,
+): ReadyMadeTheme | undefined =>
+  getReadyMadeTheme(THEME_BY_INDUSTRY[industry ?? ""]);
