@@ -198,7 +198,10 @@ before you save.
 **Category chips** and **Category photo tiles** are two ways to place your categories on the home
 page. When either one is in the section list, **Collections row** controls whether that visible row
 is a scrolling strip or a grid, how many categories sit across a desktop row, and its alignment.
-Phone grids always use two columns so the names remain readable. If you use Category photo tiles,
+A grid also has its own **Collections per row on a phone** — two, three or four, two unless you
+change it. Set it separately from the desktop count: a phone row is a quarter of the width, so the
+number that suits one rarely suits the other. It moves the Category photo tiles row as well, since
+both take their layout from this one setting. If you use Category photo tiles,
 the separate **Category tiles** control chooses whether names sit below photos, over photos, or under
 round letter icons. A layout such as Meridian Care that puts categories in a permanent page sidebar
 shows an explanation here instead of controls that cannot affect the page.

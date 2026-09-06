@@ -200,15 +200,19 @@ export function CategoryRowConfig({
             </button>
           ))}
         </div>
-        {/* Said here rather than left to be discovered. A merchant picks "Photo
-            beside", checks the phone preview, sees the stacked card and reads
-            that as the setting not working — so the panel says what the phone
-            does before they look. It is also the honest framing of why there is
-            no mobile control to go with it: side by side at 390px is ~170px a
-            column, which carries neither the picture nor the sentence. */}
+        {/* ⚠ This hint used to read "on a phone these always stack" — and that
+            WAS the behaviour, deliberately, until a merchant picked "Photo
+            beside", watched the phone preview not move, and reported it as a
+            bug. Stating a dead control's deadness does not make it a live one:
+            the phone now draws its own version of each shape, so the hint
+            describes what changes instead of apologising for what does not.
+            Kept because the two shapes are not the same card at two widths —
+            a merchant should know the phone runs a thumbnail, not an even
+            split, before they judge their own photograph in it. */}
         <PartHint>
-          On a phone these always stack one per row — side by side leaves too
-          little room for the picture and the words.
+          {shape === "split"
+            ? "On a phone the picture becomes a small square beside the words, so each card is short — the best shape when you are advertising three or four collections."
+            : "On a phone the picture runs full width above the words. One card fills most of the screen, so this suits one or two collections."}
         </PartHint>
       </div>
 

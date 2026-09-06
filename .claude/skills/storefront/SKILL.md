@@ -721,14 +721,23 @@ the editor's selected pill are one answer shown twice and must not disagree abou
   centred island under a full-width hero, and no setting on it changes that. Move them to
   `category-banners`; do not widen the tiles. (The tile at that width is a 1:1 photo with the name
   under it, so half a 1200px page would render a 590px square.)
-- ⚠ **`split` exists only inside the `min-width: 680px` block, and that is the enforcement.** A phone
-  renders the stacked card whatever is stored, because no rule outside that block mentions `--split`
-  — there is no JS check and no viewport read, which there could not be on a server-rendered page.
-  Half a 390px card is ~170px a column and carries neither the picture nor the sentence. The editor
-  **states** this ("on a phone these always stack one per row") rather than leaving the merchant to
-  set it, check the phone preview, and read the fallback as the setting being broken.
-- **No mobile override, deliberately.** Add one only if merchants actually ask for a 2-up phone row —
-  a row in `docs/plan/storefront-design-requests.md`, not a hunch.
+- ⚠ **`split` has TWO compositions, one per breakpoint, both in CSS and neither in JS.** A phone
+  (`max-width: 679px`) runs the picture as a thumbnail — `clamp(96px, 30%, 132px)` — with the copy
+  taking the rest and the description clamped to one line; past `680px` it is the even
+  `0.9fr / 1.1fr` split. There is no viewport read anywhere, which there could not be on a
+  server-rendered page: the component sets the class and references `--sf-bc-ratio`, the breakpoint
+  owns the value (1:1 phone, 4:3 desktop, 16:9 stacked).
+- ⚠ **The phone shape shipped 2026-09-07, after "I choose photo beside on mobile but it appear one
+  after another".** Until then split was desktop-only *by design*, and the editor stated so. That was
+  the mistake worth remembering: **a hint saying a control is dead does not stop it reading as
+  broken**, especially on the device carrying nearly all of this platform's traffic. The original
+  reasoning ("half a 390px card is ~170px a column and carries neither the picture nor the sentence")
+  was correct about an EVEN split and wrong to conclude the phone had no answer — a thumbnail row is
+  the shape phones already use everywhere. Its second job is length: a stacked card is a 16:9
+  photograph plus copy plus a button, so two of them are the phone's whole home page.
+- **Still one card per phone ROW** — split shortens the row, it does not put two cards on it. Add a
+  2-up phone row only if merchants ask: a row in `docs/plan/storefront-design-requests.md`, not a
+  hunch.
 - **The photo's aspect ratio is `--sf-bc-ratio`, set in CSS, referenced inline.** `Media` writes
   `aspect-ratio` inline from its `ratio` prop, so a class could never beat it; passing
   `style={{ aspectRatio: "var(--sf-bc-ratio)" }}` is what lets a breakpoint reach inside. This is
@@ -975,10 +984,25 @@ surface is two drawers racing one body-scroll lock. `HeaderSearchMobile` is cont
 reason — search is an action a merchant can place in either slot, in a tab, or on the row under the
 brand, and those four entry points open one sheet.
 
+⚠ **Its `onOpenChange` must be memoized by the caller** (`mobile-chrome.tsx`). The sheet declares it
+as a dependency of the `close` it builds, and `close` gates the effect holding the sheet's `popstate`
+and `keydown` listeners — so an inline arrow tears those down and re-adds them on every render of the
+chrome, including while the sheet is open. This was found by the React Compiler, which refuses to
+optimize a component whose manual deps it cannot preserve (`react-hooks/preserve-manual-memoization`,
+an **error**, not a warning): the callback is a prop, so it is not stable by construction and cannot
+be omitted from the deps the way a `useState` setter can.
+
 Opening the Phone bar part in Customize nudges the preview onto its 390px frame
 (`previewDeviceForPart`) — its controls change nothing visible against a desktop, which is the same
 broken-control problem `PART_PAGE` solves one axis over. A nudge, not a lock: the device toggle stays
 live.
+
+⚠ **The nudge is applied during render through STATE, never a ref** (`browser-preview.tsx`). React's
+"adjust state when a prop changes" escape hatch re-runs the component before it commits, so the phone
+frame is the first thing painted. The two alternatives are both wrong and both were tried: a ref
+read during render is a `react-hooks/refs` **error** (it is how a component silently fails to update),
+and an effect paints the desktop frame, commits, then swaps — a visible flicker on the panel whose
+whole job is to show the phone.
 
 ### The SHELL axis — what makes two shops different KINDS of site (2026-08-14)
 
@@ -1901,9 +1925,21 @@ resolved **per request from the host**, never baked.
   draft/saved resolver and strip behavior. Until an owner chooses explicitly, chips keep their
   historical `strip` default and tile-led pages keep their historical `grid`; collapsing those to
   one fallback would restyle an existing theme without its owner asking. Grid columns live in CSS
-  (`.sf-home-collections` / `.sf-cat-tiles`, fed by `--sf-hc-cols` / `--sf-ct-cols`) so phones can
-  pin to two while desktop honors the owner's 2–6 choice; tile tracks retain a mode-specific max,
-  so choosing two never stretches a department into a half-page product card. Strip alignment uses
+  (`.sf-home-collections` / `.sf-cat-tiles`) so each breakpoint can read its own count: desktop
+  honours `--sf-hc-cols` / `--sf-ct-cols` (the owner's 2–6), a phone reads `--sf-hc-mcols` /
+  `--sf-ct-mcols` (`mobileColumns`, 2–4, default 2). ⚠ **Two settings, not one scaled** — a phone row
+  divides ~336px against a desktop row's 1200px, so a shop with fourteen departments wants four
+  across on a phone while a shop with two wants them big; neither is derivable from the other, and
+  the phone was hard-pinned to two until 2026-09-07. The default is still two, so an untouched shop
+  does not move. One control governs BOTH category grids (they share `theme.homeCollections`), which
+  is why the panel's hint names the tile row when it is composed. Tile tracks retain a mode-specific
+  max, so choosing two never stretches a department into a half-page product card.
+- ⚠ **The collections-row GRID thumb is `--sf-hc-thumb`, not a constant** (fixed 2026-09-07). It was
+  `THUMB = 60` / `THUMB_BARE = 76` inline in `home-collections.tsx`, which is right for a desktop
+  column and absurd on a phone: two columns of ~179px each holding a 60px picture, i.e. a third of
+  its track, reading as images that failed to load beside a tile row that fills its column. Now the
+  breakpoint owns the value — full column on a phone, the 60/76px disc above 680px — and the corner
+  is `--radius-md` rather than a literal 11px, which was a soft chip at 60px and a slab at 179px. Strip alignment uses
   `safe`, or centred overflowing content makes its first tile unreachable. **The strip itself is
   `home/category-strip.tsx`** — a shared track with arrows in place of the scrollbar `.sf-root`
   otherwise draws under it. Three rules live there: an arrow shows only when that direction can

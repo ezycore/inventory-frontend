@@ -11898,6 +11898,7 @@ export interface components {
                     /** @enum {string} */
                     layout?: "strip" | "grid";
                     columns?: number;
+                    mobileColumns?: number;
                     /** @enum {string} */
                     align?: "left" | "center" | "right";
                     showLabels?: boolean;
@@ -18912,6 +18913,7 @@ export interface operations {
                             /** @enum {string} */
                             layout?: "strip" | "grid";
                             columns?: number;
+                            mobileColumns?: number;
                             /** @enum {string} */
                             align?: "left" | "center" | "right";
                             showLabels?: boolean;
