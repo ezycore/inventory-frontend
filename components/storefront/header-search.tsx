@@ -233,7 +233,13 @@ export function HeaderSearchMobile({
       return "replace" as const;
     }
     setOpen(false);
-  }, [historyMarker]);
+    /* ⚠ `setOpen` is `onOpenChange`, a PROP — not a `useState` setter, and so
+       not stable by construction. Leaving it out of these deps pinned `close`
+       to whichever callback arrived first, and the React Compiler refused to
+       optimize the component over exactly that mismatch (an ERROR, not a
+       warning). The parent memoizes what it passes, so declaring it honestly
+       here costs nothing — see `mobile-chrome.tsx`. */
+  }, [historyMarker, setOpen]);
 
   const openSheet = useCallback(() => {
     if (window.history.state?.sfSearchSheet !== historyMarker) {
@@ -278,7 +284,7 @@ export function HeaderSearchMobile({
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [close, open]);
+  }, [close, open, setOpen]);
 
   const sheet = open ? (
     <div

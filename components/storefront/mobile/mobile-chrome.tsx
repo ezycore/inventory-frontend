@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { useCallback } from "react";
 import type { CSSProperties, RefObject } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -336,6 +337,18 @@ export function MobileOverlays({
   const closeMenu = useMobileNav((s) => s.closeMenu);
   const searchOpen = useMobileNav((s) => s.searchOpen);
   const closeSearch = useMobileNav((s) => s.closeSearch);
+  /* Memoized because the sheet declares it as a dependency of the `close` it
+     builds, which in turn gates the effect holding its popstate and keydown
+     listeners. An inline arrow here — which this was — is a new identity every
+     render, so those listeners were torn down and re-added on every render of
+     the chrome, including while the sheet was open. `closeSearch` is a store
+     action and is stable, so this callback never changes. */
+  const onSearchOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) closeSearch();
+    },
+    [closeSearch],
+  );
 
   return (
     <>
@@ -350,9 +363,7 @@ export function MobileOverlays({
       <HeaderSearchMobile
         categories={categories}
         open={searchOpen}
-        onOpenChange={(open) => {
-          if (!open) closeSearch();
-        }}
+        onOpenChange={onSearchOpenChange}
       />
     </>
   );

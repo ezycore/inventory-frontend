@@ -109,19 +109,28 @@ export function BrowserPreview({
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
-  /* `-1`, not `0`, and that is the whole of a shipped bug: the workspace mints
-     its FIRST request as `token: 0`, so a ref starting at `0` read the opening
-     request as one it had already applied. Clicking the Phone bar row worked
-     (that increments to 1) while `?part=mobile` — the documented deep link, and
-     what a reload restores — silently left the merchant on the desktop frame,
-     looking at a panel of controls that change nothing on screen. No token is
-     ever negative, so this cannot collide with a real one. */
-  const lastRequest = useRef<number>(-1);
-  if (deviceRequest && deviceRequest.token !== lastRequest.current) {
-    // Applied during render, not from an effect: an effect would paint the
-    // desktop frame first and then swap it, which reads as a flicker on exactly
-    // the panel whose job is to show the phone.
-    lastRequest.current = deviceRequest.token;
+  /* The last nudge this frame has acted on.
+
+     `-1`, not `0`, and that is the whole of a shipped bug: the workspace mints
+     its FIRST request as `token: 0`, so a marker starting at `0` read the
+     opening request as one it had already applied. Clicking the Phone bar row
+     worked (that increments to 1) while `?part=mobile` — the documented deep
+     link, and what a reload restores — silently left the merchant on the desktop
+     frame, looking at a panel of controls that change nothing on screen. No
+     token is ever negative, so this cannot collide with a real one.
+
+     ⚠ **State, not a ref, and the difference is not stylistic.** This is React's
+     documented "adjust state when a prop changes" escape hatch: a `set` called
+     during render re-runs this component before it commits, so the phone frame
+     is the first thing painted. A ref did the same job and was the thing the
+     React Compiler rejects outright (`react-hooks/refs`, an ERROR — reading or
+     writing `.current` during render is how a component silently fails to
+     update). An effect is the other obvious move and is the one behaviour we
+     cannot have: it paints the desktop frame, commits, then swaps — a visible
+     flicker on the panel whose entire job is to show the phone. */
+  const [appliedRequest, setAppliedRequest] = useState(-1);
+  if (deviceRequest && deviceRequest.token !== appliedRequest) {
+    setAppliedRequest(deviceRequest.token);
     if (deviceRequest.device !== device) setDevice(deviceRequest.device);
   }
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(
