@@ -5,6 +5,7 @@ import {
   toSettingsPatch,
   toSettingsPayload,
 } from "@/components/ecommerce/customize/draft-payloads";
+import { resolveMobileChrome } from "@/lib/storefront-mobile";
 import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
@@ -118,8 +119,13 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   accentColor: "#2563eb",
   footerText: "",
   logoStyle: {},
+  // Resolved, exactly as `seedDraft` produces it — the payload builder diffs
+  // this back against the template, so a partial value here would make the
+  // "stores nothing when untouched" path untestable.
+  mobile: resolveMobileChrome(undefined, undefined),
   homeCollections: {},
   design: DEFAULT_DESIGN,
+  heroAlign: "left",
   homepageSections: [],
   sectionConfig: [],
   templates: {},
@@ -280,7 +286,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
         hoursDays: [1, 3, 5],
       },
     });
-    const patch = toSettingsPatch(value, ["design"]);
+    const patch = toSettingsPatch(value, ["look"]);
     expect(Object.keys(patch)).toEqual(["theme"]);
     expect(patch).not.toHaveProperty("contactButton");
   });
@@ -402,7 +408,13 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
 });
 
 describe("toPreviewPayload — sample content reaches the storefront", () => {
-  const wire = { logo: null, banner: null, forceHeroSlides: false, forceCollectionsMenu: false };
+  const wire = {
+    logo: null,
+    banner: null,
+    mobileLogo: null,
+    forceHeroSlides: false,
+    forceCollectionsMenu: false,
+  };
 
   // The Themes page is the only caller that sends these, and the storefront
   // cannot invent them: without this key an empty shop previews as four blank
@@ -416,5 +428,36 @@ describe("toPreviewPayload — sample content reaches the storefront", () => {
   // they do not have while they are editing the shop they do.
   it("sends none when the caller has a real shop to show", () => {
     expect(toPreviewPayload(draft(), wire).samples).toBeUndefined();
+  });
+
+  /* The one place the preview payload and the save payload must DIFFER, and the
+     asymmetry is load-bearing rather than an oversight — so it is pinned here
+     against a future tidy-up that makes the two paths "consistent".
+
+     `mobileOverrides` returns `undefined` for "no overrides". That is right for
+     the save: it keeps a constant object off every document. It is wrong for the
+     preview, because the preview store merges on `!== undefined` — `undefined`
+     there means "this key is not in the patch, keep what you have". So a shop
+     whose phone chrome returned to exactly its template froze the preview on the
+     PREVIOUS override: turn the category strip on, then move search back to its
+     own row, and the strip kept rendering while both the panel and the saved
+     document said it was off. Only a manual preview reload cleared it. */
+  it("sends an EMPTY mobile override rather than undefined", () => {
+    const payload = toPreviewPayload(draft(), wire);
+    expect(payload.theme?.mobile).toEqual({});
+    expect(payload.theme?.mobile).not.toBeUndefined();
+  });
+
+  it("still omits it from the SAVE, so an untouched shop stores nothing", () => {
+    expect(toSettingsPayload(draft()).theme?.mobile).toBeUndefined();
+  });
+
+  // A real override must survive both paths — the fix above must not flatten
+  // every shop's chrome to "no overrides".
+  it("carries a real override on both paths", () => {
+    const edited = draft();
+    const value = { ...edited, mobile: { ...edited.mobile, sticky: !edited.mobile.sticky } };
+    expect(toPreviewPayload(value, wire).theme?.mobile).toHaveProperty("sticky");
+    expect(toSettingsPayload(value).theme?.mobile).toHaveProperty("sticky");
   });
 });

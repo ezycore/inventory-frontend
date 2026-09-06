@@ -23,18 +23,34 @@ import {
 } from "@/components/storefront/home/home-shared";
 
 /**
- * The hero family. A page uses exactly one of these, and which one is the
- * single biggest reason two shops read as different businesses — a grocery
- * shopper wants a search box above the fold where a fashion shopper wants a
- * full-bleed photograph.
+ * The hero family — **three, and they answer one question each.**
  *
- * The first three are the pre-2026-08-12 Classic / Hero Split / Minimal heroes,
- * lifted out of their template components with their markup intact. **One
- * deliberate change:** their hardcoded corner radii now read `--radius-lg` /
- * `--radius-sm`, so a store on the Sharp or Round setting finally gets it up
- * here too. On the default (Soft) setting that moves the hero card from 14px to
- * 16px — the only visual difference the registry refactor introduces, and it is
- * a fix rather than drift.
+ * A page uses exactly one, and which one is the single biggest reason two shops
+ * read as different businesses. What separates them is how FRAMED the hero is:
+ *
+ * - `hero-card` — framed. Copy and photo inside a bordered card.
+ * - `hero-open` — unframed. The copy sits on the page itself, so a store that
+ *   chose a tinted ground gets to show it on the first screen.
+ * - `hero-fullbleed` — the photograph *is* the hero, type laid over it.
+ *
+ * **Three more retired on 2026-09-06**, and each for its own reason:
+ *
+ * - `hero-split` was the middle position on that axis — framed, with a bigger
+ *   picture. A merchant choosing between four points on one axis is choosing
+ *   between shades of the same decision; the ends are the decision.
+ * - `hero-manifesto` was `hero-open` with no picture and centred type, and
+ *   `hero-open` already collapses to one column when no banner is set. All it
+ *   really added was an alignment, which is now `theme.heroAlign` — a question
+ *   a merchant can answer without knowing that "Centred statement" is where
+ *   alignment lives, and without silently discarding the banner they uploaded.
+ * - `search-hero` had nothing composing it, and the one vertical it was built
+ *   for refuses it in writing: Fresh Market's `search-first` header already
+ *   carries the search box, and a hero repeating it is the page saying the same
+ *   thing twice on its most expensive screen.
+ *
+ * **One deliberate change from the 2026-08-12 lift:** the hardcoded corner radii
+ * read `--radius-lg` / `--radius-sm`, so a store on the Sharp or Round setting
+ * gets it up here too.
  *
  * `heroSlides` short-circuits every static hero: an owner who built a carousel
  * gets it, whatever the section chose. That rule predates the registry and is
@@ -120,54 +136,6 @@ export function HeroCard(props: SectionProps) {
   );
 }
 
-/** Hero Split — copy panel beside a full-height lifestyle shot. */
-export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
-  if (heroSlides?.length) {
-    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
-  }
-  const photo = bannerPhoto(hb, "cover");
-  const bannerSrc = banner || photo.mobileSrc;
-  return (
-    <div style={{ ...wrap, padding: "var(--pad)" }}>
-      <div
-        style={{
-          display: "grid",
-          // No banner → the copy panel takes the full width (see HeroCard).
-          gridTemplateColumns: bannerSrc ? "var(--splitcols)" : "1fr",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-lg)",
-          overflow: "hidden",
-          background: "var(--card)",
-        }}
-      >
-        <div style={{ padding: "clamp(26px,4vw,52px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          {hb?.badge ? <span style={{ fontSize: 11.5, color: "var(--primary)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
-            {hb.badge}
-          </span> : null}
-          <h1 style={{ fontSize: "var(--h1)", lineHeight: 1.06, fontWeight: 700, margin: "12px 0 16px", letterSpacing: "-0.03em", whiteSpace: "pre-line" }}>
-            {hb?.title || store.name}
-          </h1>
-          {hb?.subtitle ? <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 24px", maxWidth: 400 }}>
-            {hb.subtitle}
-          </p> : null}
-          {heroBtns(base, t, t.shopNow, hb)}
-        </div>
-        {bannerSrc && (
-          <Media
-            src={bannerSrc}
-            alt=""
-            label="lifestyle shot"
-            ratio="auto"
-            radius={0}
-            style={{ minHeight: "var(--splith)", aspectRatio: "auto" }}
-            {...photo}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
 /**
  * Open — the copy sits on the PAGE, with the picture in a tinted panel beside
  * it. No card, no border, no frame of any kind.
@@ -181,8 +149,12 @@ export function HeroSplit({ base, t, banner, heroSlides, heroBanner: hb, store }
  * DOM-level check had missed it because the gutters beside the card were right.
  *
  * So the shape is the point, not the decoration: `hero-card` frames the hero,
- * `hero-split` frames it and adds a picture, and this one refuses to frame it at
- * all. Choose it whenever the page's own colour is meant to be seen.
+ * `hero-fullbleed` replaces the frame with a photograph, and this one refuses to
+ * frame it at all. Choose it whenever the page's own colour is meant to be seen.
+ *
+ * **The one hero that reads `theme.heroAlign`.** Centred, with no banner, this
+ * is what `hero-manifesto` used to be — and the merchant keeps their banner
+ * instead of discovering it was dropped by the section they chose.
  */
 export function HeroOpen(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
@@ -192,6 +164,8 @@ export function HeroOpen(props: SectionProps) {
   const badge = hb?.badge || campaignBadge(props);
   const photo = bannerPhoto(hb);
   const bannerSrc = banner || photo.mobileSrc;
+  const align = props.heroAlign ?? "left";
+  const centred = align === "center";
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
       <div
@@ -203,7 +177,15 @@ export function HeroOpen(props: SectionProps) {
           alignItems: "center",
         }}
       >
-        <div>
+        {/* Centring is a TYPE decision, not a layout one, and that is why it
+            needs no mobile variant: `--herocols` is `1fr` on a phone, so this
+            hero is already a single column there and the only thing left to
+            decide is where the words sit inside it.
+
+            The subtitle's `maxWidth` has to be centred too — a 46ch column
+            pinned to the left under a centred headline is the giveaway that a
+            page was centred by half-measures. */}
+        <div style={centred ? { textAlign: "center" } : undefined}>
           {/* The accent, like every other informational chip — see the note on
               `HeroCard`'s badge. */}
           {badge ? <span
@@ -239,13 +221,13 @@ export function HeroOpen(props: SectionProps) {
               fontSize: 17,
               color: "var(--muted)",
               lineHeight: 1.55,
-              margin: "0 0 26px",
+              margin: centred ? "0 auto 26px" : "0 0 26px",
               maxWidth: "46ch",
             }}
           >
             {hb.subtitle}
           </p> : null}
-          {heroBtns(base, t, t.shopNow, hb)}
+          {heroBtns(base, t, t.shopNow, hb, align)}
         </div>
         {/* A tinted panel rather than a bare photo: the picture needs an edge to
             sit against once there is no card providing one, and `--accent-soft`
@@ -273,23 +255,6 @@ export function HeroOpen(props: SectionProps) {
         </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/** Minimal — centred manifesto, no image at all. */
-export function HeroManifesto({ base, t, store }: SectionProps) {
-  return (
-    <div style={{ maxWidth: 760, margin: "0 auto", padding: "clamp(48px,9vw,110px) var(--pad) clamp(36px,6vw,64px)", textAlign: "center" }}>
-      <h1 style={{ fontSize: "var(--h1m)", lineHeight: 1.05, fontWeight: 700, margin: "18px 0 20px", letterSpacing: "-0.035em", whiteSpace: "pre-line" }}>
-        {store.name}
-      </h1>
-      <Link
-        href={storeHref(base, "/products")}
-        style={{ display: "inline-block", background: "var(--text)", color: "var(--card)", padding: "14px 32px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 600 }}
-      >
-        {t.startShopping}
-      </Link>
     </div>
   );
 }
@@ -456,44 +421,6 @@ export function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, sto
             ))}
           </div>
         ) : null}
-    </section>
-  );
-}
-
-/**
- * Search-first — a dominant search box and the shop's delivery promise.
- *
- * The quick-commerce pattern: someone buying paracetamol or rice types a name,
- * they do not browse a lookbook. Reuses `HeaderSearch` so there is one search
- * implementation, not a second one that drifts.
- */
-export function SearchHero({ t, store, categories }: SectionProps) {
-  // Filter on TEXT, not array length. The merchant's three badge slots are all
-  // persisted even when blank (`trimBadges` keeps the positions so they survive
-  // a reload), so a store that never wrote one still arrives with three empty
-  // rows — and `promises.length` was truthy for it, printing three bare ticks
-  // with no words beside them.
-  const promises = (store.trustBadges ?? []).flatMap((badge) => {
-    const label = badge.text?.trim();
-    return label ? [label] : [];
-  }).slice(0, 3);
-  return (
-    <section style={{ background: "var(--primary-soft)", padding: "clamp(26px,5vw,52px) 0" }}>
-      <div style={{ ...wrap, padding: "0 var(--pad)", textAlign: "center" }}>
-        <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 16px", letterSpacing: "-0.02em" }}>
-          {store.name}
-        </h1>
-        <div style={{ maxWidth: 620, margin: "0 auto" }}>
-          <HeaderSearchBar categories={categories} />
-        </div>
-        {promises.length ? <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
-          {promises.map((label) => (
-            <span key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>
-              <Icon name="check" size={15} /> {label}
-            </span>
-          ))}
-        </div> : null}
-      </div>
     </section>
   );
 }

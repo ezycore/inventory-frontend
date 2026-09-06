@@ -1,15 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import Link from "next/link";
-import { useRef, type RefObject } from "react";
+import { useRef } from "react";
 import type {
   CatalogCategory,
   StoreTemplates,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
-import { storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -18,15 +16,11 @@ import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
-import { Icon } from "@/components/storefront/sf-icons";
 import { expandHeaderMenu } from "@/components/storefront/header-nav";
-import { Brand } from "@/components/storefront/logo-mark";
 import { useHeaderHeight } from "@/components/storefront/use-header-height";
-import { HeaderSearchMobile } from "@/components/storefront/header-search";
+import { MobileBar } from "@/components/storefront/mobile/mobile-chrome";
 import {
-  bareBtn,
   headerBar,
-  tapPad,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
 import {
@@ -37,6 +31,7 @@ import {
   MinimalDesktop,
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
+import { logoImageUrl } from "@/lib/storefront-image";
 
 /** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
 const HEADER_VARIANTS: readonly string[] = [
@@ -59,14 +54,18 @@ const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.Reac
 
 /**
  * Storefront header — picks one of the desktop anatomies in
- * `header/desktop-variants.tsx` from `templates.header`; the mobile header is
- * shared by all of them. Reads the live preview override first so switching
- * repaints instantly.
+ * `header/desktop-variants.tsx` from `templates.header`. Reads the live preview
+ * override first so switching repaints instantly.
  *
- * Mobile deliberately has no per-variant version: below 680px every one of these
- * collapses to the same thing (logo, toggles, search) because there is no room
- * for them to differ, and five near-identical mobile bars would be five places
- * to fix the next touch-target bug.
+ * **Mobile is a separate axis with its own registry**, `templates.mobile`, drawn
+ * by `components/storefront/mobile/`. It used to be one fixed bar shared by all
+ * six desktop variants, on the reasoning that below 680px they all collapse to
+ * the same thing anyway — true of the DESKTOP anatomies, and the wrong
+ * conclusion: what a phone header should be is its own question (a hamburger and
+ * a centred logo, or a search box, or four tabs at the bottom) and the answer
+ * does not follow from the desktop one. Splitting the axis is also what stops
+ * six near-identical mobile bars from existing — there is still exactly one
+ * renderer, it just reads a value now.
  */
 export function StoreHeader({
   slug,
@@ -106,7 +105,7 @@ export function StoreHeader({
   const ctx: HeaderCtx = {
     base,
     name: store?.name ?? "Store",
-    logo: previewLogo?.url || previewLogo?.thumbnailUrl,
+    logo: logoImageUrl(previewLogo),
     phone: store?.contact?.phone ?? "",
     t,
     theme,
@@ -151,39 +150,21 @@ export function StoreHeader({
 
   return (
     <>
-      <MobileHeader ctx={ctx} barRef={mobileRef} />
+      {/* `mobileRef` goes ON the bar, never around it. `useHeaderHeight` needs
+          the measurement, but the bar is `position: sticky` on four of the five
+          templates and sticky is confined to its parent's box — a wrapper that
+          exactly fits it leaves zero travel, so it scrolls away like a static
+          element and the setting looks like it does nothing. */}
+      <MobileBar
+        slug={slug}
+        base={base}
+        store={store}
+        categories={categories ?? []}
+        barRef={mobileRef}
+      />
       <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
         <Desktop ctx={ctx} />
       </div>
     </>
-  );
-}
-
-/* -------------------------------- mobile ---------------------------------- */
-
-function MobileHeader({ ctx, barRef }: { ctx: HeaderCtx; barRef: RefObject<HTMLDivElement | null> }) {
-  const { base, name, logo, t, theme, lang, toggleTheme, toggleLang, cats } = ctx;
-  // Cart + account live in the bottom nav on mobile, so the top bar keeps just
-  // the logo, locale/theme toggles and the search field.
-  return (
-    <div ref={barRef} className="sf-mobile-only" style={{ ...headerBar, padding: "14px 14px 10px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Brand name={name} logo={logo} markSize={29} nameSize={15.5} />
-        </Link>
-        {/* `tapPad` (padding + matching negative margin) lifts these from an
-            18px glyph to a 42px touch target without moving them or changing
-            the gap between them. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button type="button" onClick={toggleLang} style={{ ...bareBtn, ...tapPad, fontSize: 12.5, color: "var(--muted)", fontWeight: 500 }}>
-            {lang === "en" ? "বাংলা" : "EN"}
-          </button>
-          <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t.lightMode : t.darkMode} style={{ ...bareBtn, ...tapPad, display: "flex", color: "var(--text)" }}>
-            <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
-          </button>
-        </div>
-      </div>
-      <HeaderSearchMobile categories={cats} />
-    </div>
   );
 }

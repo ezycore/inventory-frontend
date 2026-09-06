@@ -21,6 +21,15 @@ every store; **the host picks the store**.
   fully self-serve: add domain in settings → TXT verify → Caddy on-demand cert → live.
   A custom domain serves the SHOP at root — the admin stays on `{slug}.ezycore.com`.
 
+> **A merchant asked for a look you cannot give them? Log it.**
+> [`docs/plan/storefront-design-requests.md`](../../../docs/plan/storefront-design-requests.md) is the
+> register, and the trigger is the sentence *"Customize can't do that"* — write the row in the same
+> message that says it. **Three distinct merchants promotes a request to a candidate setting**; the
+> trade column says whether the answer is a setting (different trades) or a theme (the same one).
+> A request that is not written down at the moment it arrives is lost, and "common across merchants"
+> quietly becomes "whoever asked most recently". The one request this product already had — the promo
+> cards that became `category-banners` — was built with its merchant, trade and date already gone.
+
 > **Paired backend skills — the server rules are NOT duplicated here.** The shopper→order→confirm→Sale
 > pipeline (Shopper ≠ Customer), coupons/campaigns, and the custom-domain lifecycle are owned by the
 > backend:
@@ -128,11 +137,12 @@ reads as two filters at once.
   inline, and **may be near-black — never rely on `var(--primary)` being visible on dark cards**
   (use `--muted` or `color-mix(... , var(--text))` for accents that must survive both themes).
 - **Design tokens (`theme.design`) — the merchant's typeface, ground + rhythm.** Five axes —
-  `font` (6 curated Latin+Bengali pairs), `surface` (`--page/--card/--surface/--text/--border`),
+  `font` (**8** curated Latin+Bengali pairs), `surface` (**8** grounds: `--page/--card/--surface/--text/--border`),
   `scale` (`--h1/--h1m/--h2`), `density`
   (`--pad/--gap/--cols`) and `radius` (`--radius-sm/md/lg`) — catalogued with their resolver in `lib/storefront-theme.ts`
   (`DESIGN_FONTS`/`DESIGN_SURFACES`/`DESIGN_SCALES`/`DESIGN_DENSITIES`, `resolveDesign`, `designAttrs`), edited in
-  Customize → **Design**, and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
+  Customize → **Look** (Brand and Design merged into it on 2026-09-06 — see `parts/look-part.tsx`),
+  and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
   `storefront.css`. Six rules, and the first two are the ones that bite:
   - **Never stamp these as inline style vars.** `--pad/--gap/--cols/--h1/--h1m/--h2` are redefined
     at `680px` and `1000px`; an inline var outranks every media query and freezes a themed store at
@@ -175,6 +185,23 @@ reads as two filters at once.
     four typefaces and four page skeletons and still looked related, because all four were white
     cards on a near-white page — the first thing a shopper's eye registers, and the last thing any
     other axis could touch.
+    ⚠ **A new surface must be distinguishable in its three-colour SWATCH**, which is what the merchant
+    actually picks from — `SURFACE_SWATCH` in `lib/storefront-theme.ts`, a hand-copied literal because
+    the admin is not inside `.sf-root`. An option whose difference is ink weight or hairline strength
+    is invisible there and is not an option. That test is why the catalogue stopped at eight.
+    ⚠ **There is no white-cards-on-DARK-ground surface, and it is not an oversight.** `--text` is one
+    token spent on both the page and the card, so a dark page under white cards has no readable ink to
+    pick; it needs a second ink token before it can be expressed.
+    ⚠ **A DARK ground changes four things beyond the twelve tokens** — the brand and the accent must
+    take their *lifted* variants (`--sf-brand-dark`, already on the shell), the skeleton shimmer must
+    not be a white sweep, and `color-scheme` must go dark. All four were keyed on `[data-theme="dark"]`,
+    which is the **shopper's toggle** and the wrong question for a shop that is dark in both themes.
+    They hang off one `data-ground="dark"` attribute, stamped by `designAttrs` and **derived from the
+    swatch** (`isDarkSurface`) so it cannot disagree with the CSS. Adding another dark palette needs no
+    new selector; adding a fifth concern needs exactly one.
+    ⚠ **`lib/storefront-surface-css.test.ts` walks the stylesheet** and will fail a surface missing any
+    of the above — twelve tokens light and dark, both `body` rules, a swatch matching the CSS — plus a
+    `var(--font-*)` the font module never declared. Nothing in the TS build can see any of it.
   - ⚠ **`surface` is the ONE axis declared on `.sf-root`, not `.sf-shell`** — keyed off the shell with
     `:has()` (`.sf-root:has(.sf-shell[data-surface="parchment"])`). Every other axis sets tokens only
     its own descendants read, so the shell is the right home for them. `--page` is different:
@@ -195,7 +222,7 @@ reads as two filters at once.
     on `.sf-shell` reported the correct `--page` the whole time. Walking up from
     `document.elementFromPoint(x, y)` to the first ancestor with a non-transparent background is what
     exposed the layer above it still painting slate-white. When a colour "looks wrong" but the token
-  - ⚠ **`hero-card`, `hero-split` and `search-hero` all paint `--card`, so on a themed ground the
+  - ⚠ **`hero-card` paints `--card`, so on a themed ground the
     FIRST SCREEN is near-white.** That is the loudest defect a `surface` can have: the ground never
     gets to introduce itself. `hero-open` exists for this — copy on the page, picture in an
     `--accent-soft` panel, no frame at all. **Pick it whenever the page's own colour is meant to be
@@ -323,6 +350,8 @@ reads as two filters at once.
     `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
     which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
     when the other three were found to be unpreviewable.
+- **Mobile chrome** (`templates.mobile`, default `tabs`) — its own axis, and a **registry**, not a
+  set of components. See *The MOBILE axis* below before adding a phone layout.
 - **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
   product card, orthogonal to `productCard`**, which now means *density only*. Values:
   `add` | `add-buy` | `icons` | `buy-first` | `reveal` | `icon-only`. Folding these into
@@ -505,8 +534,19 @@ Four files, in payload order:
   settings and an upload in Customize is a store-only override (remove ⇒ back to inherited). The
   editor must send `settings.logo ?? orgLogo ?? null` or removing the override blanks the previewed
   header instead of reverting to the org mark.
+  - ⚠ **`mobileLogo` is the exception, and streams RAW.** The storefront falls back from it to the
+    desktop logo *itself* (`useMobileBrandLogo`), and the backend deliberately does not chain it in
+    `getStoreInfo` — the client has to tell "the merchant uploaded a phone mark" apart from "use the
+    desktop one". Resolving it in the editor would make removing the phone mark preview as though
+    nothing had happened, which is the same class of bug the `useSfPreviewImage` rule above exists
+    for, one level up.
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
+- **A control also belongs to the part whose preview DEVICE renders it** (2026-09-06). The same
+  argument as the page rule below, one axis over: the Phone bar part's controls change nothing
+  against a desktop frame, so opening it nudges the preview to mobile (`previewDeviceForPart` in
+  `parts-rail.tsx`, applied during render in `BrowserPreview` so the desktop frame is never painted
+  first). A nudge, not a lock — the toggle stays live.
 - **A control belongs to the part whose PREVIEW PAGE renders it** (browser QA, 2026-08-18).
   Opening a part points the preview at one page (`PART_PAGE` in `parts-rail.tsx`), so a block whose
   subject lives on a different page can never be judged from the part holding it. Collections points
@@ -576,8 +616,15 @@ Do not restate the gate table here.
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
 `components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
-over `resolveSections(store, { draft, isSectionId, presets })`. **`templates.home` now selects a
-*default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+over `resolveSections(store, { draft, sectionConfig, isSectionId, presets })`. **`templates.home` now
+selects a *default section list* (`HOME_PRESET_SECTIONS`), not a component.**
+
+⚠ **`resolveSections` returns `{ sections, config }` and callers must read that config, not
+`store.sectionConfig`** (2026-09-06). A preset entry may be `{ type, config? }` rather than a bare
+id, so on a shop with no stored list the effective config is the preset's with the merchant's folded
+over it — merchant always wins, `mergeSectionConfig` joins on the key `sectionInstances` minted for
+both halves. Reading the stored array directly renders those rows unconfigured, which is how a "New
+arrivals" row becomes a second Featured row with nothing on screen to explain it.
 
 `home-classic.tsx`, `home-hero-split.tsx` and `home-minimal.tsx` are **gone** — removed by the owner's
 decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The ids survive as
@@ -592,6 +639,152 @@ changed nothing a shopper could see — the whole "Starting layout" picker was i
 `patchHomeTemplate` writes the key *and* reseeds the list from `HOME_PRESET_SECTIONS`, exactly the
 way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
 does.
+
+### Three heroes, one collections row, one tag row (2026-09-06)
+
+Six sections retired in one pass; the bar each merge cleared was **"the setting that replaces it is
+a question a merchant can answer."** No migration — no live document used any of these four.
+
+| Retired | Replaced by |
+|---|---|
+| `hero-split` | nothing. It was the middle of one axis (how framed), and the ends are the decision |
+| `hero-manifesto` | `hero-open` + `theme.heroAlign: "center"` |
+| `search-hero` | nothing. The `search-first` header carries the search on **every** page |
+| `category-links` | `category-chips` + `theme.homeCollections.style: "plain"` |
+| `age-chips` | renamed **`tag-chips`** — it always rendered `sectionConfig.tagIds`, not ages |
+
+- ⚠ **`heroAlign` is read by `hero-open` ONLY**, and the Hero panel hides the control unless the page
+  composes it. `hero-card` sets copy beside a photo, `hero-fullbleed` lays type over one — neither
+  has an alignment worth asking about, and a control that does nothing is worse than none.
+- ⚠ **Centring is a type decision, so it needs no mobile variant.** `--herocols` is `1fr` on a phone,
+  so the open hero is already one column there. The thing to test is the button row: buttons are
+  flex children, so `textAlign` alone leaves them hard left — `heroBtns` takes the alignment and sets
+  `justify-content`.
+- ⚠ **Retiring `hero-manifesto` un-hid a whole panel.** `HeroPart` gated itself on
+  `templates.home !== "minimal"` because Minimal composed a section that ignored slides and banners.
+  Minimal composes `hero-open` now, so the gate was hiding working controls. Removed.
+- **`plain` hides the row's other controls rather than disabling them** — no pictures means no
+  layout, columns or labels to set — but it KEEPS their values, so switching back restores the row
+  the merchant built. Swapping sections used to discard them.
+- **`tag-chips` takes `config.title`** and still falls back to "Shop by age". The only tag list it
+  knows by itself is the age ladder; a generic "Shop by tag" over eight age rungs reads as
+  unfinished.
+
+### `category-banners` — promo cards, the thirteenth section (2026-09-06)
+
+The first id added since the vocabulary was cut to twelve, and the only Phase 2 gap with a real
+merchant request behind it: one to four departments as promo cards — photo, name, the merchant's own
+line, a button.
+
+- ⚠ **Answer this before touching either it or `category-tiles`:** tiles are **wayfinding** (every
+  department, small, scannable, sized so a row never outweighs the products), banners are
+  **merchandising** (a handful the merchant chose, drawn large enough to sell). That is why the count
+  is capped at four and the collections are *picked* — a promo block showing all fourteen departments
+  is a tile row with the type turned up. It is also why the description shows here and is suppressed
+  on most tile modes.
+- **`sectionConfig[].categoryIds`, a NEW field beside `categoryId`.** `categoryId` names the one
+  collection a product row draws its products *from*; this names the collections a block *advertises*.
+  Merging them would make two different questions one field. `assertSectionCategories` on the backend
+  sweeps **both** shapes — the promo row carries no `source`, and the old guard keyed on
+  `source === "category"`.
+- **On a phone: one card per row, full width** (`.sf-banner-row`, `auto-fit` only past 680px). The
+  premise is a card big enough to hold a photograph, a sentence and a button; at half a 375px screen
+  it holds none of them. Page length is the cost, and the section's own show-on control is the lever.
+- **Unpicked shows the first two collections, not nothing.** A blank section looks broken in the
+  preview the merchant is staring at, having just added it — the same reason every product row has a
+  built-in source.
+- A pick that no longer resolves is **skipped, never pruned**, matching the hand-picked product row.
+- ⚠ **`CONFIGURABLE` + `TAG_CONFIGURABLE` are now one `sectionConfigKind` map** (`products` | `tags` |
+  `categories`). Two sets were answering "which editor?" and "does this row earn a catalogue fetch?"
+  at the same time and agreeing by accident. `isConfigurableSection` is still the fetch predicate, and
+  is now derived from the kind.
+- ⚠ **A section may be added more than once exactly when its CONFIG can tell two instances apart** —
+  so any section with a `sectionConfigKind`, not just a product row. The picker's predicate was
+  `isConfigurableSection`, which gave the same answer only while product rows were the only
+  configurable ones; `tag-chips` and `category-banners` are repeatable now, and both name themselves
+  in the editor list after what they hold rather than after their section type.
+
+#### `cardShape` — photo on top, or photo beside (2026-09-07)
+
+`sectionConfig[].cardShape: "stacked" | "split"`, unset ⇒ `stacked`. Read through
+`resolveCardShape` (`lib/storefront-sections.ts`), never compared inline — the storefront card and
+the editor's selected pill are one answer shown twice and must not disagree about the fallback.
+
+- ⚠ **The merchant asked for a SIZE and the answer was a SHAPE.** The request arrives as "my two
+  categories look tiny, I can't control the size" — and a width control is the wrong answer to it.
+  How wide a card is was already decided by how many collections were picked (two fill half the row
+  each, three fill a third), which is also how the reference layouts merchants point at work. What
+  was missing was where the picture goes. Reach for this distinction before adding a dimension to
+  anything here: if the count already sets the size, the gap is a composition.
+- ⚠ **A merchant showing this complaint is usually on the wrong section.** `category-tiles` caps its
+  track at 148px *by design* — it is wayfinding — so two categories there will always be a small
+  centred island under a full-width hero, and no setting on it changes that. Move them to
+  `category-banners`; do not widen the tiles. (The tile at that width is a 1:1 photo with the name
+  under it, so half a 1200px page would render a 590px square.)
+- ⚠ **`split` exists only inside the `min-width: 680px` block, and that is the enforcement.** A phone
+  renders the stacked card whatever is stored, because no rule outside that block mentions `--split`
+  — there is no JS check and no viewport read, which there could not be on a server-rendered page.
+  Half a 390px card is ~170px a column and carries neither the picture nor the sentence. The editor
+  **states** this ("on a phone these always stack one per row") rather than leaving the merchant to
+  set it, check the phone preview, and read the fallback as the setting being broken.
+- **No mobile override, deliberately.** Add one only if merchants actually ask for a 2-up phone row —
+  a row in `docs/plan/storefront-design-requests.md`, not a hunch.
+- **The photo's aspect ratio is `--sf-bc-ratio`, set in CSS, referenced inline.** `Media` writes
+  `aspect-ratio` inline from its `ratio` prop, so a class could never beat it; passing
+  `style={{ aspectRatio: "var(--sf-bc-ratio)" }}` is what lets a breakpoint reach inside. This is
+  **not** the banned inline-var pattern — the component writes the *reference*, the stylesheet owns
+  the *value*, so media queries still decide (16:9 stacked, 4:3 split).
+- **Clearing back to `stacked` drops the field**, and drops the whole config entry when nothing else
+  is on the row — same rule the collection picker follows. A stored `"stacked"` would put that row
+  outside any future change to what the default means.
+- **The button is a real button in both shapes** (`--primary` fill, `--on-primary` ink), not the
+  arrow link a product row ends with. That link is a navigation affordance beside a heading; this is
+  the call to action of an advertisement.
+- ⚠ **Four layers in one change, `organization.dto.ts` included.** `tagIds` sat on the model and the
+  validator for weeks while missing from the DTO — in `API_CONTRACT_MODE=enforce` that deletes the
+  field from the response and the editor redraws the row as unconfigured. Verified here by parsing a
+  payload through the validator *and* the DTO before shipping.
+
+### Per-section mobile visibility (2026-09-06)
+
+`homepageSections[].showOnDesktop` / `showOnMobile`. **Both unset ⇒ everywhere**, so no existing shop
+changes and a shop that never opens this stores nothing.
+
+- Rendered through the **existing** `stripVisibilityClass` — the 680px `sf-desktop-only` /
+  `sf-mobile-only` pair the announcement bar and campaign strip already share. Never `matchMedia`:
+  the page is server-rendered and a JS check paints the wrong state first.
+- ⚠ **The wrapper `<div>` only exists when a section is actually hidden somewhere.** Wrapping every
+  section would change the DOM of every shop to express "shown everywhere", which is what no wrapper
+  already says.
+- **Three chips, not the shared switch pair.** `StripVisibilityField`'s distinguishing feature is a
+  warning for "off on both" — a state a section does not need, because Remove means that. One
+  choice, no invalid combination.
+- Page length is the problem it solves: a five-entry promises band is a five-row stack on a phone,
+  and an editorial split spends most of a screen on a photograph before any product.
+
+### One product grid, pointed by its source (2026-09-06)
+
+`featured-grid`, `latest-grid` and `picks-grid` were the same component drawing from a different
+store-wide fallback list. `sectionConfig.source` answers that per instance, so the three are one
+**`featured-grid`** rendered by `ProductGrid`, and `Grid` no longer takes a density — that flag was
+only consulted for `productCard: "standard"`, which made it a second, hidden answer to what
+Customize → Product cards asks.
+
+- **The stored id stays `featured-grid`.** 28 documents already say it; the merchant-facing label is
+  "Product grid". A configured row is named by its source (`SOURCE_LABELS`) in the editor, the theme
+  card's running order, and by `sectionTitle` on the shop — one constant, three lists, because two
+  lists calling the same row different things is how "campaign strip" went wrong.
+- **"Featured products" and "New arrivals" are still two chips in the picker** (`ADD_ENTRIES`). Both
+  add the same component with a different `source`. "Product grid, then set its source" is not
+  something anyone would find.
+- ⚠ **The Sections editor writes BOTH halves on every edit.** `toSettingsPayload` drops any
+  `sectionConfig` entry whose key is not in `homepageSections`, so on the 14 shops with no stored
+  list, configuring a row was silently discarded at Save. Writing both also means a removal and its
+  config drop happen in one commit, so neither call can undo the other.
+- Retiring a section id means a **migration**, not just a registry edit:
+  `resolveSections` drops an unrenderable type and only falls back when *nothing* survives, so the
+  page keeps rendering and is quietly one row shorter. See
+  `../inventory-backend/src/migrations/20260906000000-merge-product-grid-sections.ts`.
 
 ⚠ **If they reappear in a merge, do not delete them — say so and ask.** Their first deletion was
 correct and their second was not, because between the two a colleague had committed them back on
@@ -712,6 +905,81 @@ had been modelled on the backend since the beginning and was **read by nothing**
     rather than the min**, which is why a 132px cap put only *two* tiles on a 358px phone row. The
     component supplies `--tile-min` / `--tile-max`; the media query is the CSS's.
 
+### The MOBILE axis — a registry, not a set of components (2026-09-06)
+
+**`templates.mobile` picks the phone chrome, and the templates are DATA.** Read this before adding a
+mobile layout: there is nothing to add a component for.
+
+Until now the phone bar was one fixed thing shared by all six desktop header anatomies — logo, the
+two toggles, a search field, and a Home/Menu/Cart/Account tab bar underneath — on the reasoning that
+below 680px the desktop variants all collapse to the same thing anyway. True of those six, and the
+wrong conclusion: **what a phone header should be is its own question.** A hamburger with a centred
+logo, a search box filling the bar, four tabs under the thumb — none of those follow from the desktop
+choice, and the shops these merchants compete with pick them independently.
+
+| Piece | Lives in | Owned by |
+|---|---|---|
+| Which template | `templates.mobile` | a theme may stamp it |
+| The arrangement over it | `theme.mobile` — **only the fields that differ** | a theme resets it |
+| The phone artwork | `mobileLogo`, beside `logo`/`banner` | the merchant; a theme never touches media |
+
+**One renderer draws every template.** `lib/storefront-mobile.ts` holds the registry;
+`components/storefront/mobile/` draws whatever a `MobileChrome` value says, with **no `switch` on the
+template id anywhere**. So:
+
+> **Adding a mobile template is one object in `MOBILE_TEMPLATES` plus one wireframe in
+> `template-sketch.tsx`.** Nothing else. Not the preview store, not the validator, not the DTOs, not
+> the model, not the Customize picker (`TEMPLATE_OPTIONS.mobile` is *derived* from the registry), and
+> not a line of this renderer. `storefront-mobile.test.ts` asserts the derivation and the sketch
+> coverage, so a template added without its wireframe fails rather than shipping a blank tile.
+
+Adding a bar ACTION (a wishlist button, say) is the one thing that costs two files — an entry in
+`MOBILE_ACTIONS` and a branch in `mobile-actions.tsx` — because an action is *behaviour*, not
+arrangement. The Customize slot editor picks it up from the registry with no edit.
+
+The five shipped templates: `tabs` (the chrome the storefront always had, and the default),
+`drawer` (hamburger / centred logo / search + cart), `search` (a search box in the bar itself),
+`minimal` (logo, cart, menu), `browse` (drawer plus a scrolling category strip).
+
+⚠ **`tabs` must stay byte-for-byte what the storefront rendered before this axis existed.** Every
+store with nothing stored resolves to it, so a drift silently re-chromes the whole platform.
+`storefront-mobile.test.ts` pins it field by field.
+
+⚠ **Only the DIFF is stored.** The draft holds the resolved chrome (every field concrete, so the slot
+editor's inputs stay controlled) and `mobileOverrides` diffs it back on the way out — so a shop that
+took a template and left it alone stores *nothing*. At this platform's scale a full config object on
+every settings document is a real cost for a value identical to a constant the frontend already has.
+Switching template recomputes the diff against the new one, which is what makes the switch a true
+reset.
+
+⚠ **Merchant ids are narrowed on read, never trusted.** `resolveMobileChrome` drops unknown actions,
+de-duplicates (two of one id would mount two components on one React key), caps the slots at what
+390px draws, refuses a glyph the action does not offer, and clamps the logo height. Same rule as
+`resolveDesign` and `pick()` in `storefront-templates.ts`, and for the same reason: these are stored
+merchant strings.
+
+⚠ **The menu panel is the ONLY category navigation a phone has.** The header's dropdown row and the
+rail are both desktop-only, so a chrome with no `menu` anywhere strands a shopper — `canBrowse()` is
+that question and a registry test enforces it on every shipped template. It caught `minimal`, which
+shipped as "logo and cart, navigation lives on the page" and left phone shoppers with nowhere to go
+but the cart. Customize *warns* rather than forbids when a merchant empties the slots themselves.
+
+⚠ **`--sf-bottom-nav-h` is now conditional.** Four of the five templates have no tab bar, and the
+sticky buy bar, the WhatsApp launcher and the page's own bottom padding all stack on that var —
+so `StoreShell` stamps `data-sf-tabs` and `.sf-shell[data-sf-tabs="1"]` is the only thing that
+reserves the 56px. Reserving it unconditionally floats all three above nothing.
+
+⚠ **The panel and the search takeover are mounted ONCE, by the shell** (`ShellMobileOverlays`), and
+driven by `useMobileNav`. The hamburger in the bar and the Menu *tab* open the same panel; a copy per
+surface is two drawers racing one body-scroll lock. `HeaderSearchMobile` is controlled for the same
+reason — search is an action a merchant can place in either slot, in a tab, or on the row under the
+brand, and those four entry points open one sheet.
+
+Opening the Phone bar part in Customize nudges the preview onto its 390px frame
+(`previewDeviceForPart`) — its controls change nothing visible against a desktop, which is the same
+broken-control problem `PART_PAGE` solves one axis over. A nudge, not a lock: the device toggle stays
+live.
+
 ### The SHELL axis — what makes two shops different KINDS of site (2026-08-14)
 
 Read this before adding another header, section or page layout to "make the themes more different".
@@ -748,8 +1016,9 @@ The rule this generalises: **a section renders nothing when it has nothing to AD
 add" now includes "the shell is already saying it".
 
 ⚠ **The rail is `sf-desktop-only`, not a collapsible drawer.** A 218px column on a 390px screen is
-not navigation, and the mobile bottom nav plus the header search already cover the job. A second
-mobile nav competing with the bottom bar is how a shopper ends up with two half-answers.
+not navigation, and the phone chrome (`templates.mobile`) already owns that question — its menu panel
+is where a phone's departments live. A second mobile nav competing with the one the merchant chose is
+how a shopper ends up with two half-answers.
   - ⚠ **`.sf-rail-grid` must only claim two columns when a rail is actually rendered.**
     `RailShell` returns `null` for the aside when the store has no categories, and a grid whose first
     child is missing puts the CONTENT into the first track — the whole page rendered inside 218px,
@@ -852,7 +1121,7 @@ shows one still photograph forever:
 
 | Section | Slides render as |
 |---|---|
-| `hero-card` / `hero-open` / `hero-split` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
+| `hero-card` / `hero-open` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
 | `hero-fullbleed` | its **own** edge-to-edge rotation, no card, copy laid over the photo |
 
 `HeroFullBleed` used to take only `heroSlides[0]`, on the documented reasoning that
@@ -924,14 +1193,18 @@ returns null under `rail`, and the rail is `sf-desktop-only` (verified hidden at
 
 **The composition rule this theme is built on.** With a rail carrying departments and a `clinical`
 header carrying the search, a hero could only repeat one of them — so the theme has **no hero and no
-category section**. Its five sections are the ones the shell cannot say: `trust-row` (promises),
-`deal-strip` (a live campaign), `featured-grid`, `product-rail`, `promo-tiles`. Two constraints ride
-with that and must not be undone:
+category section**. Its four sections are the ones the shell cannot say: `deal-strip` (a live
+campaign), `featured-grid`, `product-rail`, `trust-band` (the promises). Two constraints ride with
+that and must not be undone:
 
-- `trust-row` reads `trustBadges`, so **`trust-band` must never join it** and the footer must not be
-  `rich` — both print the same three promises.
-- The `clinical` header carries the only search, so **no `search-hero`**. The first draft of this
-  theme had both, which is the fifth time this storefront has shipped that class of bug.
+- `trust-band` reads `trustBadges`, so **the footer must not be `rich`** — both print the same three
+  promises.
+- The `clinical` header carries the only search, so nothing in the bundle may print a second one.
+  The first draft of this theme paired it with a search hero, which was the fifth time this
+  storefront shipped that class of bug. (That section, `search-hero`, retired on 2026-09-06.)
+
+*(This passage named `trust-row` and `promo-tiles` until 2026-09-06 — two ids the registry never
+held and no component ever answered to. The bundle above is what the theme actually composes.)*
 
 `TrustRow`'s icon moved from a bare `--primary` glyph to `--accent` on an `--accent-soft` disc.
 Reassurance is what a second colour is *for*; a shop whose promises are painted in the same hue as its
@@ -1141,21 +1414,50 @@ to "restore" the old look: a per-tile description is read at ~95px inside the
 ~1,870px and Product cards to ~1,240px before this split. `SegmentedField` and
 `SwatchField` (`ui/components/`) follow the same rule.
 
-The Design part is the worked example: six axes in **one** `PartGroup` slot
-(`PartField`, not six `PartBlock`s — that alone was 192px of block padding),
-typeface as a described `SimpleSelect`, surface as a `SwatchField`, the four
-ramps as `SegmentedField`s with the glyphs in `parts/design-glyphs.tsx`, and
-corners + page width folded behind **More options** — opened automatically when
-either is already off its default, so the fold never hides a merchant's own answer.
+The **Look** part's `Type and rhythm` block is the worked example: six axes in
+**one** `PartGroup` slot (`PartField`, not six `PartBlock`s — that alone was
+192px of block padding), typeface as a described `SimpleSelect`, palette as a
+`SwatchField`, the four ramps as `SegmentedField`s with the glyphs in
+`parts/design-glyphs.tsx`, and corners + page width folded behind **More
+options** — opened automatically when either is already off its default, so the
+fold never hides a merchant's own answer.
+
+### The Customize rail (2026-09-06)
+
+`Brand` and `Design` merged into **`look`**, and the rail is grouped.
+
+- **Why they merged:** both sat at 12% adoption while parts named after something a merchant can see
+  on their own website sat at 51-67% — and colour lived in *both* (`brandColor`/`accentColor` in one,
+  `surface` in the other), so "how do I change my shop's colours?" had two equally abstract answers.
+  One panel, one row, **no setting added or removed**.
+- **Five groups: Look · Home page · Shop pages · Buying · Site frame.** Group by the *merchant's*
+  question; order **inside** a group by the shopper's journey — announcement bar, campaign strip,
+  hero, sections is the order they appear down the page. The flat list ordered the whole rail that
+  way, which is a good principle serving the wrong reader: a merchant is hunting for one thing.
+- ⚠ **`look` sits ABOVE the groups, not in one of its own.** It is the only part that changes every
+  other one, and a heading called Look over a row called Look reads as a rendering fault.
+- ⚠ **`parts-rail.test.ts` asserts the grouping reaches every `PartId`.** The flat list held them in
+  one array where an omission was visible; split across five, a part that is saved by the payload,
+  tracked by the save bar and rendered nowhere would not be.
+- **`?part=brand` and `?part=design` still resolve** (`RETIRED_PART_IDS` → `look`) — `?part=` is a
+  documented deep link.
+- **`StartHere`** (`parts/start-here.tsx`) heads the panel with the three moves at 5%/5%/12% reach —
+  pick a theme, add a logo, choose a palette — and names the theme drawn for the merchant's trade
+  (`recommendedThemeFor`). It deep-links `?part=look&theme=…`, which stages the theme as an *unsaved*
+  edit rather than navigating away. The store dashboard carries the same prompt
+  (`components/ecommerce/store-look-card.tsx`), because putting the fix behind one more click into the
+  panel nobody opens repeats the failure one level down. Both read `lookProgress`
+  (`lib/storefront-look-progress.ts`) so they can never disagree about what is still outstanding.
 
 **Adding a whole new surface:** extract a `use<Surface>` hook first, then the
 shared blocks, then the layouts — in that order. Writing the layouts first is how
 the logic ends up copied four times. Then wire the key through: backend
 types/validator/model/`organization.dto`, `StoreTemplatesRaw`, `StoreTemplates`,
 `DEFAULT_TEMPLATES`, the `pick()` map, `TEMPLATE_OPTIONS`, `draft-payloads`,
-`preview-bridge`, `use-sf-preview-store` (4 places), `PART_SLICE`, `PARTS` +
-`PART_TEMPLATE_KEY`, and all four theme bundles. The backend stores a loose
-string, so the OpenAPI contract only changes because the DTO gained a field.
+`preview-bridge`, `use-sf-preview-store` (4 places), `PART_SLICE`, the rail's
+`RAIL_GROUPS` + `PART_TEMPLATE_KEY`, and all five theme bundles. The backend
+stores a loose string, so the OpenAPI contract only changes because the DTO
+gained a field.
 
 ### Ready-made themes (Online Store → Themes)
 
@@ -1208,8 +1510,10 @@ consumes resolved names (`"grid4"`); comparing the strings would pass while the 
 ⚠ **Every bundle must open on something.** A homepage whose first block is a grid of category tiles
 reads as a directory, not a shop — it was the first thing the owner said on seeing the build. Each
 bundle's first section is therefore deliberate and is the theme's "banner": `hero-card` (Classic),
-`promo-tiles` (Fresh Market — the offer pair *is* its banner), `trust-band` (Meridian Care — the
-promises are structural in a pharmacy, not a footer afterthought), `editorial-split` (Muslin).
+`hero-open` (Fresh Market — the unframed hero is what lets the parchment ground introduce itself on
+the first screen), `deal-strip` (Meridian Care — a live offer is what a dispensary leads with, and
+the rail already carries the departments), `editorial-split` (Muslin), `hero-fullbleed` (Little
+Steps).
 
 ⚠ **Two sections can print the same merchant content — compose bundles, don't just stack sections.**
 Browser QA (and only browser QA) caught all three:
@@ -1217,14 +1521,17 @@ Browser QA (and only browser QA) caught all three:
   the merchant's three promises appeared twice, a hundred pixels apart. Now `footer: "columns"`.
 - Meridian Care stacked `trust-band` under `search-hero`, which already prints the badges as a tick
   row *inside its own tinted block* — two tinted bands running together, promises written twice.
-  `search-hero` is gone; the band leads the page and the `classic` header carries the search.
+  `search-hero` is gone; `deal-strip` leads the page, the band closes it, and the `clinical` header
+  carries the search.
 - Muslin led with `hero-fullbleed` **and** `editorial-split` — both render the same `banner` image,
   so the merchant's one photograph appeared twice, a screen apart.
 
-⚠ **`meridian-care` and `classic` deliberately share the `classic` header.** A pharmacy shopper
-arrives with a name to type ("Napa", "omeprazole"), so the bar has to carry a real search field, and
-`centered`'s search is an icon. Header uniqueness across the catalogue is a nice-to-have; hiding the
-one control a trade needs is not. Don't "fix" it by switching Meridian to `centered`.
+⚠ **`meridian-care` must keep a header with a REAL search field.** A pharmacy shopper arrives with a
+name to type ("Napa", "omeprazole"), and `centered`'s search is an icon. Header uniqueness across the
+catalogue is a nice-to-have; hiding the one control a trade needs is not — so don't "fix" it by
+switching Meridian to `centered`. (It shared `classic` with the Classic bundle when this was written;
+it is on `clinical` now, which is the same requirement met by a header built entirely around the
+field.)
 
 ⚠ **A theme changes the footer LAYOUT, so check that every layout still draws the merchant's
 words.** Muslin (formerly Fashion Shine) selects `footer: "newsletter"`, and that layout used to lead with the bare
@@ -1694,14 +2001,27 @@ resolved **per request from the host**, never baked.
     searched next to the field it overrides.** This is also why the search list row shows chips: a
     row whose name contains none of the typed words is not a bug, and the chip is the only thing on
     screen explaining the match. One endpoint, so the header typeahead inherits all of it.
-- **Image variant per use site** — `lib/storefront-image.ts`, one of three helpers, never a hand-rolled
-  `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl` (row thumb,
-  avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD). The backend stores
+- **Image variant per use site** — `lib/storefront-image.ts`, one of **four** helpers, never a
+  hand-rolled `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl`
+  (row thumb, avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD), and
+  **`logoImageUrl` (any logo, at any size)**. The backend stores
   `url` ≤1600w, `mediumUrl` 800w and `thumbnailUrl` as a **200×200 `fit:"cover"` square crop**
   (`inventory-backend/src/utils/imageUpload.ts`) — only the thumbnail changes aspect ratio, so
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+  - ⚠ **A logo is a MARK, not a photo, and `logoImageUrl` puts the thumbnail LAST.** A 200×200 centre
+    crop of a wide wordmark is not a smaller version of it — it is an unreadable slice of the middle.
+    `cardImageUrl` is not a substitute (its *second* choice is that crop), and neither is
+    `thumbImageUrl`, however small the logo is drawn: the crop is the problem, not the pixel count.
+    This shipped as a live bug until 2026-09-06 — a merchant whose logo read "Uriibaba" saw "riiba"
+    in the Customize logo tile, its two-theme preview and the admin sidebar, while the shop itself
+    rendered it in full, because the storefront asked for `url` first and the previews asked for
+    `thumbnailUrl` first. The helper exists so that ordering is decided once. (The backend learned the
+    same rule on the write side: the 96×96 favicon rendition is generated `fit:"contain"`.)
+  - **It is used by the ADMIN too** — `app-title.tsx`, `organization-tab.tsx`, `parts/look-part.tsx` —
+    which is why the module's doc says so. The variants are the backend's, not a storefront concept,
+    and a second module answering the same question is how a call site ends up on the wrong one.
   - **`<Media fit>`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it" box:
     `fit="canvas"` shows the full photo at `object-fit: contain` over a blurred, scaled copy of the
     same `src` filling the frame behind it; `fit="cover"` (default) crops to fill, as before. Which

@@ -3,6 +3,8 @@ import {
   isImageRatio,
   mediaRatioFor,
   resolveHeaderMenu,
+  resolveHeroAlign,
+  resolveHomeCollections,
   resolveSections,
   resolveTemplates,
 } from "@/lib/storefront-templates";
@@ -228,19 +230,23 @@ describe("resolveSections", () => {
   const opts = { isSectionId, presets };
   const inst = (type: string, i: number) => ({ key: `${type}-${i}`, type });
   const preset = (name: keyof typeof presets) => presets[name].map(inst);
+  /** The sections half, which is what most of these assertions are about. */
+  const sectionsOf = (
+    ...args: Parameters<typeof resolveSections>
+  ) => resolveSections(...args).sections;
 
   it("falls back to the preset for the store's home template", () => {
-    expect(resolveSections(undefined, opts)).toEqual(preset("classic"));
-    expect(resolveSections({ templates: { home: "hero-split" } }, opts)).toEqual(
+    expect(sectionsOf(undefined, opts)).toEqual(preset("classic"));
+    expect(sectionsOf({ templates: { home: "hero-split" } }, opts)).toEqual(
       preset("hero-split"),
     );
   });
 
   it("prefers the saved list over the preset, and the draft over both", () => {
     const store = { theme: { homepageSections: [{ key: "a", type: "trust-band" }] } };
-    expect(resolveSections(store, opts)).toEqual([{ key: "a", type: "trust-band" }]);
+    expect(sectionsOf(store, opts)).toEqual([{ key: "a", type: "trust-band" }]);
     expect(
-      resolveSections(store, { ...opts, draft: [{ key: "b", type: "featured-grid" }] }),
+      sectionsOf(store, { ...opts, draft: [{ key: "b", type: "featured-grid" }] }),
     ).toEqual([{ key: "b", type: "featured-grid" }]);
   });
 
@@ -254,7 +260,7 @@ describe("resolveSections", () => {
         ],
       },
     };
-    expect(resolveSections(store, opts)).toEqual([
+    expect(sectionsOf(store, opts)).toEqual([
       { key: "a", type: "hero-card" },
       { key: "c", type: "featured-grid" },
     ]);
@@ -272,7 +278,7 @@ describe("resolveSections", () => {
         ],
       },
     };
-    expect(resolveSections(store, opts)).toEqual([
+    expect(sectionsOf(store, opts)).toEqual([
       { key: "r1", type: "featured-grid" },
       { key: "r2", type: "featured-grid" },
     ]);
@@ -290,7 +296,7 @@ describe("resolveSections", () => {
         ),
       },
     };
-    expect(resolveSections(legacy, opts)).toEqual(preset("classic"));
+    expect(sectionsOf(legacy, opts)).toEqual(preset("classic"));
   });
 
   // The same guard, absorbing the PRE-INSTANCE shape: a document written before
@@ -298,11 +304,11 @@ describe("resolveSections", () => {
   // It must render the template's page, not throw and not blank.
   it("falls back for a store still holding the old string[] shape", () => {
     const legacy = { theme: { homepageSections: ["hero-card", "featured-grid"] } };
-    expect(resolveSections(legacy as never, opts)).toEqual(preset("classic"));
+    expect(sectionsOf(legacy as never, opts)).toEqual(preset("classic"));
   });
 
   it("treats an empty saved list as unset rather than as a blank page", () => {
-    expect(resolveSections({ theme: { homepageSections: [] } }, opts)).toEqual(
+    expect(sectionsOf({ theme: { homepageSections: [] } }, opts)).toEqual(
       preset("classic"),
     );
   });
@@ -312,5 +318,108 @@ describe("resolveSections", () => {
   // would detach config and report an untouched theme as edited.
   it("mints the same keys for the same preset every time", () => {
     expect(resolveSections(undefined, opts)).toEqual(resolveSections(undefined, opts));
+  });
+});
+
+/* A preset that describes a CONFIGURED row is what lets one product grid
+   replace three section types. The config has to reach the page the same way a
+   stored one does — on 14 of the 43 live storefronts there is no stored one. */
+describe("resolveSections — config carried by a preset", () => {
+  const presets = {
+    classic: [
+      "hero-card",
+      "featured-grid",
+      { type: "featured-grid", config: { source: "newest" as const } },
+    ],
+  };
+  const isSectionId = (v: unknown) =>
+    typeof v === "string" && ["hero-card", "featured-grid", "trust-band"].includes(v);
+  const opts = { isSectionId, presets };
+
+  it("mints the config beside the instance it belongs to", () => {
+    const { sections, config } = resolveSections(undefined, opts);
+    expect(sections).toEqual([
+      { key: "hero-card-0", type: "hero-card" },
+      { key: "featured-grid-1", type: "featured-grid" },
+      { key: "featured-grid-2", type: "featured-grid" },
+    ]);
+    // Keyed to the THIRD instance — the one the preset configured, not the
+    // bare grid above it that shows featured products.
+    expect(config).toEqual([{ key: "featured-grid-2", source: "newest" }]);
+  });
+
+  it("lets the merchant's own entry win over the preset's", () => {
+    const own = [{ key: "featured-grid-2", source: "category" as const, categoryId: "c1" }];
+    expect(resolveSections(undefined, { ...opts, sectionConfig: own }).config).toEqual(own);
+  });
+
+  it("keeps the merchant's config for OTHER rows alongside the preset's", () => {
+    const own = [{ key: "featured-grid-1", title: "Our picks" }];
+    expect(resolveSections(undefined, { ...opts, sectionConfig: own }).config).toEqual([
+      { key: "featured-grid-2", source: "newest" },
+      { key: "featured-grid-1", title: "Our picks" },
+    ]);
+  });
+
+  // A composed page is not running the preset, so nothing about the preset
+  // applies to it — including a row that happens to share a minted key.
+  it("implies nothing once the merchant has composed their own page", () => {
+    const store = { theme: { homepageSections: [{ key: "featured-grid-2", type: "featured-grid" }] } };
+    expect(resolveSections(store, opts).config).toEqual([]);
+    expect(
+      resolveSections(store, { ...opts, sectionConfig: [{ key: "featured-grid-2", title: "x" }] })
+        .config,
+    ).toEqual([{ key: "featured-grid-2", title: "x" }]);
+  });
+
+  // The blank-homepage guard runs the preset, so the preset's config runs with
+  // it — otherwise a legacy shop falls back to a page whose rows are all bare.
+  it("still carries the config when a legacy list falls through the guard", () => {
+    const legacy = { theme: { homepageSections: ["banner", "featured"].map((t, i) => ({ key: `${t}-${i}`, type: t })) } };
+    expect(resolveSections(legacy, opts).config).toEqual([
+      { key: "featured-grid-2", source: "newest" },
+    ]);
+  });
+});
+
+/* The two settings that absorbed a retired SECTION each. Both default to what
+   every shop already rendered, because an unset value means "never asked". */
+describe("resolveHeroAlign", () => {
+  it("is left for anything unset or unrecognised", () => {
+    expect(resolveHeroAlign(undefined)).toBe("left");
+    expect(resolveHeroAlign(null)).toBe("left");
+    expect(resolveHeroAlign("")).toBe("left");
+    // A stored id from a newer build must not centre a shop nobody centred.
+    expect(resolveHeroAlign("justify")).toBe("left");
+  });
+
+  it("centres only on an explicit center", () => {
+    expect(resolveHeroAlign("center")).toBe("center");
+  });
+});
+
+describe("resolveHomeCollections — style", () => {
+  it("is card for anything unset or unrecognised", () => {
+    expect(resolveHomeCollections(undefined).style).toBe("card");
+    expect(resolveHomeCollections({}).style).toBe("card");
+    expect(resolveHomeCollections({ style: "cards" as never }).style).toBe("card");
+  });
+
+  // What `category-links` used to be.
+  it("goes plain only on an explicit plain", () => {
+    expect(resolveHomeCollections({ style: "plain" }).style).toBe("plain");
+  });
+
+  // The other three keep working under `plain` — the storefront ignores them
+  // rather than the setting dropping them, so switching back restores the row
+  // the merchant had built.
+  it("keeps the rest of the row's settings under plain", () => {
+    const row = resolveHomeCollections({
+      style: "plain",
+      layout: "grid",
+      columns: 5,
+      align: "center",
+    });
+    expect(row).toMatchObject({ layout: "grid", columns: 5, align: "center" });
   });
 });

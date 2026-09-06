@@ -109,7 +109,6 @@ export interface Dict {
   newArrivals: string;
   catGroceries: string;
   catElectronics: string;
-  weeklyPicks: string;
   /**
    * `editorial-split`'s own headline/subtitle — deliberately generic and
    * independent of `heroBanner`. That section used to fall back to the hero's
@@ -579,7 +578,6 @@ const en: Dict = {
   newArrivals: "New arrivals",
   catGroceries: "Groceries",
   catElectronics: "Electronics",
-  weeklyPicks: "Weekly picks",
   editorialTitle: "Worth a closer look",
   editorialSubtitle: "A few of our favourites, picked for you.",
   startShopping: "Start shopping",
@@ -985,7 +983,6 @@ const bn: Dict = {
   newArrivals: "নতুন এসেছে",
   catGroceries: "মুদি",
   catElectronics: "ইলেকট্রনিক্স",
-  weeklyPicks: "সাপ্তাহিক পছন্দ",
   editorialTitle: "একটু কাছ থেকে দেখুন",
   editorialSubtitle: "আপনার জন্য বেছে নেওয়া কিছু পণ্য।",
   startShopping: "কেনাকাটা শুরু",

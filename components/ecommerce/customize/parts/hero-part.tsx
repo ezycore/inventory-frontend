@@ -3,6 +3,8 @@
 
 import { useRef } from "react";
 import {
+  AlignCenter,
+  AlignLeft,
   ArrowDown,
   ArrowUp,
   GalleryHorizontalEnd,
@@ -27,6 +29,8 @@ import { SlideThumb } from "@/components/ecommerce/customize/slide-thumb";
 import { MAX_HERO_SLIDES } from "@/components/ecommerce/customize/hero-slides-panel";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
+import { resolveSections } from "@/lib/storefront-templates";
+import { HOME_PRESET_SECTIONS, isSectionId } from "@/lib/storefront-section-ids";
 
 /**
  * Hero — what the top of the home page shows, and its content. The source
@@ -53,8 +57,26 @@ export function HeroPart({
 
   const slides = draft.heroSlides;
   const usesSlides = draft.templates.hero !== "banner";
-  const heroApplies = draft.templates.home !== "minimal";
   const emptySlides = slides.filter((s) => !hasHeroSlideContent(s)).length;
+
+  /* `heroApplies = draft.templates.home !== "minimal"` stood here until
+     2026-09-06, hiding this whole panel — slides, banner, copy — from anyone on
+     the Minimal layout, because Minimal composed `hero-manifesto`, which ignored
+     all of it. That section is gone: Minimal composes `hero-open` now, which
+     shows both. The gate would have hidden controls that work. */
+
+  // Which hero the page actually composes. Only `hero-open` has an alignment
+  // worth asking about — `hero-card` sets its copy beside a photo and
+  // `hero-fullbleed` lays type over one — so the control appears only when the
+  // answer would change something a merchant can see.
+  const { sections } = resolveSections(
+    {
+      theme: { homepageSections: draft.homepageSections },
+      templates: { home: draft.templates.home },
+    },
+    { isSectionId, presets: HOME_PRESET_SECTIONS },
+  );
+  const hasOpenHero = sections.some((section) => section.type === "hero-open");
 
   const move = (i: number, dir: -1 | 1) => {
     const t = i + dir;
@@ -99,39 +121,55 @@ export function HeroPart({
 
   return (
     <>
-      {heroApplies ? (
-        <PartBlock label="The hero shows">
+      {hasOpenHero ? (
+        <PartBlock
+          label="Headline position"
+          hint="Your open hero's badge, headline, text and buttons move together. Phones show the hero in one column either way, so this looks the same on both."
+        >
           <div className="grid grid-cols-2 gap-2">
             <OptionCard
-              selected={usesSlides}
-              onSelect={() => patchTemplate("hero", "slides")}
-              label="Slides carousel"
-              description={
-                slides.length === 0
-                  ? "No slides yet — add one below"
-                  : "Rotating promos you write below"
-              }
-              tone={slides.length === 0 ? "warn" : "muted"}
-              icon={GalleryHorizontalEnd}
+              selected={draft.heroAlign === "left"}
+              onSelect={() => patch({ heroAlign: "left" })}
+              label="Left"
+              description="Reads as a shop — the default"
+              icon={AlignLeft}
             />
             <OptionCard
-              selected={!usesSlides}
-              onSelect={() => patchTemplate("hero", "banner")}
-              label="Static banner"
-              description="One image with your own headline"
-              icon={ImageIcon}
+              selected={draft.heroAlign === "center"}
+              onSelect={() => patch({ heroAlign: "center" })}
+              label="Centred"
+              description="Reads as a statement"
+              icon={AlignCenter}
             />
           </div>
         </PartBlock>
-      ) : (
-        <PartHint>
-          The Minimal home layout has a typographic hero, so neither slides nor
-          the banner appear on it. Your banner image is still used as the preview
-          for shared store links.
-        </PartHint>
-      )}
+      ) : null}
 
-      {heroApplies && usesSlides ? (
+      <PartBlock label="The hero shows">
+        <div className="grid grid-cols-2 gap-2">
+          <OptionCard
+            selected={usesSlides}
+            onSelect={() => patchTemplate("hero", "slides")}
+            label="Slides carousel"
+            description={
+              slides.length === 0
+                ? "No slides yet — add one below"
+                : "Rotating promos you write below"
+            }
+            tone={slides.length === 0 ? "warn" : "muted"}
+            icon={GalleryHorizontalEnd}
+          />
+          <OptionCard
+            selected={!usesSlides}
+            onSelect={() => patchTemplate("hero", "banner")}
+            label="Static banner"
+            description="One image with your own headline"
+            icon={ImageIcon}
+          />
+        </div>
+      </PartBlock>
+
+      {usesSlides ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <PartLabel>
@@ -265,7 +303,7 @@ export function HeroPart({
         />
       </PartBlock>
 
-      {heroApplies && !usesSlides ? (
+      {!usesSlides ? (
         <PartBlock label="Banner headline">
           <BannerHeroFields
             value={draft.heroBanner}

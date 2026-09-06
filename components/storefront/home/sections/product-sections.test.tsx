@@ -3,11 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import {
-  FeaturedGrid,
-  LatestGrid,
-  PicksGrid,
-} from "@/components/storefront/home/sections/product-sections";
+import { ProductGrid } from "@/components/storefront/home/sections/product-sections";
 import type { SectionProps } from "@/components/storefront/home/home-shared";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
@@ -56,7 +52,7 @@ const props = {
   latest: LATEST,
   categories: [],
   campaigns: [],
-  t: { featured: "Featured", newArrivals: "New arrivals", weeklyPicks: "Weekly picks", viewAll: "View all" },
+  t: { featured: "Featured", newArrivals: "New arrivals", viewAll: "View all" },
   store: { name: "Shop" },
 } as unknown as SectionProps;
 
@@ -66,20 +62,17 @@ const configured = {
   items: CONFIGURED,
 } as unknown as SectionProps;
 
-describe("a configured product section renders the products it was given", () => {
-  /* The regression this file exists for. `PicksGrid` drew its heading and its
-     "View all" from the merchant's configured collection and its PRODUCTS from
-     the store-wide featured list, so a Weekly picks row pointed at "Winter
-     coats" showed the shop's featured items under that heading. `picks-grid` is
-     in `CONFIGURABLE`, so the page had already fetched the right products and
-     the section discarded them. Asserted for all three grids, because the three
-     are near-copies and the next one to diverge will be a different one. */
-  it.each([
-    ["FeaturedGrid", FeaturedGrid],
-    ["LatestGrid", LatestGrid],
-    ["PicksGrid", PicksGrid],
-  ])("%s", (_name, Section) => {
-    renderSection(<Section {...configured} />);
+describe("a configured product grid renders the products it was given", () => {
+  /* The regression this file exists for, kept after three grids became one.
+     `PicksGrid` drew its heading and its "View all" from the merchant's
+     configured collection and its PRODUCTS from the store-wide featured list,
+     so a row pointed at "Winter coats" showed the shop's featured items under
+     that heading — the page had already fetched the right products and the
+     section discarded them. It was possible because each grid re-read `props`
+     for itself; one grid resolving through one `sectionRow` is the structural
+     end of that whole class of bug. */
+  it("draws the instance's own items, not the store-wide lists", () => {
+    renderSection(<ProductGrid {...configured} />);
     expect(screen.getByText("Chosen collection item")).toBeInTheDocument();
     expect(screen.getByText("Winter coats")).toBeInTheDocument();
     expect(screen.queryByText("Store featured")).not.toBeInTheDocument();
@@ -87,17 +80,24 @@ describe("a configured product section renders the products it was given", () =>
   });
 });
 
-describe("an unconfigured product section keeps its built-in source", () => {
-  it("FeaturedGrid and PicksGrid draw the featured list", () => {
-    renderSection(<FeaturedGrid {...props} />);
+describe("an unconfigured product grid keeps its built-in source", () => {
+  it("draws the featured list under the featured heading", () => {
+    renderSection(<ProductGrid {...props} />);
     expect(screen.getByText("Store featured")).toBeInTheDocument();
-    renderSection(<PicksGrid {...props} />);
-    expect(screen.getAllByText("Store featured").length).toBe(2);
+    expect(screen.getByText("Featured")).toBeInTheDocument();
   });
 
-  it("LatestGrid draws the newest list", () => {
-    renderSection(<LatestGrid {...props} />);
+  /* What the retired `latest-grid` section contributed, now expressed as a
+     source. The heading follows the SHOPPER's language rather than a typed
+     English string, which a second section type could never do. */
+  it("says New arrivals when sourced newest", () => {
+    renderSection(
+      <ProductGrid
+        {...({ ...props, config: { key: "k1", source: "newest" }, items: LATEST } as unknown as SectionProps)}
+      />,
+    );
     expect(screen.getByText("Store latest")).toBeInTheDocument();
+    expect(screen.getByText("New arrivals")).toBeInTheDocument();
   });
 });
 
@@ -106,7 +106,7 @@ describe("the row's button", () => {
     ({ ...props, config: { key: "k1", ...config }, items: CONFIGURED }) as unknown as SectionProps;
 
   it("says 'View all' and points at the catalogue by default", () => {
-    renderSection(<FeaturedGrid {...props} />);
+    renderSection(<ProductGrid {...props} />);
     // `ViewAll` renders "{label} →", so the arrow is part of the text node.
     expect(screen.getByRole("link", { name: /View all/ })).toHaveAttribute(
       "href",
@@ -115,7 +115,7 @@ describe("the row's button", () => {
   });
 
   it("takes the merchant's wording", () => {
-    renderSection(<FeaturedGrid {...withConfig({ source: "manual", ctaLabel: "See the edit" })} />);
+    renderSection(<ProductGrid {...withConfig({ source: "manual", ctaLabel: "See the edit" })} />);
     expect(screen.getByRole("link", { name: /See the edit/ })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /View all/ })).not.toBeInTheDocument();
   });
@@ -124,7 +124,7 @@ describe("the row's button", () => {
     /* The reason `ctaHref` exists: a hand-picked row has no collection to
        derive a destination from, so without it the button lands on the full
        catalogue — products the merchant deliberately did not pick. */
-    renderSection(<FeaturedGrid {...withConfig({ source: "manual", ctaHref: "/winter" })} />);
+    renderSection(<ProductGrid {...withConfig({ source: "manual", ctaHref: "/winter" })} />);
     expect(screen.getByRole("link", { name: /View all/ })).toHaveAttribute(
       "href",
       "/shop/winter",
@@ -132,13 +132,13 @@ describe("the row's button", () => {
   });
 
   it("can be switched off entirely", () => {
-    renderSection(<FeaturedGrid {...withConfig({ source: "manual", showCta: false })} />);
+    renderSection(<ProductGrid {...withConfig({ source: "manual", showCta: false })} />);
     expect(screen.queryByRole("link", { name: /View all/ })).not.toBeInTheDocument();
   });
 
   it("stays visible when the flag is absent", () => {
     // Every row had a button before `showCta` existed; unset must not remove it.
-    renderSection(<FeaturedGrid {...withConfig({ source: "manual" })} />);
+    renderSection(<ProductGrid {...withConfig({ source: "manual" })} />);
     expect(screen.getByRole("link", { name: /View all/ })).toBeInTheDocument();
   });
 });
@@ -147,7 +147,7 @@ describe("a hand-picked row renders in the merchant's order", () => {
   it("re-sorts the response against productIds", () => {
     const shuffled = [product("Third"), product("First"), product("Second")];
     renderSection(
-      <FeaturedGrid
+      <ProductGrid
         {...({
           ...props,
           config: { key: "k1", source: "manual", productIds: ["First", "Second", "Third"] },

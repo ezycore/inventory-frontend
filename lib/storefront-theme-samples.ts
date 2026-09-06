@@ -145,7 +145,7 @@ export const PHARMACY_SAMPLE: ThemeSample = {
  * real shop rather than a catalogue of one thing.
  *
  * The categories are AGE-first, because that is what this theme's own
- * `age-chips` section is for and what a parent actually shops by.
+ * `tag-chips` section is for and what a parent actually shops by.
  */
 export const BABY_SAMPLE: ThemeSample = {
   tags: ["Newborn", "0-3M", "3-6M", "6-12M", "12-18M", "18-24M", "2-3Y", "3-4Y"],

@@ -24,7 +24,6 @@ import type {
   CatalogCategory,
   StoreHomeSection,
   StoreSectionConfig,
-  StorefrontStore,
 } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 
@@ -38,30 +37,64 @@ const clampLimit = (n: number | undefined) =>
     ? Math.min(MAX_SECTION_LIMIT, Math.max(MIN_SECTION_LIMIT, Math.round(n)))
     : DEFAULT_SECTION_LIMIT;
 
-/** The section types that read config. Everything else ignores it. */
-const CONFIGURABLE = new Set([
-  "featured-grid",
-  "latest-grid",
-  "picks-grid",
-  "product-rail",
-  "minimal-picks",
-]);
+/**
+ * What a section's config PICKS, for the sections that have one.
+ *
+ * Three kinds, because three different controls answer them and only one of
+ * them costs a request: a product row is configured by source and earns a
+ * catalogue query per instance; a tag row and a promo-card row are configured by
+ * picking from lists the page already has, so they cost nothing extra. That
+ * distinction is why this is a kind rather than a boolean — it was two
+ * overlapping sets (`CONFIGURABLE` and `TAG_CONFIGURABLE`) until a third
+ * section needed a third control, at which point the sets were answering
+ * "which editor?" and "does it fetch?" at the same time and agreeing only by
+ * accident.
+ *
+ * A section absent here ignores config entirely.
+ */
+export type SectionConfigKind = "products" | "tags" | "categories";
 
-export const isConfigurableSection = (type: string) => CONFIGURABLE.has(type);
+const CONFIG_KIND: Record<string, SectionConfigKind> = {
+  "featured-grid": "products",
+  "product-rail": "products",
+  "minimal-picks": "products",
+  "tag-chips": "tags",
+  "category-banners": "categories",
+};
+
+export const sectionConfigKind = (
+  type: string,
+): SectionConfigKind | undefined => CONFIG_KIND[type];
+
+/** How a `category-banners` card arranges its photograph against its copy. */
+export type SectionCardShape = "stacked" | "split";
 
 /**
- * Sections configured by TAG rather than by product source.
+ * The promo card's composition, with the unset case decided in ONE place.
  *
- * Deliberately not folded into `CONFIGURABLE`: that set is what
- * `configuredSections` walks to build a product QUERY per row, so an entry
- * there earns a catalogue fetch. `age-chips` renders tags the page already has
- * and needs no query at all — adding it would cost every baby shop an extra
- * round trip for products it never shows.
+ * Only an explicit `split` moves the picture beside the copy. Anything else —
+ * unset, null, a value from an older payload — is a shop that has never been
+ * asked, and it draws the stacked card every row drew before the choice
+ * existed. The same rule `resolveHomeCollections` follows, for the same reason:
+ * flipping the fallback would restyle every existing homepage without its owner
+ * touching anything.
+ *
+ * Shared because the storefront and the editor must not disagree about what
+ * "unset" looks like — the editor's selected pill and the rendered card are the
+ * same answer shown twice.
  */
-const TAG_CONFIGURABLE = new Set(["age-chips"]);
+export const resolveCardShape = (
+  config: { cardShape?: string | null } | null | undefined,
+): SectionCardShape => (config?.cardShape === "split" ? "split" : "stacked");
 
-export const isTagConfigurableSection = (type: string) =>
-  TAG_CONFIGURABLE.has(type);
+/**
+ * Does this section earn a catalogue fetch? Only a product row does — which is
+ * what `configuredSections` walks. A tag or promo-card row renders from data
+ * the homepage already loaded, and adding one here would cost every shop that
+ * composes it an extra round trip for products it never shows.
+ */
+export const isConfigurableSection = (type: string) =>
+  CONFIG_KIND[type] === "products";
 
 /**
  * One section's config, by key.
@@ -76,6 +109,30 @@ export function configFor(
   key: string,
 ): StoreSectionConfig | undefined {
   return config?.find((c) => c.key === key);
+}
+
+/**
+ * Fold the config a DEFAULT composition implies under the merchant's own.
+ *
+ * A preset (and a ready-made theme) may now describe a configured row — "a
+ * product grid, sourced newest" — rather than only naming a section type. That
+ * implied config has to reach the page exactly the way a stored one does, or
+ * the section renders its bare built-in source and the row silently changes
+ * meaning.
+ *
+ * **The merchant's entry always wins.** A default that could overwrite an edit
+ * is not a default. The two lists join on `key`, which is safe only because
+ * `sectionInstances` mints both halves together — a config keyed by hand would
+ * drift from its section and quietly do nothing.
+ */
+export function mergeSectionConfig(
+  implied: readonly StoreSectionConfig[],
+  own: readonly StoreSectionConfig[] | undefined,
+): StoreSectionConfig[] {
+  const mine = own ? [...own] : [];
+  if (!implied.length) return mine;
+  const claimed = new Set(mine.map((c) => c.key));
+  return [...implied.filter((c) => !claimed.has(c.key)), ...mine];
 }
 
 /**
@@ -229,15 +286,18 @@ export function sectionTitle(
  */
 export function configuredSections(
   sections: StoreHomeSection[],
-  store: Pick<StorefrontStore, "sectionConfig"> | null | undefined,
+  /* The RESOLVED config, not `store.sectionConfig` — a preset's implied rows
+     are configured rows and must be fetched for like any other. `resolveSections`
+     returns the merged list; passing the raw stored one skips them. */
+  config: StoreSectionConfig[] | undefined,
   categories: CatalogCategory[],
 ): { key: string; query: Record<string, string | number> }[] {
   const rows: { key: string; query: Record<string, string | number> }[] = [];
   for (const section of sections) {
     if (!isConfigurableSection(section.type)) continue;
-    const config = configFor(store?.sectionConfig, section.key);
-    if (!config) continue;
-    const query = sectionQuery(config, categories);
+    const own = configFor(config, section.key);
+    if (!own) continue;
+    const query = sectionQuery(own, categories);
     if (query) rows.push({ key: section.key, query });
   }
   return rows;

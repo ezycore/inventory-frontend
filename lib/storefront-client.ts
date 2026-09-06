@@ -13,6 +13,8 @@ import type { CourierNormalizedStatus } from "@/lib/courier-status";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
+import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -60,6 +62,16 @@ export const faviconHref = (
 export interface StoreHomeSection {
   key: string;
   type: string;
+  /**
+   * Which screens this instance appears on. **Both unset ⇒ everywhere**, which
+   * is what every section did before this existed.
+   *
+   * Rendered as a CSS class (`stripVisibilityClass`), never `matchMedia`: the
+   * page is server-rendered and the server cannot know the viewport, so a JS
+   * check paints the wrong state and corrects it after hydration.
+   */
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
 }
 
 /**
@@ -74,6 +86,21 @@ export interface StoreSectionConfig {
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
   source?: "featured" | "newest" | "category" | "manual";
   categoryId?: string;
+  /**
+   * The collections a promo-card row features, in the merchant's order. Read
+   * only by `category-banners`; unset ⇒ the shop's first two collections.
+   *
+   * Deliberately not `categoryId` above, which names the ONE collection a
+   * product row draws its products FROM. Merging them would make "which
+   * collection do I sell from" and "which collections do I advertise" one
+   * field, so changing either would silently change the other.
+   */
+  categoryIds?: string[];
+  /**
+   * How a promo card composes its picture against its copy. Read only by
+   * `category-banners`; unset ⇒ `stacked`. See `resolveCardShape`.
+   */
+  cardShape?: "stacked" | "split";
   title?: string;
   /** Ignored by a `manual` row — the picked list is the row's length. */
   limit?: number;
@@ -89,7 +116,7 @@ export interface StoreSectionConfig {
   /** Show the row's button. Unset ⇒ true, as every row did before. */
   showCta?: boolean;
   /**
-   * Tags this row renders, in the merchant's order. Read only by `age-chips`.
+   * Tags this row renders, in the merchant's order. Read only by `tag-chips`.
    *
    * Ids, never names: the section shipped matching an English list against tag
    * NAMES, so renaming `0-3M` or translating it to Bangla silently dropped the
@@ -116,6 +143,21 @@ export interface StoreLogoStyle {
 
 /** Owner layout for homepage category rows (Customize → Home page). */
 export interface StoreHomeCollections {
+  /**
+   * How a collection is DRAWN. `card` (default) is the picture tile every shop
+   * has always had; `plain` is names only, centred between hairlines.
+   *
+   * This was a separate section — `category-links` — until 2026-09-06. It drew
+   * the same collections, in the same order, to the same links; the only
+   * difference was the treatment, and the chips row already owned every other
+   * decision about itself through this object. A merchant asking for a quieter
+   * row should not have to swap components and lose their layout, columns and
+   * label settings to get one.
+   *
+   * `plain` has no pictures, so `layout`, `columns` and `showLabels` do not
+   * apply to it — the panel says so rather than leaving dead controls on.
+   */
+  style?: "card" | "plain";
   /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
   layout?: "strip" | "grid";
   /** Columns per row in `grid` (2–6). Ignored by `strip`. */
@@ -226,6 +268,17 @@ export interface StorefrontStore {
   favicon?: StorefrontFavicon | null;
   banner?: StorefrontImage | null;
   /**
+   * Phone artwork for the header, when the desktop mark does not survive the
+   * trip down to 390px.
+   *
+   * A separate FILE rather than a crop of `logo`, because the two are usually
+   * different drawings: a wide wordmark reads at 200px on a desktop bar and
+   * becomes an illegible smear in a 36px-tall mobile slot, where the merchant
+   * wants their icon alone. Unset ⇒ the header falls back to `logo` (and that
+   * to the organization's), so this is an override nobody has to set.
+   */
+  mobileLogo?: StorefrontImage | null;
+  /**
    * Share-card image, already resolved server-side through
    * socialImage → banner → logo. Chained there, like `favicon` is not, because
    * every fallback is a real image the merchant owns — there is no platform
@@ -269,6 +322,14 @@ export interface StorefrontStore {
     homepageSections?: StoreHomeSection[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
+    /**
+     * The merchant's edits to their mobile chrome, laid over the template named
+     * by `templates.mobile`. **Only the fields that differ**, so a shop that
+     * took a template and left it alone stores nothing — see `mobileOverrides`.
+     * Loose on purpose: `resolveMobileChrome` is the only thing that may read it
+     * raw, exactly like `design`.
+     */
+    mobile?: MobileChromeOverrides;
     /** Layout of the homepage collections row — see `StoreHomeCollections`. */
     homeCollections?: StoreHomeCollections;
     /**
@@ -284,6 +345,12 @@ export interface StorefrontStore {
       density?: string;
       radius?: string;
     };
+    /**
+     * Where the OPEN hero's copy sits. Unset ⇒ left, which every hero was
+     * before this existed. Read through `resolveHeroAlign` so an unknown
+     * stored value cannot reach the DOM — the same rule `design` follows.
+     */
+    heroAlign?: string;
   };
   /**
    * Words the merchant wrote — a SIBLING of `theme`, not part of it.
@@ -388,6 +455,8 @@ export interface StoreTemplatesRaw {
   contentLayout?: string;
   cartLayout?: string;
   shell?: string;
+  /** Which mobile chrome — see `lib/storefront-mobile.ts`. */
+  mobile?: string;
 }
 
 /** What the storefront header's top links are built from. */
@@ -460,6 +529,14 @@ export interface StoreTemplates {
    * KIND of site a shop is rather than what it contains — see store-shell.tsx.
    */
   shell: "stacked" | "rail";
+  /**
+   * The phone chrome — which bar sits at the top and which tabs (if any) at the
+   * bottom. A **loose string**, unlike every other key here, and deliberately:
+   * the options live in `lib/storefront-mobile.ts` as data, so pinning a union
+   * here would mean editing this file to add one, which is exactly the coupling
+   * that registry exists to remove. `resolveMobileChrome` narrows it.
+   */
+  mobile: string;
 }
 
 /** A header menu link target (category slug, page slug, or URL). */

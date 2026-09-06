@@ -23,6 +23,7 @@ import type {
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { normalizeStoreLink } from "@/lib/storefront-links";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
+import { mobileOverrides } from "@/lib/storefront-mobile";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -285,8 +286,18 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
+      /* Only what the merchant CHANGED about their phone chrome.
+         The draft holds the resolved value (every field concrete, so the slot
+         editor's inputs stay controlled); this diffs it back against the
+         template they picked, so a shop that took a template and left it alone
+         stores nothing at all. `undefined` here is not a forgotten key — see the
+         `CompleteTheme` note below — it is the correct value for "no
+         overrides", and it keeps a config object off a hundred thousand
+         documents that would all hold the same constant. */
+      mobile: mobileOverrides(draft.templates.mobile, draft.mobile),
       homeCollections: draft.homeCollections,
       design: draft.design,
+      heroAlign: draft.heroAlign,
       // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
       // shop shows no sections at all", where unset means "use the default the
       // home template implies" — the difference between a blank page and a
@@ -366,6 +377,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
 
 const TEMPLATE_PARTS = new Set<PartId>([
   "header",
+  "mobile",
   "hero",
   "home",
   "cards",
@@ -394,7 +406,11 @@ export function toSettingsPatch(
     (patch as Record<keyof UpdateStorefrontSettingsDto, unknown>)[key] = full[key];
   };
 
-  if (["brand", "design", "home"].some((part) => dirty.has(part as PartId))) {
+  /* `mobile` is in BOTH lists on purpose: the part writes `templates.mobile`
+     (the template id) and `theme.mobile` (the arrangement over it), and the
+     PATCH replaces each block wholesale. Taking only `templates` would save the
+     merchant's new template and silently drop every slot they had just moved. */
+  if (["look", "home", "mobile"].some((part) => dirty.has(part as PartId))) {
     take("theme");
   }
   if (dirty.has("home")) take("sectionConfig");
@@ -425,10 +441,18 @@ export function toPreviewPayload(
     socialWhatsapp,
     hasCollections = true,
     samples,
+    mobileLogo,
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
     banner: Image | null;
+    /**
+     * The merchant's phone artwork. **Not** org-fallback-resolved like `logo`:
+     * the storefront falls back from this to the desktop logo itself, and
+     * resolving here would make removing it in the editor look like nothing
+     * happened — the shop would keep showing a mark this field no longer names.
+     */
+    mobileLogo: Image | null;
     /** Preview slides / collections while their panel is open, whatever is saved. */
     forceHeroSlides: boolean;
     forceCollectionsMenu: boolean;
@@ -462,8 +486,26 @@ export function toPreviewPayload(
       brandColor: draft.brandColor,
       accentColor: draft.accentColor,
       logo: draft.logoStyle,
+      /* Streamed as the DIFF, exactly like the save path — the storefront's
+         `resolveMobileChrome` merges it onto the template, so sending the
+         resolved object would preview a shape the save would not produce.
+
+         ⚠ **`?? {}` is load-bearing, and this is the one place the two payloads
+         must differ.** `mobileOverrides` returns `undefined` for "no overrides",
+         which is right for the SAVE (it keeps a constant off every document) and
+         wrong here: the preview store's `apply` merges on `!== undefined`, so
+         `undefined` reads as "this key is not in the patch — keep what you
+         have". The result was that the instant a merchant's phone chrome
+         matched its template again, the preview froze on their PREVIOUS
+         override and kept drawing it until a manual reload — turn the category
+         strip on, then put search back on its own row, and the strip stayed on
+         screen while the panel and the saved document both said it was off.
+         An empty object is not undefined, so it replaces; `resolveMobileChrome`
+         already treats `{}` as "no overrides". */
+      mobile: mobileOverrides(draft.templates.mobile, draft.mobile) ?? {},
       homeCollections: draft.homeCollections,
       design: draft.design,
+      heroAlign: draft.heroAlign,
       homepageSections: draft.homepageSections,
     },
     sectionConfig: draft.sectionConfig,
@@ -481,6 +523,7 @@ export function toPreviewPayload(
       contentLayout: draft.templates.contentLayout,
       cartLayout: draft.templates.cartLayout,
       shell: draft.templates.shell,
+      mobile: draft.templates.mobile,
       // Reached through the preview's page switcher; each is read by exactly one
       // storefront page, via `useStoreTemplate`.
       collection: draft.templates.collection,
@@ -516,5 +559,6 @@ export function toPreviewPayload(
     // from "not sent yet".
     logo,
     banner,
+    mobileLogo,
   };
 }
