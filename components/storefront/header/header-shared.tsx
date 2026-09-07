@@ -56,6 +56,22 @@ export interface HeaderCtx {
   /** The `rail` shell lists departments itself; suppress the header row. */
   hideCategoryRow?: boolean;
   /**
+   * Does this anatomy still owe the shopper a theme / language control?
+   *
+   * False only while the utility bar is on THIS breakpoint and carrying that
+   * item itself — so the two never render side by side, and no anatomy can end
+   * up without one. Asked per item, not per template, for the same reason
+   * `MobileMenuPanel` asks `chromeHas(chrome, "theme")`: the merchant turns the
+   * four utility items on and off independently, so "the bar is showing" says
+   * nothing about whether the theme switch in particular survived.
+   *
+   * Theme is the load-bearing one — it is persisted to `localStorage` and
+   * re-applied before paint, so an anatomy with no way back STRANDS a shopper
+   * in dark mode on every future visit rather than merely hiding a preference.
+   */
+  needsTheme: boolean;
+  needsLang: boolean;
+  /**
    * The merchant first promise ("Same-day delivery"), shown as a chip by the
    * search-first bar. Sourced from trustBadges rather than its own field: the
    * owner already writes those, so there is no new empty state to design.

@@ -33,7 +33,11 @@ import {
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
-import { resolveUtilityBar } from "@/lib/storefront-utility-bar";
+import {
+  desktopHeaderNeeds,
+  resolveUtilityBar,
+  showsOnDesktop,
+} from "@/lib/storefront-utility-bar";
 
 /** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
 const HEADER_VARIANTS: readonly string[] = [
@@ -105,6 +109,22 @@ export function StoreHeader({
     rawMenu.length > 0,
   );
 
+  const variant: StoreTemplates["header"] = HEADER_VARIANTS.includes(
+    previewHeader ?? "",
+  )
+    ? (previewHeader as StoreTemplates["header"])
+    : resolveTemplates(store).header;
+  const utilityBar = resolveUtilityBar(
+    previewUtilityBar ?? store?.nav?.utilityBar,
+    variant,
+  );
+
+  /* Who owes the shopper a theme / language control on DESKTOP. Resolved here
+     because this is the only place that knows both halves — which bar is
+     showing and which anatomy is about to render. */
+  const desktopBarShows = showsOnDesktop(utilityBar);
+  const { needsTheme, needsLang } = desktopHeaderNeeds(utilityBar);
+
   const ctx: HeaderCtx = {
     base,
     name: store?.name ?? "Store",
@@ -125,6 +145,8 @@ export function StoreHeader({
     menuSource,
     cats: categories ?? [],
     hideCategoryRow,
+    needsTheme,
+    needsLang,
     // "Delivery inside Dhaka in 24h" and the like. There is no dedicated
     // delivery-promise field and there should not be one — the merchant already
     // writes exactly this sentence as their first trust badge, so the chip
@@ -138,18 +160,9 @@ export function StoreHeader({
       (previewBadges ?? store?.trustBadges)?.[0]?.text?.trim() || undefined,
   };
 
-  const variant: StoreTemplates["header"] = HEADER_VARIANTS.includes(
-    previewHeader ?? "",
-  )
-    ? (previewHeader as StoreTemplates["header"])
-    : resolveTemplates(store).header;
   const mobileRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const Desktop = DESKTOP_VARIANTS[variant] ?? ClassicDesktop;
-  const utilityBar = resolveUtilityBar(
-    previewUtilityBar ?? store?.nav?.utilityBar,
-    variant,
-  );
 
   // Publishes `--sf-header-h` so a top-sticky panel elsewhere on the page can
   // clear this bar instead of sliding under it (checkout's order rail).
@@ -173,9 +186,7 @@ export function StoreHeader({
         barRef={mobileRef}
       />
       <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
-        {utilityBar.enabled && utilityBar.showOnDesktop ? (
-          <UtilityBar ctx={ctx} config={utilityBar} />
-        ) : null}
+        {desktopBarShows ? <UtilityBar ctx={ctx} config={utilityBar} /> : null}
         <Desktop ctx={ctx} />
       </div>
     </>

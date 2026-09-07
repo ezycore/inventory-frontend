@@ -24,6 +24,11 @@ const VISIBILITY: { value: Visibility; label: string }[] = [
   { value: "mobile", label: "Mobile only" },
 ];
 
+/**
+ * Total because the draft is a `ResolvedUtilityBar`: `resolveUtilityBar` folds
+ * away the off-on-both pair an API write can otherwise store, so the remaining
+ * three cases are the only ones that reach a chip.
+ */
 const visibilityOf = (value: UtilityBarDraft): Visibility =>
   value.showOnDesktop && value.showOnMobile
     ? "all"

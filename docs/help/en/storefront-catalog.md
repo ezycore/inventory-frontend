@@ -121,7 +121,9 @@ you have is harder to use than one listing the six that sell.
 **Utility bar** controls the slim information row above the header. Turn the whole row on or off,
 show it everywhere or only on computers or phones, and choose its contents individually: your saved
 phone number, Track order link, language control and light/dark control. You can also rename Track
-order; leave its label blank to translate it automatically for each shopper.
+order; leave its label blank to translate it automatically for each shopper. Take the language or
+light/dark control out of this bar and it moves back into your header, so a shopper is never left
+with no way out of dark mode.
 
 **Hover** sits under the same part and decides what a menu link does when someone points at it on a
 computer. Nothing happens by default. You answer twice, because the two rows are different: **Menu

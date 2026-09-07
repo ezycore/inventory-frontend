@@ -233,14 +233,26 @@ reads as two filters at once.
     read `getImageData`; a full-frame histogram plus a horizontal strip across the top would have
     found it in one pass. `getComputedStyle` and `elementFromPoint` both report a DECLARED colour and
     neither can see what is covering it.
-  - ⚠ **Every desktop header anatomy MUST render `<ThemeBtn>`** (directly, or via `<UtilityBar>`).
-    The shopper's light/dark choice is persisted to `localStorage['ezy-sf-theme']` and re-applied
-    before paint by the script in `app/(storefront)/layout.tsx` — so an anatomy without the toggle
-    does not hide a preference, it **strands** the shopper in whichever theme they last picked, on
-    every future visit, with no way back. `minimal`, `search-first` and `boutique` all shipped that
-    way. `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component, so the
-    two cannot drift. `components/storefront/header/desktop-variants.test.tsx` discovers every
-    exported `*Desktop` from the source and fails if one has no exit.
+  - ⚠ **Every desktop header anatomy MUST render its OWN `<ThemeBtn>`, gated only on
+    `ctx.needsTheme`.** The shopper's light/dark choice is persisted to
+    `localStorage['ezy-sf-theme']` and re-applied before paint by the script in
+    `app/(storefront)/layout.tsx` — so an anatomy without the toggle does not hide a preference, it
+    **strands** the shopper in whichever theme they last picked, on every future visit, with no way
+    back. `minimal`, `search-first` and `boutique` all shipped that way, and `classic` later lost its
+    own toggle to the configurable utility bar — which put the DEFAULT template one merchant switch
+    away from the same dead end.
+    **"Or via `<UtilityBar>`" is not good enough, and that is the lesson:** the bar is merchant
+    configurable now (Customize → Utility bar), so anything drawing its toggle only from there can be
+    switched off. `desktopHeaderNeeds()` (`lib/storefront-utility-bar.ts`) is the single arbiter —
+    `StoreHeader` calls it and puts `needsTheme`/`needsLang` on `HeaderCtx`, false ONLY while the bar
+    is on this breakpoint AND still carrying that item, so the two never double up (Centered and
+    Clinical carry a `LangBtn` too) and never both go silent. Asked per item, not per bar — the same
+    shape as `chromeHas(chrome, "theme")` in the mobile menu panel, which is the mobile half of this
+    guarantee. `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component,
+    so the two cannot drift. `desktop-variants.test.tsx` discovers every exported `*Desktop` from the
+    source and fails if one has no exit **or** guards it on anything but `ctx.needsTheme`;
+    `lib/storefront-utility-bar.test.ts` sweeps every bar configuration to prove the flag can never
+    wrongly suppress one.
   - **When a colour looks wrong to the owner but right to you, compare PERSISTED STATE before
     anything else.** A fresh QA profile has no `ezy-sf-theme`, so it always renders light; the
     owner's browser had `dark` from an earlier visit and no control to undo it. Four rounds of
@@ -1013,7 +1025,10 @@ had been modelled on the backend since the beginning and was **read by nothing**
     in for it and made the pharmacy theme read as Classic-with-teal — a shopper here arrives with a
     name to type, so search must be the widest thing on the bar, but the shop opens on a trust band
     that already does the wayfinding, which makes a category row redundant and a utility strip
-    noise. Distinct from `search-first`, the other search-led bar, by being plainer and taller:
+    noise. That is its DEFAULT, not a prohibition — since the utility bar became merchant
+    configurable a pharmacy that wants its phone number up there can switch one on, and `clinical`
+    then drops its own `LangBtn`/`ThemeBtn` rather than showing them twice. Distinct from
+    `search-first`, the other search-led bar, by being plainer and taller:
     that one is a pill with a filled cart button and a delivery chip for someone assembling thirty
     lines; this is for someone reading carefully.
   - `boutique` **replaced `editorial`** in the same change. Same anatomy — wordmark, icons, nav on
