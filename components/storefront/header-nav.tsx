@@ -139,38 +139,45 @@ function resolveHref(
 function NavLink({
   href,
   external,
-  style,
+  className,
   children,
 }: {
   href: string;
   external: boolean;
-  style: CSSProperties;
+  /**
+   * ⚠ **A class, never an inline style.** These links used to carry `topLink` /
+   * `dropLink` as `CSSProperties`, which set `color` inline — and an inline
+   * declaration outranks every rule in the stylesheet, so a `:hover { color }`
+   * could not have worked even once it was written. The look now lives in
+   * `storefront.css` under `.sf-nav-top` / `.sf-nav-child`, where the merchant's
+   * hover choice can reach it.
+   */
+  className: string;
   children: ReactNode;
 }) {
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={style}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
         {children}
       </a>
     );
   }
   return (
-    <Link href={href} style={style}>
+    <Link href={href} className={className}>
       {children}
     </Link>
   );
 }
 
-const topLink: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 4,
-  fontSize: 13,
-  fontWeight: 500,
-  color: "var(--muted)",
-  whiteSpace: "nowrap",
-  padding: "2px 0",
-};
+/* `.sf-nav-top` and `.sf-nav-child` live in `storefront.css` — see the note on
+   `NavLink`. Everything they used to hold moved there verbatim, so an untouched
+   shop's header is unchanged; what the move buys is a `:hover` the merchant can
+   choose, which an inline `color` made impossible. */
 
 /**
  * The dropdown's positioned box. The 6px offset below the trigger is **padding
@@ -248,15 +255,6 @@ function useHoverMenu() {
   };
 }
 
-const dropLink: CSSProperties = {
-  fontSize: 13,
-  fontWeight: 500,
-  color: "var(--text)",
-  padding: "7px 10px",
-  borderRadius: 7,
-  whiteSpace: "nowrap",
-};
-
 /**
  * Storefront header menu (admin Customize → Header). Renders one level
  * of dropdowns on hover/focus. The store-shell uses this when a menu is
@@ -307,7 +305,11 @@ export function HeaderNav({
               }
             }}
           >
-            <NavLink href={top.href} external={top.external} style={topLink}>
+            <NavLink
+              href={top.href}
+              external={top.external}
+              className="sf-nav-top sf-nav-bar"
+            >
               {item.label}
               {hasKids ? (
                 <svg
@@ -335,7 +337,7 @@ export function HeaderNav({
                         key={ci}
                         href={c.href}
                         external={c.external}
-                        style={dropLink}
+                        className="sf-nav-child"
                       >
                         {child.label}
                       </NavLink>

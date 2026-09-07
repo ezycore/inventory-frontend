@@ -81,6 +81,52 @@ export interface StoreHomeSection {
  * replaces `theme` wholesale, and the collection a merchant chose for their
  * front page is content, not look. See `lib/storefront-sections.ts`.
  */
+/** The promo photo's shape, as the merchant picks it. */
+export type StoreCardRatio = "16:9" | "4:3" | "1:1" | "3:4";
+
+/** Which side of a split promo card the picture sits on. */
+export type StoreCardSide = "left" | "right" | "alternate";
+
+/** How a promo-card row arranges its cards: a grid, or a scrolling track. */
+export type StoreCardFlow = "wrap" | "scroll";
+
+/** The promo-card settings a phone may answer differently. */
+export interface StoreSectionMobileConfig {
+  cardFlow?: StoreCardFlow;
+  cardPerRow?: number;
+  cardShape?: "stacked" | "split";
+  cardSide?: StoreCardSide;
+  cardSplit?: number;
+  cardHideText?: boolean;
+  /** The picture's height in px on a phone — see `cardHeight` on the parent. */
+  cardHeight?: number;
+}
+
+/**
+ * One promo card's own copy, picture and button — overrides layered OVER the
+ * collection it points at, never written back to it.
+ *
+ * Every field is optional and every one falls back to the collection: no title
+ * ⇒ its display name, no description ⇒ its description, no image ⇒ its picture,
+ * no button label ⇒ the shop's localized "Shop now", no link ⇒ the collection
+ * page. So a card the merchant has not touched is exactly the card that existed
+ * before this feature.
+ */
+export interface StoreSectionCard {
+  /** Which card this belongs to — joins on `categoryIds`. */
+  categoryId: string;
+  title?: string;
+  description?: string;
+  /** Uploaded through the same storefront image endpoint as a hero slide. */
+  image?: StorefrontImage | null;
+  buttonLabel?: string;
+  /**
+   * Where the card goes. A store path (`/products?tags=winter`) or a full URL,
+   * same rules as a hero slide's link. Unset ⇒ the collection's own page.
+   */
+  buttonHref?: string;
+}
+
 export interface StoreSectionConfig {
   key: string;
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
@@ -101,6 +147,98 @@ export interface StoreSectionConfig {
    * `category-banners`; unset ⇒ `stacked`. See `resolveCardShape`.
    */
   cardShape?: "stacked" | "split";
+  /**
+   * Which side of a `split` card the picture sits on. `alternate` is the zebra
+   * — photo-left, photo-right, photo-left down the block. Read only by
+   * `category-banners`; unset ⇒ `left`.
+   *
+   * ⚠ Replaced a boolean named `cardAlternate` that only ever offered the
+   * zebra. The plain swap is what merchants ask for, and a switch labelled
+   * "alternate" that cannot do it reads as a broken control rather than a
+   * different one.
+   */
+  cardSide?: StoreCardSide;
+  /**
+   * The picture column's share of a `split` card, as a percentage — the words
+   * take the rest. Unset ⇒ the stylesheet's own answer, which differs by
+   * breakpoint. See `resolveCardSplit`.
+   */
+  cardSplit?: number;
+  /**
+   * Drop the words and give the picture the whole card. Unset ⇒ the card shows
+   * its name, description and button.
+   *
+   * The name does not disappear with them — it becomes the card's accessible
+   * name, because a picture-only link that announces nothing is not one a
+   * shopper using a screen reader can follow.
+   */
+  cardHideText?: boolean;
+  /**
+   * What a PHONE does differently — shape, side, picture width, words on or
+   * off. Every field optional and every one inheriting the desktop answer
+   * above, so a row nobody has opened the Mobile tab on renders on a phone
+   * exactly as it did before this existed.
+   *
+   * ⚠ **Composition only, by design.** The picture's aspect ratio and the
+   * row's full-width setting are deliberately shared: a square photograph is
+   * square on a phone, and splitting a setting across two tabs for no reason is
+   * two places a merchant has to look. What does not travel is how the card is
+   * built — 65% of a desktop card is a generous picture, 65% of a 390px phone
+   * leaves the words in a gutter.
+   */
+  mobile?: StoreSectionMobileConfig;
+  /**
+   * The promo photo's shape. Unset ⇒ the composition's own default (16:9
+   * stacked, 4:3 split), which is what every row drew before the choice
+   * existed.
+   */
+  cardRatio?: StoreCardRatio;
+  /**
+   * The picture's height in pixels, overriding `cardRatio`.
+   *
+   * ⚠ A ratio ties the picture's height to the card's WIDTH, and the width comes
+   * from how many collections the merchant picked — so a thin strip across the
+   * page was not expressible. Shared across screens: 20px is 20px on a phone.
+   */
+  cardHeight?: number;
+  /**
+   * Grid or a scrolling track. Unset ⇒ `wrap`. Per screen: a desktop row that
+   * divides four cards comfortably is a phone row of four ~90px slivers.
+   */
+  cardFlow?: StoreCardFlow;
+  /** How many cards fill the row, or are visible in a track. 1–4, per screen. */
+  cardPerRow?: number;
+  /** The card's corner radius in px. Unset ⇒ the shop's Design → Corners. */
+  cardRadius?: number;
+  /**
+   * Paging arrows on a scrolling row. Unset ⇒ shown.
+   *
+   * ⚠ Only ever drawn on pointer devices — a phone swipes the track natively
+   * and two 36px buttons would cover the cards it can show. So this switch
+   * turns them OFF, rather than on where they would never appear.
+   */
+  cardArrows?: boolean;
+  /**
+   * Let the row span the window instead of the page's content column. Read only
+   * by `category-banners`; unset ⇒ contained, like every other section.
+   */
+  fullWidth?: boolean;
+  /**
+   * Per-card presentation OVERRIDES, keyed by the collection each card points
+   * at.
+   *
+   * ⚠ **These belong to the card, not to the collection.** A merchant writing
+   * "Winter cushions, half price" here is writing an advertisement for this
+   * block; the collection keeps its own name and its own description, and every
+   * other place it appears — its page, the tile row, the header menu — is
+   * untouched. That separation is the whole point of the field: the first
+   * version of this let the panel edit `category.description`, which quietly
+   * rewrote the collection page from the home-page editor.
+   *
+   * An entry with every field blank is dropped rather than stored, so "has
+   * overrides" stays distinguishable from "opened the box and typed nothing".
+   */
+  cards?: StoreSectionCard[];
   title?: string;
   /** Ignored by a `manual` row — the picked list is the row's length. */
   limit?: number;

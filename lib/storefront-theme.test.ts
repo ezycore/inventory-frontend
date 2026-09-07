@@ -6,6 +6,7 @@ import {
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
+  DESIGN_NAV_HOVERS,
   DESIGN_WIDTHS,
   designAttrs,
   resolveDesign,
@@ -60,6 +61,8 @@ describe("resolveDesign", () => {
       density: DESIGN_DENSITIES[0].id,
       radius: DESIGN_RADII[0].id,
       width: DESIGN_WIDTHS[0].id,
+      navHover: DESIGN_NAV_HOVERS[0].id,
+      navChildHover: DESIGN_NAV_HOVERS[0].id,
     });
   });
 
@@ -87,6 +90,8 @@ describe("designAttrs", () => {
       "data-density": undefined,
       "data-radius": undefined,
       "data-width": undefined,
+      "data-nav-hover": undefined,
+      "data-nav-child-hover": undefined,
     });
   });
 
@@ -98,6 +103,8 @@ describe("designAttrs", () => {
       "data-density": "airy",
       "data-radius": undefined,
       "data-width": undefined,
+      "data-nav-hover": undefined,
+      "data-nav-child-hover": undefined,
     });
   });
 
@@ -110,6 +117,8 @@ describe("designAttrs", () => {
         density: "airy",
         radius: "sharp",
         width: "full",
+        navHover: "underline",
+        navChildHover: "highlight",
       }),
     ).toEqual({
       "data-font": "serif",
@@ -118,6 +127,8 @@ describe("designAttrs", () => {
       "data-density": "airy",
       "data-radius": "sharp",
       "data-width": "full",
+      "data-nav-hover": "underline",
+      "data-nav-child-hover": "highlight",
     });
   });
 });

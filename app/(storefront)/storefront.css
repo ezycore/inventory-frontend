@@ -1028,7 +1028,24 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      breakpoint still decides. `Media` sets `aspect-ratio` inline from its
      `ratio` prop, so a class alone could never win; this is how a breakpoint
      reaches inside it at all. */
-  --sf-bc-ratio: 16 / 9;
+  /* ⚠ **The merchant's own shape arrives in a SLOT, not as this value.** The
+     component sets `--sf-bc-ratio-set` and these rules decide what to do with
+     it, which is what keeps the breakpoint in charge — writing the value here
+     inline would outrank every media query, the one pattern the note at the top
+     of this file forbids. The fallback in each `var()` is the built-in shape
+     for that composition and screen. */
+  --sf-bc-ratio: var(--sf-bc-ratio-set, 16 / 9);
+  /* An explicit picture height, per screen. `auto` means "no opinion", which is
+     what lets one unconditional `height: var(--sf-bc-h)` on the picture serve
+     both the shaped card and the fixed one.
+
+     ⚠ A ratio cannot express a height: `--sf-bc-ratio` ties the picture's
+     height to the card's WIDTH, and the width comes from how many collections
+     were picked, so a thin strip across the page had no way to be asked for.
+     Height is also the one setting with no relative meaning — 200px is a band
+     across a desktop and a third of a phone — which is why it has a slot per
+     screen while the shape has one shared. */
+  --sf-bc-h: auto;
   display: block;
   overflow: hidden;
   color: inherit;
@@ -1077,29 +1094,41 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    The photo column is a clamp rather than a percentage so it stays a thumbnail
    at 320px and never grows into the even split this block exists to avoid. */
 @media (max-width: 679px) {
-  .sf-banner-card--split {
-    --sf-bc-ratio: 1 / 1;
+  .sf-banner-card {
+    --sf-bc-h: var(--sf-bc-h-m, auto);
+  }
+  .sf-banner-card--split-m {
+    --sf-bc-ratio: var(--sf-bc-ratio-set, 1 / 1);
+    /* The picture column, as a TOKEN rather than a literal in the track list.
+       Everything that moves this column — the merchant's own width, the
+       left/right swap, the zebra — then reads one name instead of restating
+       the breakpoint's value, which is how the swap rules below manage to be
+       breakpoint-agnostic. Same argument as `--sf-bc-ratio` above it.
+
+       `--sf-bc-split-m` is the PHONE's slot: the component writes both screens'
+       widths inline and each breakpoint reads its own, which is how a
+       server-rendered card carries two answers without knowing the viewport. */
+    --sf-bc-split: var(--sf-bc-split-m, clamp(96px, 30%, 132px));
     display: grid;
-    grid-template-columns: clamp(96px, 30%, 132px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, var(--sf-bc-split)) minmax(0, 1fr);
     align-items: center;
   }
-  /* Whichever child the photo branch produced — see the note in the desktop
-     block; `Media` returns a bare `<img>` for `cover` and a wrapper for
-     `canvas`, so this cannot name an element. */
-  .sf-banner-card--split > :first-child {
+  /* The picture, found by class — see the note in the desktop block. */
+  .sf-banner-card--split-m .sf-banner-media {
     align-self: stretch;
     height: 100%;
     object-fit: cover;
   }
-  .sf-banner-card--split .sf-banner-body {
+  .sf-banner-card--split-m .sf-banner-body {
     /* Tighter than the stacked card's: this copy sits beside a picture in a
        ~240px column, not under a full-width one. */
     padding: 11px 13px 12px;
   }
+
   /* One line beside a thumbnail. Two would push the card past the thumbnail's
      own height and leave the picture floating in a band of card colour, which
      is the failure the desktop split rule already guards with `stretch`. */
-  .sf-banner-card--split .sf-banner-copy {
+  .sf-banner-card--split-m .sf-banner-copy {
     -webkit-line-clamp: 1;
     margin-top: 4px;
   }
@@ -1120,28 +1149,273 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      beside the copy, not two even columns. This rule stays inside the
      breakpoint because the even split it describes is only survivable once
      there is a full row's width to divide. */
-  .sf-banner-card--split {
-    --sf-bc-ratio: 4 / 3;
-    display: grid;
+  .sf-banner-card {
+    --sf-bc-h: var(--sf-bc-h-d, auto);
+  }
+  .sf-banner-card--split-d {
+    --sf-bc-ratio: var(--sf-bc-ratio-set, 4 / 3);
     /* The copy takes the larger share. A promo card's photograph is the hook
        and its sentence is the pitch, and an even split leaves the pitch
-       wrapping to four lines while the hook has room to spare. */
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+       wrapping to four lines while the hook has room to spare. 45% is the old
+       `0.9fr / 1.1fr` written as a percentage, so an untouched row is
+       unchanged — a percentage because that is the unit the merchant's own
+       width control speaks, and two units for one column is how the swap rules
+       would end up duplicated per breakpoint. */
+    --sf-bc-split: var(--sf-bc-split-d, 45%);
+    display: grid;
+    grid-template-columns: minmax(0, var(--sf-bc-split)) minmax(0, 1fr);
     align-items: center;
   }
-  /* Whichever child the photo branch produced — `Media` returns a bare `<img>`
-     for `cover` and a wrapping `<div>` for `canvas`, so this cannot name an
-     element. It fills the card's height when the copy is the taller of the two,
-     rather than floating in a band of card colour. */
-  .sf-banner-card--split > :first-child {
+  /* ⚠ **`.sf-banner-media`, never `> :first-child`.** These rules used to
+     select by position, on the reasoning that the photo branch produces
+     different elements — a bare `<img>` for `cover`, a wrapping `<div>` for
+     `canvas` — and so could not be named. The premise was wrong in a way that
+     cost this feature its headline setting: `Media` wraps BOTH in a
+     `<picture style="display: contents">`, so `:first-child` matched a wrapper
+     that generates NO BOX. `order` and `align-self` do nothing on such an
+     element and are not inherited by the `<img>` inside it, so `Picture side`
+     swapped the two column widths and left the photograph sitting where it
+     was — the card mirrored everything except its picture. `Media` puts
+     `className` on the real box in either branch, so the class always lands
+     where the box is.
+
+     It fills the card's height when the copy is the taller of the two, rather
+     than floating in a band of card colour. */
+  .sf-banner-card--split-d .sf-banner-media {
     align-self: stretch;
     height: 100%;
     object-fit: cover;
   }
-  .sf-banner-card--split .sf-banner-body {
+  .sf-banner-card--split-d .sf-banner-body {
     /* Its own padding, because the stacked card's is tuned to sit under a
        photograph and this one sits beside it. */
     padding: clamp(14px, 2vw, 22px) clamp(16px, 2.2vw, 26px);
+  }
+}
+
+/* ---- Which side the picture sits on ----
+   Three answers, one mechanism: the picture moves with `order`, never by
+   reordering the markup. The photo is the card's first child because that is
+   the reading order a screen reader should get on EVERY card, and flipping the
+   DOM to flip the pixels would hand every second card a different one. `order`
+   is a paint-time decision, which is exactly what a side is.
+
+   ⚠ **The column widths flip with it**, and that is the half that is easy to
+   miss. The picture column is `--sf-bc-split` and the words take what is left,
+   so swapping only the `order` would leave the picture in the words' column and
+   the card would read as a different design rather than a mirrored one. Both
+   rules below therefore restate the track list reversed.
+
+   Written against `--sf-bc-split` rather than against a literal, so ONE pair of
+   rules covers both breakpoints and the merchant's own width setting — the
+   phone's thumbnail clamp and the desktop's 45% are both just that token. It is
+   also why these sit outside any media query.
+
+   `--split` only: a stacked card has no side to put a picture on. */
+@media (max-width: 679px) {
+  .sf-banner-row--right-m .sf-banner-card--split-m .sf-banner-media,
+  .sf-banner-row--alternate-m
+    .sf-banner-card--split-m:nth-child(even)
+    .sf-banner-media {
+    order: 2;
+  }
+  .sf-banner-row--right-m .sf-banner-card--split-m,
+  .sf-banner-row--alternate-m .sf-banner-card--split-m:nth-child(even) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--sf-bc-split));
+  }
+}
+@media (min-width: 680px) {
+  .sf-banner-row--right-d .sf-banner-card--split-d .sf-banner-media,
+  .sf-banner-row--alternate-d
+    .sf-banner-card--split-d:nth-child(even)
+    .sf-banner-media {
+    order: 2;
+  }
+  .sf-banner-row--right-d .sf-banner-card--split-d,
+  .sf-banner-row--alternate-d .sf-banner-card--split-d:nth-child(even) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--sf-bc-split));
+  }
+}
+
+/* ---- A card with the words switched off ----
+   The picture takes the whole card and the copy block is not rendered at all —
+   removed in the component rather than hidden here, so a shopper's browser
+   never downloads a heading it cannot see and a screen reader never reaches
+   one. What this rule has to undo is the GRID: a split card is two columns, and
+   a two-column grid with one child leaves the second column standing as empty
+   card. Back to `block` and the picture fills it.
+
+   ⚠ Also unsets the side flip. `order` on an only child does nothing, but the
+   reversed track list above would otherwise put the picture in a column sized
+   for words that are not there. Stated rather than left to specificity, because
+   the two rules are unrelated enough that the next person to touch either would
+   have no reason to check the other. */
+@media (max-width: 679px) {
+  .sf-banner-card--notext-m,
+  .sf-banner-row--right-m .sf-banner-card--notext-m,
+  .sf-banner-row--alternate-m .sf-banner-card--notext-m:nth-child(even) {
+    display: block;
+    grid-template-columns: none;
+  }
+  .sf-banner-card--notext-m .sf-banner-media {
+    height: auto;
+  }
+  .sf-banner-card--notext-m .sf-banner-body {
+    display: none;
+  }
+}
+@media (min-width: 680px) {
+  .sf-banner-card--notext-d,
+  .sf-banner-row--right-d .sf-banner-card--notext-d,
+  .sf-banner-row--alternate-d .sf-banner-card--notext-d:nth-child(even) {
+    display: block;
+    grid-template-columns: none;
+  }
+  .sf-banner-card--notext-d .sf-banner-media {
+    height: auto;
+  }
+  .sf-banner-card--notext-d .sf-banner-body {
+    display: none;
+  }
+}
+
+/* ---- A row where NO card has a description ----
+   The common shape, not the edge case: a description is optional and most
+   shops write none, so this is what the block looks like before anyone fills
+   it in. It was also where the whitespace came from.
+
+   ⚠ **The split card takes its height from the PHOTOGRAPH's aspect box**, and
+   that is right only while the copy has something to say. With a name and a
+   button — ~100px of copy — a 4:3 picture stretched the card to ~180px and the
+   difference was a visible band of empty card down the right-hand side, which
+   is what a merchant reads as "the section is broken", not "I have not written
+   a description".
+
+   The fix is a WIDE ratio, not `auto` and not a fixed height. Ratio here is
+   only ever a FLOOR on the row: the photo already carries `align-self: stretch`
+   + `height: 100%` + `object-fit: cover`, so once the copy is the taller of the
+   two the picture stretches to it and crops. A ratio short enough to lose that
+   contest hands the height to the words. (`auto` does not work — an `<img>`
+   with `aspect-ratio: auto` falls back to its INTRINSIC ratio, which is the
+   merchant's own 4:3 photograph, and nothing changes.)
+
+   `5 / 2` clears both breakpoints against a name-and-button card: ~99px against
+   ~113px of copy on a two-up desktop row, ~47px against ~92px on a phone. A row
+   of ONE card is the deliberate exception — the photo column is then ~560px
+   wide, so the picture wins and the card reads as the banner a single pick is
+   asking for.
+
+   ⚠ Scoped to `--split` deliberately. The STACKED card is a full-width
+   photograph with the copy under it, so its height was never the copy's to set
+   and a 16:9 picture with a name beneath is the composition, not a gap. */
+@media (max-width: 679px) {
+  .sf-banner-row--terse-m .sf-banner-card--split-m {
+    --sf-bc-ratio: 5 / 2;
+  }
+}
+@media (min-width: 680px) {
+  .sf-banner-row--terse-d .sf-banner-card--split-d {
+    --sf-bc-ratio: 5 / 2;
+  }
+}
+
+/* ---- How many cards go across, and whether the row scrolls ----
+   ⚠ **One element, two screens, again.** The row is a single DOM node serving
+   both breakpoints, so "scroll on a desktop, stack on a phone" cannot be a
+   choice of container — it has to be a class pair the media queries read. The
+   component wraps the row in `CategoryStrip` when EITHER screen scrolls (the
+   arrows and their edge detection are behaviour, not CSS) and then each
+   breakpoint either keeps that track or turns it back into a grid.
+
+   `--sf-bc-per` is the count. Unset leaves each screen's own rule alone: the
+   desktop divides the row by how many collections were picked (`auto-fit`), the
+   phone shows one. */
+@media (max-width: 679px) {
+  .sf-banner-row--cols-m {
+    grid-template-columns: repeat(var(--sf-bc-per-m), minmax(0, 1fr));
+  }
+  /* Back to a grid at this width: the merchant asked for a track on the OTHER
+     screen. `overflow: visible` matters as much as `display` — a grid still
+     clipping its overflow would cut a card's shadow. */
+  .sf-banner-row--wrap-m.sf-cat-strip-track {
+    display: grid;
+    gap: var(--gap);
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+  /* ⚠ **`display` is restated here, not inherited from `.sf-cat-strip-track`.**
+     `.sf-banner-row` is a grid and the track is a flex row, and which of those
+     two unrelated rules wins came down to their order in this file — so the
+     card's `flex-basis` below was computing correctly and sitting inert inside
+     a grid. Stating it at this specificity makes the row's flow depend on the
+     merchant's setting rather than on where someone last inserted a block. */
+  .sf-banner-row--track-m.sf-cat-strip-track {
+    display: flex;
+    overflow-x: auto;
+  }
+  /* Each card takes its share of the visible width and the rest peek past the
+     edge, which is the "there is more this way" signal a bare `overflow` gives
+     no hint of. */
+  .sf-banner-row--track-m.sf-cat-strip-track > * {
+    flex: 0 0 calc(
+      (100% - (var(--sf-bc-per-m, 1) - 1) * var(--gap)) / var(--sf-bc-per-m, 1)
+    );
+  }
+  /* Arrows belong to the screen that is actually scrolling. */
+  .sf-banner-row--wrap-m ~ .sf-cat-strip-arrow {
+    display: none;
+  }
+}
+@media (min-width: 680px) {
+  .sf-banner-row--cols-d {
+    grid-template-columns: repeat(var(--sf-bc-per-d), minmax(0, 1fr));
+  }
+  .sf-banner-row--wrap-d.sf-cat-strip-track {
+    display: grid;
+    gap: var(--gap);
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+  /* ⚠ **`display` is restated here, not inherited from `.sf-cat-strip-track`.**
+     `.sf-banner-row` is a grid and the track is a flex row, and which of those
+     two unrelated rules wins came down to their order in this file — so the
+     card's `flex-basis` below was computing correctly and sitting inert inside
+     a grid. Stating it at this specificity makes the row's flow depend on the
+     merchant's setting rather than on where someone last inserted a block. */
+  .sf-banner-row--track-d.sf-cat-strip-track {
+    display: flex;
+    overflow-x: auto;
+  }
+  /* Each card takes its share of the visible width and the rest peek past the
+     edge, which is the "there is more this way" signal a bare `overflow` gives
+     no hint of. */
+  .sf-banner-row--track-d.sf-cat-strip-track > * {
+    flex: 0 0 calc(
+      (100% - (var(--sf-bc-per-d, 2) - 1) * var(--gap)) / var(--sf-bc-per-d, 2)
+    );
+  }
+  .sf-banner-row--wrap-d ~ .sf-cat-strip-arrow {
+    display: none;
+  }
+}
+
+/* ---- A picture given an explicit height ----
+   ⚠ The height REPLACES the aspect box; it does not join it. With both, the box
+   computes a WIDTH from the height and the picture collapses to a column
+   instead of running the card's width.
+
+   Scoped under `.sf-banner-row` purely for specificity: it has to outrank the
+   merchant's own shape (0,1,0) AND the automatic `--terse` shortening (0,2,0)
+   above, because an explicit height is the most specific thing a merchant can
+   say about this picture. Per screen, like the height itself. */
+@media (max-width: 679px) {
+  .sf-banner-row .sf-banner-card--fixedh-m {
+    --sf-bc-ratio: auto;
+  }
+}
+@media (min-width: 680px) {
+  .sf-banner-row .sf-banner-card--fixedh-d {
+    --sf-bc-ratio: auto;
   }
 }
 
@@ -1501,6 +1775,108 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
  * category strip hides its own (`.sf-cat-strip-track`): raw browser chrome under
  * a designed row, and a thumb swipes the track natively anyway.
  */
+/* ---- The header menu ----
+   `.sf-nav-top` is the row across the header — a department, or a link the
+   merchant typed — and `.sf-nav-child` is an option in the dropdown under it.
+
+   ⚠ **These are classes because a hover state cannot be an inline style.** Both
+   sets of declarations were `CSSProperties` objects in `header-nav.tsx` until
+   the merchant asked for a hover effect, and `color` set inline outranks every
+   rule in this file — the effect could not have been written at all without
+   moving them here. The values below are the old objects verbatim, so a shop
+   that never chooses an effect has exactly the header it had.
+
+   `none` is the default and needs no block: it IS the base rule. Nothing is
+   stamped for it (`designAttrs` omits a default axis), which is also why the
+   selectors below can be plain attribute matches. */
+/* ⚠ **`.sf-nav-top` is the SEAM, and carries no geometry.** Three header
+   anatomies draw a menu row and only two of them go through `HeaderNav`:
+   Minimal and Boutique render a flat row of links with their own typography
+   (Boutique's is uppercase 11.5px with wide tracking, which is the whole look).
+   A class that also set size, weight and padding would have restyled them, so
+   this one holds only what the hover rules need — the colour they all shared
+   inline anyway, plus the transition — and `.sf-nav-bar` below carries what is
+   specific to `HeaderNav`'s own row. Every anatomy that draws a menu gets the
+   merchant's effect; none of them changes shape. */
+.sf-nav-top {
+  color: var(--muted);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+/* `HeaderNav`'s own row. Flex with a gap because its trigger carries a chevron
+   beside the label — the flat rows have no dropdown and no chevron. */
+.sf-nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 2px 0;
+}
+.sf-nav-child {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  padding: 7px 10px;
+  border-radius: 7px;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Each effect answers `:hover` AND `:focus-visible`. A keyboard user moving
+   along the menu is doing the same thing a pointer is, and the dropdown these
+   links open already treats focus and hover as one event — an effect that
+   appeared for only one of them would make the header read as half-built. */
+[data-nav-hover="color"] .sf-nav-top:hover,
+[data-nav-hover="color"] .sf-nav-top:focus-visible {
+  color: var(--primary);
+}
+[data-nav-hover="underline"] .sf-nav-top:hover,
+[data-nav-hover="underline"] .sf-nav-top:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1.5px;
+}
+/* ⚠ The pill's geometry is on the LINK, not on `:hover`. Padding that appears
+   only under the pointer would move the label as it arrives and shove every
+   item after it sideways — the row has to be laid out for the pill whether or
+   not one is showing. The negative margin gives the space back, so choosing
+   this effect does not widen the header's gaps or make the row taller. */
+[data-nav-hover="highlight"] .sf-nav-top {
+  padding: 5px 10px;
+  margin: -3px -10px;
+  border-radius: var(--radius-sm);
+}
+[data-nav-hover="highlight"] .sf-nav-top:hover,
+[data-nav-hover="highlight"] .sf-nav-top:focus-visible {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* The dropdown. It needs no geometry rule of its own for the pill — an option
+   row is already padded and rounded, which is the reason the two rows get
+   separate settings rather than one shared answer. */
+[data-nav-child-hover="color"] .sf-nav-child:hover,
+[data-nav-child-hover="color"] .sf-nav-child:focus-visible {
+  color: var(--primary);
+}
+[data-nav-child-hover="underline"] .sf-nav-child:hover,
+[data-nav-child-hover="underline"] .sf-nav-child:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+[data-nav-child-hover="highlight"] .sf-nav-child:hover,
+[data-nav-child-hover="highlight"] .sf-nav-child:focus-visible {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
 .sf-mchips {
   display: flex;
   gap: 7px;
@@ -3257,6 +3633,22 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-footer-link:hover {
   color: var(--text);
 }
+/* The platform credit in the bottom bar. Its own rule rather than
+   `.sf-footer-link`: that one is 13px with a 10px tap-target padding built for
+   a stacked column of links, and both would break a 12px line that reads as one
+   sentence. Inherits its colour so the credit stays one phrase until it is
+   pointed at. */
+.sf-powered-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.sf-powered-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Contact-first's middle track. It holds a bordered card, so it deliberately
    carries no rule of its own — the aside used to be the payment badges, which
    needed one to separate them from the links above. */
