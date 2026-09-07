@@ -235,6 +235,33 @@ export const DESIGN_WIDTHS: DesignOption[] = [
   { id: "full", label: "Full width", description: "Edge to edge, with six columns on a large screen" },
 ];
 
+/**
+ * What a header menu link does when it is pointed at — **asked twice**, once
+ * for the top row and once for the dropdown beneath it.
+ *
+ * `none` is the default and is the honest one: the storefront had no hover
+ * treatment on its nav at all, so a shop that never opens this control is
+ * unchanged. It is offered as a real choice rather than being the absence of a
+ * setting, because a merchant who wants a bare, typographic header is making a
+ * decision and should see it selected.
+ *
+ * ⚠ **Two axes, not one.** A soft highlight reads as a button behind a 13px bar
+ * link and reads as ordinary behaviour on a dropdown option, so the answer that
+ * suits one row rarely suits the other — and with a single setting a merchant
+ * who wants an underline up top and nothing below has no way to say it.
+ *
+ * A hover state is pointer-only by definition: none of this reaches a phone,
+ * where the same menu is the drawer in `mobile-menu.tsx` and a tap is the whole
+ * interaction. That is why this sits in `design` (the look) rather than in the
+ * mobile chrome registry.
+ */
+export const DESIGN_NAV_HOVERS: DesignOption[] = [
+  { id: "none", label: "None", description: "No effect — the header stays still" },
+  { id: "color", label: "Colour", description: "The label takes your brand colour" },
+  { id: "underline", label: "Underline", description: "A rule appears under the label" },
+  { id: "highlight", label: "Highlight", description: "A soft pill behind the label" },
+];
+
 /** The resolved design a storefront renders with. */
 export interface StoreDesign {
   font: string;
@@ -243,6 +270,8 @@ export interface StoreDesign {
   density: string;
   radius: string;
   width: string;
+  navHover: string;
+  navChildHover: string;
 }
 
 /**
@@ -257,6 +286,8 @@ export const DEFAULT_DESIGN: StoreDesign = {
   density: DESIGN_DENSITIES[0].id,
   radius: DESIGN_RADII[0].id,
   width: DESIGN_WIDTHS[0].id,
+  navHover: DESIGN_NAV_HOVERS[0].id,
+  navChildHover: DESIGN_NAV_HOVERS[0].id,
 };
 
 const idsOf = (options: DesignOption[]) => new Set(options.map((o) => o.id));
@@ -266,6 +297,8 @@ const SCALE_IDS = idsOf(DESIGN_SCALES);
 const DENSITY_IDS = idsOf(DESIGN_DENSITIES);
 const RADIUS_IDS = idsOf(DESIGN_RADII);
 const WIDTH_IDS = idsOf(DESIGN_WIDTHS);
+// One catalogue, both axes: the two rows offer the same answers.
+const NAV_HOVER_IDS = idsOf(DESIGN_NAV_HOVERS);
 
 const pickId = (allowed: Set<string>, raw: string | undefined, fallback: string) =>
   raw && allowed.has(raw) ? raw : fallback;
@@ -284,6 +317,8 @@ export function resolveDesign(design?: {
   density?: string;
   radius?: string;
   width?: string;
+  navHover?: string;
+  navChildHover?: string;
 }): StoreDesign {
   return {
     font: pickId(FONT_IDS, design?.font, DEFAULT_DESIGN.font),
@@ -292,6 +327,12 @@ export function resolveDesign(design?: {
     density: pickId(DENSITY_IDS, design?.density, DEFAULT_DESIGN.density),
     radius: pickId(RADIUS_IDS, design?.radius, DEFAULT_DESIGN.radius),
     width: pickId(WIDTH_IDS, design?.width, DEFAULT_DESIGN.width),
+    navHover: pickId(NAV_HOVER_IDS, design?.navHover, DEFAULT_DESIGN.navHover),
+    navChildHover: pickId(
+      NAV_HOVER_IDS,
+      design?.navChildHover,
+      DEFAULT_DESIGN.navChildHover,
+    ),
   };
 }
 
@@ -316,6 +357,11 @@ export function designAttrs(design: StoreDesign) {
     "data-density": omitDefault(design.density, DEFAULT_DESIGN.density),
     "data-radius": omitDefault(design.radius, DEFAULT_DESIGN.radius),
     "data-width": omitDefault(design.width, DEFAULT_DESIGN.width),
+    "data-nav-hover": omitDefault(design.navHover, DEFAULT_DESIGN.navHover),
+    "data-nav-child-hover": omitDefault(
+      design.navChildHover,
+      DEFAULT_DESIGN.navChildHover,
+    ),
     /* DERIVED, not an axis the merchant sets — see `isDarkSurface`. Omitted on
        a light ground, so the default shop stamps nothing here either. */
     "data-ground": isDarkSurface(design.surface) ? "dark" : undefined,

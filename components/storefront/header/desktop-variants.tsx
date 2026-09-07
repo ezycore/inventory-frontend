@@ -67,7 +67,16 @@ export function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
       </Link>
       <nav style={{ flex: 1, display: "flex", gap: 20, overflowX: "auto", justifyContent: "center" }}>
         {links.map((l) => (
-          <Link key={l.key} href={l.href} style={{ fontSize: 13.5, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+          <Link
+            key={l.key}
+            href={l.href}
+            /* `sf-nav-top` carries the colour and the merchant's hover choice;
+               the size stays here because it is this anatomy's own. An inline
+               `color` would outrank the hover rule — see the note in
+               `storefront.css`. */
+            className="sf-nav-top"
+            style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap" }}
+          >
             {l.label}
           </Link>
         ))}
@@ -241,12 +250,15 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
           <Link
             key={l.key}
             href={l.href}
+            /* The tracking and the uppercasing ARE this anatomy, so they stay
+               inline; only the colour moves, because inline it would outrank
+               the merchant's hover rule. */
+            className="sf-nav-top"
             style={{
               fontSize: 11.5,
               fontWeight: 600,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "var(--muted)",
               whiteSpace: "nowrap",
             }}
           >

@@ -12,9 +12,9 @@ import {
 import {
   TagChips,
   CategoryChips,
-  CategoryBanners,
   CategoryTiles,
 } from "@/components/storefront/home/sections/category-sections";
+import { CategoryBanners } from "@/components/storefront/home/sections/category-banners";
 import {
   MinimalPicks,
   ProductGrid,

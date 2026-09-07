@@ -251,6 +251,8 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       density: "airy",
       radius: "sharp",
       width: "wide",
+      navHover: "underline",
+      navChildHover: "highlight",
     };
     expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
   });
