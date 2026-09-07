@@ -4,10 +4,16 @@
 import { LayoutGrid, Menu, Pencil, Plus } from "lucide-react";
 import { useContentPages } from "@/services/api";
 import type { HeaderMenuSource } from "@/lib/storefront-client";
+import { DESIGN_NAV_HOVERS, type StoreDesign } from "@/lib/storefront-theme";
 import type { StorefrontMenuItem } from "@/types";
 import { Button } from "@/ui/components/button";
 import { OptionCard } from "@/ui/components/option-card";
-import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
+import { SegmentedField } from "@/ui/components/segmented-field";
+import {
+  PartBlock,
+  PartField,
+  PartHint,
+} from "@/components/ecommerce/customize/part-group";
 import {
   MenuItemRow,
   newMenuItem,
@@ -56,6 +62,13 @@ export function HeaderPart({
   const source = draft.templates.headerMenu as HeaderMenuSource;
   const header = draft.navHeader;
   const setHeader = (navHeader: StorefrontMenuItem[]) => patch({ navHeader });
+  /* The hover effects are `theme.design` axes like Corners or Page width, and
+     they are edited HERE rather than under Look for one reason: a merchant
+     wonders what their menu does when it is pointed at while they are looking
+     at the menu. Same `patch`, same object — only the panel it appears in
+     differs. */
+  const setDesign = (axis: Partial<StoreDesign>) =>
+    patch({ design: { ...draft.design, ...axis } });
   const listed = draft.collections.filter((c) => c.isListed);
 
   // Menu links target categories by slug; slugless ones (legacy seed data) are
@@ -210,6 +223,45 @@ export function HeaderPart({
           </Button>
         </div>
       )}
+
+      {/* Both sources get this: `collections` runs through the same menu
+          component as a custom one, so a shop that never built a menu still has
+          departments and sub-categories to point at. */}
+      <PartBlock
+        label="Hover"
+        hint="What a menu link does when a visitor points at it. Nothing happens by default — and on a phone nothing happens either way, where the menu is a panel and a tap opens it."
+      >
+        <PartField
+          label="Menu items"
+          hint="The row across your header — a department, or a link you added."
+        >
+          <SegmentedField
+            label="Menu items"
+            value={draft.design.navHover}
+            onChange={(navHover) => setDesign({ navHover })}
+            options={DESIGN_NAV_HOVERS.map((o) => ({
+              value: o.id,
+              label: o.label,
+              description: o.description,
+            }))}
+          />
+        </PartField>
+        <PartField
+          label="Dropdown items"
+          hint="The sub-categories and links that open underneath one."
+        >
+          <SegmentedField
+            label="Dropdown items"
+            value={draft.design.navChildHover}
+            onChange={(navChildHover) => setDesign({ navChildHover })}
+            options={DESIGN_NAV_HOVERS.map((o) => ({
+              value: o.id,
+              label: o.label,
+              description: o.description,
+            }))}
+          />
+        </PartField>
+      </PartBlock>
     </>
   );
 }

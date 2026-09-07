@@ -354,7 +354,21 @@ export function BottomBar({
       }}
     >
       <span>
-        © {new Date().getFullYear()} {name} · {t.poweredBy} EzyCore
+        © {new Date().getFullYear()} {name} · {t.poweredBy}{" "}
+        {/* ⚠ **A new tab, deliberately.** This is the one link in the shop that
+            leads away from the merchant's own storefront, and a shopper who
+            follows it in the same tab is a sale they have lost to our marketing
+            site. `rel="noopener"` and nothing more: the referrer is how the
+            visit is attributed, and this is our own domain, not a third
+            party's. */}
+        <a
+          href="https://ezycore.com/"
+          target="_blank"
+          rel="noopener"
+          className="sf-powered-link"
+        >
+          EzyCore
+        </a>
       </span>
       <PaymentBadges store={store} t={t} compact />
       <span>{note?.trim() || currency || ""}</span>

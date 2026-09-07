@@ -140,7 +140,7 @@ reads as two filters at once.
   `font` (**8** curated Latin+Bengali pairs), `surface` (**8** grounds: `--page/--card/--surface/--text/--border`),
   `scale` (`--h1/--h1m/--h2`), `density`
   (`--pad/--gap/--cols`) and `radius` (`--radius-sm/md/lg`) — catalogued with their resolver in `lib/storefront-theme.ts`
-  (`DESIGN_FONTS`/`DESIGN_SURFACES`/`DESIGN_SCALES`/`DESIGN_DENSITIES`, `resolveDesign`, `designAttrs`), edited in
+  (`DESIGN_FONTS`/`DESIGN_SURFACES`/`DESIGN_SCALES`/`DESIGN_DENSITIES`/`DESIGN_NAV_HOVERS`, `resolveDesign`, `designAttrs`), edited in
   Customize → **Look** (Brand and Design merged into it on 2026-09-06 — see `parts/look-part.tsx`),
   and rendered by `.sf-shell[data-font|data-surface|data-scale|data-density]` blocks in
   `storefront.css`. Six rules, and the first two are the ones that bite:
@@ -735,6 +735,165 @@ the editor's selected pill are one answer shown twice and must not disagree abou
   was correct about an EVEN split and wrong to conclude the phone had no answer — a thumbnail row is
   the shape phones already use everywhere. Its second job is length: a stacked card is a 16:9
   photograph plus copy plus a button, so two of them are the phone's whole home page.
+- ⚠ **A row where NO card has a description is a different shape** (`sf-banner-row--terse`, shipped
+  2026-09-07 off "lots of white space, isn't it?"). The split card takes its height from the
+  PHOTOGRAPH's aspect box, which is right only while the copy has something to say: with a name and a
+  button — ~100px — a 4:3 picture stretched the card to ~180px and the slack read as a broken
+  section rather than as an unwritten field. The terse row drops `--sf-bc-ratio` to `5 / 2`, low
+  enough that the copy wins the row and the photo stretches into it (`align-self: stretch` +
+  `object-fit: cover` were already there). **Not `auto`** — an `<img>` with `aspect-ratio: auto`
+  falls back to its INTRINSIC ratio, i.e. the merchant's own 4:3 photograph, and nothing moves.
+  Asked once per ROW like `photographed` on the tiles, and scoped to `--split`: a stacked card is a
+  full-width photo with copy beneath, so its height was never the copy's to set.
+- ⚠⚠ **Card copy is a PRESENTATION OVERRIDE on the section — `sectionConfig.cards` — and never an
+  edit to the Category.** This is the feature's hard requirement, stated by the merchant who asked
+  for it: *"if a merchant changes the title or description here, it should affect only this specific
+  storefront card, not the underlying Collection data or any other place where that collection is
+  used."* Each entry is `{ categoryId, title?, description?, image?, buttonLabel?, buttonHref? }`,
+  joined on `categoryIds`, read through the shared `sectionCard()`, and every field falls back to the
+  collection — so an untouched card renders byte-for-byte as it did before overrides existed.
+  **The first cut got this wrong** and put the boxes on Catalog → Collections writing
+  `category.description`, which meant styling the home page silently rewrote the collection page, the
+  tile row and the header menu. That write path was removed; the collection's own `description` stays
+  editable in exactly one place (Products → Categories) and is carried on the collection DTO
+  **read-only**, as the placeholder each override box shows.
+- **Two writing rules the panel owns, both invisible in the UI.** `cardHasOverrides` drops an entry
+  whose every field is blank — typing and clearing must not be storable as "has copy" — and removing
+  a pick prunes its entry, or a merchant who re-adds that collection later gets a card they believe
+  is blank and is not. Both are pinned in `category-row-config.test.tsx`.
+- ⚠ **A card's `buttonHref` is merchant-typed, so it goes through `storeLinkHref` on render and
+  `normalizeStoreLink` on save** — the same path every other owner-entered link in the storefront
+  takes (hero slides, announcement bar, product-row CTA). It shipped through `storeHref`, which only
+  concatenates: a full address became `/shop/https://…`, a path copied from the merchant's own
+  address bar became `/shop/shop/products`, and on a custom domain — where `base` is `""` — a
+  `//host` value walked the shopper clean off the shop. Never reach for `storeHref` with a string a
+  merchant typed; it is for paths this code owns. The panel also carries `StoreLinkHint`, so the
+  resolved destination is visible while they type.
+- ⚠ **A new `sectionConfig` field must be added to `dtos/organization.dto.ts` in the SAME change**,
+  not after. `cardRatio` / `fullWidth` / `cards` shipped on the model, the validator and the editor
+  while that list was untouched, so the response answered a configured row with
+  `["key", "categoryIds", "cardShape"]` — and because Customize seeds its draft from that response
+  and PATCHes the whole array back, the merchant's next save would have written the loss to Mongo.
+  This is the third time (`tagIds` was the first). The guard is `organization.dto.test.ts`, which now
+  seeds a promo-card row with **every** field and asserts the parsed entry whole — a spot-check is
+  how the first two escaped.
+- **Row composition: `cardSide`, `cardSplit`, `cardHideText`, `cardRatio`, `fullWidth`, `showCta`.**
+  `fullWidth` DROPS the `wrap` container rather than widening it, keeping the side padding.
+  `cardRatio` and `cardSplit` are the places the section writes CSS var VALUES inline, against the
+  rule at the top of `storefront.css` and for exactly the reason that rule exists: an inline value
+  outranks every media query, which is wrong for a default and right for "use this on every screen".
+  ⚠ **Unset must stay unset** — the built-in shape and column width vary by composition AND
+  breakpoint, so resolving either to a literal anywhere (validator, model, resolver) freezes a phone
+  at a desktop value. `resolveCardRatio` / `resolveCardSplit` only validate and clamp.
+- **`cardSide` replaced a boolean called `cardAlternate` (2026-09-07), and the rename IS the fix.**
+  That switch only ever offered the zebra — left, right, left down the block — while the thing
+  merchants actually ask for is the plain swap: *"I wanted a feature that allows me to swap the
+  position of the image and text… this toggle does not seem to be doing that."* A control labelled
+  "alternate" that cannot put the picture on the right reads as broken rather than as a different
+  feature. The swap is now the setting (`left` | `right` | `alternate`) and the zebra is one of its
+  values. Both move the picture with `order` plus a mirrored track list, never by reordering the
+  markup — the photo stays the first child so the reading order is the same on every card.
+- **`cardHideText` drops the copy and gives the picture the whole card**, and pairs with `showCta`,
+  which turns the button off on its own. Neither costs the shopper a destination: the whole card has
+  always been the anchor and the button was only ever its visible half — the same conclusion
+  `HeroSlideLink` reached for a picture-only slide. ⚠ The card's name moves to `aria-label` **only
+  when both screens hide the words**; a phone-only hide leaves the heading in the document, where
+  `display: none` removes it from the phone's a11y tree but a desktop reader would otherwise hear the
+  collection twice.
+
+##### `cardHeight` — the thing a ratio cannot say (2026-09-07)
+
+*"I can't control the height. Let's think I want to show a 20px height category card — not possible
+now."* Correct, and the reason is structural: `cardRatio` ties the picture's height to the card's
+WIDTH, and the width comes from `auto-fit` — how many collections the merchant picked. Even 16:9
+leaves a two-up row ~330px of picture, so a thin strip across the page had no expression at all.
+
+`sectionConfig[].cardHeight`, px, 20–800, **shared across screens** (a 20px strip is 20px on a
+phone). ⚠ It **replaces** the aspect box rather than joining it: with a height *and* an
+`aspect-ratio`, the box computes a WIDTH from the height and the picture collapses to a column — so
+the component emits `--sf-bc-ratio: auto` alongside `--sf-bc-h`. `.sf-banner-card` declares
+`--sf-bc-h: auto` as its default so one unconditional `height: var(--sf-bc-h)` on the picture serves
+both cases. The floor is deliberately low enough to draw a rule rather than a card; that is a
+legitimate thing to want and costs nothing to allow.
+
+##### The upload hint is DERIVED, not a constant (2026-09-07)
+
+`recommendedCardImage()` computes the card picture's wanted size from the row's own shape, picture
+width and height, and `CategoryCardFields` prints it under the upload button and feeds it to
+`useImageRatioWarning`. **A constant would be wrong for most of the combinations the panel offers** —
+a stacked 16:9 card wants a wide landscape, a split card at 25% wants something a quarter as wide and
+nearly square, a 20px height wants a banner strip — and a hint that is usually wrong is worse than
+none, because merchants learn to skip it and then skip the one that mattered. Sized for the desktop
+card at 2×, so the same file serves the phone.
+
+⚠ **Memoise it.** `useImageRatioWarning` compares `recommended` by IDENTITY to reset itself — it was
+written for the module-level constants in `RECOMMENDED`, and this panel is the first caller to pass a
+computed one. Unmemoised, a fresh object each render made that comparison always true, the hook set
+state every render, and React threw *"Too many re-renders"*. Pinned by the panel's size-hint tests,
+which render an open card.
+
+##### `cardFlow` / `cardPerRow` / `cardRadius` / `cardArrows` (2026-09-07)
+
+The four that turn this block from one fixed design into something a merchant can shape: *"per row
+user want to show all category with scroll or per row particular number need control. scroll can have
+arrow button or no arrow… so that i can be a full control to show category with any design."*
+
+- **`cardFlow: "wrap" | "scroll"` and `cardPerRow: 1–4`, both PER SCREEN.** A desktop row that divides
+  four cards comfortably is a phone row of four ~90px slivers, and a swipeable track is the phone's
+  own answer to the same content. Unset `cardPerRow` keeps each screen's existing rule — `auto-fit` on
+  a desktop, one up on a phone.
+- ⚠ **The scroll container is mounted when EITHER screen scrolls**, and the other breakpoint turns the
+  track back into a grid (`.sf-banner-row--wrap-d/-m`). One DOM node serves both screens, so "a track
+  on a phone, a grid on a desktop" cannot be a choice of element. When neither scrolls, none of the
+  strip's JS is mounted at all.
+- **The scroller is `CategoryStrip`, not a second implementation.** Arrow state is a MEASUREMENT
+  (`ResizeObserver` + `onScroll`, since the same four cards overflow or don't depending on the
+  window), and a second copy of that is a second set of edge-case bugs. It gained two props for this
+  caller: `trackClassName` (a row that is a grid at one breakpoint cannot say so on the wrapper) and
+  `arrows`.
+- ⚠ **`display` is restated on the track rules, not inherited.** `.sf-banner-row` is a grid and
+  `.sf-cat-strip-track` is a flex row; which won came down to their ORDER in `storefront.css`, and a
+  browser check caught the card's `flex-basis` computing correctly and sitting inert inside a grid.
+  The row's flow must depend on the merchant's setting, not on where someone last inserted a block.
+- **`cardArrows` turns arrows OFF, it does not turn them on.** The stylesheet already limits them to
+  `hover: hover and pointer: fine` — a phone swipes the track and two 36px buttons would cover the
+  cards it can show — so the panel's hint says where they appear rather than implying a phone switch.
+- **`cardRadius` is shared and unset by default, and must stay that way.** Corners are a BRAND
+  decision made once in Design → Corners and applied to every card, panel and field in the shop. This
+  is the override for a row that deliberately differs; defaulting it to any number quietly opts every
+  row out of the theme.
+
+##### Per-device composition — `sectionConfig[].mobile` (2026-09-07)
+
+**Half of these settings do not travel, and half of them do.** 65% of a desktop card is a generous
+picture; 65% of a 390px phone leaves the words in a gutter. So `cardShape`, `cardSide`, `cardSplit`
+and `cardHideText` are asked once per screen, while `cardRatio` and `fullWidth` are asked once for
+both — a square photograph is square on a phone, and a setting split across two tabs for no reason is
+two places a merchant has to look.
+
+- **Storage is an override block, not four `mobileX` siblings.** `sectionConfig[].mobile` holds only
+  the fields the phone answers differently; every unset field inherits the desktop value above it, so
+  an untouched row renders exactly as it did before the block existed. The next device-specific
+  setting is one key in three files rather than one more prefixed field on an already wide schema.
+- **`resolveBannerLayout(config)` returns BOTH screens, and takes no device argument.** ⚠ A
+  storefront page is server-rendered, so no component can ask which screen it is on. It emits every
+  answer as a `-d` / `-m` class pair plus `--sf-bc-split-d` / `--sf-bc-split-m`, and the stylesheet's
+  breakpoint reads the half it wants. A resolver that *could* be asked for one device would be a
+  resolver whose callers had to know the viewport.
+- **The editor's Phone tab is one switch, not four tri-state controls.** "Phones use the desktop
+  layout" is a question a merchant can answer; six chip rows each carrying a hidden "same as desktop"
+  value is a puzzle. Turning it off seeds the phone from the desktop's current values, so the first
+  thing they see is what they already had.
+- ⚠ **Asymmetric default-dropping, deliberately.** The desktop half drops a value equal to the
+  default (`stacked`, `left`, words shown) so "never asked" stays distinguishable from "asked and
+  agreed". The phone half stores every value explicitly, defaults included — there the block's
+  PRESENCE is the "has its own answers" signal, so dropping a default would hand the field back to
+  the desktop and un-answer a question the merchant just answered. `mobileCardOverrides` still strips
+  an empty block, so opening the tab and changing nothing stores nothing.
+- **`DEFAULT_BANNER_COUNT` / `MAX_BANNER_COUNT` live in `lib/storefront-sections.ts`**, imported by
+  both the section and the editor panel. They were separate literals in each; the editor's hints have
+  to describe the cards actually on screen, and with nothing picked those are the section's own first
+  two — two copies of that number is two hints that disagree the moment either moves.
 - **Still one card per phone ROW** — split shortens the row, it does not put two cards on it. Add a
   2-up phone row only if merchants ask: a row in `docs/plan/storefront-design-requests.md`, not a
   hunch.
@@ -746,6 +905,13 @@ the editor's selected pill are one answer shown twice and must not disagree abou
 - **Clearing back to `stacked` drops the field**, and drops the whole config entry when nothing else
   is on the row — same rule the collection picker follows. A stored `"stacked"` would put that row
   outside any future change to what the default means.
+- ⚠ **"Nothing else is on the row" is asked by walking the config, never by a hand-written list.**
+  It shipped as `chosen.length > 0 || config.title` — true of the two settings that existed when it
+  was written — and became silent DATA LOSS as the row grew: a merchant with Full width on and a
+  picture shape picked, and no collections chosen, lost both by pressing "Photo on top", because
+  neither field was on the list. `configHasSettings` (`lib/storefront-sections.ts`) walks the merged
+  object instead, so a setting added next month is protected the day it is added. Every write from
+  both panels goes through the one `apply` in `CategoryRowConfig`.
 - **The button is a real button in both shapes** (`--primary` fill, `--on-primary` ink), not the
   arrow link a product row ends with. That link is a navigation affordance beside a heading; this is
   the call to action of an advertisement.
@@ -1116,6 +1282,73 @@ Content pages need no equivalent: their prose is already capped at fixed 680–8
 **All five themes stay `contained`.** Widening an approved theme is a design decision, not a side
 effect of adding the control — and Classic in particular MUST equal the defaults or applying it would
 restyle every shop already on it (`apply-theme.test.ts` asserts this field by field).
+
+### Header menu hover — `navHover` / `navChildHover` (2026-09-07)
+
+Two design axes rather than one, both defaulting to `none`: the top row of the header
+(`.sf-nav-top`) and the dropdown under it (`.sf-nav-child`) are different objects, and the effect
+that suits a 13px bar link rarely suits a padded option row. Four answers each — `none`, `color`,
+`underline`, `highlight` — stamped as `data-nav-hover` / `data-nav-child-hover` and read by plain
+attribute selectors in `storefront.css`. `none` needs no block: it IS the base rule, and
+`designAttrs` stamps nothing for a default axis.
+
+⚠ **A hover state cannot be written until the base style leaves the component.** `topLink` and
+`dropLink` were `CSSProperties` objects applied inline on every nav link, and an inline `color`
+outranks every rule in the stylesheet — so `:hover { color: … }` could not have worked no matter how
+the CSS was written. Both moved out (an untouched header is unchanged) and `NavLink` now takes a
+`className`, not a `style`. `header-nav.test.tsx` pins it, including that no link carries an inline
+`color`.
+
+⚠ **`HeaderNav` is NOT the only menu row — this is the gap that shipped and was caught only in a
+browser.** `classic` and `centered` reach it through `CategoryRow`, but **`minimal` and `boutique`
+render their own flat row from `headerLinks(ctx)`** in `header/desktop-variants.tsx`, with their own
+typography (Boutique's is uppercase 11.5px with 0.15em tracking — that IS the anatomy). On those two
+the setting did nothing, and nothing failed: the header looked right and the control saved.
+`search-first` and `clinical` draw no menu row at all.
+
+So `.sf-nav-top` deliberately carries **no geometry** — only the colour every row already shared and
+the transition. `.sf-nav-bar` holds what is specific to `HeaderNav`'s row (flex + gap for its
+chevron, 13px/500, padding). A variant adds `sf-nav-top` and keeps its own type inline, minus the
+colour. `desktop-variants.test.tsx` walks every `*Desktop` export, finds the ones using
+`headerLinks(ctx)`, and fails if any lacks the class or still sets `color` inline — with a
+non-vacuity assertion so it cannot pass by finding none.
+
+**Verified in a live browser** (2026-09-07, a real store on `boutique`): all four top-level effects
+and all three dropdown effects fire on real pointer hover; the row grows 4px choosing `highlight` on
+a flat variant row (padding is on the link, not on `:hover`, so it never moves under the pointer) and
+is unchanged on `HeaderNav`'s row. ⚠ Reading computed styles right after toggling `data-nav-hover`
+**without moving the pointer** reports stale values — Chrome does not re-run `:hover` matching on an
+attribute change alone. Move the pointer away and back between measurements or the check lies.
+
+⚠ **The `highlight` pill's padding sits on the LINK, not on `:hover`.** Padding that appears only
+under the pointer moves the label as it arrives and shoves every item after it sideways; the row has
+to be laid out for the pill either way, with a negative margin giving the space back so choosing the
+effect does not widen the header's gaps.
+
+Edited in Customize → **Header** rather than Look, deliberately — a merchant wonders what their menu
+does when pointed at while they are looking at the menu. It is still a `theme.design` axis and goes
+through the same `patch({ design })`. All four hover ids reach both `CategoryRow` sources, since
+`collections` mode renders through the same `HeaderNav`. Every ready-made theme picks its own pair;
+**Classic stamps `none`/`none`** because Classic is the reset.
+
+### ⚠ `display: contents` and `> :first-child` — the promo-card side bug (2026-09-07)
+
+`Picture side` on the category promo cards shipped doing nothing, and the shape of the failure is
+worth keeping: the card's column widths mirrored correctly while the photograph stayed put, so it
+read as "the setting does nothing" rather than as a layout bug.
+
+`Media` wraps its `<img>` in a `<picture style="display: contents">` — in **both** the `cover` and
+`canvas` branches. A `display: contents` element generates no box, so `order` and `align-self` on it
+do nothing and are **not inherited** by the `<img>` inside. Every rule written as
+`.sf-banner-card--split-d > :first-child` was therefore inert, while `grid-template-columns` on the
+card itself worked — hence the half-applied result.
+
+**The rule: never select a `Media` by position.** `Media` puts `className` on the real box in either
+branch (the `<img>` for `cover`, the wrapper `<div>` for `canvas`), so pass one and select that —
+`.sf-banner-media` here. A `category-banners.test.tsx` guard reads `storefront.css` and fails if any
+`sf-banner` rule uses `:first-child` again; another asserts the class lands on an element whose
+computed `display` is not `contents`, run against **both** fits. Note the `canvas` branch happened to
+work throughout, so this was invisible to any shop on that setting.
 
 ### Little Steps and the `nursery` surface (2026-08-29)
 

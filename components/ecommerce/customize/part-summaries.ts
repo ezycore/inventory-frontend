@@ -4,6 +4,7 @@ import {
   DESIGN_DENSITIES,
   DESIGN_FONTS,
   DEFAULT_DESIGN,
+  DESIGN_NAV_HOVERS,
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
@@ -127,7 +128,21 @@ export function partSummary(
         draft.templates.headerMenu === "collections"
           ? `menu from ${count(listed, "collection")}`
           : `${count(draft.navHeader.filter((i) => i.label.trim()).length, "custom link")}`;
-      return `${labelOf("header", draft.templates.header)} · ${menu}`;
+      /* Hover is appended only once it has been moved off `none`, the same
+         rule the Look ramps follow: on the shop that never opened the control
+         it would report a setting nobody made. */
+      const hover = [
+        ramp(DESIGN_NAV_HOVERS, draft.design.navHover, DEFAULT_DESIGN.navHover),
+        ramp(
+          DESIGN_NAV_HOVERS,
+          draft.design.navChildHover,
+          DEFAULT_DESIGN.navChildHover,
+        ),
+      ].filter(Boolean);
+      const hoverNote = hover.length
+        ? ` · ${[...new Set(hover)].join("/")} hover`
+        : "";
+      return `${labelOf("header", draft.templates.header)} · ${menu}${hoverNote}`;
     }
     case "hero": {
       if (draft.templates.home === "minimal") return "Not shown on the Minimal home layout";
