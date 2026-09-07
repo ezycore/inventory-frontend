@@ -12065,6 +12065,16 @@ export interface components {
                     paddingX?: "sm" | "md" | "lg";
                     dismissible?: boolean;
                 };
+                utilityBar?: {
+                    enabled?: boolean;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    showPhone?: boolean;
+                    showTrackOrder?: boolean;
+                    showLanguage?: boolean;
+                    showTheme?: boolean;
+                    trackOrderLabel?: string;
+                };
             };
             checkout?: {
                 requiredFields?: string[];
@@ -19109,6 +19119,16 @@ export interface operations {
                             /** @enum {string} */
                             paddingX?: "sm" | "md" | "lg";
                             dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
                         };
                     };
                     checkout?: {

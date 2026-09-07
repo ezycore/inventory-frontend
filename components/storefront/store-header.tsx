@@ -21,6 +21,7 @@ import { useHeaderHeight } from "@/components/storefront/use-header-height";
 import { MobileBar } from "@/components/storefront/mobile/mobile-chrome";
 import {
   headerBar,
+  UtilityBar,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
 import {
@@ -32,6 +33,7 @@ import {
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
+import { resolveUtilityBar } from "@/lib/storefront-utility-bar";
 
 /** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
 const HEADER_VARIANTS: readonly string[] = [
@@ -89,6 +91,7 @@ export function StoreHeader({
   const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
   const previewNavHeader = useSfPreview((s) => s.navHeader);
   const previewBadges = useSfPreview((s) => s.badges);
+  const previewUtilityBar = useSfPreview((s) => s.utilityBar);
   const previewLogo = useSfPreviewImage("logo", store?.logo);
 
   // Drafts from the admin Navigation editor win over the saved store payload.
@@ -143,6 +146,10 @@ export function StoreHeader({
   const mobileRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const Desktop = DESKTOP_VARIANTS[variant] ?? ClassicDesktop;
+  const utilityBar = resolveUtilityBar(
+    previewUtilityBar ?? store?.nav?.utilityBar,
+    variant,
+  );
 
   // Publishes `--sf-header-h` so a top-sticky panel elsewhere on the page can
   // clear this bar instead of sliding under it (checkout's order rail).
@@ -150,6 +157,9 @@ export function StoreHeader({
 
   return (
     <>
+      {utilityBar.enabled && utilityBar.showOnMobile ? (
+        <UtilityBar ctx={ctx} config={utilityBar} className="sf-mobile-only" />
+      ) : null}
       {/* `mobileRef` goes ON the bar, never around it. `useHeaderHeight` needs
           the measurement, but the bar is `position: sticky` on four of the five
           templates and sticky is confined to its parent's box — a wrapper that
@@ -163,6 +173,9 @@ export function StoreHeader({
         barRef={mobileRef}
       />
       <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
+        {utilityBar.enabled && utilityBar.showOnDesktop ? (
+          <UtilityBar ctx={ctx} config={utilityBar} />
+        ) : null}
         <Desktop ctx={ctx} />
       </div>
     </>

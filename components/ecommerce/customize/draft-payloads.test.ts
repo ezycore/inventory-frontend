@@ -133,6 +133,16 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   heroSlides: [],
   heroBanner: {},
   navHeader: [],
+  utilityBar: {
+    enabled: true,
+    showOnDesktop: true,
+    showOnMobile: false,
+    showPhone: true,
+    showTrackOrder: true,
+    showLanguage: true,
+    showTheme: true,
+    trackOrderLabel: "",
+  },
   announcement: {
     enabled: false,
     useShippingRule: false,
@@ -328,6 +338,32 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     expect(patch.nav?.footerPaymentMethods).toEqual({
       showOnDesktop: false,
       showOnMobile: true,
+    });
+    expect(patch.nav?.utilityBar).toEqual({
+      ...value.utilityBar,
+      trackOrderLabel: undefined,
+    });
+  });
+
+  it("persists the utility bar as one responsive section", () => {
+    const value = draft({
+      utilityBar: {
+        enabled: true,
+        showOnDesktop: false,
+        showOnMobile: true,
+        showPhone: false,
+        showTrackOrder: true,
+        showLanguage: false,
+        showTheme: false,
+        trackOrderLabel: "  Check delivery  ",
+      },
+    });
+
+    const patch = toSettingsPatch(value, ["utility"]);
+
+    expect(patch.nav?.utilityBar).toEqual({
+      ...value.utilityBar,
+      trackOrderLabel: "Check delivery",
     });
   });
 

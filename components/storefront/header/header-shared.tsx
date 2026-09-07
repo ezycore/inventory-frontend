@@ -10,6 +10,7 @@ import type {
 } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import type { ResolvedUtilityBar } from "@/lib/storefront-utility-bar";
 import { Icon } from "@/components/storefront/sf-icons";
 import {
   HeaderNav,
@@ -104,22 +105,41 @@ export function headerLinks(ctx: HeaderCtx): { key: string; label: string; href:
       }));
 }
 
-export function UtilityBar({ ctx }: { ctx: HeaderCtx }) {
+export function UtilityBar({
+  ctx,
+  config,
+  className,
+}: {
+  ctx: HeaderCtx;
+  config: ResolvedUtilityBar;
+  className?: string;
+}) {
   const { base, phone, t } = ctx;
+  const hasPhone = config.showPhone && !!phone;
+  if (
+    !hasPhone &&
+    !config.showTrackOrder &&
+    !config.showLanguage &&
+    !config.showTheme
+  ) return null;
   return (
-    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "6px var(--pad)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, color: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
+    <div className={className} style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "6px var(--pad)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12, color: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
       {/* Merchant's real phone only — never a placeholder number. */}
       <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        {phone ? (
+        {hasPhone ? (
           <>
             <Icon name="phone" size={15} /> {phone}
           </>
         ) : null}
       </span>
-      <span style={{ display: "flex", gap: 16, alignItems: "center" }}>
-        <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>{t.trackOrder}</Link>
-        <LangBtn ctx={ctx} />
-        <ThemeBtn ctx={ctx} />
+      <span style={{ display: "flex", gap: 16, alignItems: "center", marginInlineStart: "auto" }}>
+        {config.showTrackOrder ? (
+          <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>
+            {config.trackOrderLabel || t.trackOrder}
+          </Link>
+        ) : null}
+        {config.showLanguage ? <LangBtn ctx={ctx} /> : null}
+        {config.showTheme ? <ThemeBtn ctx={ctx} /> : null}
       </span>
     </div>
   );
@@ -134,15 +154,12 @@ export function LangBtn({ ctx }: { ctx: HeaderCtx }) {
 }
 
 /**
- * The light/dark switch. **Every desktop anatomy must render one.**
+ * The light/dark switch shared by header anatomies and the utility bar.
  *
  * The choice is persisted to `localStorage` and re-applied before paint by the
- * script in the storefront layout, so an anatomy that omits this control does
- * not merely hide a preference — it STRANDS the shopper in whichever theme they
- * last chose, on every future visit, with no way back. Three of the six
- * anatomies shipped without it (`minimal`, `search-first`, `boutique`), which is
- * how a shopper could end up looking at a permanently dark shop and reasonably
- * conclude the theme was broken.
+ * script in the storefront layout. Non-Classic desktop anatomies retain their
+ * own control; Classic receives it through the independently configurable
+ * utility bar unless the merchant deliberately turns that item off.
  *
  * `compact` is for the icon rows that have no room for a word; it is a prop
  * rather than a second component so the two can never drift on what they toggle

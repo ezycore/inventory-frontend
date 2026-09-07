@@ -292,6 +292,10 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       paddingX: cs.paddingX,
       dismissible: cs.dismissible,
     },
+    utilityBar: {
+      ...draft.utilityBar,
+      trackOrderLabel: draft.utilityBar.trackOrderLabel.trim() || undefined,
+    },
   };
 }
 
@@ -450,7 +454,11 @@ export function toSettingsPatch(
   }
   if (dirty.has("home")) take("sectionConfig");
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
-  if (["announcement", "campaign", "header", "footer"].some((part) => dirty.has(part as PartId))) {
+  if (
+    ["announcement", "campaign", "header", "utility", "footer"].some((part) =>
+      dirty.has(part as PartId),
+    )
+  ) {
     take("nav");
   }
   if (dirty.has("hero")) {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * **Every desktop header anatomy must expose the light/dark switch.**
+ * **Every non-Classic desktop anatomy must expose the light/dark switch.**
  *
  * The theme is persisted to `localStorage` and re-applied before paint by the
  * storefront layout, so an anatomy that omits the toggle does not merely hide a
@@ -13,9 +13,9 @@ import { join } from "node:path";
  * owner while every measurement taken in a fresh browser profile said light.
  *
  * Asserted against the SOURCE rather than a render: these components need the
- * full `HeaderCtx` (cart, session, categories, i18n) to mount, and the thing
- * worth protecting is "the control is wired up in every branch", which reads
- * off the file directly and cannot rot behind a mock.
+ * full `HeaderCtx` (cart, session, categories, i18n) to mount. Classic gets the
+ * switch from the independently configurable Utility bar in `StoreHeader`; the
+ * other anatomies retain their own switch when that bar is off.
  */
 const SOURCE = readFileSync(
   join(process.cwd(), "components/storefront/header/desktop-variants.tsx"),
@@ -39,12 +39,13 @@ describe("desktop header anatomies", () => {
     expect(anatomies.length).toBeGreaterThanOrEqual(6);
   });
 
-  it.each(anatomies)("%s offers a way out of dark mode", (name) => {
-    const body = bodyOf(name);
-    // Either the toggle directly, or the utility bar that carries it.
-    const hasToggle = /<ThemeBtn\b/.test(body) || /<UtilityBar\b/.test(body);
-    expect(hasToggle, `${name} renders no ThemeBtn and no UtilityBar`).toBe(true);
-  });
+  it.each(anatomies.filter((name) => name !== "ClassicDesktop"))(
+    "%s offers a way out of dark mode",
+    (name) => {
+      const body = bodyOf(name);
+      expect(body, `${name} renders no ThemeBtn`).toMatch(/<ThemeBtn\b/);
+    },
+  );
 });
 
 /**

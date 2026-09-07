@@ -144,6 +144,18 @@ export function partSummary(
         : "";
       return `${labelOf("header", draft.templates.header)} · ${menu}${hoverNote}`;
     }
+    case "utility": {
+      const u = draft.utilityBar;
+      if (!u.enabled) return "Off";
+      const where = stripWhere(u.showOnDesktop, u.showOnMobile);
+      const items = [
+        u.showPhone,
+        u.showTrackOrder,
+        u.showLanguage,
+        u.showTheme,
+      ].filter(Boolean).length;
+      return [`On · ${count(items, "item")}`, where].filter(Boolean).join(" · ");
+    }
     case "hero": {
       if (draft.templates.home === "minimal") return "Not shown on the Minimal home layout";
       if (draft.templates.hero === "banner") {

@@ -787,6 +787,18 @@ export interface StoreCampaignStrip {
   dismissible?: boolean;
 }
 
+/** Merchant-controlled information strip above the storefront header. */
+export interface StoreUtilityBar {
+  enabled?: boolean;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  showPhone?: boolean;
+  showTrackOrder?: boolean;
+  showLanguage?: boolean;
+  showTheme?: boolean;
+  trackOrderLabel?: string;
+}
+
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
@@ -796,6 +808,7 @@ export interface StoreNav {
   footerContentPages?: StoreFooterContentPages;
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
+  utilityBar?: StoreUtilityBar;
 }
 
 /**

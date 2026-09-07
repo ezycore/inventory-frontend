@@ -512,6 +512,19 @@ export interface StorefrontCampaignStrip {
   dismissible?: boolean;
 }
 
+/** Merchant-controlled information strip above the storefront header. */
+export interface StorefrontUtilityBar {
+  enabled?: boolean;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  showPhone?: boolean;
+  showTrackOrder?: boolean;
+  showLanguage?: boolean;
+  showTheme?: boolean;
+  /** Blank/unset uses the localized "Track order" label. */
+  trackOrderLabel?: string;
+}
+
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
@@ -522,6 +535,8 @@ export interface StorefrontNav {
   announcement?: StorefrontAnnouncement;
   /** Presentation of the campaign strip; not its schedule. */
   campaignStrip?: StorefrontCampaignStrip;
+  /** Optional information strip above the main header. */
+  utilityBar?: StorefrontUtilityBar;
 }
 
 export interface StorefrontCheckout {

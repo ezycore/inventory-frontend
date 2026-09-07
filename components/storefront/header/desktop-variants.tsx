@@ -16,7 +16,6 @@ import {
   CategoryRow,
   LangBtn,
   ThemeBtn,
-  UtilityBar,
   headerLinks,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
@@ -40,7 +39,6 @@ export function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
   const { base, name, logo } = ctx;
   return (
     <>
-      <UtilityBar ctx={ctx} />
       <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "13px var(--pad)", display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
           <Brand name={name} logo={logo} markSize={38} nameSize={18} />

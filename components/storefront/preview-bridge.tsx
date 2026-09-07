@@ -64,6 +64,7 @@ export function StorePreviewBridge() {
         headerMenuSrc: p.templates?.headerMenu,
         navHeader: p.nav?.header,
         announcement: p.nav?.announcement,
+        utilityBar: p.nav?.utilityBar,
         campaignStrip: p.nav?.campaignStrip,
         collections: p.collections,
         footerGroups: p.nav?.footer,

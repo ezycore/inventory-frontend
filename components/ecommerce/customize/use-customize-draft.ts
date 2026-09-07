@@ -48,6 +48,10 @@ import {
   type CollectionRowValue,
 } from "@/components/ecommerce/collections/collection-row";
 import { isValidHexColor } from "@/ui/components/color-field";
+import {
+  resolveUtilityBar,
+  type ResolvedUtilityBar,
+} from "@/lib/storefront-utility-bar";
 
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
@@ -142,6 +146,9 @@ export interface FooterNewsletterDraft {
   buttonLabel: string;
 }
 
+/** Complete utility-bar values keep every Customize control selected. */
+export type UtilityBarDraft = ResolvedUtilityBar;
+
 /**
  * Everything the Customize page can change, in one object.
  *
@@ -188,6 +195,7 @@ export interface CustomizeDraft {
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
   campaignStrip: CampaignStripDraft;
+  utilityBar: UtilityBarDraft;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerPaymentMethods: FooterPaymentMethodsDraft;
@@ -247,6 +255,7 @@ export type PartId =
   | "announcement"
   | "campaign"
   | "header"
+  | "utility"
   | "mobile"
   | "hero"
   | "home"
@@ -272,6 +281,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
+  utility: (d) => d.utilityBar,
   // The template id and the arrangement over it are one visible thing to a
   // merchant — their phone header — so they share a slice. Splitting them would
   // let the save bar name a part the merchant never opened.
@@ -396,6 +406,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
   const presetDefaults = getPreset(t.preset);
   const a = settings.nav?.announcement;
   const cs = settings.nav?.campaignStrip;
+  const templates = seedTemplates(settings);
   return {
     preset: t.preset ?? "default",
     brandColor: t.brandColor ?? presetDefaults.brandColor,
@@ -415,7 +426,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     homepageSections: t.homepageSections ?? [],
     sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
-    templates: seedTemplates(settings),
+    templates,
     // Resolved, like `design` above and for the same reason — the slot editor's
     // inputs are controlled, so every field has to arrive concrete.
     mobile: resolveMobileChrome(settings.templates, t.mobile),
@@ -459,6 +470,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       paddingX: cs?.paddingX ?? "md",
       dismissible: cs?.dismissible ?? false,
     },
+    utilityBar: resolveUtilityBar(settings.nav?.utilityBar, templates.header),
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
     footerPaymentMethods: {
