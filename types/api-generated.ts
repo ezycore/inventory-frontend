@@ -10195,6 +10195,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
             } | null;
+            description?: string | null;
             storefront?: {
                 isListed?: boolean;
                 order?: number;
@@ -11910,6 +11911,8 @@ export interface components {
                     density?: string;
                     radius?: string;
                     width?: string;
+                    navHover?: string;
+                    navChildHover?: string;
                 };
                 mobile?: {
                     left?: string[];
@@ -11937,6 +11940,44 @@ export interface components {
                 categoryIds?: string[];
                 /** @enum {string} */
                 cardShape?: "stacked" | "split";
+                /** @enum {string} */
+                cardSide?: "left" | "right" | "alternate";
+                cardSplit?: number;
+                cardHideText?: boolean;
+                cardHeight?: number;
+                /** @enum {string} */
+                cardFlow?: "wrap" | "scroll";
+                cardPerRow?: number;
+                cardRadius?: number;
+                cardArrows?: boolean;
+                /** @enum {string} */
+                cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                fullWidth?: boolean;
+                mobile?: {
+                    /** @enum {string} */
+                    cardFlow?: "wrap" | "scroll";
+                    cardPerRow?: number;
+                    /** @enum {string} */
+                    cardShape?: "stacked" | "split";
+                    /** @enum {string} */
+                    cardSide?: "left" | "right" | "alternate";
+                    cardSplit?: number;
+                    cardHideText?: boolean;
+                    cardHeight?: number;
+                };
+                cards?: {
+                    categoryId: string;
+                    title?: string;
+                    description?: string;
+                    image?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                    } | null;
+                    buttonLabel?: string;
+                    buttonHref?: string;
+                }[];
                 title?: string;
                 limit?: number;
                 tagIds?: string[];
@@ -18925,6 +18966,8 @@ export interface operations {
                             density?: string;
                             radius?: string;
                             width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
                         };
                         /** @enum {string} */
                         heroAlign?: "left" | "center";
@@ -18948,6 +18991,44 @@ export interface operations {
                         categoryIds?: string[];
                         /** @enum {string} */
                         cardShape?: "stacked" | "split";
+                        /** @enum {string} */
+                        cardSide?: "left" | "right" | "alternate";
+                        cardSplit?: number;
+                        cardHideText?: boolean;
+                        mobile?: {
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            cardHeight?: number;
+                        };
+                        /** @enum {string} */
+                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                        cardHeight?: number;
+                        /** @enum {string} */
+                        cardFlow?: "wrap" | "scroll";
+                        cardPerRow?: number;
+                        cardRadius?: number;
+                        cardArrows?: boolean;
+                        fullWidth?: boolean;
+                        cards?: {
+                            categoryId: string;
+                            title?: string;
+                            description?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            buttonLabel?: string;
+                            buttonHref?: string;
+                        }[];
                         title?: string;
                         limit?: number;
                         tagIds?: string[];

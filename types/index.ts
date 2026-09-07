@@ -233,6 +233,38 @@ export interface StorefrontHomeSection {
  * replaces `theme.homepageSections` outright, so a merchant's chosen collection
  * stored in there would be erased on every apply.
  */
+/**
+ * One promo card's own title, description, picture and button.
+ *
+ * Every field optional, every one falling back to the collection the card
+ * points at — so an untouched card is the card that existed before overrides.
+ * Mirrors `StoreSectionCard` on the storefront side.
+ */
+export interface StorefrontSectionCard {
+  categoryId: string;
+  title?: string;
+  description?: string;
+  /**
+   * `null` = the merchant cleared their upload, back to the collection's.
+   *
+   * ⚠ Typed loosely rather than as `Image`, and the reason is the seam: the
+   * Customize draft holds the STOREFRONT's `StoreSectionConfig` and this
+   * payload type is the admin's, so the two shapes are assigned across in
+   * `draft-payloads.ts`. The storefront's `StorefrontImage` makes every field
+   * optional and has no `publicId`, so requiring one here fails that assignment
+   * — while the upload endpoint returns a full `Image`, which satisfies this
+   * happily. Same relationship a hero slide has; it simply never crosses.
+   */
+  image?: {
+    url?: string;
+    mediumUrl?: string;
+    thumbnailUrl?: string;
+    publicId?: string;
+  } | null;
+  buttonLabel?: string;
+  buttonHref?: string;
+}
+
 export interface StorefrontSectionConfig {
   key: string;
   /** `manual` = the merchant picked `productIds` by hand, in that order. */
@@ -246,6 +278,57 @@ export interface StorefrontSectionConfig {
   categoryIds?: string[];
   /** A promo card's composition. Unset ⇒ `stacked` (photo above the copy). */
   cardShape?: "stacked" | "split";
+  /**
+   * Which side of a split promo card the picture sits on; `alternate` is the
+   * zebra. Unset ⇒ `left`.
+   */
+  cardSide?: "left" | "right" | "alternate";
+  /** The picture column's share of a split card, as a percentage (20–80). */
+  cardSplit?: number;
+  /** Drop the words and give the picture the whole card. */
+  cardHideText?: boolean;
+  /**
+   * What a PHONE answers differently — composition only. Every field optional
+   * and every one inheriting the desktop value above, so a row nobody has
+   * opened the Phone tab on renders as it always did.
+   */
+  mobile?: {
+    cardFlow?: "wrap" | "scroll";
+    cardPerRow?: number;
+    cardShape?: "stacked" | "split";
+    cardSide?: "left" | "right" | "alternate";
+    cardSplit?: number;
+    cardHideText?: boolean;
+    cardHeight?: number;
+  };
+  /** The promo photo's shape. Unset ⇒ the storefront stylesheet decides. */
+  cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+  /**
+   * The picture's height in px, overriding `cardRatio`. Shared across screens.
+   *
+   * ⚠ A ratio ties the picture's height to the card's WIDTH, and the width comes
+   * from how many collections the merchant picked — so a thin strip across the
+   * page had no expression until this existed.
+   */
+  cardHeight?: number;
+  /** Grid or a scrolling track. Unset ⇒ `wrap`. Per screen. */
+  cardFlow?: "wrap" | "scroll";
+  /** How many cards fill the row, or are visible in a track. 1–4, per screen. */
+  cardPerRow?: number;
+  /** The card's corner radius in px. Unset ⇒ the shop's Design → Corners. */
+  cardRadius?: number;
+  /** Paging arrows on a scrolling row. Unset ⇒ shown (pointer devices only). */
+  cardArrows?: boolean;
+  /** Span the window rather than the page's content column. */
+  fullWidth?: boolean;
+  /**
+   * Per-card presentation overrides for a promo-card row.
+   *
+   * ⚠ **Layered over the collection, never written back to it.** Card copy is
+   * an advertisement in one block; the collection keeps its own name and
+   * description everywhere else it appears.
+   */
+  cards?: StorefrontSectionCard[];
   title?: string;
   /** 4–12. Unset ⇒ the section's own default. Ignored by a `manual` row. */
   limit?: number;

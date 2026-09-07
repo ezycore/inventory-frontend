@@ -137,6 +137,12 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "cozy",
       radius: "soft",
       width: "contained",
+      /* Classic is the RESET, so both hover axes stamp back to `none` for the
+         same reason `surface: "default"` does — a merchant returning here must
+         get the storefront's own header, not keep an effect a previous theme
+         left behind. */
+      navHover: "none",
+      navChildHover: "none",
     },
     homeCollections: { layout: "strip", align: "left" },
     // Spelled out because Classic is the RESET: a merchant who centred their
@@ -209,6 +215,10 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "cozy",
       radius: "pill",
       width: "contained",
+      // Pill buttons and chips throughout, so a soft pill behind a department
+      // is the same shape language the rest of the theme already speaks.
+      navHover: "highlight",
+      navChildHover: "highlight",
     },
     // No fixed column count: the original department row fits as many roomy
     // discs as the available width allows. The owner can still choose 2–6.
@@ -336,6 +346,10 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "compact",
       radius: "soft",
       width: "contained",
+      // A dispensary counter: a crisp colour change on the bar, and the
+      // ordinary highlighted row in the list of departments beneath it.
+      navHover: "color",
+      navChildHover: "highlight",
     },
     homeCollections: { layout: "grid", align: "center" },
     /* **No hero, and no category section.** The `rail` shell puts the conditions
@@ -431,6 +445,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "airy",
       radius: "sharp",
       width: "contained",
+      /* Typographic, like everything else here. A pill behind the label is the
+         warmer, cheaper note this theme's white ground is deliberately avoiding
+         — an underline is the answer a fashion book would give. */
+      navHover: "underline",
+      navChildHover: "color",
     },
     // Overlay scenes keep their original adaptive, centred composition until
     // the merchant chooses an exact number per row.
@@ -513,6 +532,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       density: "airy",
       radius: "round",
       width: "contained",
+      // Soft and round throughout — the pill is this theme's whole idiom.
+      navHover: "highlight",
+      navChildHover: "highlight",
     },
     homeCollections: { layout: "grid", align: "center" },
     /* **The promises come SECOND, above the catalogue** — the one structural

@@ -66,6 +66,8 @@ export function CategoryStrip({
   gap,
   vars,
   className,
+  trackClassName,
+  arrows = true,
   children,
 }: {
   align: ResolvedHomeCollections["align"];
@@ -80,6 +82,22 @@ export function CategoryStrip({
    * a value that has to change on a phone cannot travel as a style.
    */
   className?: string;
+  /**
+   * Classes on the TRACK itself — the scroll container. Needed by a caller
+   * whose row is a grid at one breakpoint and a track at the other, which
+   * cannot be expressed on the wrapper.
+   */
+  trackClassName?: string;
+  /**
+   * Draw the paging arrows at all. Default `true`, which is the behaviour every
+   * caller had before this existed.
+   *
+   * ⚠ Turning it off is not the same as the stylesheet's own rule. That already
+   * limits arrows to pointer devices (`hover: hover and pointer: fine`), so a
+   * phone never had them; this is the merchant asking for a bare track on the
+   * screens that would.
+   */
+  arrows?: boolean;
   children: ReactNode;
 }) {
   const { t } = useStorefrontUI();
@@ -127,20 +145,24 @@ export function CategoryStrip({
     >
       <div
         ref={track}
-        className="sf-cat-strip-track"
+        className={
+          trackClassName
+            ? `sf-cat-strip-track ${trackClassName}`
+            : "sf-cat-strip-track"
+        }
         style={{ gap, justifyContent: STRIP_ALIGN[align] }}
         onScroll={sync}
       >
         {children}
       </div>
-      {edges.start ? (
+      {arrows && edges.start ? (
         <StripArrow
           edge="start"
           label={t.previousCategories}
           onPress={() => page(-1)}
         />
       ) : null}
-      {edges.end ? (
+      {arrows && edges.end ? (
         <StripArrow
           edge="end"
           label={t.nextCategories}

@@ -3,6 +3,7 @@
 import type {
   HeaderMenuSource,
   StoreContactButton,
+  StoreSectionConfig,
 } from "@/lib/storefront-client";
 import type {
   Image,
@@ -36,6 +37,37 @@ import { mobileOverrides } from "@/lib/storefront-mobile";
  * exists to prevent.
  * Change a trimming rule and both sides move at once.
  */
+
+/**
+ * Normalize the merchant-typed links inside a row's per-card overrides.
+ *
+ * ⚠ **Normalized on the way OUT, exactly like a hero slide's link.** A card's
+ * `buttonHref` is a string somebody typed, and the storefront resolves it
+ * through `storeLinkHref` — so a `/shop/products` pasted from the address bar
+ * would otherwise be stored as-is and resolve to `/shop/shop/products`, and a
+ * scheme nobody supports would be stored at all. Doing it here rather than in
+ * the panel means it is the SAVED value that is clean, so the card, the panel's
+ * destination hint and the database cannot drift apart.
+ *
+ * Blank stays blank: `normalizeStoreLink` falls back to `/products`, which
+ * would turn "no link, use the collection page" into "link to the catalogue".
+ */
+const cleanSectionConfig = (
+  rows: StoreSectionConfig[],
+): StoreSectionConfig[] =>
+  rows.map((row) =>
+    row.cards?.length
+      ? {
+          ...row,
+          cards: row.cards.map((card) => ({
+            ...card,
+            buttonHref: card.buttonHref?.trim()
+              ? normalizeStoreLink(card.buttonHref)
+              : undefined,
+          })),
+        }
+      : row,
+  );
 
 const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
   // Completely blank rows are drafts. Artwork-only slides are intentional.
@@ -357,8 +389,10 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
     // array without the other), but this payload always carries BOTH, so an
     // orphan reaching it means the merchant deleted the section and there is
     // nothing to preserve.
-    sectionConfig: draft.sectionConfig.filter((c) =>
-      draft.homepageSections.some((s) => s.key === c.key),
+    sectionConfig: cleanSectionConfig(
+      draft.sectionConfig.filter((c) =>
+        draft.homepageSections.some((s) => s.key === c.key),
+      ),
     ),
     copy: {
       footerText: draft.footerText.trim() || undefined,

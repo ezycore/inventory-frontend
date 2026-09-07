@@ -6,7 +6,15 @@ import Link from "next/link";
 import type { CatalogCategory, StoreTemplates } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
-import { findSectionCategory, resolveCardShape } from "@/lib/storefront-sections";
+import {
+  DEFAULT_BANNER_COUNT,
+  MAX_BANNER_COUNT,
+  cardRatioValue,
+  findSectionCategory,
+  resolveCardRatio,
+  resolveCardShape,
+  sectionCard,
+} from "@/lib/storefront-sections";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
@@ -380,191 +388,6 @@ export function CategoryTiles(props: SectionProps) {
   );
 }
 
-/**
- * Category promo cards — one to four departments advertised as a block, each
- * with its photograph, its name, the merchant's own line about it, and a button
- * into it.
- *
- * **How this differs from `category-tiles`, which is the question to answer
- * before touching either.** Tiles are WAYFINDING: every department, small,
- * scannable, sized so a row of them never outweighs the products. These are
- * MERCHANDISING: a handful the merchant chose, drawn large enough to sell. That
- * is why the count is capped at four and why the collections are picked rather
- * than listed — a promo block showing all fourteen departments is a tile row
- * with the type turned up.
- *
- * It is also why the description earns its place here and is suppressed on most
- * tile modes: a card this size has room for a sentence, and the sentence is what
- * makes it an advertisement rather than a link.
- *
- * **On a phone it is one card per row, full width** — not two half-width ones.
- * The whole point of the block is that a card is big enough to carry a photo, a
- * line of copy and a button; at 170px it carries none of them, and the shopper
- * gets a worse version of the tile row that already exists two sections up.
- * Page length is the cost, which is what the section's own visibility control is
- * for.
- *
- * **`cardShape` is a composition, and the merchant's pick count is the size.**
- * Two collections fill half the row each, three fill a third — the same model
- * the reference layouts merchants ask for use, and the reason this block never
- * grew a width control. What it was missing was where the picture goes:
- * `stacked` runs it above the copy, `split` sets it beside. Which reads better
- * depends on the merchant's own pictures, not on their theme, so it is theirs
- * to answer — the same argument `templates.categoryTiles` settles for tiles.
- *
- * ⚠ `split` draws a DIFFERENT card on a phone, not the same one narrower. Even
- * columns need a full row to divide — half of a 390px card is ~170px each and
- * carries neither the photograph nor the sentence — so the phone runs the
- * picture as a thumbnail down the side (~30%, capped) with the copy taking the
- * rest. That shipped after the setting was reported as broken on a phone, which
- * it effectively was: the panel offered a choice that changed nothing on the
- * device carrying nearly all of this platform's traffic. It also gives the
- * section its only real answer to length — a stacked card is a 16:9 photograph
- * plus copy plus a button, so two of them are the phone's whole home page.
- *
- * Both compositions live entirely in `storefront.css` (`.sf-banner-card--split`
- * appears in a `max-width: 679px` block and a `min-width: 680px` one), so this
- * component never asks about a viewport it cannot see — it sets the class and
- * the ratio VARIABLE, and the breakpoint decides the value.
- *
- * Renders nothing without categories, like every section in this file.
- */
-export function CategoryBanners({ base, categories, config, t }: SectionProps) {
-  const imageFit = useStoreImageFit();
-  const picked = pickedCategories(categories, config?.categoryIds);
-  /* The merchant's composition. Read through the shared resolver rather than
-     compared here, so the editor's selected pill and this card can never
-     disagree about what an unset value looks like. */
-  const split = resolveCardShape(config) === "split";
-  if (!picked.length) return null;
-
-  return (
-    <div style={{ ...wrap, padding: "clamp(16px,3vw,28px) var(--pad)" }}>
-      {config?.title?.trim() ? (
-        <SectionTitle>{config.title.trim()}</SectionTitle>
-      ) : null}
-      <div className="sf-banner-row">
-        {picked.map((category) => {
-          const image = cardImageUrl(category.image);
-          const description = category.description?.trim();
-          return (
-            <Link
-              key={category._id}
-              href={collectionHref(base, category)}
-              className={split ? "sf-banner-card sf-banner-card--split" : "sf-banner-card"}
-              style={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius-lg)",
-              }}
-            >
-              {/* One aspect box for the whole row, whether or not the merchant
-                  photographed every collection — a block whose cards are
-                  different heights reads as broken rather than as varied.
-
-                  ⚠ The ratio is a CSS variable, not a number chosen here. It is
-                  16:9 stacked and 4:3 split, and which one applies depends on
-                  the BREAKPOINT as well as the setting — a phone draws the
-                  stacked card whatever the merchant picked. A component cannot
-                  know the viewport on a server-rendered page, so the value has
-                  to live in the stylesheet; see `.sf-banner-card`. */}
-              {image ? (
-                <Media
-                  src={image}
-                  alt={category.name}
-                  radius={0}
-                  fit={imageFit}
-                  style={{ aspectRatio: "var(--sf-bc-ratio)" }}
-                />
-              ) : (
-                <span
-                  aria-hidden
-                  style={{
-                    aspectRatio: "var(--sf-bc-ratio)",
-                    display: "block",
-                    background: "var(--primary-soft)",
-                  }}
-                />
-              )}
-              <span className="sf-banner-body">
-                <span
-                  className="sf-display"
-                  style={{
-                    display: "block",
-                    fontSize: "var(--h2)",
-                    fontWeight: 700,
-                    color: "var(--text)",
-                  }}
-                >
-                  {category.name}
-                </span>
-                {description ? (
-                  /* Two lines, then an ellipsis. The merchant writes this line
-                     once and it is printed at four different widths across the
-                     block's breakpoints, so a long one has to stop somewhere the
-                     card can absorb — the full text heads the collection page
-                     this card leads to. */
-                  <span className="sf-banner-copy">{description}</span>
-                ) : null}
-                {/* A BUTTON, not the arrow link every product row ends with.
-                    That link is a navigation affordance beside a heading; this
-                    is the call to action of an advertisement, and the only
-                    thing on the card asking to be pressed. It is a `span`
-                    because the whole card is already the anchor — a nested
-                    `<a>` is invalid and a second tab stop for the same
-                    destination. */}
-                <span
-                  style={{
-                    marginTop: 12,
-                    display: "inline-block",
-                    padding: "8px 16px",
-                    borderRadius: "var(--radius-sm)",
-                    background: "var(--primary)",
-                    color: "var(--on-primary)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  {t.shopNow}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/** How many departments the block falls back to before a merchant picks. */
-const DEFAULT_BANNER_COUNT = 2;
-/** Mirrors `categoryIds` in the backend validator — see the note there. */
-const MAX_BANNERS = 4;
-
-/**
- * The collections this block advertises, in the merchant's own order.
- *
- * **Unpicked shows the first two rather than nothing.** A section that renders
- * blank until configured looks broken in the Customize preview at the exact
- * moment the merchant has just added it and is looking for it — the same reason
- * every product row has a built-in source. Two, not four: the block is the
- * merchant's own choice of what to push, and filling it to the brim with
- * whatever sorted first makes it look decided.
- *
- * A pick that no longer resolves is skipped rather than pruned, matching a
- * hand-picked product row: a collection hidden for a week must come back when
- * it returns.
- */
-function pickedCategories(
-  categories: CatalogCategory[],
-  ids: string[] | undefined,
-): CatalogCategory[] {
-  if (!ids?.length) return categories.slice(0, DEFAULT_BANNER_COUNT);
-  return ids
-    .map((id) => findSectionCategory(categories, id)?.category)
-    .filter((c): c is CatalogCategory => !!c)
-    .slice(0, MAX_BANNERS);
-}
 
 function isTilesMode(value: unknown): value is StoreTemplates["categoryTiles"] {
   return (

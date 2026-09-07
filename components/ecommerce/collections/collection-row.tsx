@@ -25,6 +25,15 @@ export interface CollectionRowValue {
   parentId?: string | null;
   displayName: string;
   isListed: boolean;
+  /**
+   * The sentence the SHOP shows: it heads the collection page and is what turns
+   * a category promo card from a name-and-button into an advertisement. "" when
+   * unset — and unset is the common state, which is why the promo-card panel
+   * counts these the way it counts missing pictures.
+   *
+   * ⚠ Not `seoDescription` below. That is a meta tag; this is on the page.
+   */
+  description: string;
   /** Merchant SEO overrides for the collection landing page; "" when unset. */
   seoTitle: string;
   seoDescription: string;
@@ -159,6 +168,7 @@ export function toRowValue(c: {
   slug?: string;
   slugPath?: string;
   parentId?: string | null;
+  description?: string | null;
   image?: { url?: string; mediumUrl?: string; thumbnailUrl?: string } | null;
   storefront?: {
     isListed?: boolean;
@@ -173,6 +183,7 @@ export function toRowValue(c: {
     slugPath: c.slugPath,
     parentId: c.parentId ?? null,
     displayName: c.storefront?.displayName ?? "",
+    description: c.description ?? "",
     isListed: c.storefront?.isListed !== false,
     seoTitle: c.storefront?.seo?.title ?? "",
     seoDescription: c.storefront?.seo?.description ?? "",

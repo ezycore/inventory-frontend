@@ -118,6 +118,12 @@ your logo, banner, slide and announcement pictures — save the moment you uploa
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 
+**Hover** sits under the same part and decides what a menu link does when someone points at it on a
+computer. Nothing happens by default. You answer twice, because the two rows are different: **Menu
+items** is the row across your header, and **Dropdown items** is the list that opens underneath one.
+Each offers None, Colour, Underline or a soft Highlight. Phones are unaffected either way — there a
+menu is a panel and a tap opens it.
+
 ### Hero
 
 The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
@@ -208,6 +214,58 @@ shows an explanation here instead of controls that cannot affect the page.
 
 Applying a ready-made theme also restores that theme's starting row: Classic uses a scrolling strip,
 while Fresh Market and Muslin use their wider adaptive grid. Your next row edit can override it.
+
+**Category promo cards carry their own words.** Open a card in that section and you get a **Card
+title**, a **Card description**, a **Card picture**, a **Button** label and where it **Links to** —
+all of them for that card only. Leave any of them empty and the card uses the collection's own name,
+description and picture, which is what every box shows you as grey placeholder text. Nothing you
+type here changes the collection itself: its page, the category rows and the header menu keep the
+name and description you gave it. That is the point — you can advertise "Winter cushions, half
+price" on the home page without renaming the collection everywhere.
+
+**Shaping the whole block.** **Card shape** puts the picture above the words or beside them. With
+the picture beside, **Picture side** puts it on the left, on the right, or **Alternate** — left,
+right, left down the block — and **Picture width** decides how much of the card it takes, from a
+quarter to three quarters, with the words taking the rest. **Hide the words** drops the name,
+description and button so the photograph fills the card; it stays clickable, and screen readers
+still get the collection's name. **Show button** turns the "Shop now" pill off on its own — the card
+is one big link either way, so nothing stops working.
+
+**Row style and how many across.** **Row style** is either *Fit the row* — the cards divide it and
+that is the whole row — or *Side-scroll*, where the cards run off the edge and the shopper swipes or
+pages through them. **Cards per row** then says how many fill the row, or how many are visible at a
+time in a scrolling one; leave it on **Auto** and a computer divides the row by however many
+collections you picked while a phone shows one. **Scroll arrows** (on a scrolling row only) draws
+paging arrows — they appear on computers where the row actually overflows, since a phone swipes the
+track and two buttons would cover the cards it can show.
+
+**Card corners** overrides the corner rounding for this row alone. Leave it empty and the row follows
+your shop's corners from **Design**, which is where corners belong for most shops; type a number when
+you want this one row to differ — square corners on a full-width photo band, say.
+
+**Desktop and Phone are separate tabs.** Row style, cards per row, card shape, picture side, picture
+width, card height and hide-the-words are asked once per screen, because they genuinely differ: a picture taking two thirds of a desktop
+card is generous, and two thirds of a phone leaves the words in a gutter. Phones follow your desktop
+layout until you switch that off, and when you do they start from what your desktop already looks
+like. **Picture shape** and **Full width** sit outside the tabs and apply everywhere — a square
+photo is square on a phone.
+
+**Picture shape** fixes the photo at 16:9, 4:3, square or tall — leave it on **Auto** and each
+screen gets the shape that suits it. **Card height** (on the Desktop and Phone tabs) sets the
+picture's height in pixels outright: a shape can only say "twice as wide as it is tall", and how wide
+the card is depends on how many collections you picked, so a short strip across the page needs a real
+number. It sits per screen because a pixel height is the one setting with no relative meaning — 200px
+is a thin band across a monitor and a third of a phone. Leave it empty and the shape decides. **Full width** lets
+the row span the window instead of lining up with the rest of the page.
+
+**The card picture tells you what size to use, and the number moves.** Open a card and under
+**Card picture** you will see the size that card actually wants — it changes as you change the card
+shape, the picture width and the height, because a photo for a full-width card and a photo for a
+quarter-width thumbnail are not the same picture. Upload something well off that shape and you get an
+amber note; your photo is still stored exactly as you sent it, never cropped on the way in.
+
+If you point a card at your own address, use a store path such as `/products?tags=winter` or a full
+`https://` address. The panel shows you where it will actually land as you type.
 
 **Give a collection its own row.** Press **Add a collection row**, pick the collection, and it
 appears on your home page with its own heading. Add as many as you want — "Skin care" above
