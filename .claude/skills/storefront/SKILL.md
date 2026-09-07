@@ -243,16 +243,30 @@ reads as two filters at once.
     away from the same dead end.
     **"Or via `<UtilityBar>`" is not good enough, and that is the lesson:** the bar is merchant
     configurable now (Customize → Utility bar), so anything drawing its toggle only from there can be
-    switched off. `desktopHeaderNeeds()` (`lib/storefront-utility-bar.ts`) is the single arbiter —
-    `StoreHeader` calls it and puts `needsTheme`/`needsLang` on `HeaderCtx`, false ONLY while the bar
-    is on this breakpoint AND still carrying that item, so the two never double up (Centered and
-    Clinical carry a `LangBtn` too) and never both go silent. Asked per item, not per bar — the same
-    shape as `chromeHas(chrome, "theme")` in the mobile menu panel, which is the mobile half of this
-    guarantee. `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component,
-    so the two cannot drift. `desktop-variants.test.tsx` discovers every exported `*Desktop` from the
-    source and fails if one has no exit **or** guards it on anything but `ctx.needsTheme`;
-    `lib/storefront-utility-bar.test.ts` sweeps every bar configuration to prove the flag can never
-    wrongly suppress one.
+    switched off. `headerNeeds(bar, breakpoint)` (`lib/storefront-utility-bar.ts`) is the single
+    arbiter — false ONLY while the bar is on that breakpoint AND still carrying that item. Asked per
+    item, not per bar, because the merchant switches the four utility items independently.
+    **Three surfaces own these two controls, and every pair of them could collide:**
+    | Surface | Reads the arbiter as | Guard |
+    |---|---|---|
+    | Desktop anatomy | `ctx.needsTheme` / `ctx.needsLang` on `HeaderCtx` | `StoreHeader`, `"desktop"` |
+    | Phone bar slots | `keptSlot(ids, needs)` (`lib/storefront-mobile.ts`) | `MobileBar`, `"mobile"` |
+    | Menu drawer rows | `!chromeHas(chrome, id) && utilityNeeds.needsX` | `MobileOverlays`, `"mobile"` |
+
+    All three resolve the bar through **`useResolvedUtilityBar()`**
+    (`components/storefront/use-utility-bar.ts`) rather than a prop, because they sit in two
+    different React trees — `StoreHeader` renders the desktop and phone bars, the drawer comes from
+    `StoreShell` via `MobileOverlays`. The moment the trees resolve it differently, the duplicate is
+    back. **Never read `store.nav.utilityBar` directly** — that skips the preview draft and the
+    Classic legacy default.
+    Both collisions were real: `centered`/`clinical` carry their own `LangBtn`, and the `tabs` phone
+    template ships `right: ["lang", "theme"]`, so switching the bar on for phones stacked two
+    language switches and two theme switches on top of each other.
+    `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component, so the two
+    cannot drift. `desktop-variants.test.tsx` discovers every exported `*Desktop` from the source and
+    fails if one has no exit **or** guards it on anything but `ctx.needsTheme`;
+    `storefront-utility-bar.test.ts` sweeps every bar configuration at BOTH breakpoints for "never
+    both silent, never both speaking"; `storefront-mobile.test.ts` pins `keptSlot`.
   - **When a colour looks wrong to the owner but right to you, compare PERSISTED STATE before
     anything else.** A fresh QA profile has no `ezy-sf-theme`, so it always renders light; the
     owner's browser had `dark` from an earlier visit and no control to undo it. Four rounds of

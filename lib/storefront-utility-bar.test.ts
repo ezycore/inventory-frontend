@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  desktopHeaderNeeds,
-  resolveUtilityBar,
-} from "@/lib/storefront-utility-bar";
+import { headerNeeds, resolveUtilityBar } from "@/lib/storefront-utility-bar";
 
 describe("resolveUtilityBar", () => {
   it("preserves the legacy Classic desktop utility bar", () => {
@@ -66,67 +63,76 @@ describe("resolveUtilityBar", () => {
  * `desktop-variants.test.tsx` proves every anatomy WRITES a `ThemeBtn` behind
  * `ctx.needsTheme`. That is only worth something if the flag is false purely
  * when the utility bar is genuinely showing the shopper one instead — so this
- * sweeps every reachable bar configuration and checks the pair can never both
- * be silent.
+ * sweeps every bar configuration, at BOTH breakpoints, and checks the bar and
+ * the header can never both go silent and never both speak.
  */
-describe("desktopHeaderNeeds", () => {
+describe("headerNeeds", () => {
   const BOOLS = [true, false];
-  /** Every combination of the four switches the merchant can actually reach. */
+  /** Every combination of the switches that decide who owns the two controls. */
   const configs = BOOLS.flatMap((enabled) =>
     BOOLS.flatMap((showOnDesktop) =>
-      BOOLS.flatMap((showTheme) =>
-        BOOLS.map((showLanguage) => ({
-          enabled,
-          showOnDesktop,
-          showTheme,
-          showLanguage,
-          showOnMobile: false,
-          showPhone: true,
-          showTrackOrder: true,
-          trackOrderLabel: "",
-        })),
+      BOOLS.flatMap((showOnMobile) =>
+        BOOLS.flatMap((showTheme) =>
+          BOOLS.map((showLanguage) => ({
+            enabled,
+            showOnDesktop,
+            showOnMobile,
+            showTheme,
+            showLanguage,
+            showPhone: true,
+            showTrackOrder: true,
+            trackOrderLabel: "",
+          })),
+        ),
       ),
     ),
   );
 
-  it.each(configs)(
-    "never leaves the shopper without a theme or language control (%o)",
-    (bar) => {
-      const { needsTheme, needsLang } = desktopHeaderNeeds(bar);
-      const barShows = bar.enabled && bar.showOnDesktop;
-      // Exactly one of the two renders it: the bar, or the anatomy.
-      expect(needsTheme).toBe(!(barShows && bar.showTheme));
-      expect(needsLang).toBe(!(barShows && bar.showLanguage));
+  for (const at of ["desktop", "mobile"] as const) {
+    it.each(configs)(`${at}: exactly one of the bar and the header owns each control (%o)`, (bar) => {
+      const { needsTheme, needsLang } = headerNeeds(bar, at);
+      const barShows =
+        bar.enabled && (at === "desktop" ? bar.showOnDesktop : bar.showOnMobile);
+      // Never both silent (the stranding bug) …
       expect(needsTheme || (barShows && bar.showTheme)).toBe(true);
       expect(needsLang || (barShows && bar.showLanguage)).toBe(true);
-    },
-  );
+      // … and never both speaking (the duplicate-toggle bug).
+      expect(needsTheme && barShows && bar.showTheme).toBe(false);
+      expect(needsLang && barShows && bar.showLanguage).toBe(false);
+    });
+  }
 
   it("hands the toggles back the moment the bar stops carrying them", () => {
     const on = resolveUtilityBar({ enabled: true, showOnDesktop: true }, "classic");
-    expect(desktopHeaderNeeds(on)).toEqual({ needsTheme: false, needsLang: false });
+    expect(headerNeeds(on, "desktop")).toEqual({ needsTheme: false, needsLang: false });
 
     // The default template with its bar switched off — the case that used to
     // leave Classic with no way out of dark mode at all.
     const off = resolveUtilityBar({ enabled: false }, "classic");
-    expect(desktopHeaderNeeds(off)).toEqual({ needsTheme: true, needsLang: true });
+    expect(headerNeeds(off, "desktop")).toEqual({ needsTheme: true, needsLang: true });
 
     // Bar on, but the merchant unticked those two items individually.
     const partial = resolveUtilityBar(
       { enabled: true, showOnDesktop: true, showTheme: false, showLanguage: false },
       "classic",
     );
-    expect(desktopHeaderNeeds(partial)).toEqual({ needsTheme: true, needsLang: true });
+    expect(headerNeeds(partial, "desktop")).toEqual({ needsTheme: true, needsLang: true });
   });
 
-  it("ignores a bar that only shows on mobile", () => {
+  /* The breakpoints are independent switches, so an answer taken at the wrong
+     one is how the phone bar ends up repeating what the drawer already shows. */
+  it("keeps the two breakpoints from answering for each other", () => {
     const mobileOnly = resolveUtilityBar(
       { enabled: true, showOnDesktop: false, showOnMobile: true },
       "classic",
     );
-    expect(desktopHeaderNeeds(mobileOnly)).toEqual({
+    expect(headerNeeds(mobileOnly, "desktop")).toEqual({
       needsTheme: true,
       needsLang: true,
+    });
+    expect(headerNeeds(mobileOnly, "mobile")).toEqual({
+      needsTheme: false,
+      needsLang: false,
     });
   });
 });

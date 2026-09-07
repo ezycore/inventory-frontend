@@ -54,33 +54,37 @@ export function resolveUtilityBar(
   };
 }
 
+/** The two breakpoints the bar is configured for, independently. */
+export type Breakpoint = "desktop" | "mobile";
+
 /**
- * What the desktop header anatomy still owes the shopper itself.
+ * What the header still owes the shopper itself at this breakpoint.
  *
- * The utility bar and the anatomies draw from the same small set of controls,
- * so without one answer for both they either double up — Centered and Clinical
- * carry their own language AND theme buttons — or vanish entirely, which is the
- * worse half: theme is persisted to `localStorage` and re-applied before paint,
- * so an anatomy with no switch STRANDS the shopper in whichever theme they last
- * chose, on every future visit. Classic keeps no toggles of its own beyond this
- * fallback, so for the default template "the bar is off" would otherwise mean
- * "no way back out of dark mode".
+ * The utility bar and the surrounding header draw from the same small set of
+ * controls, so without one answer for both they either double up or vanish
+ * entirely. Both halves were real: `centered` and `clinical` carry their own
+ * language AND theme buttons, and the `tabs` phone template puts both in its
+ * bar slots — while `classic` was left with NO desktop toggle of its own, and
+ * theme is persisted to `localStorage` and re-applied before paint, so a header
+ * with no switch STRANDS the shopper in whichever theme they last chose on
+ * every future visit.
  *
  * Asked per item rather than per bar — the merchant turns the four utility
  * items on and off independently, so "the bar is showing" says nothing about
  * whether the theme switch in particular survived. Same shape, and the same
- * reasoning, as `chromeHas` in the mobile menu panel.
+ * reasoning, as `chromeHas` in the mobile menu panel, which answers the
+ * neighbouring question of what the drawer has to carry.
  *
- * Desktop only: the bar's own `showOnMobile` is a separate switch, and mobile
- * already has an unconditional fallback in the menu drawer.
+ * Per breakpoint because the bar has a switch for each: a merchant can run it
+ * on phones only, and the desktop anatomy must keep its own toggles when they do.
  */
-export function desktopHeaderNeeds(bar: ResolvedUtilityBar): {
-  needsTheme: boolean;
-  needsLang: boolean;
-} {
+export function headerNeeds(
+  bar: ResolvedUtilityBar,
+  at: Breakpoint,
+): { needsTheme: boolean; needsLang: boolean } {
   // `showTheme`/`showLanguage` imply the bar rendered: `UtilityBar` only bails
   // out when all four of its items are off, which either of these rules out.
-  const shows = showsOnDesktop(bar);
+  const shows = showsOn(bar, at);
   return {
     needsTheme: !(shows && bar.showTheme),
     needsLang: !(shows && bar.showLanguage),
@@ -88,11 +92,11 @@ export function desktopHeaderNeeds(bar: ResolvedUtilityBar): {
 }
 
 /**
- * Is the bar on screen at desktop width? Shared with `StoreHeader`'s render so
- * the question that decides whether to DRAW the bar and the one that decides
- * whether the anatomy keeps its own toggles cannot answer differently — which
- * would be the two-controls / no-controls bug in a subtler form.
+ * Is the bar on screen at this width? Shared with the render so the question
+ * that decides whether to DRAW the bar and the one that decides whether the
+ * header keeps its own toggles cannot answer differently — which would be the
+ * two-controls / no-controls bug in a subtler form.
  */
-export function showsOnDesktop(bar: ResolvedUtilityBar): boolean {
-  return bar.enabled && bar.showOnDesktop;
+export function showsOn(bar: ResolvedUtilityBar, at: Breakpoint): boolean {
+  return bar.enabled && (at === "desktop" ? bar.showOnDesktop : bar.showOnMobile);
 }

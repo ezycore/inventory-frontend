@@ -2,12 +2,8 @@
 // coding-standard: maintained
 
 import { useRef } from "react";
-import type {
-  CatalogCategory,
-  StoreTemplates,
-  StorefrontStore,
-} from "@/lib/storefront-client";
-import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
+import type { CatalogCategory, StorefrontStore } from "@/lib/storefront-client";
+import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -33,21 +29,11 @@ import {
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
+import { headerNeeds, showsOn } from "@/lib/storefront-utility-bar";
 import {
-  desktopHeaderNeeds,
-  resolveUtilityBar,
-  showsOnDesktop,
-} from "@/lib/storefront-utility-bar";
-
-/** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
-const HEADER_VARIANTS: readonly string[] = [
-  "classic",
-  "minimal",
-  "centered",
-  "search-first",
-  "clinical",
-  "boutique",
-];
+  useHeaderVariant,
+  useResolvedUtilityBar,
+} from "@/components/storefront/use-utility-bar";
 
 const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.ReactNode> = {
   classic: ClassicDesktop,
@@ -91,11 +77,9 @@ export function StoreHeader({
   const { cartCount, cartSubtotal, goCart } = useCartNav(slug);
   const shopper = useShopperStore((s) => s.shopper);
   const hydrated = useHydrated();
-  const previewHeader = useSfPreview((s) => s.header);
   const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
   const previewNavHeader = useSfPreview((s) => s.navHeader);
   const previewBadges = useSfPreview((s) => s.badges);
-  const previewUtilityBar = useSfPreview((s) => s.utilityBar);
   const previewLogo = useSfPreviewImage("logo", store?.logo);
 
   // Drafts from the admin Navigation editor win over the saved store payload.
@@ -109,21 +93,14 @@ export function StoreHeader({
     rawMenu.length > 0,
   );
 
-  const variant: StoreTemplates["header"] = HEADER_VARIANTS.includes(
-    previewHeader ?? "",
-  )
-    ? (previewHeader as StoreTemplates["header"])
-    : resolveTemplates(store).header;
-  const utilityBar = resolveUtilityBar(
-    previewUtilityBar ?? store?.nav?.utilityBar,
-    variant,
-  );
+  const variant = useHeaderVariant(store);
+  const utilityBar = useResolvedUtilityBar(store);
 
   /* Who owes the shopper a theme / language control on DESKTOP. Resolved here
      because this is the only place that knows both halves — which bar is
      showing and which anatomy is about to render. */
-  const desktopBarShows = showsOnDesktop(utilityBar);
-  const { needsTheme, needsLang } = desktopHeaderNeeds(utilityBar);
+  const desktopBarShows = showsOn(utilityBar, "desktop");
+  const { needsTheme, needsLang } = headerNeeds(utilityBar, "desktop");
 
   const ctx: HeaderCtx = {
     base,
@@ -170,7 +147,7 @@ export function StoreHeader({
 
   return (
     <>
-      {utilityBar.enabled && utilityBar.showOnMobile ? (
+      {showsOn(utilityBar, "mobile") ? (
         <UtilityBar ctx={ctx} config={utilityBar} className="sf-mobile-only" />
       ) : null}
       {/* `mobileRef` goes ON the bar, never around it. `useHeaderHeight` needs
