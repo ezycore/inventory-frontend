@@ -713,6 +713,12 @@ export interface StoreFooterContentPages {
   title?: string;
 }
 
+/** Responsive visibility for enabled payment-method badges in the footer. */
+export interface StoreFooterPaymentMethods {
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+}
+
 /**
  * Sign-up copy for the Stay-in-touch footer (`theme.footerNewsletter`).
  * Each field falls back to a localized default, so unset means "use the
@@ -784,6 +790,8 @@ export interface StoreCampaignStrip {
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
+  /** Where enabled checkout methods are advertised in the footer. */
+  footerPaymentMethods?: StoreFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StoreFooterContentPages;
   announcement?: StoreAnnouncement;

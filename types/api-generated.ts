@@ -12016,6 +12016,10 @@ export interface components {
                         url?: string;
                     }[];
                 }[];
+                footerPaymentMethods?: {
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
                 footerContentPages?: {
                     show?: boolean;
                     title?: string;
@@ -19057,6 +19061,10 @@ export interface operations {
                                 url: string;
                             }[];
                         }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
                         footerContentPages?: {
                             show?: boolean;
                             title?: string;

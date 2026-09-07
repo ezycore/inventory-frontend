@@ -11,6 +11,7 @@ import type {
   StoreContactButton,
   StoreFooterContentPages,
   StoreFooterGroup,
+  StoreFooterPaymentMethods,
   StoreFooterNewsletter,
   StoreHeroBanner,
   StoreHeroSlide,
@@ -123,6 +124,8 @@ interface SfPreviewState {
   contactButton?: StoreContactButton | null;
   /** Draft footer link groups (Customize → Footer), already trimmed like the save path. */
   footerGroups: StoreFooterGroup[] | null;
+  /** Draft responsive visibility of enabled checkout methods in the footer. */
+  footerPaymentMethods: StoreFooterPaymentMethods | null;
   /** Draft controls for the auto content-pages footer column. */
   footerContentPages: StoreFooterContentPages | null;
   /**
@@ -224,6 +227,7 @@ interface SfPreviewState {
     contactButton?: StoreContactButton | null;
     collections?: CatalogCategory[];
     footerGroups?: StoreFooterGroup[];
+    footerPaymentMethods?: StoreFooterPaymentMethods;
     footerContentPages?: StoreFooterContentPages;
     footerText?: string;
     footerNote?: string;
@@ -277,6 +281,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   contactButton: undefined,
   collections: null,
   footerGroups: null,
+  footerPaymentMethods: null,
   footerContentPages: null,
   footerText: null,
   footerNote: null,
@@ -345,6 +350,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.collections !== undefined ? patch.collections : s.collections,
       footerGroups:
         patch.footerGroups !== undefined ? patch.footerGroups : s.footerGroups,
+      footerPaymentMethods:
+        patch.footerPaymentMethods !== undefined
+          ? patch.footerPaymentMethods
+          : s.footerPaymentMethods,
       footerContentPages:
         patch.footerContentPages !== undefined
           ? patch.footerContentPages

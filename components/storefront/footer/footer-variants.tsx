@@ -62,6 +62,7 @@ function Bottom(props: FooterProps, center?: boolean) {
       note={props.note}
       store={props.store}
       t={props.t}
+      footerPaymentMethods={props.footerPaymentMethods}
       center={center}
     />
   );

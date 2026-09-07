@@ -448,6 +448,12 @@ export interface StorefrontFooterContentPages {
   title?: string;
 }
 
+/** Responsive visibility for the enabled payment-method badges in the footer. */
+export interface StorefrontFooterPaymentMethods {
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+}
+
 export interface StorefrontAnnouncement {
   enabled: boolean;
   /** Use the effective shipping threshold instead of free-form message text. */
@@ -509,6 +515,8 @@ export interface StorefrontCampaignStrip {
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
+  /** Where enabled checkout methods are advertised in the footer. */
+  footerPaymentMethods?: StorefrontFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;

@@ -180,6 +180,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     nudgeDelay: 8,
   },
   footerGroups: [],
+  footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
   footerContentPages: { show: true, title: "" },
   footerNote: "",
   footerContactHeading: "",
@@ -318,11 +319,16 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     const value = draft({
       navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
       footerGroups: [{ title: "Help", links: [] }],
+      footerPaymentMethods: { showOnDesktop: false, showOnMobile: true },
     });
     const patch = toSettingsPatch(value, ["announcement"]);
     expect(Object.keys(patch)).toEqual(["nav"]);
     expect(patch.nav?.header).toEqual(value.navHeader);
     expect(patch.nav?.footer).toEqual(value.footerGroups);
+    expect(patch.nav?.footerPaymentMethods).toEqual({
+      showOnDesktop: false,
+      showOnMobile: true,
+    });
   });
 
   it("persists collection layout and pagination template changes", () => {

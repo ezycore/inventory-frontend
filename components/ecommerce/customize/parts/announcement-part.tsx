@@ -16,7 +16,7 @@ import type { StorefrontSettings } from "@/types";
 import { effectiveFreeShippingThreshold } from "@/lib/storefront-delivery";
 import { money } from "@/components/storefront/format";
 import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
-import { StripVisibilityField } from "@/components/ecommerce/customize/parts/strip-visibility-field";
+import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
 
 const SIZES: { value: AnnouncementDraft["size"]; label: string }[] = [
   { value: "sm", label: "Small" },
@@ -200,7 +200,7 @@ export function AnnouncementPart({
         </div>
       </div>
 
-      <StripVisibilityField
+      <ResponsiveVisibilityField
         showOnDesktop={value.showOnDesktop}
         showOnMobile={value.showOnMobile}
         onChange={patchAnnouncement}

@@ -125,6 +125,12 @@ export interface FooterContentPagesDraft {
   title: string;
 }
 
+/** Responsive visibility for checkout-method badges in the footer. */
+export interface FooterPaymentMethodsDraft {
+  showOnDesktop: boolean;
+  showOnMobile: boolean;
+}
+
 /**
  * Sign-up copy for the Stay-in-touch footer. Every field defined so the inputs
  * stay controlled; empty means "use the storefront's localized wording", which
@@ -184,6 +190,7 @@ export interface CustomizeDraft {
   campaignStrip: CampaignStripDraft;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
+  footerPaymentMethods: FooterPaymentMethodsDraft;
   footerContentPages: FooterContentPagesDraft;
   /** Bottom-bar note; empty ⇒ the storefront prints the store's currency. */
   footerNote: string;
@@ -302,6 +309,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerNewsletter,
     d.badges,
     d.footerGroups,
+    d.footerPaymentMethods,
     d.footerContentPages,
   ],
   account: (d) => d.templates.accountLayout,
@@ -453,6 +461,11 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     },
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
+    footerPaymentMethods: {
+      showOnDesktop:
+        settings.nav?.footerPaymentMethods?.showOnDesktop ?? true,
+      showOnMobile: settings.nav?.footerPaymentMethods?.showOnMobile ?? true,
+    },
     // `show` defaults on (legacy behaviour) so existing stores keep the column;
     // a blank title ⇒ the built-in "Information" heading.
     footerContentPages: {

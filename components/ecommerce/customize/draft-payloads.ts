@@ -255,6 +255,7 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
   return {
     header: trimHeaderMenu(draft.navHeader),
     footer: trimFooterGroups(draft.footerGroups),
+    footerPaymentMethods: draft.footerPaymentMethods,
     footerContentPages: trimContentPages(draft.footerContentPages),
     announcement: {
       enabled: a.enabled,

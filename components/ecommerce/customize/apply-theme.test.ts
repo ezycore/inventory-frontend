@@ -53,6 +53,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     },
     contactButton: {} as CustomizeDraft["contactButton"],
     footerGroups: [{ title: "Help", links: [] }],
+    footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
     footerContentPages: { show: true, title: "Info" },
     footerNote: "Dhaka, Bangladesh",
     footerContactHeading: "Order by phone",

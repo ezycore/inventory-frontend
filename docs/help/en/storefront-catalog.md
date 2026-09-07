@@ -369,7 +369,9 @@ Everything in the footer is yours to write. **About your shop** is the paragraph
 **Bottom line** is the small text on the right of the copyright — a city, a trade licence number,
 whatever you need there; leave it empty and it shows your currency. Your phone comes from
 Settings → General and your chat buttons from the **WhatsApp button** part, so there is only ever one
-copy of your number to keep correct.
+copy of your number to keep correct. **Payment methods** controls whether the checkout methods you
+accept are advertised in the desktop footer, mobile footer, both or neither; hiding them does not
+disable them at checkout.
 
 Optional footer wording can stay blank; the store never invents a promise on your behalf.
 Your promises list can contain up to four items. Add, remove or reorder them in **Customize →
