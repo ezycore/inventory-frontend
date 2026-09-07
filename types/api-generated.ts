@@ -11911,6 +11911,8 @@ export interface components {
                     density?: string;
                     radius?: string;
                     width?: string;
+                    navHover?: string;
+                    navChildHover?: string;
                 };
                 mobile?: {
                     left?: string[];
@@ -18964,6 +18966,8 @@ export interface operations {
                             density?: string;
                             radius?: string;
                             width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
                         };
                         /** @enum {string} */
                         heroAlign?: "left" | "center";
