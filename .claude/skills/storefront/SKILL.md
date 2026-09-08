@@ -5,8 +5,8 @@ description: Map of the multi-tenant ecommerce storefront ("shop") — architect
 
 # Storefront (multi-tenant ecommerce)
 
-Each organization on the inventory SaaS can publish a public online store. One codebase serves
-every store; **the host picks the store**.
+Every organization publishes a public online store — the product's headline feature, not an add-on
+to the back office. One codebase serves every store; **the host picks the store**.
 
 - **Tenant hosts**: `{slug}.domain/shop` (dev: `http://rmc41.localhost:3000/shop`). Link base = `/shop`.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
@@ -75,6 +75,22 @@ Two rules, both learned from the same bug:
 Sub-category options are labelled `Parent › Child`: a child name is unique only
 within its parent, so a flat list can show two identical entries meaning
 different things.
+
+### The "Ends" date is one function (2026-09-08)
+
+`campaignEndsLabel(endsAt, langCode)` in `lib/storefront-campaign-date.ts` — used
+by `CampaignStrip` and the deal cards in `band-sections.tsx`, the only two
+surfaces that print it. Both formatted it inline as day + short month, so a
+campaign scheduled into a later year — the two-year kind a merchant sets up for a
+permanent outlet section — announced "Ends 3 Jan" for a date two Januaries out.
+**The year is added whenever the end date is not in the current one**, and never
+when it is: a same-year date is unambiguous without it, and the strip has one
+line. Still `toLocaleDateString`, which localizes the numerals as well as the
+month — a hand-built "2d 4h" countdown would need Bengali unit abbreviations that
+are not in `docs/I18N-GLOSSARY.md`.
+
+Scheduling that long campaign needs the year reachable in the picker too: see the
+month/year caption note in the `dynamic-form` skill.
 
 ## Frontend layout
 

@@ -5,11 +5,19 @@ import {
   DayPicker,
   getDefaultClassNames,
   type DayButton,
+  type DropdownProps,
   type Locale,
 } from "react-day-picker"
 
 import { cn } from "@ui/lib/utils"
 import { Button, buttonVariants } from "@ui/components/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ui/components/select"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 
 function Calendar({
@@ -50,28 +58,41 @@ function Calendar({
           defaultClassNames.months
         ),
         month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        // ⚠ `pointer-events-none` is load-bearing, not tidiness. This bar is
+        // absolutely positioned across the FULL width, exactly over the caption
+        // row, and holds only the two arrows — so its empty middle is an
+        // invisible sheet covering the month/year controls. It went unnoticed
+        // while the caption was a native `<select>`: that select was itself
+        // `absolute` and later in the DOM, so it painted above this bar. Any
+        // in-flow control there (the Radix trigger below) is buried instead.
+        // The buttons take their own pointer events back.
         nav: cn(
-          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          "pointer-events-none absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
           defaultClassNames.nav
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
+          "pointer-events-auto size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
+          "pointer-events-auto size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_next
         ),
         month_caption: cn(
           "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
           defaultClassNames.month_caption
         ),
+        // `relative z-10` puts the controls in the positioned layer with the nav
+        // above, so their focus ring and open state are never painted under it.
         dropdowns: cn(
-          "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium",
+          "relative z-10 flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium",
           defaultClassNames.dropdowns
         ),
+        // `dropdown_root` and `dropdown` below only style react-day-picker's
+        // native-select caption. `CalendarDropdown` replaces that component
+        // outright, so they are inert unless a caller overrides it back.
         dropdown_root: cn(
           "relative rounded-(--cell-radius)",
           defaultClassNames.dropdown_root
@@ -161,6 +182,9 @@ function Calendar({
             <ChevronDownIcon className={cn("size-4", className)} {...props} />
           )
         },
+        // Covers the year dropdown too: MonthsDropdown and YearsDropdown both
+        // delegate to `components.Dropdown`.
+        Dropdown: CalendarDropdown,
         DayButton: ({ ...props }) => (
           <CalendarDayButton locale={locale} {...props} />
         ),
@@ -177,6 +201,69 @@ function Calendar({
       }}
       {...props}
     />
+  )
+}
+
+/**
+ * The month and year selects in a `captionLayout="dropdown"` caption.
+ *
+ * react-day-picker ships a native `<select>` held invisible (`opacity-0`) over a
+ * styled label — so the trigger looked right and the list it OPENED was the
+ * browser's own OS menu: its own colours, its own metrics, ignoring the theme
+ * entirely. No stylesheet can reach inside a native select popup, so the control
+ * is replaced with the app's Radix `Select` rather than restyled.
+ *
+ * Nesting it inside the DatePicker's popover needs no guard — Radix's dismissable
+ * layer stack already handles a select opened from within a popover, the same way
+ * the filter panel's selects do.
+ */
+function CalendarDropdown({
+  options,
+  value,
+  onChange,
+  disabled,
+  className,
+  "aria-label": ariaLabel,
+}: DropdownProps) {
+  const selected = options?.find((option) => option.value === value)
+
+  return (
+    <Select
+      value={String(value)}
+      disabled={disabled}
+      onValueChange={(next) => {
+        // DayPicker's handler reads `event.target.value` and nothing else, so
+        // this stand-in is all Radix's string callback needs to drive it.
+        onChange?.({
+          target: { value: next },
+        } as React.ChangeEvent<HTMLSelectElement>)
+      }}
+    >
+      <SelectTrigger
+        size="sm"
+        aria-label={ariaLabel}
+        // Compact: both triggers plus the two nav buttons share one caption row
+        // the width of the day grid.
+        className={cn("h-7 gap-1 px-1.5 font-medium", className)}
+      >
+        {/* Children, not the default value text — the label is already
+            formatted by `formatMonthDropdown` in the caller's locale. */}
+        <SelectValue>{selected?.label}</SelectValue>
+      </SelectTrigger>
+      {/* `popper` over the repo default `item-aligned`: a 21-year list aligned
+          on its selected item would open taller than the calendar it belongs to. */}
+      <SelectContent position="popper" className="max-h-64">
+        {options?.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={String(option.value)}
+            disabled={option.disabled}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 
