@@ -255,6 +255,7 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
   return {
     header: trimHeaderMenu(draft.navHeader),
     footer: trimFooterGroups(draft.footerGroups),
+    footerPaymentMethods: draft.footerPaymentMethods,
     footerContentPages: trimContentPages(draft.footerContentPages),
     announcement: {
       enabled: a.enabled,
@@ -267,6 +268,8 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       ctaLabel: a.ctaLabel.trim() || undefined,
       dismissible: a.dismissible,
       size: a.size,
+      marquee: a.marquee,
+      marqueeSpeed: a.marqueeSpeed,
       // Sent wholesale (nav replaces on PATCH); null clears a removed image and
       // the backend deletes the orphaned asset.
       bgImage: a.bgImage,
@@ -290,6 +293,10 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       paddingY: cs.paddingY,
       paddingX: cs.paddingX,
       dismissible: cs.dismissible,
+    },
+    utilityBar: {
+      ...draft.utilityBar,
+      trackOrderLabel: draft.utilityBar.trackOrderLabel.trim() || undefined,
     },
   };
 }
@@ -449,7 +456,11 @@ export function toSettingsPatch(
   }
   if (dirty.has("home")) take("sectionConfig");
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
-  if (["announcement", "campaign", "header", "footer"].some((part) => dirty.has(part as PartId))) {
+  if (
+    ["announcement", "campaign", "header", "utility", "footer"].some((part) =>
+      dirty.has(part as PartId),
+    )
+  ) {
     take("nav");
   }
   if (dirty.has("hero")) {

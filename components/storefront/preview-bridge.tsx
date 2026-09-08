@@ -64,9 +64,11 @@ export function StorePreviewBridge() {
         headerMenuSrc: p.templates?.headerMenu,
         navHeader: p.nav?.header,
         announcement: p.nav?.announcement,
+        utilityBar: p.nav?.utilityBar,
         campaignStrip: p.nav?.campaignStrip,
         collections: p.collections,
         footerGroups: p.nav?.footer,
+        footerPaymentMethods: p.nav?.footerPaymentMethods,
         footerContentPages: p.nav?.footerContentPages,
         // Footer copy. Sent raw, so `""` reaches the store as a real draft
         // ("cleared → show the localized default") rather than as "not drafted".

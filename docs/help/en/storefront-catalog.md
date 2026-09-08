@@ -115,8 +115,24 @@ to without opening anything.
 bar at the bottom names the parts you have touched, and **Discard** puts them all back. Only images —
 your logo, banner, slide and announcement pictures — save the moment you upload them.
 
+**Announcement bar** is the single line above everything else. **Scroll the message** slides it right
+to left, which is what you want when the notice is too long to fit on one line — a branch closure, a
+holiday delivery cutoff. Without it a long message simply wraps, and a bar three lines tall pushes
+your shop down the page on every screen a shopper opens. Pick **Slow**, **Normal** or **Fast** for
+the pace; the bar works out the timing from the length of your message, so rewriting the notice does
+not change the speed you chose. It stops while a shopper is pointing at it, so a button in the
+message stays clickable, and it never moves for someone whose device is set to reduce motion — they
+see the same words standing still.
+
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
+
+**Utility bar** controls the slim information row above the header. Turn the whole row on or off,
+show it everywhere or only on computers or phones, and choose its contents individually: your saved
+phone number, Track order link, language control and light/dark control. You can also rename Track
+order; leave its label blank to translate it automatically for each shopper. The language and
+light/dark controls are never shown twice: put them in this bar and your header hands them over,
+take them out and your header takes them back, so a shopper always has exactly one of each.
 
 **Hover** sits under the same part and decides what a menu link does when someone points at it on a
 computer. Nothing happens by default. You answer twice, because the two rows are different: **Menu
@@ -369,7 +385,9 @@ Everything in the footer is yours to write. **About your shop** is the paragraph
 **Bottom line** is the small text on the right of the copyright — a city, a trade licence number,
 whatever you need there; leave it empty and it shows your currency. Your phone comes from
 Settings → General and your chat buttons from the **WhatsApp button** part, so there is only ever one
-copy of your number to keep correct.
+copy of your number to keep correct. **Payment methods** controls whether the checkout methods you
+accept are advertised in the desktop footer, mobile footer, both or neither; hiding them does not
+disable them at checkout.
 
 Optional footer wording can stay blank; the store never invents a promise on your behalf.
 Your promises list can contain up to four items. Add, remove or reorder them in **Customize →

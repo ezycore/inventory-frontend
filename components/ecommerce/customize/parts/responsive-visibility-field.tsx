@@ -7,17 +7,16 @@ import { PartHint, PartLabel } from "@/components/ecommerce/customize/part-group
 import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 
 /**
- * The per-breakpoint visibility pair, shared by the announcement bar and the
- * campaign strip.
+ * The shared per-breakpoint visibility pair used by storefront elements.
  *
  * Shared rather than copied because the warning below it is the part that would
  * rot: two switches with no cross-validation make "off everywhere" reachable in
  * one click, and a strip that is *configured, enabled and invisible* reads as a
  * bug in the product rather than a choice the merchant made. Saying so at the
  * point of the mistake is the whole value, and it has to say the same thing in
- * both editors.
+ * every editor.
  */
-export function StripVisibilityField({
+export function ResponsiveVisibilityField({
   showOnDesktop,
   showOnMobile,
   onChange,
@@ -53,8 +52,7 @@ export function StripVisibilityField({
       </div>
       {hiddenEverywhere ? (
         <PartHint tone="warn">
-          Both are off, so the {what} will not appear anywhere. Turn one on, or
-          switch the {what} off entirely.
+          Both are off, so the {what} will not appear anywhere.
         </PartHint>
       ) : null}
     </div>

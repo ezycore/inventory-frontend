@@ -5,6 +5,7 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { FooterLinksField } from "@/components/ecommerce/customize/footer-links-field";
 import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
+import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
 import { TrustBadgesField } from "@/components/ecommerce/customize/trust-badges-field";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
@@ -76,6 +77,25 @@ export function FooterPart({
           anything you need there.
         </PartHint>
       </div>
+
+      <PartBlock
+        label="Payment methods"
+        hint="Choose where your enabled checkout methods appear in the footer. This does not disable them at checkout."
+      >
+        <ResponsiveVisibilityField
+          showOnDesktop={draft.footerPaymentMethods.showOnDesktop}
+          showOnMobile={draft.footerPaymentMethods.showOnMobile}
+          onChange={(value) =>
+            patch({
+              footerPaymentMethods: {
+                ...draft.footerPaymentMethods,
+                ...value,
+              },
+            })
+          }
+          what="payment methods"
+        />
+      </PartBlock>
 
       <PartBlock
         label="Store promises"

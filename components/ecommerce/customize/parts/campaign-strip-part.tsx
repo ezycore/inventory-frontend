@@ -6,7 +6,7 @@ import { Label } from "@/ui/components/label";
 import { OptionChip } from "@/ui/components/option-card";
 import { Switch } from "@/ui/components/switch";
 import { PartHint, PartLabel } from "@/components/ecommerce/customize/part-group";
-import { StripVisibilityField } from "@/components/ecommerce/customize/parts/strip-visibility-field";
+import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
 import type {
   CampaignStripDraft,
   CustomizeDraftApi,
@@ -88,7 +88,7 @@ export function CampaignStripPart({
         </PartHint>
       </div>
 
-      <StripVisibilityField
+      <ResponsiveVisibilityField
         showOnDesktop={value.showOnDesktop}
         showOnMobile={value.showOnMobile}
         onChange={patchCampaignStrip}

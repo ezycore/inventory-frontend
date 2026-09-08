@@ -481,6 +481,29 @@ export function chromeHas(chrome: MobileChrome, id: MobileActionId): boolean {
 }
 
 /**
+ * The bar slots minus whatever the utility bar above them is already showing.
+ *
+ * The neighbour of `chromeHas`, and the other half of the same question: that
+ * one asks what the DRAWER must carry, this asks what the BAR must drop. Only
+ * `lang` and `theme` can collide — they are the two atoms the utility bar also
+ * offers — and the `tabs` template ships BOTH in its right-hand slot, so a
+ * merchant who switched that bar on for phones got two language switches and
+ * two theme switches stacked directly on top of each other.
+ *
+ * Takes the resolved flags rather than the bar so the arbitration lives in one
+ * place (`headerNeeds`) and this stays a pure list filter.
+ */
+export function keptSlot(
+  ids: MobileActionId[],
+  needs: { needsTheme: boolean; needsLang: boolean },
+): MobileActionId[] {
+  return ids.filter(
+    (id) =>
+      (id !== "theme" || needs.needsTheme) && (id !== "lang" || needs.needsLang),
+  );
+}
+
+/**
  * Can a shopper on a phone reach the catalogue at all?
  *
  * **The menu panel is the only category navigation a phone has** — the header's

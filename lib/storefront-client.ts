@@ -744,6 +744,12 @@ export interface StoreFooterContentPages {
   title?: string;
 }
 
+/** Responsive visibility for enabled payment-method badges in the footer. */
+export interface StoreFooterPaymentMethods {
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+}
+
 /**
  * Sign-up copy for the Stay-in-touch footer (`theme.footerNewsletter`).
  * Each field falls back to a localized default, so unset means "use the
@@ -772,6 +778,10 @@ export interface StoreAnnouncement {
   /** Shopper can dismiss the bar (persisted per-device until the message changes). */
   dismissible?: boolean;
   size?: "sm" | "md" | "lg";
+  /** Scroll the message right-to-left instead of centring it on one line. */
+  marquee?: boolean;
+  /** Scroll pace when `marquee` is on. Absent ⇒ `normal`. */
+  marqueeSpeed?: "slow" | "normal" | "fast";
   /** Background image behind the bar (with the overlay below painted on top). */
   bgImage?: StorefrontImage | null;
   /** Overlay colour painted over the image for text readability. */
@@ -812,13 +822,28 @@ export interface StoreCampaignStrip {
   dismissible?: boolean;
 }
 
+/** Merchant-controlled information strip above the storefront header. */
+export interface StoreUtilityBar {
+  enabled?: boolean;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  showPhone?: boolean;
+  showTrackOrder?: boolean;
+  showLanguage?: boolean;
+  showTheme?: boolean;
+  trackOrderLabel?: string;
+}
+
 export interface StoreNav {
   header?: StoreMenuItem[];
   footer?: StoreFooterGroup[];
+  /** Where enabled checkout methods are advertised in the footer. */
+  footerPaymentMethods?: StoreFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StoreFooterContentPages;
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
+  utilityBar?: StoreUtilityBar;
 }
 
 /**

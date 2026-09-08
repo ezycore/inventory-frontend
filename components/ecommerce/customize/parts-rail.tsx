@@ -16,6 +16,7 @@ import {
   Package,
   PanelBottom,
   PanelTop,
+  Rows3,
   Smartphone,
   ShoppingCart,
   UserRound,
@@ -38,6 +39,7 @@ import { HomePart } from "@/components/ecommerce/customize/parts/home-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
 import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
+import { UtilityBarPart } from "@/components/ecommerce/customize/parts/utility-bar-part";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
   CustomizeDraftApi,
@@ -106,6 +108,7 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
     title: "Site frame",
     parts: [
       { id: "header", title: "Header", icon: PanelTop },
+      { id: "utility", title: "Utility bar", icon: Rows3 },
       /* Directly under Header, because it answers the same question for the
          other screen — and above Footer, because for these merchants far more
          shoppers see this bar than ever reach a footer. */
@@ -237,6 +240,17 @@ export function PartsRail({
             }}
             aria-label="Show the campaign strip"
           />
+        ) : part.id === "utility" ? (
+          <Switch
+            checked={draft.utilityBar.enabled}
+            onCheckedChange={(enabled) => {
+              patch({
+                utilityBar: { ...draft.utilityBar, enabled },
+              });
+              if (enabled && open !== "utility") onToggle("utility");
+            }}
+            aria-label="Show the utility bar"
+          />
         ) : part.id === "contact" ? (
           <Switch
             checked={draft.contactButton.enabled}
@@ -275,6 +289,8 @@ export function PartsRail({
           patchMobile={api.patchMobile}
           patchMobileTemplate={api.patchMobileTemplate}
         />
+      ) : part.id === "utility" ? (
+        <UtilityBarPart settings={settings} draft={draft} patch={patch} />
       ) : part.id === "header" ? (
         <HeaderPart
           draft={draft}

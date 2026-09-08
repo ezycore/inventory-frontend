@@ -48,6 +48,11 @@ import {
   type CollectionRowValue,
 } from "@/components/ecommerce/collections/collection-row";
 import { isValidHexColor } from "@/ui/components/color-field";
+import type { MarqueeSpeed } from "@/lib/storefront-strip-display";
+import {
+  resolveUtilityBar,
+  type ResolvedUtilityBar,
+} from "@/lib/storefront-utility-bar";
 
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
@@ -61,6 +66,9 @@ export interface AnnouncementDraft {
   ctaLabel: string;
   dismissible: boolean;
   size: "sm" | "md" | "lg";
+  /** Scroll the message right-to-left instead of centring it on one line. */
+  marquee: boolean;
+  marqueeSpeed: MarqueeSpeed;
   bgImage: Image | null;
   overlay: string;
   overlayOpacity: number;
@@ -125,6 +133,12 @@ export interface FooterContentPagesDraft {
   title: string;
 }
 
+/** Responsive visibility for checkout-method badges in the footer. */
+export interface FooterPaymentMethodsDraft {
+  showOnDesktop: boolean;
+  showOnMobile: boolean;
+}
+
 /**
  * Sign-up copy for the Stay-in-touch footer. Every field defined so the inputs
  * stay controlled; empty means "use the storefront's localized wording", which
@@ -135,6 +149,9 @@ export interface FooterNewsletterDraft {
   blurb: string;
   buttonLabel: string;
 }
+
+/** Complete utility-bar values keep every Customize control selected. */
+export type UtilityBarDraft = ResolvedUtilityBar;
 
 /**
  * Everything the Customize page can change, in one object.
@@ -182,8 +199,10 @@ export interface CustomizeDraft {
   navHeader: StorefrontMenuItem[];
   announcement: AnnouncementDraft;
   campaignStrip: CampaignStripDraft;
+  utilityBar: UtilityBarDraft;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
+  footerPaymentMethods: FooterPaymentMethodsDraft;
   footerContentPages: FooterContentPagesDraft;
   /** Bottom-bar note; empty ⇒ the storefront prints the store's currency. */
   footerNote: string;
@@ -240,6 +259,7 @@ export type PartId =
   | "announcement"
   | "campaign"
   | "header"
+  | "utility"
   | "mobile"
   | "hero"
   | "home"
@@ -265,6 +285,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
   header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
+  utility: (d) => d.utilityBar,
   // The template id and the arrangement over it are one visible thing to a
   // merchant — their phone header — so they share a slice. Splitting them would
   // let the save bar name a part the merchant never opened.
@@ -302,6 +323,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerNewsletter,
     d.badges,
     d.footerGroups,
+    d.footerPaymentMethods,
     d.footerContentPages,
   ],
   account: (d) => d.templates.accountLayout,
@@ -388,6 +410,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
   const presetDefaults = getPreset(t.preset);
   const a = settings.nav?.announcement;
   const cs = settings.nav?.campaignStrip;
+  const templates = seedTemplates(settings);
   return {
     preset: t.preset ?? "default",
     brandColor: t.brandColor ?? presetDefaults.brandColor,
@@ -407,7 +430,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     homepageSections: t.homepageSections ?? [],
     sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
-    templates: seedTemplates(settings),
+    templates,
     // Resolved, like `design` above and for the same reason — the slot editor's
     // inputs are controlled, so every field has to arrive concrete.
     mobile: resolveMobileChrome(settings.templates, t.mobile),
@@ -427,6 +450,11 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       ctaLabel: a?.ctaLabel ?? "",
       dismissible: a?.dismissible ?? false,
       size: a?.size ?? "sm",
+      // Off by default: every bar that exists today sits still, and a shop's
+      // announcement suddenly moving after an unrelated save is not a change
+      // any merchant asked for.
+      marquee: a?.marquee ?? false,
+      marqueeSpeed: a?.marqueeSpeed ?? "normal",
       bgImage: a?.bgImage ?? null,
       overlay: a?.overlay ?? "#000000",
       overlayOpacity: a?.overlayOpacity ?? 40,
@@ -451,8 +479,14 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       paddingX: cs?.paddingX ?? "md",
       dismissible: cs?.dismissible ?? false,
     },
+    utilityBar: resolveUtilityBar(settings.nav?.utilityBar, templates.header),
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
+    footerPaymentMethods: {
+      showOnDesktop:
+        settings.nav?.footerPaymentMethods?.showOnDesktop ?? true,
+      showOnMobile: settings.nav?.footerPaymentMethods?.showOnMobile ?? true,
+    },
     // `show` defaults on (legacy behaviour) so existing stores keep the column;
     // a blank title ⇒ the built-in "Information" heading.
     footerContentPages: {

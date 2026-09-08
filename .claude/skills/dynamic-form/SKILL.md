@@ -171,6 +171,32 @@ When the section's `dependsOn` condition is not met, the **entire section render
 `precision` — `2` for money/percentages, `0` for base-unit quantities/counts/days, omit for
 conversion factors and free floats. The renderer deliberately has no default.
 
+`date` renders the shared `DatePicker` (`ui/components/date-picker.tsx`), whose caption is
+**month + year dropdowns** by default (`captionLayout="dropdown"`) — a two-year campaign or a
+long-dated batch expiry is two clicks, not two dozen on the next-month arrow. ⚠ The picker
+therefore always passes an explicit `startMonth`/`endMonth`: react-day-picker's own fallback for
+an unbounded dropdown caption is a **date-of-birth** range (100 years back, ending this December),
+which would make any date after 31 Dec unreachable. The default window is ±`DEFAULT_NAV_YEARS`
+(10) around today, narrowed by `fromDate`/`toDate` when given and stretched to contain the current
+value so editing an old row still opens on its month.
+
+⚠ **Those dropdowns are the app's Radix `Select`, not react-day-picker's.** Its stock caption is a
+native `<select>` held at `opacity-0` over a styled label — so the trigger picks up the theme and
+the list it *opens* is the browser's OS menu, which no stylesheet can reach. `CalendarDropdown` in
+`ui/components/calendar.tsx` overrides `components.Dropdown` (one override covers month **and**
+year — `MonthsDropdown` and `YearsDropdown` both delegate to it). Don't "simplify" it back to the
+native select; `ui/components/__tests__/calendar-caption.test.tsx` fails if one reappears. The
+`dropdown_root`/`dropdown` entries in the calendar's class map are inert for the same reason.
+
+⚠ **`nav` must keep `pointer-events-none`, and the two arrows `pointer-events-auto`.** DayPicker
+renders the nav bar as an `absolute inset-x-0 top-0 w-full` sibling *before* the months — an
+invisible full-width sheet lying exactly over the 32px caption row, holding only the arrows at its
+two ends. Anything in-flow in that caption is buried under its empty middle. The trap is that this
+was harmless for years: the native `<select>` it replaced was itself `absolute` and later in the
+DOM, so it painted **above** the bar. Swapping in an ordinary button silently killed every click on
+month and year, with nothing on screen to explain it. Same applies to anything else added to the
+caption later.
+
 ## Validation Cheatsheet
 
 ```ts
