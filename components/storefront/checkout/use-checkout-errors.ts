@@ -31,7 +31,11 @@ export interface CheckoutErrorState {
   /** True once a submit (or step advance) has been refused. */
   revealed: boolean;
   /** Mark a field as "left" — call from the control's `onBlur`. */
-  touch: (field: CheckoutField) => void;
+  /**
+   * Open-ended alongside the known fields: the merchant's own checkout fields
+   * key their errors as `custom:<key>`, which is not knowable at compile time.
+   */
+  touch: (field: CheckoutField | (string & {})) => void;
   /**
    * Show everything and jump to the first problem. Returns `true` when there was
    * nothing to reveal, i.e. the caller may proceed.
@@ -45,10 +49,10 @@ export interface CheckoutErrorState {
 }
 
 export function useCheckoutErrors(errors: CheckoutErrors): CheckoutErrorState {
-  const [touched, setTouched] = useState<Partial<Record<CheckoutField, true>>>({});
+  const [touched, setTouched] = useState<Record<string, true>>({});
   const [revealed, setRevealed] = useState(false);
 
-  const touch = useCallback((field: CheckoutField) => {
+  const touch = useCallback((field: CheckoutField | (string & {})) => {
     setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
   }, []);
 

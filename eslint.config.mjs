@@ -57,26 +57,32 @@ const queryCacheConventions = {
 }
 
 /**
- * The Meta Pixel must never fire `Purchase` from the browser.
+ * A browser `Purchase` goes through `trackMetaPurchase`, never through a raw `fbq` call.
  *
- * The sale is reported server-side through the Conversions API at the merchant's chosen trigger
- * (backend `docs/plan/meta-pixel-capi.md` L1). A browser `Purchase` beside it double-counts every
- * order on the `confirmed` and `delivered` triggers, because Meta only deduplicates events
- * received within 48 hours of each other — and a merchant who confirms an order three days after
- * it was placed is outside that window, so the shared `event_id` would not save it.
+ * The sale is always reported server-side through the Conversions API at the merchant's chosen
+ * trigger. A merchant may ALSO enable the browser event (`browserEvents.purchase`, off by
+ * default), and the two are only safe together because they share one deterministic `event_id`,
+ * which is what lets Meta collapse them into a single conversion.
  *
- * It is safe on the `pending` trigger and catastrophic on the other two, the trigger is a
- * per-store setting, and the frontend cannot know which is in force. So the browser is silent for
- * everyone, and this rule is what keeps it that way — a convention nobody can violate beats one
- * everybody has to remember.
+ * Everything about that is easy to get wrong by hand and invisible when you do: omit the
+ * `eventID` and every order is counted twice; build the id from `_id` instead of `orderNumber`
+ * and it matches nothing the server sent; skip the store setting and every merchant starts
+ * sending purchases they never asked for. `trackMetaPurchase` is the one place all three are
+ * decided, so this rule keeps the ad-hoc route closed.
  *
- * Matches the string reaching `fbq(...)` in any argument position. `lib/storefront-meta.ts` is not
- * exempt: its `MetaBrowserEvent` union has no `Purchase` member, so it does not need to be.
+ * (The window that made this a ban rather than a funnel is still real and still worth knowing:
+ * Meta only deduplicates events received within 48 hours of each other, so the shared id covers
+ * `pending` always, `confirmed` usually, and `delivered` rarely. It is now a documented choice
+ * the merchant makes in the settings UI rather than one the frontend makes for them.)
+ *
+ * Matches the string reaching `fbq(...)` in any argument position. `lib/storefront-meta.ts` needs
+ * no exemption: it passes the event name through as a variable, so no literal reaches `fbq`
+ * there.
  */
 const NO_BROWSER_PURCHASE_MESSAGE =
-  'Never track `Purchase` from the browser — the backend reports it through the Meta Conversions ' +
-  'API at the store\'s purchase trigger. A browser Purchase double-counts every order on the ' +
-  'confirmed/delivered triggers (Meta only dedupes within 48h). See backend docs/plan/meta-pixel-capi.md.'
+  'Do not hand `Purchase` to `fbq` directly — call `trackMetaPurchase` from lib/storefront-meta.ts. ' +
+  'It is what applies the merchant\'s browserEvents.purchase setting and the shared event_id the ' +
+  'server also sends; without that id Meta counts the sale twice. See backend docs/features/meta-pixel-capi.md.'
 
 const META_PURCHASE_SELECTORS = [
   {
