@@ -11,6 +11,7 @@ import type {
   StoreContactButton,
   StoreFooterContentPages,
   StoreFooterGroup,
+  StoreFooterPaymentMethods,
   StoreFooterNewsletter,
   StoreHeroBanner,
   StoreHeroSlide,
@@ -21,6 +22,7 @@ import type {
   StoreMenuItem,
   StoreTemplates,
   StoreTemplatesRaw,
+  StoreUtilityBar,
   StorefrontImage,
   StorefrontStore,
 } from "@/lib/storefront-client";
@@ -109,6 +111,8 @@ interface SfPreviewState {
   navHeader: StoreMenuItem[] | null;
   /** Draft announcement bar (Customize → Announcement bar). */
   announcement: StoreAnnouncement | null;
+  /** Draft utility bar (Customize → Utility bar). */
+  utilityBar: StoreUtilityBar | null;
   /** Draft campaign strip (Customize → Campaign strip). */
   campaignStrip: StoreCampaignStrip | null;
   /**
@@ -123,6 +127,8 @@ interface SfPreviewState {
   contactButton?: StoreContactButton | null;
   /** Draft footer link groups (Customize → Footer), already trimmed like the save path. */
   footerGroups: StoreFooterGroup[] | null;
+  /** Draft responsive visibility of enabled checkout methods in the footer. */
+  footerPaymentMethods: StoreFooterPaymentMethods | null;
   /** Draft controls for the auto content-pages footer column. */
   footerContentPages: StoreFooterContentPages | null;
   /**
@@ -219,11 +225,13 @@ interface SfPreviewState {
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
+    utilityBar?: StoreUtilityBar;
     campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
     collections?: CatalogCategory[];
     footerGroups?: StoreFooterGroup[];
+    footerPaymentMethods?: StoreFooterPaymentMethods;
     footerContentPages?: StoreFooterContentPages;
     footerText?: string;
     footerNote?: string;
@@ -273,10 +281,12 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   headerMenuSrc: null,
   navHeader: null,
   announcement: null,
+  utilityBar: null,
   campaignStrip: null,
   contactButton: undefined,
   collections: null,
   footerGroups: null,
+  footerPaymentMethods: null,
   footerContentPages: null,
   footerText: null,
   footerNote: null,
@@ -339,12 +349,18 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,
       announcement:
         patch.announcement !== undefined ? patch.announcement : s.announcement,
+      utilityBar:
+        patch.utilityBar !== undefined ? patch.utilityBar : s.utilityBar,
       contactButton:
         patch.contactButton !== undefined ? patch.contactButton : s.contactButton,
       collections:
         patch.collections !== undefined ? patch.collections : s.collections,
       footerGroups:
         patch.footerGroups !== undefined ? patch.footerGroups : s.footerGroups,
+      footerPaymentMethods:
+        patch.footerPaymentMethods !== undefined
+          ? patch.footerPaymentMethods
+          : s.footerPaymentMethods,
       footerContentPages:
         patch.footerContentPages !== undefined
           ? patch.footerContentPages

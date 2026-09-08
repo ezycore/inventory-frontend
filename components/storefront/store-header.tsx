@@ -2,12 +2,8 @@
 // coding-standard: maintained
 
 import { useRef } from "react";
-import type {
-  CatalogCategory,
-  StoreTemplates,
-  StorefrontStore,
-} from "@/lib/storefront-client";
-import { resolveHeaderMenu, resolveTemplates } from "@/lib/storefront-templates";
+import type { CatalogCategory, StorefrontStore } from "@/lib/storefront-client";
+import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -21,6 +17,7 @@ import { useHeaderHeight } from "@/components/storefront/use-header-height";
 import { MobileBar } from "@/components/storefront/mobile/mobile-chrome";
 import {
   headerBar,
+  UtilityBar,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
 import {
@@ -32,16 +29,11 @@ import {
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
-
-/** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
-const HEADER_VARIANTS: readonly string[] = [
-  "classic",
-  "minimal",
-  "centered",
-  "search-first",
-  "clinical",
-  "boutique",
-];
+import { headerNeeds, showsOn } from "@/lib/storefront-utility-bar";
+import {
+  useHeaderVariant,
+  useResolvedUtilityBar,
+} from "@/components/storefront/use-utility-bar";
 
 const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.ReactNode> = {
   classic: ClassicDesktop,
@@ -85,7 +77,6 @@ export function StoreHeader({
   const { cartCount, cartSubtotal, goCart } = useCartNav(slug);
   const shopper = useShopperStore((s) => s.shopper);
   const hydrated = useHydrated();
-  const previewHeader = useSfPreview((s) => s.header);
   const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
   const previewNavHeader = useSfPreview((s) => s.navHeader);
   const previewBadges = useSfPreview((s) => s.badges);
@@ -101,6 +92,15 @@ export function StoreHeader({
     { ...store?.templates, ...(previewMenuSrc ? { headerMenu: previewMenuSrc } : {}) },
     rawMenu.length > 0,
   );
+
+  const variant = useHeaderVariant(store);
+  const utilityBar = useResolvedUtilityBar(store);
+
+  /* Who owes the shopper a theme / language control on DESKTOP. Resolved here
+     because this is the only place that knows both halves — which bar is
+     showing and which anatomy is about to render. */
+  const desktopBarShows = showsOn(utilityBar, "desktop");
+  const { needsTheme, needsLang } = headerNeeds(utilityBar, "desktop");
 
   const ctx: HeaderCtx = {
     base,
@@ -122,6 +122,8 @@ export function StoreHeader({
     menuSource,
     cats: categories ?? [],
     hideCategoryRow,
+    needsTheme,
+    needsLang,
     // "Delivery inside Dhaka in 24h" and the like. There is no dedicated
     // delivery-promise field and there should not be one — the merchant already
     // writes exactly this sentence as their first trust badge, so the chip
@@ -135,11 +137,6 @@ export function StoreHeader({
       (previewBadges ?? store?.trustBadges)?.[0]?.text?.trim() || undefined,
   };
 
-  const variant: StoreTemplates["header"] = HEADER_VARIANTS.includes(
-    previewHeader ?? "",
-  )
-    ? (previewHeader as StoreTemplates["header"])
-    : resolveTemplates(store).header;
   const mobileRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const Desktop = DESKTOP_VARIANTS[variant] ?? ClassicDesktop;
@@ -150,6 +147,9 @@ export function StoreHeader({
 
   return (
     <>
+      {showsOn(utilityBar, "mobile") ? (
+        <UtilityBar ctx={ctx} config={utilityBar} className="sf-mobile-only" />
+      ) : null}
       {/* `mobileRef` goes ON the bar, never around it. `useHeaderHeight` needs
           the measurement, but the bar is `position: sticky` on four of the five
           templates and sticky is confined to its parent's box — a wrapper that
@@ -163,6 +163,7 @@ export function StoreHeader({
         barRef={mobileRef}
       />
       <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
+        {desktopBarShows ? <UtilityBar ctx={ctx} config={utilityBar} /> : null}
         <Desktop ctx={ctx} />
       </div>
     </>

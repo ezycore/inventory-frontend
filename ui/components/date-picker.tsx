@@ -1,7 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { format as dateFnsFormat, parseISO, isValid } from "date-fns"
+import {
+  format as dateFnsFormat,
+  parseISO,
+  isValid,
+  startOfYear,
+  endOfYear,
+  addYears,
+  subYears,
+} from "date-fns"
 import { Calendar as CalendarIcon, X } from "lucide-react"
 import type { Matcher } from "react-day-picker"
 import { cn } from "@ui/lib/utils"
@@ -27,12 +35,22 @@ interface DatePickerProps {
   toDate?: Date
   /** Extra day matchers to disable, forwarded to react-day-picker. */
   disabledDates?: Matcher | Matcher[]
+  /**
+   * Caption style. Defaults to `"dropdown"` — month and year are selects, so a
+   * date two years out is two clicks instead of twenty-four on the next arrow.
+   * Pass `"label"` for the plain "September 2026" caption with arrows only.
+   */
+  captionLayout?: React.ComponentProps<typeof Calendar>["captionLayout"]
 }
 
 const DEFAULT_DISPLAY_FORMAT = "dd MMM yyyy"
 // Date-only, timezone-safe. Used when no explicit outputFormat is given so a
 // picked day never shifts across the date boundary in UTC+ offsets (e.g. BDT).
 const DEFAULT_OUTPUT_FORMAT = "yyyy-MM-dd"
+// How far the year dropdown reaches either side of today when the caller sets no
+// fromDate/toDate. Covers the long end of what this app schedules — a two-year
+// campaign, a long-dated batch expiry — while keeping the list scannable.
+const DEFAULT_NAV_YEARS = 10
 
 function parseDateSafe(date: Date | string | undefined): Date | undefined {
   if (!date) return undefined
@@ -81,6 +99,7 @@ export function DatePicker({
   fromDate,
   toDate,
   disabledDates,
+  captionLayout = "dropdown",
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -124,6 +143,23 @@ export function DatePicker({
     return matchers.length ? matchers : undefined
   }, [fromDate, toDate, disabledDates])
 
+  // The navigable month window — which is also exactly the range the year
+  // dropdown lists. It has to be explicit: react-day-picker's own fallback when
+  // a dropdown caption has no bounds is a date-of-birth range (100 years back,
+  // ending THIS December), so a campaign or expiry running into next year would
+  // be unreachable. Stretched to contain the current value as well, so editing
+  // an old row can still open on its month.
+  const [navStart, navEnd] = React.useMemo(() => {
+    const today = new Date()
+    let start = fromDate ?? startOfYear(subYears(today, DEFAULT_NAV_YEARS))
+    let end = toDate ?? endOfYear(addYears(today, DEFAULT_NAV_YEARS))
+    if (dateValue) {
+      if (dateValue < start) start = startOfYear(dateValue)
+      if (dateValue > end) end = endOfYear(dateValue)
+    }
+    return [start, end]
+  }, [fromDate, toDate, dateValue])
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -160,8 +196,9 @@ export function DatePicker({
           onSelect={handleSelect}
           today={new Date()}
           autoFocus
-          startMonth={fromDate}
-          endMonth={toDate}
+          captionLayout={captionLayout}
+          startMonth={navStart}
+          endMonth={navEnd}
           disabled={disabledMatcher}
           classNames={{
             today: cn(

@@ -14,6 +14,7 @@ import type {
   MobileActionId,
   MobileChrome as Chrome,
 } from "@/lib/storefront-mobile";
+import { keptSlot } from "@/lib/storefront-mobile";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useMobileNav } from "@/services/stores/use-mobile-nav-store";
 import { Brand } from "@/components/storefront/logo-mark";
@@ -28,6 +29,8 @@ import {
   useMobileBrandLogo,
   useMobileChrome,
 } from "@/components/storefront/mobile/use-mobile-chrome";
+import { headerNeeds } from "@/lib/storefront-utility-bar";
+import { useResolvedUtilityBar } from "@/components/storefront/use-utility-bar";
 
 /**
  * The phone chrome — **one renderer for every mobile template**.
@@ -140,6 +143,12 @@ export function MobileBar({
   const logo = useMobileBrandLogo(store);
   const ctx = useActionCtx(slug, base, chrome, store);
   const name = store?.name ?? "Store";
+  /* The utility bar renders directly above this one, so whatever it carries is
+     dropped from these slots rather than drawn twice. */
+  const utilityBar = useResolvedUtilityBar(store);
+  const needs = headerNeeds(utilityBar, "mobile");
+  const left = keptSlot(chrome.left, needs);
+  const right = keptSlot(chrome.right, needs);
 
   const brand = (
     <Link
@@ -172,15 +181,15 @@ export function MobileBar({
             gap: 8,
           }}
         >
-          <Slot ids={chrome.left} ctx={ctx} />
+          <Slot ids={left} ctx={ctx} />
           <div style={{ justifySelf: "center", minWidth: 0 }}>{brand}</div>
           <div style={{ justifySelf: "end" }}>
-            <Slot ids={chrome.right} ctx={ctx} />
+            <Slot ids={right} ctx={ctx} />
           </div>
         </div>
       ) : (
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Slot ids={chrome.left} ctx={ctx} />
+          <Slot ids={left} ctx={ctx} />
           {brand}
           {chrome.searchInline ? (
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -189,7 +198,7 @@ export function MobileBar({
           ) : (
             <div style={{ flex: 1 }} />
           )}
-          <Slot ids={chrome.right} ctx={ctx} />
+          <Slot ids={right} ctx={ctx} />
         </div>
       )}
 
@@ -333,6 +342,11 @@ export function MobileOverlays({
   categories: CatalogCategory[];
 }) {
   const chrome = useMobileChrome(store);
+  /* The drawer is the LAST fallback for language and theme, so it has to know
+     about the utility bar too — otherwise a phone bar carrying them still gets
+     a second copy listed inside the menu. */
+  const utilityBar = useResolvedUtilityBar(store);
+  const utilityNeeds = headerNeeds(utilityBar, "mobile");
   const menuOpen = useMobileNav((s) => s.menuOpen);
   const closeMenu = useMobileNav((s) => s.closeMenu);
   const searchOpen = useMobileNav((s) => s.searchOpen);
@@ -356,6 +370,7 @@ export function MobileOverlays({
         open={menuOpen}
         onClose={closeMenu}
         chrome={chrome}
+        utilityNeeds={utilityNeeds}
         base={base}
         categories={categories}
         menu={store?.nav?.header ?? []}

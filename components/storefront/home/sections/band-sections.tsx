@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useCallback, useId, useRef, useState } from "react";
 import { storeHref } from "@/lib/storefront-links";
+import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
@@ -197,16 +198,9 @@ function DealCard({
 }) {
   const amount =
     c.type === "percentage" ? `${c.value}%` : money(c.value, currency);
-  // Same formatting as `CampaignStrip`, so the two never disagree about when a
-  // campaign ends. `toLocaleDateString(t.langCode)` localizes the numerals too,
-  // which a hand-built "2d 4h" countdown could not do without inventing Bengali
-  // unit abbreviations that are not in the glossary.
-  const ends = c.endsAt
-    ? new Date(c.endsAt).toLocaleDateString(t.langCode, {
-        day: "numeric",
-        month: "short",
-      })
-    : null;
+  // Shared with `CampaignStrip`, so the two never disagree about when the same
+  // campaign ends — including whether the year is worth showing.
+  const ends = campaignEndsLabel(c.endsAt, t.langCode);
 
   return (
     <Link

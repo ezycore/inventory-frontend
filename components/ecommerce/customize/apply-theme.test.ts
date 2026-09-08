@@ -34,6 +34,16 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     heroSlides: [{ title: "Eid sale" }],
     heroBanner: { title: "Our banner" },
     navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
+    utilityBar: {
+      enabled: true,
+      showOnDesktop: true,
+      showOnMobile: false,
+      showPhone: true,
+      showTrackOrder: true,
+      showLanguage: true,
+      showTheme: true,
+      trackOrderLabel: "",
+    },
     announcement: {} as CustomizeDraft["announcement"],
     // Not an empty cast like the two beside it: `validateCustomizeDraft` reads
     // the two colours, and `seedDraft` guarantees every field is defined (the
@@ -53,6 +63,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     },
     contactButton: {} as CustomizeDraft["contactButton"],
     footerGroups: [{ title: "Help", links: [] }],
+    footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
     footerContentPages: { show: true, title: "Info" },
     footerNote: "Dhaka, Bangladesh",
     footerContactHeading: "Order by phone",
@@ -281,6 +292,8 @@ describe("Customize draft safeguards", () => {
     ctaLabel: "",
     dismissible: false,
     size: "sm",
+    marquee: false,
+    marqueeSpeed: "normal",
     bgImage: null,
     overlay: "",
     overlayOpacity: 40,

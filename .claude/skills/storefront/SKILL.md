@@ -5,8 +5,8 @@ description: Map of the multi-tenant ecommerce storefront ("shop") — architect
 
 # Storefront (multi-tenant ecommerce)
 
-Each organization on the inventory SaaS can publish a public online store. One codebase serves
-every store; **the host picks the store**.
+Every organization publishes a public online store — the product's headline feature, not an add-on
+to the back office. One codebase serves every store; **the host picks the store**.
 
 - **Tenant hosts**: `{slug}.domain/shop` (dev: `http://rmc41.localhost:3000/shop`). Link base = `/shop`.
 - **Custom domains**: store at the domain root; link base = `""`. `proxy.ts` (root) resolves
@@ -75,6 +75,22 @@ Two rules, both learned from the same bug:
 Sub-category options are labelled `Parent › Child`: a child name is unique only
 within its parent, so a flat list can show two identical entries meaning
 different things.
+
+### The "Ends" date is one function (2026-09-08)
+
+`campaignEndsLabel(endsAt, langCode)` in `lib/storefront-campaign-date.ts` — used
+by `CampaignStrip` and the deal cards in `band-sections.tsx`, the only two
+surfaces that print it. Both formatted it inline as day + short month, so a
+campaign scheduled into a later year — the two-year kind a merchant sets up for a
+permanent outlet section — announced "Ends 3 Jan" for a date two Januaries out.
+**The year is added whenever the end date is not in the current one**, and never
+when it is: a same-year date is unambiguous without it, and the strip has one
+line. Still `toLocaleDateString`, which localizes the numerals as well as the
+month — a hand-built "2d 4h" countdown would need Bengali unit abbreviations that
+are not in `docs/I18N-GLOSSARY.md`.
+
+Scheduling that long campaign needs the year reachable in the picker too: see the
+month/year caption note in the `dynamic-form` skill.
 
 ## Frontend layout
 
@@ -233,14 +249,40 @@ reads as two filters at once.
     read `getImageData`; a full-frame histogram plus a horizontal strip across the top would have
     found it in one pass. `getComputedStyle` and `elementFromPoint` both report a DECLARED colour and
     neither can see what is covering it.
-  - ⚠ **Every desktop header anatomy MUST render `<ThemeBtn>`** (directly, or via `<UtilityBar>`).
-    The shopper's light/dark choice is persisted to `localStorage['ezy-sf-theme']` and re-applied
-    before paint by the script in `app/(storefront)/layout.tsx` — so an anatomy without the toggle
-    does not hide a preference, it **strands** the shopper in whichever theme they last picked, on
-    every future visit, with no way back. `minimal`, `search-first` and `boutique` all shipped that
-    way. `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component, so the
-    two cannot drift. `components/storefront/header/desktop-variants.test.tsx` discovers every
-    exported `*Desktop` from the source and fails if one has no exit.
+  - ⚠ **Every desktop header anatomy MUST render its OWN `<ThemeBtn>`, gated only on
+    `ctx.needsTheme`.** The shopper's light/dark choice is persisted to
+    `localStorage['ezy-sf-theme']` and re-applied before paint by the script in
+    `app/(storefront)/layout.tsx` — so an anatomy without the toggle does not hide a preference, it
+    **strands** the shopper in whichever theme they last picked, on every future visit, with no way
+    back. `minimal`, `search-first` and `boutique` all shipped that way, and `classic` later lost its
+    own toggle to the configurable utility bar — which put the DEFAULT template one merchant switch
+    away from the same dead end.
+    **"Or via `<UtilityBar>`" is not good enough, and that is the lesson:** the bar is merchant
+    configurable now (Customize → Utility bar), so anything drawing its toggle only from there can be
+    switched off. `headerNeeds(bar, breakpoint)` (`lib/storefront-utility-bar.ts`) is the single
+    arbiter — false ONLY while the bar is on that breakpoint AND still carrying that item. Asked per
+    item, not per bar, because the merchant switches the four utility items independently.
+    **Three surfaces own these two controls, and every pair of them could collide:**
+    | Surface | Reads the arbiter as | Guard |
+    |---|---|---|
+    | Desktop anatomy | `ctx.needsTheme` / `ctx.needsLang` on `HeaderCtx` | `StoreHeader`, `"desktop"` |
+    | Phone bar slots | `keptSlot(ids, needs)` (`lib/storefront-mobile.ts`) | `MobileBar`, `"mobile"` |
+    | Menu drawer rows | `!chromeHas(chrome, id) && utilityNeeds.needsX` | `MobileOverlays`, `"mobile"` |
+
+    All three resolve the bar through **`useResolvedUtilityBar()`**
+    (`components/storefront/use-utility-bar.ts`) rather than a prop, because they sit in two
+    different React trees — `StoreHeader` renders the desktop and phone bars, the drawer comes from
+    `StoreShell` via `MobileOverlays`. The moment the trees resolve it differently, the duplicate is
+    back. **Never read `store.nav.utilityBar` directly** — that skips the preview draft and the
+    Classic legacy default.
+    Both collisions were real: `centered`/`clinical` carry their own `LangBtn`, and the `tabs` phone
+    template ships `right: ["lang", "theme"]`, so switching the bar on for phones stacked two
+    language switches and two theme switches on top of each other.
+    `ThemeBtn` takes `compact` for icon-only rows; it is a prop, not a second component, so the two
+    cannot drift. `desktop-variants.test.tsx` discovers every exported `*Desktop` from the source and
+    fails if one has no exit **or** guards it on anything but `ctx.needsTheme`;
+    `storefront-utility-bar.test.ts` sweeps every bar configuration at BOTH breakpoints for "never
+    both silent, never both speaking"; `storefront-mobile.test.ts` pins `keptSlot`.
   - **When a colour looks wrong to the owner but right to you, compare PERSISTED STATE before
     anything else.** A fresh QA profile has no `ezy-sf-theme`, so it always renders light; the
     owner's browser had `dark` from an earlier visit and no control to undo it. Four rounds of
@@ -931,11 +973,41 @@ changes and a shop that never opens this stores nothing.
 - ⚠ **The wrapper `<div>` only exists when a section is actually hidden somewhere.** Wrapping every
   section would change the DOM of every shop to express "shown everywhere", which is what no wrapper
   already says.
-- **Three chips, not the shared switch pair.** `StripVisibilityField`'s distinguishing feature is a
+- **Three chips, not the shared switch pair.** `ResponsiveVisibilityField`'s distinguishing feature is a
   warning for "off on both" — a state a section does not need, because Remove means that. One
   choice, no invalid combination.
 - Page length is the problem it solves: a five-entry promises band is a five-row stack on a phone,
   and an editorial split spends most of a screen on a photograph before any product.
+
+### The scrolling announcement (`nav.announcement.marquee`)
+
+For a notice too long to sit on one line. Without it the bar wraps, and a three-line band pushes the
+whole shop down on **every page** — the merchant trades their fold for a sentence.
+
+- ⚠ **The duration is computed on the SERVER, from the message length** —
+  `marqueeDurationSeconds(text, speed)` in `lib/storefront-strip-display.ts`, published as
+  `--sf-marquee-dur`. Measuring the rendered text is the obvious implementation and the wrong one
+  twice: nothing can be measured before paint, and measuring after makes the ticker visibly snap to a
+  new speed on hydration. The pace is therefore in **characters per second**, the one unit the text
+  carries with it.
+- ⚠ **Length buys TIME, never speed.** A fixed duration inverts the feature: the longer the notice —
+  which is *why* the merchant switched scrolling on — the faster it would travel to finish in the
+  same time, so the hardest message to read would be the one moving quickest.
+- **Two copies, `translateX(-50%)`.** Half the track is one copy whatever the words are, so the
+  seamless loop never needs a measured width. The clone is `aria-hidden` **and `inert`** — it can
+  carry the merchant's CTA, and a focusable control inside an aria-hidden subtree is a tab stop a
+  screen reader cannot announce.
+- **`min-width: 100%` on `.sf-marquee-item` is the short-message guard**, and it is why the duration
+  needs a floor: a track narrower than the bar would drag a blank gap across the screen, so a short
+  message is held to the bar's width — at which point chars-per-second no longer describes the
+  distance travelled and an honest sum would strobe.
+- ⚠ **`prefers-reduced-motion` must undo `overflow` and `white-space` too**, not just the animation.
+  A long message pinned to one line inside a clipped box is one this shopper never sees the end of;
+  it falls back to the wrapping static bar. Pausing on `:hover` **and `:focus-within`** is WCAG 2.2.2
+  — hover alone leaves a keyboard shopper chasing a CTA they cannot catch.
+- Deliberately **announcement-only** so far. The campaign strip shares this vocabulary
+  (`storefront-strip-display.ts`) and could adopt it, but its text is generated from the running
+  campaign and is short by construction.
 
 ### One product grid, pointed by its source (2026-09-06)
 
@@ -1013,7 +1085,10 @@ had been modelled on the backend since the beginning and was **read by nothing**
     in for it and made the pharmacy theme read as Classic-with-teal — a shopper here arrives with a
     name to type, so search must be the widest thing on the bar, but the shop opens on a trust band
     that already does the wayfinding, which makes a category row redundant and a utility strip
-    noise. Distinct from `search-first`, the other search-led bar, by being plainer and taller:
+    noise. That is its DEFAULT, not a prohibition — since the utility bar became merchant
+    configurable a pharmacy that wants its phone number up there can switch one on, and `clinical`
+    then drops its own `LangBtn`/`ThemeBtn` rather than showing them twice. Distinct from
+    `search-first`, the other search-led bar, by being plainer and taller:
     that one is a pill with a filled cart button and a delivery chip for someone assembling thirty
     lines; this is for someone reading carefully.
   - `boutique` **replaced `editorial`** in the same change. Same anatomy — wordmark, icons, nav on

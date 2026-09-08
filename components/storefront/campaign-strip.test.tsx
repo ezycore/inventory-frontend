@@ -172,4 +172,22 @@ describe("CampaignStrip presentation", () => {
     const button = screen.getByRole("button");
     expect(button.closest("a")).toBeNull();
   });
+
+  /* A campaign can be scheduled years out, and the strip used to print day and
+     month only — so a sale ending in a later year read as one ending within
+     weeks. The rule itself is `campaignEndsLabel`'s and tested there; this is
+     the wiring, so the strip cannot quietly go back to formatting its own. */
+  it("shows the year when the campaign ends in a different one", () => {
+    const nextYear = new Date().getFullYear() + 2;
+    state.campaigns = [{ ...live, endsAt: `${nextYear}-06-15T12:00:00.000Z` }];
+    renderStrip();
+    expect(strip()).toHaveTextContent(String(nextYear));
+  });
+
+  it("leaves the year off a campaign ending this year", () => {
+    const thisYear = new Date().getFullYear();
+    state.campaigns = [{ ...live, endsAt: `${thisYear}-12-15T12:00:00.000Z` }];
+    renderStrip();
+    expect(strip()).not.toHaveTextContent(String(thisYear));
+  });
 });

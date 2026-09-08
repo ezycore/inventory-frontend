@@ -7,6 +7,7 @@ import { readableTextOn } from "@/lib/color-contrast";
 import {
   announcementStripAttrs,
   announcementVisibilityClass,
+  marqueeDurationSeconds,
   stripPaddingInline,
   STRIP_FONT_SIZE,
   STRIP_PADDING_BLOCK,
@@ -91,6 +92,11 @@ export function AnnouncementBar({
   const stripAttrs = announcementStripAttrs(announcement.size);
   const link = announcement.link?.trim();
   const cta = announcement.ctaLabel?.trim();
+  // Scrolling is what a merchant reaches for when the notice is too long to sit
+  // on one line. The duration comes from the message length so the PACE holds
+  // as the wording changes — see `marqueeDurationSeconds`.
+  const marquee = announcement.marquee ?? false;
+  const duration = marqueeDurationSeconds(text, announcement.marqueeSpeed);
 
   const bgStyle: CSSProperties = imgUrl
     ? {
@@ -194,7 +200,25 @@ export function AnnouncementBar({
           }}
         />
       ) : null}
-      <span style={{ position: "relative", zIndex: 1 }}>{content}</span>
+      {marquee ? (
+        <div
+          className="sf-marquee"
+          style={{ "--sf-marquee-dur": `${duration}s` } as CSSProperties}
+        >
+          <div className="sf-marquee-track">
+            <span className="sf-marquee-item">{content}</span>
+            {/* The seam. `inert` and not just `aria-hidden`: the copy can hold
+                the merchant's CTA link, and a focusable control inside an
+                aria-hidden subtree is a tab stop a screen reader cannot
+                announce — the shopper lands on a button that says nothing. */}
+            <span className="sf-marquee-item" aria-hidden inert>
+              {content}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <span style={{ position: "relative", zIndex: 1 }}>{content}</span>
+      )}
 
       {dismissible ? (
         <button

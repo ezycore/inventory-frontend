@@ -133,6 +133,16 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   heroSlides: [],
   heroBanner: {},
   navHeader: [],
+  utilityBar: {
+    enabled: true,
+    showOnDesktop: true,
+    showOnMobile: false,
+    showPhone: true,
+    showTrackOrder: true,
+    showLanguage: true,
+    showTheme: true,
+    trackOrderLabel: "",
+  },
   announcement: {
     enabled: false,
     useShippingRule: false,
@@ -144,6 +154,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     ctaLabel: "",
     dismissible: false,
     size: "sm",
+    marquee: false,
+    marqueeSpeed: "normal",
     bgImage: null,
     overlay: "#000000",
     overlayOpacity: 40,
@@ -180,6 +192,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     nudgeDelay: 8,
   },
   footerGroups: [],
+  footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
   footerContentPages: { show: true, title: "" },
   footerNote: "",
   footerContactHeading: "",
@@ -318,11 +331,42 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     const value = draft({
       navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
       footerGroups: [{ title: "Help", links: [] }],
+      footerPaymentMethods: { showOnDesktop: false, showOnMobile: true },
     });
     const patch = toSettingsPatch(value, ["announcement"]);
     expect(Object.keys(patch)).toEqual(["nav"]);
     expect(patch.nav?.header).toEqual(value.navHeader);
     expect(patch.nav?.footer).toEqual(value.footerGroups);
+    expect(patch.nav?.footerPaymentMethods).toEqual({
+      showOnDesktop: false,
+      showOnMobile: true,
+    });
+    expect(patch.nav?.utilityBar).toEqual({
+      ...value.utilityBar,
+      trackOrderLabel: undefined,
+    });
+  });
+
+  it("persists the utility bar as one responsive section", () => {
+    const value = draft({
+      utilityBar: {
+        enabled: true,
+        showOnDesktop: false,
+        showOnMobile: true,
+        showPhone: false,
+        showTrackOrder: true,
+        showLanguage: false,
+        showTheme: false,
+        trackOrderLabel: "  Check delivery  ",
+      },
+    });
+
+    const patch = toSettingsPatch(value, ["utility"]);
+
+    expect(patch.nav?.utilityBar).toEqual({
+      ...value.utilityBar,
+      trackOrderLabel: "Check delivery",
+    });
   });
 
   it("persists collection layout and pagination template changes", () => {

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { pageOf } from "@/lib/storefront-contact-message";
+import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
 import {
   campaignStripAllowedOn,
   resolveCampaignStrip,
@@ -133,12 +134,7 @@ export function CampaignStrip({
               : storeHref(base, "/products");
           })()
         : storeHref(base, "/products");
-  const ends = campaign.endsAt
-    ? new Date(campaign.endsAt).toLocaleDateString(t.langCode, {
-        day: "numeric",
-        month: "short",
-      })
-    : null;
+  const ends = campaignEndsLabel(campaign.endsAt, t.langCode);
 
   const dismiss = () => {
     try {
