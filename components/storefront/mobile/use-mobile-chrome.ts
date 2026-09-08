@@ -3,6 +3,7 @@
 
 import { useMemo } from "react";
 import type { StorefrontStore } from "@/lib/storefront-client";
+import { logoImageUrl } from "@/lib/storefront-image";
 import {
   resolveMobileChrome,
   type MobileChrome,
@@ -53,5 +54,9 @@ export function useMobileBrandLogo(store?: StorefrontStore): string | undefined 
   const mobile = useSfPreviewImage("mobileLogo", store?.mobileLogo);
   const desktop = useSfPreviewImage("logo", store?.logo);
   const pick = mobile ?? desktop;
-  return pick?.url || pick?.thumbnailUrl || undefined;
+  // Through the shared helper rather than an ordering spelled out here. This
+  // one happened to be right — `url` first — but it is the same question the
+  // header, the footer and every admin preview of a mark answer, and a second
+  // hand-written ordering is how a call site drifts onto the square crop.
+  return logoImageUrl(pick);
 }
