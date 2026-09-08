@@ -109,7 +109,10 @@ export function partSummary(
       const message = draft.announcement.text.trim()
         ? `On — “${draft.announcement.text.trim()}”`
         : "On, but no message written yet";
-      return where ? `${message} · ${where}` : message;
+      // Worth a word in the collapsed row: it is the one announcement setting
+      // that changes how the bar BEHAVES rather than how it looks.
+      const scroll = draft.announcement.marquee ? "Scrolling" : "";
+      return [message, scroll, where].filter(Boolean).join(" · ");
     }
     case "campaign": {
       const c = draft.campaignStrip;
@@ -143,6 +146,18 @@ export function partSummary(
         ? ` · ${[...new Set(hover)].join("/")} hover`
         : "";
       return `${labelOf("header", draft.templates.header)} · ${menu}${hoverNote}`;
+    }
+    case "utility": {
+      const u = draft.utilityBar;
+      if (!u.enabled) return "Off";
+      const where = stripWhere(u.showOnDesktop, u.showOnMobile);
+      const items = [
+        u.showPhone,
+        u.showTrackOrder,
+        u.showLanguage,
+        u.showTheme,
+      ].filter(Boolean).length;
+      return [`On · ${count(items, "item")}`, where].filter(Boolean).join(" · ");
     }
     case "hero": {
       if (draft.templates.home === "minimal") return "Not shown on the Minimal home layout";

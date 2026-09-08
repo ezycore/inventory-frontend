@@ -998,6 +998,96 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: none !important;
 }
 
+/* ---- Scrolling announcement (the "marquee" switch) ----
+
+   For a notice too long to read at a glance. The bar is `flex-wrap: wrap`, so
+   without this a long message becomes a three-line band that pushes the entire
+   shop down on every page — the merchant trades their fold for a sentence.
+
+   Seamless, so two copies of the message and a track that travels exactly one
+   copy before repeating. `-50%` is that copy: whatever the words are, half the
+   track is one of them, so the loop never needs a measured width.
+
+   `min-width: 100%` on each copy is the SHORT-message guard, and it is doing
+   more than it looks. A track narrower than the bar would run out of content
+   mid-pass and drag a blank gap across the screen. Held to the bar's width, two
+   copies always span at least twice the viewport, so something is always on
+   screen — and a short message centres in its slot, which is exactly how the
+   bar looks when it is not scrolling at all. */
+.sf-marquee {
+  overflow: hidden;
+  /* Its own stacking context, so the message cannot ride over the dismiss
+     button parked at the right edge. */
+  position: relative;
+  z-index: 1;
+}
+.sf-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: sf-marquee var(--sf-marquee-dur, 18s) linear infinite;
+}
+.sf-marquee-item {
+  flex: 0 0 auto;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The bar wraps by default — that is the behaviour this switch exists to
+     escape — so the message has to be told to stay on one line, or it wraps
+     inside the track and scrolls a paragraph past. */
+  white-space: nowrap;
+  /* Breathing room between the end of one pass and the start of the next, in
+     `ch` so it tracks the strip's own font size rather than a fixed pixel gap
+     that reads as cramped at `lg` and cavernous at `sm`. */
+  padding-inline-end: 4ch;
+}
+@keyframes sf-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* Pause while the shopper is reading it or tabbing through it — WCAG 2.2.2
+   wants moving content that starts on its own to be stoppable, and a CTA
+   button that slides out from under the pointer is unclickable besides.
+   `:focus-within` is the keyboard half; hover alone would leave that shopper
+   chasing a moving target they cannot catch. */
+.sf-marquee:hover .sf-marquee-track,
+.sf-marquee:focus-within .sf-marquee-track {
+  animation-play-state: paused;
+}
+/* Motion is a vestibular trigger, and a bar that scrolls on every page of the
+   shop is the worst possible place for it. The message still has to be
+   readable, so the animation is dropped and the copy falls back to the static
+   centred line — NOT hidden, and not left mid-scroll. */
+@media (prefers-reduced-motion: reduce) {
+  /* Every one of these undoes a rule that only makes sense while the text is
+     moving. `overflow` and `white-space` are the load-bearing pair: a message
+     long enough to be worth scrolling, held to one line inside a clipped box,
+     is a message this shopper would simply never see the end of. Letting it
+     wrap costs a taller bar and keeps the notice readable, which is the right
+     way round. */
+  .sf-marquee {
+    overflow: visible;
+  }
+  .sf-marquee-track {
+    animation: none;
+    transform: none;
+    width: 100%;
+  }
+  .sf-marquee-item {
+    white-space: normal;
+    padding-inline-end: 0;
+  }
+  /* The second copy exists only to make the loop seamless; with no loop it is
+     a duplicated sentence. */
+  .sf-marquee-item + .sf-marquee-item {
+    display: none;
+  }
+}
+
 /* ---- Category promo cards (`category-banners`) ----
    ONE card per row on a phone, and that is the section's whole premise: a promo
    card exists to carry a photograph, a sentence and a button, and at half a

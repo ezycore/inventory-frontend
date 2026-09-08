@@ -448,6 +448,12 @@ export interface StorefrontFooterContentPages {
   title?: string;
 }
 
+/** Responsive visibility for the enabled payment-method badges in the footer. */
+export interface StorefrontFooterPaymentMethods {
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+}
+
 export interface StorefrontAnnouncement {
   enabled: boolean;
   /** Use the effective shipping threshold instead of free-form message text. */
@@ -464,6 +470,10 @@ export interface StorefrontAnnouncement {
   /** Shopper can dismiss the bar (persisted per-device until the message changes). */
   dismissible?: boolean;
   size?: "sm" | "md" | "lg";
+  /** Scroll the message right-to-left instead of centring it on one line. */
+  marquee?: boolean;
+  /** Scroll pace when `marquee` is on. Absent ⇒ `normal`. */
+  marqueeSpeed?: "slow" | "normal" | "fast";
   /** Background image (uploadInfo from the storefront image endpoint). */
   bgImage?: Image | null;
   /** Overlay colour painted over the image for text readability. */
@@ -506,14 +516,31 @@ export interface StorefrontCampaignStrip {
   dismissible?: boolean;
 }
 
+/** Merchant-controlled information strip above the storefront header. */
+export interface StorefrontUtilityBar {
+  enabled?: boolean;
+  showOnDesktop?: boolean;
+  showOnMobile?: boolean;
+  showPhone?: boolean;
+  showTrackOrder?: boolean;
+  showLanguage?: boolean;
+  showTheme?: boolean;
+  /** Blank/unset uses the localized "Track order" label. */
+  trackOrderLabel?: string;
+}
+
 export interface StorefrontNav {
   header: StorefrontMenuItem[];
   footer: StorefrontFooterGroup[];
+  /** Where enabled checkout methods are advertised in the footer. */
+  footerPaymentMethods?: StorefrontFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StorefrontFooterContentPages;
   announcement?: StorefrontAnnouncement;
   /** Presentation of the campaign strip; not its schedule. */
   campaignStrip?: StorefrontCampaignStrip;
+  /** Optional information strip above the main header. */
+  utilityBar?: StorefrontUtilityBar;
 }
 
 /**

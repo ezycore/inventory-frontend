@@ -7,9 +7,11 @@ import type {
   ContentPageLink,
   StoreFooterContentPages,
   StoreFooterGroup,
+  StoreFooterPaymentMethods,
   StorefrontStore,
 } from "@/lib/storefront-client";
 import { storeHref } from "@/lib/storefront-links";
+import { stripVisibilityClass } from "@/lib/storefront-strip-display";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Brand } from "@/components/storefront/logo-mark";
@@ -50,6 +52,8 @@ export interface FooterProps {
   logo?: string;
   phone: string;
   footerGroups: StoreFooterGroup[];
+  /** Where enabled checkout methods should be advertised in the bottom bar. */
+  footerPaymentMethods?: StoreFooterPaymentMethods;
   footerContentPages?: StoreFooterContentPages;
   infoPages: ContentPageLink[];
   /**
@@ -264,14 +268,16 @@ export function PaymentBadges({
   store,
   t,
   compact,
+  className,
 }: {
   store?: StorefrontStore;
   t: FooterT;
   /** Bottom-bar sizing — the badges sit beside 12px text there, not on their own. */
   compact?: boolean;
+  className?: string;
 }) {
   return (
-    <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+    <div className={className} style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
       {(store?.allowedPaymentMethods ?? ["cod", "bank"]).map((m) => (
         <span
           key={m}
@@ -327,6 +333,7 @@ export function BottomBar({
   note,
   store,
   t,
+  footerPaymentMethods,
   center,
 }: {
   name: string;
@@ -334,6 +341,7 @@ export function BottomBar({
   note?: string;
   store?: StorefrontStore;
   t: FooterT;
+  footerPaymentMethods?: StoreFooterPaymentMethods;
   /** Centered layouts stack this instead of spreading it. */
   center?: boolean;
 }) {
@@ -370,7 +378,15 @@ export function BottomBar({
           EzyCore
         </a>
       </span>
-      <PaymentBadges store={store} t={t} compact />
+      <PaymentBadges
+        store={store}
+        t={t}
+        compact
+        className={stripVisibilityClass(
+          footerPaymentMethods?.showOnDesktop,
+          footerPaymentMethods?.showOnMobile,
+        )}
+      />
       <span>{note?.trim() || currency || ""}</span>
     </div>
   );

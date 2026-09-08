@@ -56,6 +56,9 @@ export function StoreFooter({
   const { data: pages } = useStorePages(slug, initialPages);
   const previewFooter = useSfPreview((s) => s.footer);
   const previewGroups = useSfPreview((s) => s.footerGroups);
+  const previewFooterPaymentMethods = useSfPreview(
+    (s) => s.footerPaymentMethods,
+  );
   const previewContentPages = useSfPreview((s) => s.footerContentPages);
   // Copy drafts. `??` and not `||` throughout: an empty string is a real draft
   // ("cleared, so fall back to the localized default"), and `||` would serve the
@@ -83,6 +86,8 @@ export function StoreFooter({
     // Draft groups win — an empty array is a real draft ("all groups removed"),
     // so this must not collapse to the saved value on falsiness.
     footerGroups: previewGroups ?? store?.nav?.footer ?? [],
+    footerPaymentMethods:
+      previewFooterPaymentMethods ?? store?.nav?.footerPaymentMethods,
     footerContentPages: previewContentPages ?? store?.nav?.footerContentPages,
     infoPages: pages ?? [],
     // Drafted-empty must reach the localized default, not the saved text — so

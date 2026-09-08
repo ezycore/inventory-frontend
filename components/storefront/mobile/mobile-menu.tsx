@@ -25,10 +25,17 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 
 type T = ReturnType<typeof useStorefrontUI>["t"];
 
+/** What the utility bar above the phone bar is already carrying, if it shows. */
+export interface UtilityNeeds {
+  needsTheme: boolean;
+  needsLang: boolean;
+}
+
 export function MobileMenuPanel({
   open,
   onClose,
   chrome,
+  utilityNeeds,
   base,
   categories,
   menu,
@@ -36,6 +43,7 @@ export function MobileMenuPanel({
   open: boolean;
   onClose: () => void;
   chrome: MobileChrome;
+  utilityNeeds: UtilityNeeds;
   base: string;
   categories: CatalogCategory[];
   menu: StoreMenuItem[];
@@ -47,6 +55,7 @@ export function MobileMenuPanel({
       categories={categories}
       menu={menu}
       chrome={chrome}
+      utilityNeeds={utilityNeeds}
       t={t}
       onClose={onClose}
     />
@@ -153,6 +162,7 @@ function MenuBody({
   categories,
   menu,
   chrome,
+  utilityNeeds,
   t,
   onClose,
 }: {
@@ -160,6 +170,7 @@ function MenuBody({
   categories: CatalogCategory[];
   menu: StoreMenuItem[];
   chrome: MobileChrome;
+  utilityNeeds: UtilityNeeds;
   t: T;
   onClose: () => void;
 }) {
@@ -182,8 +193,11 @@ function MenuBody({
      all — a whole template's worth of dead ends. Asked per-item rather than
      per-template because a merchant rearranges the slots freely. */
   const needsAccount = !chromeHas(chrome, "account");
-  const needsLang = !chromeHas(chrome, "lang");
-  const needsTheme = !chromeHas(chrome, "theme");
+  /* Two owners to rule out for these, not one: the bar's own slots AND the
+     utility bar above it, which carries the same pair and is the reason a
+     drawer row could otherwise be the shopper's THIRD language switch. */
+  const needsLang = !chromeHas(chrome, "lang") && utilityNeeds.needsLang;
+  const needsTheme = !chromeHas(chrome, "theme") && utilityNeeds.needsTheme;
 
   return (
     <>

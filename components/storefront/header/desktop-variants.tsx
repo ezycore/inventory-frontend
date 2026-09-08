@@ -16,7 +16,6 @@ import {
   CategoryRow,
   LangBtn,
   ThemeBtn,
-  UtilityBar,
   headerLinks,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
@@ -35,18 +34,24 @@ import {
  * backend, so no contract change is needed.
  */
 
-/** Classic — utility bar, logo, search, labelled account + cart, category row. */
+/** Classic — logo, search, labelled account + cart, category row. The utility
+ *  bar above it is `StoreHeader`'s, not this anatomy's, and configurable. */
 export function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
   const { base, name, logo } = ctx;
   return (
     <>
-      <UtilityBar ctx={ctx} />
       <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "13px var(--pad)", display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
           <Brand name={name} logo={logo} markSize={38} nameSize={18} />
         </Link>
         <HeaderSearchBar categories={ctx.cats} />
         <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none" }}>
+          {/* Classic's language/theme pair normally lives in the utility bar
+              above. These are the fallback for a merchant who switched that bar
+              — or just those two items — off, and without them Classic is the
+              one anatomy that can leave a shopper no way back out of dark mode. */}
+          {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
+          {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} withLabel />
           <CartButton ctx={ctx} withLabel />
         </div>
@@ -83,7 +88,7 @@ export function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 16, flex: "none" }}>
         <HeaderSearchIcon categories={ctx.cats} />
-        <ThemeBtn ctx={ctx} compact />
+        {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
         <AccountLink ctx={ctx} />
         <CartButton ctx={ctx} />
       </div>
@@ -97,9 +102,12 @@ export function CenteredDesktop({ ctx }: { ctx: HeaderCtx }) {
   return (
     <>
       <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "13px var(--pad)", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16 }}>
+        {/* The wrapper stays even when both toggles are hidden — it is this
+            anatomy's left grid column, and removing it would slide the centred
+            logo off centre. */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12, color: "var(--muted)" }}>
-          <LangBtn ctx={ctx} />
-          <ThemeBtn ctx={ctx} />
+          {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
+          {ctx.needsTheme ? <ThemeBtn ctx={ctx} /> : null}
         </div>
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 10, justifySelf: "center" }}>
           <Brand name={name} logo={logo} markSize={34} nameSize={20} />
@@ -173,7 +181,7 @@ export function SearchFirstDesktop({ ctx }: { ctx: HeaderCtx }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, flex: "none" }}>
-        <ThemeBtn ctx={ctx} compact />
+        {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
         <AccountLink ctx={ctx} />
         <button
           type="button"
@@ -233,7 +241,7 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
           <HeaderSearchBar categories={cats} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 17, flex: "none" }}>
-          <ThemeBtn ctx={ctx} compact />
+          {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} />
           <CartButton ctx={ctx} />
         </div>
@@ -298,8 +306,8 @@ export function ClinicalDesktop({ ctx }: { ctx: HeaderCtx }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none", marginInlineStart: "auto" }}>
-        <LangBtn ctx={ctx} />
-        <ThemeBtn ctx={ctx} />
+        {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
+        {ctx.needsTheme ? <ThemeBtn ctx={ctx} /> : null}
         <AccountLink ctx={ctx} />
         <CartButton ctx={ctx} />
       </div>

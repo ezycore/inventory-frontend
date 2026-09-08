@@ -8,6 +8,7 @@ import {
   MOBILE_TEMPLATE_OPTIONS,
   canBrowse,
   chromeHas,
+  keptSlot,
   mobileIcon,
   mobileOverrides,
   mobileTemplate,
@@ -207,6 +208,46 @@ describe("every template is reachable and drawable", () => {
     const tabs = resolveMobileChrome({ mobile: "tabs" }, undefined);
     expect(chromeHas(tabs, "account")).toBe(true);
     expect(chromeHas(tabs, "lang")).toBe(true);
+  });
+
+  /**
+   * The THIRD owner of the same two controls, and the one that shipped broken.
+   *
+   * `tabs` puts `lang` and `theme` in its right-hand slot, and the utility bar
+   * renders directly above this bar — so a merchant who switched that bar on for
+   * phones got two language switches and two theme switches, stacked. Whichever
+   * owner is showing, the shopper must see exactly one of each.
+   */
+  it("drops the atoms the utility bar above is already showing", () => {
+    const tabs = resolveMobileChrome({ mobile: "tabs" }, undefined);
+    const carried = { needsTheme: false, needsLang: false };
+
+    expect(keptSlot(tabs.right, carried)).not.toContain("lang");
+    expect(keptSlot(tabs.right, carried)).not.toContain("theme");
+
+    // Bar off (or not carrying them) — the slot is untouched.
+    const own = { needsTheme: true, needsLang: true };
+    expect(keptSlot(tabs.right, own)).toEqual(tabs.right);
+
+    // Per item, not per bar: a bar carrying only the theme leaves language be.
+    expect(keptSlot(tabs.right, { needsTheme: false, needsLang: true })).toEqual(
+      tabs.right.filter((id) => id !== "theme"),
+    );
+  });
+
+  it("never drops an atom the utility bar cannot carry", () => {
+    const carried = { needsTheme: false, needsLang: false };
+    for (const template of MOBILE_TEMPLATES) {
+      const chrome = resolveMobileChrome({ mobile: template.id }, undefined);
+      for (const ids of [chrome.left, chrome.right]) {
+        const kept = new Set(keptSlot(ids, carried));
+        for (const id of ids) {
+          if (id !== "lang" && id !== "theme") {
+            expect(kept.has(id), `${template.id} lost ${id}`).toBe(true);
+          }
+        }
+      }
+    }
   });
 });
 

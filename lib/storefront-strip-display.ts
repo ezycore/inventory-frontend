@@ -190,3 +190,55 @@ export function announcementStripAttrs(
     "data-strip-size": size ?? "sm",
   };
 }
+
+/**
+ * How fast the scrolling bar travels, in CHARACTERS per second.
+ *
+ * Characters and not pixels because the duration has to be decided on the
+ * server, where nothing can be measured: a pixel pace would need the rendered
+ * width of the message, and reading it after paint is what makes a ticker
+ * visibly snap to a new speed on hydration. Characters are the one unit the
+ * text carries with it.
+ *
+ * The pace a merchant actually wants is "readable", which is not the same as
+ * "slow": `slow` here is roughly a careful read, `fast` is a glance at a notice
+ * the shopper has probably already seen.
+ */
+const MARQUEE_CHARS_PER_SECOND: Record<MarqueeSpeed, number> = {
+  slow: 6,
+  normal: 10,
+  fast: 16,
+};
+
+export type MarqueeSpeed = NonNullable<StoreAnnouncement["marqueeSpeed"]>;
+
+/** Merchant-facing pace names, for the editor's segmented control. */
+export const MARQUEE_SPEED_LABELS: Record<MarqueeSpeed, string> = {
+  slow: "Slow",
+  normal: "Normal",
+  fast: "Fast",
+};
+
+/**
+ * Seconds for one full pass of a scrolling announcement.
+ *
+ * Derived from the message length so the PACE stays put as the wording
+ * changes. A fixed duration would do the opposite of what this feature is for:
+ * the longer the notice — which is the whole reason a merchant switches
+ * scrolling on — the faster it would have to move to finish in the same time,
+ * so the hardest message to read would be the one moving quickest.
+ *
+ * Clamped at both ends. The floor is for a short message, where the track is
+ * held to the width of the bar rather than the width of the words (see
+ * `.sf-marquee-item`'s `min-width` in `storefront.css`) so the sum no longer
+ * describes the distance travelled — without it, a three-word notice strobes.
+ * The ceiling keeps a 200-character message (the field's own maximum) from
+ * taking half a minute to come round.
+ */
+export function marqueeDurationSeconds(
+  text: string,
+  speed: MarqueeSpeed | undefined,
+): number {
+  const perSecond = MARQUEE_CHARS_PER_SECOND[speed ?? "normal"];
+  return Math.round(Math.min(60, Math.max(8, text.trim().length / perSecond)));
+}

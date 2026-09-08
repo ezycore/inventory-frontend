@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * **Every desktop header anatomy must expose the light/dark switch.**
+ * **Every desktop anatomy must carry its own light/dark switch.**
  *
  * The theme is persisted to `localStorage` and re-applied before paint by the
  * storefront layout, so an anatomy that omits the toggle does not merely hide a
@@ -11,6 +11,13 @@ import { join } from "node:path";
  * every future visit, with no way back. `minimal`, `search-first` and `boutique`
  * all shipped without it, which is how a shop could look permanently dark to its
  * owner while every measurement taken in a fresh browser profile said light.
+ *
+ * Classic is IN this list, and that is the point. It briefly drew its switch
+ * only from the utility bar above it — a bar the merchant can now switch off,
+ * which put the DEFAULT template one toggle away from exactly the dead end
+ * above. Its own switch is the floor; `ctx.needsTheme` only hides it while the
+ * bar is already showing one, and `desktopHeaderNeeds` is what proves that flag
+ * cannot be false unless the bar really is carrying it.
  *
  * Asserted against the SOURCE rather than a render: these components need the
  * full `HeaderCtx` (cart, session, categories, i18n) to mount, and the thing
@@ -41,9 +48,24 @@ describe("desktop header anatomies", () => {
 
   it.each(anatomies)("%s offers a way out of dark mode", (name) => {
     const body = bodyOf(name);
-    // Either the toggle directly, or the utility bar that carries it.
-    const hasToggle = /<ThemeBtn\b/.test(body) || /<UtilityBar\b/.test(body);
-    expect(hasToggle, `${name} renders no ThemeBtn and no UtilityBar`).toBe(true);
+    expect(body, `${name} renders no ThemeBtn`).toMatch(/<ThemeBtn\b/);
+  });
+
+  /* Present is not enough — a toggle behind some OTHER condition satisfies the
+     test above and still strands the shopper. The utility bar is the only thing
+     allowed to suppress one, and it speaks through exactly these two flags. */
+  it.each(anatomies)("%s guards its toggles with the matching ctx flag", (name) => {
+    const body = bodyOf(name);
+    for (const [btn, flag] of [
+      ["ThemeBtn", "needsTheme"],
+      ["LangBtn", "needsLang"],
+    ] as const) {
+      const total = [...body.matchAll(new RegExp(`<${btn}\\b`, "g"))].length;
+      const guarded = [
+        ...body.matchAll(new RegExp(`\\{ctx\\.${flag} \\? <${btn}\\b`, "g")),
+      ].length;
+      expect(guarded, `${name}: ${total - guarded} ${btn} not behind ctx.${flag}`).toBe(total);
+    }
   });
 });
 

@@ -12031,6 +12031,10 @@ export interface components {
                         url?: string;
                     }[];
                 }[];
+                footerPaymentMethods?: {
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
                 footerContentPages?: {
                     show?: boolean;
                     title?: string;
@@ -12047,6 +12051,9 @@ export interface components {
                     dismissible?: boolean;
                     /** @enum {string} */
                     size?: "sm" | "md" | "lg";
+                    marquee?: boolean;
+                    /** @enum {string} */
+                    marqueeSpeed?: "slow" | "normal" | "fast";
                     bgImage?: {
                         url: string;
                         mediumUrl: string;
@@ -12075,6 +12082,16 @@ export interface components {
                     /** @enum {string} */
                     paddingX?: "sm" | "md" | "lg";
                     dismissible?: boolean;
+                };
+                utilityBar?: {
+                    enabled?: boolean;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    showPhone?: boolean;
+                    showTrackOrder?: boolean;
+                    showLanguage?: boolean;
+                    showTheme?: boolean;
+                    trackOrderLabel?: string;
                 };
             };
             checkout?: {
@@ -19083,6 +19100,10 @@ export interface operations {
                                 url: string;
                             }[];
                         }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
                         footerContentPages?: {
                             show?: boolean;
                             title?: string;
@@ -19099,6 +19120,9 @@ export interface operations {
                             dismissible?: boolean;
                             /** @enum {string} */
                             size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
                             bgImage?: {
                                 url: string;
                                 mediumUrl?: string;
@@ -19127,6 +19151,16 @@ export interface operations {
                             /** @enum {string} */
                             paddingX?: "sm" | "md" | "lg";
                             dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
                         };
                     };
                     checkout?: {
