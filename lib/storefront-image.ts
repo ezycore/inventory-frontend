@@ -38,11 +38,16 @@ export function fullImageUrl(img?: StorefrontImage | null): string | undefined {
  * The thumbnail is last, and that ordering is the whole point of the helper.
  * A logo is a **mark, not a photo**: a 200×200 `fit: "cover"` crop of a wide
  * wordmark is not a smaller version of it, it is an unreadable slice of the
- * middle. A merchant whose logo reads "Uriibaba" saw "riiba" in three separate
- * admin previews — the Customize logo tile, its two-theme preview, and the admin
- * sidebar — while the shop itself rendered it correctly, because the storefront
- * happened to ask for `url` first and the previews happened to ask for
- * `thumbnailUrl` first.
+ * middle. A merchant whose logo reads "Uriibaba" saw "riiba" in four separate
+ * admin previews — the Customize logo tile, its two-theme preview, the admin
+ * sidebar, and (found later, because it is a second logo field and so escaped
+ * the first sweep) the Customize **phone-logo** tile — while the shop itself
+ * rendered it correctly, because the storefront happened to ask for `url` first
+ * and the previews happened to ask for `thumbnailUrl` first.
+ *
+ * The lesson of that fourth one: fix the slot by routing it here, not by
+ * reordering the fields at the call site. Every hand-written ordering is a
+ * future miss, so a new logo field gets this helper on its first render.
  *
  * `cardImageUrl` is not a substitute: its second choice IS the square crop,
  * which is survivable for a product photo and never for a mark. Nor is

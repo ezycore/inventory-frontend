@@ -15,8 +15,12 @@ import { MetaPixelClient } from "./meta-pixel-client";
  * Renders nothing when the store has no pixel — the backend omits the whole `meta` block when
  * the merchant has it off, so there is no flag to read here.
  *
- * **No `Purchase` is or can be fired from this file.** The sale is reported by the backend
- * through the Conversions API at the merchant's chosen trigger; see `lib/storefront-meta.ts`.
+ * **No `Purchase` is fired from this file**, and none can be: this renders the base tag and
+ * nothing else. The sale is always reported by the backend through the Conversions API at the
+ * merchant's chosen trigger. A merchant may additionally opt into a browser `Purchase`
+ * (`events.purchase`), which fires from checkout's `onSuccess` via `trackMetaPurchase` —
+ * see `lib/storefront-meta.ts`. That switch is not read here; it only needs `fbq` to exist,
+ * which is what this file guarantees.
  */
 export function MetaPixel({
   slug,

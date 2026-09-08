@@ -235,6 +235,22 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
               </div>
             )}
 
+            {/* The shopper's answers to this store's own checkout fields. The
+                LABEL comes off the order, not from current settings: renaming a
+                field must not rewrite what older orders say the shopper answered. */}
+            {order.customFields?.length ? (
+              <dl className="mt-3 space-y-1.5 rounded-lg bg-muted p-2.5 text-xs">
+                {order.customFields.map((field) => (
+                  <div key={field.key} className="flex gap-2">
+                    <dt className="shrink-0 font-semibold text-foreground">
+                      {field.label}:
+                    </dt>
+                    <dd className="text-muted-foreground">{field.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+
             <div className="mt-4 border-t pt-4">
               <OrderFraudPanel orderId={order._id} />
             </div>

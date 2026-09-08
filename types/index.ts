@@ -543,6 +543,27 @@ export interface StorefrontNav {
   utilityBar?: StorefrontUtilityBar;
 }
 
+/**
+ * One merchant-defined checkout entry — a notice the shopper reads, or an input
+ * they fill.
+ *
+ * Answers are stored on the order as inert labelled data and can never move a
+ * total; a merchant acting on one changes the price through the order's own
+ * shipping charge. See the backend's
+ * `docs/plan/checkout-address-and-custom-fields.md`.
+ */
+export interface CheckoutField {
+  /** Stable id, generated once. Never the label — merchants rewrite labels. */
+  key: string;
+  kind: "notice" | "input";
+  /** For a notice this IS the text; for an input it is the field label. */
+  label: string;
+  helpText?: string;
+  type?: "text" | "textarea" | "number" | "select" | "checkbox";
+  options?: string[];
+  required?: boolean;
+}
+
 export interface StorefrontCheckout {
   requiredFields?: string[];
   minOrderValue?: number;
@@ -550,6 +571,14 @@ export interface StorefrontCheckout {
   termsRequired?: boolean;
   /** Slug of the CMS content page the terms checkbox links to. */
   termsPageSlug?: string;
+  /**
+   * How the delivery address is captured. `flat` shows one address box instead
+   * of street + district + area; the zone that prices the order is then inferred
+   * server-side. Unset reads as `detailed`.
+   */
+  addressMode?: "detailed" | "flat";
+  /** Merchant-defined notices + inputs, in render order. Max 5. */
+  customFields?: CheckoutField[];
 }
 
 export interface StorefrontNotifEvent {

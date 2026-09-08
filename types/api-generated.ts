@@ -10578,6 +10578,11 @@ export interface components {
                     notes?: string;
                 };
                 notes?: string;
+                customFields?: {
+                    key: string;
+                    label: string;
+                    value: string;
+                }[];
                 stockReserved?: boolean;
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
@@ -10766,6 +10771,11 @@ export interface components {
                 notes?: string;
             };
             notes?: string;
+            customFields?: {
+                key: string;
+                label: string;
+                value: string;
+            }[];
             stockReserved?: boolean;
             saleId?: string | null;
             shippingIncomeTxnId?: string | null;
@@ -10922,6 +10932,11 @@ export interface components {
                     notes?: string;
                 };
                 notes?: string;
+                customFields?: {
+                    key: string;
+                    label: string;
+                    value: string;
+                }[];
                 stockReserved?: boolean;
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
@@ -12478,6 +12493,7 @@ export interface components {
                     viewContent: boolean;
                     addToCart: boolean;
                     initiateCheckout: boolean;
+                    purchase: boolean;
                 };
             };
         };
@@ -12707,6 +12723,11 @@ export interface components {
                 notes?: string;
             };
             notes?: string;
+            customFields?: {
+                key: string;
+                label: string;
+                value: string;
+            }[];
             /** Format: date-time */
             returnedAt?: string | null;
             courier?: {
@@ -14851,6 +14872,7 @@ export interface components {
                 viewContent: boolean;
                 addToCart: boolean;
                 initiateCheckout: boolean;
+                purchase: boolean;
             };
             /** Format: date-time */
             verifiedAt?: string;
@@ -14869,6 +14891,7 @@ export interface components {
                 viewContent: boolean;
                 addToCart: boolean;
                 initiateCheckout: boolean;
+                purchase: boolean;
             };
         };
     };
@@ -17202,6 +17225,9 @@ export interface operations {
                     };
                     /** @enum {string} */
                     paymentMethod: "cod" | "bank";
+                    customFieldAnswers?: {
+                        [key: string]: string;
+                    };
                     notes?: string;
                     couponCode?: string;
                     termsAccepted?: boolean;
@@ -19143,6 +19169,19 @@ export interface operations {
                         orderPrefix?: string;
                         termsRequired?: boolean;
                         termsPageSlug?: string;
+                        /** @enum {string} */
+                        addressMode?: "detailed" | "flat";
+                        customFields?: {
+                            key: string;
+                            /** @enum {string} */
+                            kind: "notice" | "input";
+                            label: string;
+                            helpText?: string;
+                            /** @enum {string} */
+                            type?: "text" | "textarea" | "number" | "select" | "checkbox";
+                            options?: string[];
+                            required?: boolean;
+                        }[];
                     };
                     templates?: {
                         home?: string;
@@ -19480,6 +19519,7 @@ export interface operations {
                         viewContent?: boolean;
                         addToCart?: boolean;
                         initiateCheckout?: boolean;
+                        purchase?: boolean;
                     };
                 };
             };
@@ -37051,6 +37091,8 @@ export interface operations {
                     location: {
                         [key: string]: string | number;
                     };
+                    district?: string;
+                    area?: string;
                 };
             };
         };
