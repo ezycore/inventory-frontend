@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/lib/storefront-toast";
 import {
   usePlaceOrder,
@@ -23,7 +23,9 @@ import {
   computeShipping,
   hasZoneShipping,
   zoneForDistrict,
+  type Zone,
 } from "@/lib/storefront-shipping";
+import { inferZone } from "@/lib/bd-zone";
 import { money } from "@/components/storefront/format";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
@@ -96,6 +98,9 @@ export function useCheckout() {
   const [isNew, setIsNew] = useState(false);
   const [saveNew, setSaveNew] = useState(true);
   const [geo, setGeo] = useState<GeoValue>(emptyGeo);
+  // Answers to the merchant's own checkout fields, keyed by field key. Inert
+  // labelled data — the server stores it on the order and never prices it.
+  const [customFieldAnswers, setCustomFieldAnswers] = useState<Record<string, string>>({});
 
   // Prefill from the shopper profile once it's available — on a hard load the
   // persisted store serves its empty initial snapshot through the hydration
@@ -140,8 +145,38 @@ export function useCheckout() {
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
   const isPickup = pickupOffered && fulfillment === "pickup";
 
-  // Zone is derived from the picked district — no separate toggle (see zoneForDistrict).
-  const zone = zoneForDistrict(geo.district);
+  // How the merchant asks for the address. `flat` is one box; the zone that
+  // prices the order is then inferred from the text (see `lib/bd-zone.ts`) and
+  // the shopper is asked outright when the address places nothing.
+  const addressMode = store?.checkout?.addressMode ?? "detailed";
+  const isFlatAddress = addressMode === "flat";
+  // The shopper's answer to the Inside/Outside question, set only when we had to
+  // ask. Cleared whenever the address changes, so a stale answer cannot ride
+  // along with a completely different address.
+  const [zoneChoice, setZoneChoice] = useState<Zone | undefined>(undefined);
+
+  const inference = useMemo(
+    () => (isFlatAddress ? inferZone(addr.address) : undefined),
+    [isFlatAddress, addr.address],
+  );
+  // Drop a stale answer when the address is rewritten: keeping it would price a
+  // brand-new address by a question the shopper answered about the old one.
+  const lastAddress = useRef(addr.address);
+  if (lastAddress.current !== addr.address) {
+    lastAddress.current = addr.address;
+    if (zoneChoice) setZoneChoice(undefined);
+  }
+  // Ask only when the address is genuinely unplaceable — never as a default.
+  const needsZoneChoice = !!inference && inference.confidence === "ambiguous";
+
+  // Zone is derived from the picked district (detailed) or inferred (flat); the
+  // shopper's own answer counts only where inference could not decide. The server
+  // re-derives all of this at placeOrder and its answer is what is charged.
+  const zone: Zone = isFlatAddress
+    ? inference?.confidence === "high"
+      ? inference.zone
+      : (zoneChoice ?? "outside")
+    : zoneForDistrict(geo.district);
   const zoned = hasZoneShipping(store);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   // Pickup has no courier, so no shipping charge.
@@ -225,7 +260,10 @@ export function useCheckout() {
   const required = new Set(
     store?.checkout?.requiredFields ?? ["name", "phone", "address"],
   );
-  const needArea = required.has("area") || zoned;
+  // Flat mode never shows a district/area pair, so it cannot require one — the
+  // zone question below is its equivalent guard. Mirrors the backend's
+  // `storefront-order-create.service.ts` check exactly.
+  const needArea = !isFlatAddress && (required.has("area") || zoned);
   // A GUEST's phone is their identity, not just a contact detail — the server
   // rejects one it cannot normalise with `INVALID_PHONE`, so validate the same
   // rule here rather than letting them discover it at submit. A signed-in shopper
@@ -271,6 +309,17 @@ export function useCheckout() {
     termsRequired,
     termsAccepted,
   });
+  // Two more blocking conditions, expressed as the same shape as the rest so the
+  // place-order button and the messages can never disagree.
+  if (!isPickup && isFlatAddress && zoned && needsZoneChoice && !zoneChoice) {
+    errors.zoneChoice = t.zoneChoiceRequired;
+  }
+  for (const field of store?.checkout?.customFields ?? []) {
+    if (field.kind !== "input" || !field.required) continue;
+    if (!customFieldAnswers[field.key]?.trim()) {
+      errors[`custom:${field.key}`] = t.fieldRequired;
+    }
+  }
   const errorState = useCheckoutErrors(errors);
 
   // Best-effort: remember the picked district/area on the chosen address (or save
@@ -279,14 +328,20 @@ export function useCheckout() {
     if (!token || isPickup) return; // pickup has no delivery address to remember
     const { district, area } = geo;
     if (!isNew && selectedId) {
+      // Flat mode never fills `geo`, so writing it back would blank a district
+      // the shopper had already saved — and that district is what a later
+      // detailed-mode order, and the courier resolver, both read.
+      if (isFlatAddress) return;
       account.updateAddress.mutate({ addressId: selectedId, district, area });
     } else if (isNew && saveNew && addr.address.trim()) {
       account.addAddress.mutate({
         label: addr.address.trim().slice(0, 38) || t.newAddress,
         line: addr.address.trim(),
         phone: addr.phone.trim() || undefined,
-        district,
-        area,
+        // Omit rather than send "" so a flat-mode address is saved without a
+        // location rather than with an empty one.
+        district: isFlatAddress ? undefined : district,
+        area: isFlatAddress ? undefined : area,
       });
     }
   };
@@ -346,9 +401,20 @@ export function useCheckout() {
           address: addr.address,
           // Courier-neutral canonical location — the backend maps it to a
           // courier's codes at dispatch, never here.
-          district: geo.district,
-          area: geo.area,
-          zone,
+          // Flat mode asks for neither; the server infers the district and
+          // backfills it, so the courier cache and reporting stay whole.
+          district: isFlatAddress ? undefined : geo.district,
+          area: isFlatAddress ? undefined : geo.area,
+          // The shopper's EXPLICIT answer, and only that. Sending the derived
+          // `zone` here defeated the server's own guard: it treats a supplied
+          // zone as the shopper having been asked, so an unanswered ambiguous
+          // address arrived looking answered and was priced at the fallback
+          // instead of being refused. Omitted unless a person actually chose.
+          zone: isFlatAddress
+            ? needsZoneChoice
+              ? zoneChoice
+              : undefined
+            : zone,
           notes: addr.notes || undefined,
         };
     placeOrder.mutate(
@@ -359,6 +425,9 @@ export function useCheckout() {
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
         termsAccepted: termsRequired ? termsAccepted : undefined,
+        customFieldAnswers: Object.keys(customFieldAnswers).length
+          ? customFieldAnswers
+          : undefined,
         // Lets the server close this browser's mirrored cart. Without it a guest
         // order leaves the cart `active` — counted as abandoned, missing from the
         // conversion funnel, and eventually eligible for a "you left these behind"
@@ -423,6 +492,15 @@ export function useCheckout() {
     zoned,
     zone,
     zoneLabel,
+    isFlatAddress,
+    inference,
+    needsZoneChoice,
+    zoneChoice,
+    setZoneChoice,
+    customFields: store?.checkout?.customFields ?? [],
+    customFieldAnswers,
+    setCustomFieldAnswer: (key: string, value: string) =>
+      setCustomFieldAnswers((prev) => ({ ...prev, [key]: value })),
     subtotal,
     shipping,
     discount,

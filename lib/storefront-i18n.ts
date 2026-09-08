@@ -248,6 +248,18 @@ export interface Dict {
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
+  /** Flat address mode: the question asked when the address places nothing. */
+  zoneChoiceLabel: string;
+  zoneChoiceHelp: string;
+  zoneChoiceRequired: string;
+  /** Flat address mode: how a confidently inferred zone is explained. */
+  zoneDetected: string;
+  zoneChange: string;
+  /** Merchant-defined checkout fields. */
+  fieldRequired: string;
+  selectPlaceholder: string;
+  addressFlatLabel: string;
+  addressFlatPh: string;
   zoneDays12: string;
   zoneDays35: string;
   courierArea: string;
@@ -676,6 +688,15 @@ const en: Dict = {
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
+  zoneChoiceLabel: "Where are we delivering?",
+  zoneChoiceHelp: "We could not tell from the address, so please pick one.",
+  zoneChoiceRequired: "Please choose a delivery area",
+  zoneDetected: "From your address",
+  zoneChange: "Change",
+  fieldRequired: "This is required",
+  selectPlaceholder: "Choose one",
+  addressFlatLabel: "Full delivery address",
+  addressFlatPh: "House, road, area, district",
   zoneDays12: "1–2 days",
   zoneDays35: "3–5 days",
   courierArea: "Delivery area",
@@ -1079,6 +1100,15 @@ const bn: Dict = {
   pickupHeading: "আপনার তথ্য",
   pickupFree: "ফ্রি (পিকআপ)",
   deliveryZone: "ডেলিভারি জোন",
+  zoneChoiceLabel: "কোথায় ডেলিভারি হবে?",
+  zoneChoiceHelp: "ঠিকানা থেকে বোঝা যায়নি, তাই একটি বেছে নিন।",
+  zoneChoiceRequired: "ডেলিভারি এলাকা বেছে নিন",
+  zoneDetected: "আপনার ঠিকানা থেকে",
+  zoneChange: "পরিবর্তন",
+  fieldRequired: "এটি আবশ্যক",
+  selectPlaceholder: "একটি বেছে নিন",
+  addressFlatLabel: "সম্পূর্ণ ডেলিভারি ঠিকানা",
+  addressFlatPh: "বাসা, রোড, এলাকা, জেলা",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",
   zoneDays12: "১–২ দিন",

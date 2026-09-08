@@ -580,11 +580,37 @@ export interface StorefrontStore {
     requiredFields?: string[];
     /** Slug of the CMS content page the terms checkbox links to. */
     termsPageSlug?: string;
+    /**
+     * How the delivery address is captured. `flat` shows ONE address box; the
+     * zone that prices the order is then inferred from the text and the shopper
+     * is asked outright when the address places nothing. Unset reads as
+     * `detailed` — the district select every store had before.
+     */
+    addressMode?: "detailed" | "flat";
+    /** Merchant-defined notices + inputs, in render order. */
+    customFields?: CheckoutFieldConfig[];
   };
   /** Instructions shown to shoppers who pick bank/manual transfer. */
   bankInstructions?: string;
   /** Social sign-in providers with credentials configured on the backend. */
   oauthProviders?: ("google" | "facebook")[];
+}
+
+/**
+ * One merchant-defined checkout entry — a notice the shopper reads, or an input
+ * they fill. Answers are stored on the order as inert labelled data; nothing here
+ * can move a total (the only shipping override is admin-side). See the backend's
+ * `docs/plan/checkout-address-and-custom-fields.md`.
+ */
+export interface CheckoutFieldConfig {
+  key: string;
+  kind: "notice" | "input";
+  /** For a notice this IS the text; for an input it is the field label. */
+  label: string;
+  helpText?: string;
+  type?: "text" | "textarea" | "number" | "select" | "checkbox";
+  options?: string[];
+  required?: boolean;
 }
 
 /** Raw per-page template ids as stored by the admin (free strings). */
@@ -1079,6 +1105,11 @@ export interface PlaceOrderInput {
   couponCode?: string;
   /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
   termsAccepted?: boolean;
+  /**
+   * Answers to the merchant's own checkout fields, keyed by field `key`. Stored
+   * on the order as inert labelled data; never an input to any total.
+   */
+  customFieldAnswers?: Record<string, string>;
   /**
    * The browser's cart handle, so a GUEST order can close its mirrored cart —
    * the server's shopper-keyed path has no shopper to key on. Optional because
