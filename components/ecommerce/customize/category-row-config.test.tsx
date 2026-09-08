@@ -486,36 +486,49 @@ describe("CategoryRowConfig — hints describe the cards, not the collections", 
 });
 
 /**
- * The upload hint, which moves with the row's own settings.
+ * The render-loop guard on the computed `recommended`.
  *
- * ⚠ Also the regression guard for a render loop this introduced.
- * `useImageRatioWarning` compares its `recommended` prop by IDENTITY — it was
+ * ⚠ `useImageRatioWarning` compares its `recommended` prop by IDENTITY — it was
  * written for the module-level constants in `RECOMMENDED`, and this panel is
  * the first caller to hand it a computed one. Unmemoised, a fresh object every
  * render made that comparison always true, the hook set state on every render,
- * and React threw "Too many re-renders". These tests render the open card, so
- * they fail outright if the memo goes.
+ * and React threw "Too many re-renders". **Opening the card is the assertion**:
+ * drop the `useMemo` in `category-row-config.tsx` and all three of these throw.
+ *
+ * They used to read the recommendation off the "Best at W × Hpx" hint. That hint
+ * is commented out in `category-card-fields.tsx`, so they assert the card opened
+ * instead — the three configurations are kept because each drives a different
+ * branch of `recommendedCardImage` through the memo, which is the thing at risk.
+ *
+ * ⚠ **The numbers themselves are not tested here and must not be re-added here.**
+ * `recommendedCardImage` is pure and owns them in `lib/storefront-sections.test.ts`
+ * ("recommendedCardImage"), including these same three cases. If the hint ever
+ * comes back, assert its text there-adjacent, not by duplicating the arithmetic.
  */
-describe("CategoryRowConfig — the picture size it asks for", () => {
+describe("CategoryRowConfig — the computed recommendation does not loop", () => {
   const openCard = (name: string) =>
     fireEvent.click(screen.getByRole("button", { name: `Edit the ${name} card` }));
 
-  it("asks for a wide landscape on a stacked card", () => {
+  /** The per-card editor rendered — reached only if the render settled. */
+  const expectCardOpen = (name: string) =>
+    expect(screen.getByLabelText(`Card description for ${name}`)).toBeInTheDocument();
+
+  it("opens a stacked card", () => {
     renderPanel({ key: "k", categoryIds: ["a"] });
     openCard("Cushion");
-    expect(screen.getByText(/Best at 1200 × 675px/)).toBeInTheDocument();
+    expectCardOpen("Cushion");
   });
 
-  it("asks for less once the picture only takes a quarter of the card", () => {
+  it("opens a card whose picture takes only a quarter of it", () => {
     renderPanel({ key: "k", categoryIds: ["a"], cardShape: "split", cardSplit: 25 });
     openCard("Cushion");
-    expect(screen.getByText(/Best at 300 × 225px/)).toBeInTheDocument();
+    expectCardOpen("Cushion");
   });
 
-  it("asks for a banner strip once a height is set", () => {
+  it("opens a card with a fixed height", () => {
     renderPanel({ key: "k", categoryIds: ["a"], cardHeight: 20 });
     openCard("Cushion");
-    expect(screen.getByText(/Best at 1200 × 40px/)).toBeInTheDocument();
+    expectCardOpen("Cushion");
   });
 });
 
