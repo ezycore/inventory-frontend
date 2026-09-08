@@ -4,6 +4,7 @@
 import { useRef } from "react";
 import { useUpdateStorefrontMedia } from "@/services/api";
 import { RECOMMENDED } from "@/lib/image-ratio";
+import { logoImageUrl } from "@/lib/storefront-image";
 import {
   MAX_MOBILE_TABS,
   MOBILE_ACTIONS,
@@ -58,7 +59,11 @@ export function MobilePart({
   const m = draft.mobile;
   const template = mobileTemplate(draft.templates.mobile);
 
-  const logoUrl = settings.mobileLogo?.thumbnailUrl || settings.mobileLogo?.url;
+  // Through `logoImageUrl`, never the thumbnail: that variant is a 200×200
+  // centre crop, so a wide wordmark previewed here reads as a slice of its own
+  // middle while the phone bar itself draws it whole. The same miss the logo
+  // tile, the two-theme preview and the sidebar were each fixed for.
+  const logoUrl = logoImageUrl(settings.mobileLogo);
 
   const uploadLogo = (file: File) => {
     const fd = new FormData();

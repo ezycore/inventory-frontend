@@ -91,8 +91,9 @@ export default async function ShopLayout({
       {favicon ? <link rel="icon" href={favicon} /> : null}
       {/* Meta Pixel base tag. Rendered HERE, from the server, because `store` is already
           awaited above — so the id ships in the SSR HTML and the first PageView fires on first
-          paint instead of after hydration. `Purchase` is never sent from the browser; the
-          backend reports it through the Conversions API (docs/plan/meta-pixel-capi.md). */}
+          paint instead of after hydration. The sale is always reported by the backend through
+          the Conversions API; a browser `Purchase` is a per-merchant opt-in fired from checkout
+          (docs/features/meta-pixel-capi.md). */}
       <MetaPixel
         slug={slug}
         pixelId={store.meta?.pixelId}

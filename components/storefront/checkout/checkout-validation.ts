@@ -18,16 +18,25 @@ import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
  * `addressComplete` is derived from this, not computed alongside it.
  */
 
-/** Every field a checkout can refuse. `form` is the non-field-bound refusal. */
+/**
+ * Every field a checkout can refuse. `form` is the non-field-bound refusal.
+ *
+ * `zoneChoice` is the Inside/Outside question flat address mode asks when the
+ * typed address places nothing. `custom:<key>` is one of the merchant's own
+ * required fields — open-ended because the merchant defines them, which is why
+ * `CheckoutErrors` widens to a string key rather than staying a closed record.
+ */
 export type CheckoutField =
   | "name"
   | "phone"
   | "address"
   | "district"
   | "area"
+  | "zoneChoice"
   | "terms";
 
-export type CheckoutErrors = Partial<Record<CheckoutField, string>>;
+export type CheckoutErrors = Partial<Record<CheckoutField, string>> &
+  Record<string, string | undefined>;
 
 export interface CheckoutValidationInput {
   t: Dict;
@@ -57,6 +66,7 @@ export const CHECKOUT_FIELD_ORDER: CheckoutField[] = [
   "address",
   "district",
   "area",
+  "zoneChoice",
   "terms",
 ];
 
@@ -75,7 +85,7 @@ export const CHECKOUT_FIELD_ORDER: CheckoutField[] = [
  * it owns no fields rather than being special-cased at the call site.
  */
 export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
-  1: ["name", "phone", "address", "district", "area"],
+  1: ["name", "phone", "address", "district", "area", "zoneChoice"],
   2: [],
   3: ["terms"],
 };
@@ -89,6 +99,9 @@ export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
  * step 1, which is where the fields a shopper can actually be missing live.
  */
 export function stepForField(field: CheckoutField): number {
+  // The merchant's own fields render inside the delivery block, so they belong
+  // to whichever step owns the address — step 1.
+  if (String(field).startsWith("custom:")) return 1;
   const hit = Object.entries(CHECKOUT_STEP_FIELDS).find(([, fields]) =>
     fields.includes(field),
   );
@@ -153,5 +166,18 @@ export function firstInvalidField(
   const order = scope
     ? CHECKOUT_FIELD_ORDER.filter((field) => scope.includes(field))
     : CHECKOUT_FIELD_ORDER;
-  return order.find((field) => errors[field]) ?? null;
+  const known = order.find((field) => errors[field]);
+  if (known) return known;
+  // The merchant's own fields (`custom:<key>`) cannot appear in a fixed list —
+  // the merchant invents them. Without this they were set on `errors`, rendered
+  // beside their input, and then IGNORED by the submit: `reveal()` found nothing
+  // to refuse and let the order through to be rejected by the SERVER instead.
+  // They sort after the built-ins because that is where they render — inside the
+  // delivery block, which is why a scoped call recognises them by that step
+  // rather than by a list nobody can write down in advance.
+  if (scope && !scope.includes("address")) return null;
+  const custom = Object.keys(errors)
+    .filter((key) => key.startsWith("custom:") && errors[key])
+    .sort();
+  return (custom[0] as CheckoutField | undefined) ?? null;
 }

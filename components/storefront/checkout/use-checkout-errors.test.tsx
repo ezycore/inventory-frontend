@@ -4,6 +4,7 @@ import { useCheckoutErrors } from "./use-checkout-errors";
 import {
   CHECKOUT_STEP_FIELDS,
   firstInvalidField,
+  stepForField,
   type CheckoutErrors,
 } from "./checkout-validation";
 
@@ -34,13 +35,54 @@ describe("CHECKOUT_STEP_FIELDS", () => {
     expect(CHECKOUT_STEP_FIELDS[3]).toContain("terms");
   });
 
+  /**
+   * `firstInvalidField` is what `reveal()` asks whether to refuse a submit, and
+   * it walks CHECKOUT_FIELD_ORDER. A message set on a field missing from that
+   * list is rendered beside its input and then ignored by the submit — the form
+   * says no and the button says yes.
+   *
+   * Both of these shipped that way and were caught in the browser, not here:
+   * `zoneChoice` was absent from the order list, and the merchant's own
+   * `custom:<key>` fields cannot be in a fixed list at all.
+   */
+  it("refuses a submit on the flat-mode zone question", () => {
+    expect(firstInvalidField({ zoneChoice: "Please choose a delivery area" })).toBe(
+      "zoneChoice",
+    );
+  });
+
+  it("refuses a submit on a merchant-defined required field", () => {
+    expect(firstInvalidField({ "custom:ship": "This is required" })).toBe("custom:ship");
+  });
+
+  it("still reports built-in fields before the merchant's own", () => {
+    expect(
+      firstInvalidField({ name: "Enter your name", "custom:ship": "This is required" }),
+    ).toBe("name");
+  });
+
+  it("scopes the merchant's fields to the step that renders them", () => {
+    const errors = { "custom:ship": "This is required" };
+    // Step 1 owns the address block, which is where they render.
+    expect(firstInvalidField(errors, CHECKOUT_STEP_FIELDS[1])).toBe("custom:ship");
+    // Step 3 must not refuse for a control that is not on screen.
+    expect(firstInvalidField(errors, CHECKOUT_STEP_FIELDS[3])).toBeNull();
+  });
+
+  it("sends a merchant field's refusal to the step that renders it", () => {
+    expect(stepForField("custom:ship" as never)).toBe(1);
+    expect(stepForField("zoneChoice")).toBe(1);
+  });
+
   // If a field is listed against a step that does not render it, that step
   // becomes unleavable and unfixable — which is exactly the bug.
   it("lists every field exactly once across the three steps", () => {
     const all = [1, 2, 3].flatMap((s) => CHECKOUT_STEP_FIELDS[s]);
     expect([...new Set(all)]).toHaveLength(all.length);
     expect(all.sort()).toEqual(
-      ["address", "area", "district", "name", "phone", "terms"].sort(),
+      // `zoneChoice` is step 1: flat address mode renders it directly under the
+      // address box, so a refusal there must send the shopper to that step.
+      ["address", "area", "district", "name", "phone", "terms", "zoneChoice"].sort(),
     );
   });
 });

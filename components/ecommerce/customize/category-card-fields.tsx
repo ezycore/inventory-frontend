@@ -145,9 +145,9 @@ export function CategoryCardFields({
             the merchant watches — which is the point: they are told what to
             crop to for the card they are actually building, not for promo cards
             in general. */}
-        <PartHint>
+        {/* <PartHint>
           Best at {recommended.w} × {recommended.h}px.
-        </PartHint>
+        </PartHint> */}
         <ImageRatioWarning message={ratioWarning} />
         {/* ⚠ Says what removing does. A merchant who uploaded a card picture
             and then removes it has not emptied the card — it goes back to the

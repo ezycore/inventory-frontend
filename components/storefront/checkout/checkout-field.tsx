@@ -54,7 +54,11 @@ export function Field({
   error,
   children,
 }: {
-  name: FieldName;
+  /**
+   * Open-ended alongside the known fields: the merchant's own checkout fields
+   * key their errors as `custom:<key>`, and their names are not knowable here.
+   */
+  name: FieldName | (string & {});
   error?: string;
   children: ReactNode;
 }) {

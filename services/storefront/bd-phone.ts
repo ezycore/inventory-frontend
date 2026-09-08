@@ -46,3 +46,18 @@ export function normalizeBdPhone(input: string | undefined | null): string | nul
 /** True when the server will accept this number on the guest path. */
 export const isValidBdPhone = (input: string | undefined | null): boolean =>
   normalizeBdPhone(input) !== null;
+
+/**
+ * What to SUBMIT in a `phone` field — the server stores this form (see the
+ * backend's `canonicalizeBdPhone`), so sending the raw text only meant the value
+ * the buyer sees in their order confirmation differed from the one the merchant
+ * and the courier get. Anything that is not a BD mobile is passed through
+ * trimmed and untouched.
+ */
+export function canonicalizeBdPhone(
+  input: string | undefined | null,
+): string | undefined {
+  const trimmed = input?.trim();
+  if (!trimmed) return undefined;
+  return normalizeBdPhone(trimmed) ?? trimmed;
+}

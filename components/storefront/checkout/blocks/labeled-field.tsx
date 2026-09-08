@@ -21,16 +21,23 @@ export function LabeledField({
   label,
   error,
   optional,
+  help,
   children,
 }: {
   /** Omitted for a field nothing can be wrong with — the optional notes box. */
-  name?: CheckoutField;
+  name?: CheckoutField | (string & {});
   /** Absent = the caller labels the control itself (the account address form). */
   label?: string;
   error?: string;
   /** Renders the `— optional` suffix. Say it in the label, not the placeholder:
    *  a placeholder disappears the moment the shopper starts typing. */
   optional?: string;
+  /**
+   * A line of explanation under the label. Used by the merchant's own checkout
+   * fields, where the wording is theirs and a placeholder would not survive the
+   * shopper starting to type.
+   */
+  help?: string;
   children: (id: string) => ReactNode;
 }) {
   const id = useId();
@@ -43,6 +50,18 @@ export function LabeledField({
             <span style={{ color: "var(--faint)", fontWeight: 500 }}> — {optional}</span>
           ) : null}
         </label>
+      ) : null}
+      {help ? (
+        <div
+          style={{
+            fontSize: 12.5,
+            color: "var(--faint)",
+            lineHeight: 1.5,
+            margin: "-2px 0 6px",
+          }}
+        >
+          {help}
+        </div>
       ) : null}
       {children(id)}
     </>

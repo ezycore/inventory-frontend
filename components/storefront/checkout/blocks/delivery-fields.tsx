@@ -6,6 +6,7 @@ import { input, label as groupLabel } from "@/components/storefront/checkout/che
 import { invalidInput } from "@/components/storefront/checkout/checkout-field";
 import { LabeledField } from "@/components/storefront/checkout/blocks/labeled-field";
 import { CheckoutAddressBook } from "@/components/storefront/checkout/checkout-address-book";
+import { CustomFields } from "@/components/storefront/checkout/blocks/custom-fields";
 import { GeoPicker } from "@/components/storefront/checkout/geo-picker";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
 import { deliveryEstimateForZone } from "@/lib/storefront-delivery";
@@ -48,6 +49,11 @@ export function DeliveryFields({
     zone,
     zoneLabel,
     shipping,
+    isFlatAddress,
+    inference,
+    needsZoneChoice,
+    zoneChoice,
+    setZoneChoice,
   } = api;
   const deliveryEstimate = deliveryEstimateForZone(store, zone);
 
@@ -74,30 +80,87 @@ export function DeliveryFields({
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {!isPickup ? (
           <>
-            <LabeledField name="address" label={t.addressLineLabel} error={errors.address}>
+            <LabeledField
+              name="address"
+              label={isFlatAddress ? t.addressFlatLabel : t.addressLineLabel}
+              error={errors.address}
+            >
               {(id) => (
                 <input
                   id={id}
                   style={errors.address ? invalidInput() : input}
                   aria-invalid={!!errors.address}
-                  placeholder={t.addressLine}
+                  placeholder={isFlatAddress ? t.addressFlatPh : t.addressLine}
                   value={addr.address}
                   onChange={(e) => set("address", e.target.value)}
                   onBlur={() => touch("address")}
                 />
               )}
             </LabeledField>
-            <GeoPicker
-              value={geo}
-              onChange={setGeo}
-              lang={lang}
-              labels={{ district: t.selectDistrict, area: t.selectArea, noMatch: t.comboNoMatch }}
-              fieldLabels={{ district: t.districtLabel, area: t.areaLabel }}
-              errors={{ district: errors.district, area: errors.area }}
-              onBlurField={touch}
-            />
+            {/* Flat mode is ONE box on purpose — the merchant asked for exactly
+                that. The district/area pair below is what it replaces; the zone
+                it would have priced is inferred from the text instead. */}
+            {isFlatAddress ? null : (
+              <GeoPicker
+                value={geo}
+                onChange={setGeo}
+                lang={lang}
+                labels={{ district: t.selectDistrict, area: t.selectArea, noMatch: t.comboNoMatch }}
+                fieldLabels={{ district: t.districtLabel, area: t.areaLabel }}
+                errors={{ district: errors.district, area: errors.area }}
+                onBlurField={touch}
+              />
+            )}
+            {/* The question, asked only when the address genuinely places
+                nothing. Two chips, not a cascade — and never a silent default,
+                because a guessed zone is a wrong charge half the time. */}
+            {isFlatAddress && zoned && needsZoneChoice ? (
+              <LabeledField
+                name="zoneChoice"
+                label={t.zoneChoiceLabel}
+                help={t.zoneChoiceHelp}
+                error={errors.zoneChoice}
+              >
+                {() => (
+                  <div style={{ display: "flex", gap: 9 }}>
+                    {(["inside", "outside"] as const).map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setZoneChoice(option);
+                          touch("zoneChoice");
+                        }}
+                        aria-pressed={zoneChoice === option}
+                        style={{
+                          flex: 1,
+                          padding: "11px 12px",
+                          borderRadius: "var(--radius-sm)",
+                          cursor: "pointer",
+                          fontSize: 13.5,
+                          fontWeight: zoneChoice === option ? 700 : 500,
+                          color: zoneChoice === option ? "var(--text)" : "var(--muted)",
+                          background:
+                            zoneChoice === option ? "var(--surface)" : "transparent",
+                          border: `1px solid ${
+                            zoneChoice === option ? "var(--text)" : "var(--border)"
+                          }`,
+                        }}
+                      >
+                        {option === "inside" ? t.insideDhaka : t.outsideDhaka}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </LabeledField>
+            ) : null}
           </>
         ) : null}
+
+        {/* The merchant's own fields sit here, after the address and before
+            payment: rendered once in this block so all four checkout layouts
+            get them without each re-deciding where they go. */}
+        <CustomFields api={api} />
 
         <LabeledField label={t.orderNotesLabel} optional={t.optionalTag}>
           {(id) => (
@@ -128,10 +191,20 @@ export function DeliveryFields({
         {/* Zone fee is derived from the district — shown read-only, not asked. It
             sits on a tinted row rather than as loose text so it reads as a RESULT
             of the field above it, not as another thing to fill in. */}
-        {!isPickup && zoned && geo.district ? (
+        {/* The derived zone + its fee, shown as a RESULT of the address above —
+            never as another thing to fill in. In flat mode it also names the
+            place it read, so the charge is never unexplained. */}
+        {!isPickup && zoned && (isFlatAddress ? !needsZoneChoice || zoneChoice : geo.district) ? (
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 13px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "var(--muted)" }}>
-              <span>{t.deliveryZone} · {zoneLabel}</span>
+              <span>
+                {t.deliveryZone} · {zoneLabel}
+                {isFlatAddress && inference?.matched && !zoneChoice ? (
+                  <span style={{ color: "var(--faint)" }}>
+                    {" "}· {t.zoneDetected}
+                  </span>
+                ) : null}
+              </span>
               <span className="sf-mono" style={{ color: "var(--text)", fontWeight: 700 }}>
                 {shipping === 0 ? t.free : money(shipping, currency)}
               </span>
