@@ -11,6 +11,7 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { CheckoutCustomFields } from "./checkout-custom-fields";
 import { Field, SaveBar, ToggleRow, useStoreSettingsSave } from "./settings-form-shared";
 
 const ADDRESS_FIELDS = [
@@ -22,6 +23,11 @@ const ADDRESS_FIELDS = [
 const LOCKED_FIELDS = ["name", "phone"];
 const AUTO_TERMS = "__auto";
 
+const ADDRESS_MODES = [
+  { label: "Street, district and area (recommended)", value: "detailed" },
+  { label: "One address box", value: "flat" },
+];
+
 export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useStoreSettingsSave();
   const checkout = settings.checkout ?? {};
@@ -30,6 +36,8 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [prefix, setPrefix] = useState(checkout.orderPrefix ?? "");
   const [terms, setTerms] = useState(checkout.termsRequired ?? false);
   const [termsPage, setTermsPage] = useState(checkout.termsPageSlug || AUTO_TERMS);
+  const [addressMode, setAddressMode] = useState(checkout.addressMode ?? "detailed");
+  const [customFields, setCustomFields] = useState(checkout.customFields ?? []);
   const { data: pages } = useContentPages();
   const pageOptions = [
     { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
@@ -52,6 +60,26 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           </div>
           <p className="text-xs text-muted-foreground">Name and phone are always required. Pickup orders only need those two fields.</p>
         </div>
+        <div className="space-y-1.5">
+          <Label>Address format</Label>
+          <SimpleSelect
+            value={addressMode}
+            onValueChange={(value) => setAddressMode(value as "detailed" | "flat")}
+            options={ADDRESS_MODES}
+            className="max-w-sm"
+          />
+          {/* The trade-off is real and worth stating plainly here: with one box
+              the district is read from the text, and an address it cannot place
+              makes the shopper answer an Inside/Outside question instead. That
+              is still one tap, and it is the only alternative to charging a
+              guessed rate. */}
+          <p className="text-xs text-muted-foreground">
+            {addressMode === "flat"
+              ? "Shoppers type one address. The delivery zone is read from what they write; if it cannot be determined, they are asked to pick inside or outside Dhaka."
+              : "Shoppers pick a district from a list, so the delivery zone is exact."}
+          </p>
+        </div>
+        <CheckoutCustomFields fields={customFields} onChange={setCustomFields} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Minimum order value"><NumberField min={0} precision={2} value={minOrder} onChange={setMinOrder} placeholder="0" /></Field>
           <Field label="Order number prefix"><Input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="e.g. RM-" maxLength={12} /></Field>
@@ -63,6 +91,10 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
         minOrderValue: minOrder ?? undefined,
         orderPrefix: prefix.trim() || undefined,
         termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
+        addressMode,
+        // Drop entries the merchant started and left blank rather than sending a
+        // labelless field the shopper would meet as an unexplained input.
+        customFields: customFields.filter((field) => field.label.trim()),
       } })} />
     </div>
   );

@@ -184,6 +184,10 @@ export interface Dict {
   /** One line under Cash on delivery. Says only what COD already means — no
    *  claim the merchant has not made. */
   codHint: string;
+  /** Heading over the merchant's own bank-transfer instructions. Frames free
+   *  text the store wrote (account number, reference) as the NEXT STEP, not as
+   *  another blurb — so the shopper reads it as something to act on. */
+  bankInstructionsHeading: string;
   /** Inline error under the phone field when a guest types a non-BD mobile. */
   phoneInvalid: string;
   /**
@@ -248,6 +252,18 @@ export interface Dict {
   deliveryZone: string;
   insideDhaka: string;
   outsideDhaka: string;
+  /** Flat address mode: the question asked when the address places nothing. */
+  zoneChoiceLabel: string;
+  zoneChoiceHelp: string;
+  zoneChoiceRequired: string;
+  /** Flat address mode: how a confidently inferred zone is explained. */
+  zoneDetected: string;
+  zoneChange: string;
+  /** Merchant-defined checkout fields. */
+  fieldRequired: string;
+  selectPlaceholder: string;
+  addressFlatLabel: string;
+  addressFlatPh: string;
   zoneDays12: string;
   zoneDays35: string;
   courierArea: string;
@@ -628,6 +644,7 @@ const en: Dict = {
   optionalTag: "optional",
   contactHeading: "Contact",
   codHint: "Pay when your order arrives",
+  bankInstructionsHeading: "How to pay",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
   nameRequired: "Enter your full name",
   phoneRequired: "Enter your mobile number",
@@ -676,6 +693,15 @@ const en: Dict = {
   deliveryZone: "Delivery zone",
   insideDhaka: "Inside Dhaka",
   outsideDhaka: "Outside Dhaka",
+  zoneChoiceLabel: "Where are we delivering?",
+  zoneChoiceHelp: "We could not tell from the address, so please pick one.",
+  zoneChoiceRequired: "Please choose a delivery area",
+  zoneDetected: "From your address",
+  zoneChange: "Change",
+  fieldRequired: "This is required",
+  selectPlaceholder: "Choose one",
+  addressFlatLabel: "Full delivery address",
+  addressFlatPh: "House, road, area, district",
   zoneDays12: "1–2 days",
   zoneDays35: "3–5 days",
   courierArea: "Delivery area",
@@ -1033,6 +1059,7 @@ const bn: Dict = {
   optionalTag: "ঐচ্ছিক",
   contactHeading: "যোগাযোগ",
   codHint: "অর্ডার পৌঁছালে টাকা পরিশোধ করুন",
+  bankInstructionsHeading: "কীভাবে পেমেন্ট করবেন",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
   nameRequired: "আপনার পুরো নাম লিখুন",
   phoneRequired: "আপনার মোবাইল নম্বর লিখুন",
@@ -1079,6 +1106,15 @@ const bn: Dict = {
   pickupHeading: "আপনার তথ্য",
   pickupFree: "ফ্রি (পিকআপ)",
   deliveryZone: "ডেলিভারি জোন",
+  zoneChoiceLabel: "কোথায় ডেলিভারি হবে?",
+  zoneChoiceHelp: "ঠিকানা থেকে বোঝা যায়নি, তাই একটি বেছে নিন।",
+  zoneChoiceRequired: "ডেলিভারি এলাকা বেছে নিন",
+  zoneDetected: "আপনার ঠিকানা থেকে",
+  zoneChange: "পরিবর্তন",
+  fieldRequired: "এটি আবশ্যক",
+  selectPlaceholder: "একটি বেছে নিন",
+  addressFlatLabel: "সম্পূর্ণ ডেলিভারি ঠিকানা",
+  addressFlatPh: "বাসা, রোড, এলাকা, জেলা",
   insideDhaka: "ঢাকার ভিতরে",
   outsideDhaka: "ঢাকার বাইরে",
   zoneDays12: "১–২ দিন",

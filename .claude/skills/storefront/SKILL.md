@@ -1633,6 +1633,27 @@ how a shopper asks what is missing, and a greyed-out button answers nothing —
 `submit()`/`tryAdvance()` refuse out loud instead. `canSubmit` and `stepBlocked`
 were removed for this; only `placing` disables anything.
 
+⚠ **A payment method says only what the platform can promise; anything more is
+the merchant's own words.** `blocks/payment-block.tsx` gives COD a built-in
+sub-line because "you pay on delivery" is true of every store. Bank transfer gets
+no such line — its next step differs per shop — so the merchant supplies it
+(Store Settings → Payments → the box under Bank / Manual transfer,
+`StorefrontSettings.bankInstructions`, ≤600 chars) and the block renders it in a
+panel **below** the method list while `bank` is selected. Notes:
+
+- It lands below the list, not inside the button: it carries an account number
+  the shopper must select and copy, and text inside a toggle fights the toggle.
+- `whiteSpace: pre-wrap`. Merchants type account name / number / branch on
+  separate lines; collapsing them is unreadable.
+- Only the heading is translated (`Dict.bankInstructionsHeading`). The merchant's
+  text is passed through verbatim in both languages.
+- **This was dead data for its whole life until 2026-09-08** — saved, served on
+  the public payload, typed on the client with a comment claiming it was shown,
+  and rendered nowhere. The lesson generalises past this field: a merchant-facing
+  setting is not shipped when the PATCH succeeds. Grep the field name across the
+  frontend and confirm a render site exists. (It is *still* absent from the
+  order-placed card, the tracking page and the confirmation email.)
+
 ⚠ **The trust strip may not assert a policy.** `blocks/trust-strip.tsx` shows COD
 only when the merchant offers COD, and a returns line only when the merchant has
 published a returns page — using that page's own title, linked. In a white-label
@@ -2288,7 +2309,17 @@ resolved **per request from the host**, never baked.
     rendered it in full, because the storefront asked for `url` first and the previews asked for
     `thumbnailUrl` first. The helper exists so that ordering is decided once. (The backend learned the
     same rule on the write side: the 96×96 favicon rendition is generated `fit:"contain"`.)
-  - **It is used by the ADMIN too** — `app-title.tsx`, `organization-tab.tsx`, `parts/look-part.tsx` —
+  - ⚠ **That sweep missed a fourth site, found 2026-09-08: Customize → Phone bar → Phone logo.**
+    `mobileLogo` is a *second* logo field, so a fix that went call-site by call-site walked straight
+    past it. **When you add a logo field, route it through `logoImageUrl` on its first render** —
+    and when you fix one of these, grep the FIELD (`mobileLogo`, `logo`, `favicon`) across the repo,
+    not just the screen that was reported. The live phone bar (`use-mobile-chrome.ts`) was fixed in
+    the same pass: its hand-rolled `url || thumbnailUrl` happened to be *correct*, which is exactly
+    why it went unnoticed as a bypass of the helper.
+    Debugging note: `MediaField`'s `object-contain` was blamed first and is innocent — measure the
+    served variant (`_thumb.webp` is 200×200 whatever the source was) before touching the CSS.
+  - **It is used by the ADMIN too** — `app-title.tsx`, `organization-tab.tsx`, `parts/look-part.tsx`,
+    `parts/mobile-part.tsx` —
     which is why the module's doc says so. The variants are the backend's, not a storefront concept,
     and a second module answering the same question is how a call site ends up on the wrong one.
   - **`<Media fit>`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it" box:

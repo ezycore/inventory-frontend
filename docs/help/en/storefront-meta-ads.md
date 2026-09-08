@@ -21,6 +21,11 @@ EzyCore reports in two halves, and both matter:
 - **The Conversions API** runs on our server and reports the **sale** — once, when the order reaches
   the point you choose below.
 
+The sale is always reported from our server. That half cannot be switched off, and it is the half
+that keeps working when a shopper has an ad blocker, closes the tab, or is on an iPhone that blocks
+tracking. If you also want the sale reported from the shopper's browser, there is a switch for it —
+see *Sending the purchase from the browser too* below.
+
 ## What you need from Meta
 
 Two values, both from [Events Manager](https://business.facebook.com/events_manager2):
@@ -53,6 +58,32 @@ far more than you did.
 
 Changing this setting **applies to new orders only**. Orders already in progress may not be reported
 at all, and that cannot be fixed afterwards — so pick it once, early.
+
+## Sending the purchase from the browser too
+
+**Store Settings → Meta pixel → Browser events → Purchase.** Off unless you turn it on.
+
+Some ad setups work better when the purchase also arrives from the shopper's own browser, with
+their cookies attached. If yours is one of them, turn this on. Your sale is then reported twice —
+once from the browser the moment the order is placed, and once from our server at the point you
+chose above — and both carry the **same order reference**, so Meta merges them into one purchase.
+
+**Meta only merges the two if it receives them within 48 hours of each other.** That is the whole
+thing to get right, because the browser always reports at checkout while our server reports at the
+point you chose:
+
+| Your setting for "when a sale counts" | What happens |
+|---|---|
+| **When the order is placed** | Both arrive seconds apart. Always merged into one purchase. **Safest.** |
+| When you confirm the order | Merged, as long as you confirm within two days. |
+| When the order is delivered | Delivery usually takes longer than two days, so **the same sale is counted twice.** |
+
+If you want the browser purchase and you are not certain you will confirm within two days, set
+"when a sale counts" to **when the order is placed**. Otherwise leave this switch off — you lose
+nothing, because the sale is already being reported from our server.
+
+Meta cannot remove a purchase once it has counted it, so a sale counted twice stays counted twice.
+The settings page shows you a warning whenever this switch is on with a setting that risks it.
 
 ## Which orders get reported
 
