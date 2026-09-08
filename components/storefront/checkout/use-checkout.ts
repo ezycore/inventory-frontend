@@ -34,8 +34,9 @@ import {
   metaCheckoutAttribution,
   metaContentId,
   trackMetaEvent,
+  trackMetaPurchase,
 } from "@/lib/storefront-meta";
-import { isValidBdPhone } from "@/services/storefront/bd-phone";
+import { canonicalizeBdPhone, isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
   CHECKOUT_STEP_FIELDS,
@@ -337,7 +338,7 @@ export function useCheckout() {
       account.addAddress.mutate({
         label: addr.address.trim().slice(0, 38) || t.newAddress,
         line: addr.address.trim(),
-        phone: addr.phone.trim() || undefined,
+        phone: canonicalizeBdPhone(addr.phone),
         // Omit rather than send "" so a flat-mode address is saved without a
         // location rather than with an empty one.
         district: isFlatAddress ? undefined : district,
@@ -393,11 +394,15 @@ export function useCheckout() {
     if (!errorState.reveal()) return;
 
     // Pickup carries only contact fields; delivery carries the full canonical address.
+    // Send the number in the form the server stores (see `canonicalizeBdPhone`),
+    // so the confirmation the buyer reads back matches the one the merchant and
+    // the courier are given.
+    const phone = canonicalizeBdPhone(addr.phone) ?? addr.phone;
     const shippingAddress: ShippingAddress = isPickup
-      ? { name: addr.name, phone: addr.phone, notes: addr.notes || undefined }
+      ? { name: addr.name, phone, notes: addr.notes || undefined }
       : {
           name: addr.name,
-          phone: addr.phone,
+          phone,
           address: addr.address,
           // Courier-neutral canonical location — the backend maps it to a
           // courier's codes at dispatch, never here.
@@ -444,6 +449,16 @@ export function useCheckout() {
       {
         onSuccess: (order) => {
           rememberAddress();
+          // Meta `Purchase`, from the browser, ONLY when the merchant switched it on
+          // (`store.meta.events.purchase`, off by default). It carries the same deterministic
+          // `event_id` as the server-side Conversions API event, which is how Meta collapses the
+          // pair into one conversion — see `trackMetaPurchase`.
+          //
+          // Fired here rather than from an effect on `placed`: this runs exactly once per
+          // successful placement, while an effect re-runs on every re-render and would need its
+          // own guard. Before `clear()` would work equally well — it reads the order, not the
+          // cart — but ahead of it is where the sale is unambiguously real.
+          trackMetaPurchase(store, order);
           clear();
           setPlaced(order);
           toast.success(t.orderPlaced);

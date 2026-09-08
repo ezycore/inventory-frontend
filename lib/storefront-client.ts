@@ -549,8 +549,12 @@ export interface StorefrontStore {
    *
    * **Presence is enabled**, exactly like `contactButton`: the backend omits the whole block when
    * the merchant has the pixel off or has not entered an id, so there is no flag to check and a
-   * disabled pixel ships no id at all. `Purchase` is deliberately absent from `events` — it is
-   * never sent from the browser, and there is no switch that could turn it on.
+   * disabled pixel ships no id at all.
+   *
+   * `purchase` is the merchant's opt-in for a browser-side `Purchase` on the thank-you screen,
+   * alongside the server one. It is **off unless the merchant switched it on** — the backend
+   * resolves it with `=== true` rather than the `!== false` the other four use, so a store that
+   * predates the field reads as false rather than inheriting an ON default.
    */
   meta?: {
     pixelId: string;
@@ -559,6 +563,7 @@ export interface StorefrontStore {
       viewContent: boolean;
       addToCart: boolean;
       initiateCheckout: boolean;
+      purchase: boolean;
     };
   };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
@@ -1020,6 +1025,14 @@ export interface ShopperAuthResult {
 
 export interface OrderItem {
   productId: string;
+  /**
+   * The variant sold, when the line is one. Undeclared here until the browser `Purchase` needed
+   * it — the server has always sent it (`shopperOrderItem`), and a missing declaration meant a
+   * variant line silently reported its bare `productId` as the Meta content id while the CAPI
+   * half reported `productId:variantId`. Two ids for one sellable thing is a broken catalogue
+   * match, not a cosmetic difference.
+   */
+  variantId?: string;
   productName: string;
   quantity: number;
   price: number;

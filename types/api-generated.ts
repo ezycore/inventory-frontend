@@ -12476,6 +12476,7 @@ export interface components {
                     viewContent: boolean;
                     addToCart: boolean;
                     initiateCheckout: boolean;
+                    purchase: boolean;
                 };
             };
         };
@@ -14854,6 +14855,7 @@ export interface components {
                 viewContent: boolean;
                 addToCart: boolean;
                 initiateCheckout: boolean;
+                purchase: boolean;
             };
             /** Format: date-time */
             verifiedAt?: string;
@@ -14872,6 +14874,7 @@ export interface components {
                 viewContent: boolean;
                 addToCart: boolean;
                 initiateCheckout: boolean;
+                purchase: boolean;
             };
         };
     };
@@ -19482,6 +19485,7 @@ export interface operations {
                         viewContent?: boolean;
                         addToCart?: boolean;
                         initiateCheckout?: boolean;
+                        purchase?: boolean;
                     };
                 };
             };

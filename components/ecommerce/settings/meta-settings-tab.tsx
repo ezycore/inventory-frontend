@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { CheckCircle2, ExternalLink, Lock } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ExternalLink, Info, Lock } from "lucide-react";
 import {
   useClearMetaToken,
   useGetMetaSettings,
@@ -10,6 +10,7 @@ import {
   useUpdateMetaSettings,
 } from "@/services/api";
 import type { MetaPurchaseTrigger, MetaSettings } from "@/types/api";
+import { Alert, AlertDescription, AlertTitle } from "@/ui/components/alert";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -25,8 +26,13 @@ import { MetaPurchaseTriggerPicker } from "./meta-purchase-trigger";
  * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).
  *
  * Two halves of one loop: the browser Pixel reports the shopper's journey, and the backend
- * reports the `Purchase` through the Conversions API at the trigger chosen below. `Purchase` is
- * **never** sent from the browser — see the plan's L1 — so nothing on this page can turn that on.
+ * reports the `Purchase` through the Conversions API at the trigger chosen below. The server
+ * half is always the purchase path; the browser half is an opt-in extra (Browser events →
+ * "Purchase"), and both carry one shared `event_id` so Meta counts one sale.
+ *
+ * The one thing this card must say out loud is the 48-hour deduplication window — it is the
+ * only reason the browser toggle can be the wrong choice, it is invisible until a merchant
+ * reconciles their own dashboard, and by then the duplicate conversions cannot be deleted.
  *
  * The access token is write-only. The server has no path that returns it, so the field starts
  * empty on every load and an empty submit means "leave it alone" rather than "clear it" —
@@ -236,8 +242,7 @@ function MetaSettingsForm({ settings }: { settings: MetaSettings }) {
         <div>
           <h3 className="text-sm font-semibold">Browser events</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            What the Pixel reports as shoppers browse. Purchases are never sent from the browser —
-            they come from this server instead, so no order is counted twice.
+            What the Pixel reports from the shopper&apos;s browser as they shop.
           </p>
         </div>
         <ToggleRow
@@ -260,9 +265,65 @@ function MetaSettingsForm({ settings }: { settings: MetaSettings }) {
           checked={events.initiateCheckout}
           onChange={(initiateCheckout) => setEvents({ ...events, initiateCheckout })}
         />
+
+        <Separator />
+
+        <ToggleRow
+          label="Purchase (from the browser)"
+          desc="Off by default. Sales are always reported from this server; turn this on to send the purchase from the shopper's browser as well."
+          checked={events.purchase}
+          onChange={(purchase) => setEvents({ ...events, purchase })}
+        />
+        {events.purchase ? <BrowserPurchaseNotice trigger={trigger} /> : null}
       </Card>
 
       <SaveBar onSave={save} pending={update.isPending} />
     </div>
+  );
+}
+
+/**
+ * What the merchant is actually choosing when they switch the browser `Purchase` on.
+ *
+ * Both halves send the same `event_id`, so Meta merges them — **but only when it receives them
+ * within 48 hours of each other.** The browser half fires the moment the shopper places the
+ * order; the server half fires at the trigger above. So the safety of the pair is entirely a
+ * property of the trigger, and the merchant is the only one who knows how fast they work.
+ *
+ * Stated here, beside the switch, rather than in the help guide: this is the moment the decision
+ * is made, and the failure it prevents (double-counted revenue) cannot be undone afterwards —
+ * Meta has no purchase-deletion. Deliberately a warning and not a block; a store that confirms
+ * within the day is fine on `confirmed`, and only the merchant knows that.
+ */
+function BrowserPurchaseNotice({ trigger }: { trigger: MetaPurchaseTrigger }) {
+  if (trigger === "pending") {
+    return (
+      <Alert>
+        <Info />
+        <AlertTitle>Both purchases will be counted as one</AlertTitle>
+        <AlertDescription>
+          The browser and the server send the same order at the same moment, with the same event
+          ID, so Meta merges them into a single purchase. This is the safest pairing.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  const gap =
+    trigger === "confirmed"
+      ? "You confirm orders more than 2 days after they are placed"
+      : "Delivery takes more than 2 days";
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle />
+      <AlertTitle>Check this against how fast you work</AlertTitle>
+      <AlertDescription>
+        The browser sends the purchase when the order is placed, and this server sends it{" "}
+        {trigger === "confirmed" ? "when you confirm" : "on delivery"}. Meta merges the two into
+        one purchase only if it receives them <strong>within 48 hours of each other</strong>.{" "}
+        {gap}, so the sale will be counted twice — and that cannot be removed from Meta
+        afterwards. To be certain, either report purchases when the order is placed, or leave
+        this switch off.
+      </AlertDescription>
+    </Alert>
   );
 }

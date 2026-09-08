@@ -7,16 +7,27 @@ import type { StorefrontStore } from "@/lib/storefront-client";
  *
  * Backend plan: `easystock-backend/docs/plan/meta-pixel-capi.md`.
  *
- * ## `Purchase` is never sent from here
+ * ## `Purchase` leaves here only through `trackMetaPurchase`
  *
- * The Pixel reports the browsing journey — `PageView`, `ViewContent`, `AddToCart`,
- * `InitiateCheckout` — and nothing else. The sale is reported server-side through the
- * Conversions API when the order reaches the merchant's chosen trigger, so the same order can
- * never be counted at two different moments.
+ * The Pixel always reports the browsing journey — `PageView`, `ViewContent`, `AddToCart`,
+ * `InitiateCheckout`. The sale is reported server-side through the Conversions API when the
+ * order reaches the merchant's chosen trigger, and that half is never optional.
  *
- * That is enforced, not merely intended: `MetaBrowserEvent` has no `Purchase` member, so a
- * browser purchase does not type-check, and an eslint rule rejects the string literal reaching
- * `fbq` for anyone who reaches past this module.
+ * A merchant may ALSO switch on a browser `Purchase` (`store.meta.events.purchase`, off by
+ * default), because some ad optimisation and Advanced Matching flows want the event with the
+ * shopper's own cookies behind it. When they do, both halves carry the same `event_id` —
+ * `metaPurchaseEventId(orderNumber)` — and Meta collapses them into one conversion.
+ *
+ * **That collapse has a 48-hour limit, and it is the whole risk of the setting.** Meta only
+ * deduplicates events received within 48 hours of each other. The browser half fires at
+ * checkout; the server half fires at the store's `purchaseTrigger`. So `pending` is seconds
+ * apart and always safe, `confirmed` is safe if the merchant confirms within two days, and
+ * `delivered` is routinely outside the window — two conversions for one sale. The settings UI
+ * says this at the point of choice; nothing here second-guesses the merchant's answer.
+ *
+ * `trackMetaPurchase` is the only sanctioned path, and the eslint rule still rejects a
+ * `Purchase` literal handed straight to `fbq` anywhere in the repo — including this file, which
+ * passes the event name through as a variable.
  *
  * ## Everything here fails silently
  *
@@ -25,12 +36,19 @@ import type { StorefrontStore } from "@/lib/storefront-client";
  * swallows its own failure exactly as `CartSync` does.
  */
 
-/** The browser events this storefront may send. `Purchase` is deliberately not a member. */
+/**
+ * The browser events this storefront may send.
+ *
+ * `Purchase` is a member, but it is not reachable through `trackMetaEvent` with an ad-hoc
+ * payload — `trackMetaPurchase` is its one caller, because the shared `event_id` is what keeps
+ * it from double-counting and a hand-built call would omit it.
+ */
 export type MetaBrowserEvent =
   | "PageView"
   | "ViewContent"
   | "AddToCart"
-  | "InitiateCheckout";
+  | "InitiateCheckout"
+  | "Purchase";
 
 /** `window.fbq`, as much of it as we call. */
 type Fbq = (...args: unknown[]) => void;
@@ -52,6 +70,8 @@ export interface MetaContentPayload {
   content_type?: "product";
   /** `InitiateCheckout` only — Meta documents `num_items` for that event alone. */
   num_items?: number;
+  /** `Purchase` only. The same order number the CAPI half sends, so the pair reconciles. */
+  order_id?: string;
 }
 
 /**
@@ -73,6 +93,19 @@ const FBCLID_KEY = "ezy-fbclid";
  */
 export const metaContentId = (productId: string, variantId?: string): string =>
   variantId ? `${productId}:${variantId}` : productId;
+
+/**
+ * The `Purchase` deduplication id — **the same cross-repo contract as `metaContentId`.**
+ *
+ * The backend builds this exact string in `easystock-backend/src/services/meta/`
+ * `meta-purchase.service.ts` (`purchaseEventId`) for the Conversions API event. Meta merges a
+ * browser event and a server event into ONE conversion only when `event_name` and `event_id`
+ * both match, so a drift of a single character here turns the merchant's dashboard into double
+ * revenue rather than into an error anyone would see. Change one side, change both, and both
+ * tests.
+ */
+export const metaPurchaseEventId = (orderNumber: string): string =>
+  `purchase_${orderNumber}`;
 
 /** Read a cookie by name. Returns `undefined` rather than throwing where cookies are blocked. */
 const readCookie = (name: string): string | undefined => {
@@ -176,14 +209,20 @@ const canSend = (
   if (event === "PageView") return events.pageView;
   if (event === "ViewContent") return events.viewContent;
   if (event === "AddToCart") return events.addToCart;
-  return events.initiateCheckout;
+  if (event === "InitiateCheckout") return events.initiateCheckout;
+  // Opt-in, and `=== true` rather than a truthy read: an older store payload that predates the
+  // field arrives with `purchase` undefined, and a browser Purchase fired by accident is a
+  // duplicate conversion the merchant cannot delete from Meta.
+  return events.purchase === true;
 };
 
 /**
  * Send one browser event.
  *
- * Every call carries an `eventID`. Nothing deduplicates against it today — the server sends no
- * browser-side event — but it costs one field and is what makes a future server-side
+ * Every call carries an `eventID`. For `Purchase` it is the shared, deterministic id the server
+ * also sends and it is what stops the sale being counted twice, so `trackMetaPurchase` always
+ * passes one. For the journey events nothing deduplicates against it yet — the server sends no
+ * browser-side counterpart — but it costs one field and is what makes a future server-side
  * `ViewContent`/`AddToCart` deduplicate instead of double-counting on the day someone adds one.
  */
 export const trackMetaEvent = (
@@ -203,4 +242,108 @@ export const trackMetaEvent = (
   } catch {
     // Tracking must never break a shopper's interaction.
   }
+};
+
+/**
+ * The order the thank-you screen just received. Structurally the placement response, narrowed to
+ * what a `Purchase` needs — so a test can build one without a whole `StorefrontOrder`.
+ */
+export interface MetaPurchaseOrder {
+  orderNumber: string;
+  totalAmount: number;
+  items: {
+    productId: string;
+    variantId?: string;
+    quantity: number;
+    price: number;
+  }[];
+  fulfillmentType?: "delivery" | "pickup";
+}
+
+/**
+ * Every `event_id` this browser has already reported, so one order is one event.
+ *
+ * A module-level `Set` is not enough on its own: it dies with the tab, and the thank-you screen
+ * is exactly the page a shopper reloads or returns to with the back button. `sessionStorage`
+ * carries it across those; the `Set` is the fallback where storage throws (Safari private mode),
+ * where it still covers the common in-page case.
+ *
+ * Meta would very likely collapse a repeat anyway — same `event_name`, same `event_id`, minutes
+ * apart — but "very likely" is not a guarantee we get to make on a merchant's revenue, and this
+ * is ten lines.
+ */
+const SENT_PURCHASES_KEY = "ezy-meta-purchases";
+const sentPurchases = new Set<string>();
+
+const alreadySent = (eventId: string): boolean => {
+  if (sentPurchases.has(eventId)) return true;
+  try {
+    const raw = window.sessionStorage.getItem(SENT_PURCHASES_KEY);
+    return !!raw && (JSON.parse(raw) as string[]).includes(eventId);
+  } catch {
+    return false;
+  }
+};
+
+const rememberSent = (eventId: string): void => {
+  sentPurchases.add(eventId);
+  try {
+    const raw = window.sessionStorage.getItem(SENT_PURCHASES_KEY);
+    const stored = raw ? (JSON.parse(raw) as string[]) : [];
+    // Bounded: a shopper placing more than a handful of orders in one session is not a case
+    // worth unbounded storage for, and the oldest ids can no longer be re-fired anyway.
+    const next = [...stored.filter((id) => id !== eventId), eventId].slice(-20);
+    window.sessionStorage.setItem(SENT_PURCHASES_KEY, JSON.stringify(next));
+  } catch {
+    // Storage blocked. The in-memory Set still covers this tab.
+  }
+};
+
+/**
+ * Report the sale from the browser, when the merchant has asked for it.
+ *
+ * Called once, from checkout's `onSuccess` — the only moment the shopper's browser and the
+ * order number exist together. Silent unless `store.meta.events.purchase` is on; the Conversions
+ * API reports the sale either way and is unaffected by anything here.
+ *
+ * The `event_id` is `metaPurchaseEventId(orderNumber)`, identical to the server's, which is what
+ * makes the pair one conversion rather than two. Content ids are built with `metaContentId` for
+ * the same reason: the two halves must describe the same catalogue items.
+ *
+ * `value` is `totalAmount` — what the buyer owes, matching the CAPI half exactly. Taking the
+ * subtotal here and the total there would report two different amounts for one sale and quietly
+ * break the merchant's ROAS.
+ */
+export const trackMetaPurchase = (
+  store: StorefrontStore | undefined,
+  order: MetaPurchaseOrder,
+): void => {
+  if (!canSend(store, "Purchase")) return;
+  const eventId = metaPurchaseEventId(order.orderNumber);
+  if (alreadySent(eventId)) return;
+
+  const contents = order.items.map((item) => ({
+    id: metaContentId(item.productId, item.variantId),
+    quantity: item.quantity,
+    item_price: item.price,
+  }));
+
+  // Marked BEFORE the send, not after: `trackMetaEvent` swallows its own failures, so a thrown
+  // `fbq` would otherwise leave the id unrecorded and let a re-render try again.
+  rememberSent(eventId);
+  trackMetaEvent(
+    store,
+    "Purchase",
+    {
+      currency: store?.currency || "BDT",
+      value: Number(order.totalAmount.toFixed(2)),
+      content_type: "product",
+      content_ids: contents.map((line) => line.id),
+      contents,
+      order_id: order.orderNumber,
+      // `num_items` is deliberately absent — Meta documents it for `InitiateCheckout` alone, and
+      // the CAPI half omits it for the same reason.
+    },
+    eventId,
+  );
 };
