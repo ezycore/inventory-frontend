@@ -115,6 +115,15 @@ to without opening anything.
 bar at the bottom names the parts you have touched, and **Discard** puts them all back. Only images —
 your logo, banner, slide and announcement pictures — save the moment you upload them.
 
+**Announcement bar** is the single line above everything else. **Scroll the message** slides it right
+to left, which is what you want when the notice is too long to fit on one line — a branch closure, a
+holiday delivery cutoff. Without it a long message simply wraps, and a bar three lines tall pushes
+your shop down the page on every screen a shopper opens. Pick **Slow**, **Normal** or **Fast** for
+the pace; the bar works out the timing from the length of your message, so rewriting the notice does
+not change the speed you chose. It stops while a shopper is pointing at it, so a button in the
+message stays clickable, and it never moves for someone whose device is set to reduce motion — they
+see the same words standing still.
+
 **Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
 you have is harder to use than one listing the six that sell.
 

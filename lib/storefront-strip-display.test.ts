@@ -5,6 +5,7 @@ import {
   announcementStripAttrs,
   campaignStripAllowedOn,
   isStripHiddenEverywhere,
+  marqueeDurationSeconds,
   resolveCampaignStrip,
   stripPaddingInline,
   stripVisibilityClass,
@@ -129,5 +130,62 @@ describe("campaignStripAllowedOn", () => {
     // strips were on — treating undefined as off would silently delete the
     // strip from every existing store.
     expect(campaignStripAllowedOn({}, false)).toBe(true);
+  });
+});
+
+/**
+ * The pace of a scrolling announcement.
+ *
+ * Seconds have to be decided on the SERVER: measuring the rendered text before
+ * paint is impossible, and measuring it after is what makes a ticker visibly
+ * snap to a new speed on hydration. So the message itself is the only input.
+ */
+describe("marqueeDurationSeconds", () => {
+  const long = "x".repeat(200);
+
+  /* The point of the whole calculation. A fixed duration would do the exact
+     opposite of what this feature is for: the longer the notice — which is WHY
+     a merchant switches scrolling on — the faster it would have to travel to
+     finish in the same time, so the hardest message to read would be the one
+     moving quickest. */
+  it("gives a longer message more time, rather than more speed", () => {
+    expect(marqueeDurationSeconds(long, "normal")).toBeGreaterThan(
+      marqueeDurationSeconds("x".repeat(100), "normal"),
+    );
+  });
+
+  it("orders the paces the way their names promise", () => {
+    expect(marqueeDurationSeconds(long, "slow")).toBeGreaterThan(
+      marqueeDurationSeconds(long, "normal"),
+    );
+    expect(marqueeDurationSeconds(long, "normal")).toBeGreaterThan(
+      marqueeDurationSeconds(long, "fast"),
+    );
+  });
+
+  it("treats an unset speed as normal", () => {
+    expect(marqueeDurationSeconds(long, undefined)).toBe(
+      marqueeDurationSeconds(long, "normal"),
+    );
+  });
+
+  /* Below the floor the sum stops describing the distance travelled: a short
+     message is held to the width of the BAR, not the width of its words (the
+     `min-width` on `.sf-marquee-item`), so an honest chars-per-second would
+     strobe a three-word notice across the screen. */
+  it("holds a floor so a short notice does not strobe", () => {
+    expect(marqueeDurationSeconds("Sale!", "fast")).toBeGreaterThanOrEqual(8);
+    expect(marqueeDurationSeconds("", "fast")).toBeGreaterThanOrEqual(8);
+  });
+
+  it("holds a ceiling at the longest message the field accepts", () => {
+    // 200 is the `text` maxLength on both sides of the contract.
+    expect(marqueeDurationSeconds(long, "slow")).toBeLessThanOrEqual(60);
+  });
+
+  it("ignores surrounding whitespace, as the bar itself does", () => {
+    expect(marqueeDurationSeconds("   Closed Friday   ", "normal")).toBe(
+      marqueeDurationSeconds("Closed Friday", "normal"),
+    );
   });
 });

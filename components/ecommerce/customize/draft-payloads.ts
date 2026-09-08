@@ -268,6 +268,8 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       ctaLabel: a.ctaLabel.trim() || undefined,
       dismissible: a.dismissible,
       size: a.size,
+      marquee: a.marquee,
+      marqueeSpeed: a.marqueeSpeed,
       // Sent wholesale (nav replaces on PATCH); null clears a removed image and
       // the backend deletes the orphaned asset.
       bgImage: a.bgImage,

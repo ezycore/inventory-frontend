@@ -5,6 +5,7 @@ import { ColorField } from "@/ui/components/color-field";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { OptionChip } from "@/ui/components/option-card";
+import { SegmentedField, type SegmentedOption } from "@/ui/components/segmented-field";
 import { Switch } from "@/ui/components/switch";
 import { AnnouncementBgField } from "@/components/ecommerce/customize/announcement-bg-field";
 import { PartHint, PartLabel } from "@/components/ecommerce/customize/part-group";
@@ -16,12 +17,22 @@ import type { StorefrontSettings } from "@/types";
 import { effectiveFreeShippingThreshold } from "@/lib/storefront-delivery";
 import { money } from "@/components/storefront/format";
 import { StoreLinkHint } from "@/components/ecommerce/customize/store-link-hint";
+import { MARQUEE_SPEED_LABELS } from "@/lib/storefront-strip-display";
 import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
 
 const SIZES: { value: AnnouncementDraft["size"]; label: string }[] = [
   { value: "sm", label: "Small" },
   { value: "md", label: "Medium" },
   { value: "lg", label: "Large" },
+];
+
+/* Paces, not durations: the actual seconds come from the message length, so a
+   merchant who rewrites the notice keeps the speed they chose. See
+   `marqueeDurationSeconds`. */
+const SPEEDS: SegmentedOption[] = [
+  { value: "slow", label: MARQUEE_SPEED_LABELS.slow, description: "Easiest to read word by word" },
+  { value: "normal", label: MARQUEE_SPEED_LABELS.normal, description: "A comfortable reading pace" },
+  { value: "fast", label: MARQUEE_SPEED_LABELS.fast, description: "For a notice shoppers have seen before" },
 ];
 
 const FITS: { value: AnnouncementDraft["bgFit"]; label: string; hint: string }[] = [
@@ -198,6 +209,42 @@ export function AnnouncementPart({
             </OptionChip>
           ))}
         </div>
+      </div>
+
+      <div className="space-y-2 rounded-lg border p-3">
+        <label className="flex items-center justify-between gap-3">
+          <span className="min-w-0">
+            <span className="block text-sm font-medium">Scroll the message</span>
+            <PartHint>
+              Slides right to left, for a notice too long to fit on one line.
+              Otherwise a long message wraps and makes the bar taller on every
+              page.
+            </PartHint>
+          </span>
+          <Switch
+            checked={value.marquee}
+            onCheckedChange={(marquee) => patchAnnouncement({ marquee })}
+            aria-label="Scroll the announcement message"
+          />
+        </label>
+        {value.marquee ? (
+          <>
+            <SegmentedField
+              label="Scroll speed"
+              value={value.marqueeSpeed}
+              options={SPEEDS}
+              onChange={(marqueeSpeed) =>
+                patchAnnouncement({
+                  marqueeSpeed: marqueeSpeed as AnnouncementDraft["marqueeSpeed"],
+                })
+              }
+            />
+            <PartHint>
+              It pauses while a shopper points at it, and stays still for anyone
+              who has asked their device to reduce motion.
+            </PartHint>
+          </>
+        ) : null}
       </div>
 
       <ResponsiveVisibilityField

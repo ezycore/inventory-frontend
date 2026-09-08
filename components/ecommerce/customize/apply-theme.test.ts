@@ -292,6 +292,8 @@ describe("Customize draft safeguards", () => {
     ctaLabel: "",
     dismissible: false,
     size: "sm",
+    marquee: false,
+    marqueeSpeed: "normal",
     bgImage: null,
     overlay: "",
     overlayOpacity: 40,

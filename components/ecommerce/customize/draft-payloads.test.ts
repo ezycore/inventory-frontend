@@ -154,6 +154,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     ctaLabel: "",
     dismissible: false,
     size: "sm",
+    marquee: false,
+    marqueeSpeed: "normal",
     bgImage: null,
     overlay: "#000000",
     overlayOpacity: 40,

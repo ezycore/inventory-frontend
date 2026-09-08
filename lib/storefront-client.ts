@@ -747,6 +747,10 @@ export interface StoreAnnouncement {
   /** Shopper can dismiss the bar (persisted per-device until the message changes). */
   dismissible?: boolean;
   size?: "sm" | "md" | "lg";
+  /** Scroll the message right-to-left instead of centring it on one line. */
+  marquee?: boolean;
+  /** Scroll pace when `marquee` is on. Absent ⇒ `normal`. */
+  marqueeSpeed?: "slow" | "normal" | "fast";
   /** Background image behind the bar (with the overlay below painted on top). */
   bgImage?: StorefrontImage | null;
   /** Overlay colour painted over the image for text readability. */

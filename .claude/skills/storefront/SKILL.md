@@ -957,11 +957,41 @@ changes and a shop that never opens this stores nothing.
 - ⚠ **The wrapper `<div>` only exists when a section is actually hidden somewhere.** Wrapping every
   section would change the DOM of every shop to express "shown everywhere", which is what no wrapper
   already says.
-- **Three chips, not the shared switch pair.** `StripVisibilityField`'s distinguishing feature is a
+- **Three chips, not the shared switch pair.** `ResponsiveVisibilityField`'s distinguishing feature is a
   warning for "off on both" — a state a section does not need, because Remove means that. One
   choice, no invalid combination.
 - Page length is the problem it solves: a five-entry promises band is a five-row stack on a phone,
   and an editorial split spends most of a screen on a photograph before any product.
+
+### The scrolling announcement (`nav.announcement.marquee`)
+
+For a notice too long to sit on one line. Without it the bar wraps, and a three-line band pushes the
+whole shop down on **every page** — the merchant trades their fold for a sentence.
+
+- ⚠ **The duration is computed on the SERVER, from the message length** —
+  `marqueeDurationSeconds(text, speed)` in `lib/storefront-strip-display.ts`, published as
+  `--sf-marquee-dur`. Measuring the rendered text is the obvious implementation and the wrong one
+  twice: nothing can be measured before paint, and measuring after makes the ticker visibly snap to a
+  new speed on hydration. The pace is therefore in **characters per second**, the one unit the text
+  carries with it.
+- ⚠ **Length buys TIME, never speed.** A fixed duration inverts the feature: the longer the notice —
+  which is *why* the merchant switched scrolling on — the faster it would travel to finish in the
+  same time, so the hardest message to read would be the one moving quickest.
+- **Two copies, `translateX(-50%)`.** Half the track is one copy whatever the words are, so the
+  seamless loop never needs a measured width. The clone is `aria-hidden` **and `inert`** — it can
+  carry the merchant's CTA, and a focusable control inside an aria-hidden subtree is a tab stop a
+  screen reader cannot announce.
+- **`min-width: 100%` on `.sf-marquee-item` is the short-message guard**, and it is why the duration
+  needs a floor: a track narrower than the bar would drag a blank gap across the screen, so a short
+  message is held to the bar's width — at which point chars-per-second no longer describes the
+  distance travelled and an honest sum would strobe.
+- ⚠ **`prefers-reduced-motion` must undo `overflow` and `white-space` too**, not just the animation.
+  A long message pinned to one line inside a clipped box is one this shopper never sees the end of;
+  it falls back to the wrapping static bar. Pausing on `:hover` **and `:focus-within`** is WCAG 2.2.2
+  — hover alone leaves a keyboard shopper chasing a CTA they cannot catch.
+- Deliberately **announcement-only** so far. The campaign strip shares this vocabulary
+  (`storefront-strip-display.ts`) and could adopt it, but its text is generated from the running
+  campaign and is short by construction.
 
 ### One product grid, pointed by its source (2026-09-06)
 

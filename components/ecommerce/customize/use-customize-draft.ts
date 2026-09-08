@@ -48,6 +48,7 @@ import {
   type CollectionRowValue,
 } from "@/components/ecommerce/collections/collection-row";
 import { isValidHexColor } from "@/ui/components/color-field";
+import type { MarqueeSpeed } from "@/lib/storefront-strip-display";
 import {
   resolveUtilityBar,
   type ResolvedUtilityBar,
@@ -65,6 +66,9 @@ export interface AnnouncementDraft {
   ctaLabel: string;
   dismissible: boolean;
   size: "sm" | "md" | "lg";
+  /** Scroll the message right-to-left instead of centring it on one line. */
+  marquee: boolean;
+  marqueeSpeed: MarqueeSpeed;
   bgImage: Image | null;
   overlay: string;
   overlayOpacity: number;
@@ -446,6 +450,11 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       ctaLabel: a?.ctaLabel ?? "",
       dismissible: a?.dismissible ?? false,
       size: a?.size ?? "sm",
+      // Off by default: every bar that exists today sits still, and a shop's
+      // announcement suddenly moving after an unrelated save is not a change
+      // any merchant asked for.
+      marquee: a?.marquee ?? false,
+      marqueeSpeed: a?.marqueeSpeed ?? "normal",
       bgImage: a?.bgImage ?? null,
       overlay: a?.overlay ?? "#000000",
       overlayOpacity: a?.overlayOpacity ?? 40,

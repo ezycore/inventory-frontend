@@ -12036,6 +12036,9 @@ export interface components {
                     dismissible?: boolean;
                     /** @enum {string} */
                     size?: "sm" | "md" | "lg";
+                    marquee?: boolean;
+                    /** @enum {string} */
+                    marqueeSpeed?: "slow" | "normal" | "fast";
                     bgImage?: {
                         url: string;
                         mediumUrl: string;
@@ -19091,6 +19094,9 @@ export interface operations {
                             dismissible?: boolean;
                             /** @enum {string} */
                             size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
                             bgImage?: {
                                 url: string;
                                 mediumUrl?: string;

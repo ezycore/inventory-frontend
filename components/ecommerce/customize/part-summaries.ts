@@ -109,7 +109,10 @@ export function partSummary(
       const message = draft.announcement.text.trim()
         ? `On — “${draft.announcement.text.trim()}”`
         : "On, but no message written yet";
-      return where ? `${message} · ${where}` : message;
+      // Worth a word in the collapsed row: it is the one announcement setting
+      // that changes how the bar BEHAVES rather than how it looks.
+      const scroll = draft.announcement.marquee ? "Scrolling" : "";
+      return [message, scroll, where].filter(Boolean).join(" · ");
     }
     case "campaign": {
       const c = draft.campaignStrip;
