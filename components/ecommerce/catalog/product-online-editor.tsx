@@ -29,6 +29,7 @@ import {
   type GalleryImage,
   type UploadedImage,
 } from "@/components/shared/image-gallery-upload";
+import { buildImageOrder, galleryFiles } from "@/lib/image-gallery-order";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
 import {
   VariantPricingFields,
@@ -234,9 +235,12 @@ export function ProductOnlineEditor({
       .map((img) => img.publicId)
       .filter((id): id is string => !!id && !keptPublicIds.includes(id));
     if (removed.length) fd.append("removeImages", JSON.stringify(removed));
-    images
-      .filter((img): img is File => img instanceof File)
-      .forEach((file) => fd.append("images", file));
+    // Files go in GALLERY order — `upload:<n>` in the manifest indexes into this
+    // sequence — and the manifest carries the arrangement itself, so a
+    // replacement keeps the slot it replaced instead of being appended.
+    galleryFiles(images).forEach((file) => fd.append("images", file));
+    const imageOrder = buildImageOrder(images);
+    if (imageOrder) fd.append("imageOrder", JSON.stringify(imageOrder));
 
     await update.mutateAsync({ id: product._id, formData: fd });
     onClose();

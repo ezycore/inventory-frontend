@@ -21,10 +21,18 @@ import { SimpleTable, type SimpleColumn } from '@ui/components/simple-table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@ui/components/dialog'
 import { Checkbox } from '@ui/components/checkbox'
 import { toast } from 'sonner'
-import { Plus, PlusCircle, Upload, X, ImageIcon } from 'lucide-react'
+import { Plus, PlusCircle, Upload, ImageIcon } from 'lucide-react'
 import { useVariantAttributes, useCreateVariantAttribute, useSelectOptions } from '@/services/api'
 import { useAuthStore } from '@/services/stores'
 import { isFeatureEnabled } from '@/lib/feature-utils'
+import {
+  GalleryItemRow,
+  describeGalleryEntry,
+} from '@/components/shared/gallery-item-row'
+import {
+  moveGalleryEntry,
+  replaceGalleryEntry,
+} from '@/lib/image-gallery-order'
 import type { VariantAttribute } from '@/types'
 import DynamicForm from '@/ui/components/form'
 import getVariantAttributeFormConfig from '../variants/form-config'
@@ -32,9 +40,6 @@ import useDynamicForm from '@/hooks/use-dynamic-form'
 import {
   FileUpload,
   FileUploadDropzone,
-  FileUploadItem,
-  FileUploadItemDelete,
-  FileUploadItemPreview,
   FileUploadList,
 } from '@ui/components/file-upload'
 import { SafeImage } from '@/ui/components/safeImage'
@@ -646,50 +651,47 @@ export default function VariantManager({
                   {editingVariant.images && editingVariant.images.length > 0 && (
                     <FileUploadList className="mt-3">
                       {editingVariant.images.map((file: any, index: number) => {
-                        let fileKey: string
-                        let fileName: string
-                        let fileSize: string
-                        let previewUrl: string | null = null
-
-                        if (file instanceof File) {
-                          fileKey = `${file.name}-${index}`
-                          fileName = file.name
-                          fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                          previewUrl = URL.createObjectURL(file)
-                        } else if (file && typeof file === 'object' && file.publicId) {
-                          fileKey = `${file.publicId}-${index}`
-                          fileName = file.publicId?.split('/').pop() || t('existingImage')
-                          fileSize = t('uploaded')
-                          previewUrl = file.thumbnailUrl || file.url
-                        } else {
+                        if (
+                          !(file instanceof File) &&
+                          !(file && typeof file === 'object' && file.publicId)
+                        ) {
                           return null
                         }
-
+                        const { key, fileName, fileSize, previewUrl } =
+                          describeGalleryEntry(file, index, {
+                            existingImage: t('existingImage'),
+                            uploaded: t('uploaded'),
+                          })
+                        const images = (editingVariant.images || []) as any[]
                         return (
-                          <FileUploadItem
-                            key={fileKey}
+                          <GalleryItemRow
+                            key={key}
                             value={file}
-                            className="flex items-center gap-3 p-2 border rounded-lg w-100"
-                          >
-                            {previewUrl ? (
-                              <SafeImage
-                                src={previewUrl}
-                                alt={fileName}
-                                className="h-12 w-12 rounded object-cover bg-gray-100"
-                              />
-                            ) : (
-                              <FileUploadItemPreview className="h-12 w-12 rounded overflow-hidden bg-gray-100" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{fileName}</p>
-                              <p className="text-xs text-muted-foreground">{fileSize}</p>
-                            </div>
-                            <FileUploadItemDelete asChild>
-                              <Button type="button" variant="ghost" size="sm" className="h-7 w-7 p-0">
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </FileUploadItemDelete>
-                          </FileUploadItem>
+                            previewUrl={previewUrl}
+                            fileName={fileName}
+                            fileSize={fileSize}
+                            index={index}
+                            count={images.length}
+                            compact
+                            // A variant gallery is ordered for the same reason
+                            // the product one is: image 0 is the variant's
+                            // display picture on the storefront.
+                            showOrdering
+                            onMove={(from, to) =>
+                              setEditingVariant({
+                                ...editingVariant,
+                                images: moveGalleryEntry(images, from, to),
+                              })
+                            }
+                            onReplace={(at, replacement) =>
+                              setEditingVariant({
+                                ...editingVariant,
+                                images: replaceGalleryEntry(images, at, replacement),
+                              })
+                            }
+                            accept="image/*"
+                            maxSize={5 * 1024 * 1024}
+                          />
                         )
                       })}
                     </FileUploadList>

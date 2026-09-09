@@ -24590,6 +24590,7 @@ export interface operations {
                             thumbnailUrl: string;
                             publicId: string;
                         }[];
+                        imageOrder?: string[];
                         /** @enum {string} */
                         status?: "active" | "inactive" | "archived";
                         enableUOMConversion?: boolean;
@@ -24661,6 +24662,7 @@ export interface operations {
                         unitId: string;
                         conversionFactor: number;
                     };
+                    imageOrder?: string | string[];
                 };
             };
         };
@@ -25295,6 +25297,7 @@ export interface operations {
                             thumbnailUrl: string;
                             publicId: string;
                         }[];
+                        imageOrder?: string[];
                         /** @enum {string} */
                         status?: "active" | "inactive" | "archived";
                         enableUOMConversion?: boolean;
@@ -25373,6 +25376,7 @@ export interface operations {
                         publicId: string;
                     }[];
                     removeImages?: string;
+                    imageOrder?: string | string[];
                 };
             };
         };
@@ -39892,6 +39896,7 @@ export interface operations {
                     outOfStockBehavior?: "hide" | "show" | "backorder";
                     weightKg?: number;
                     removeImages?: string | string[];
+                    imageOrder?: string | string[];
                     clearFields?: string | string[];
                     variantPricing?: {
                         variantId: string;
