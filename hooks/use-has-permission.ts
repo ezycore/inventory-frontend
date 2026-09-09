@@ -22,6 +22,13 @@ export const PERMISSIONS = {
   rolesManage: 'roles.manage',
   /** Organization-level settings; also feeds the Billing gate below. */
   organizationEdit: 'organization.edit',
+  /**
+   * Permanently destroying a closed online order. Deliberately NOT part of
+   * `storefront.orders.manage`, which is the fulfillment permission `manager`
+   * and `staff` both hold — anyone who can confirm an order must not thereby be
+   * able to erase one. Admin and super_admin only.
+   */
+  storefrontOrdersDelete: 'storefront.orders.delete',
 } as const;
 
 /** Whether the signed-in user's role grants the given permission. */

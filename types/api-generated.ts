@@ -6198,7 +6198,11 @@ export interface paths {
         get: operations["get_api_ecommerce_orders_id"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * DELETE /api/ecommerce/orders/:id
+         * @description Defined in `src/routes/storefront-orders.routes.ts:106`. Requires permission `storefront.orders.delete`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_ecommerce_orders_id"];
         options?: never;
         head?: never;
         /**
@@ -6217,7 +6221,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/fraud-check
-         * @description Defined in `src/routes/storefront-orders.routes.ts:103`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:112`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_fraud_check"];
         put?: never;
@@ -6239,7 +6243,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/confirm
-         * @description Defined in `src/routes/storefront-orders.routes.ts:109`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:118`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_confirm"];
         delete?: never;
@@ -6263,7 +6267,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:115`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:124`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_status"];
         trace?: never;
@@ -6279,7 +6283,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/cancel
-         * @description Defined in `src/routes/storefront-orders.routes.ts:121`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:130`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_cancel"];
         delete?: never;
@@ -6303,7 +6307,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-cost
-         * @description Defined in `src/routes/storefront-orders.routes.ts:127`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:136`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
@@ -6319,7 +6323,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/prepayment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:133`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:142`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_prepayment"];
         delete?: never;
@@ -6339,7 +6343,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/payment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:139`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:148`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_payment"];
         delete?: never;
@@ -6359,7 +6363,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/collection
-         * @description Defined in `src/routes/storefront-orders.routes.ts:149`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:158`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_collection"];
         delete?: never;
@@ -6379,7 +6383,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/return
-         * @description Defined in `src/routes/storefront-orders.routes.ts:155`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:164`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_return"];
         delete?: never;
@@ -6399,7 +6403,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/resolve-location
-         * @description Defined in `src/routes/storefront-orders.routes.ts:161`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:170`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_resolve_location"];
         delete?: never;
@@ -6419,7 +6423,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:167`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:176`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_consignment"];
         delete?: never;
@@ -6439,7 +6443,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/manual-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:173`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:182`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_manual_consignment"];
         delete?: never;
@@ -6463,7 +6467,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:179`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:188`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_status"];
         trace?: never;
@@ -6479,7 +6483,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/refresh-tracking
-         * @description Defined in `src/routes/storefront-orders.routes.ts:185`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:194`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_refresh_tracking"];
         delete?: never;
@@ -6497,7 +6501,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/return-preview
-         * @description Defined in `src/routes/storefront-orders.routes.ts:193`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:202`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_return_preview"];
         put?: never;
@@ -6517,7 +6521,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/courier-price
-         * @description Defined in `src/routes/storefront-orders.routes.ts:199`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:208`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_courier_price"];
         put?: never;
@@ -7182,6 +7186,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -7256,6 +7261,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -7317,6 +7323,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -7382,6 +7389,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -7448,6 +7456,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive" | "archived";
@@ -7508,6 +7517,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7528,6 +7538,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7567,6 +7578,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7600,6 +7612,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7647,6 +7660,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7688,6 +7702,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive";
@@ -7984,6 +7999,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             brandId?: string;
             categoryId?: string;
@@ -10054,6 +10070,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             status: "active" | "inactive";
@@ -10078,6 +10095,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -10115,6 +10133,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 storefront?: {
                     isListed?: boolean;
@@ -10154,6 +10173,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -10194,6 +10214,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description?: string | null;
             storefront?: {
@@ -10359,6 +10380,9 @@ export interface components {
             }[];
             /** Format: date-time */
             checkedAt?: string;
+        };
+        OrderDeleted: {
+            orderNumber: string;
         };
         OrderQuote: {
             items: {
@@ -11391,6 +11415,7 @@ export interface components {
             mediumUrl: string;
             thumbnailUrl: string;
             publicId: string;
+            bytes?: number;
         };
         OnboardingState: {
             /** Format: date-time */
@@ -11489,12 +11514,14 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             favicon?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
                 pngUrl?: string;
             } | null;
             receiptSettings?: {
@@ -11794,24 +11821,28 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             banner?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             socialImage?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             mobileLogo?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             storefrontLocationId?: string;
             /** @enum {string} */
@@ -11989,6 +12020,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     buttonLabel?: string;
                     buttonHref?: string;
@@ -12059,6 +12091,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     overlay?: string;
                     overlayOpacity?: number;
@@ -12144,12 +12177,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 mobileImage?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 focal?: {
                     x: number;
@@ -12181,6 +12216,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 focal?: {
                     x: number;
@@ -12276,6 +12312,7 @@ export interface components {
                 inventory: number;
                 salesToday: number;
                 purchasesToday: number;
+                storageBytes: number;
             };
         };
         SubscriptionStatus: {
@@ -12419,6 +12456,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
                 pngUrl?: string;
             } | null;
             banner?: unknown;
@@ -12506,6 +12544,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             productCount: number;
         };
@@ -12530,6 +12569,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description?: string;
             children: {
@@ -12542,6 +12582,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 description?: string;
             }[];
@@ -12556,6 +12597,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description: string | null;
             seo?: {
@@ -12581,6 +12623,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             description: string;
             featured: boolean;
@@ -12616,6 +12659,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 availableQuantity: number;
                 tracked?: boolean;
@@ -12634,6 +12678,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 description: string;
                 featured: boolean;
@@ -12669,6 +12714,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     }[];
                     availableQuantity: number;
                     tracked?: boolean;
@@ -13593,6 +13639,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -13614,12 +13661,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 favicon?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -13731,6 +13780,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -13752,12 +13802,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 favicon?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -13873,6 +13925,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -13894,12 +13947,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14012,6 +14067,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14033,12 +14089,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14191,6 +14249,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14212,12 +14271,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14353,6 +14414,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14374,12 +14436,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -35895,6 +35959,9 @@ export interface operations {
                 fulfillmentType?: "delivery" | "pickup";
                 paymentStatus?: "pending" | "paid" | "refunded";
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
+                period?: "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "last6Months" | "thisYear" | "lastYear" | "custom";
+                startDate?: string;
+                endDate?: string;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
@@ -36294,6 +36361,69 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["StorefrontOrder"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_ecommerce_orders_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrderDeleted"];
                     };
                 };
             };

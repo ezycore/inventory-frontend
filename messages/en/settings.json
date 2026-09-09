@@ -457,7 +457,12 @@
       "salesPerDay": "Sales (today)",
       "purchasePerDay": "Purchases (today)",
       "unlimited": "Unlimited",
-      "storage": "Storage (GB)"
+      "storage": "Storage (GB)",
+      "storageUsage": "Storage",
+      "storageNearlyFull": "Storage is nearly full. Delete images you no longer need, or upgrade your plan.",
+      "storageFull": "Storage is full. New image uploads will be refused until you free space or upgrade your plan.",
+      "storageOf": "of {limit}",
+      "storageUsedSuffix": "used"
     },
     "features": {
       "title": "Plan Features",

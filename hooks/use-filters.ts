@@ -269,7 +269,9 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
       // just removed, they rendered nothing. The section was left standing as
       // an empty card: a "Publish to store" header, a subtitle promising the
       // product goes live on save, and not a single control under it.
-      hiddenSections.push("publish-to-store");
+      if (!storefrontOn || stockOn) {
+        hiddenSections.push("publish-to-store");
+      }
       if (!stockOn) {
         excludedFields.push(
           "addToInventory",

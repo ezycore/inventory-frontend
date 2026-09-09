@@ -140,6 +140,18 @@ export type ApiOrganizationFeatures = Schemas["OrganizationFeatures"];
 export type AdminStorefrontOrder = Schemas["StorefrontOrder"];
 export type StorefrontOrderList = Schemas["StorefrontOrderList"];
 export type OrderStats = Schemas["OrderStats"];
+/**
+ * The date presets the order list may ask for, taken from the generated spec
+ * rather than retyped.
+ *
+ * Retyping it as `string` is the failure this prevents: the server 400s an
+ * unknown `period` (`INVALID_QUERY_PARAM`), so a preset renamed on the backend
+ * would reach a merchant as an empty list with no error on screen. Off the
+ * generated enum it is a compile error at `pnpm verify:api-types` instead.
+ */
+export type OrderListPeriod = NonNullable<
+  NonNullable<Operations["get_api_ecommerce_orders"]["parameters"]["query"]>["period"]
+>;
 export type OrderQuote = Schemas["OrderQuote"];
 export type OrderableProduct = Schemas["OrderableProduct"];
 export type StorefrontDashboard = Schemas["StorefrontDashboard"];
