@@ -364,6 +364,21 @@ and the hook also carries the 5 MB cap and accepted MIME list that must match th
 `imageFilter`. (The storefront Customize editor's `MediaField` is a deliberate separate one: it
 uploads immediately via its own media PATCH rather than staging for a form Save.)
 
+**Image galleries (multi-image):** a gallery row — thumbnail, name, Primary badge, **replace**,
+reorder arrows, delete — is `<GalleryItemRow>` + `describeGalleryEntry`
+(`components/shared/gallery-item-row.tsx`), shared by the DynamicForm `file-upload` field
+(`ui/components/form/field-file-input.tsx`), `<ImageGalleryUpload>`
+(`components/shared/image-gallery-upload.tsx`) and the variant editor
+(`components/products/variant-manager.tsx`). **Never copy a gallery row between them** — all three
+held byte-identical markup until 2026-09-09. Gallery helpers (`buildImageOrder`, `galleryFiles`,
+`moveGalleryEntry`, `replaceGalleryEntry`) live in `lib/image-gallery-order.ts`: the backend discards
+the client's `images` on update and rebuilds the array itself, so a gallery's order survives **only**
+if `imageOrder` is sent alongside the files, appended in the same order. Position 0 is the storefront
+cover. **Replace owns its own file input** — routing it through the gallery's would add the file and
+leave the old one — so it re-applies the accept/size checks via `lib/file-accept.ts`, shared with the
+`FileUpload` primitive. Row labels are `common.gallery` (en + bn). Full rules, including the
+cross-repo token grammar and the per-variant `upload:<n>` trap, in the `products` skill.
+
 **Discount display:** campaign/coupon discount values render via `<DiscountCell>`
 (`components/ecommerce/discount-cell.tsx`) — `10%` for percentage, org-currency for fixed amounts.
 
