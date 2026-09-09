@@ -304,5 +304,17 @@
     "done": "কপি হয়েছে!",
     "failed": "কপি করা যায়নি",
     "label": "ক্লিপবোর্ডে কপি করুন"
+  },
+  "gallery": {
+    "primary": "প্রধান",
+    "makePrimary": "প্রধান ছবি করুন",
+    "moveEarlier": "{name} আগে সরান",
+    "moveLater": "{name} পরে সরান",
+    "replace": "{name} বদলান",
+    "remove": "{name} সরান",
+    "existingImage": "বিদ্যমান ছবি",
+    "uploaded": "আপলোড হয়েছে",
+    "rejectedType": "{name} একটি সমর্থিত ছবির ধরন নয়",
+    "rejectedSize": "{name} আকারে অনেক বড়"
   }
 }

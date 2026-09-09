@@ -1,18 +1,18 @@
 "use client";
 // coding-standard: maintained
 
-import { Upload, X } from "lucide-react";
-import { Button } from "@/ui/components/button";
+import { Upload } from "lucide-react";
 import {
   FileUpload,
   FileUploadDropzone,
-  FileUploadItem,
-  FileUploadItemDelete,
-  FileUploadItemPreview,
   FileUploadList,
 } from "@/ui/components/file-upload";
-import { SafeImage } from "@/ui/components/safeImage";
+import {
+  GalleryItemRow,
+  describeGalleryEntry,
+} from "@/components/shared/gallery-item-row";
 import { ImageRatioNotice } from "@/components/shared/image-ratio-warning";
+import { moveGalleryEntry, replaceGalleryEntry } from "@/lib/image-gallery-order";
 import type { ImageSize } from "@/lib/image-ratio";
 
 /** An already-uploaded image (server shape) — anything not a `File`. */
@@ -111,58 +111,25 @@ export function ImageGalleryUpload({
       {files.length > 0 && (
         <FileUploadList className="mt-4">
           {files.map((file, index) => {
-            let fileKey: string;
-            let fileName: string;
-            let fileSize: string;
-            let previewUrl: string | null = null;
-
-            if (file instanceof File) {
-              fileKey = `${file.name}-${index}`;
-              fileName = file.name;
-              fileSize = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-              previewUrl = URL.createObjectURL(file);
-            } else {
-              fileKey = `${file.publicId || index}-${index}`;
-              fileName = file.publicId?.split("/").pop() || "Existing image";
-              fileSize = "Uploaded";
-              previewUrl = file.thumbnailUrl || file.url || null;
-            }
-
+            const { key, fileName, fileSize, previewUrl } =
+              describeGalleryEntry(file, index);
             return (
-              <FileUploadItem
-                key={fileKey}
+              <GalleryItemRow
+                key={key}
                 value={file instanceof File ? file : uploadedKey(file)}
-                className="flex items-center gap-3 rounded-lg border p-3"
-              >
-                {previewUrl ? (
-                  <SafeImage
-                    src={previewUrl}
-                    alt={fileName}
-                    className="h-16 w-16 rounded bg-gray-100 object-cover"
-                  />
-                ) : (
-                  <FileUploadItemPreview className="h-16 w-16 overflow-hidden rounded bg-gray-100" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{fileName}</p>
-                  <p className="text-xs text-muted-foreground">{fileSize}</p>
-                  {index === 0 && maxFiles > 1 && (
-                    <span className="mt-1 inline-block rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                      Primary
-                    </span>
-                  )}
-                </div>
-                <FileUploadItemDelete asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </FileUploadItemDelete>
-              </FileUploadItem>
+                previewUrl={previewUrl}
+                fileName={fileName}
+                fileSize={fileSize}
+                index={index}
+                count={files.length}
+                showOrdering={maxFiles > 1}
+                onMove={(from, to) => onChange(moveGalleryEntry(files, from, to))}
+                onReplace={(at, file) =>
+                  onChange(replaceGalleryEntry(files, at, file))
+                }
+                accept={accept}
+                maxSize={maxSize}
+              />
             );
           })}
         </FileUploadList>

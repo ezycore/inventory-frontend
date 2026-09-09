@@ -153,7 +153,64 @@ Form-config has `unitId.copyValueTo: ["saleUnit.unitId"]` so picking a base unit
 3. **Only active variants are sent**: `data.variants.filter(v => v.enabled)` runs before `.map()`. Inactive (unchecked) variants are excluded from the payload entirely.
 4. Variants array is mapped: drop `costPrice`/`sku`/`barcode`; include `enableUOMConversion`; spread UOM fields **only when enabled** (`...(v.enableUOMConversion ? { purchaseUnit, saleUnit } : {})`). 
 5. `variants` is sent as a single `FormData` field with a JSON-stringified value.
+6. **Images send an ORDER, not just a set.** New `File`s are appended under `images` **in gallery
+   order**, and `imageOrder` carries the arrangement (`buildImageOrder` in
+   [lib/image-gallery-order.ts](../../../lib/image-gallery-order.ts)) — see the section below.
 Maps BE detail → form values. For each variant maps `_id → id + _id`, copies `attributeName`, `value`, `price`, `enabled`, `images`, `enableUOMConversion`, `purchaseUnit`, `saleUnit`. **Without this, the edit modal renders empty UOM fields even though BE returned them.**
+
+### Image order — replacing a picture without moving it
+
+The backend rebuilds `product.images` itself and **discards the client's `images` on update**, so the
+gallery's ORDER only survives if it is sent explicitly. Without that, removing the third picture and
+uploading its replacement gave `[1, 2, 4, 5, new]` — content right, position wrong, unfixable.
+
+Two fields carry it, and they must be built from the **same array**:
+
+| Field | Content |
+|---|---|
+| `images` (files) | every new `File`, appended **in gallery order** (`galleryFiles`) |
+| `imageOrder` | one token per slot — a `publicId` for a kept image, `upload:<n>` for the n-th appended file (`buildImageOrder`) |
+
+**`upload:<n>` counts the appended FILES, not the gallery slot.** A new pick in slot 3 with another
+new pick ahead of it is `upload:1`. Building the two from different arrays silently swaps images —
+which is why both live in `lib/image-gallery-order.ts` and both call sites (`prepareSubmitData` and
+the online-store editor `components/ecommerce/catalog/product-online-editor.tsx`) use them together.
+
+`buildImageOrder` returns `undefined` for an empty gallery or one whose stored images lack a
+`publicId`; sending no manifest is valid and means "append", the historical behaviour. The resolver
+and the token grammar are `inventory-backend/src/utils/image-order.ts` — **a cross-repo contract**,
+so change both or neither. Rejections come back as `IMAGE_ORDER_INVALID` (400).
+
+Each row (`components/shared/gallery-item-row.tsx`) carries **replace**, the two reorder arrows and
+delete. **Replace is the primary affordance, not the arrows**: swapping one picture as delete → add →
+walk-it-back-up is a workaround, so `onReplace` swaps the entry in its slot
+(`replaceGalleryEntry`) and `buildImageOrder` names that slot for the server. The old entry simply
+leaves the array, which is how the submit helpers already detect a removal — no second mechanism.
+
+The replace control owns its **own** hidden file input. Routing it through the gallery's input would
+*add* the file and leave the old one in place — the exact bug it removes. It therefore also bypasses
+the `FileUpload` primitive's accept/size checks, so the row re-applies them via
+[`lib/file-accept.ts`](../../../lib/file-accept.ts) (shared with the primitive, which no longer
+carries its own copy). Without that, the one upload path that skips the primitive would be the one
+path with no limits.
+
+Reorder is arrow buttons rather than drag-and-drop: the repo has no DnD dependency, a gallery is at
+most 5 items, and buttons work on a phone and with a keyboard. **Moving an image to position 0 is how
+the storefront cover is chosen**, so the up-arrow on row 1 is labelled "Make primary image".
+
+Row labels come from `common.gallery` (en + bn), so all three galleries speak the merchant's
+language; `describeGalleryEntry` takes optional labels for "Existing image" / "Uploaded".
+
+`GalleryItemRow` is shared by the **three** galleries that used to hold byte-identical copies of the
+markup — `renderFileUpload` (`ui/components/form/field-file-input.tsx`, the DynamicForm `file-upload`
+field), `ImageGalleryUpload` (`components/shared/image-gallery-upload.tsx`) and the variant editor in
+`components/products/variant-manager.tsx`. Add a row affordance there, never in one of them.
+
+**Variants get the same treatment**, with one trap: each variant sends its own `imageOrder` inside
+its entry of the `variants` JSON, and `upload:<n>` indexes **that variant's own**
+`variantImages_<idx>` files. `prepareSubmitData` therefore builds the manifest and appends the files
+from the same `allImages` array per variant — a counter shared across variants would put one
+variant's replacement into another's gallery.
 
 ### Cross-resource invalidation
 
