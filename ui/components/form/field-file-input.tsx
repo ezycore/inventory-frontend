@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { Controller } from "react-hook-form";
 import { ImageRatioNotice } from "@/components/shared/image-ratio-warning";
+import { StorageNotice } from "@/components/shared/storage-warning";
 import {
   GalleryItemRow,
   describeGalleryEntry,
@@ -76,6 +77,11 @@ export function renderFileUpload(ctx: FieldRenderContext): ReactNode {
 
             {/* Advisory only — a wrong-shaped file still uploads. */}
             <ImageRatioNotice files={files} recommended={field.recommended} />
+
+            {/* Not advisory — past the cap the upload is refused server-side.
+                Only images are metered, so a field taking anything else says
+                nothing about a quota it does not spend. */}
+            {acceptedTypes.includes("image") && <StorageNotice />}
 
             {shouldHideDropzone && (
               <div className="text-sm text-muted-foreground mb-2">

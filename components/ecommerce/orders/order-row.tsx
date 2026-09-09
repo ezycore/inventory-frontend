@@ -1,11 +1,11 @@
 // coding-standard: maintained
-import { ChevronRight } from "lucide-react";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
 import { Checkbox } from "@/ui/components/checkbox";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { CopyTrackLink } from "@/components/ecommerce/orders/copy-track-link";
+import { OrderRowActions } from "@/components/ecommerce/orders/order-row-actions";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 
 const cap = (s: string) => `${s[0]?.toUpperCase() ?? ""}${s.slice(1)}`;
@@ -92,8 +92,11 @@ export function OrderRow({
           orderNumber={order.orderNumber}
         />
       </td>
-      <td className="px-3 py-3 text-muted-foreground">
-        <ChevronRight className="h-4 w-4" />
+      {/* Replaces the chevron: the row itself already opens the order, so the
+          cell is worth more as the triage menu than as a second affordance for
+          the click the whole row performs. */}
+      <td className="px-1 py-3" onClick={(e) => e.stopPropagation()}>
+        <OrderRowActions order={order} onOpen={onOpen} />
       </td>
     </tr>
   );

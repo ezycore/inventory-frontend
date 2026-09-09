@@ -202,6 +202,26 @@ export const useCancelOrder = () => {
   });
 };
 
+/**
+ * Permanently delete a closed order.
+ *
+ * Invalidates `order.changed`, not `order.returned` like cancel does: a deletable
+ * order has already been proven to hold no money and no stock reservation — the
+ * server refuses it otherwise — so there is nothing for MONEY or STOCK to
+ * refresh. Only the lists and the dashboard lose a row.
+ */
+export const useDeleteOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => storefrontOrdersApi.remove(id),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order deleted");
+      invalidate(qc, "order.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
 /** Record money collected before shipping (advance, or a full bank transfer). */
 export const useRecordPrepayment = () => {
   const qc = useQueryClient();

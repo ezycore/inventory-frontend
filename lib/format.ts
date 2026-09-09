@@ -47,3 +47,39 @@ export function formatDateTime(
 ): string {
   return formatDate(date, "dd MMM yyyy, hh:mm a", locale);
 }
+
+/**
+ * Ascending, so the index into this array is the power of 1024 being applied.
+ */
+const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
+
+/**
+ * A byte count at human scale — `1.6 MB`, `2 GB`.
+ *
+ * Units stay Western abbreviations in both locales, matching the file sizes the
+ * upload component already shows app-wide and the Western-digits rule in
+ * docs/I18N.md. `B` is whole (there is no such thing as half a byte); every
+ * larger unit carries one decimal, which is the difference between a storage
+ * meter reading "1.6 MB" and one reading "2 MB" the moment you cross 1.5.
+ *
+ * The unit is clamped rather than indexed blindly: past a petabyte the raw
+ * lookup runs off the end of the array and renders "1.0 undefined".
+ */
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+
+  const exponent = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    BYTE_UNITS.length - 1,
+  );
+
+  const value = bytes / 1024 ** exponent;
+  // A trailing `.0` is noise on a round figure — a plan ceiling should read
+  // "2 GB", not "2.0 GB", while a real measurement still keeps its decimal.
+  const scaled =
+    exponent === 0
+      ? String(Math.round(value))
+      : value.toFixed(1).replace(/\.0$/, "");
+
+  return `${scaled} ${BYTE_UNITS[exponent]}`;
+}

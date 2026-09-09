@@ -10,8 +10,94 @@ import {
   Wallet,
 } from "lucide-react";
 import type { StatData } from "@/ui/components/StatsCard";
-import type { OrderStats } from "@/services/api";
+import type { AdminStorefrontOrder, OrderStats } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
+
+/**
+ * Which of the selected orders each bulk action may actually act on.
+ *
+ * Pure and shared, because the row menu and the bulk bar have to agree. They did
+ * not at first: the row offered Delete on any closed order while the bulk bar
+ * applied the server's full precondition list, so a rejected order holding a
+ * prepayment showed a Delete item that could only ever fail, and was silently
+ * absent from the count next to it.
+ *
+ * All of this is a HINT, never the gate. The server re-checks every rule and the
+ * rows here may be a minute old — what these buy is a merchant who is not offered
+ * an action that will be refused.
+ */
+
+/**
+ * The three terminal states the `Closed` tab folds together. The server owns the
+ * same list as `CLOSED_STATUSES`; this copy exists because the tab badge is a sum
+ * of per-status counts and no order ever holds the value `closed`.
+ */
+export const CLOSED_STATUSES = ["returned", "cancelled", "rejected"];
+
+/**
+ * Whether a tab should render as the current one.
+ *
+ * Not just `status === tab`: a **deep link can carry a status that is no longer a
+ * tab**. The ecommerce dashboard's "Returned today" tile links to
+ * `?status=returned`, and once the three terminal states were folded into `Closed`
+ * that left the list correctly filtered under a strip with nothing highlighted —
+ * a merchant looking at eight rows and an unselected "All".
+ *
+ * The narrower filter is kept rather than widened, because the tile counted
+ * returns and only returns; clicking `Closed` from there widens it deliberately.
+ */
+export const isTabActive = (tabValue: string, status: string): boolean =>
+  tabValue === "closed"
+    ? status === "closed" || CLOSED_STATUSES.includes(status)
+    : status === tabValue;
+
+/** Confirm applies to a pending order, and only a pending one. */
+export const confirmableOrders = (
+  items: AdminStorefrontOrder[],
+  selected: Set<string>,
+): AdminStorefrontOrder[] =>
+  items.filter((o) => selected.has(o._id) && o.status === "pending");
+
+/**
+ * Reject is confirm's set minus anything holding money.
+ *
+ * `OrderCancelDialog` asks refund-or-keep whenever a prepayment exists; the bulk
+ * bar has no room for that question, and answering it silently would move real
+ * cash. Those orders are rejected one at a time from the row, where the question
+ * still gets asked.
+ */
+export const rejectableOrders = (
+  items: AdminStorefrontOrder[],
+  selected: Set<string>,
+): AdminStorefrontOrder[] =>
+  confirmableOrders(items, selected).filter((o) => !o.prepaidAmount);
+
+/**
+ * Mirrors the four server preconditions in `storefront-order-delete.service.ts`.
+ *
+ * `returned` is a closed status and deliberately absent: a return only exists
+ * against a Sale, so it is already excluded by `saleId` — offering it here would
+ * only ever produce the wrong error message.
+ *
+ * The courier test reads `name` as well as `consignmentId` because a MANUAL
+ * dispatch records only a carrier name, and a check on the id alone would offer
+ * to delete a parcel that had already left the building.
+ */
+export const isDeletableOrder = (order: AdminStorefrontOrder): boolean =>
+  (order.status === "rejected" || order.status === "cancelled") &&
+  !order.saleId &&
+  !order.prepaidAmount &&
+  !order.paidAt &&
+  order.paymentStatus !== "paid" &&
+  order.paymentStatus !== "refunded" &&
+  !order.courier?.consignmentId &&
+  !order.courier?.name;
+
+export const deletableOrders = (
+  items: AdminStorefrontOrder[],
+  selected: Set<string>,
+): AdminStorefrontOrder[] =>
+  items.filter((o) => selected.has(o._id) && isDeletableOrder(o));
 
 /**
  * The order-list stat cards. Two groups on one row: four live pipeline balances (where the money

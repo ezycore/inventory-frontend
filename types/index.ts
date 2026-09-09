@@ -969,6 +969,14 @@ export interface SubscriptionUsage {
   salesToday: number;
   /** Today's non-draft purchase count — powers the `purchasePerDay` meter. */
   purchasesToday: number;
+  /**
+   * R2 bytes in use — powers the `storageGb` meter (`useStorageLimit`).
+   *
+   * Bytes, not GB: the meter has to be able to say "1.6 of 2 GB", and rounding
+   * server-side would show a merchant at their cap before they are. Excludes
+   * orphaned objects, which are our cost rather than theirs.
+   */
+  storageBytes: number;
 }
 
 /** Response of GET /api/organization/subscription. */
