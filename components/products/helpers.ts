@@ -3,6 +3,7 @@ import { StatData } from "@/ui/components/StatsCard"
 import { Box, CheckCircle2, XCircle, Layers } from "lucide-react"
 import { toast } from "sonner"
 import type { Translator } from "@/i18n/config"
+import { buildImageOrder, galleryFiles } from "@/lib/image-gallery-order"
 
 /** `prepareSubmitData` is called by DataTable/DataCard as `(data, isEdit, item)` — no
  * room for a `t` param, so the page closes over the translator via this factory. */
@@ -99,19 +100,36 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
       formData.append("removeImages", JSON.stringify(removedImageIds));
     }
 
-    // Append new files (File objects) - use a type guard so currentImages narrows to File[]
-    const newFiles = (currentImages as unknown[]).filter((img): img is File => img instanceof File);
-    newFiles.forEach((file) => {
-      formData.append("images", file);
-    });
+    // Append new files (File objects) in GALLERY order — `upload:<n>` in the
+    // manifest below indexes into this sequence, so the two must be built from
+    // the same array or a replacement lands in the wrong slot.
+    galleryFiles(currentImages as unknown[] as (File | { publicId?: string })[])
+      .forEach((file) => {
+        formData.append("images", file);
+      });
+
+    // The order the merchant arranged, so the server can put a replacement back
+    // in the slot it replaced instead of appending it. Without this the backend
+    // keeps its historical append behaviour.
+    const imageOrder = buildImageOrder(
+      currentImages as unknown[] as (File | { publicId?: string })[],
+    );
+    if (imageOrder) {
+      formData.append("imageOrder", JSON.stringify(imageOrder));
+    }
   } else {
     // ADD MODE: Upload new files
     if (data.images && Array.isArray(data.images)) {
-      data.images.forEach((file: any) => {
-        if (file instanceof File) {
-          formData.append("images", file);
-        }
+      const newImages = data.images as (File | { publicId?: string })[];
+      galleryFiles(newImages).forEach((file) => {
+        formData.append("images", file);
       });
+      // Create has nothing to keep, so the manifest only fixes the order the
+      // uploads land in — which still matters, because image 0 is the cover.
+      const imageOrder = buildImageOrder(newImages);
+      if (imageOrder) {
+        formData.append("imageOrder", JSON.stringify(imageOrder));
+      }
     }
   }
 
@@ -122,12 +140,17 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
       // Separate existing images (server objects) from new File uploads
       const allImages = v.images || [];
       const existingImages = allImages.filter((img: any) => !(img instanceof File))
-      const newFiles = allImages.filter((img: any) => img instanceof File)
 
-      // Append new variant image files with indexed field names
-      newFiles.forEach((file: File) => {
+      // Append new variant image files with indexed field names, in GALLERY
+      // order — `upload:<n>` in this variant's manifest indexes into ITS OWN
+      // `variantImages_<idx>` field, not a shared counter.
+      galleryFiles(allImages).forEach((file: File) => {
         formData.append(`variantImages_${idx}`, file)
       })
+      // Same manifest, per variant: without it a replaced variant picture is
+      // appended and the merchant's arrangement is lost, exactly as it was for
+      // product images before `imageOrder`.
+      const variantImageOrder = buildImageOrder(allImages)
 
       // Determine _id for smart merge (existing variants have MongoDB _id)
       const variantId = v._id || undefined
@@ -139,6 +162,7 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
         },
         price: v.price,
         images: existingImages, // only existing images go in JSON
+        ...(variantImageOrder ? { imageOrder: variantImageOrder } : {}),
         status: v.enabled ? 'active' : 'inactive',
         // Barcode VALUE is per variant; the TYPE (symbology) is product-level and
         // shared — stamp the single form choice onto every variant. Sent even when

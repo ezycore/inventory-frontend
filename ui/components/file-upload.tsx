@@ -3,6 +3,7 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@ui/lib/utils";
+import { isFileAccepted } from "@/lib/file-accept";
 import {
   FileArchiveIcon,
   FileAudioIcon,
@@ -371,11 +372,6 @@ function FileUploadRoot(props: FileUploadRootProps) {
     [listeners, files, invalid, onValueChange, urlCache],
   );
 
-  const acceptTypes = React.useMemo(
-    () => accept?.split(",").map((t) => t.trim()) ?? null,
-    [accept],
-  );
-
   const onProgress = useLazyRef(() => {
     let frame = 0;
     return (file: File, progress: number) => {
@@ -507,24 +503,14 @@ function FileUploadRoot(props: FileUploadRootProps) {
           }
         }
 
-        if (acceptTypes) {
-          const fileType = file.type;
-          const fileExtension = `.${file.name.split(".").pop()}`;
-
-          if (
-            !acceptTypes.some(
-              (type) =>
-                type === fileType ||
-                type === fileExtension ||
-                (type.includes("/*") &&
-                  fileType.startsWith(type.replace("/*", "/"))),
-            )
-          ) {
-            rejectionMessage = "File type not accepted";
-            onFileReject?.(file, rejectionMessage);
-            rejected = true;
-            invalid = true;
-          }
+        // Shared with the gallery row's replace control (`lib/file-accept.ts`),
+        // which bypasses this input entirely and would otherwise be the one
+        // upload path in the app with no type check.
+        if (accept && !isFileAccepted(file, accept)) {
+          rejectionMessage = "File type not accepted";
+          onFileReject?.(file, rejectionMessage);
+          rejected = true;
+          invalid = true;
         }
 
         if (maxSize && file.size > maxSize) {
@@ -584,7 +570,7 @@ function FileUploadRoot(props: FileUploadRootProps) {
       maxFiles,
       onFileValidate,
       onFileReject,
-      acceptTypes,
+      accept,
       maxSize,
       disabled,
     ],

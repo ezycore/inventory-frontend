@@ -304,5 +304,17 @@
     "done": "Copied!",
     "failed": "Couldn't copy",
     "label": "Copy to clipboard"
+  },
+  "gallery": {
+    "primary": "Primary",
+    "makePrimary": "Make primary image",
+    "moveEarlier": "Move {name} earlier",
+    "moveLater": "Move {name} later",
+    "replace": "Replace {name}",
+    "remove": "Remove {name}",
+    "existingImage": "Existing image",
+    "uploaded": "Uploaded",
+    "rejectedType": "{name} isn't a supported image type",
+    "rejectedSize": "{name} is too large"
   }
 }
