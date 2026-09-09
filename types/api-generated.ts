@@ -7182,6 +7182,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -7256,6 +7257,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -7317,6 +7319,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -7382,6 +7385,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -7448,6 +7452,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive" | "archived";
@@ -7508,6 +7513,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7528,6 +7534,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7567,6 +7574,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7600,6 +7608,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7647,6 +7656,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -7688,6 +7698,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive";
@@ -7984,6 +7995,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             brandId?: string;
             categoryId?: string;
@@ -10054,6 +10066,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             status: "active" | "inactive";
@@ -10078,6 +10091,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -10115,6 +10129,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 storefront?: {
                     isListed?: boolean;
@@ -10154,6 +10169,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -10194,6 +10210,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description?: string | null;
             storefront?: {
@@ -11391,6 +11408,7 @@ export interface components {
             mediumUrl: string;
             thumbnailUrl: string;
             publicId: string;
+            bytes?: number;
         };
         OnboardingState: {
             /** Format: date-time */
@@ -11489,12 +11507,14 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             favicon?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
                 pngUrl?: string;
             } | null;
             receiptSettings?: {
@@ -11794,24 +11814,28 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             banner?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             socialImage?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             mobileLogo?: {
                 url: string;
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             storefrontLocationId?: string;
             /** @enum {string} */
@@ -11989,6 +12013,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     buttonLabel?: string;
                     buttonHref?: string;
@@ -12059,6 +12084,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     overlay?: string;
                     overlayOpacity?: number;
@@ -12144,12 +12170,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 mobileImage?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 focal?: {
                     x: number;
@@ -12181,6 +12209,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 focal?: {
                     x: number;
@@ -12276,6 +12305,7 @@ export interface components {
                 inventory: number;
                 salesToday: number;
                 purchasesToday: number;
+                storageBytes: number;
             };
         };
         SubscriptionStatus: {
@@ -12419,6 +12449,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
                 pngUrl?: string;
             } | null;
             banner?: unknown;
@@ -12506,6 +12537,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             productCount: number;
         };
@@ -12530,6 +12562,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description?: string;
             children: {
@@ -12542,6 +12575,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 description?: string;
             }[];
@@ -12556,6 +12590,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             description: string | null;
             seo?: {
@@ -12581,6 +12616,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             }[];
             description: string;
             featured: boolean;
@@ -12616,6 +12652,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 availableQuantity: number;
                 tracked?: boolean;
@@ -12634,6 +12671,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 }[];
                 description: string;
                 featured: boolean;
@@ -12669,6 +12707,7 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     }[];
                     availableQuantity: number;
                     tracked?: boolean;
@@ -13593,6 +13632,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -13614,12 +13654,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 favicon?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -13731,6 +13773,7 @@ export interface components {
                 mediumUrl: string;
                 thumbnailUrl: string;
                 publicId: string;
+                bytes?: number;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -13752,12 +13795,14 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 favicon?: {
                     url: string;
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -13873,6 +13918,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -13894,12 +13940,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14012,6 +14060,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14033,12 +14082,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14191,6 +14242,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14212,12 +14264,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -14353,6 +14407,7 @@ export interface components {
                     mediumUrl: string;
                     thumbnailUrl: string;
                     publicId: string;
+                    bytes?: number;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -14374,12 +14429,14 @@ export interface components {
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                     } | null;
                     favicon?: {
                         url: string;
                         mediumUrl: string;
                         thumbnailUrl: string;
                         publicId: string;
+                        bytes?: number;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;

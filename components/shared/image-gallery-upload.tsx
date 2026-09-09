@@ -12,6 +12,7 @@ import {
   describeGalleryEntry,
 } from "@/components/shared/gallery-item-row";
 import { ImageRatioNotice } from "@/components/shared/image-ratio-warning";
+import { StorageNotice } from "@/components/shared/storage-warning";
 import { moveGalleryEntry, replaceGalleryEntry } from "@/lib/image-gallery-order";
 import type { ImageSize } from "@/lib/image-ratio";
 
@@ -107,6 +108,9 @@ export function ImageGalleryUpload({
 
       {/* Advisory only — a wrong-shaped file still uploads. */}
       <ImageRatioNotice files={files} recommended={recommended} />
+
+      {/* Not advisory — past the cap the upload is refused server-side. */}
+      <StorageNotice />
 
       {files.length > 0 && (
         <FileUploadList className="mt-4">

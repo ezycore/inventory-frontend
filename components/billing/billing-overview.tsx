@@ -7,6 +7,8 @@ import { useGetSubscription } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useFormatters } from "@/hooks/use-formatters";
 import { formatCurrency } from "@/lib/currency";
+import { formatBytes } from "@/lib/format";
+import { useStorageLimit } from "@/hooks/use-plan-limit";
 import {
   getScheduledCancellation,
   getScheduledPlanChange,
@@ -27,7 +29,14 @@ import {
 import { Badge } from "@/ui/components/badge";
 import { Progress } from "@/ui/components/progress";
 import { Skeleton } from "@/ui/components/skeleton";
-import { AlertCircle, CalendarClock, CheckCircle2, CreditCard } from "lucide-react";
+import { cn } from "@ui/lib/utils";
+import {
+  AlertCircle,
+  CalendarClock,
+  CheckCircle2,
+  CreditCard,
+  HardDrive,
+} from "lucide-react";
 import type { Entitlement, SubscriptionUsage } from "@/types";
 
 const SUB_STATUS_VARIANT: Record<
@@ -245,8 +254,132 @@ function UsageCard({
             </div>
           );
         })}
+        <StorageUsageRow />
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * The storage meter.
+ *
+ * Storage sits outside `USAGE_CATEGORIES` and renders as its own panel rather
+ * than a sixth row, for two reasons.
+ *
+ * Every row above counts things against a count of things — "3 / 5" — while
+ * this one measures bytes against gigabytes and has to carry units on both
+ * sides. And on the plans that set no ceiling there is no bar to draw, which as
+ * a bare row left the card's least legible line looking like an unfinished one.
+ *
+ * It also has a state none of the others do: a warning band. Storage is the one
+ * cap a merchant cannot quickly free — at the ceiling, adding a product photo
+ * means first finding and deleting another product's photo, and the refusal
+ * lands mid-upload with the form already filled in. So `useStorageLimit` warns
+ * from 80%, and until this panel existed nothing rendered that warning: the
+ * backend's enforcement (docs/plan/storage-metering.md, Phase 4) shipped as
+ * exactly the ambush the threshold was chosen to prevent.
+ */
+function StorageUsageRow() {
+  const t = useTranslations("settings.billing.usage");
+  const { usedBytes, limitBytes, ratio, atLimit, nearLimit, known } =
+    useStorageLimit();
+
+  // Render nothing rather than a zero when usage cannot be read. "0 B" is a
+  // claim — it would tell a merchant their storage is empty — and `known` is
+  // false precisely when we have no basis for one (see `useStorageLimit`).
+  if (!known || usedBytes === undefined) return null;
+
+  const unlimited = limitBytes === undefined;
+  const percent = ratio === undefined ? 0 : Math.round(ratio * 100);
+
+  const tone = atLimit
+    ? {
+        text: "text-destructive",
+        bar: "bg-destructive",
+        badge: "bg-destructive/10 text-destructive",
+        icon: "bg-destructive/10 text-destructive",
+      }
+    : nearLimit
+      ? {
+          text: "text-amber-600 dark:text-amber-400",
+          bar: "bg-amber-500",
+          badge:
+            "bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
+          icon: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        }
+      : {
+          text: "",
+          bar: "",
+          badge: "",
+          icon: "bg-primary/10 text-primary",
+        };
+
+  return (
+    <div
+      className={cn(
+        "space-y-3 rounded-lg border p-3 transition-colors",
+        atLimit
+          ? "border-destructive/30 bg-destructive/5"
+          : nearLimit
+            ? "border-amber-500/30 bg-amber-500/5"
+            : "bg-muted/30",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "flex size-7 items-center justify-center rounded-md",
+              tone.icon,
+            )}
+          >
+            <HardDrive className="size-4" />
+          </span>
+          <span className="text-sm font-medium">{t("storageUsage")}</span>
+        </div>
+        {unlimited ? (
+          <Badge variant="secondary">{t("unlimited")}</Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className={cn("tabular-nums", tone.badge)}
+          >
+            {/* A merchant with a few photos against gigabytes rounds to 0%,
+                which reads as a broken meter rather than as "barely any" —
+                but a workspace that really has uploaded nothing is at 0%. */}
+            {percent < 1 && usedBytes > 0 ? "<1%" : `${percent}%`}
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex items-baseline gap-1.5">
+        <span
+          className={cn("text-xl font-semibold tabular-nums", tone.text)}
+        >
+          {formatBytes(usedBytes)}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {unlimited
+            ? t("storageUsedSuffix")
+            : t("storageOf", { limit: formatBytes(limitBytes) })}
+        </span>
+      </div>
+
+      {unlimited ? null : (
+        <Progress
+          value={Math.min(percent, 100)}
+          className="h-2"
+          indicatorClassName={tone.bar}
+        />
+      )}
+
+      {/* The point of the warning: what is happening, and the two ways out. */}
+      {atLimit || nearLimit ? (
+        <p className={cn("text-xs", tone.text)}>
+          {t(atLimit ? "storageFull" : "storageNearlyFull")}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -319,6 +452,7 @@ export function BillingOverview() {
     inventory: 0,
     salesToday: 0,
     purchasesToday: 0,
+    storageBytes: 0,
   };
 
   if (!entitlement) {

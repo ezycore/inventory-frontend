@@ -9,8 +9,9 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
  * Mission Control may author a ceiling under either the short or the canonical
  * name, and the meter must read the same value enforcement reads.
  *
- * `storageGb` is deliberately absent — it is published on the pricing page but
- * nothing meters bytes, so there is no count to show and nothing to block at.
+ * `storageGb` is deliberately absent from THIS map: it is the one limit whose
+ * usage is not a count, so it gets `useStorageLimit` below rather than being
+ * forced through a shape that would report bytes as a number of things.
  */
 const LIMIT_ALIASES = {
   locations: ["maxLocations", "locations"],
@@ -77,5 +78,92 @@ export function usePlanLimit(key: PlanLimitKey): PlanLimit {
     known: canViewOrganization && !!data,
     atLimit:
       typeof limit === "number" && typeof used === "number" && used >= limit,
+  };
+}
+
+/** Bytes in one gigabyte, matching the backend's `BYTES_PER_GB`. */
+const BYTES_PER_GB = 1024 ** 3;
+
+/**
+ * Fraction of the cap at which a merchant is warned.
+ *
+ * Mirrors `STORAGE_WARN_RATIO` in the backend's `utils/plan-limits.ts`. A meter
+ * that warns at a different fraction than the backend blocks at is a meter that
+ * lies, so the two move together or not at all.
+ */
+export const STORAGE_WARN_RATIO = 0.8;
+
+export interface StorageLimit {
+  usedBytes?: number;
+  limitBytes?: number;
+  /** 0–1 against the cap; `undefined` while loading or when unlimited. */
+  ratio?: number;
+  /** At or past the cap — the next upload is refused. */
+  atLimit: boolean;
+  /** Past the warn threshold but not yet blocked: act now, not later. */
+  nearLimit: boolean;
+  known: boolean;
+}
+
+/**
+ * Where a workspace stands against its **storage** cap.
+ *
+ * Separate from `usePlanLimit` because storage is the only limit measured in
+ * bytes rather than things — "3 of 5 locations" and "1.6 of 2 GB" do not share
+ * a shape, and flattening them would either round bytes into uselessness or
+ * make every other meter carry a unit it does not have.
+ *
+ * `nearLimit` exists because of a product decision, not a technical one:
+ * storage is the one cap a merchant cannot quickly free — at the ceiling,
+ * adding a product photo means first deleting another product's photo, and the
+ * refusal lands mid-workflow. So they are warned from 80% and blocked at 100%,
+ * which only works if something actually shows the warning.
+ *
+ * Degrades exactly like `usePlanLimit`: `known: false` when the usage endpoint
+ * cannot be read, never `atLimit: true`. Blocking a merchant who has room is
+ * worse than the problem being solved.
+ */
+export function useStorageLimit(): StorageLimit {
+  const canViewOrganization =
+    useAuthStore((s) => s.user?.permissions)?.includes("organization.view") ??
+    false;
+
+  const { data } = useGetSubscription(canViewOrganization);
+
+  const limits = (data?.entitlement?.limits ?? {}) as Record<string, number>;
+  const usedBytes = data?.usage?.storageBytes;
+
+  let limitGb: number | undefined;
+  for (const alias of ["storageGb", "maxStorageGb"]) {
+    const value = limits[alias];
+    // Non-positive means unlimited, same convention as the backend.
+    if (typeof value === "number" && value > 0) {
+      limitGb = value;
+      break;
+    }
+  }
+
+  const limitBytes = limitGb === undefined ? undefined : limitGb * BYTES_PER_GB;
+  const ratio =
+    typeof usedBytes === "number" && typeof limitBytes === "number"
+      ? usedBytes / limitBytes
+      : undefined;
+
+  // Both flags are gated on `known` rather than on `ratio` alone. Without the
+  // permission the query is disabled and no data should arrive — but "should"
+  // is doing too much work for a flag that blocks a merchant: a cached response
+  // from a session where the permission was held would otherwise report
+  // `atLimit` while `known` is false, which is the exact failure the docstring
+  // promises not to have. Gating makes the promise structural.
+  const known = canViewOrganization && !!data;
+
+  return {
+    usedBytes,
+    limitBytes,
+    ratio,
+    known,
+    atLimit: known && ratio !== undefined && ratio >= 1,
+    nearLimit:
+      known && ratio !== undefined && ratio >= STORAGE_WARN_RATIO && ratio < 1,
   };
 }
