@@ -16,6 +16,7 @@ import type {
   CustomCourier,
   CustomCourierRemoved,
   FraudScore,
+  OrderListPeriod,
   OrderQuote,
   OrderStats,
   OrderableProduct,
@@ -25,6 +26,7 @@ export type {
   AdminStorefrontOrder,
   CourierPrice,
   OrderReturnPreview,
+  OrderListPeriod,
   OrderQuote,
   OrderStats,
   OrderableProduct,
@@ -32,6 +34,10 @@ export type {
 
 /** The list-page filters — courier/fulfillment/payment narrow the status-tab counts too. */
 export interface AdminOrderListParams {
+  /**
+   * A real status, or the `closed` tab — the server folds that one into
+   * returned/cancelled/rejected. No order ever holds the value.
+   */
   status?: string;
   search?: string;
   courier?: string;
@@ -39,6 +45,20 @@ export interface AdminOrderListParams {
   paymentStatus?: string;
   /** Where the order came from — see `AdminOrderChannel`. */
   channel?: string;
+  /**
+   * Resolved server-side against the ORG's timezone, so a Dhaka merchant's day
+   * does not roll over at a UTC boundary. Omit all three for no date filter —
+   * an order queue defaults to everything, unlike a report.
+   *
+   * Typed off the generated spec (`OrderListPeriod`), not `string`: the server
+   * 400s an unknown preset, and a rename on the backend must surface as a
+   * compile error here rather than as an empty list with no message.
+   */
+  period?: OrderListPeriod;
+  /** `yyyy-MM-dd`. Required by the server when `period` is `custom`. */
+  startDate?: string;
+  /** `yyyy-MM-dd`. Required by the server when `period` is `custom`. */
+  endDate?: string;
   page?: number;
   limit?: number;
 }
@@ -215,6 +235,9 @@ export const storefrontOrdersApi = {
       qs.append("fulfillmentType", params.fulfillmentType);
     if (params.paymentStatus) qs.append("paymentStatus", params.paymentStatus);
     if (params.channel) qs.append("channel", params.channel);
+    if (params.period) qs.append("period", params.period);
+    if (params.startDate) qs.append("startDate", params.startDate);
+    if (params.endDate) qs.append("endDate", params.endDate);
     if (params.page) qs.append("page", String(params.page));
     if (params.limit) qs.append("limit", String(params.limit));
     const s = qs.toString();
@@ -277,6 +300,16 @@ export const storefrontOrdersApi = {
    */
   quote: (body: QuoteAdminOrderInput): Promise<ApiResponse<OrderQuote>> =>
     apiClient.post(`${base}/quote`, body),
+  /**
+   * Permanently delete a closed order. Requires `storefront.orders.delete`, which
+   * is admin-only — `storefront.orders.manage` is not enough.
+   *
+   * The server refuses anything carrying a Sale, money or a courier handover, each
+   * with its own error code, so surface the message rather than a generic failure.
+   * Answers with the order number alone: the order is gone.
+   */
+  remove: (id: string): Promise<ApiResponse<{ orderNumber: string }>> =>
+    apiClient.delete(`${base}/${id}`),
   /**
    * The create dialog's product picker — **not** the POS `sellableProducts` list.
    * These rows carry the storefront price with any live campaign applied, and

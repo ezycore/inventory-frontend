@@ -12,7 +12,14 @@ import {
   AlertDialogTrigger,
 } from "@/ui/components/alert-dialog";
 
-/** Confirmation prompt around a destructive/irreversible order action. */
+/**
+ * Confirmation prompt around a destructive/irreversible order action.
+ *
+ * Trigger-driven by default. Pass `open`/`onOpenChange` instead when the opener
+ * is a dropdown menu item: the menu unmounts its item on select, which would take
+ * a nested trigger's dialog down with it, so the row owns the state and renders
+ * the dialog outside the menu.
+ */
 export function OrderConfirmDialog({
   trigger,
   title,
@@ -20,17 +27,21 @@ export function OrderConfirmDialog({
   actionLabel,
   onConfirm,
   destructive,
+  open,
+  onOpenChange,
 }: {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   title: string;
   description: string;
   actionLabel: string;
   onConfirm: () => void;
   destructive?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

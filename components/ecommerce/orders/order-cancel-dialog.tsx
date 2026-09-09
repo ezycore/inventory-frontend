@@ -33,17 +33,29 @@ export function OrderCancelDialog({
   order,
   reject,
   trigger,
+  open: openProp,
+  onOpenChange,
 }: {
   order: AdminStorefrontOrder;
   reject?: boolean;
-  trigger: React.ReactNode;
+  /** Omitted when the caller drives the dialog with `open`/`onOpenChange`. */
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const cancel = useCancelOrder();
   const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
 
-  const [open, setOpen] = useState(false);
+  // Uncontrolled unless the caller passes `open` — a dropdown menu item cannot
+  // host the trigger, because selecting it unmounts the item and the dialog with it.
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
+  };
   // Fair default when a customer's order is cancelled: give the money back.
   const [choice, setChoice] = useState<"refund" | "keep">("refund");
   const [accountId, setAccountId] = useState("");
@@ -73,7 +85,7 @@ export function OrderCancelDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{verb} this order?</DialogTitle>

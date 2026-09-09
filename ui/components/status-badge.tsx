@@ -26,8 +26,15 @@ const statusBadgeVariants = cva(
         draft: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
         offline: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
         suspended: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
-        // Reversed/RTO — a neutral terminal state, distinct from red cancelled/rejected.
+        // Closed, not broken. An order that was reversed, called off or turned
+        // away is finished work, and red is the colour of something needing
+        // attention — on a list where most rows end up here (a store rejecting
+        // fake COD numbers rejects most of what it receives), painting them all
+        // red makes the page read as an alarm and buries the one order that IS
+        // live. Grey is the same answer the pipeline gives: nothing to do.
         returned: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
+        cancelled: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
+        rejected: "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100",
 
         // Warning states
         pending: "border-yellow-200 bg-yellow-50 text-yellow-800 hover:bg-yellow-100",
@@ -38,10 +45,8 @@ const statusBadgeVariants = cva(
 
         // Error/Danger states
         expired: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
-        rejected: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
         failed: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
         error: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
-        cancelled: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
         blocked: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
         deleted: "border-red-200 bg-red-50 text-red-800 hover:bg-red-100",
 

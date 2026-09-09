@@ -316,5 +316,10 @@
     "uploaded": "Uploaded",
     "rejectedType": "{name} isn't a supported image type",
     "rejectedSize": "{name} is too large"
+  },
+  "storage": {
+    "nearlyFull": "Storage is {percent}% full — about {remaining} left.",
+    "full": "Storage is full. New images will not upload until you free space.",
+    "upgrade": "Upgrade plan"
   }
 }

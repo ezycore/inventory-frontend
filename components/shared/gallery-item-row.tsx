@@ -4,7 +4,7 @@
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, RefreshCw, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ImageUp, X } from "lucide-react";
 import { Button } from "@/ui/components/button";
 import {
   FileUploadItem,
@@ -167,7 +167,7 @@ export function GalleryItemRow({
               aria-label={t("replace", { name: fileName })}
               onClick={() => replaceRef.current?.click()}
             >
-              <RefreshCw className="h-4 w-4" />
+              <ImageUp className="h-4 w-4" />
             </Button>
           </>
         )}
