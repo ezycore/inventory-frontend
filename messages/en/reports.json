@@ -4,6 +4,7 @@
     "subtitle": "Analyze sales, purchases, inventory, and finances — or export your data."
   },
   "period": {
+    "allTime": "All time",
     "today": "Today",
     "thisWeek": "This Week",
     "thisMonth": "This Month",

@@ -8,6 +8,12 @@ import {
   deletableOrders,
   getOrderStats,
   isDeletableOrder,
+  buyerHistoryIsWarning,
+  buyerHistoryLabel,
+  orderAge,
+  orderItemCount,
+  paymentMethodLabel,
+  rejectionReasonLabel,
   rejectableOrders,
 } from "./helpers";
 
@@ -323,5 +329,125 @@ describe("isTabActive", () => {
 
   it("does not mark a live tab from the closed group", () => {
     expect(isTabActive("delivered", "returned")).toBe(false);
+  });
+
+  it("marks Shipped for a pickup order that is ready to collect", () => {
+    // The pickup branch has no tab of its own — `ready_for_pickup` is its "in
+    // motion" and rides under Shipped, mirroring the server's `ORDER_TABS`.
+    // Before that it was in no tab at all, so a pickup-only shop watched Shipped
+    // and Delivered sit at zero while its orders moved.
+    expect(isTabActive("shipped", "ready_for_pickup")).toBe(true);
+  });
+
+  it("marks Delivered for a collected pickup order", () => {
+    expect(isTabActive("delivered", "picked_up")).toBe(true);
+  });
+
+  it("marks Delivered for a partly returned order", () => {
+    // Not Closed: the goods the customer kept are still payable, so it is live
+    // work — which is the whole distinction between it and `returned`.
+    expect(isTabActive("delivered", "partially_returned")).toBe(true);
+    expect(isTabActive("closed", "partially_returned")).toBe(false);
+  });
+});
+
+describe("paymentMethodLabel", () => {
+  it("spells COD as an initialism, not a word", () => {
+    // `capitalize` rendered this as "Cod" on every row of the list.
+    expect(paymentMethodLabel("cod")).toBe("COD");
+  });
+
+  it("spells the ordinary nouns as words, not shouting", () => {
+    // `uppercase` on the detail panel rendered these as "BANK" / "MANUAL".
+    expect(paymentMethodLabel("bank")).toBe("Bank");
+    expect(paymentMethodLabel("manual")).toBe("Manual");
+  });
+
+  it("passes an unmapped method through readable rather than blank", () => {
+    // A method the backend adds before this map catches up must still render.
+    expect(paymentMethodLabel("bkash")).toBe("Bkash");
+  });
+});
+
+describe("orderAge", () => {
+  const now = new Date("2026-09-10T12:00:00.000Z");
+  const ago = (ms: number) => new Date(now.getTime() - ms).toISOString();
+
+  it("reads in the unit that matters for a COD queue", () => {
+    expect(orderAge(ago(30 * 1000), now)).toBe("now");
+    expect(orderAge(ago(9 * 60_000), now)).toBe("9m");
+    expect(orderAge(ago(5 * 3_600_000), now)).toBe("5h");
+    expect(orderAge(ago(2 * 86_400_000), now)).toBe("2d");
+  });
+
+  it("falls back to the date once the age stops being actionable", () => {
+    // Past four weeks "31d" tells a merchant nothing they can act on, and the
+    // date is the more useful fact.
+    expect(orderAge("2026-07-04T09:00:00.000Z", now)).toBe("04-07-2026");
+  });
+
+  it("never prints a negative age when the clocks disagree", () => {
+    // Server ahead of the browser is normal; "-3m" on a row is not.
+    expect(orderAge(new Date(now.getTime() + 3 * 60_000).toISOString(), now)).toBe(
+      "now",
+    );
+  });
+
+  it("crosses each boundary at the right place", () => {
+    expect(orderAge(ago(59 * 60_000), now)).toBe("59m");
+    expect(orderAge(ago(60 * 60_000), now)).toBe("1h");
+    expect(orderAge(ago(23 * 3_600_000), now)).toBe("23h");
+    expect(orderAge(ago(24 * 3_600_000), now)).toBe("1d");
+  });
+});
+
+describe("orderItemCount", () => {
+  it("counts units, not lines", () => {
+    // Three of one product is three items to a merchant packing a parcel.
+    expect(orderItemCount([{ quantity: 3 }])).toBe(3);
+    expect(orderItemCount([{ quantity: 2 }, { quantity: 1 }])).toBe(3);
+    expect(orderItemCount([])).toBe(0);
+  });
+});
+
+describe("rejectionReasonLabel", () => {
+  it("spells the stored value the way the dialog offered it", () => {
+    expect(rejectionReasonLabel("fake_number")).toBe("Fake number");
+  });
+
+  it("is absent for an order that was never rejected", () => {
+    expect(rejectionReasonLabel(undefined)).toBeUndefined();
+  });
+
+  it("passes an unmapped value through readable", () => {
+    // Rejections predating the field, or a bucket the server adds first.
+    expect(rejectionReasonLabel("wrong_address")).toBe("wrong address");
+  });
+});
+
+describe("buyerHistoryLabel", () => {
+  it("says nothing about a first-time buyer", () => {
+    // A chip on every row is a chip nobody reads.
+    expect(buyerHistoryLabel({ orders: 1, rejected: 0 })).toBeUndefined();
+    expect(buyerHistoryLabel({ orders: 1, rejected: 1 })).toBeUndefined();
+    expect(buyerHistoryLabel(undefined)).toBeUndefined();
+  });
+
+  it("reports the whole record once there is a repeat", () => {
+    expect(buyerHistoryLabel({ orders: 5, rejected: 3 })).toBe(
+      "5 orders · 3 rejected",
+    );
+    // The loyal-customer case the chip must also be able to say.
+    expect(buyerHistoryLabel({ orders: 7, rejected: 0 })).toBe(
+      "7 orders · 0 rejected",
+    );
+  });
+
+  it("warns only when the rejections are a pattern", () => {
+    expect(buyerHistoryIsWarning({ orders: 7, rejected: 0 })).toBe(false);
+    // One bad delivery among several is not a fraud signal.
+    expect(buyerHistoryIsWarning({ orders: 5, rejected: 1 })).toBe(false);
+    expect(buyerHistoryIsWarning({ orders: 5, rejected: 3 })).toBe(true);
+    expect(buyerHistoryIsWarning(undefined)).toBe(false);
   });
 });

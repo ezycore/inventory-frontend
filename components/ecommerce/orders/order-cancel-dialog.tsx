@@ -19,6 +19,10 @@ import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@/ui/components/radio-group";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import {
+  REJECTION_REASON_OPTIONS,
+  type RejectionReason,
+} from "./helpers";
 
 /**
  * Cancel or reject a pre-commit order (no Sale yet). Reserved stock is released
@@ -52,13 +56,27 @@ export function OrderCancelDialog({
   // host the trigger, because selecting it unmounts the item and the dialog with it.
   const [openState, setOpenState] = useState(false);
   const open = openProp ?? openState;
-  const setOpen = (next: boolean) => {
-    setOpenState(next);
-    onOpenChange?.(next);
-  };
   // Fair default when a customer's order is cancelled: give the money back.
   const [choice, setChoice] = useState<"refund" | "keep">("refund");
+  const [reason, setReason] = useState("");
   const [accountId, setAccountId] = useState("");
+
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    // Every answer is cleared on the way out, so the next order is asked from
+    // scratch. The row menu keeps ONE of these mounted per row and reopens it,
+    // so a reason picked and then dismissed used to reappear on the next order
+    // with the action already enabled — one stray click away from booking a
+    // reason nobody chose into the counts the field exists to produce. The money
+    // answers go with it for the same reason: `keep` is not a default anyone
+    // should inherit from the previous order.
+    if (!next) {
+      setReason("");
+      setChoice("refund");
+      setAccountId("");
+    }
+    onOpenChange?.(next);
+  };
 
   const prepaid = order.prepaidAmount ?? 0;
   const hasPrepayment = prepaid > 0;
@@ -73,6 +91,10 @@ export function OrderCancelDialog({
       {
         id: order._id,
         reject,
+        // Only ever on a rejection: the server refuses a reason on a plain
+        // cancel, because a cancelled order records the merchant's own change of
+        // mind and would poison the counts this field exists to produce.
+        reason: reject ? (reason as RejectionReason) : undefined,
         refundPrepayment: hasPrepayment ? choice === "refund" : undefined,
         accountId:
           hasPrepayment && choice === "refund"
@@ -101,6 +123,27 @@ export function OrderCancelDialog({
             No sale has been booked yet. This can&apos;t be undone.
           </DialogDescription>
         </DialogHeader>
+
+        {reject && (
+          <div className="space-y-2">
+            <Label htmlFor="rejection-reason">Why are you rejecting it?</Label>
+            <SimpleSelect
+              value={reason}
+              onValueChange={setReason}
+              options={REJECTION_REASON_OPTIONS}
+              placeholder="Pick a reason"
+              className="w-full"
+            />
+            {/* Required, and the button below stays disabled until it is
+                answered. This is the only moment the answer is actually known,
+                and a shop rejecting most of what it receives cannot tell fake
+                numbers from stock-outs later without it. */}
+            <p className="text-xs text-muted-foreground">
+              Counted on your rejection report, so you can see what you are
+              actually turning away.
+            </p>
+          </div>
+        )}
 
         {hasPrepayment && (
           <div className="space-y-3">
@@ -161,7 +204,7 @@ export function OrderCancelDialog({
           </Button>
           <Button
             variant="destructive"
-            disabled={cancel.isPending}
+            disabled={cancel.isPending || (reject && !reason)}
             onClick={submit}
           >
             {cancel.isPending

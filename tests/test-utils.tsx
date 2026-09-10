@@ -8,6 +8,7 @@ import commonMessages from "@/messages/en/common.json";
 import authMessages from "@/messages/en/auth.json";
 import dashboardMessages from "@/messages/en/dashboard.json";
 import onboardingMessages from "@/messages/en/onboarding.json";
+import reportsMessages from "@/messages/en/reports.json";
 import settingsMessages from "@/messages/en/settings.json";
 
 export function createTestQueryClient() {
@@ -36,6 +37,10 @@ export function TestProviders({ children, client }: WrapperProps) {
         auth: authMessages,
         dashboard: dashboardMessages,
         onboarding: onboardingMessages,
+        // `reports.period` is the shared date-filter vocabulary, so this
+        // namespace is not reports-only — `PeriodFilter`/`PeriodSelect` read it
+        // on every screen that filters by date.
+        reports: reportsMessages,
         settings: settingsMessages,
       }}
     >

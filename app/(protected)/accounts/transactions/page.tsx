@@ -11,7 +11,7 @@ import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import { Button } from "@/ui/components/button";
 import { useCurrency } from "@/lib/currency";
-import { PeriodFilter } from "@/components/dashboard/period-filter";
+import { PeriodFilter } from '@/components/shared/period-filter';
 import {
   getTransactionColumns,
   getTransactionFilterConfig,

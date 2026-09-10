@@ -10608,6 +10608,8 @@ export interface components {
                     value: string;
                 }[];
                 stockReserved?: boolean;
+                /** @enum {string} */
+                rejectionReason?: "fake_number" | "no_answer" | "out_of_stock" | "price_dispute" | "duplicate" | "other";
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
@@ -10801,6 +10803,8 @@ export interface components {
                 value: string;
             }[];
             stockReserved?: boolean;
+            /** @enum {string} */
+            rejectionReason?: "fake_number" | "no_answer" | "out_of_stock" | "price_dispute" | "duplicate" | "other";
             saleId?: string | null;
             shippingIncomeTxnId?: string | null;
             shippingCostTxnId?: string | null;
@@ -10962,6 +10966,8 @@ export interface components {
                     value: string;
                 }[];
                 stockReserved?: boolean;
+                /** @enum {string} */
+                rejectionReason?: "fake_number" | "no_answer" | "out_of_stock" | "price_dispute" | "duplicate" | "other";
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
@@ -11066,6 +11072,12 @@ export interface components {
             }[];
             counts: {
                 [key: string]: number;
+            };
+            phoneHistory: {
+                [key: string]: {
+                    orders: number;
+                    rejected: number;
+                };
             };
             pagination: {
                 page: number;
@@ -36776,6 +36788,8 @@ export interface operations {
                     reject?: boolean;
                     refundPrepayment?: boolean;
                     accountId?: string;
+                    /** @enum {string} */
+                    reason?: "fake_number" | "no_answer" | "out_of_stock" | "price_dispute" | "duplicate" | "other";
                 };
             };
         };

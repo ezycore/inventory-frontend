@@ -7,7 +7,7 @@ import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import {
   DollarSign,
   ShoppingBag,
@@ -51,7 +51,7 @@ export function PurchaseReport() {
         </div>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}

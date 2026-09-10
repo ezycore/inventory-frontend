@@ -34,8 +34,14 @@ Each renders a component in [`components/reports/`](../../../components/reports)
 
 Every report filters by date range through the **one** shared control:
 
-- [`components/reports/report-period-filter.tsx`](../../../components/reports/report-period-filter.tsx)
+- [`components/shared/period-filter.tsx`](../../../components/shared/period-filter.tsx)
   + the [`use-report-period.ts`](../../../components/reports/use-report-period.ts) hook.
+
+It exports two renderings of the same control, and the choice is about the row it sits in, not the
+screen: **`PeriodFilter`** (pills) where the date range is the page's primary control — reports, the
+dashboard, transactions — and **`PeriodSelect`** (one dropdown, custom range revealed on demand)
+where it is one filter among several, as on the orders list. Both take the same props and resolve the
+custom pickers against the **organization's** timezone by default.
 
 It uses two `DatePicker`s with cross-bounds (the established from/to pattern) — timezone-safe
 `yyyy-MM-dd` output, never native ISO (avoids the BDT/UTC off-by-one). Don't add a second date-range
@@ -89,7 +95,7 @@ tightened backend-side), so the period header type-checks against the report res
 | Period header type error | grouping typed too loosely | it's the 4-value `chartGrouping` enum now — regen types |
 | VAT report visible without the feature | missing gate | gate on `isVatActive` |
 | Net payable shown as output − input for every org | only a standard-rated org reclaims input VAT | branch on `data.input.recoverable` — [`vat`](../vat/SKILL.md) §5 |
-| Duplicated date-range picker | forked the filter | reuse `report-period-filter.tsx` |
+| Duplicated date-range picker | forked the filter | reuse `components/shared/period-filter.tsx` — `PeriodFilter` or `PeriodSelect` |
 
 ---
 
