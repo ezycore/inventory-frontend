@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { Badge } from '@ui/components/badge'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import {
   Users,
   UserCheck,
@@ -36,7 +36,7 @@ export function EmployeeReport() {
         </div>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}

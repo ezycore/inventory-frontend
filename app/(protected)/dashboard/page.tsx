@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { calcChange } from '@/components/dashboard/helpers'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
-import { PeriodFilter } from '@/components/dashboard/period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import { ChartSection } from '@/components/dashboard/chart-section'
 import { SummaryCards } from '@/components/dashboard/summary-cards'
 import { TopSoldItems } from '@/components/dashboard/top-sold-items'

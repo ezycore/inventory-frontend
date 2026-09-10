@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { cn } from '@/ui/lib/utils'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 
 /**
  * Profit & Loss — statement-style, deliberately not chart-first.
@@ -89,7 +89,7 @@ export function ProfitLossReport() {
         <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}

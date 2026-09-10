@@ -8,6 +8,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { paymentMethodLabel } from "./helpers";
 import { OrderPrepaymentDialog } from "./order-prepayment-dialog";
 import { OrderCollectionDialog } from "./order-collection-dialog";
 import { codToCollect } from "./order-detail-helpers";
@@ -56,7 +57,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       <h3 className="mb-3 text-sm font-semibold">Payment</h3>
       <div className="mb-2 flex justify-between text-sm">
         <span className="text-muted-foreground">Method</span>
-        <span className="font-semibold uppercase">{order.paymentMethod}</span>
+        <span className="font-semibold">{paymentMethodLabel(order.paymentMethod)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Status</span>

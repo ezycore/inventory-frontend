@@ -11,7 +11,7 @@ import { useAuthStore } from '@/services/stores/use-auth-store'
 import { areAllFeaturesEnabled } from '@/lib/feature-utils'
 import type { OrganizationFeatures } from '@/types'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import {
   Download,
   FileSpreadsheet,
@@ -170,7 +170,7 @@ export function ExportData() {
         </div>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}
