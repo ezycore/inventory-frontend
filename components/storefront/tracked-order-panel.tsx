@@ -147,6 +147,24 @@ export function TrackedOrderPanel({ order }: { order: TrackedOrder }) {
           <span>{t.total}</span>
           <span>{money(order.totalAmount, currency)}</span>
         </div>
+        {/* The advance the buyer already handed over, and what is left to pay.
+            Without these two lines the page showed the full total as outstanding
+            on an order that had already been part-paid — `paymentStatus` has no
+            "partial", so these numbers are the only thing that says the money
+            arrived. Rendered only when an advance exists: on an ordinary order
+            "Advance paid ৳0" is noise, and the total already says what is due. */}
+        {order.prepaidAmount > 0 ? (
+          <>
+            <div style={{ ...row, ...muted }}>
+              <span>{t.advancePaid}</span>
+              <span>−{money(order.prepaidAmount, currency)}</span>
+            </div>
+            <div style={{ ...row, fontWeight: 700, fontSize: 15 }}>
+              <span>{t.amountDue}</span>
+              <span>{money(order.amountDue, currency)}</span>
+            </div>
+          </>
+        ) : null}
       </div>
 
       <div style={card}>

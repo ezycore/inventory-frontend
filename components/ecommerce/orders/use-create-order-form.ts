@@ -221,6 +221,9 @@ export function useCreateOrderForm(onDone: () => void) {
           address: address.trim() || undefined,
           district: district || undefined,
           area: area || undefined,
+          // The zone the quote was priced with — send the same thing to the save,
+          // or the two are being asked different questions.
+          zone: district ? zoneForDistrict(district) : undefined,
         },
         paymentMethod: paymentMethod as "cod" | "bank" | "manual",
         channel,
