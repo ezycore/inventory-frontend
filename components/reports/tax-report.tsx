@@ -9,7 +9,7 @@ import { isVatActive } from '@/lib/feature-utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import { TaxRateTable } from './tax-rate-table'
 import { TaxTrendChart } from './tax-trend-chart'
 import { TaxLedgerTable } from './tax-ledger-table'
@@ -47,7 +47,7 @@ export function TaxReport() {
         </Card>
       ) : (
         <>
-          <ReportPeriodFilter
+          <PeriodFilter
             period={period}
             setPeriod={setPeriod}
             customStart={customStart}

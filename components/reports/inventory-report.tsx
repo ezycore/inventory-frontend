@@ -7,7 +7,7 @@ import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import {
   Package,
   AlertTriangle,
@@ -41,7 +41,7 @@ export function InventoryReport() {
         </div>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}

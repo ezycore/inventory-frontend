@@ -344,7 +344,13 @@ export const storefrontOrdersApi = {
   // `accountId` overrides the account it's refunded from.
   cancel: (
     id: string,
-    body?: { reject?: boolean; refundPrepayment?: boolean; accountId?: string },
+    body?: {
+      reject?: boolean;
+      /** Required by the server when `reject` is true, refused when it is not. */
+      reason?: string;
+      refundPrepayment?: boolean;
+      accountId?: string;
+    },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/cancel`, body ?? {}),
   // Record money collected before shipping — a delivery-charge advance, or a bank

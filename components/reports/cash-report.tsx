@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useCashReport } from '@/services/api'
 import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
-import { ReportPeriodFilter } from './report-period-filter'
+import { PeriodFilter } from '@/components/shared/period-filter'
 import { CashSummaryCards } from './cash/cash-summary-cards'
 import { CashAccountTable } from './cash/cash-account-table'
 import {
@@ -35,7 +35,7 @@ export function CashReport() {
         </div>
       </div>
 
-      <ReportPeriodFilter
+      <PeriodFilter
         period={period}
         setPeriod={setPeriod}
         customStart={customStart}

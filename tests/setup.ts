@@ -31,6 +31,34 @@ if (typeof globalThis.localStorage?.setItem !== "function") {
   }
 }
 
+/**
+ * jsdom implements no Pointer Capture API and no `scrollIntoView`, and Radix
+ * calls both the moment a `Select` / `DropdownMenu` trigger is opened — so a
+ * `user.click()` on one throws `target.hasPointerCapture is not a function`
+ * and the popover never mounts. The failure reads as "unable to find an element
+ * with the role option", which points at the assertion rather than at the
+ * missing DOM API, so it is worth stubbing once here rather than rediscovering
+ * per test file.
+ *
+ * These are no-ops on purpose: nothing under test asserts on capture or scroll
+ * behaviour, only on what the open popover renders.
+ */
+for (const name of [
+  "hasPointerCapture",
+  "setPointerCapture",
+  "releasePointerCapture",
+  "scrollIntoView",
+] as const) {
+  if (!(name in Element.prototype)) {
+    Object.defineProperty(Element.prototype, name, {
+      configurable: true,
+      writable: true,
+      // `hasPointerCapture` must answer a boolean; the rest are void.
+      value: name === "hasPointerCapture" ? () => false : () => {},
+    });
+  }
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   cleanup();

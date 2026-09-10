@@ -186,16 +186,22 @@ export const useCancelOrder = () => {
     mutationFn: (v: {
       id: string;
       reject?: boolean;
+      reason?: string;
       refundPrepayment?: boolean;
       accountId?: string;
     }) =>
       storefrontOrdersApi.cancel(v.id, {
         reject: v.reject,
+        reason: v.reason,
         refundPrepayment: v.refundPrepayment,
         accountId: v.accountId,
       }),
-    onSuccess: (res) => {
-      handleMutationSuccess(res.message || "Order cancelled");
+    onSuccess: (res, v) => {
+      // The server says which verb happened; this fallback only runs if it sends
+      // no message at all, and it must not contradict the button that was pressed.
+      handleMutationSuccess(
+        res.message || (v.reject ? "Order rejected" : "Order cancelled"),
+      );
       invalidate(qc, "order.returned");
     },
     onError: handleMutationError,
