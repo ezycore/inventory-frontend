@@ -28,28 +28,175 @@ import { formatMoney } from "@/components/storefront/format";
  */
 
 /**
- * The three terminal states the `Closed` tab folds together. The server owns the
- * same list as `CLOSED_STATUSES`; this copy exists because the tab badge is a sum
- * of per-status counts and no order ever holds the value `closed`.
+ * The buyer's record beside their name — `5 orders · 3 rejected`.
+ *
+ * Returns nothing for a first-time buyer: "1 order · 0 rejected" on every new
+ * order is noise, and a chip that appears on every row stops being read. It is
+ * the REPEAT that carries information, in both directions — a number with three
+ * rejections behind it is the fraud signal this exists for, and one with seven
+ * clean orders is a customer worth recognising.
  */
-export const CLOSED_STATUSES = ["returned", "cancelled", "rejected"];
+export const buyerHistoryLabel = (h?: {
+  orders: number;
+  rejected: number;
+}): string | undefined =>
+  !h || h.orders < 2
+    ? undefined
+    : `${h.orders} orders · ${h.rejected} rejected`;
+
+/** Whether that history should read as a warning rather than a fact. */
+export const buyerHistoryIsWarning = (h?: {
+  orders: number;
+  rejected: number;
+}): boolean => !!h && h.orders >= 2 && h.rejected >= 2;
+
+/**
+ * How long an order has been sitting, as a merchant reads it.
+ *
+ * The column printed a calendar date, and a date is the wrong unit for this
+ * screen: a COD order goes cold in hours, so what a merchant needs off a pending
+ * row is "waiting since when", not "placed on the 8th". Relative up to four
+ * weeks, then the date — past a month the age has stopped being actionable and
+ * the date is the more useful fact.
+ *
+ * `now` is injectable so the tests are not tied to the wall clock.
+ */
+export const orderAge = (iso: string, now: Date = new Date()): string => {
+  const then = new Date(iso);
+  const mins = Math.floor((now.getTime() - then.getTime()) / 60000);
+  // A clock skew between server and browser must not print "-3m".
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 28) return `${days}d`;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(then.getDate())}-${p(then.getMonth() + 1)}-${then.getFullYear()}`;
+};
+
+/** The full timestamp, for the row's `title` — the age never hides the date. */
+export const orderPlacedAt = (iso: string): string =>
+  new Date(iso).toLocaleString();
+
+/** Total units on the order, which the row shows so a merchant need not open it. */
+export const orderItemCount = (items: { quantity: number }[]): number =>
+  items.reduce((sum, i) => sum + i.quantity, 0);
+
+/**
+ * Why an order was turned away, in the merchant's words.
+ *
+ * The values are the server's enum (`REJECTION_REASONS`); the labels are what a
+ * merchant would actually say out loud, which is the test the list has to pass —
+ * a bucket nobody recognises gets answered at random and the counts built on it
+ * mean nothing.
+ */
+/**
+ * Taken from the generated spec, not retyped — the same rule `OrderListPeriod`
+ * follows in `types/api.ts`. A bucket renamed on the backend would otherwise
+ * reach a merchant as a select that posts a value the server 400s, with nothing
+ * failing to compile in between.
+ */
+export type RejectionReason = NonNullable<
+  AdminStorefrontOrder["rejectionReason"]
+>;
+
+/**
+ * The order the options are offered in, which the type alone cannot carry.
+ *
+ * `satisfies` catches a value this list has and the server does not. The other
+ * direction — the server growing a bucket this list has not heard of — is caught
+ * by `REJECTION_REASON_LABELS` below, whose `Record<RejectionReason, string>`
+ * cannot compile with a key missing. Between them the drift is closed both ways.
+ */
+export const REJECTION_REASONS = [
+  "fake_number",
+  "no_answer",
+  "out_of_stock",
+  "price_dispute",
+  "duplicate",
+  "other",
+] as const satisfies readonly RejectionReason[];
+
+const REJECTION_REASON_LABELS: Record<RejectionReason, string> = {
+  fake_number: "Fake number",
+  no_answer: "No answer",
+  out_of_stock: "Out of stock",
+  price_dispute: "Price dispute",
+  duplicate: "Duplicate order",
+  other: "Other",
+};
+
+export const REJECTION_REASON_OPTIONS = REJECTION_REASONS.map((value) => ({
+  value,
+  label: REJECTION_REASON_LABELS[value],
+}));
+
+/** Unmapped values fall through readable — an older order, or a new server bucket. */
+export const rejectionReasonLabel = (reason?: string): string | undefined =>
+  reason
+    ? (REJECTION_REASON_LABELS[reason as RejectionReason] ??
+      reason.replace(/_/g, " "))
+    : undefined;
+
+/**
+ * How a payment method is spelled to the merchant.
+ *
+ * Shared because the two places that printed it disagreed, and CSS was doing the
+ * work in both: the list row used `capitalize` and produced **"Cod"**, the detail
+ * panel used `uppercase` and produced **"BANK"**. Neither is a word. COD is an
+ * initialism and the other two are ordinary nouns, which is a distinction no
+ * text-transform can make — it needs a lookup.
+ *
+ * Unknown values fall through capitalized rather than being dropped, so a new
+ * backend method shows up readable instead of blank while this map catches up.
+ */
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cod: "COD",
+  bank: "Bank",
+  manual: "Manual",
+};
+
+export const paymentMethodLabel = (method: string): string =>
+  PAYMENT_METHOD_LABELS[method] ??
+  `${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+
+/**
+ * Which statuses each tab stands for — a mirror of the server's `ORDER_TABS`,
+ * kept for **one** job: highlighting the right tab when a deep link carries a raw
+ * status. The ecommerce dashboard's "Returned today" tile links to
+ * `?status=returned`, and with the terminal states folded into `Closed` that left
+ * the list correctly filtered under a strip with nothing selected — a merchant
+ * looking at eight rows and an unhighlighted "All".
+ *
+ * **The tab COUNTS are not computed from this.** They come from the server, which
+ * emits a total per tab precisely so the client is not a second definition of the
+ * grouping. This copy answers a question about the URL, not about the data, and
+ * `satisfies` ties it to the generated status union — so a status renamed on the
+ * backend is a compile error here rather than a tab that stops highlighting.
+ */
+const TAB_STATUSES = {
+  pending: ["pending"],
+  confirmed: ["confirmed"],
+  processing: ["processing"],
+  shipped: ["shipped", "ready_for_pickup"],
+  delivered: ["delivered", "picked_up", "partially_returned"],
+  closed: ["returned", "cancelled", "rejected"],
+} as const satisfies Record<string, readonly AdminStorefrontOrder["status"][]>;
 
 /**
  * Whether a tab should render as the current one.
  *
- * Not just `status === tab`: a **deep link can carry a status that is no longer a
- * tab**. The ecommerce dashboard's "Returned today" tile links to
- * `?status=returned`, and once the three terminal states were folded into `Closed`
- * that left the list correctly filtered under a strip with nothing highlighted —
- * a merchant looking at eight rows and an unselected "All".
- *
- * The narrower filter is kept rather than widened, because the tile counted
- * returns and only returns; clicking `Closed` from there widens it deliberately.
+ * Not just `status === tab`: the filter may hold a raw status that is a MEMBER of
+ * a tab rather than the tab itself. The narrower filter is kept rather than
+ * widened — the returns tile counted returns and only returns; clicking `Closed`
+ * from there widens it deliberately.
  */
-export const isTabActive = (tabValue: string, status: string): boolean =>
-  tabValue === "closed"
-    ? status === "closed" || CLOSED_STATUSES.includes(status)
-    : status === tabValue;
+export const isTabActive = (tabValue: string, status: string): boolean => {
+  if (status === tabValue) return true;
+  const members = TAB_STATUSES[tabValue as keyof typeof TAB_STATUSES];
+  return !!members && (members as readonly string[]).includes(status);
+};
 
 /** Confirm applies to a pending order, and only a pending one. */
 export const confirmableOrders = (

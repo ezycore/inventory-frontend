@@ -3,8 +3,6 @@
 
 import { invalidate } from "@/services/api/invalidation";
 import { Suspense, useEffect, useState } from "react";
-import { format } from "date-fns";
-import type { DateRange } from "react-day-picker";
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,16 +18,18 @@ import {
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
+import { useNow } from "@/hooks/use-now";
+import { ALL_TIME, PeriodSelect } from "@/components/shared/period-filter";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
 import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
 import {
-  CLOSED_STATUSES,
   confirmableOrders,
   deletableOrders,
   getOrderStats,
   isTabActive,
+  REJECTION_REASON_OPTIONS,
   rejectableOrders,
 } from "@/components/ecommerce/orders/helpers";
 import { ListPagination } from "@/components/ecommerce/list-pagination";
@@ -38,7 +38,7 @@ import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Button } from "@/ui/components/button";
 import { Checkbox } from "@/ui/components/checkbox";
-import { DateRangePicker } from "@/ui/components/date-range-picker";
+import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Skeleton } from "@/ui/components/skeleton";
 import StatsCard from "@/ui/components/StatsCard";
@@ -51,6 +51,9 @@ const TABS: { label?: string; value: string }[] = [
   { value: "pending" },
   { value: "confirmed" },
   { value: "processing" },
+  // Shipped and Delivered each cover BOTH fulfillment branches — the server's
+  // `ORDER_TABS` folds `ready_for_pickup` and `picked_up` into them. Before that
+  // a pickup-only shop watched these two sit at zero forever.
   { value: "shipped" },
   { value: "delivered" },
   // Was three tabs. A merchant scanning the strip is asking "what needs me?",
@@ -67,35 +70,6 @@ const FULFILLMENT_OPTIONS = [
   { label: "All fulfillment", value: "all" },
   { label: "Delivery", value: "delivery" },
   { label: "Pickup", value: "pickup" },
-];
-/**
- * The date presets, resolved server-side against the ORG's timezone — the reason
- * this sends a preset name rather than two dates the browser computed. A Dhaka
- * merchant asking for "today" at 1am means their today, and `new Date()` in the
- * browser of a staffer travelling abroad does not.
- *
- * "all" is the clear-filter sentinel, and it is the DEFAULT: an order queue shows
- * everything until asked otherwise. A report may default to a month; a work list
- * that hid last week's unshipped order would be lying about what is outstanding.
- *
- * Every preset the server accepts is offered — the annotation is what keeps that
- * true. `OrderListPeriod` comes from the generated spec, so a preset renamed or
- * dropped on the backend fails to compile here instead of reaching a merchant as
- * an empty list (the server 400s an unknown `period`, and nothing on this screen
- * would show the error).
- */
-const PERIOD_OPTIONS: { label: string; value: OrderListPeriod | "all" }[] = [
-  { label: "All time", value: "all" },
-  { label: "Today", value: "today" },
-  { label: "Yesterday", value: "yesterday" },
-  { label: "This week", value: "thisWeek" },
-  { label: "Last week", value: "lastWeek" },
-  { label: "This month", value: "thisMonth" },
-  { label: "Last month", value: "lastMonth" },
-  { label: "Last 6 months", value: "last6Months" },
-  { label: "This year", value: "thisYear" },
-  { label: "Last year", value: "lastYear" },
-  { label: "Custom range", value: "custom" },
 ];
 
 /** Mirrors the backend enum; "all" is the clear-filter sentinel like the others. */
@@ -130,20 +104,33 @@ function OrdersList() {
   const qc = useQueryClient();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const canDelete = useHasPermission(PERMISSIONS.storefrontOrdersDelete);
+  // One clock for the whole page — the Age column is relative, and a hook per
+  // row would set a timer per row to answer the same question.
+  const now = useNow();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [status, setStatus] = useState(initialStatus);
   const [courier, setCourier] = useState("all");
   const [fulfillment, setFulfillment] = useState("all");
   const [channel, setChannel] = useState("all");
-  const [period, setPeriod] = useState<OrderListPeriod | "all">("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  // Defaults to ALL_TIME, and that is the whole reason the shared filter takes
+  // an `includeAllTime` flag: the dashboard opens on "today" because a summary
+  // should, and a work queue that did the same would hide every unshipped order
+  // older than this morning behind a filter nobody chose.
+  const [period, setPeriod] = useState<OrderListPeriod | typeof ALL_TIME>(
+    ALL_TIME,
+  );
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkProvider, setBulkProvider] = useState("");
+  // One answer for the whole selection, which is the honest shape: a merchant
+  // clearing nine fake numbers is making one judgement, not nine.
+  const [bulkReason, setBulkReason] = useState("");
 
   const { data: couriersData } = useCouriers();
   const enabledCouriers = (couriersData?.couriers ?? []).filter(
@@ -195,20 +182,26 @@ function OrdersList() {
     setPage(1);
     setSelected(new Set());
   };
-  const changePeriod = (v: string) => {
-    // `SimpleSelect` hands back a bare string, but it only ever renders
-    // `PERIOD_OPTIONS`, whose values are checked against the generated enum — so
-    // the narrowing is true by construction, and it is what carries the type
-    // down to the request rather than losing it at this boundary.
-    setPeriod(v as OrderListPeriod | "all");
-    // Leaving "custom" drops the range with it, so switching to "Today" and back
-    // does not silently re-apply dates the merchant can no longer see.
-    if (v !== "custom") setDateRange(undefined);
+  // No cast any more: the shared filter is generic over the period type, so the
+  // pills and this handler are checked against `OrderListPeriod` end to end.
+  const changePeriod = (v: OrderListPeriod | typeof ALL_TIME) => {
+    setPeriod(v);
+    // Leaving "custom" drops the dates with it, so switching to Today and back
+    // does not silently re-apply a range the merchant can no longer see.
+    if (v !== "custom") {
+      setCustomStart("");
+      setCustomEnd("");
+    }
     setPage(1);
     setSelected(new Set());
   };
-  const changeDateRange = (r: DateRange | undefined) => {
-    setDateRange(r);
+  const changeCustomStart = (v: string) => {
+    setCustomStart(v);
+    setPage(1);
+    setSelected(new Set());
+  };
+  const changeCustomEnd = (v: string) => {
+    setCustomEnd(v);
     setPage(1);
     setSelected(new Set());
   };
@@ -225,17 +218,18 @@ function OrdersList() {
   const { labelFor } = useOrderStatusLabels();
 
   // A half-picked custom range is not a filter yet — the server demands both
-  // dates for `period=custom` and 400s on one, so the range only goes on the wire
-  // once the merchant has closed it.
-  const customReady = !!dateRange?.from && !!dateRange?.to;
+  // dates for `period=custom` and 400s on one, so it only goes on the wire once
+  // the merchant has closed the range. ALL_TIME sends no `period` at all, which
+  // is what "no date filter" means to `extractDateContext`.
+  const customReady = !!customStart && !!customEnd;
   const dateParams =
-    period === "all" || (period === "custom" && !customReady)
+    period === ALL_TIME || (period === "custom" && !customReady)
       ? {}
       : {
           period,
           ...(period === "custom" && {
-            startDate: format(dateRange!.from!, "yyyy-MM-dd"),
-            endDate: format(dateRange!.to!, "yyyy-MM-dd"),
+            startDate: customStart,
+            endDate: customEnd,
           }),
         };
 
@@ -252,6 +246,7 @@ function OrdersList() {
 
   const items = data?.items ?? [];
   const counts = data?.counts ?? {};
+  const phoneHistory = data?.phoneHistory ?? {};
   const pagination = data?.pagination;
 
   const allChecked =
@@ -302,11 +297,11 @@ function OrdersList() {
   };
 
   const onBulkReject = async () => {
-    if (rejectable.length === 0) return;
+    if (rejectable.length === 0 || !bulkReason) return;
     setBulkBusy(true);
     const results = await Promise.allSettled(
       rejectable.map((o) =>
-        storefrontOrdersApi.cancel(o._id, { reject: true }),
+        storefrontOrdersApi.cancel(o._id, { reject: true, reason: bulkReason }),
       ),
     );
     const ok = results.filter((r) => r.status === "fulfilled").length;
@@ -321,6 +316,7 @@ function OrdersList() {
     // both move — `order.changed` alone would leave sellable stock stale.
     invalidate(qc, "order.returned");
     setSelected(new Set());
+    setBulkReason("");
     setBulkBusy(false);
   };
 
@@ -342,6 +338,7 @@ function OrdersList() {
       );
     invalidate(qc, "order.changed");
     setSelected(new Set());
+    setBulkReason("");
     setBulkBusy(false);
   };
 
@@ -395,11 +392,29 @@ function OrdersList() {
       <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       {/* COD-cash stat cards */}
-      <StatsCard
-        data={getOrderStats(stats, currency)}
-        isLoading={statsLoading}
-        minCardWidth={280}
-      />
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <h2 className="text-base font-semibold">Right now</h2>
+          {/* Only once a date filter is actually applied. These tiles are live
+              pipeline BALANCES ("what is sitting unshipped") plus today's door
+              outcomes — neither is a figure a date range can narrow, so they
+              deliberately ignore the filter below. Unsaid, that reads as a stuck
+              number: the merchant picks Last year, every tile holds still, and
+              the obvious conclusion is that the page is broken. Said only when it
+              can be misread, so it is not permanent furniture. */}
+          {period !== ALL_TIME && (
+            <span className="text-xs text-muted-foreground">
+              Live balances and today&apos;s outcomes — not affected by the date
+              filter
+            </span>
+          )}
+        </div>
+        <StatsCard
+          data={getOrderStats(stats, currency)}
+          isLoading={statsLoading}
+          minCardWidth={280}
+        />
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold">
@@ -433,23 +448,26 @@ function OrdersList() {
             options={CHANNEL_OPTIONS}
             className="h-9 w-40"
           />
-          <SimpleSelect
-            value={period}
-            onValueChange={changePeriod}
-            options={PERIOD_OPTIONS}
-            className="h-9 w-40"
+          {/* The dropdown rendering, not the pills: this row already carries
+              three selects and a search box, and seven pills overflowed it —
+              see `PeriodSelect`. */}
+          <PeriodSelect
+            period={period}
+            setPeriod={changePeriod}
+            customStart={customStart}
+            setCustomStart={changeCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={changeCustomEnd}
+            includeAllTime
           />
-          {period === "custom" && (
-            <div className="w-64">
-              <DateRangePicker
-                value={dateRange}
-                onChange={changeDateRange}
-                placeholder="Pick dates"
-              />
-            </div>
-          )}
           <ListSearchInput
-            placeholder="Search order # or customer"
+            // Names the PHONE, because the server has always searched it
+            // (`shippingAddress.phone` is in the list query's `$or`) and nothing
+            // said so. On a COD business the phone is the customer's identity —
+            // it is what a buyer quotes on a follow-up call and the only handle a
+            // guest order has — so the most useful thing this box does was the
+            // one thing a merchant had no way to discover.
+            placeholder="Search order #, customer or phone"
             onSearch={changeSearch}
           />
         </div>
@@ -459,10 +477,11 @@ function OrdersList() {
       <div className="flex gap-1 overflow-x-auto border-b">
         {TABS.map((t) => {
           const active = isTabActive(t.value, status);
-          const count =
-            t.value === "closed"
-              ? CLOSED_STATUSES.reduce((sum, s) => sum + (counts[s] ?? 0), 0)
-              : counts[t.value || "all"];
+          // Straight off the server, which emits a total per TAB alongside the
+          // per-status ones. This used to sum a client-side copy of the closed
+          // set — a second definition of the grouping, and the one that goes
+          // stale the day a status is added.
+          const count = counts[t.value || "all"];
           return (
             <button
               key={t.value || "all"}
@@ -506,9 +525,28 @@ function OrdersList() {
           {/* The other half of triage. Rejecting mails the shopper, so the count
               and that consequence are both named before it runs — a bulk action
               that notifies N customers is not one to fire off a single click. */}
+          {/* Every pending order in the selection is prepaid, so there is nothing
+              this button could act on and it is not drawn. Silence would be the
+              bug: the merchant selected orders they clearly meant to reject and
+              the action simply is not there. The reason it is missing lives
+              inside the dialog that cannot open, so it has to be said out here. */}
+          {rejectable.length === 0 && prepaidSkipped > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {prepaidSkipped === 1
+                ? "The selected order has a prepayment — reject it from the row to decide about the money."
+                : `All ${prepaidSkipped} selected orders have prepayments — reject them from the row to decide about the money.`}
+            </span>
+          )}
           {rejectable.length > 0 && (
             <OrderConfirmDialog
               destructive
+              // Uncontrolled, but the close is still worth hearing: a reason
+              // picked and then dismissed used to survive into the next order's
+              // dialog, already enabling the action. One stray click then books a
+              // reason nobody chose into the counts this field exists to produce.
+              onOpenChange={(open) => {
+                if (!open) setBulkReason("");
+              }}
               trigger={
                 <Button variant="outline" size="sm" disabled={bulkBusy}>
                   Reject ({rejectable.length})
@@ -530,7 +568,25 @@ function OrdersList() {
               }`}
               actionLabel={`Reject ${rejectable.length} order${rejectable.length === 1 ? "" : "s"}`}
               onConfirm={onBulkReject}
-            />
+              actionDisabled={!bulkReason}
+            >
+              {/* Asked once for the whole selection. A merchant clearing nine
+                  fake numbers is making one judgement, not nine, and asking per
+                  order would make the bulk action slower than doing them singly. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="bulk-reject-reason">
+                  Why are you rejecting{" "}
+                  {rejectable.length === 1 ? "it" : "them"}?
+                </Label>
+                <SimpleSelect
+                  value={bulkReason}
+                  onValueChange={setBulkReason}
+                  options={REJECTION_REASON_OPTIONS}
+                  placeholder="Pick a reason"
+                  className="w-full"
+                />
+              </div>
+            </OrderConfirmDialog>
           )}
           {dispatchable.length > 0 && carrierOptions.length > 0 ? (
             <div className="flex items-center gap-2">
@@ -587,11 +643,14 @@ function OrdersList() {
                   />
                 </th>
                 <th className="px-3 py-3">Order</th>
-                <th className="px-3 py-3">Date</th>
+                {/* Age, not Date — see `orderAge`. The exact timestamp is the
+                    cell's `title`. */}
+                <th className="px-3 py-3">Age</th>
                 <th className="px-3 py-3">Customer</th>
                 <th className="px-3 py-3">Total</th>
                 <th className="px-3 py-3">Payment</th>
-                <th className="px-3 py-3">Courier</th>
+                {/* Courier is no longer its own column: it printed `—` on every
+                    order not yet dispatched and now rides under Status. */}
                 <th className="px-3 py-3">Status</th>
                 {/* Copy-tracking-link column — deliberately unlabelled, like the
                     chevron: the icon and its tooltip carry the meaning. */}
@@ -603,14 +662,14 @@ function OrdersList() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td colSpan={10} className="px-4 py-3">
+                    <td colSpan={9} className="px-4 py-3">
                       <Skeleton className="h-5 w-full" />
                     </td>
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-16 text-center">
+                  <td colSpan={9} className="px-4 py-16 text-center">
                     <div className="text-sm font-semibold">No orders found</div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Try adjusting your search or filters.
@@ -625,6 +684,12 @@ function OrdersList() {
                     currency={currency}
                     checked={selected.has(o._id)}
                     statusLabel={labelFor(o.status)}
+                    now={now}
+                    buyerHistory={
+                      o.shippingAddress?.phoneKey
+                        ? phoneHistory[o.shippingAddress.phoneKey]
+                        : undefined
+                    }
                     onToggle={(on) => toggleOne(o._id, on)}
                     onOpen={() => router.push(`/ecommerce/orders/${o._id}`)}
                   />

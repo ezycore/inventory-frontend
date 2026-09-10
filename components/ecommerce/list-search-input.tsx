@@ -38,7 +38,9 @@ export function ListSearchInput({
           commit(e.target.value);
         }}
         placeholder={placeholder}
-        className="h-9 w-64 pl-8"
+        // w-72, not w-64: the orders placeholder names three things a merchant
+        // can search by, and the shortest of them was being clipped mid-word.
+        className="h-9 w-72 pl-8"
       />
     </div>
   );

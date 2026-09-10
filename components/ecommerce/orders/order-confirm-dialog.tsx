@@ -29,6 +29,8 @@ export function OrderConfirmDialog({
   destructive,
   open,
   onOpenChange,
+  children,
+  actionDisabled,
 }: {
   trigger?: React.ReactNode;
   title: string;
@@ -38,6 +40,13 @@ export function OrderConfirmDialog({
   destructive?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Extra content between the description and the buttons — a question the
+   * action needs answered before it can run. Pair it with `actionDisabled`.
+   */
+  children?: React.ReactNode;
+  /** Holds the action closed while `children` is still unanswered. */
+  actionDisabled?: boolean;
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -47,9 +56,11 @@ export function OrderConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+        {children}
         <AlertDialogFooter>
           <AlertDialogCancel>Keep</AlertDialogCancel>
           <AlertDialogAction
+            disabled={actionDisabled}
             onClick={onConfirm}
             className={cn(
               destructive &&
