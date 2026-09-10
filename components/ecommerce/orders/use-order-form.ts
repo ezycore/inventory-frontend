@@ -299,6 +299,11 @@ export function useOrderForm(onDone: () => void, initial?: OrderFormInitial) {
         address: address.trim() || undefined,
         district: district || undefined,
         area: area || undefined,
+        // Same zone the quote above was priced with. The server derives it from
+        // the district when it is absent, so this is belt and braces — but a save
+        // that carries less than the quote is exactly how the two came to
+        // disagree, and an edit that omitted it also erased the order's zone.
+        zone: district ? zoneForDistrict(district) : undefined,
       },
       paymentMethod: paymentMethod as "cod" | "bank" | "manual",
       notes: notes.trim() || undefined,

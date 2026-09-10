@@ -73,23 +73,29 @@ longer true?*
 - `pnpm verify` — all of the above except lint (`verify:api-types` + `docs:verify` + `help:verify` +
   `typecheck`). Prefer this one when the change spans code **and** docs.
 
-## Pre-launch: there are no production users yet
+## LIVE: this product has real customers
 
-**As of 2026-07-20 the product has no live customers and no production data.** Every organization in
-any database is seed, demo, or test data.
+**Launched 1 September 2026.** Real merchants use this app to run their shops every day. Anything
+that ships here reaches them on their next page load.
 
-So a breaking change is cheap — prefer the clean shape over a compatibility shim:
+This repo carried the opposite instruction until 2026-09-10 ("there are no production users yet —
+renaming needs no migration, wipe and reseed"). **That is now inverted.**
 
-- Renaming a route, a message key, or a persisted field needs **no migration and no dual-read
-  window**. Wipe and reseed instead.
-- Don't build backwards-compatibility for data nobody has.
+- **A rename is a migration.** A route, a message key, or a persisted field (anything in
+  `localStorage`, a saved filter, a stored preference) has live values behind it. Ship the new shape
+  alongside the old and read both, or leave every current user on a broken screen.
+- **Never wipe or reseed a database to fix something.** If that looks like the answer, stop and ask
+  which cluster.
+- **A broken build is a closed shop.** There is no window where a regression only costs the team
+  time; a merchant is mid-sale.
+- **Merchant-visible copy is customer-facing.** A wrong Bangla string or a mislabelled money field is
+  seen by someone billing a customer with it.
 
 Unchanged by this: the API contract gates (`pnpm verify`), the help-docs freshness gate
 (`pnpm help:verify` still fails on a renamed `ui_labels` string), and the backend's invariants —
-posted documents stay immutable by design, not for the sake of old rows.
+posted documents stay immutable by design, and now for old rows' sake too.
 
-**Delete this section the day the first real customer signs up.** Mirrors the same section in
-`easystock-backend/CLAUDE.md`.
+Mirrors the same section in `inventory-backend/CLAUDE.md`.
 
 ## Commands
 

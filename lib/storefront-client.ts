@@ -1184,6 +1184,10 @@ export interface TrackedOrder {
   discountAmount: number;
   shippingCharged: number;
   totalAmount: number;
+  /** The advance already paid — one number; the merchant's leg split never ships. */
+  prepaidAmount: number;
+  /** Still owed: `totalAmount - prepaidAmount`, 0 once settled or refunded. */
+  amountDue: number;
   shipTo: { name: string; area?: string; district?: string };
   courier?: {
     name?: string;

@@ -118,6 +118,8 @@ export interface CreateAdminOrderInput {
     address?: string;
     district?: string;
     area?: string;
+    /** Derived from the district, and sent with the SAVE as well as the quote. */
+    zone?: "inside" | "outside";
     notes?: string;
   };
   fulfillmentType?: "delivery" | "pickup";
@@ -197,6 +199,8 @@ export interface EditAdminOrderInput {
     address?: string;
     district?: string;
     area?: string;
+    /** Derived from the district, and sent with the SAVE as well as the quote. */
+    zone?: "inside" | "outside";
     notes?: string;
   };
   fulfillmentType?: "delivery" | "pickup";

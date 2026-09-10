@@ -128,6 +128,10 @@ export interface Dict {
   discount: string;
   free: string;
   total: string;
+  /** An advance the buyer already handed over, shown against their own order. */
+  advancePaid: string;
+  /** What is left to pay — never assumes delivery, since pickup uses it too. */
+  amountDue: string;
   coupon: string;
   proceed: string;
   continueShopping: string;
@@ -605,6 +609,8 @@ const en: Dict = {
   discount: "Discount",
   free: "Free",
   total: "Total",
+  advancePaid: "Advance paid",
+  amountDue: "Amount due",
   coupon: "Coupon",
   proceed: "Checkout",
   continueShopping: "Continue shopping",
@@ -1020,6 +1026,8 @@ const bn: Dict = {
   discount: "ছাড়",
   free: "ফ্রি",
   total: "মোট",
+  advancePaid: "অগ্রিম পরিশোধিত",
+  amountDue: "বাকি আছে",
   coupon: "কুপন",
   proceed: "চেকআউট",
   continueShopping: "কেনাকাটা চালিয়ে যান",

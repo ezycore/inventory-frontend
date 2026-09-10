@@ -49,6 +49,8 @@ const order = (courier: TrackedOrder["courier"]): TrackedOrder => ({
   discountAmount: 0,
   shippingCharged: 0,
   totalAmount: 90,
+  prepaidAmount: 0,
+  amountDue: 90,
   shipTo: { name: "Tanvir Hasan", area: "Banani" },
   statusHistory: [{ status: "shipped", at: "2026-08-17T12:00:00.000Z" }],
   courier,
