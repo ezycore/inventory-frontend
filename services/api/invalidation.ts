@@ -224,6 +224,21 @@ export const EFFECTS = {
     ...DERIVED,
   ],
 
+  /**
+   * A storefront content PAGE changed (About, FAQ, a policy) — created, edited,
+   * published or deleted.
+   *
+   * Its own event rather than a line inside `storefront.catalog.changed`: pages
+   * are merchant-authored content, and nothing a campaign or a listing flag does
+   * dirties them. It was folded into that event once, which is how creating a
+   * page left the admin list showing the previous set until a reload — the event
+   * fired, and none of the keys it carries was the one the page list reads.
+   *
+   * In `PUBLIC_STOREFRONT_EVENTS` too, because publishing a page has to reach the
+   * shop's rendered routes and its footer.
+   */
+  "storefront.content.changed": [k.contentPages.all()],
+
   /** The storefront catalog overlay changed (listing flags, collections, campaigns, coupons). */
   "storefront.catalog.changed": [
     k.storefrontCatalog.all(),
@@ -291,6 +306,7 @@ export type DomainEvent = keyof typeof EFFECTS;
  */
 const PUBLIC_STOREFRONT_EVENTS = new Set<DomainEvent>([
   "storefront.catalog.changed",
+  "storefront.content.changed",
   "catalog.changed",
 ]);
 

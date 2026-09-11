@@ -8,14 +8,16 @@ import { productFormConfig } from "@/components/products/form-config";
  *
  * The bug this exists for: "Publish to store" belongs to exactly one tier, and
  * the gate dropped it by naming its fields — `isListed`, `onlinePrice`,
- * `onlineDescription`. The section later grew `weightKg` and `featured`, the
- * list did not, and those two survived on every other tier. They are hidden by a
+ * `onlineDescription` (since consolidated away). The section later grew
+ * `weightKg` and `featured`, the list did not, and those two survived on every
+ * other tier. They are hidden by a
  * `dependsOn` pointing at the very `isListed` checkbox the gate had removed, so
  * they rendered nothing — leaving a "Publish to store" card with a subtitle
  * promising the product goes live on save and no control at all beneath it.
  *
- * A section is now dropped as a section, so a sixth field is covered the day it
- * is added.
+ * A section is now dropped as a section, so a new field is covered the day it
+ * is added — and a field LEAVING (as `onlineDescription` did) needs no change
+ * here either.
  */
 describe("omitFormSections", () => {
   it("drops the named section and leaves the rest untouched", () => {

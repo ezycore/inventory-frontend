@@ -2,7 +2,12 @@
 // coding-standard: maintained
 import { useEffect, useRef } from "react";
 import { useEditor, type Editor } from "@tiptap/react";
-import { legacyMarkdownToRichDoc, parseRichDoc, type RichDocRoot } from "@/lib/storefront-rich-doc";
+import {
+  legacyMarkdownToRichDoc,
+  parseRichDoc,
+  plainTextToRichDoc,
+  type RichDocRoot,
+} from "@/lib/storefront-rich-doc";
 import { richTextExtensions } from "./extensions";
 
 /**
@@ -18,9 +23,16 @@ export function useRichTextContent(
   value: string,
   onChange: (json: string) => void,
   disabled?: boolean,
+  legacyFormat: "markdown" | "plaintext" = "markdown",
 ): Editor | null {
   const initial = useRef<RichDocRoot | null>(null);
-  initial.current ??= parseRichDoc(value) ?? legacyMarkdownToRichDoc(value ?? "");
+  // Which bridge opens a non-rich value is per-field, not global: a CMS page
+  // body really was markdown, a product description was a POS textarea where
+  // `#` and `-` are literal. Running the markdown parser over the latter turns
+  // "Size - M" into a bullet list the merchant never wrote.
+  const toRichDoc =
+    legacyFormat === "plaintext" ? plainTextToRichDoc : legacyMarkdownToRichDoc;
+  initial.current ??= parseRichDoc(value) ?? toRichDoc(value ?? "");
 
   // Ref keeps onUpdate pointed at the latest onChange without rebuilding the editor.
   const onChangeRef = useRef(onChange);

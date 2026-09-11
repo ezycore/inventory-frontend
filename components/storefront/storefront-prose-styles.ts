@@ -21,18 +21,58 @@ export const proseBodyText: CSSProperties = { fontSize: 15, lineHeight: 1.75, co
 
 export const proseParagraph: CSSProperties = { ...proseBodyText, margin: "10px 0" };
 
-export const proseList: CSSProperties = {
+/**
+ * A list that actually shows its markers.
+ *
+ * Two things conspire to remove them and BOTH have to be answered here, because
+ * this renders inside the storefront where a global reset is out of reach:
+ *
+ * - `display: flex` (what this used to be, for the item gap) makes the children
+ *   flex items, and a flex item generates **no list marker at all**. The gap is
+ *   now item margin instead.
+ * - a `list-style: none` reset — Tailwind's preflight does exactly this — wins
+ *   over the browser default, so the type has to be stated rather than assumed.
+ *
+ * `listStylePosition: "outside"` keeps the marker in the 24px of padding, so
+ * wrapped lines align under the text and not under the bullet.
+ */
+export const proseList = (ordered: boolean): CSSProperties => ({
   ...proseBodyText,
   margin: "10px 0",
   paddingLeft: 24,
-  display: "flex",
-  flexDirection: "column",
-  gap: 5,
+  listStyleType: ordered ? "decimal" : "disc",
+  listStylePosition: "outside",
+});
+
+/** Item rhythm — replaces the flex `gap` the list used to get it from. */
+export const proseListItem: CSSProperties = {
+  display: "list-item",
+  margin: "5px 0",
+};
+
+/**
+ * A paragraph nested inside a list item or a blockquote.
+ *
+ * No block margin (the container supplies the rhythm) but it IS a `<p>`, so a
+ * `textAlign` the merchant set on it survives — rendering the inline content
+ * bare, as this used to, silently dropped alignment inside every list and quote.
+ */
+export const proseNestedParagraph: CSSProperties = {
+  fontSize: proseBodyText.fontSize,
+  lineHeight: proseBodyText.lineHeight,
+  margin: 0,
+  // No `color` on purpose — it inherits, so a blockquote's colour still applies
+  // to the paragraphs inside it. Copying `proseBodyText` wholesale would set
+  // `var(--text)` here and override the container.
 };
 
 export const proseQuote: CSSProperties = {
   ...proseBodyText,
-  color: "var(--muted)",
+  // `--text`, not `--muted`. Muted grey is fine for a caption; for a paragraph
+  // of body copy on a tinted storefront theme it reads as unreadable — reported
+  // as "the quote text is invisible". The left border and indent already say
+  // "quote"; the contrast does not have to.
+  color: "var(--text)",
   margin: "14px 0",
   padding: "4px 0 4px 16px",
   borderLeft: "3px solid var(--primary)",
@@ -133,4 +173,32 @@ export const proseHighlight = (color?: string): CSSProperties => ({
   color: "#1f2937",
   padding: "0.05em 0.2em",
   borderRadius: 3,
+});
+
+/**
+ * Body images, at the merchant's chosen width and alignment.
+ *
+ * `maxWidth: 100%` and `height: auto` stay regardless of the chosen width: they
+ * are what stops a 2000px camera upload forcing the page to scroll sideways on a
+ * ~360px phone column. The width percentage narrows the image WITHIN the column;
+ * it can never widen it past one.
+ *
+ * Only the WIDTH is inline. Alignment and text-wrap are data attributes handled
+ * by `.sf-rdimg` in `storefront.css`, because wrap has to switch off below the
+ * 680px breakpoint and an inline style cannot express that. The margins here are
+ * the non-wrapped defaults; the CSS overrides them when a float is in play.
+ */
+export const proseImage = (
+  widthPercent: number,
+  align: "left" | "center" | "right",
+): CSSProperties => ({
+  display: "block",
+  width: `${widthPercent}%`,
+  maxWidth: "100%",
+  height: "auto",
+  borderRadius: 8,
+  marginTop: 14,
+  marginBottom: 14,
+  marginLeft: align === "left" ? 0 : "auto",
+  marginRight: align === "right" ? 0 : "auto",
 });

@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
-import { getStoreContext } from "@/lib/storefront-host";
+import { getStoreContext, getStorePreviewToken } from "@/lib/storefront-host";
 import {
   getStore,
   getStoreCampaigns,
@@ -10,6 +10,7 @@ import {
 import { faviconHref } from "@/lib/storefront-client";
 import { StoreShell } from "@/components/storefront/store-shell";
 import { MetaPixel } from "@/components/storefront/meta-pixel";
+import { StorefrontPreviewBanner } from "@/components/storefront/preview-banner";
 
 // Note: the browser-tab icon (the store's favicon) is a raw <link rel="icon"> rendered
 // below (React hoists it into <head>), NOT `generateMetadata`. Metadata icons
@@ -62,6 +63,10 @@ export default async function ShopLayout({
   // Categories are seeded HERE rather than by the pages that read them because
   // the shell is the outermost consumer of that query: it creates the entry, so
   // initialData handed in by a deeper component would arrive too late to matter.
+  // Same token the fetches below carry; read here only to decide whether to say
+  // so. `getStorePreviewToken` reads the request header the proxy set.
+  const previewToken = await getStorePreviewToken();
+
   const [store, pages, campaigns, categories] = await Promise.all([
     getStore(slug),
     getStorePages(slug),
@@ -99,6 +104,11 @@ export default async function ShopLayout({
         pixelId={store.meta?.pixelId}
         pageViewEnabled={store.meta?.events.pageView !== false}
       />
+      {/* Owner preview is remembered in a cookie for four hours, so it long
+          outlives the trip from the Customize editor — without this the merchant
+          cannot tell their preview from their live shop, and a draft page in the
+          footer reads as a leak. See `preview-banner.tsx`. */}
+      {previewToken ? <StorefrontPreviewBanner /> : null}
       <StoreShell
         slug={slug}
         base={base}

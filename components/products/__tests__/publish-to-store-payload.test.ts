@@ -3,7 +3,7 @@
  * The "Publish to store" fields are flat on the form and nested on the wire.
  *
  * `storefrontObjectSchema` on the backend parses `storefront` as a JSON object,
- * so the three fields have to be collected into one before submit. Get this
+ * so the fields have to be collected into one before submit. Get this
  * wrong and nothing breaks loudly: the product saves, the validator ignores the
  * unrecognised top-level keys, and the merchant gets a listing with none of the
  * things they typed — no error, no warning, and no reason to look.
@@ -29,7 +29,7 @@ describe("publish-to-store payload", () => {
         price: 900,
         isListed: true,
         onlinePrice: 850,
-        onlineDescription: "Cotton, full sleeve",
+        featured: true,
       },
       false,
     );
@@ -37,7 +37,7 @@ describe("publish-to-store payload", () => {
     expect(readStorefront(fd)).toEqual({
       isListed: true,
       onlinePrice: 850,
-      onlineDescription: "Cotton, full sleeve",
+      featured: true,
     });
   });
 
@@ -66,7 +66,7 @@ describe("publish-to-store payload", () => {
     // expresses as the field being absent. Sending `""` would fail the number
     // coercion and reject the whole save.
     const fd = prepare(
-      { name: "Panjabi", price: 900, isListed: true, onlinePrice: "", onlineDescription: "" },
+      { name: "Panjabi", price: 900, isListed: true, onlinePrice: "", weightKg: "" },
       false,
     );
     expect(readStorefront(fd)).toEqual({ isListed: true });
@@ -81,5 +81,55 @@ describe("publish-to-store payload", () => {
       false,
     );
     expect(readStorefront(fd)).toEqual({ isListed: false });
+  });
+});
+
+/**
+ * `description` consolidated out of `storefront` and onto the product itself,
+ * and became rich-doc JSON in the same change. Both halves have a silent
+ * failure mode, which is why they are asserted at the payload.
+ */
+describe("consolidated description payload", () => {
+  const emptyDoc = JSON.stringify({
+    type: "doc",
+    content: [{ type: "paragraph" }],
+  });
+  const realDoc = JSON.stringify({
+    type: "doc",
+    content: [
+      { type: "paragraph", content: [{ type: "text", text: "Cotton" }] },
+    ],
+  });
+
+  it("sends description as a top-level field, never under `storefront`", () => {
+    const fd = prepare(
+      { name: "Panjabi", price: 900, isListed: true, description: realDoc },
+      false,
+    );
+    expect(fd.get("description")).toBe(realDoc);
+    expect(readStorefront(fd)).toEqual({ isListed: true });
+  });
+
+  // An empty editor serializes to a non-empty STRING. Left as-is, clearing the
+  // description would store 45 bytes of empty document instead of unsetting it,
+  // and every `description ? …` check downstream would read as "has one".
+  it("normalizes an emptied editor to a blank string", () => {
+    const fd = prepare({ name: "Panjabi", price: 900, description: emptyDoc }, false);
+    expect(fd.get("description")).toBe("");
+  });
+
+  it("leaves a real description untouched", () => {
+    const fd = prepare({ name: "Panjabi", price: 900, description: realDoc }, false);
+    expect(fd.get("description")).toBe(realDoc);
+  });
+
+  // Legacy plain-text descriptions still arrive from un-migrated products and
+  // from CSV-created ones; they must pass through, not be blanked.
+  it("passes a legacy plain-text description through", () => {
+    const fd = prepare(
+      { name: "Panjabi", price: 900, description: "Cotton, full sleeve" },
+      false,
+    );
+    expect(fd.get("description")).toBe("Cotton, full sleeve");
   });
 });

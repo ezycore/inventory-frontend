@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { CatalogProduct, StorefrontStore } from "@/lib/storefront-client";
 import { fullImageUrl } from "@/lib/storefront-image";
+import { richDocToPlainText } from "@/lib/storefront-rich-doc";
 
 /**
  * schema.org structured data for the storefront.
@@ -105,7 +106,10 @@ export function productJsonLd(opts: {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description?.slice(0, 500),
+    // Flattened first: `description` is rich-doc JSON since the consolidation,
+    // and `.slice()` on the raw string used to emit `{"type":"doc","content":[{"ty`
+    // to Google. `richDocToPlainText` returns legacy plain-text values unchanged.
+    description: richDocToPlainText(product.description).slice(0, 500) || undefined,
     image: imageUrls(product),
     url,
     offers,

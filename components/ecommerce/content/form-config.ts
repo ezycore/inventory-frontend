@@ -23,6 +23,9 @@ export const contentFormConfig: DynamicFormConfig = {
     {
       name: "body",
       type: "richtext",
+      // This page sits behind `storefront.manage`, the same permission the
+      // upload endpoint requires — so the button can never 403 here.
+      imageUpload: "content",
       label: "Body",
       helperText:
         'Format text with the toolbar. "Add Q&A" inserts a styled FAQ card shown on the storefront.',

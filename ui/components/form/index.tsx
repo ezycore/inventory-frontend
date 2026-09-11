@@ -19,12 +19,13 @@ import { stripHiddenValues } from '@/ui/components/form/type';
 import { Card, CardContent, CardHeader, CardTitle } from '../card'
 import { Skeleton } from '../skeleton'
 import { Button } from '../button'
-import { FC, useCallback } from 'react'
+import { FC, useCallback, useState } from 'react'
 import { FormContent } from './form-content'
 import { cn } from '@/ui/lib/utils';
 import { Spinner } from '../spinner';
 import { toast } from 'sonner';
 import { useHydrated } from '@/hooks/use-hydrated'
+import { EasyAlertDialog } from '@/ui/components/custom/easy-alert-dialog'
 
 // Walk a react-hook-form errors tree and return the first message. Skips the
 // `ref` node (a DOM element) to avoid recursing into the DOM.
@@ -133,6 +134,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     const isDrawerMode = openInside === 'drawer';
     const isModalMode = openInside === 'modal';
     const isActuallySubmitting = isSubmitting || mutationHook?.isPending
+    const [confirmDiscard, setConfirmDiscard] = useState(false)
 
     // Form submission handler that works with React Hook Form
     const handleFormSubmit = useCallback((data: any) => {
@@ -185,12 +187,57 @@ const DynamicForm: FC<DynamicFormProps> = ({
     }
 
     const handleContainerCancel = () => {
+        if (form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+            setConfirmDiscard(true)
+            return
+        }
+        closeWithoutSaving()
+    }
+
+    /** The actual close, past the guard. */
+    const closeWithoutSaving = () => {
         if (onCancel) {
             onCancel()
         } else if (onOpenChange) {
             onOpenChange(false)
         }
     }
+
+    /**
+     * Guards the container's OWN dismissals — Esc, the backdrop, the X.
+     *
+     * Those paths went straight to `onOpenChange(false)` and threw the form
+     * away with no prompt. Survivable when the fields were short; not once the
+     * drawer holds a rich-text product description with no browser undo behind
+     * it, on the form every merchant uses for every product.
+     *
+     * Only intercepts CLOSING, and only a dirty, non-submitting, editable form:
+     * a successful submit calls `onOpenChange` directly (submitting is not
+     * discarding), and view mode has nothing to lose.
+     */
+    const handleContainerOpenChange = (next: boolean) => {
+        if (!next && form.formState.isDirty && !isActuallySubmitting && !viewMode) {
+            setConfirmDiscard(true)
+            return
+        }
+        onOpenChange?.(next)
+    }
+
+    const discardDialog = (
+        <EasyAlertDialog
+            open={confirmDiscard}
+            onOpenChange={setConfirmDiscard}
+            title="Discard your changes?"
+            description="This form has unsaved changes. Closing it now loses them."
+            confirmLabel="Discard"
+            cancelLabel="Keep editing"
+            onConfirm={() => {
+                setConfirmDiscard(false)
+                closeWithoutSaving()
+            }}
+            onCancel={() => setConfirmDiscard(false)}
+        />
+    )
 
     // Skeleton component for content loading
     const skeletonContent = (
@@ -266,7 +313,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     // Render modal mode
     if (isModalMode) {
         return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
+            <Dialog open={open} onOpenChange={handleContainerOpenChange}>
                 <DialogContent className={`${modalSizeClass} max-h-[90vh] flex flex-col p-0`}>
                     <DialogHeader className="px-6 pt-6 pb-2">
                         <DialogTitle>{title}</DialogTitle>
@@ -290,6 +337,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         {formActions}
                     </DialogFooter>
                 </DialogContent>
+                {discardDialog}
             </Dialog>
         )
     }
@@ -298,7 +346,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
     // Render drawer mode
     if (isDrawerMode) {
         return (
-            <Sheet open={open} onOpenChange={onOpenChange}>
+            <Sheet open={open} onOpenChange={handleContainerOpenChange}>
                 <SheetContent
                     side="right"
                     className="w-full sm:w-[80vw] sm:max-w-[880px] p-0 overflow-hidden flex flex-col [&>button]:hidden"
@@ -326,6 +374,7 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         </form>
                     </div>
                 </SheetContent>
+                {discardDialog}
             </Sheet>
         )
     }

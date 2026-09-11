@@ -4,6 +4,7 @@ import { Box, CheckCircle2, XCircle, Layers } from "lucide-react"
 import { toast } from "sonner"
 import type { Translator } from "@/i18n/config"
 import { buildImageOrder, galleryFiles } from "@/lib/image-gallery-order"
+import { richDocToPlainText } from "@/lib/storefront-rich-doc"
 
 /** `prepareSubmitData` is called by DataTable/DataCard as `(data, isEdit, item)` — no
  * room for a `t` param, so the page closes over the translator via this factory. */
@@ -38,10 +39,11 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
   // strips the whole section for every other tier, and sending an empty
   // `storefront` object would overwrite a stocked merchant's listing settings
   // with nothing.
+  // `onlineDescription` left this list in the description consolidation — the
+  // shop copy is the product's own top-level `description` now.
   const storefrontKeys = [
     "isListed",
     "onlinePrice",
-    "onlineDescription",
     "featured",
     "weightKg",
   ] as const;
@@ -53,6 +55,15 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
   }
   if (Object.keys(storefrontPatch).length > 0) {
     formData.append("storefront", JSON.stringify(storefrontPatch));
+  }
+
+  // An empty rich-text editor serializes to `{"type":"doc","content":[{"type":
+  // "paragraph"}]}` — a NON-empty string. Left as-is, clearing the description
+  // would store 45 bytes of empty document instead of unsetting the field, and
+  // every `description ? …` check downstream would read as "has a description".
+  // Normalized here, at the one place the form's value becomes a payload.
+  if (typeof data.description === "string" && !richDocToPlainText(data.description)) {
+    data = { ...data, description: "" }
   }
 
   // Add all fields except images, variants, and _id
