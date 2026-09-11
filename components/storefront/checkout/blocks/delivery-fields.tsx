@@ -84,6 +84,7 @@ export function DeliveryFields({
               name="address"
               label={isFlatAddress ? t.addressFlatLabel : t.addressLineLabel}
               error={errors.address}
+              required={t.requiredTag}
             >
               {(id) => (
                 <input
@@ -107,6 +108,7 @@ export function DeliveryFields({
                 lang={lang}
                 labels={{ district: t.selectDistrict, area: t.selectArea, noMatch: t.comboNoMatch }}
                 fieldLabels={{ district: t.districtLabel, area: t.areaLabel }}
+                requiredTag={t.requiredTag}
                 errors={{ district: errors.district, area: errors.area }}
                 onBlurField={touch}
               />
@@ -120,6 +122,7 @@ export function DeliveryFields({
                 label={t.zoneChoiceLabel}
                 help={t.zoneChoiceHelp}
                 error={errors.zoneChoice}
+                required={t.requiredTag}
               >
                 {() => (
                   <div style={{ display: "flex", gap: 9 }}>
@@ -157,10 +160,11 @@ export function DeliveryFields({
           </>
         ) : null}
 
-        {/* The merchant's own fields sit here, after the address and before
-            payment: rendered once in this block so all four checkout layouts
-            get them without each re-deciding where they go. */}
-        <CustomFields api={api} />
+        {/* The merchant's own `after-address` fields — the default anchor, and
+            the only one that existed before slots, so an untouched store keeps
+            exactly this position. Mounted here rather than in each layout so
+            all four get it without re-deciding where it goes. */}
+        <CustomFields api={api} slot="after-address" />
 
         <LabeledField label={t.orderNotesLabel} optional={t.optionalTag}>
           {(id) => (

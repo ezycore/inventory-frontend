@@ -36,6 +36,19 @@
   --on-accent: var(--on-primary);
   --discount: #b91c1c;
   --discount-soft: #fee2e2;
+  /* ---- Checkout notice tones ----
+     The merchant picks a TONE for a notice they wrote, never a colour: a hex
+     typed in an admin form is the one value in the storefront that cannot
+     follow the palette or survive a theme switch, and half the pairs a person
+     picks fail contrast. `plain` and `accent` need no tokens — they reuse
+     --surface/--muted and --accent-soft/--accent. These two carry the meanings
+     the palette has no word for. */
+  --note-warn: #92400e;
+  --note-warn-soft: #fffbeb;
+  --note-warn-border: #fcd34d;
+  --note-success: #166534;
+  --note-success-soft: #f0fdf4;
+  --note-success-border: #86efac;
   --header: rgba(255, 255, 255, 0.85);
 
   /* ---- Layout tokens (mobile-first base; widen at breakpoints below) ---- */
@@ -160,6 +173,12 @@
   --on-accent: var(--on-primary);
   --discount: #f87171;
   --discount-soft: #3f1d1d;
+  --note-warn: #fcd34d;
+  --note-warn-soft: #3b2f12;
+  --note-warn-border: #854d0e;
+  --note-success: #86efac;
+  --note-success-soft: #14301f;
+  --note-success-border: #166534;
   --header: rgba(9, 9, 11, 0.82);
   color-scheme: dark;
 }
@@ -3889,4 +3908,52 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   text-underline-offset: 3px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* ---- Storefront toasts ----
+   Only `StorefrontToaster` stamps these classes, so nothing here can reach an
+   admin toast even though sonner portals both to <body>.
+
+   Sonner's default close button hangs OFF the top-left corner
+   (--toast-close-button-start:0 plus translate(-35%,-35%)) as a bordered circle.
+   Over a top-center toast sitting on the shop header that reads as damage rather
+   than a control, so it moves inside, centred on the right edge, and drops the
+   circle: an x in the toast's own colour, which is also the only version that
+   stays right in both themes and for both success and error, since rich colours
+   repaint the text but would leave a hardcoded chrome behind. */
+.sf-toast[data-sonner-toast] {
+  /* Room for the button so a long message never runs under it. */
+  padding-right: 42px;
+}
+
+/* The extra `.sf-toast` is load-bearing: sonner injects its own rules at
+   runtime, so matching its (0,3,0) specificity would leave the winner up to
+   stylesheet order. This is (0,4,0) and settles it. */
+.sf-toast[data-sonner-toast][data-styled="true"] .sf-toast-close {
+  left: auto;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 22px;
+  width: 22px;
+  border: none;
+  background: transparent;
+  /* Inherit, so the x is the same green as "Added to cart" and the same red on
+     an error — in either theme, with no second palette to keep in sync. */
+  color: inherit;
+  opacity: 0.65;
+  transition: opacity 150ms;
+}
+
+.sf-toast[data-sonner-toast][data-styled="true"] .sf-toast-close:hover {
+  background: transparent;
+  border: none;
+  opacity: 1;
+}
+
+.sf-toast[data-sonner-toast][data-styled="true"] .sf-toast-close:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+  box-shadow: none;
 }

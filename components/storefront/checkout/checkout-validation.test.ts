@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  CHECKOUT_SLOT_STEP,
+  CHECKOUT_STEP_FIELDS,
   checkoutErrors,
   firstInvalidField,
+  isCheckoutFieldVisible,
+  slotOf,
+  stepForField,
+  type CheckoutFieldSlot,
   type CheckoutValidationInput,
 } from "./checkout-validation";
 import type { Dict } from "@/lib/storefront-i18n";
@@ -215,5 +221,123 @@ describe("firstInvalidField", () => {
       }),
     );
     expect(firstInvalidField(errors)).toBe("name");
+  });
+});
+
+/**
+ * Merchant-defined fields can now be anchored anywhere in the checkout, which
+ * makes them a step-gating problem: a required field the merchant put on the
+ * payment screen must not refuse the address screen, and the refusal on submit
+ * must jump to the screen that actually renders it. That is the same failure
+ * `CHECKOUT_STEP_FIELDS` exists for — a shopper stuck on a step, pointed at a
+ * control two screens away — so it gets the same coverage.
+ */
+describe("custom-field slots", () => {
+  it("reads an unset slot as the pre-slot position", () => {
+    // The whole backwards-compatibility promise in one assertion: a stored
+    // field with no slot must keep rendering where it always did.
+    expect(slotOf({})).toBe("after-address");
+    expect(slotOf({ slot: "before-submit" })).toBe("before-submit");
+  });
+
+  it("maps every slot to a step the stepped layout actually renders", () => {
+    const slots: CheckoutFieldSlot[] = [
+      "after-contact",
+      "after-address",
+      "before-payment",
+      "after-payment",
+      "before-submit",
+    ];
+    for (const slot of slots) {
+      const step = CHECKOUT_SLOT_STEP[slot];
+      expect(Object.keys(CHECKOUT_STEP_FIELDS)).toContain(String(step));
+    }
+    // Address slots are step 1, payment slots step 2, the last word step 3 —
+    // read against SteppedCheckout's blocks, which is the only thing that makes
+    // these numbers true.
+    expect(CHECKOUT_SLOT_STEP["after-contact"]).toBe(1);
+    expect(CHECKOUT_SLOT_STEP["after-address"]).toBe(1);
+    expect(CHECKOUT_SLOT_STEP["before-payment"]).toBe(2);
+    expect(CHECKOUT_SLOT_STEP["after-payment"]).toBe(2);
+    expect(CHECKOUT_SLOT_STEP["before-submit"]).toBe(3);
+  });
+
+  it("sends a refused submit to the step that renders the offending field", () => {
+    const slots = { ship: "before-submit", gift: "before-payment" } as const;
+    expect(stepForField("custom:ship" as never, slots)).toBe(3);
+    expect(stepForField("custom:gift" as never, slots)).toBe(2);
+    // An unmapped key is a field the merchant deleted between render and
+    // submit; step 1 is where custom fields lived before slots, and it is the
+    // only step guaranteed to exist.
+    expect(stepForField("custom:gone" as never, slots)).toBe(1);
+    expect(stepForField("custom:ship" as never)).toBe(1);
+  });
+
+  it("refuses a step only for the custom fields that step renders", () => {
+    const errors = { "custom:gift": "This is required" };
+    // Step 1 renders no custom field here, so Continue must NOT be blocked by
+    // one the shopper cannot see — the exact dead end `CHECKOUT_STEP_FIELDS`
+    // was written for.
+    expect(firstInvalidField(errors, CHECKOUT_STEP_FIELDS[1], [])).toBeNull();
+    expect(firstInvalidField(errors, CHECKOUT_STEP_FIELDS[2], ["gift"])).toBe(
+      "custom:gift",
+    );
+    // The final submit scopes nothing and still catches it.
+    expect(firstInvalidField(errors)).toBe("custom:gift");
+  });
+
+  it("reports custom fields in render order, not alphabetically", () => {
+    const errors = { "custom:zebra": "required", "custom:apple": "required" };
+    // `zebra` is first in the merchant's list, so it is the one the shopper is
+    // sent to — sorting the keys would send them to the second problem.
+    expect(firstInvalidField(errors, undefined, ["zebra", "apple"])).toBe(
+      "custom:zebra",
+    );
+  });
+
+  it("keeps built-in fields ahead of custom ones", () => {
+    const errors = { name: "Enter your name", "custom:gift": "required" };
+    expect(firstInvalidField(errors, CHECKOUT_STEP_FIELDS[1], ["gift"])).toBe("name");
+  });
+});
+
+/**
+ * Conditional fields. The prize is per-payment-method instructions and inputs;
+ * the danger is an order nobody can place — a required bank-transfer field left
+ * demanding on a cash-on-delivery order, refused by a form that cannot show the
+ * shopper what is wrong because the control is not rendered.
+ *
+ * The backend's `isCheckoutFieldVisible` is the same function. If these two ever
+ * disagree, the form accepts an order the server rejects.
+ */
+describe("isCheckoutFieldVisible", () => {
+  it("shows a field with no condition — every field saved before this existed", () => {
+    expect(isCheckoutFieldVisible({}, { paymentMethod: "cod" })).toBe(true);
+    expect(isCheckoutFieldVisible({ showWhen: {} }, { paymentMethod: "cod" })).toBe(true);
+    // An empty list is "no condition", not "never" — "never" is a field the
+    // merchant should have deleted, and silently hiding one is worse than
+    // showing it.
+    expect(
+      isCheckoutFieldVisible({ showWhen: { paymentMethods: [] } }, { paymentMethod: "cod" }),
+    ).toBe(true);
+  });
+
+  it("shows a scoped field only for its own methods", () => {
+    const bankOnly = { showWhen: { paymentMethods: ["bank"] } };
+    expect(isCheckoutFieldVisible(bankOnly, { paymentMethod: "bank" })).toBe(true);
+    expect(isCheckoutFieldVisible(bankOnly, { paymentMethod: "cod" })).toBe(false);
+  });
+
+  it("shows everything when there is no payment context to judge against", () => {
+    // A caller with no context has no grounds to hide anything — better a field
+    // too many than a required one silently dropped.
+    expect(isCheckoutFieldVisible({ showWhen: { paymentMethods: ["bank"] } })).toBe(true);
+  });
+
+  it("handles a field scoped to several methods", () => {
+    const field = { showWhen: { paymentMethods: ["cod", "bank"] } };
+    expect(isCheckoutFieldVisible(field, { paymentMethod: "cod" })).toBe(true);
+    expect(isCheckoutFieldVisible(field, { paymentMethod: "bank" })).toBe(true);
+    expect(isCheckoutFieldVisible(field, { paymentMethod: "bkash" })).toBe(false);
   });
 });
