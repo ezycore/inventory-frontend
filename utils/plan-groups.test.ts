@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { describe, expect, it } from "vitest";
 import {
+  defaultCadence,
   groupPlans,
   planCadences,
   resolvePlanChangeDirection,
@@ -108,6 +109,49 @@ describe("trialEndDateFrom", () => {
   it("returns the same instant for a zero-day trial", () => {
     const now = Date.parse("2026-08-13T09:00:00.000Z");
     expect(trialEndDateFrom(0, now)).toBe("2026-08-13T09:00:00.000Z");
+  });
+});
+
+describe("defaultCadence", () => {
+  const cadences = planCadences(groupPlans([startMonthly, startYearly]));
+
+  it("opens on the cadence the customer is already billed at", () => {
+    // The regression this exists for: a yearly subscriber opening on Monthly
+    // sees their own tier badged nothing and offering "Downgrade", because
+    // `isCurrent` compares `start-yearly` against the monthly variant's slug.
+    expect(defaultCadence(cadences, { interval: "year" })).toBe(12);
+    expect(defaultCadence(cadences, { interval: "month" })).toBe(1);
+  });
+
+  it("honors intervalCount, not just the interval", () => {
+    const sixMonthly = plan({
+      slug: "start-6mo",
+      amount: 2094,
+      intervalCount: 6,
+      group: "start",
+      groupRank: 1,
+    });
+    const withSix = planCadences(groupPlans([startMonthly, sixMonthly, startYearly]));
+    expect(defaultCadence(withSix, { interval: "month", intervalCount: 6 })).toBe(6);
+  });
+
+  it("falls back to the shortest cycle with no subscription", () => {
+    expect(defaultCadence(cadences, null)).toBe(1);
+    expect(defaultCadence(cadences, undefined)).toBe(1);
+  });
+
+  it("falls back when the customer's cadence is no longer sold", () => {
+    // A retired 6-month plan: the switch has no segment to select, so the grid
+    // must still open somewhere rather than on a cadence with no tab.
+    expect(defaultCadence(cadences, { interval: "month", intervalCount: 6 })).toBe(1);
+  });
+
+  it("falls back for a one_time plan, which has no cadence at all", () => {
+    expect(defaultCadence(cadences, { interval: "one_time" })).toBe(1);
+  });
+
+  it("returns null when no switch is rendered", () => {
+    expect(defaultCadence([], { interval: "year" })).toBeNull();
   });
 });
 

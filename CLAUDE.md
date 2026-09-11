@@ -91,9 +91,18 @@ renaming needs no migration, wipe and reseed"). **That is now inverted.**
 - **Merchant-visible copy is customer-facing.** A wrong Bangla string or a mislabelled money field is
   seen by someone billing a customer with it.
 
-Unchanged by this: the API contract gates (`pnpm verify`), the help-docs freshness gate
-(`pnpm help:verify` still fails on a renamed `ui_labels` string), and the backend's invariants —
-posted documents stay immutable by design, and now for old rows' sake too.
+Two consequences specific to this repo, both easy to miss because they don't fail a build:
+
+- **The storefront is somebody's shopfront.** A broken checkout, a mispriced product or a 500 on
+  `app/(storefront)` is now a real lost sale for a real merchant, not a demo glitch. Weight
+  storefront regressions accordingly.
+- **A persisted client-side key is production state too.** `localStorage` keys (cart, draft sale,
+  filters) survive a deploy on a shopper's or a merchant's device — renaming one silently drops
+  whatever it held. That was free while every user was us.
+
+Unchanged: the API contract gates (`pnpm verify`), the help-docs freshness gate (`pnpm help:verify`
+still fails on a renamed `ui_labels` string), and the backend's invariants — posted documents stay
+immutable by design, and now for old rows' sake too.
 
 Mirrors the same section in `inventory-backend/CLAUDE.md`.
 
@@ -555,8 +564,9 @@ Two consequences:
 Control sharing a `group` (`start-monthly` + `start-yearly`, both `group: "start"`) — the slug is the
 billing key, so each cadence must stay its own plan. `utils/plan-groups.ts` collapses them:
 `groupPlans()` (one card per package), `planCadences()` (the billing-cycle switch), `variantFor()`
-(which variant a card shows). Rendering the flat list instead shows two identical-looking cards with
-the same name. Two rules that are easy to get wrong:
+(which variant a card shows), `defaultCadence()` (which cycle the switch opens on). Rendering the
+flat list instead shows two identical-looking cards with the same name. Three rules that are easy to
+get wrong:
 
 - **`resolvePlanChangeDirection()` is a cross-repo contract** — it mirrors
   `mission-control/src/utils/plan-change-direction.ts` and must change in lockstep. Tier rank first,
@@ -565,6 +575,12 @@ the same name. Two rules that are easy to get wrong:
 - **`planCadences()` returns `[]` unless some package really sells more than one cadence.** Without
   that filter, ungrouped plans (each a group of one) still yield differing month counts and render an
   **inert** switch — every card falls back to its only variant, so clicking does nothing.
+- **The switch opens on the customer's own cadence, via `defaultCadence()` — never on `cadences[0]`.**
+  `isCurrent` compares slugs, so defaulting a yearly subscriber to Monthly matches their
+  `start-yearly` against the *monthly* variant: **no card gets the "Current plan" badge at all**, and
+  their own tier renders a live "Downgrade" button beside a price they do not pay. `defaultCadence()`
+  reads `interval`/`intervalCount` off the entitlement (what they are billed at, and it survives the
+  plan being retired), falling back to the shortest cycle only when that cadence is not on sale.
 
 The billing grid is split three ways so no piece outgrows the component size limit:
 `available-plans.tsx` (orchestrator — cadence state, grouping, both dialogs), `plan-card.tsx` (one
@@ -572,6 +588,15 @@ card + its action button), `billing-cycle-toggle.tsx` (the switch). Two dialogs,
 interchangeable: `trial-info-modal.tsx` explains a trial **before** it starts (gated on
 `entitlement.trialUsed`, which is one-time per workspace), `trial-end-confirm-dialog.tsx` confirms
 **ending** a running trial to switch to a paid plan.
+
+**Billing reads accept `organization.view` *or* `organization.edit`.** The page gates on
+`useCanManageBilling()` (owner **or** `organization.edit`, since edit is what the plan-change POSTs
+need), so the backend's billing GETs — `/organization/subscription`, `/organization/plans`,
+`/organization/billing/pay-link` — take both via `checkAnyPermission`. They are separate checkboxes
+in the merchant's custom-role editor, and an edit-without-view role used to open the billing page and
+then 403 every request behind it. Note the gates still disagree for an **owner holding neither**:
+`useCanManageBilling()` lets them in as a lockout escape hatch, but the backend has no owner bypass
+anywhere, so that page cannot load. Don't widen the frontend gate further without a backend change.
 
 Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | reactivate | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now", and `needsReactivation()` (`reactivate` = canceled **or** `incomplete`, i.e. awaiting a first payment) routes the user to `/dashboard/billing` to subscribe or re-subscribe (their data is retained; the backend confines them to billing routes). Both of those arrive from MC as `status:"inactive"`, so the classifier resolves them **before** the `inactive → blocked` branch — reordering that check silently locks customers out of checkout.
 
