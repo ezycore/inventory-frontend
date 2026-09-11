@@ -182,6 +182,36 @@ function bestSavingAt(
 }
 
 /**
+ * The cadence the grid should open on, before the customer touches the switch.
+ *
+ * Not simply "the shortest one sold". A merchant already billed yearly who
+ * opens on Monthly sees **no card badged "Current plan" at all** — `isCurrent`
+ * compares slugs and the monthly variant's slug is not theirs — and their own
+ * tier then offers a live "Downgrade" button beside a price they do not pay.
+ * So the customer's own cadence wins whenever the product still sells it.
+ *
+ * Reads `interval`/`intervalCount` off the entitlement rather than looking the
+ * current plan up in the offer list: those two are what the customer is
+ * actually billed at, and they survive the plan being retired or hidden.
+ *
+ * Falls back to the shortest cycle for everyone else — no subscription, a
+ * cadence no longer offered, or a `one_time` plan (which has no cadence).
+ */
+export function defaultCadence(
+  cadences: PlanCadence[],
+  current?: { interval?: string; intervalCount?: number } | null,
+): number | null {
+  if (cadences.length === 0) return null;
+
+  const months = current?.interval
+    ? monthsOf({ interval: current.interval, intervalCount: current.intervalCount })
+    : null;
+  if (months !== null && cadences.some((c) => c.months === months)) return months;
+
+  return cadences[0].months;
+}
+
+/**
  * The variant a card should show for the selected cadence: an exact match, else
  * the package's default (shortest period). A package that does not sell the
  * selected cycle still renders its own price rather than vanishing mid-toggle.

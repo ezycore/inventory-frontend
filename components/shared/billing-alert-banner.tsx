@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, CalendarX, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -33,6 +34,7 @@ import { Button } from "@/ui/components/button";
  * on it, without a non-billing-manager 403ing just to render the same banner.
  */
 export function BillingAlertBanner() {
+  const t = useTranslations("settings.billing.alert");
   const status = useGetSubscriptionStatus();
   const canManageBilling = useCanManageBilling();
   const full = useGetSubscription(canManageBilling);
@@ -40,6 +42,7 @@ export function BillingAlertBanner() {
   const payLink = useRequestPayLink();
 
   const entitlement = status.data?.entitlement;
+  const bold = { strong: (chunks: React.ReactNode) => <strong>{chunks}</strong> };
 
   // Billing-confined tier: data is retained but the workspace cannot be used
   // until a plan is paid for. Two states land here and they are NOT the same
@@ -53,17 +56,12 @@ export function BillingAlertBanner() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-amber-700 dark:text-amber-400">
         <div className="flex items-center gap-2 text-sm">
           <CalendarX className="h-4 w-4 shrink-0" />
-          {neverStarted ? (
-            <span>
-              Your workspace is <strong>waiting on payment</strong>. Your data is
-              safe — choose a plan to activate it.
-            </span>
-          ) : (
-            <span>
-              Your subscription has <strong>ended</strong>. Your data is safe —
-              choose a plan to reactivate your workspace.
-            </span>
-          )}
+          <span>
+            {t.rich(
+              neverStarted ? "waitingOnPayment" : "subscriptionEnded",
+              bold,
+            )}
+          </span>
         </div>
         {canManageBilling && (
           <Button
@@ -73,7 +71,7 @@ export function BillingAlertBanner() {
             className="border-amber-500/50 bg-transparent text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
           >
             <Link href="/dashboard/billing">
-              {neverStarted ? "Choose a plan" : "Reactivate"}
+              {t(neverStarted ? "choosePlan" : "reactivate")}
             </Link>
           </Button>
         )}
@@ -97,15 +95,13 @@ export function BillingAlertBanner() {
         // A payment is owed but no link could be produced — don't tell the user
         // they're paid up. Point them at the emailed invoice / a retry.
         if (data?.status === "due") {
-          toast.error(
-            "Couldn't open the payment page. Check your email for the invoice link, or try again.",
-          );
+          toast.error(t("payLinkFailed"));
           return;
         }
         // Genuinely nothing due (already settled / manual plan) — refresh so the
         // banner clears once the mirror catches up. `status` drives whether the
         // banner renders at all; `full` only matters here for a billing manager.
-        toast.info("No outstanding payment was found.");
+        toast.info(t("nothingDue"));
         status.refetch();
         if (canManageBilling) full.refetch();
       },
@@ -117,9 +113,9 @@ export function BillingAlertBanner() {
       <div className="flex items-center gap-2 text-sm">
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span>
-          Your subscription payment{amount ? <> of <strong>{amount}</strong></> : null} is{" "}
-          <strong>overdue</strong>. Pay now to keep full access — unpaid
-          workspaces become read-only, then suspended.
+          {amount
+            ? t.rich("overdueWithAmount", { ...bold, amount })
+            : t.rich("overdue", bold)}
         </span>
       </div>
 
@@ -134,7 +130,7 @@ export function BillingAlertBanner() {
             {payLink.isPending && (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
             )}
-            Pay now
+            {t("payNow")}
           </Button>
           <Button
             asChild
@@ -142,7 +138,7 @@ export function BillingAlertBanner() {
             variant="outline"
             className="border-destructive/50 bg-transparent text-destructive hover:bg-destructive/10"
           >
-            <Link href="/dashboard/billing">Billing</Link>
+            <Link href="/dashboard/billing">{t("billing")}</Link>
           </Button>
         </div>
       )}
