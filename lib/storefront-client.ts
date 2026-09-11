@@ -592,11 +592,9 @@ export interface StorefrontStore {
      * `detailed` — the district select every store had before.
      */
     addressMode?: "detailed" | "flat";
-    /** Merchant-defined notices + inputs, in render order. */
+    /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
   };
-  /** Instructions shown to shoppers who pick bank/manual transfer. */
-  bankInstructions?: string;
   /** Social sign-in providers with credentials configured on the backend. */
   oauthProviders?: ("google" | "facebook")[];
 }
@@ -616,7 +614,39 @@ export interface CheckoutFieldConfig {
   type?: "text" | "textarea" | "number" | "select" | "checkbox";
   options?: string[];
   required?: boolean;
+  /**
+   * Which checkout anchor it renders at. An anchor rather than a position: the
+   * four checkout layouts span different numbers of screens, so only a named
+   * place means the same thing in all of them. Unset reads as `after-address`,
+   * the one position a custom field had before slots existed — so a store that
+   * never touches the setting keeps the checkout it has.
+   */
+  slot?: CheckoutFieldSlot;
+  /** Notices only. A preset, never a merchant-typed colour. Unset → `plain`. */
+  tone?: CheckoutNoticeTone;
+  /** Notices only. Unset → `sm`, the size every notice rendered at before. */
+  size?: CheckoutNoticeSize;
+  /** When it is shown at all. Unset = always. See `isCheckoutFieldVisible`. */
+  showWhen?: { paymentMethods?: string[] };
 }
+
+/** The checkout anchors a merchant may place one of their own fields against. */
+export type CheckoutFieldSlot =
+  | "after-contact"
+  | "after-address"
+  | "before-payment"
+  | "after-payment"
+  | "before-submit";
+
+/**
+ * A notice's visual weight. Each resolves to storefront CSS custom properties
+ * (see `lib/checkout-notice-style`), so a notice survives the dark toggle and
+ * every palette, and `accent` follows the merchant's second colour.
+ */
+export type CheckoutNoticeTone = "plain" | "info" | "warn" | "success" | "accent";
+
+/** A notice's text size. */
+export type CheckoutNoticeSize = "sm" | "md" | "lg";
 
 /** Raw per-page template ids as stored by the admin (free strings). */
 export interface StoreTemplatesRaw {

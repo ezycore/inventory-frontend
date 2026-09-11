@@ -562,7 +562,50 @@ export interface CheckoutField {
   type?: "text" | "textarea" | "number" | "select" | "checkbox";
   options?: string[];
   required?: boolean;
+  /**
+   * Where in the checkout it renders. An anchor, not a row number: the four
+   * checkout layouts span different numbers of screens, so only a named place
+   * means the same thing in all of them. Unset reads as `after-address` — the
+   * one position every custom field had before slots existed.
+   */
+  slot?: CheckoutFieldSlot;
+  /** Notices only. Unset reads as `plain`. */
+  tone?: CheckoutNoticeTone;
+  /** Notices only. Unset reads as `sm`. */
+  size?: CheckoutNoticeSize;
+  /**
+   * When it is shown at all. Unset = always, which is every field stored before
+   * conditions existed. Hidden fields are never required and never stored — the
+   * backend applies the same rule, or the form would accept an order the server
+   * then refuses over a control the shopper cannot see.
+   */
+  showWhen?: CheckoutFieldVisibility;
 }
+
+/** Conditions on a merchant-defined checkout entry. An object so a second axis
+ *  (pickup vs delivery) can join without breaking stored documents. */
+export interface CheckoutFieldVisibility {
+  /** Show only while one of these payment methods is selected. */
+  paymentMethods?: StorefrontPaymentMethod[];
+}
+
+/** The checkout anchors a merchant may place a field against. */
+export type CheckoutFieldSlot =
+  | "after-contact"
+  | "after-address"
+  | "before-payment"
+  | "after-payment"
+  | "before-submit";
+
+/**
+ * A notice's visual weight. Presets, never a merchant-picked colour — each
+ * resolves to storefront CSS custom properties, so a notice stays readable in
+ * dark mode and under every palette, and `accent` follows the brand.
+ */
+export type CheckoutNoticeTone = "plain" | "info" | "warn" | "success" | "accent";
+
+/** A notice's text size. `sm` is what every notice rendered at before. */
+export type CheckoutNoticeSize = "sm" | "md" | "lg";
 
 export interface StorefrontCheckout {
   requiredFields?: string[];
@@ -577,7 +620,7 @@ export interface StorefrontCheckout {
    * server-side. Unset reads as `detailed`.
    */
   addressMode?: "detailed" | "flat";
-  /** Merchant-defined notices + inputs, in render order. Max 5. */
+  /** Merchant-defined notices + inputs, in render order within each slot. Max 5. */
   customFields?: CheckoutField[];
 }
 
@@ -685,7 +728,6 @@ export interface StorefrontSettings {
   /** Abandoned-cart recovery emails. Off unless the merchant opts in;
    *  `delaysMinutes` is sorted ascending and its length is the send cap. */
   cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
-  bankInstructions?: string;
   theme?: StorefrontTheme;
   /** Merchant-written words — never touched by a theme. See `StorefrontCopy`. */
   copy?: StorefrontCopy;

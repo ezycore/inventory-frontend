@@ -11975,7 +11975,6 @@ export interface components {
             paymentAccountMap?: {
                 [key: string]: string;
             };
-            bankInstructions?: string;
             theme: {
                 preset: string;
                 brandColor?: string;
@@ -12569,7 +12568,6 @@ export interface components {
             trustBadges?: unknown;
             nav?: unknown;
             checkout?: unknown;
-            bankInstructions?: unknown;
             pickup?: {
                 enabled: boolean;
                 instructions?: string;
@@ -19168,7 +19166,6 @@ export interface operations {
                         enabled?: boolean;
                         delaysMinutes?: number[];
                     };
-                    bankInstructions?: string;
                     theme?: {
                         preset: string;
                         brandColor?: string;
@@ -19389,6 +19386,15 @@ export interface operations {
                             type?: "text" | "textarea" | "number" | "select" | "checkbox";
                             options?: string[];
                             required?: boolean;
+                            /** @enum {string} */
+                            slot?: "after-contact" | "after-address" | "before-payment" | "after-payment" | "before-submit";
+                            /** @enum {string} */
+                            tone?: "plain" | "info" | "warn" | "success" | "accent";
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            showWhen?: {
+                                paymentMethods?: ("cod" | "bank")[];
+                            };
                         }[];
                     };
                     templates?: {

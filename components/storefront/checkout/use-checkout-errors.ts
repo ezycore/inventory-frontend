@@ -44,8 +44,15 @@ export interface CheckoutErrorState {
    * a stepped layout, and nothing for a final submit. **A scope must only ever
    * name fields that are on screen**, or the refusal points at a control the
    * shopper cannot see (see `CHECKOUT_STEP_FIELDS`).
+   *
+   * `customKeys` is the same promise for the merchant's own fields, which a
+   * fixed list cannot name: pass the keys anchored to a slot this step renders
+   * (see `CHECKOUT_SLOT_STEP`), in render order.
    */
-  reveal: (scope?: readonly CheckoutField[]) => boolean;
+  reveal: (
+    scope?: readonly CheckoutField[],
+    customKeys?: readonly string[],
+  ) => boolean;
 }
 
 export function useCheckoutErrors(errors: CheckoutErrors): CheckoutErrorState {
@@ -65,8 +72,11 @@ export function useCheckoutErrors(errors: CheckoutErrors): CheckoutErrorState {
     return shown;
   }, [errors, revealed, touched]);
 
-  const reveal = useCallback((scope?: readonly CheckoutField[]) => {
-    const first = firstInvalidField(errors, scope);
+  const reveal = useCallback((
+    scope?: readonly CheckoutField[],
+    customKeys?: readonly string[],
+  ) => {
+    const first = firstInvalidField(errors, scope, customKeys);
     if (!first) return true;
     setRevealed(true);
     // After paint, or the field is still rendering without its message and the

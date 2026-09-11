@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import type { CSSProperties } from "react";
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -28,24 +27,13 @@ import {
 } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { SECTION_COMPONENTS } from "@/components/storefront/home/home-sections";
+import { sfVisuallyHidden } from "@/components/storefront/field-styles";
 import {
   HOME_PRESET_SECTIONS,
   isSectionId,
   resolveHomePrimaryHeading,
   type SectionId,
 } from "@/lib/storefront-section-ids";
-
-const visuallyHidden: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
 
 /**
  * Storefront homepage — **a list of sections, not a template.**
@@ -188,7 +176,7 @@ export function StoreHome({
   return (
     <div>
       {primaryHeading.useHiddenStoreName ? (
-        <h1 style={visuallyHidden}>{store.name}</h1>
+        <h1 style={sfVisuallyHidden}>{store.name}</h1>
       ) : null}
       {sections.map((section) => {
         const Section = SECTION_COMPONENTS[section.type as SectionId];
