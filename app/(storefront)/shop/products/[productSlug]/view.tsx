@@ -18,6 +18,10 @@ import { ProductBuyPanel } from "@/components/storefront/product-detail/product-
 import { ProductStickyBar } from "@/components/storefront/product-detail/product-sticky-bar";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { deliveryEstimateSummary } from "@/lib/storefront-delivery";
+import {
+  isLongDescription,
+  ProductDescriptionView,
+} from "@/components/storefront/product-description-view";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -41,6 +45,7 @@ export default function ProductDetailPage({
 }) {
   const d = useProductDetail(initialProduct);
   const { t, base, product } = d;
+  const descriptionIsLong = isLongDescription(product?.description);
   const deliveryEstimate = deliveryEstimateSummary(d.store, {
     insideDhaka: t.insideDhaka,
     outsideDhaka: t.outsideDhaka,
@@ -148,8 +153,20 @@ export default function ProductDetailPage({
             ) : null}
           </div>
 
-          {product.description ? (
-            <p style={description}>{product.description}</p>
+          {/* A SHORT, plain description stays here, where it always was. A long
+              or structured one renders ONLY in its own section below the
+              purchase block — nothing stands in for it here. A body that can
+              carry headings and a size-chart table would otherwise push Add to
+              Cart off a phone screen, which is the one thing this column exists
+              to show, and a teaser plus a jump link was just a second thing to
+              read before reaching the button. */}
+          {product.description && !descriptionIsLong ? (
+            <div style={descriptionWrap}>
+              <ProductDescriptionView
+                description={product.description}
+                legacyStyle={description}
+              />
+            </div>
           ) : null}
 
           <ProductBuyPanel d={d} />
@@ -169,6 +186,22 @@ export default function ProductDetailPage({
           </div>
         </div>
       </div>
+
+      {/* The full body, below the purchase block — the ONLY place a long
+          description renders. The `id` stays for deep links from outside (a
+          campaign post pointing at the size chart); `scrollMarginTop` keeps the
+          heading clear of the sticky header when one lands here. */}
+      {descriptionIsLong ? (
+        <div id="description" style={{ marginTop: 44, scrollMarginTop: 88 }}>
+          <SectionTitle>{t.description}</SectionTitle>
+          <div style={descriptionWrap}>
+            <ProductDescriptionView
+              description={product.description}
+              legacyStyle={description}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {d.related.length > 0 ? (
         <div style={{ marginTop: 44 }}>
@@ -209,13 +242,25 @@ const stockBadge: CSSProperties = {
   borderRadius: 999,
 };
 
+// Legacy plain-text branch only — `ProductDescriptionView` applies it to the
+// bare <p> so an un-migrated description looks exactly as it did before.
 const description: CSSProperties = {
   fontSize: 14,
   color: "var(--muted)",
   lineHeight: 1.6,
-  margin: "0 0 20px",
+  margin: 0,
   whiteSpace: "pre-line",
 };
+
+// Owns the spacing for BOTH branches, so a rich body and a legacy paragraph sit
+// the same distance off the buy panel.
+const descriptionWrap: CSSProperties = {
+  fontSize: 14,
+  color: "var(--muted)",
+  lineHeight: 1.6,
+  marginBottom: 20,
+};
+
 
 const deliveryRow: CSSProperties = {
   borderTop: "1px solid var(--border)",

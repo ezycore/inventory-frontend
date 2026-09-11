@@ -8,6 +8,7 @@ import { Package } from 'lucide-react'
 import { Card } from '@ui/components/card'
 import { StatusBadge } from '@/ui/components/status-badge'
 import { CategoryPath } from '@/components/shared/category-path'
+import { richDocToPlainText } from '@/lib/storefront-rich-doc'
 
 interface ProductImage {
   url?: string
@@ -40,6 +41,7 @@ export function DetailHero({ product, variant, sellingPrice, barcode, formatCurr
   const images = collectImages(product, variant)
   const [active, setActive] = useState(0)
   const primary = images[active] || images[0]
+  const descriptionText = richDocToPlainText(product.description)
 
   return (
     <Card className="overflow-hidden">
@@ -95,9 +97,12 @@ export function DetailHero({ product, variant, sellingPrice, barcode, formatCurr
             </span>
           </div>
 
-          {product.description && (
+          {/* Flattened: a two-line clamp of raw rich-doc JSON would read
+              `{"type":"doc","content":[{"ty…`. Legacy plain text passes through
+              `richDocToPlainText` unchanged. */}
+          {descriptionText && (
             <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-              {product.description}
+              {descriptionText}
             </p>
           )}
 

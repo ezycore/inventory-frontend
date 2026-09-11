@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { ReactNode } from "react";
 import { Control, UseFormReturn } from "react-hook-form";
+import type { RichImageScope } from "@/components/shared/rich-text-editor/image-upload";
 
 // Public form-engine API is re-exported here so `@/ui/components/form/type`
 // stays the single import surface; implementations live in their own modules.
@@ -141,6 +142,28 @@ export interface FormFieldConfig {
   // Layout properties
   columnSpan?: ColumnSpan; // Grid columns to span (out of 12)
   className?: string;
+
+  /**
+   * `richtext` only — how to open a value that is NOT yet rich-doc JSON.
+   *
+   * `markdown` (default) is right for CMS page bodies, which genuinely were
+   * markdown before the editor existed. `plaintext` is right for anything that
+   * used to be a plain textarea (product `description`): there `#` and `-` are
+   * literal characters a merchant typed, and the markdown bridge would silently
+   * turn "Size - M" into a bullet list.
+   */
+  legacyFormat?: "markdown" | "plaintext";
+
+  /**
+   * `richtext` only — show the insert-image button, posting to this scope's
+   * endpoint. Omit it and the editor has no image button.
+   *
+   * A scope rather than a flag because the two surfaces sit behind different
+   * permissions (`storefront.manage` for page bodies, `products.create`/`edit`
+   * for product descriptions), so the config site has to say which endpoint it
+   * means. See `RichImageScope`.
+   */
+  imageUpload?: RichImageScope;
 
   // Validation
   validation?: {

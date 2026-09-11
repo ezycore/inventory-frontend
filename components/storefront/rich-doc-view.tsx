@@ -9,9 +9,14 @@ import type {
 import {
   CALLOUT_NODE,
   FAQ_LIST_NODE,
+  IMAGE_NODE,
   safeAlign,
   safeCssColor,
   SAFE_RICH_HREF,
+  SAFE_RICH_IMAGE_SRC,
+  safeImageAlign,
+  safeImageWidth,
+  safeImageWrap,
   TABLE_NODE,
 } from "@/lib/storefront-rich-doc";
 import { RichDocFaqView } from "@/components/storefront/rich-doc-faq-view";
@@ -21,8 +26,11 @@ import {
   proseDivider,
   proseHeading,
   proseHighlight,
+  proseImage,
   proseLink,
   proseList,
+  proseListItem,
+  proseNestedParagraph,
   proseParagraph,
   proseQuote,
 } from "@/components/storefront/storefront-prose-styles";
@@ -90,6 +98,31 @@ const withAlign = (base: CSSProperties, align: unknown): CSSProperties => {
   return a ? { ...base, textAlign: a } : base;
 };
 
+/**
+ * The children of a list item or a blockquote.
+ *
+ * A paragraph keeps its own `<p>` so a `textAlign` the merchant set survives —
+ * rendering the inline content bare dropped alignment inside every list and
+ * quote. Anything else (a nested list, an image, a rule) goes back through
+ * `RichDocBlock`, which is what makes nested lists render as lists rather than
+ * as their text run together.
+ */
+function RichDocChildren({ nodes }: { nodes?: RichDocBlockNode[] }) {
+  return (
+    <>
+      {(nodes ?? []).map((child, i) =>
+        child.type === "paragraph" ? (
+          <p key={i} style={withAlign(proseNestedParagraph, child.attrs?.textAlign)}>
+            <RichDocInline nodes={child.content} />
+          </p>
+        ) : (
+          <RichDocBlock key={i} block={child} />
+        ),
+      )}
+    </>
+  );
+}
+
 export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
   switch (block.type) {
     case "heading":
@@ -106,17 +139,13 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
       );
     case "bulletList":
     case "orderedList": {
-      const Tag = block.type === "orderedList" ? "ol" : "ul";
+      const ordered = block.type === "orderedList";
+      const Tag = ordered ? "ol" : "ul";
       return (
-        <Tag style={proseList}>
+        <Tag style={proseList(ordered)}>
           {(block.content ?? []).map((item, i) => (
-            <li key={i}>
-              {(item.content ?? []).map((child, j) => (
-                <Fragment key={j}>
-                  {j > 0 ? <br /> : null}
-                  <RichDocInline nodes={child.content} />
-                </Fragment>
-              ))}
+            <li key={i} style={proseListItem}>
+              <RichDocChildren nodes={item.content} />
             </li>
           ))}
         </Tag>
@@ -125,16 +154,44 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
     case "blockquote":
       return (
         <blockquote style={proseQuote}>
-          {(block.content ?? []).map((child, i) => (
-            <Fragment key={i}>
-              {i > 0 ? <br /> : null}
-              <RichDocInline nodes={child.content} />
-            </Fragment>
-          ))}
+          <RichDocChildren nodes={block.content} />
         </blockquote>
       );
     case "horizontalRule":
       return <hr style={proseDivider} />;
+    case IMAGE_NODE: {
+      // Re-validated here, not trusted from the document. This tree is writable
+      // through the raw API, so the editor's `allowBase64: false` is a
+      // convenience for the merchant and this is the actual boundary — an
+      // unsafe or absent `src` renders nothing rather than a broken image.
+      const src = block.attrs?.src;
+      if (typeof src !== "string" || !SAFE_RICH_IMAGE_SRC.test(src)) return null;
+      // Width and alignment are re-validated against the same closed lists the
+      // editor offers. A raw-API write could otherwise set `width: 4000` or an
+      // `align` that lands in a style string.
+      //
+      // Geometry other than the width lives in CSS (`.sf-rdimg`, keyed off these
+      // data attributes) rather than in this style object, because text-wrap has
+      // to switch OFF below 680px — a 50% float on a 360px phone leaves two
+      // unreadable strips — and an inline style cannot carry a media query.
+      const align = safeImageAlign(block.attrs?.align);
+      return (
+        <img
+          className="sf-rdimg"
+          data-align={align}
+          data-wrap={safeImageWrap(block.attrs?.wrap) ? "1" : undefined}
+          src={src}
+          // `?? ""` keeps the attribute present when the merchant wrote no
+          // description: an undescribed image is decorative, and `alt=""` is how
+          // that is said. Dropping the attribute makes a screen reader read the
+          // filename out instead.
+          alt={block.attrs?.alt ?? ""}
+          title={block.attrs?.title ?? undefined}
+          loading="lazy"
+          style={proseImage(safeImageWidth(block.attrs?.width), align)}
+        />
+      );
+    }
     case FAQ_LIST_NODE:
       return <RichDocFaqView items={block.content ?? []} />;
     case TABLE_NODE:
@@ -148,7 +205,9 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
 
 export function RichDocView({ doc }: { doc: RichDocRoot }) {
   return (
-    <div>
+    // `sf-rich-doc` carries the clearfix: a wrapped (floated) image would
+    // otherwise escape this container and collide with whatever renders next.
+    <div className="sf-rich-doc">
       {(doc.content ?? []).map((block, i) => (
         <RichDocBlock key={i} block={block} />
       ))}

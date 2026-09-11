@@ -281,13 +281,36 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             quickAddModule: "tag",
           },
           {
+            /**
+             * The product's ONE description — shown in the admin and rendered on
+             * the storefront product page. It absorbed `storefront.onlineDescription`
+             * in the consolidation: two fields merged at read time as
+             * `onlineDescription || description` meant two editors, two limits and
+             * a fallback rule nobody could see, for a field that has no POS reader.
+             *
+             * Stored as rich-doc JSON. `legacyFormat: "plaintext"` because this was
+             * a textarea for its whole life — a merchant who typed "Size - M" meant
+             * those characters, and the markdown bridge would make it a bullet.
+             */
             name: "description",
-            type: "textarea",
+            type: "richtext",
+            legacyFormat: "plaintext",
+            // Posts to `POST /products/description-image` — `products.create` OR
+            // `products.edit`, the same permissions that reach this form, which
+            // is why the description editor can carry the button and the older
+            // `storefront.manage`-only endpoint could not.
+            imageUpload: "product",
             label: tr('form.description', "Description"),
-            // required: true,
+            helperText: tr(
+              'form.descriptionHelper',
+              "Shown on your storefront product page. Use headings, lists and tables for size charts or care instructions.",
+            ),
+            // Matches `Product.description`'s model maxLength. The value counted
+            // is the rich-doc JSON, not the visible text, which is why the ceiling
+            // is 20000 rather than the 2500 of prose it represents.
+            validation: { maxLength: 20000 },
             columnSpan: 12,
             placeholder: tr('form.descriptionPlaceholder', "Enter product description"),
-            rows: 4,
           },
         ],
       },
@@ -726,13 +749,16 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
          * tiers keep that tab, because there listing genuinely is a second
          * decision made at a different time.
          *
-         * Five fields — everything `storefrontObjectSchema` accepts on create:
-         * `isListed`, `onlinePrice`, `onlineDescription`, `featured` and
-         * `weightKg`. It carried only the first three until this tier lost its
-         * Online tab, at which point the form became the merchant's ONLY editor
-         * and the two omissions became unreachable settings — parcel weight
-         * worst of all, since a consignment booked without one bills at the
-         * courier's fallback weight (QA-C3).
+         * Four fields — everything `storefrontObjectSchema` accepts on create:
+         * `isListed`, `onlinePrice`, `featured` and `weightKg`. It carried only
+         * the first two until this tier lost its Online tab, at which point the
+         * form became the merchant's ONLY editor and the omissions became
+         * unreachable settings — parcel weight worst of all, since a consignment
+         * booked without one bills at the courier's fallback weight (QA-C3).
+         *
+         * `onlineDescription` was the fifth until the description consolidation
+         * removed it. The shop copy is now the product's own `description`, in
+         * the Basics section above — one field, one editor, no fallback rule.
          *
          * `slug`, `onlineTitle` and the SEO pair are not here: the create
          * validator does not accept them and they stay catalog-patch-only. And
@@ -785,16 +811,6 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             // Matches `storefrontObjectSchema`'s courier per-parcel ceiling.
             validation: { min: 0, max: 10 },
             tooltip: tr('form.weightKgTooltip', "Used to book courier consignments. Left empty, the courier bills at its own fallback weight — usually more than the parcel actually weighs."),
-            dependsOn: { field: "isListed", condition: "truthy", action: "show" },
-          },
-          {
-            name: "onlineDescription",
-            type: "textarea",
-            zodType: "string",
-            label: tr('form.onlineDescription', "Description shown to shoppers"),
-            columnSpan: 12,
-            rows: 3,
-            validation: { maxLength: 1000 },
             dependsOn: { field: "isListed", condition: "truthy", action: "show" },
           },
           {

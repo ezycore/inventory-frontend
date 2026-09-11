@@ -5,6 +5,16 @@ import {
   type SfBlock,
   type SfInline,
 } from "@/lib/storefront-markdown";
+// Lists and quotes come from the SHARED prose styles, not hand-written copies.
+// They were hand-written until 2026-09-11, and both carried the same two bugs
+// the rich-doc renderer had: `display: flex` kills every list marker, and a
+// muted blockquote is unreadable body copy on a tinted theme. Two copies is how
+// only one of them got fixed.
+import {
+  proseList,
+  proseListItem,
+  proseQuote,
+} from "@/components/storefront/storefront-prose-styles";
 
 /**
  * Renders CMS page bodies (lib/storefront-markdown block model) with the
@@ -73,9 +83,9 @@ function Block({ block }: { block: SfBlock }) {
     case "list": {
       const Tag = block.ordered ? "ol" : "ul";
       return (
-        <Tag style={{ ...bodyText, margin: "10px 0", paddingLeft: 24, display: "flex", flexDirection: "column", gap: 5 }}>
+        <Tag style={proseList(!!block.ordered)}>
           {block.items.map((item, i) => (
-            <li key={i}>
+            <li key={i} style={proseListItem}>
               <Inline nodes={item} />
             </li>
           ))}
@@ -84,7 +94,7 @@ function Block({ block }: { block: SfBlock }) {
     }
     case "quote":
       return (
-        <blockquote style={{ ...bodyText, color: "var(--muted)", margin: "14px 0", padding: "4px 0 4px 16px", borderLeft: "3px solid var(--primary)" }}>
+        <blockquote style={proseQuote}>
           <Inline nodes={block.inline} />
         </blockquote>
       );

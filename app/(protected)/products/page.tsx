@@ -106,7 +106,7 @@ export default function ProductsPage() {
   // storefront merchant who tracks stock decides what to put online and when,
   // so the tab is the screen for it. A storefront merchant who does NOT track
   // stock has no such choice — `useFilteredFormConfig` already strips
-  // `isListed`/`onlinePrice`/`onlineDescription` from their product form on the
+  // `isListed`/`onlinePrice`/`featured` from their product form on the
   // grounds that "creating a product IS publishing it" — and leaving the tab up
   // handed them a second, contradicting place to make a decision the form had
   // just told them they do not make (QA-C3).
@@ -286,7 +286,6 @@ export default function ProductsPage() {
         // this form was not shown.
         isListed: item.storefront?.isListed ?? undefined,
         onlinePrice: item.storefront?.onlinePrice ?? undefined,
-        onlineDescription: item.storefront?.onlineDescription ?? undefined,
         // Same rule, same reason: this tier has no Online tab, so the form owns
         // these two now. Unhydrated, an untouched "Feature on the homepage"
         // checkbox would go out `false` on every edit and quietly un-feature the

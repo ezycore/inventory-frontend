@@ -22,11 +22,23 @@ import {
 // lib/storefront-markdown.ts:29 (frozen legacy parser) — keep in sync.
 export const SAFE_RICH_HREF = /^(https?:\/\/|mailto:|tel:|\/)/i;
 
+/**
+ * Image sources, which are a NARROWER set than link hrefs.
+ *
+ * `mailto:` and `tel:` are meaningless in a `src`, and `data:` is excluded on
+ * purpose: it lets arbitrary bytes ride inside the document (an SVG among them),
+ * turning a size-capped rich doc into an unbounded payload that no upload limit
+ * ever saw. Merchant images arrive through the content-image endpoint and come
+ * back as ordinary https URLs, so nothing legitimate needs the wider set.
+ */
+export const SAFE_RICH_IMAGE_SRC = /^(https?:\/\/|\/)/i;
+
 export const FAQ_LIST_NODE = "faqList" as const;
 export const FAQ_ITEM_NODE = "faqItem" as const;
 export const FAQ_QUESTION_NODE = "faqQuestion" as const;
 export const FAQ_ANSWER_NODE = "faqAnswer" as const;
 export const CALLOUT_NODE = "callout" as const;
+export const IMAGE_NODE = "image" as const;
 export const TABLE_NODE = "table" as const;
 export const TABLE_ROW_NODE = "tableRow" as const;
 export const TABLE_HEADER_NODE = "tableHeader" as const;
@@ -92,6 +104,66 @@ export interface RichDocHorizontalRuleNode {
   type: "horizontalRule";
 }
 
+/**
+ * Widths a body image may take, as a PERCENTAGE of the content column.
+ *
+ * Percent rather than pixels because the same document renders in a ~600px
+ * desktop column and a ~360px phone one — see `image-node.ts`. A closed list
+ * rather than a free number so the renderer has something to validate against:
+ * the stored tree is writable through the raw API.
+ */
+export const IMAGE_WIDTHS = [25, 50, 100] as const;
+export type RichDocImageWidth = (typeof IMAGE_WIDTHS)[number];
+
+export const IMAGE_ALIGNS = ["left", "center", "right"] as const;
+export type RichDocImageAlign = (typeof IMAGE_ALIGNS)[number];
+
+/** A validated image width, or the 100% default. */
+export function safeImageWidth(value: unknown): RichDocImageWidth {
+  return (IMAGE_WIDTHS as readonly unknown[]).includes(value)
+    ? (value as RichDocImageWidth)
+    : 100;
+}
+
+/** A validated image alignment, or the centred default. */
+export function safeImageAlign(value: unknown): RichDocImageAlign {
+  return (IMAGE_ALIGNS as readonly unknown[]).includes(value)
+    ? (value as RichDocImageAlign)
+    : "center";
+}
+
+/**
+ * Should text flow BESIDE this image rather than below it?
+ *
+ * Only meaningful with a left or right alignment — a centred image has no side
+ * for text to occupy — and only above the storefront's 680px breakpoint, where
+ * there is room for two columns. The renderer therefore expresses it as a data
+ * attribute for CSS to act on, not as an inline `float`: a phone has to drop
+ * back to a full-width block, and an inline style cannot carry a media query.
+ */
+export function safeImageWrap(value: unknown): boolean {
+  return value === true;
+}
+
+export interface RichDocImageNode {
+  type: typeof IMAGE_NODE;
+  attrs: {
+    src: string;
+    /** Percentage of the content column. See `IMAGE_WIDTHS`. */
+    width?: RichDocImageWidth | null;
+    align?: RichDocImageAlign | null;
+    /** Let text flow beside the image. See `safeImageWrap`. */
+    wrap?: boolean | null;
+    /**
+     * Kept even when empty. An image a merchant did not describe is decorative
+     * as far as a screen reader is concerned, and `alt=""` is how you say that —
+     * omitting the attribute makes the reader announce the filename instead.
+     */
+    alt?: string | null;
+    title?: string | null;
+  };
+}
+
 interface RichDocCellAttrs {
   colspan?: number;
   rowspan?: number;
@@ -153,6 +225,7 @@ export type RichDocBlockNode =
   | RichDocOrderedListNode
   | RichDocBlockquoteNode
   | RichDocHorizontalRuleNode
+  | RichDocImageNode
   | RichDocFaqListNode
   | RichDocTableNode
   | RichDocCalloutNode;
@@ -316,4 +389,100 @@ export function sfBlocksToTiptapDoc(blocks: SfBlock[]): RichDocRoot {
 
 export function legacyMarkdownToRichDoc(source: string): RichDocRoot {
   return sfBlocksToTiptapDoc(parseStorefrontMarkdown(source));
+}
+
+// --- Plain-text bridges ------------------------------------------------------
+// Product descriptions were a plain textarea before they became rich docs, so
+// every reader has to cope with BOTH shapes forever: the stored value is a
+// rich-doc JSON string for anything saved since, and bare prose for anything
+// that has not been re-edited (and for every row the CSV importer creates).
+// These two functions are that boundary — `richDocToPlainText` for the places
+// that need text (SEO, JSON-LD, CSV export), `plainTextToRichDoc` for the
+// editor opening a legacy value.
+
+/**
+ * Blocks that produce one LINE of output. Everything else is a container and
+ * just recurses — the distinction matters because a `listItem` wraps a
+ * `paragraph`, and counting both would put a blank line between every bullet.
+ */
+const LINE_BLOCKS = new Set<string>(["paragraph", "heading", FAQ_QUESTION_NODE]);
+
+const CELL_NODES = new Set<string>([TABLE_CELL_NODE, TABLE_HEADER_NODE]);
+
+/** Inline text of one node: text nodes concatenated, hard breaks as newlines. */
+function inlineText(node: any): string {
+  if (!node || typeof node !== "object") return "";
+  if (node.type === "text") return typeof node.text === "string" ? node.text : "";
+  if (node.type === "hardBreak") return "\n";
+  return (node.content ?? []).map(inlineText).join("");
+}
+
+/** Appends this node's lines. Containers recurse; `LINE_BLOCKS` emit. */
+function blockLines(node: any, lines: string[]): void {
+  if (!node || typeof node !== "object") return;
+  if (LINE_BLOCKS.has(node.type)) {
+    lines.push(inlineText(node));
+    return;
+  }
+  // A row is one line so a size chart does not become one column per line, and
+  // cells are space-joined so "S" and "38" cannot run together as "S38".
+  if (node.type === TABLE_ROW_NODE) {
+    const cells = (node.content ?? [])
+      .filter((c: any) => CELL_NODES.has(c?.type))
+      .map((c: any) => (c.content ?? []).map(inlineText).join(" ").trim());
+    lines.push(cells.filter(Boolean).join(" "));
+    return;
+  }
+  for (const child of node.content ?? []) blockLines(child, lines);
+}
+
+/**
+ * The stored description/body as plain text, whatever shape it is in.
+ *
+ * A rich doc is flattened; a legacy plain-text value is returned as-is (trimmed).
+ * That fallback is the whole point — callers get one function instead of each
+ * re-implementing the "is this JSON?" branch, and a caller that forgets the
+ * branch is the bug this replaces.
+ *
+ * Lines within a top-level block are joined with a single newline (bullets,
+ * table rows); top-level blocks are separated by a blank line. Mirrors the
+ * backend's `src/utils/rich-doc.ts` — keep the two in step, they are why the CSV
+ * column and the meta description agree.
+ */
+export function richDocToPlainText(body: string | null | undefined): string {
+  if (!body) return "";
+  const doc = parseRichDoc(body);
+  if (!doc) return body.trim();
+  const parts: string[] = [];
+  for (const block of doc.content ?? []) {
+    const lines: string[] = [];
+    blockLines(block, lines);
+    const text = lines
+      .map((l) => l.replace(/[ \t]+/g, " ").trim())
+      .filter(Boolean)
+      .join("\n");
+    if (text) parts.push(text);
+  }
+  return parts.join("\n\n").trim();
+}
+
+/**
+ * Bare prose → rich doc. Blank lines split paragraphs, single newlines become
+ * hard breaks — which is what a merchant who typed into the old textarea meant.
+ *
+ * Deliberately NOT `legacyMarkdownToRichDoc`: that one reads `#`, `-` and `>` as
+ * structure, and a product description saying "Size - M" is not a bullet list.
+ */
+export function plainTextToRichDoc(source: string): RichDocRoot {
+  const text = (source ?? "").replace(/\r\n?/g, "\n").trim();
+  if (!text) return { type: "doc", content: [{ type: "paragraph" }] };
+  const content: RichDocParagraphNode[] = text.split(/\n\s*\n/).map((para) => {
+    const inline: RichDocInlineNode[] = [];
+    para.split("\n").forEach((line, i) => {
+      if (i > 0) inline.push({ type: "hardBreak" });
+      if (line) inline.push({ type: "text", text: line });
+    });
+    return { type: "paragraph", content: emptyToUndef(inline) };
+  });
+  return { type: "doc", content };
 }
