@@ -13,7 +13,6 @@ import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Switch } from "@/ui/components/switch";
-import { Textarea } from "@/ui/components/textarea";
 import { SaveBar, useStoreSettingsSave } from "./settings-form-shared";
 
 export function PublishSettingsTab({ settings }: { settings: StorefrontSettings }) {
@@ -49,7 +48,6 @@ const COMING_SOON = ["bKash", "Nagad", "Card"];
 export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useStoreSettingsSave();
   const [methods, setMethods] = useState<StorefrontPaymentMethod[]>(settings.allowedPaymentMethods ?? ["cod"]);
-  const [instructions, setInstructions] = useState(settings.bankInstructions ?? "");
   const toggle = (method: StorefrontPaymentMethod, on: boolean) => setMethods((current) => on ? Array.from(new Set([...current, method])) : current.filter((value) => value !== method));
   return (
     <div className="space-y-5">
@@ -57,10 +55,17 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
         <div><h3 className="text-sm font-semibold">Payment methods</h3><p className="text-xs text-muted-foreground">How shoppers can pay at checkout.</p></div>
         <label className="flex items-center gap-2.5 text-sm"><Checkbox checked={methods.includes("cod")} onCheckedChange={(value) => toggle("cod", value === true)} />Cash on Delivery</label>
         <label className="flex items-center gap-2.5 text-sm"><Checkbox checked={methods.includes("bank")} onCheckedChange={(value) => toggle("bank", value === true)} />Bank / Manual transfer</label>
-        {methods.includes("bank") ? <Textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} maxLength={600} rows={3} placeholder="Bank transfer instructions shown at checkout…" /> : null}
+        {/* The instructions box that used to sit here wrote `bankInstructions`,
+            a column only bank transfer ever had. Instructions are a checkout
+            notice scoped to a payment method now, so every method can have its
+            own — which is the only version that survives bKash and Nagad
+            arriving. This line is the signpost, because a merchant who ticks a
+            method and writes nothing ships a checkout that names a payment
+            method and says nothing else. */}
+        {methods.includes("bank") ? <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">Tell shoppers how to pay: <span className="font-medium text-foreground">Checkout tab → Extra checkout fields</span> → add a notice and set “Show for payment method” to Bank / Manual transfer.</p> : null}
         <div className="space-y-2 border-t pt-3">{COMING_SOON.map((method) => <label key={method} className="flex cursor-not-allowed items-center gap-2.5 text-sm text-muted-foreground"><Checkbox disabled />{method}<span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">Coming soon</span></label>)}</div>
       </Card>
-      <SaveBar pending={pending} onSave={() => save({ allowedPaymentMethods: methods.length ? methods : ["cod"], bankInstructions: instructions.trim() || undefined })} />
+      <SaveBar pending={pending} onSave={() => save({ allowedPaymentMethods: methods.length ? methods : ["cod"] })} />
     </div>
   );
 }

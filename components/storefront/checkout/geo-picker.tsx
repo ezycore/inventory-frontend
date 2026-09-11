@@ -28,6 +28,7 @@ export function GeoPicker({
   errors,
   onBlurField,
   fieldLabels,
+  requiredTag,
 }: {
   value: GeoValue;
   onChange: (next: GeoValue) => void;
@@ -42,6 +43,14 @@ export function GeoPicker({
    * questions rather than two dropdowns that appeared.
    */
   fieldLabels?: { district: string; area: string };
+  /**
+   * The word behind the `*` on both combos — see `LabeledField`. Optional for
+   * the same reason `fieldLabels` is: the account address form is a saved
+   * preference, not a checkout that refuses to proceed, so nothing there is
+   * marked required. Passing it without `fieldLabels` renders nothing, since
+   * the marker lives inside the label.
+   */
+  requiredTag?: string;
 }) {
   // District is a strict pick (canonical name); area is free-text with the
   // district's upazilas + metro thanas as searchable suggestions.
@@ -58,7 +67,12 @@ export function GeoPicker({
   }, [value.district, lang]);
 
   const district = (
-    <LabeledField name="district" label={fieldLabels?.district} error={errors?.district}>
+    <LabeledField
+      name="district"
+      label={fieldLabels?.district}
+      error={errors?.district}
+      required={requiredTag}
+    >
       {(id) => (
         <Combobox
           id={id}
@@ -73,7 +87,12 @@ export function GeoPicker({
     </LabeledField>
   );
   const area = (
-    <LabeledField name="area" label={fieldLabels?.area} error={errors?.area}>
+    <LabeledField
+      name="area"
+      label={fieldLabels?.area}
+      error={errors?.area}
+      required={requiredTag}
+    >
       {(id) => (
         <Combobox
           id={id}

@@ -183,6 +183,9 @@ export interface Dict {
   orderNotesLabel: string;
   /** Suffix on labels the shopper may leave blank. */
   optionalTag: string;
+  /** The word behind the `*` on a field the shopper must fill. Shown only to a
+   *  screen reader — the star is what a sighted shopper reads. */
+  requiredTag: string;
   /** Group heading above name + phone, separating them from the address. */
   contactHeading: string;
   /** One line under Cash on delivery. Says only what COD already means — no
@@ -191,7 +194,6 @@ export interface Dict {
   /** Heading over the merchant's own bank-transfer instructions. Frames free
    *  text the store wrote (account number, reference) as the NEXT STEP, not as
    *  another blurb — so the shopper reads it as something to act on. */
-  bankInstructionsHeading: string;
   /** Inline error under the phone field when a guest types a non-BD mobile. */
   phoneInvalid: string;
   /**
@@ -648,9 +650,9 @@ const en: Dict = {
   areaLabel: "Area / upazila",
   orderNotesLabel: "Delivery notes",
   optionalTag: "optional",
+  requiredTag: "required",
   contactHeading: "Contact",
   codHint: "Pay when your order arrives",
-  bankInstructionsHeading: "How to pay",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
   nameRequired: "Enter your full name",
   phoneRequired: "Enter your mobile number",
@@ -1065,9 +1067,9 @@ const bn: Dict = {
   areaLabel: "এলাকা / উপজেলা",
   orderNotesLabel: "ডেলিভারি নোট",
   optionalTag: "ঐচ্ছিক",
+  requiredTag: "আবশ্যক",
   contactHeading: "যোগাযোগ",
   codHint: "অর্ডার পৌঁছালে টাকা পরিশোধ করুন",
-  bankInstructionsHeading: "কীভাবে পেমেন্ট করবেন",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
   nameRequired: "আপনার পুরো নাম লিখুন",
   phoneRequired: "আপনার মোবাইল নম্বর লিখুন",

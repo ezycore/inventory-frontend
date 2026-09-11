@@ -4,6 +4,7 @@
 import { input, label as groupLabel } from "@/components/storefront/checkout/checkout-bits";
 import { invalidInput } from "@/components/storefront/checkout/checkout-field";
 import { FieldPair, LabeledField } from "@/components/storefront/checkout/blocks/labeled-field";
+import { CustomFields } from "@/components/storefront/checkout/blocks/custom-fields";
 import { GuestNotice } from "@/components/storefront/checkout/guest-notice";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
 
@@ -34,7 +35,12 @@ export function ContactFields({
       {showHeading ? <div style={groupLabel}>{t.contactHeading}</div> : null}
 
       <FieldPair>
-        <LabeledField name="name" label={t.fullName} error={errors.name}>
+        <LabeledField
+          name="name"
+          label={t.fullName}
+          error={errors.name}
+          required={t.requiredTag}
+        >
           {(id) => (
             <input
               id={id}
@@ -50,7 +56,12 @@ export function ContactFields({
           )}
         </LabeledField>
 
-        <LabeledField name="phone" label={t.mobileLabel} error={errors.phone}>
+        <LabeledField
+          name="phone"
+          label={t.mobileLabel}
+          error={errors.phone}
+          required={t.requiredTag}
+        >
           {(id) => (
             <input
               id={id}
@@ -68,6 +79,12 @@ export function ContactFields({
           )}
         </LabeledField>
       </FieldPair>
+
+      {/* The merchant's `after-contact` fields. Inside this block, not between
+          it and the next one, so they land in the same card as the contact
+          fields in `single` — where the shopper reads them as part of "who is
+          this order for" rather than as an orphan above the address. */}
+      <CustomFields api={api} slot="after-contact" style={{ marginTop: 14 }} />
     </div>
   );
 }
