@@ -3073,13 +3073,13 @@ export interface paths {
         };
         /**
          * GET /api/products
-         * @description Defined in `src/routes/products.routes.ts:21`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:24`. Requires permission `products.view`.
          */
         get: operations["get_api_products"];
         put?: never;
         /**
          * POST /api/products
-         * @description Defined in `src/routes/products.routes.ts:106`. Requires permission `products.create`.
+         * @description Defined in `src/routes/products.routes.ts:136`. Requires permission `products.create`.
          */
         post: operations["post_api_products"];
         delete?: never;
@@ -3097,7 +3097,7 @@ export interface paths {
         };
         /**
          * GET /api/products/lookup
-         * @description Defined in `src/routes/products.routes.ts:29`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:32`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_lookup"];
         put?: never;
@@ -3117,7 +3117,7 @@ export interface paths {
         };
         /**
          * GET /api/products/labels/image
-         * @description Defined in `src/routes/products.routes.ts:37`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:40`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_labels_image"];
         put?: never;
@@ -3137,7 +3137,7 @@ export interface paths {
         };
         /**
          * GET /api/products/export
-         * @description Defined in `src/routes/products.routes.ts:45`. Requires permission `products.export`.
+         * @description Defined in `src/routes/products.routes.ts:48`. Requires permission `products.export`.
          */
         get: operations["get_api_products_export"];
         put?: never;
@@ -3157,11 +3157,31 @@ export interface paths {
         };
         /**
          * GET /api/products/import/template
-         * @description Defined in `src/routes/products.routes.ts:52`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:55`. Requires permission `products.import`.
          */
         get: operations["get_api_products_import_template"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/description-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/products/description-image
+         * @description Defined in `src/routes/products.routes.ts:81`.
+         */
+        post: operations["post_api_products_description_image"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3179,7 +3199,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/import
-         * @description Defined in `src/routes/products.routes.ts:59`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:89`. Requires permission `products.import`.
          */
         post: operations["post_api_products_import"];
         delete?: never;
@@ -3197,7 +3217,7 @@ export interface paths {
         };
         /**
          * GET /api/products/stats
-         * @description Defined in `src/routes/products.routes.ts:67`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:97`. Requires permission `products.view`.
          */
         get: operations["get_api_products_stats"];
         put?: never;
@@ -3217,7 +3237,7 @@ export interface paths {
         };
         /**
          * GET /api/products/active
-         * @description Defined in `src/routes/products.routes.ts:74`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:104`. Requires permission `products.view`.
          */
         get: operations["get_api_products_active"];
         put?: never;
@@ -3237,7 +3257,7 @@ export interface paths {
         };
         /**
          * GET /api/products/slug/:slug
-         * @description Defined in `src/routes/products.routes.ts:82`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:112`. Requires permission `products.view`.
          */
         get: operations["get_api_products_slug_slug"];
         put?: never;
@@ -3257,7 +3277,7 @@ export interface paths {
         };
         /**
          * GET /api/products/:id/variants
-         * @description Defined in `src/routes/products.routes.ts:90`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:120`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id_variants"];
         put?: never;
@@ -3277,18 +3297,18 @@ export interface paths {
         };
         /**
          * GET /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:97`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:127`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id"];
         /**
          * PUT /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:116`. Requires permission `products.edit`.
+         * @description Defined in `src/routes/products.routes.ts:146`. Requires permission `products.edit`.
          */
         put: operations["put_api_products_id"];
         post?: never;
         /**
          * DELETE /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:125`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:155`. Requires permission `products.delete`.
          */
         delete: operations["delete_api_products_id"];
         options?: never;
@@ -3307,7 +3327,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/bulk-delete
-         * @description Defined in `src/routes/products.routes.ts:133`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:163`. Requires permission `products.delete`.
          */
         post: operations["post_api_products_bulk_delete"];
         delete?: never;
@@ -25050,6 +25070,40 @@ export interface operations {
             };
             /** @description Permission denied */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_products_description_image: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["HeroSlideImage"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

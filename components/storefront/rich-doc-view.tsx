@@ -29,6 +29,8 @@ import {
   proseImage,
   proseLink,
   proseList,
+  proseListItem,
+  proseNestedParagraph,
   proseParagraph,
   proseQuote,
 } from "@/components/storefront/storefront-prose-styles";
@@ -96,6 +98,31 @@ const withAlign = (base: CSSProperties, align: unknown): CSSProperties => {
   return a ? { ...base, textAlign: a } : base;
 };
 
+/**
+ * The children of a list item or a blockquote.
+ *
+ * A paragraph keeps its own `<p>` so a `textAlign` the merchant set survives —
+ * rendering the inline content bare dropped alignment inside every list and
+ * quote. Anything else (a nested list, an image, a rule) goes back through
+ * `RichDocBlock`, which is what makes nested lists render as lists rather than
+ * as their text run together.
+ */
+function RichDocChildren({ nodes }: { nodes?: RichDocBlockNode[] }) {
+  return (
+    <>
+      {(nodes ?? []).map((child, i) =>
+        child.type === "paragraph" ? (
+          <p key={i} style={withAlign(proseNestedParagraph, child.attrs?.textAlign)}>
+            <RichDocInline nodes={child.content} />
+          </p>
+        ) : (
+          <RichDocBlock key={i} block={child} />
+        ),
+      )}
+    </>
+  );
+}
+
 export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
   switch (block.type) {
     case "heading":
@@ -112,17 +139,13 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
       );
     case "bulletList":
     case "orderedList": {
-      const Tag = block.type === "orderedList" ? "ol" : "ul";
+      const ordered = block.type === "orderedList";
+      const Tag = ordered ? "ol" : "ul";
       return (
-        <Tag style={proseList}>
+        <Tag style={proseList(ordered)}>
           {(block.content ?? []).map((item, i) => (
-            <li key={i}>
-              {(item.content ?? []).map((child, j) => (
-                <Fragment key={j}>
-                  {j > 0 ? <br /> : null}
-                  <RichDocInline nodes={child.content} />
-                </Fragment>
-              ))}
+            <li key={i} style={proseListItem}>
+              <RichDocChildren nodes={item.content} />
             </li>
           ))}
         </Tag>
@@ -131,12 +154,7 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
     case "blockquote":
       return (
         <blockquote style={proseQuote}>
-          {(block.content ?? []).map((child, i) => (
-            <Fragment key={i}>
-              {i > 0 ? <br /> : null}
-              <RichDocInline nodes={child.content} />
-            </Fragment>
-          ))}
+          <RichDocChildren nodes={block.content} />
         </blockquote>
       );
     case "horizontalRule":

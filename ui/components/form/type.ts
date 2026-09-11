@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import { ReactNode } from "react";
 import { Control, UseFormReturn } from "react-hook-form";
+import type { RichImageScope } from "@/components/shared/rich-text-editor/image-upload";
 
 // Public form-engine API is re-exported here so `@/ui/components/form/type`
 // stays the single import surface; implementations live in their own modules.
@@ -154,13 +155,15 @@ export interface FormFieldConfig {
   legacyFormat?: "markdown" | "plaintext";
 
   /**
-   * `richtext` only — show the insert-image button.
+   * `richtext` only — show the insert-image button, posting to this scope's
+   * endpoint. Omit it and the editor has no image button.
    *
-   * Opt-in because the upload endpoint sits behind `storefront.manage`; a form
-   * whose editor is reachable without that permission must not offer an action
-   * that always 403s.
+   * A scope rather than a flag because the two surfaces sit behind different
+   * permissions (`storefront.manage` for page bodies, `products.create`/`edit`
+   * for product descriptions), so the config site has to say which endpoint it
+   * means. See `RichImageScope`.
    */
-  allowImages?: boolean;
+  imageUpload?: RichImageScope;
 
   // Validation
   validation?: {

@@ -39,8 +39,6 @@ export interface ContentPageListParams {
 }
 
 /** Max bytes accepted for a body image. Mirrors the product-image cap. */
-export const CONTENT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-
 export const contentPagesApi = {
   /**
    * Upload one image for embedding in a page body.

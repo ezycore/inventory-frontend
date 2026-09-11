@@ -4,31 +4,32 @@ import { useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { ImagePlus } from "lucide-react";
 import { toast } from "sonner";
-import {
-  CONTENT_IMAGE_MAX_BYTES,
-  contentPagesApi,
-} from "@/services/api";
 import { ToolButton } from "./toolbar-button";
+import {
+  RICH_IMAGE_MAX_BYTES,
+  RICH_IMAGE_UPLOADERS,
+  type RichImageScope,
+} from "./image-upload";
 
 /**
  * Insert an image into the body.
  *
- * **Opt-in per field** (`FormFieldConfig.allowImages`), not always on, because
- * the upload endpoint is `POST /ecommerce/content/images` behind
- * `storefront.manage`. Rendering the button where the merchant lacks that
- * permission would offer an action that always 403s — the product-description
- * editor is exactly that case today, so it does not get the button until the
- * endpoint's permission story covers it.
+ * **Opt-in per field** (`FormFieldConfig.imageUpload`), and the scope names the
+ * endpoint — page bodies and product descriptions upload to different routes
+ * behind different permissions, so a field that cannot reach one of them simply
+ * omits the scope and gets no button rather than one that always 403s.
  *
- * The upload fires on pick, before the page is saved, because the editor needs a
- * real URL to render. An abandoned edit therefore orphans the object in R2 —
+ * The upload fires on pick, before the record is saved, because the editor needs
+ * a real URL to render. An abandoned edit therefore orphans the object in R2 —
  * accepted, and swept by the tenant purge (see the backend service).
  */
 export function ImageButton({
   editor,
+  scope,
   disabled,
 }: {
   editor: Editor | null;
+  scope: RichImageScope;
   disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,17 +37,17 @@ export function ImageButton({
 
   const pick = async (file?: File) => {
     if (!file || !editor) return;
-    if (file.size > CONTENT_IMAGE_MAX_BYTES) {
+    if (file.size > RICH_IMAGE_MAX_BYTES) {
       toast.error(
         `That image is too large — keep it under ${Math.round(
-          CONTENT_IMAGE_MAX_BYTES / (1024 * 1024),
+          RICH_IMAGE_MAX_BYTES / (1024 * 1024),
         )}MB.`,
       );
       return;
     }
     setBusy(true);
     try {
-      const res = await contentPagesApi.uploadImage(file);
+      const res = await RICH_IMAGE_UPLOADERS[scope](file);
       const url = res.data?.url;
       if (!url) throw new Error("Upload returned no URL");
       // `alt` starts empty and stays a real attribute — an undescribed image is

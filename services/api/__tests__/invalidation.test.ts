@@ -215,3 +215,75 @@ describe("every mutation hook invalidates something", () => {
     }
   }
 });
+
+/**
+ * A mutation must refresh the list **its own module reads**.
+ *
+ * The existing gates catch a mutation that invalidates *nothing*, and an event
+ * that names a key no resource owns. Neither can see the third shape: a mutation
+ * that fires a real event carrying real keys, none of which is the key this
+ * module's own `useQuery` reads. It is the most convincing kind of wrong —
+ * `invalidate()` is right there in the hook — and it shipped: creating a
+ * storefront content page fired `storefront.catalog.changed`, whose four keys are
+ * catalog/campaign/coupon/dashboard, so the page list kept showing the previous
+ * set until the merchant reloaded.
+ *
+ * Source-text, for the same reason as the gates above: it finds the gap in a
+ * module nobody wrote a test for.
+ */
+const FOREIGN_READS: Record<string, string> = {
+  // The dispatch UI reads the courier CONFIG to build its picker. Moving an
+  // order does not change which couriers the merchant has set up, so an order
+  // mutation has no business refetching them.
+  "storefront-orders": "reads courier config for the dispatch picker; orders never dirty it",
+};
+
+describe("a module's mutations refresh the lists that module reads", () => {
+  /** event → the query-key roots it invalidates. */
+  const rootsByEvent = new Map<string, Set<string>>(
+    (Object.keys(EFFECTS) as DomainEvent[]).map((event) => [
+      event,
+      new Set(EFFECTS[event].map((key) => String((key as readonly unknown[])[0]))),
+    ]),
+  );
+
+  /** `queryKeys.contentPages` → the root string `"content-pages"`. */
+  const rootOf = (property: string): string | undefined => {
+    const resource = (queryKeys as Record<string, unknown>)[property] as
+      | { all?: () => readonly unknown[] }
+      | undefined;
+    return typeof resource?.all === "function" ? String(resource.all()[0]) : undefined;
+  };
+
+  it.each(hookFiles(MODULES_DIR).map((file) => [path.basename(path.dirname(file)), file]))(
+    "%s",
+    (moduleName: string, file: string) => {
+      const source = fs.readFileSync(file, "utf8");
+      if (!source.includes("useMutation")) return;
+
+      const fired = [...source.matchAll(/invalidate\(\s*qc\s*,([^;]*?)\)/g)].flatMap(
+        (call) => [...call[1].matchAll(/"([a-z0-9.]+)"/gi)].map((e) => e[1]),
+      );
+      if (fired.length === 0) return; // covered by the "invalidates something" gate
+
+      const covered = new Set<string>();
+      for (const event of fired) {
+        for (const root of rootsByEvent.get(event) ?? []) covered.add(root);
+      }
+
+      const read = new Set(
+        [...source.matchAll(/queryKeys\.(\w+)\./g)]
+          .map((match) => rootOf(match[1]))
+          .filter((root): root is string => Boolean(root)),
+      );
+
+      const missing = [...read].filter((root) => !covered.has(root));
+      expect(
+        missing,
+        `${moduleName} queries [${missing}] but none of its events (${[...new Set(fired)]}) ` +
+          `invalidates them — a mutation here leaves its own list stale. Add the key to an ` +
+          `event, or list the module in FOREIGN_READS with a reason.`,
+      ).toEqual(FOREIGN_READS[moduleName] ? missing : []);
+    },
+  );
+});

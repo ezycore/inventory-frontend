@@ -3861,3 +3861,32 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: table;
   clear: both;
 }
+
+/* ---- Owner preview bar -------------------------------------------------
+   Shown only when the request carries a verified owner-preview token. It has to
+   read as chrome that is NOT part of the shop — the merchant's question is
+   "which of the two shops am I looking at", so it deliberately ignores the
+   store's theme colours and uses a fixed warning palette. */
+.sf-preview-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  padding: 9px 16px;
+  background: #78350f;
+  color: #fffbeb;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+.sf-preview-bar strong {
+  font-weight: 700;
+}
+.sf-preview-exit {
+  color: #fffbeb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}

@@ -21,7 +21,7 @@ const names = richTextExtensions.map((e) => e.name);
 const byName = (n: string) => richTextExtensions.find((e) => e.name === n);
 
 describe("richTextExtensions", () => {
-  it.each(["undoRedo", "gapCursor", "dropCursor", "characterCount"])(
+  it.each(["undoRedo", "gapCursor", "dropCursor", "characterCount", "trailingNode"])(
     "registers %s",
     (name) => {
       expect(names).toContain(name);
@@ -29,7 +29,13 @@ describe("richTextExtensions", () => {
   );
 
   it("keeps them free of nodes and marks", () => {
-    for (const name of ["undoRedo", "gapCursor", "dropCursor", "characterCount"]) {
+    for (const name of [
+      "undoRedo",
+      "gapCursor",
+      "dropCursor",
+      "characterCount",
+      "trailingNode",
+    ]) {
       // `type` is "extension" for behaviour-only additions; "node" or "mark"
       // would mean the renderer has something new to learn.
       expect(byName(name)?.type, name).toBe("extension");

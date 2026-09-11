@@ -25,6 +25,7 @@ import { ColorPopover } from "./color-popover";
 import { InsertMenu } from "./toolbar-insert-menu";
 import { TableControls } from "./toolbar-table-controls";
 import { ToolButton, ToolbarDivider } from "./toolbar-button";
+import type { RichImageScope } from "./image-upload";
 
 /**
  * Formatting toolbar for RichTextEditor. Grouped (marks · colour · headings ·
@@ -37,11 +38,11 @@ type Align = "left" | "center" | "right";
 
 export function RichTextToolbar({
   editor,
-  allowImages,
+  imageUpload,
 }: {
   editor: Editor | null;
   /** Show the insert-image button. Opt-in — see `ImageButton`. */
-  allowImages?: boolean;
+  imageUpload?: RichImageScope;
 }) {
   const state = useEditorState({
     editor,
@@ -154,7 +155,9 @@ export function RichTextToolbar({
       ))}
       <ToolbarDivider />
       <LinkPopover editor={editor} active={state?.link} disabled={off} />
-      {allowImages ? <ImageButton editor={editor} disabled={off} /> : null}
+      {imageUpload ? (
+        <ImageButton editor={editor} scope={imageUpload} disabled={off} />
+      ) : null}
       <InsertMenu editor={editor} disabled={off} />
       {/* Contextual, like the table controls below: an image's size/position
           only mean anything while one is selected. */}

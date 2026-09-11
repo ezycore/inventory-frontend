@@ -2411,15 +2411,27 @@ resolved **per request from the host**, never baked.
     are what the merchant counts; the size meter tracks what is enforced, and appears past 75%.
     `CharacterCount` has no `limit` — a hard stop would fire at a number that is not the one being
     enforced.
-  - **Images are opt-in per field** (`FormFieldConfig.allowImages`). The upload sits behind
-    `storefront.manage`, so a field reachable without it (the product description) gets no button
-    rather than one that always 403s. `data:` URIs are refused twice — `allowBase64: false` in the
-    editor, and `SAFE_RICH_IMAGE_SRC` in the renderer, which is the real boundary because the stored
-    tree is writable through the raw API.
-  - **Uploads are fire-and-forget.** `POST /ecommerce/content/images` writes to R2 the moment a file
-    is picked, before the page is saved, because the editor needs a URL to render. An abandoned edit
-    orphans the object; the `org/<id>/storefront/` prefix is what lets the tenant purge still reach
-    it, which is why the key comes from `orgImageFolder` and never from string concatenation.
+  - **Images are opt-in per field and the field names a SCOPE** — `FormFieldConfig.imageUpload`
+    is `"content"` or `"product"`, not a boolean, because the two surfaces post to different
+    endpoints behind different permissions: `POST /ecommerce/content/images`
+    (`storefront.manage`) and `POST /products/description-image` (`products.create` OR
+    `products.edit`). A field that can reach neither omits the scope and gets no button rather
+    than one that always 403s. `data:` URIs are refused twice — `allowBase64: false` in the
+    editor, and `SAFE_RICH_IMAGE_SRC` in the renderer, which is the real boundary because the
+    stored tree is writable through the raw API.
+  - **Uploads are fire-and-forget.** Both endpoints write to R2 the moment a file is picked,
+    before the record is saved (on the product create form, before the product exists), because
+    the editor needs a URL to render. An abandoned edit orphans the object; the `org/<id>/` prefix
+    is what lets the tenant purge still reach it, which is why the key comes from `orgImageFolder`
+    and never from string concatenation. Product description images get their OWN namespace,
+    `org/<id>/products/description`, so they are not mistaken for gallery images enumerated
+    against `product.images[]`.
+  - **Deleting an embedded image is the half that breaks.** It lives as a `src` URL inside a JSON
+    string, so `collectImageRefs` (which looks for a `publicId` KEY) cannot see it. Both surfaces
+    share `utils/rich-doc-images.ts` — collect-before/delete-after on save, with an org-prefix
+    check that is a SECURITY boundary, not tidiness: the body is merchant input and could name
+    another tenant's key. `TenantModelEntry.richDocFields` is what keeps `audit:storage` from
+    reporting every one of them as an orphan.
 - **Draft page preview reuses the SHOP's preview token**, it is not a second mechanism.
   `StoreContext.preview` is computed in `resolveStoreContext` from that verified token and relaxes
   the `published` filter — **and only that filter** — on `getPublished` and `listFooter` (drafts show

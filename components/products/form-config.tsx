@@ -295,6 +295,11 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             name: "description",
             type: "richtext",
             legacyFormat: "plaintext",
+            // Posts to `POST /products/description-image` — `products.create` OR
+            // `products.edit`, the same permissions that reach this form, which
+            // is why the description editor can carry the button and the older
+            // `storefront.manage`-only endpoint could not.
+            imageUpload: "product",
             label: tr('form.description', "Description"),
             helperText: tr(
               'form.descriptionHelper',

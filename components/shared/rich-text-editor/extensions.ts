@@ -16,7 +16,13 @@ import OrderedList from "@tiptap/extension-ordered-list";
 import Paragraph from "@tiptap/extension-paragraph";
 import Strike from "@tiptap/extension-strike";
 import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
-import { CharacterCount, Dropcursor, Gapcursor, UndoRedo } from "@tiptap/extensions";
+import {
+  CharacterCount,
+  Dropcursor,
+  Gapcursor,
+  TrailingNode,
+  UndoRedo,
+} from "@tiptap/extensions";
 import Text from "@tiptap/extension-text";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
@@ -33,7 +39,8 @@ import { FaqAnswer, FaqItem, FaqList, FaqQuestion } from "./faq-node";
  * content silently disappear on the shop. (TextStyle must precede Color — Color
  * applies its value as an attr on the textStyle mark.)
  *
- * `UndoRedo`, `Gapcursor`, `Dropcursor` and `CharacterCount` are the exception
+ * `UndoRedo`, `Gapcursor`, `TrailingNode`, `Dropcursor` and `CharacterCount`
+ * are the exception
  * to that rule and the reason it is worth stating: they contribute **no nodes
  * and no marks**, only history state, cursor decorations and a counter, so there
  * is nothing for the renderer to learn and nothing that can reach stored
@@ -85,6 +92,21 @@ export const richTextExtensions: Extensions = [
    * schema above.
    */
   Gapcursor,
+  /**
+   * Keeps an empty paragraph at the END of the document.
+   *
+   * Gapcursor alone is not enough: it lets you *place* a caret after a trailing
+   * table, but only if you know to arrow into it or click the exact strip below
+   * it. A merchant who finishes a size chart and wants a line of care
+   * instructions under it just finds nowhere to type — reported as "there is no
+   * way to write below the table". The trailing paragraph is that place, always
+   * there, no gesture to discover.
+   *
+   * Contributes no node type of its own: the paragraph it inserts is the same
+   * `paragraph` the renderer already draws, and an unused empty one serializes
+   * to a block with no content that renders as nothing.
+   */
+  TrailingNode,
   /** The drop-position line while dragging content, so a drag is aimable. */
   Dropcursor,
   /**

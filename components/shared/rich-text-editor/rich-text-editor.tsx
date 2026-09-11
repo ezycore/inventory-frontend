@@ -6,6 +6,7 @@ import { EditorFooter } from "./editor-footer";
 import { RichTextToolbar } from "./toolbar";
 import { useRichTextContent } from "./use-rich-text-content";
 import "./rich-text-editor.css";
+import type { RichImageScope } from "./image-upload";
 
 /**
  * Structured rich-text editor for storefront CMS page bodies. Emits the
@@ -20,7 +21,7 @@ export function RichTextEditor({
   className,
   legacyFormat,
   maxLength,
-  allowImages,
+  imageUpload,
 }: {
   value: string;
   onChange: (json: string) => void;
@@ -31,7 +32,7 @@ export function RichTextEditor({
   /** Serialized-length cap, surfaced by the footer. See `editor-footer.tsx`. */
   maxLength?: number;
   /** Show the insert-image button. Opt-in — see `ImageButton`. */
-  allowImages?: boolean;
+  imageUpload?: RichImageScope;
 }) {
   const editor = useRichTextContent(value, onChange, disabled, legacyFormat);
   return (
@@ -43,7 +44,7 @@ export function RichTextEditor({
         className,
       )}
     >
-      <RichTextToolbar editor={editor} allowImages={allowImages} />
+      <RichTextToolbar editor={editor} imageUpload={imageUpload} />
       <EditorContent editor={editor} className="rte-content px-3 py-2" />
       <EditorFooter editor={editor} maxLength={maxLength} value={value} />
     </div>
