@@ -25,7 +25,10 @@ export function renderFieldViewMode(
     } as React.CSSProperties;
     return (
       <div style={themeBridge}>
-        <ContentBodyView body={typeof fieldValue === "string" ? fieldValue : ""} />
+        <ContentBodyView
+          body={typeof fieldValue === "string" ? fieldValue : ""}
+          legacyFormat={field.legacyFormat}
+        />
       </div>
     );
   }

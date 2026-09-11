@@ -2358,14 +2358,75 @@ resolved **per request from the host**, never baked.
     the image bottom belongs to `CardRevealActions`/`CardVariantFlyout`. Colour follows `StatusPill`
     (`color-mix(… 72%, var(--text))`, never the raw hue) so a merchant colour survives both themes
     with no JS branch. A tag with no `slug` is dropped, not rendered inert.
-  - **`?q=` matches far more than the product name** (BE `listProducts`): name,
-    `storefront.onlineTitle`, description, `storefront.onlineDescription`, `barcode` (there is no
-    `sku` field) and active **tag names**. The two `storefront.*` clauses are load-bearing — the shop
-    renders `onlineTitle || name`, so without them a merchant who set an online title had a product
-    whose *displayed* name was unsearchable. **Any field the catalog overlay can override must be
-    searched next to the field it overrides.** This is also why the search list row shows chips: a
-    row whose name contains none of the typed words is not a bug, and the chip is the only thing on
-    screen explaining the match. One endpoint, so the header typeahead inherits all of it.
+  - **`?q=` matches more than the product name** (BE `listProducts`): name,
+    `storefront.onlineTitle`, `barcode` (there is no `sku` field) and active **tag names**. The
+    `storefront.onlineTitle` clause is load-bearing — the shop renders `onlineTitle || name`, so
+    without it a merchant who set an online title had a product whose *displayed* name was
+    unsearchable. **Any field the catalog overlay can override must be searched next to the field it
+    overrides.** This is also why the search list row shows chips: a row whose name contains none of
+    the typed words is not a bug, and the chip is the only thing on screen explaining the match. One
+    endpoint, so the header typeahead inherits all of it.
+  - **`description` is NOT searched, on purpose.** It was, alongside a
+    `storefront.onlineDescription` that no longer exists (see the description consolidation below).
+    It holds **rich-doc JSON** now, so a regex over it matches the markup: "text" or "type" would
+    return every formatted product, and a real word would match with nothing on the card to explain
+    it. Searching it needs a denormalized plain-text field — a deliberate future change.
+- **One product description, stored as a rich doc.** `Product.description` is the single
+  shopper-facing description; `storefront.onlineDescription` and the `onlineDescription || description`
+  fallback are **gone**. It holds TipTap JSON for anything saved since the consolidation and **bare
+  prose** for anything older (and for every product the CSV importer creates), so:
+  - Render it with `components/storefront/product-description-view.tsx`, never a bare `<p>`. It is
+    the twin of `content-body-view.tsx` with one deliberate difference — the legacy branch renders
+    **plain text, not markdown**, because a POS textarea's `#` and `-` are literal characters.
+  - **Placement is adaptive, and it is a conversion decision.** `isLongDescription()` decides: a
+    short all-paragraph body stays inline above the buy panel; a long or **structured** one renders
+    ONLY in its `#description` section below the purchase block — nothing stands in for it above.
+    Structure is the real trigger — a heading plus a size-chart table pushes Add to Cart off a phone
+    screen at any length. Don't "simplify" this to always-inline or always-below; both directions
+    were regressions. A teaser + jump link above the panel was tried and removed: with the body
+    already on the page it just added something else to read before the button.
+  - Anywhere plain text is needed (meta description, JSON-LD, CSV export, admin summary cards) call
+    **`richDocToPlainText()`** from `lib/storefront-rich-doc.ts`. It passes legacy values through
+    untouched, so callers never need an "is this JSON?" branch — `.slice()` on the raw value is the
+    bug it replaces. The backend has a mirror in `src/utils/rich-doc.ts`; keep the two in step.
+  - The admin product-detail cards render it **flattened**. `RichDocView` *can* run in the admin —
+    `ui/components/form/field-view-mode.tsx` bridges `--text`/`--muted`/`--faint` onto the admin
+    tokens — but those cards are one-line-fact summaries a full body would dominate.
+  - `ContentBodyView` takes the same `legacyFormat` as the editor. **Keep the two in step per
+    field**: reading a body back as markdown that was written as plain text eats the merchant's
+    `#` and `-`.
+- **The page editor (`components/shared/rich-text-editor/`).** Shared by CMS page bodies and product
+  descriptions, so a change here reaches every merchant's product form, not just the Content screen.
+  - **Undo/redo exists only because `UndoRedo` is registered.** ProseMirror ships no history;
+    without it Cmd+Z is inert, not degraded. Same for `Gapcursor` (the caret after a trailing table
+    or divider) and `Dropcursor`. Their CSS is **vendored** in `rich-text-editor.css` —
+    `prosemirror-gapcursor` is transitive through `@tiptap/pm` and not hoisted under pnpm, so an
+    import path into it breaks on a lockfile reshuffle.
+  - **These four plus `CharacterCount` are the ONLY exception** to `extensions.ts`'s "an extension
+    the renderer does not know makes content vanish" rule: they add no nodes and no marks.
+    `extensions.test.ts` asserts that; `rich-doc-parity.test.tsx` asserts every node that IS added
+    has a renderer case (mutation-verified — it caught `Image` before its case existed).
+  - **The footer's two numbers are different on purpose.** The cap is on the SERIALIZED JSON (a
+    payload budget), not visible characters, and rich-doc JSON runs 3-5x its prose. Words/characters
+    are what the merchant counts; the size meter tracks what is enforced, and appears past 75%.
+    `CharacterCount` has no `limit` — a hard stop would fire at a number that is not the one being
+    enforced.
+  - **Images are opt-in per field** (`FormFieldConfig.allowImages`). The upload sits behind
+    `storefront.manage`, so a field reachable without it (the product description) gets no button
+    rather than one that always 403s. `data:` URIs are refused twice — `allowBase64: false` in the
+    editor, and `SAFE_RICH_IMAGE_SRC` in the renderer, which is the real boundary because the stored
+    tree is writable through the raw API.
+  - **Uploads are fire-and-forget.** `POST /ecommerce/content/images` writes to R2 the moment a file
+    is picked, before the page is saved, because the editor needs a URL to render. An abandoned edit
+    orphans the object; the `org/<id>/storefront/` prefix is what lets the tenant purge still reach
+    it, which is why the key comes from `orgImageFolder` and never from string concatenation.
+- **Draft page preview reuses the SHOP's preview token**, it is not a second mechanism.
+  `StoreContext.preview` is computed in `resolveStoreContext` from that verified token and relaxes
+  the `published` filter — **and only that filter** — on `getPublished` and `listFooter` (drafts show
+  in the footer, or the merchant cannot navigate to one in the iframe). It is never read from
+  anything the caller sends, and a bad token degrades to the public view rather than erroring. The
+  field is **required** on `StoreContext` so a new construction site has to decide; that is what
+  surfaced `adminStoreContext` needing `preview: false`.
 - **Image variant per use site** — `lib/storefront-image.ts`, one of **four** helpers, never a
   hand-rolled `img?.a || img?.b` chain: `cardImageUrl` (grid/card/tile, >~100px), `thumbImageUrl`
   (row thumb, avatar, chip, ≤100px), `fullImageUrl` (PDP gallery hero, og:image, JSON-LD), and

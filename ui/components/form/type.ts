@@ -142,6 +142,26 @@ export interface FormFieldConfig {
   columnSpan?: ColumnSpan; // Grid columns to span (out of 12)
   className?: string;
 
+  /**
+   * `richtext` only — how to open a value that is NOT yet rich-doc JSON.
+   *
+   * `markdown` (default) is right for CMS page bodies, which genuinely were
+   * markdown before the editor existed. `plaintext` is right for anything that
+   * used to be a plain textarea (product `description`): there `#` and `-` are
+   * literal characters a merchant typed, and the markdown bridge would silently
+   * turn "Size - M" into a bullet list.
+   */
+  legacyFormat?: "markdown" | "plaintext";
+
+  /**
+   * `richtext` only — show the insert-image button.
+   *
+   * Opt-in because the upload endpoint sits behind `storefront.manage`; a form
+   * whose editor is reachable without that permission must not offer an action
+   * that always 403s.
+   */
+  allowImages?: boolean;
+
   // Validation
   validation?: {
     min?: number;

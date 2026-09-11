@@ -6917,15 +6917,35 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/content
-         * @description Defined in `src/routes/content-pages.routes.ts:17`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/content-pages.routes.ts:18`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_content"];
         put?: never;
         /**
          * POST /api/ecommerce/content
-         * @description Defined in `src/routes/content-pages.routes.ts:18`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/content-pages.routes.ts:19`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_content"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/content/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/content/images
+         * @description Defined in `src/routes/content-pages.routes.ts:38`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_content_images"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6941,18 +6961,18 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:24`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/content-pages.routes.ts:45`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_content_id"];
         /**
          * PUT /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:30`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/content-pages.routes.ts:51`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_content_id"];
         post?: never;
         /**
          * DELETE /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:36`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/content-pages.routes.ts:57`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_content_id"];
         options?: never;
@@ -7195,7 +7215,6 @@ export interface components {
                 featured?: boolean;
                 slug?: string;
                 onlineTitle?: string;
-                onlineDescription?: string;
                 seo?: {
                     title?: string;
                     description?: string;
@@ -7328,7 +7347,6 @@ export interface components {
             storefront?: {
                 isListed?: boolean;
                 onlinePrice?: number | null;
-                onlineDescription?: string | null;
                 featured?: boolean;
                 weightKg?: number | null;
             };
@@ -8315,6 +8333,7 @@ export interface components {
                 _id: string;
                 email?: string;
             }) | null;
+            isDemoData?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -10104,7 +10123,6 @@ export interface components {
                 featured?: boolean;
                 slug?: string;
                 onlineTitle?: string;
-                onlineDescription?: string;
                 seo?: {
                     title?: string;
                     description?: string;
@@ -10142,7 +10160,6 @@ export interface components {
                     featured?: boolean;
                     slug?: string;
                     onlineTitle?: string;
-                    onlineDescription?: string;
                     seo?: {
                         title?: string;
                         description?: string;
@@ -10182,7 +10199,6 @@ export interface components {
                 featured?: boolean;
                 slug?: string;
                 onlineTitle?: string;
-                onlineDescription?: string;
                 seo?: {
                     title?: string;
                     description?: string;
@@ -10707,6 +10723,7 @@ export interface components {
                     purchaseSentAt?: string;
                     pixelId?: string;
                 };
+                isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -10902,6 +10919,7 @@ export interface components {
                 purchaseSentAt?: string;
                 pixelId?: string;
             };
+            isDemoData?: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -11065,6 +11083,7 @@ export interface components {
                     purchaseSentAt?: string;
                     pixelId?: string;
                 };
+                isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -11636,6 +11655,8 @@ export interface components {
             status: "active" | "inactive" | "read_only";
             /** Format: date-time */
             deletionScheduledAt?: string | null;
+            /** @enum {string|null} */
+            deletionScheduledBy?: "admin" | "retention" | "self_delete" | null;
             /** Format: date-time */
             suspendedAt?: string | null;
             /** Format: date-time */
@@ -12380,6 +12401,7 @@ export interface components {
                 title?: string;
                 description?: string;
             };
+            published?: boolean;
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -12761,6 +12783,10 @@ export interface components {
             couponCode?: string;
             shippingCharged?: number;
             totalAmount: number;
+            prepaidAmount?: number;
+            /** Format: date-time */
+            prepaidAt?: string | null;
+            amountDue?: number;
             /** @enum {string} */
             status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up" | "returned" | "partially_returned" | "cancelled" | "rejected";
             /** @enum {string} */
@@ -12869,6 +12895,8 @@ export interface components {
             discountAmount: number;
             shippingCharged: number;
             totalAmount: number;
+            prepaidAmount: number;
+            amountDue: number;
             shipTo: {
                 name: string;
                 area?: string;
@@ -13724,6 +13752,20 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                vatSettings?: {
+                    bin?: string;
+                    pricesIncludeVat: boolean;
+                    filingDayOfMonth: number;
+                };
+                vatRegistrationHistory?: {
+                    /** @enum {string} */
+                    type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                    /** Format: date-time */
+                    effectiveFrom: string;
+                    changedBy?: string;
+                    /** Format: date-time */
+                    changedAt: string;
+                }[];
                 receiptSettings?: {
                     phone?: string;
                     email?: string;
@@ -13865,6 +13907,20 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                vatSettings?: {
+                    bin?: string;
+                    pricesIncludeVat: boolean;
+                    filingDayOfMonth: number;
+                };
+                vatRegistrationHistory?: {
+                    /** @enum {string} */
+                    type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                    /** Format: date-time */
+                    effectiveFrom: string;
+                    changedBy?: string;
+                    /** Format: date-time */
+                    changedAt: string;
+                }[];
                 receiptSettings?: {
                     phone?: string;
                     email?: string;
@@ -14010,6 +14066,20 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    vatSettings?: {
+                        bin?: string;
+                        pricesIncludeVat: boolean;
+                        filingDayOfMonth: number;
+                    };
+                    vatRegistrationHistory?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                        /** Format: date-time */
+                        effectiveFrom: string;
+                        changedBy?: string;
+                        /** Format: date-time */
+                        changedAt: string;
+                    }[];
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -14152,6 +14222,20 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    vatSettings?: {
+                        bin?: string;
+                        pricesIncludeVat: boolean;
+                        filingDayOfMonth: number;
+                    };
+                    vatRegistrationHistory?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                        /** Format: date-time */
+                        effectiveFrom: string;
+                        changedBy?: string;
+                        /** Format: date-time */
+                        changedAt: string;
+                    }[];
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -14334,6 +14418,20 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    vatSettings?: {
+                        bin?: string;
+                        pricesIncludeVat: boolean;
+                        filingDayOfMonth: number;
+                    };
+                    vatRegistrationHistory?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                        /** Format: date-time */
+                        effectiveFrom: string;
+                        changedBy?: string;
+                        /** Format: date-time */
+                        changedAt: string;
+                    }[];
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -14499,6 +14597,20 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    vatSettings?: {
+                        bin?: string;
+                        pricesIncludeVat: boolean;
+                        filingDayOfMonth: number;
+                    };
+                    vatRegistrationHistory?: {
+                        /** @enum {string} */
+                        type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
+                        /** Format: date-time */
+                        effectiveFrom: string;
+                        changedBy?: string;
+                        /** Format: date-time */
+                        changedAt: string;
+                    }[];
                     receiptSettings?: {
                         phone?: string;
                         email?: string;
@@ -24705,13 +24817,11 @@ export interface operations {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
-                        onlineDescription?: string;
                         weightKg?: number;
                     }) & {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
-                        onlineDescription?: string;
                         weightKg?: number;
                     };
                     locationId?: string;
@@ -25412,13 +25522,11 @@ export interface operations {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
-                        onlineDescription?: string;
                         weightKg?: number;
                     }) & {
                         isListed?: boolean;
                         onlinePrice?: number;
                         featured?: boolean;
-                        onlineDescription?: string;
                         weightKg?: number;
                     };
                     locationId?: string;
@@ -39439,6 +39547,49 @@ export interface operations {
             };
         };
     };
+    post_api_ecommerce_content_images: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["HeroSlideImage"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_ecommerce_content_id: {
         parameters: {
             query?: never;
@@ -40033,7 +40184,6 @@ export interface operations {
                     featured?: boolean | ("true" | "false" | "1" | "0");
                     slug?: string;
                     onlineTitle?: string;
-                    onlineDescription?: string;
                     seoTitle?: string;
                     seoDescription?: string;
                     /** @enum {string} */

@@ -4,7 +4,6 @@
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Badge } from '@ui/components/badge'
-import { Separator } from '@ui/components/separator'
 import { Globe } from 'lucide-react'
 import type { ProductDetail } from '@/types/api'
 
@@ -47,15 +46,8 @@ export function DetailStorefront({ storefront, formatCurrency }: DetailStorefron
               </span>
             </div>
           )}
-          {storefront.onlineDescription && (
-            <>
-              <Separator className="my-2" />
-              <div>
-                <p className="mb-2 text-sm text-muted-foreground">{t('onlineDescription')}</p>
-                <p className="text-sm leading-relaxed">{storefront.onlineDescription}</p>
-              </div>
-            </>
-          )}
+          {/* No online description row: the shop copy is the product's own
+              `description`, rendered by the Info card above. */}
         </div>
       </CardContent>
     </Card>

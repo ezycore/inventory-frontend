@@ -9,9 +9,14 @@ import type {
 import {
   CALLOUT_NODE,
   FAQ_LIST_NODE,
+  IMAGE_NODE,
   safeAlign,
   safeCssColor,
   SAFE_RICH_HREF,
+  SAFE_RICH_IMAGE_SRC,
+  safeImageAlign,
+  safeImageWidth,
+  safeImageWrap,
   TABLE_NODE,
 } from "@/lib/storefront-rich-doc";
 import { RichDocFaqView } from "@/components/storefront/rich-doc-faq-view";
@@ -21,6 +26,7 @@ import {
   proseDivider,
   proseHeading,
   proseHighlight,
+  proseImage,
   proseLink,
   proseList,
   proseParagraph,
@@ -135,6 +141,39 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
       );
     case "horizontalRule":
       return <hr style={proseDivider} />;
+    case IMAGE_NODE: {
+      // Re-validated here, not trusted from the document. This tree is writable
+      // through the raw API, so the editor's `allowBase64: false` is a
+      // convenience for the merchant and this is the actual boundary — an
+      // unsafe or absent `src` renders nothing rather than a broken image.
+      const src = block.attrs?.src;
+      if (typeof src !== "string" || !SAFE_RICH_IMAGE_SRC.test(src)) return null;
+      // Width and alignment are re-validated against the same closed lists the
+      // editor offers. A raw-API write could otherwise set `width: 4000` or an
+      // `align` that lands in a style string.
+      //
+      // Geometry other than the width lives in CSS (`.sf-rdimg`, keyed off these
+      // data attributes) rather than in this style object, because text-wrap has
+      // to switch OFF below 680px — a 50% float on a 360px phone leaves two
+      // unreadable strips — and an inline style cannot carry a media query.
+      const align = safeImageAlign(block.attrs?.align);
+      return (
+        <img
+          className="sf-rdimg"
+          data-align={align}
+          data-wrap={safeImageWrap(block.attrs?.wrap) ? "1" : undefined}
+          src={src}
+          // `?? ""` keeps the attribute present when the merchant wrote no
+          // description: an undescribed image is decorative, and `alt=""` is how
+          // that is said. Dropping the attribute makes a screen reader read the
+          // filename out instead.
+          alt={block.attrs?.alt ?? ""}
+          title={block.attrs?.title ?? undefined}
+          loading="lazy"
+          style={proseImage(safeImageWidth(block.attrs?.width), align)}
+        />
+      );
+    }
     case FAQ_LIST_NODE:
       return <RichDocFaqView items={block.content ?? []} />;
     case TABLE_NODE:
@@ -148,7 +187,9 @@ export function RichDocBlock({ block }: { block: RichDocBlockNode }) {
 
 export function RichDocView({ doc }: { doc: RichDocRoot }) {
   return (
-    <div>
+    // `sf-rich-doc` carries the clearfix: a wrapped (floated) image would
+    // otherwise escape this container and collide with whatever renders next.
+    <div className="sf-rich-doc">
       {(doc.content ?? []).map((block, i) => (
         <RichDocBlock key={i} block={block} />
       ))}

@@ -129,3 +129,91 @@
   padding: 0.05em 0.2em;
   border-radius: 3px;
 }
+
+/* Gapcursor — the caret shown where a block leaves nowhere to type (after a
+   trailing table or horizontal rule, or between two of them).
+
+   Vendored rather than imported from `prosemirror-gapcursor/style/gapcursor.css`:
+   that package is a TRANSITIVE dep reached through `@tiptap/pm`, and under pnpm
+   it is not hoisted, so an import path into it breaks on any lockfile reshuffle.
+   Ten lines is cheaper than that coupling. Mirrors prosemirror-gapcursor 1.4.1
+   with one change — `currentColor`, not the upstream hard-coded `black`, which
+   is invisible in dark mode. */
+.rte-content .ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+
+.rte-content .ProseMirror-gapcursor::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 20px;
+  border-top: 1px solid currentColor;
+  animation: rte-gapcursor-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes rte-gapcursor-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.rte-content .ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+
+/* Body images — WYSIWYG for the width/align attributes the merchant sets from
+   the contextual Image menu. `width` itself is written as an inline style by the
+   node's `renderHTML`; these rules supply everything around it.
+
+   Alignment via auto margins, not `float`, matching the storefront renderer: the
+   image keeps its own line, so text never wraps into a 25%-wide gutter beside it
+   (two unreadable strips on a phone). */
+.rte-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 14px auto;
+}
+
+.rte-content img[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rte-content img[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* A selected node has no caret to show where you are, so without this the
+   contextual Image menu appears with nothing on screen explaining why. */
+.rte-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Text wrapping, mirrored from the storefront's `.sf-rdimg` rules so the editor
+   shows what the shop will render. The editor pane is desktop-width in practice,
+   so there is no breakpoint here — the storefront's 680px rule is what actually
+   protects the phone layout. */
+.rte-content img[data-wrap="1"][data-align="left"] {
+  float: left;
+  margin: 4px 18px 12px 0;
+}
+
+.rte-content img[data-wrap="1"][data-align="right"] {
+  float: right;
+  margin: 4px 0 12px 18px;
+}
+
+/* Keep a float inside the editor body rather than letting it escape the box. */
+.rte-content .ProseMirror::after {
+  content: "";
+  display: table;
+  clear: both;
+}

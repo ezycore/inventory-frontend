@@ -43,7 +43,6 @@ export interface UpdateStorefrontListingDto {
   featured?: boolean;
   slug?: string;
   onlineTitle?: string;
-  onlineDescription?: string;
   outOfStockBehavior?: OutOfStockBehavior;
   weightKg?: number;
 }

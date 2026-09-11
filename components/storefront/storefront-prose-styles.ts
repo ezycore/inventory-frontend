@@ -134,3 +134,31 @@ export const proseHighlight = (color?: string): CSSProperties => ({
   padding: "0.05em 0.2em",
   borderRadius: 3,
 });
+
+/**
+ * Body images, at the merchant's chosen width and alignment.
+ *
+ * `maxWidth: 100%` and `height: auto` stay regardless of the chosen width: they
+ * are what stops a 2000px camera upload forcing the page to scroll sideways on a
+ * ~360px phone column. The width percentage narrows the image WITHIN the column;
+ * it can never widen it past one.
+ *
+ * Only the WIDTH is inline. Alignment and text-wrap are data attributes handled
+ * by `.sf-rdimg` in `storefront.css`, because wrap has to switch off below the
+ * 680px breakpoint and an inline style cannot express that. The margins here are
+ * the non-wrapped defaults; the CSS overrides them when a float is in play.
+ */
+export const proseImage = (
+  widthPercent: number,
+  align: "left" | "center" | "right",
+): CSSProperties => ({
+  display: "block",
+  width: `${widthPercent}%`,
+  maxWidth: "100%",
+  height: "auto",
+  borderRadius: 8,
+  marginTop: 14,
+  marginBottom: 14,
+  marginLeft: align === "left" ? 0 : "auto",
+  marginRight: align === "right" ? 0 : "auto",
+});

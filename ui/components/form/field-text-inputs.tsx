@@ -93,6 +93,9 @@ export function renderRichText(ctx: FieldRenderContext): ReactNode {
             handleChange(json);
           }}
           disabled={effectiveDisabled}
+          legacyFormat={field.legacyFormat}
+          maxLength={field.validation?.maxLength}
+          allowImages={field.allowImages}
           className={cn("w-full", error ? "border-red-500" : "")}
         />
       )}

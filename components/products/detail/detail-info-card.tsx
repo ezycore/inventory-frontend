@@ -7,6 +7,7 @@ import { Separator } from '@ui/components/separator'
 import { Info } from 'lucide-react'
 import { CategoryPath } from '@/components/shared/category-path'
 import { TagChips } from '@/components/shared/tag-chips'
+import { richDocToPlainText } from '@/lib/storefront-rich-doc'
 import type { InventoryItem } from './utils'
 
 interface DetailInfoCardProps {
@@ -28,6 +29,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function DetailInfoCard({ product, inventoryItems, expiryEnabled, stockTracked }: DetailInfoCardProps) {
   const t = useTranslations('products.products.detail.info')
+  const descriptionText = richDocToPlainText(product.description)
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -68,12 +70,18 @@ export function DetailInfoCard({ product, inventoryItems, expiryEnabled, stockTr
           </>
         )}
 
-        {product.description && (
+        {/* Flattened, not rendered rich. `RichDocView` CAN run in the admin —
+            `field-view-mode.tsx` bridges --text/--muted/--faint onto the admin
+            tokens — but this card is a read-only SUMMARY sitting in a row of
+            one-line facts, and a body with headings and a size-chart table would
+            dominate it. The merchant gets the formatted view in the editor.
+            `whitespace-pre-line` keeps the paragraph breaks. */}
+        {descriptionText && (
           <>
             <Separator className="my-4" />
             <div>
               <p className="mb-2 text-sm text-muted-foreground">{t('description')}</p>
-              <p className="text-sm leading-relaxed">{product.description}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed">{descriptionText}</p>
             </div>
           </>
         )}

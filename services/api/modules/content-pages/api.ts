@@ -1,9 +1,13 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiImage } from "@/types/api";
 import type { ApiContentPage } from "@/types/api";
 
 // Response shape generated from the backend `contentPageDto`. Kept under `ContentPage`.
 export type ContentPage = ApiContentPage;
+
+/** What the content-image upload answers with — the shared `image` DTO. */
+export type UploadedImage = ApiImage;
 
 export interface ContentPageInput {
   slug: string;
@@ -12,6 +16,17 @@ export interface ContentPageInput {
   published?: boolean;
   showInFooter?: boolean;
   sortOrder?: number;
+  /**
+   * Search-engine overrides. NESTED, matching `createContentPageSchema` — the
+   * catalog's flat `seoTitle`/`seoDescription` shape exists to survive multipart
+   * and this endpoint is JSON, so there is nothing to flatten around.
+   *
+   * Its absence here was one of the three places the SEO pair went missing: the
+   * form rendered both fields, and the payload, the edit prefill and this type
+   * all dropped them, so a merchant could type a search title, save, reopen, and
+   * find it blank with no error anywhere.
+   */
+  seo?: { title?: string; description?: string };
 }
 
 const base = "/ecommerce/content";
@@ -23,7 +38,23 @@ export interface ContentPageListParams {
   published?: string;
 }
 
+/** Max bytes accepted for a body image. Mirrors the product-image cap. */
+export const CONTENT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+
 export const contentPagesApi = {
+  /**
+   * Upload one image for embedding in a page body.
+   *
+   * Fires as soon as the merchant picks a file — the editor needs a URL to
+   * render, which is well before the page is saved. An abandoned edit therefore
+   * leaves an orphan in R2; that is the accepted trade (see the service), and
+   * the object still sits under the org prefix so the tenant purge reaches it.
+   */
+  uploadImage: (file: File): Promise<ApiResponse<UploadedImage>> => {
+    const body = new FormData();
+    body.append("image", file);
+    return apiClient.post(`${base}/images`, body);
+  },
   list: (): Promise<ApiResponse<ContentPage[]>> => apiClient.get(base),
   // Adapter for DataTable's self-contained mode: backend returns the full
   // list, so search/published filtering and pagination happen client-side and

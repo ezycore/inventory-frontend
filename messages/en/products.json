@@ -120,6 +120,7 @@
       "brandPlaceholder": "Select brand",
       "description": "Description",
       "descriptionPlaceholder": "Enter product description",
+      "descriptionHelper": "Shown on your storefront product page. Use headings, lists and tables for size charts or care instructions.",
       "barcode": "Barcode",
       "barcodePlaceholder": "Scan or type barcode",
       "barcodeTooltip": "The barcode printed on the product packaging. Scan it with a reader or type it in. Leave empty to auto-generate a barcode you can print labels for.",
@@ -170,7 +171,6 @@
       "onlinePrice": "Online price",
       "onlinePricePlaceholder": "Same as the price above",
       "onlinePriceTooltip": "Leave empty to sell online at the same price you set above.",
-      "onlineDescription": "Description shown to shoppers",
       "weightKg": "Shipping weight (kg)",
       "weightKgTooltip": "Used to book courier consignments. Left empty, the courier bills at its own fallback weight — usually more than the parcel actually weighs.",
       "featured": "Feature on the homepage",
@@ -322,8 +322,7 @@
         "yes": "Yes",
         "no": "No",
         "featured": "Featured",
-        "onlinePrice": "Online Price",
-        "onlineDescription": "Online Description"
+        "onlinePrice": "Online Price"
       },
       "timeline": {
         "title": "Timeline",

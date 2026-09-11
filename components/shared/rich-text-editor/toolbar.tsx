@@ -13,9 +13,13 @@ import {
   List,
   ListOrdered,
   Quote,
+  Redo2,
   Strikethrough,
   Underline,
+  Undo2,
 } from "lucide-react";
+import { ImageButton } from "./image-button";
+import { ImageControls } from "./toolbar-image-controls";
 import { LinkPopover } from "./link-popover";
 import { ColorPopover } from "./color-popover";
 import { InsertMenu } from "./toolbar-insert-menu";
@@ -31,7 +35,14 @@ import { ToolButton, ToolbarDivider } from "./toolbar-button";
 type Level = 1 | 2 | 3;
 type Align = "left" | "center" | "right";
 
-export function RichTextToolbar({ editor }: { editor: Editor | null }) {
+export function RichTextToolbar({
+  editor,
+  allowImages,
+}: {
+  editor: Editor | null;
+  /** Show the insert-image button. Opt-in — see `ImageButton`. */
+  allowImages?: boolean;
+}) {
   const state = useEditorState({
     editor,
     selector: ({ editor: e }) =>
@@ -54,6 +65,9 @@ export function RichTextToolbar({ editor }: { editor: Editor | null }) {
             alignCenter: e.isActive({ textAlign: "center" }),
             alignRight: e.isActive({ textAlign: "right" }),
             inTable: e.isActive("table"),
+            inImage: e.isActive("image"),
+            canUndo: e.can().undo(),
+            canRedo: e.can().redo(),
             editable: e.isEditable,
           }
         : null,
@@ -65,7 +79,31 @@ export function RichTextToolbar({ editor }: { editor: Editor | null }) {
   const alignIcons: Record<Align, React.ReactNode> = { left: <AlignLeft />, center: <AlignCenter />, right: <AlignRight /> };
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-border px-1.5 py-1">
+    // Sticky, because the scroll container is the DRAWER body, not this box.
+    // On a Return Policy the toolbar used to scroll away entirely and take every
+    // formatting control with it — the merchant had to scroll back up to bold a
+    // word. `bg-background` is required, not decorative: the editor container is
+    // `bg-transparent`, so without it the text scrolls visibly under the buttons.
+    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-md border-b border-border bg-background px-1.5 py-1">
+      {/* First in the row, and the only buttons disabled by their OWN state
+          rather than by `off`: with nothing to undo the control has to look
+          spent, or it reads as broken. Cmd+Z/Cmd+Shift+Z work regardless — the
+          keybindings come from the UndoRedo extension, not from these. */}
+      <ToolButton
+        label="Undo"
+        disabled={off || !state?.canUndo}
+        onClick={() => chain().undo().run()}
+      >
+        <Undo2 />
+      </ToolButton>
+      <ToolButton
+        label="Redo"
+        disabled={off || !state?.canRedo}
+        onClick={() => chain().redo().run()}
+      >
+        <Redo2 />
+      </ToolButton>
+      <ToolbarDivider />
       {([1, 2, 3] as Level[]).map((level) => (
         <ToolButton
           key={level}
@@ -116,7 +154,16 @@ export function RichTextToolbar({ editor }: { editor: Editor | null }) {
       ))}
       <ToolbarDivider />
       <LinkPopover editor={editor} active={state?.link} disabled={off} />
+      {allowImages ? <ImageButton editor={editor} disabled={off} /> : null}
       <InsertMenu editor={editor} disabled={off} />
+      {/* Contextual, like the table controls below: an image's size/position
+          only mean anything while one is selected. */}
+      {state?.inImage ? (
+        <>
+          <ToolbarDivider />
+          <ImageControls editor={editor} />
+        </>
+      ) : null}
       {state?.inTable ? (
         <>
           <ToolbarDivider />
