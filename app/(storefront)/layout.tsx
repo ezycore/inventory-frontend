@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
 import { StorefrontUIProvider } from "@/services/storefront/ui-context";
+import { StorefrontToaster } from "@/components/storefront/storefront-toaster";
 import { STOREFRONT_FONT_VARS } from "./fonts";
 import "./storefront.css";
 
@@ -39,7 +40,13 @@ export default function StorefrontGroupLayout({
         data-theme="light"
         suppressHydrationWarning
       >
-        <StorefrontUIProvider>{children}</StorefrontUIProvider>
+        <StorefrontUIProvider>
+          {children}
+          {/* Inside the provider because it follows the SHOPPER's theme, not
+              next-themes — see `StorefrontToaster`. It portals to the body
+              itself, so its position in the tree costs nothing. */}
+          <StorefrontToaster />
+        </StorefrontUIProvider>
       </div>
       <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
     </>

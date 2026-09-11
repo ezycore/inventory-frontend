@@ -91,6 +91,69 @@ export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
 };
 
 /**
+ * Which step each merchant-defined slot renders on, for the STEPPED layout.
+ *
+ * ⚠ Same contract as `CHECKOUT_STEP_FIELDS`, and the same failure if it drifts:
+ * a required field mapped to a step that does not render it is a step the
+ * shopper can never leave. Read this against `SteppedCheckout` — address is
+ * step 1, payment is step 2, review + terms are step 3 — and against where
+ * `CustomFields` is anchored in the blocks.
+ *
+ * The three single-screen layouts never consult it; everything is mounted.
+ */
+export const CHECKOUT_SLOT_STEP: Record<CheckoutFieldSlot, number> = {
+  "after-contact": 1,
+  "after-address": 1,
+  "before-payment": 2,
+  "after-payment": 2,
+  "before-submit": 3,
+};
+
+/** The checkout anchors a merchant may place one of their own fields against. */
+export type CheckoutFieldSlot =
+  | "after-contact"
+  | "after-address"
+  | "before-payment"
+  | "after-payment"
+  | "before-submit";
+
+/**
+ * The slot a field renders in. Unset reads as `after-address`, which is where
+ * every custom field rendered before slots existed — so a store that never
+ * opens the setting keeps the checkout it has.
+ */
+export const slotOf = (field: { slot?: CheckoutFieldSlot }): CheckoutFieldSlot =>
+  field.slot ?? "after-address";
+
+/** What a `showWhen` is judged against — the shopper's live choices. */
+export interface CheckoutVisibilityContext {
+  paymentMethod?: string;
+}
+
+/**
+ * Whether a merchant-defined entry is on screen for these choices.
+ *
+ * **A deliberate literal port of the backend's `isCheckoutFieldVisible`**
+ * (`utils/checkout-address.ts`), for the same reason `lib/bd-zone.ts` mirrors
+ * the server's zone rule: the form decides what to render and what to refuse,
+ * the server decides what to require and what to store, and if the two disagree
+ * the shopper meets the worst failure a checkout has — a form that accepts an
+ * order the server then rejects, naming a field that was never on the page.
+ *
+ * Unset, empty, or no context means visible: every field saved before conditions
+ * existed carries no `showWhen`, and those must not start disappearing.
+ */
+export function isCheckoutFieldVisible(
+  field: { showWhen?: { paymentMethods?: string[] } },
+  context?: CheckoutVisibilityContext,
+): boolean {
+  const methods = field.showWhen?.paymentMethods;
+  if (!methods?.length) return true;
+  if (!context?.paymentMethod) return true;
+  return methods.includes(context.paymentMethod);
+}
+
+/**
  * The step that renders a given field — the inverse of `CHECKOUT_STEP_FIELDS`.
  *
  * A stepped layout's final submit checks EVERY field, but only one screen is
@@ -98,10 +161,21 @@ export const CHECKOUT_STEP_FIELDS: Record<number, readonly CheckoutField[]> = {
  * lets the submit jump to the screen that owns the problem first. Falls back to
  * step 1, which is where the fields a shopper can actually be missing live.
  */
-export function stepForField(field: CheckoutField): number {
-  // The merchant's own fields render inside the delivery block, so they belong
-  // to whichever step owns the address — step 1.
-  if (String(field).startsWith("custom:")) return 1;
+export function stepForField(
+  field: CheckoutField,
+  /**
+   * Slot per custom-field key, for `custom:<key>` errors. Omitted, every custom
+   * field is assumed to sit where they all used to — step 1.
+   */
+  slots?: Readonly<Record<string, CheckoutFieldSlot>>,
+): number {
+  // The merchant's own fields render wherever the merchant anchored them, which
+  // is a slot, which is a step. Before slots they were all in the delivery
+  // block, so an unmapped key still answers step 1.
+  if (String(field).startsWith("custom:")) {
+    const slot = slots?.[String(field).slice("custom:".length)];
+    return slot ? CHECKOUT_SLOT_STEP[slot] : 1;
+  }
   const hit = Object.entries(CHECKOUT_STEP_FIELDS).find(([, fields]) =>
     fields.includes(field),
   );
@@ -162,6 +236,16 @@ export function checkoutErrors({
 export function firstInvalidField(
   errors: CheckoutErrors,
   scope?: readonly CheckoutField[],
+  /**
+   * The merchant's own field keys that are on screen, in the order they render.
+   *
+   * Passing it is what lets a scoped call be right about custom fields once they
+   * can be anchored anywhere: a slot puts them on any of the three steps, so
+   * "is `address` in scope?" stopped being a usable proxy for "are the custom
+   * fields in scope?". Omitted, the pre-slot behaviour stands — every custom
+   * field counts as living with the address.
+   */
+  customKeys?: readonly string[],
 ): CheckoutField | null {
   const order = scope
     ? CHECKOUT_FIELD_ORDER.filter((field) => scope.includes(field))
@@ -172,9 +256,13 @@ export function firstInvalidField(
   // the merchant invents them. Without this they were set on `errors`, rendered
   // beside their input, and then IGNORED by the submit: `reveal()` found nothing
   // to refuse and let the order through to be rejected by the SERVER instead.
-  // They sort after the built-ins because that is where they render — inside the
-  // delivery block, which is why a scoped call recognises them by that step
-  // rather than by a list nobody can write down in advance.
+  if (customKeys) {
+    const hit = customKeys.find((key) => errors[`custom:${key}`]);
+    return hit ? (`custom:${hit}` as CheckoutField) : null;
+  }
+  // No list given: the pre-slot rule. They sorted after the built-ins because
+  // that is where they rendered — inside the delivery block — which is why a
+  // scoped call recognised them by that step.
   if (scope && !scope.includes("address")) return null;
   const custom = Object.keys(errors)
     .filter((key) => key.startsWith("custom:") && errors[key])

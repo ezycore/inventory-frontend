@@ -3,8 +3,8 @@
 
 import type { ReactNode } from "react";
 import { useId } from "react";
-import { sfFieldLabel } from "@/components/storefront/field-styles";
-import { Field } from "@/components/storefront/checkout/checkout-field";
+import { sfFieldLabel, sfVisuallyHidden } from "@/components/storefront/field-styles";
+import { DANGER, Field } from "@/components/storefront/checkout/checkout-field";
 import type { CheckoutField } from "@/components/storefront/checkout/checkout-validation";
 
 /**
@@ -21,6 +21,7 @@ export function LabeledField({
   label,
   error,
   optional,
+  required,
   help,
   children,
 }: {
@@ -32,6 +33,17 @@ export function LabeledField({
   /** Renders the `— optional` suffix. Say it in the label, not the placeholder:
    *  a placeholder disappears the moment the shopper starts typing. */
   optional?: string;
+  /**
+   * Renders the red `*`. Takes the WORD for it, not a boolean, because the star
+   * is only the sighted half of the marker — the word rides along visually
+   * hidden, so the label announces "Mobile number, required" instead of
+   * "Mobile number star", and it has to be translated like any other word.
+   *
+   * Absence is not a claim of optionality: the merchant's notes box says
+   * `optional` outright, and the two props stay separate so a field that
+   * somehow passed both looks wrong rather than silently picking one.
+   */
+  required?: string;
   /**
    * A line of explanation under the label. Used by the merchant's own checkout
    * fields, where the wording is theirs and a placeholder would not survive the
@@ -48,6 +60,14 @@ export function LabeledField({
           {label}
           {optional ? (
             <span style={{ color: "var(--faint)", fontWeight: 500 }}> — {optional}</span>
+          ) : null}
+          {required ? (
+            <>
+              <span aria-hidden="true" style={{ color: DANGER, marginLeft: 3 }}>
+                *
+              </span>
+              <span style={sfVisuallyHidden}>{required}</span>
+            </>
           ) : null}
         </label>
       ) : null}

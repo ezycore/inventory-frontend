@@ -1711,23 +1711,33 @@ were removed for this; only `placing` disables anything.
 ⚠ **A payment method says only what the platform can promise; anything more is
 the merchant's own words.** `blocks/payment-block.tsx` gives COD a built-in
 sub-line because "you pay on delivery" is true of every store. Bank transfer gets
-no such line — its next step differs per shop — so the merchant supplies it
-(Store Settings → Payments → the box under Bank / Manual transfer,
-`StorefrontSettings.bankInstructions`, ≤600 chars) and the block renders it in a
-panel **below** the method list while `bank` is selected. Notes:
+no such line — its next step differs per shop — so the merchant supplies it, and
+since 2026-09-11 that is a **checkout notice scoped to the method**, not a
+setting of its own. Notes:
 
-- It lands below the list, not inside the button: it carries an account number
-  the shopper must select and copy, and text inside a toggle fights the toggle.
-- `whiteSpace: pre-wrap`. Merchants type account name / number / branch on
-  separate lines; collapsing them is unreadable.
-- Only the heading is translated (`Dict.bankInstructionsHeading`). The merchant's
-  text is passed through verbatim in both languages.
-- **This was dead data for its whole life until 2026-09-08** — saved, served on
-  the public payload, typed on the client with a comment claiming it was shown,
-  and rendered nowhere. The lesson generalises past this field: a merchant-facing
+- The old `StorefrontSettings.bankInstructions` column is **gone**. It served one
+  method, so bKash and Nagad would each have needed their own column, DTO field,
+  admin box and render branch. Instructions are now a `checkout.customFields`
+  entry with `kind: "notice"`, `slot: "after-payment"` and
+  `showWhen: { paymentMethods: ["bank"] }` — written in Store Settings →
+  Checkout → Extra checkout fields.
+- ⚠ **`showWhen` is a validation concern, not just a rendering one.** A hidden
+  field is never required and its answer is never stored — enforced twice, in
+  `checkout-validation.ts` and the backend's `utils/checkout-address.ts`. Skip
+  either half and a bank-scoped required field makes a COD order impossible to
+  place, refused over a control that is not on the page.
+- Notice text is capped at **600** (inputs' labels stay at 200) precisely so
+  account name / number / branch fit. `whiteSpace: pre-wrap` is preserved, since
+  merchants type those on separate lines.
+- Nothing about it is translated any more — a notice is the merchant's own text.
+  The old `Dict` heading went with the panel.
+- **It was dead data for its whole life until 2026-09-08** — saved, served on the
+  public payload, typed on the client with a comment claiming it was shown, and
+  rendered nowhere. The lesson generalises past this field: a merchant-facing
   setting is not shipped when the PATCH succeeds. Grep the field name across the
-  frontend and confirm a render site exists. (It is *still* absent from the
-  order-placed card, the tracking page and the confirmation email.)
+  frontend and confirm a render site exists. (Payment instructions are *still*
+  absent from the order-placed card, the tracking page and the confirmation
+  email.)
 
 ⚠ **The trust strip may not assert a policy.** `blocks/trust-strip.tsx` shows COD
 only when the merchant offers COD, and a returns line only when the merchant has

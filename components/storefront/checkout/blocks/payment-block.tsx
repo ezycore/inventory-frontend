@@ -3,6 +3,7 @@
 
 import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { label } from "@/components/storefront/checkout/checkout-bits";
+import { CustomFields } from "@/components/storefront/checkout/blocks/custom-fields";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
 
 const PAY_ICON: Record<string, IconName> = { cod: "coins", bank: "bank" };
@@ -15,14 +16,13 @@ export function PaymentBlock({
   api: CheckoutApi;
   showHeading?: boolean;
 }) {
-  const { t, store, methods, effectivePayment, setPayment } = api;
-  // Merchant-written next step for a manual transfer (Payments settings). Kept
-  // out of the button below on purpose: it holds an account number the shopper
-  // has to READ and copy, and text inside a toggle is hostile to select.
-  const bankInstructions = store?.bankInstructions?.trim();
+  const { t, methods, effectivePayment, setPayment } = api;
   return (
     <div>
       {showHeading ? <div style={label}>{t.paymentMethod}</div> : null}
+      {/* Above the method list, under the heading: a notice about HOW to pay has
+          to be read before the choice, not after it. */}
+      <CustomFields api={api} slot="before-payment" style={{ marginBottom: 14 }} />
       <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 8 }}>
         {methods.map((m) => {
           const sel = effectivePayment === m;
@@ -76,34 +76,13 @@ export function PaymentBlock({
         })}
       </div>
 
-      {/* Shown only while bank is the CHOSEN method — instructions for a
-          payment the shopper is not making are noise. `pre-wrap` keeps the
-          merchant's own line breaks: account name, number and branch are
-          typed on separate lines and must stay that way to be readable. */}
-      {effectivePayment === "bank" && bankInstructions ? (
-        <div
-          style={{
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-md)",
-            padding: 14,
-            background: "var(--surface)",
-          }}
-        >
-          <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>
-            {t.bankInstructionsHeading}
-          </div>
-          <div
-            style={{
-              fontSize: 13,
-              lineHeight: 1.55,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
-          >
-            {bankInstructions}
-          </div>
-        </div>
-      ) : null}
+      {/* Payment instructions used to be a hardcoded `bankInstructions`
+          panel right here, readable only by the one method that had a
+          column for it. They are a method-scoped notice now: the same place
+          on screen, but every method can carry its own, and the merchant
+          writes them all in one editor instead of one box per method. See
+          `CheckoutField.showWhen`. */}
+      <CustomFields api={api} slot="after-payment" style={{ marginTop: 14 }} />
     </div>
   );
 }

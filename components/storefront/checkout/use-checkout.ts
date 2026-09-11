@@ -39,11 +39,15 @@ import {
 import { canonicalizeBdPhone, isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
+  CHECKOUT_SLOT_STEP,
   CHECKOUT_STEP_FIELDS,
   checkoutErrors,
   firstInvalidField,
+  isCheckoutFieldVisible,
+  slotOf,
   stepForField,
   type CheckoutErrors,
+  type CheckoutFieldSlot,
 } from "@/components/storefront/checkout/checkout-validation";
 import { useCheckoutErrors } from "@/components/storefront/checkout/use-checkout-errors";
 
@@ -315,13 +319,38 @@ export function useCheckout() {
   if (!isPickup && isFlatAddress && zoned && needsZoneChoice && !zoneChoice) {
     errors.zoneChoice = t.zoneChoiceRequired;
   }
-  for (const field of store?.checkout?.customFields ?? []) {
+  const customFields = store?.checkout?.customFields ?? [];
+  // Only the fields the shopper can actually SEE right now. A field scoped to
+  // bank transfer must not refuse a cash-on-delivery order — that is an order
+  // nobody can place, refused over a control that is not on the page.
+  const visibleCustomFields = customFields.filter((field) =>
+    isCheckoutFieldVisible(field, { paymentMethod: effectivePayment }),
+  );
+  const visibleCustomFieldAnswers: Record<string, string> = {};
+  for (const field of visibleCustomFields) {
+    if (field.kind === "input" && customFieldAnswers[field.key] !== undefined) {
+      visibleCustomFieldAnswers[field.key] = customFieldAnswers[field.key];
+    }
+  }
+  for (const field of visibleCustomFields) {
     if (field.kind !== "input" || !field.required) continue;
     if (!customFieldAnswers[field.key]?.trim()) {
       errors[`custom:${field.key}`] = t.fieldRequired;
     }
   }
   const errorState = useCheckoutErrors(errors);
+
+  // Where each of the merchant's fields sits, in the two shapes the refusal
+  // logic needs: key → slot for `stepForField`, and step → keys in render order
+  // for a scoped `reveal`. Both are derived from the same array the blocks
+  // render from, so a slot can never mean one place to the form and another to
+  // the thing that refuses it.
+  const customSlots: Record<string, CheckoutFieldSlot> = {};
+  for (const field of visibleCustomFields) customSlots[field.key] = slotOf(field);
+  const customKeysForStep = (n: number) =>
+    visibleCustomFields
+      .filter((field) => CHECKOUT_SLOT_STEP[slotOf(field)] === n)
+      .map((field) => field.key);
 
   // Best-effort: remember the picked district/area on the chosen address (or save
   // a brand-new one), so the next checkout is pre-filled. Never blocks the order.
@@ -362,7 +391,7 @@ export function useCheckout() {
    * rendered yet. Terms still gate `submit`, which is where they belong.
    */
   const tryAdvance = () => {
-    if (!errorState.reveal(CHECKOUT_STEP_FIELDS[step])) {
+    if (!errorState.reveal(CHECKOUT_STEP_FIELDS[step], customKeysForStep(step))) {
       toast.error(t.checkoutFixErrors);
       return false;
     }
@@ -386,7 +415,7 @@ export function useCheckout() {
     // tightens to the BD-mobile rule and a number that passed step 1 no longer
     // does. A no-op in the three single-screen layouts, which never read `step`.
     const offending = firstInvalidField(errors);
-    if (offending) setStep(stepForField(offending));
+    if (offending) setStep(stepForField(offending, customSlots));
 
     // No toast here: `PlaceOrderButton` renders the same sentence as a banner
     // beside itself, and `reveal()` has already scrolled to the offending field,
@@ -430,8 +459,12 @@ export function useCheckout() {
         paymentMethod: effectivePayment,
         couponCode: applied?.code,
         termsAccepted: termsRequired ? termsAccepted : undefined,
-        customFieldAnswers: Object.keys(customFieldAnswers).length
-          ? customFieldAnswers
+        // Only what the shopper was actually asked. State keeps an answer typed
+        // before a payment-method switch so it survives switching back, but
+        // sending it would file a bank reference against a COD order — and the
+        // server drops it anyway, by the same rule.
+        customFieldAnswers: Object.keys(visibleCustomFieldAnswers).length
+          ? visibleCustomFieldAnswers
           : undefined,
         // Lets the server close this browser's mirrored cart. Without it a guest
         // order leaves the cart `active` — counted as abandoned, missing from the
@@ -512,7 +545,7 @@ export function useCheckout() {
     needsZoneChoice,
     zoneChoice,
     setZoneChoice,
-    customFields: store?.checkout?.customFields ?? [],
+    customFields,
     customFieldAnswers,
     setCustomFieldAnswer: (key: string, value: string) =>
       setCustomFieldAnswers((prev) => ({ ...prev, [key]: value })),
