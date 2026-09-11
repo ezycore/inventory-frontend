@@ -47,7 +47,7 @@ export function PlanCard({
   currency,
   state,
   onChoose,
-  previousFeatures,
+  previousTier,
 }: {
   plan: AvailablePlan;
   name: string;
@@ -55,15 +55,22 @@ export function PlanCard({
   state: PlanCardState;
   onChoose: () => void;
   /**
-   * What the tier below this one grants. Given, the card lists only what this
-   * tier ADDS; absent (the entry tier) it lists everything.
+   * The tier below this one — its package name and what it grants. Given, the
+   * card lists only what this tier ADDS; absent (the entry tier) it lists
+   * everything.
    *
    * Three cards each reciting eleven identical capabilities is a wall of ticks
    * a merchant has to diff by eye. Showing the delta is what makes a ladder
    * legible — and it is only possible now that the tiers differ by capability
    * at all.
+   *
+   * Name and features travel together because the heading has to say *which*
+   * plan the delta is against. It used to read "Everything below, plus:", which
+   * is true of no layout the grid actually renders: the tier below sits to the
+   * LEFT at `lg` (three columns), above-left at `sm`, and directly ABOVE on one
+   * column — so on a phone the word pointed the wrong way entirely.
    */
-  previousFeatures?: string[];
+  previousTier?: { name: string; features: string[] };
 }) {
   const tPlans = useTranslations("settings.billing.plans");
   const tInterval = useTranslations("settings.billing.interval");
@@ -72,8 +79,8 @@ export function PlanCard({
   // What this tier adds over the one below. `plan.features` already arrives
   // filtered to the granted keys — MC's `toPublicListing` drops the explicit
   // falses — so a set difference is the whole computation.
-  const addedFeatures = previousFeatures
-    ? plan.features.filter((f) => !previousFeatures.includes(f))
+  const addedFeatures = previousTier
+    ? plan.features.filter((f) => !previousTier.features.includes(f))
     : plan.features;
 
   // Suffix honors intervalCount — a 6-month plan is "/6 mo", never "/mo".
@@ -131,9 +138,9 @@ export function PlanCard({
 
         {addedFeatures.length > 0 && (
           <div className="space-y-1.5">
-            {previousFeatures && (
+            {previousTier && (
               <p className="text-xs font-medium text-muted-foreground">
-                {tPlans("everythingBelowPlus")}
+                {tPlans("everythingInPlanPlus", { plan: previousTier.name })}
               </p>
             )}
             <ul className="space-y-1.5">

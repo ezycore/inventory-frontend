@@ -503,7 +503,9 @@
       "startTrial": "Start free trial",
       "trialUsed": "Your workspace has already used its free trial, so a new plan starts with payment.",
       "limitsTitle": "Plan limits",
-      "everythingBelowPlus": "Everything below, plus:"
+      "everythingInPlanPlus": "Everything in {plan}, plus:",
+      "loadError": "Couldn't load the available plans. Your subscription is unchanged.",
+      "retry": "Try again"
     },
     "trialSwitch": {
       "title": "End your free trial?",
@@ -526,6 +528,31 @@
       "afterTrial": "If you don't pay by then, your data is kept safe and your workspace waits on the billing page until you choose a plan. Nothing is deleted.",
       "cancel": "Not now",
       "confirm": "Start free trial"
+    },
+    "alert": {
+      "waitingOnPayment": "Your workspace is <strong>waiting on payment</strong>. Your data is safe — choose a plan to activate it.",
+      "subscriptionEnded": "Your subscription has <strong>ended</strong>. Your data is safe — choose a plan to reactivate your workspace.",
+      "choosePlan": "Choose a plan",
+      "reactivate": "Reactivate",
+      "overdue": "Your subscription payment is <strong>overdue</strong>. Pay now to keep full access — unpaid workspaces become read-only, then suspended.",
+      "overdueWithAmount": "Your subscription payment of <strong>{amount}</strong> is <strong>overdue</strong>. Pay now to keep full access — unpaid workspaces become read-only, then suspended.",
+      "payNow": "Pay now",
+      "billing": "Billing",
+      "payLinkFailed": "Couldn't open the payment page. Check your email for the invoice link, or try again.",
+      "nothingDue": "No outstanding payment was found."
+    },
+    "statusNames": {
+      "trialing": "Trialing",
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled",
+      "incomplete": "Awaiting payment"
+    },
+    "gatewayNames": {
+      "stripe": "Stripe",
+      "sslcommerz": "SSLCommerz",
+      "paystation": "PayStation",
+      "manual": "Manual"
     }
   },
   "users": {
