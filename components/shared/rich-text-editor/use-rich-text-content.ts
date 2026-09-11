@@ -9,6 +9,7 @@ import {
   type RichDocRoot,
 } from "@/lib/storefront-rich-doc";
 import { richTextExtensions } from "./extensions";
+import { inlinePastedEmojiImages } from "./paste-emoji";
 
 /**
  * Editor lifecycle for RichTextEditor. Initial content is derived ONCE on
@@ -43,6 +44,10 @@ export function useRichTextContent(
     content: initial.current,
     editable: !disabled,
     immediatelyRender: false,
+    // Emoji copied out of Facebook/Slack/X are `<img>` sprites, which our
+    // `image` node would otherwise adopt as full-width body images. See
+    // `paste-emoji.ts`.
+    editorProps: { transformPastedHTML: inlinePastedEmojiImages },
     onUpdate: ({ editor }) => onChangeRef.current(JSON.stringify(editor.getJSON())),
   });
 
