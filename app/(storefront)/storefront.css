@@ -3814,3 +3814,79 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     transition: none;
   }
 }
+
+/* ---- Rich-doc body images ----
+   Geometry for images inside a CMS page body or a product description. The
+   WIDTH arrives as an inline style (a percentage from a closed list, inherently
+   responsive); everything else is here, keyed off data attributes, because
+   text-wrap needs a breakpoint and an inline style cannot carry one.
+
+   `max-width:100%` is never overridden: it is what stops a 2000px camera upload
+   forcing the page to scroll sideways. */
+.sf-rdimg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 14px auto;
+}
+.sf-rdimg[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.sf-rdimg[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Text beside the image — DESKTOP ONLY. Below 680px the rules above still apply
+   and the image stays a full-flow block: a 50% float in a ~360px column leaves
+   roughly 170px of image and 170px of text, and both are unreadable. This is the
+   same reasoning as `.sf-home-collections` above. */
+@media (min-width: 680px) {
+  .sf-rdimg[data-wrap="1"][data-align="left"] {
+    float: left;
+    margin: 4px 18px 12px 0;
+  }
+  .sf-rdimg[data-wrap="1"][data-align="right"] {
+    float: right;
+    margin: 4px 0 12px 18px;
+  }
+}
+
+/* Contains the float, so it cannot escape the body and collide with the next
+   section (related products, the footer). */
+.sf-rich-doc::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* ---- Owner preview bar -------------------------------------------------
+   Shown only when the request carries a verified owner-preview token. It has to
+   read as chrome that is NOT part of the shop — the merchant's question is
+   "which of the two shops am I looking at", so it deliberately ignores the
+   store's theme colours and uses a fixed warning palette. */
+.sf-preview-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  padding: 9px 16px;
+  background: #78350f;
+  color: #fffbeb;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+.sf-preview-bar strong {
+  font-weight: 700;
+}
+.sf-preview-exit {
+  color: #fffbeb;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}

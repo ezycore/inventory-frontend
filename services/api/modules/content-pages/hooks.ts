@@ -18,7 +18,7 @@ export const useCreateContentPage = () => {
     mutationFn: (body: ContentPageInput) => contentPagesApi.create(body),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page created");
-      invalidate(qc, "storefront.catalog.changed");
+      invalidate(qc, "storefront.content.changed");
     },
     onError: handleMutationError,
   });
@@ -31,7 +31,7 @@ export const useUpdateContentPage = () => {
       contentPagesApi.update(v.id, v.body),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page updated");
-      invalidate(qc, "storefront.catalog.changed");
+      invalidate(qc, "storefront.content.changed");
     },
     onError: handleMutationError,
   });
@@ -43,7 +43,7 @@ export const useDeleteContentPage = () => {
     mutationFn: (id: string) => contentPagesApi.remove(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Page deleted");
-      invalidate(qc, "storefront.catalog.changed");
+      invalidate(qc, "storefront.content.changed");
     },
     onError: handleMutationError,
   });

@@ -1,11 +1,26 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, CreateProductDto, UpdateProductDto, ProductFilters } from "@/types";
-import type { ProductDetail, ProductListItem, ApiVariant } from "@/types/api";
+import type { ProductDetail, ProductListItem, ApiVariant, ApiImage } from "@/types/api";
 import { buildQueryParams } from "../../utils";
 import { createImportApi } from "../import-api";
 
 export const productsApi = {
+
+  /**
+   * Upload one image for embedding in a product's rich-text description.
+   *
+   * Fires as soon as the merchant picks a file — the editor needs a URL to
+   * render, which on the create form is before the product exists at all. An
+   * abandoned edit therefore leaves an orphan in R2; that is the accepted trade
+   * (see the backend service), and the object still sits under the org prefix
+   * so the tenant purge reaches it.
+   */
+  uploadDescriptionImage: (file: File): Promise<ApiResponse<ApiImage>> => {
+    const body = new FormData();
+    body.append("image", file);
+    return apiClient.post("/products/description-image", body);
+  },
 
   // CSV export of all products matching the given list filters. Uses the same
   // `buildQueryParams` as `getAll` so the export honours the active filters.

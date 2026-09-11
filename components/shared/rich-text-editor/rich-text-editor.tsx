@@ -2,9 +2,11 @@
 // coding-standard: maintained
 import { EditorContent } from "@tiptap/react";
 import { cn } from "@ui/lib/utils";
+import { EditorFooter } from "./editor-footer";
 import { RichTextToolbar } from "./toolbar";
 import { useRichTextContent } from "./use-rich-text-content";
 import "./rich-text-editor.css";
+import type { RichImageScope } from "./image-upload";
 
 /**
  * Structured rich-text editor for storefront CMS page bodies. Emits the
@@ -17,13 +19,22 @@ export function RichTextEditor({
   onChange,
   disabled,
   className,
+  legacyFormat,
+  maxLength,
+  imageUpload,
 }: {
   value: string;
   onChange: (json: string) => void;
   disabled?: boolean;
   className?: string;
+  /** How to open a value that is not yet rich-doc JSON. See the form field type. */
+  legacyFormat?: "markdown" | "plaintext";
+  /** Serialized-length cap, surfaced by the footer. See `editor-footer.tsx`. */
+  maxLength?: number;
+  /** Show the insert-image button. Opt-in — see `ImageButton`. */
+  imageUpload?: RichImageScope;
 }) {
-  const editor = useRichTextContent(value, onChange, disabled);
+  const editor = useRichTextContent(value, onChange, disabled, legacyFormat);
   return (
     <div
       className={cn(
@@ -33,8 +44,9 @@ export function RichTextEditor({
         className,
       )}
     >
-      <RichTextToolbar editor={editor} />
+      <RichTextToolbar editor={editor} imageUpload={imageUpload} />
       <EditorContent editor={editor} className="rte-content px-3 py-2" />
+      <EditorFooter editor={editor} maxLength={maxLength} value={value} />
     </div>
   );
 }

@@ -87,7 +87,6 @@ export function ProductOnlineEditor({
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const [slug, setSlug] = useState("");
   const [onlineTitle, setOnlineTitle] = useState("");
-  const [onlineDescription, setOnlineDescription] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [outOfStock, setOutOfStock] = useState(INHERIT);
@@ -141,7 +140,6 @@ export function ProductOnlineEditor({
     setWeightKg(typeof sf.weightKg === "number" ? sf.weightKg : null);
     setSlug(sf.slug ?? "");
     setOnlineTitle(sf.onlineTitle ?? "");
-    setOnlineDescription(sf.onlineDescription ?? "");
     setSeoTitle(sf.seo?.title ?? "");
     setSeoDescription(sf.seo?.description ?? "");
     // Unset on the product = following the store default, which is exactly what
@@ -198,7 +196,6 @@ export function ProductOnlineEditor({
       ["weightKg", weightKg !== null ? String(weightKg) : null],
       ["slug", slug.trim() || null],
       ["onlineTitle", onlineTitle.trim() || null],
-      ["onlineDescription", onlineDescription.trim() || null],
       ["seoTitle", seoTitle.trim() || null],
       ["seoDescription", seoDescription.trim() || null],
     ];
@@ -382,17 +379,12 @@ export function ProductOnlineEditor({
             </p>
           </div>
 
-          {/* Description */}
-          <div className="space-y-1">
-            <Label>Online description</Label>
-            <Textarea
-              value={onlineDescription}
-              onChange={(e) => setOnlineDescription(e.target.value)}
-              maxLength={1000}
-              rows={4}
-              placeholder="Shown on the product's storefront page"
-            />
-          </div>
+          {/* The description is NOT edited here. It consolidated onto the
+              product's own top-level `description`, and `patchListing` writes
+              only `storefront.*` paths — giving this sheet a description field
+              would make the catalog module mutate the POS product, which is the
+              boundary the whole overlay is built on. One editor, in
+              Products → Edit. */}
 
           {/* Gallery */}
           <div className="space-y-1">

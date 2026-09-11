@@ -6,6 +6,7 @@ import {
   getStoreProduct,
 } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
+import { richDocToPlainText } from "@/lib/storefront-rich-doc";
 import { breadcrumbJsonLd, productJsonLd } from "@/lib/storefront-jsonld";
 import { productCrumbs } from "@/lib/storefront-breadcrumb";
 import { canonicalTarget } from "@/lib/storefront-canonical";
@@ -29,9 +30,12 @@ export async function generateMetadata({
   return storePageMetadata({
     // Merchant SEO overrides win; else the (online) title / description.
     title: product?.seo?.title || product?.name || "Product",
+    // Flattened before slicing — raw rich-doc JSON in a meta description is
+    // what `richDocToPlainText` exists to prevent (legacy plain text passes
+    // through untouched).
     description:
       product?.seo?.description ||
-      product?.description?.slice(0, 200) ||
+      richDocToPlainText(product?.description).slice(0, 200) ||
       undefined,
     path: `/products/${productSlug}`,
     image: fullImageUrl(product?.images?.[0]),

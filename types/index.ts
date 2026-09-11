@@ -1775,7 +1775,6 @@ export interface Product extends BaseEntity {
     isListed: boolean;
     onlinePrice?: number;
     featured?: boolean;
-    onlineDescription?: string;
   };
 
   // Combo composition — present only on combo products (productType === "combo").
