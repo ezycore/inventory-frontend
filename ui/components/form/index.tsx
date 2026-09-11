@@ -322,7 +322,12 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto px-6 pb-1">
+                    {/* `pt-1` for the same reason the drawer body carries one:
+                        the first card's `ring-1` paints outside its box and a
+                        scroll container with no top padding clips it. The
+                        header's `pb-2` sits OUTSIDE this container and so never
+                        gave the ring anywhere to land. */}
+                    <div className="flex-1 overflow-y-auto px-6 pt-1 pb-1">
                         <form
                             method={FORM_METHOD}
                             {...props}
@@ -352,7 +357,10 @@ const DynamicForm: FC<DynamicFormProps> = ({
                     className="w-full sm:w-[80vw] sm:max-w-[880px] p-0 overflow-hidden flex flex-col [&>button]:hidden"
                 >
 
-                    <SheetHeader className="px-6 py-4 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
+                    {/* Gutter matches the body below it, so the title lines up
+                        with the edge of the cards rather than sitting inboard
+                        of them on a phone. */}
+                    <SheetHeader className="px-3 py-4 sm:px-6 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
                         <SheetTitle>{title}</SheetTitle>
                         <SheetDescription className="sr-only">
                             Form drawer for {title}
@@ -362,7 +370,30 @@ const DynamicForm: FC<DynamicFormProps> = ({
                         </div>}
                     </SheetHeader>
 
-                    <div className="flex-1 overflow-y-auto px-6 pb-6">
+                    {/*
+                      The scroll viewport. Two things about its padding are
+                      load-bearing.
+
+                      `pt-*` is not decoration. `Card` draws its outline with
+                      `ring-1`, and a ring is a box-shadow painted OUTSIDE the
+                      element's box — so with the first card flush against the
+                      top of a scroll container, its top ring lands a pixel
+                      above the content box and the container clips it. The
+                      card read as having no top border at all, while the left,
+                      right and bottom ones were fine because `px`/`pb` gave
+                      them room to paint into. Any value clears it; these match
+                      the other sides.
+
+                      The gutter is SMALLER than the `px-4 sm:px-6` the section
+                      cards use inside it, rather than equal to it. On a 360px
+                      phone this container and the card within it were stacking
+                      24px + 16px of chrome on each side, spending 80px of 360
+                      before a field began. The outer gutter only has to show
+                      the card's edge and its ring; the inner padding is what
+                      actually keeps text off a boundary, so the outer one is
+                      where the width comes back.
+                    */}
+                    <div className="flex-1 overflow-y-auto px-3 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6">
                         <form
                             method={FORM_METHOD}
                             {...props}
