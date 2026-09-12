@@ -12185,6 +12185,28 @@ export interface components {
                 orderPrefix?: string;
                 termsRequired?: boolean;
                 termsPageSlug?: string;
+                /** @enum {string} */
+                addressMode?: "detailed" | "flat";
+                customFields?: {
+                    key: string;
+                    /** @enum {string} */
+                    kind: "notice" | "input";
+                    label: string;
+                    helpText?: string;
+                    /** @enum {string} */
+                    type?: "text" | "textarea" | "number" | "select" | "checkbox";
+                    options?: string[];
+                    required?: boolean;
+                    /** @enum {string} */
+                    slot?: "after-contact" | "after-address" | "before-payment" | "after-payment" | "before-submit";
+                    /** @enum {string} */
+                    tone?: "plain" | "info" | "warn" | "success" | "accent";
+                    /** @enum {string} */
+                    size?: "sm" | "md" | "lg";
+                    showWhen?: {
+                        paymentMethods?: string[];
+                    };
+                }[];
             };
             templates?: {
                 home?: string;
