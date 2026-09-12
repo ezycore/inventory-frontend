@@ -1710,10 +1710,10 @@ were removed for this; only `placing` disables anything.
 
 ⚠ **A payment method says only what the platform can promise; anything more is
 the merchant's own words.** `blocks/payment-block.tsx` gives COD a built-in
-sub-line because "you pay on delivery" is true of every store. Bank transfer gets
-no such line — its next step differs per shop — so the merchant supplies it, and
-since 2026-09-11 that is a **checkout notice scoped to the method**, not a
-setting of its own. Notes:
+sub-line because "you pay on delivery" is true of every store — it is the ONLY
+method that gets one. Every other method's title and subtitle come from that
+store's own `paymentMethods` entry, and its instructions and questions are
+checkout fields scoped to its id. Notes:
 
 - The old `StorefrontSettings.bankInstructions` column is **gone**. It served one
   method, so bKash and Nagad would each have needed their own column, DTO field,
@@ -1721,6 +1721,100 @@ setting of its own. Notes:
   entry with `kind: "notice"`, `slot: "after-payment"` and
   `showWhen: { paymentMethods: ["bank"] }` — written in Store Settings →
   Checkout → Extra checkout fields.
+- **Payment methods are merchant data.** `cod` is the only one we ship (its
+  sub-line is a promise the platform can make for every store); `manual` belongs
+  to the ADMIN order path and a shopper never selects it. Both are reserved.
+  Everything else is a `store.paymentMethods` entry — bKash, Nagad, a bank
+  account — that the merchant names, subtitles, orders and deletes themselves.
+- Each method can name a **receiving account** (`paymentAccountMap`, method id →
+  `Account._id`), picked in Payments from `useOrderAccountOptions` — the same
+  permission-appropriate hook the order money dialogs use, so a role with
+  `storefront.orders.manage` but not `accounts.view` still gets a usable picker.
+  ⚠ On a WRITE the map **merges**: send only changed keys, and an explicit
+  `null` to clear one. Unset is a real choice ("Ask me each time" = the
+  per-order account prompt), rendered behind a `NO_ACCOUNT` sentinel because
+  Radix treats `value=""` as nothing-selected and would draw a blank control.
+
+- Each method carries an **`icon`** from a closed shipped set (card, bank, phone,
+  coins, receipt, bolt), picked from a swatch row in Payments. Resolve it ONLY via
+  `storefrontPaymentIcon` — never index a lookup table directly. That is the bug
+  it replaced: the render held a map of `cod`/`bank` and drew NOTHING for every
+  merchant method. The resolver has no "no icon" answer and falls back to `card`
+  three ways over (never picked / value from a shrunk list / id with no
+  definition), because a blank space beside a payment row reads as broken.
+  It is a closed list, not an upload: brand logos would mean storage, validation
+  and trademark calls for a 20px mark.
+
+- ⚠ **An id is frozen; a title is not.** The backend slugs the id from the title
+  once, at creation, and never again: it lands on every order and keys
+  `paymentAccountMap`. So NEVER resolve a label by id alone. Go through
+  `storefrontPaymentMethodLabel` (`lib/storefront-payment-methods.ts`), which
+  resolves order snapshot → store definition → translation → raw id. The
+  snapshot has to win: a merchant can rename or delete a method long after an
+  order was placed, and that invoice still has to say what the shopper chose.
+- ⚠ **`cod` and `bank` are deliberately NOT snapshotted onto orders.** Their
+  wording is translated (`t.cod`, `t.bankTransfer`), so pinning one language's
+  string would replace a correct Bangla invoice label with an English one. That
+  is why step 3 of the resolver exists at all.
+- `bank` is an ordinary merchant method, not a built-in — a backfill migration
+  gave every pre-existing store a `{ id: "bank", title: "Bank Transfer" }`
+  definition. Its id never changed, so bank-scoped checkout notices kept matching.
+- **The Payments tab is an ACCORDION: a 56px row per method, one open at a
+  time.** Every method used to render every control at once, so three methods
+  made a page thousands of pixels tall. The row carries what you read — mark,
+  title, subtitle, a one-line `summary` (account + what it asks for), the switch
+  — and the detail opens two columns wide. Cash on Delivery is a row in the same
+  list (`builtIn`), not a checkbox above it; that unification is what lets it
+  carry instructions at all. `md:` is the breakpoint: on a phone the row goes
+  title-over-summary, the detail stacks, reorder moves into the open row, and
+  every target grows past 44px.
+- ⚠ **The switch and the reorder chevrons are siblings of the toggle target, not
+  children.** Nested inside it, every enable/disable would also expand the row.
+- ⚠ **`PaymentsSettingsTab` adopts the server's ids after a save** (render-time
+  adjust on a signature of `settings.paymentMethods`). Without it a new row keeps
+  the `useState` seed that has no id, so it reads as unsaved forever and the field
+  editor stays out of reach. A row open as `__new` reopens under its minted id.
+- A method with no id yet gets neither the field editor nor the account picker:
+  both are keyed by that id, and it does not exist until the first save.
+- The address block's **"Delivery notes"** box is switchable —
+  `store.checkout.showOrderNotes`, and **unset reads as ON** so every store that
+  predates the toggle is unchanged. Do not treat it as decoration: what shoppers
+  type there reaches the COURIER via `composeCourierNote`. The backend strips the
+  value when the box is off, so never rely on the client alone to omit it.
+
+- ⚠ **That embedded editor runs in `paymentMode` — a deliberately smaller surface.**
+  A method needs a note (how to pay) and a field (what to send back), plus
+  `Required` and the note's STYLE. The slot is FORCED to `after-payment`, and
+  help text, input type and the option list are hidden. Do not "restore" those:
+  the slot picker in particular let a merchant put bKash instructions in the
+  address section. Tone/size are the deliberate exception — payment instructions
+  have to be noticed, so a new payment note defaults to `tone: "info"`. It hides controls, not
+  capability — the stored shape is unchanged, so one validator, one renderer and
+  one order snapshot still serve both editors. A
+  method with no id yet has never been saved and cannot own fields — the editor
+  shows a notice instead of creating entries that name nothing.
+- ⚠ **Payments and Checkout split ONE stored array, so each save must carry the
+  other's entries through.** Both tabs go through `mergeCheckoutFieldGroup` on
+  save — the PATCH replaces `checkout.customFields` wholesale, so saving a bare
+  slice deletes the other tab's work. `checkout-field-groups.test.ts`.
+- **The split is one visible rule: a Checkout entry is asked on EVERY order, an
+  entry under a payment method only for that method.** `isMethodOwnedField` is
+  therefore just "has a `showWhen.paymentMethods` condition", and `methodOwnerId`
+  is its first id. ⚠ **Do not reintroduce a "Show for payment method" picker.**
+  One existed, and because ownership then meant "exactly one method", unticking a
+  method in Checkout made the entry silently jump to the Payments tab on the next
+  load. An entry wanted on two methods is added twice now — rare, within the
+  twelve-entry budget, and an explicit duplicate beats a teleporting entry.
+- A condition naming a method the store no longer defines is **carried through,
+  not deleted**: no editor can reach it and the storefront never renders it, but
+  it is the merchant's words, so the Payments tab re-saves those `orphanFields`
+  untouched. They still count against the cap.
+- The twelve-entry cap is shared: each editor takes `reservedFieldCount` (what
+  the other side owns, orphans included) so the local cap matches the backend's
+  whole-array one.
+- Enabling a method with no definition is refused by the SERVICE, not the schema
+  — `PAYMENT_METHOD_UNDEFINED`. The admin form blocks it first; the resolver
+  still degrades to the raw id for any store that predates the rule.
 - ⚠ **`showWhen` is a validation concern, not just a rendering one.** A hidden
   field is never required and its answer is never stored — enforced twice, in
   `checkout-validation.ts` and the backend's `utils/checkout-address.ts`. Skip

@@ -363,9 +363,22 @@ describe("paymentMethodLabel", () => {
     expect(paymentMethodLabel("manual")).toBe("Manual");
   });
 
-  it("passes an unmapped method through readable rather than blank", () => {
-    // A method the backend adds before this map catches up must still render.
-    expect(paymentMethodLabel("bkash")).toBe("Bkash");
+  it("shows the merchant's own wording when the order carries it", () => {
+    // The normal path for a merchant-defined method: the order snapshotted its
+    // title when it was placed, so the packer sees "bKash payment", not "Manual".
+    expect(paymentMethodLabel("bkash", undefined, "bKash payment")).toBe("bKash payment");
+  });
+
+  it("prefers the store's current definition when there is no snapshot", () => {
+    expect(paymentMethodLabel("nagad", [{ id: "nagad", title: "Nagad" }])).toBe("Nagad");
+  });
+
+  it("falls through to the raw id rather than mangling it", () => {
+    // This used to capitalize ("Bkash"). That made sense while ids were words we
+    // shipped; they are merchant SLUGS now, and capitalizing one reads as
+    // "Bkash-payment" — a fake title, and worse than admitting we have neither a
+    // snapshot nor a definition for it.
+    expect(paymentMethodLabel("bkash-payment")).toBe("bkash-payment");
   });
 });
 

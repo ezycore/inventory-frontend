@@ -33,6 +33,7 @@ const invoiceLabels = (t: Dict): OrderInvoiceLabels => ({
   status: t.orderStatus,
   cod: t.cod,
   bankTransfer: t.bankTransfer,
+  customPayment: t.customPayment,
   item: t.itemCol,
   qty: t.qtyCol,
   price: t.unitPriceCol,
@@ -118,6 +119,8 @@ export default function InvoicePage() {
         }),
       formatStatus: (status) =>
         ORDER_STATUS[status]?.[lang as Lang] ?? status,
+      paymentMethods: store?.paymentMethods,
+      paymentMethodTitle: order.paymentMethodTitle,
     });
     return invoiceSrcDoc(body, styles);
   }, [order, store, t, lang]);

@@ -291,6 +291,7 @@ export interface Dict {
   default: string;
   cod: string;
   bankTransfer: string;
+  customPayment: string;
   placeOrder: string;
   orderPlaced: string;
   /** Reassurance under "Order placed". Deliberately names NO channel: SMS is
@@ -730,6 +731,7 @@ const en: Dict = {
   default: "Default",
   cod: "Cash on Delivery",
   bankTransfer: "Bank Transfer",
+  customPayment: "Custom payment",
   placeOrder: "Place order",
   orderPlaced: "Order placed",
   orderThanks: "Thanks — the store will confirm your order shortly.",
@@ -1147,6 +1149,7 @@ const bn: Dict = {
   default: "ডিফল্ট",
   cod: "ক্যাশ অন ডেলিভারি",
   bankTransfer: "ব্যাংক ট্রান্সফার",
+  customPayment: "কাস্টম পেমেন্ট",
   placeOrder: "অর্ডার করুন",
   orderPlaced: "অর্ডার সম্পন্ন",
   orderThanks: "ধন্যবাদ — দোকান শীঘ্রই আপনার অর্ডার নিশ্চিত করবে।",

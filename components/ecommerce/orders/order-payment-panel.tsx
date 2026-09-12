@@ -57,7 +57,9 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       <h3 className="mb-3 text-sm font-semibold">Payment</h3>
       <div className="mb-2 flex justify-between text-sm">
         <span className="text-muted-foreground">Method</span>
-        <span className="font-semibold">{paymentMethodLabel(order.paymentMethod)}</span>
+        <span className="font-semibold">
+          {paymentMethodLabel(order.paymentMethod, undefined, order.paymentMethodTitle)}
+        </span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Status</span>

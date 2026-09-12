@@ -12,6 +12,7 @@ import type {
 } from "@/lib/storefront-client";
 import { storeHref } from "@/lib/storefront-links";
 import { stripVisibilityClass } from "@/lib/storefront-strip-display";
+import { storefrontPaymentMethodLabel } from "@/lib/storefront-payment-methods";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Brand } from "@/components/storefront/logo-mark";
@@ -291,7 +292,7 @@ export function PaymentBadges({
             borderRadius: 7,
           }}
         >
-          {m === "cod" ? t.cod : t.bankTransfer}
+          {storefrontPaymentMethodLabel(m, t, store?.paymentMethods)}
         </span>
       ))}
     </div>

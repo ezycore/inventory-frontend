@@ -5,8 +5,11 @@ import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { label } from "@/components/storefront/checkout/checkout-bits";
 import { CustomFields } from "@/components/storefront/checkout/blocks/custom-fields";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
-
-const PAY_ICON: Record<string, IconName> = { cod: "coins", bank: "bank" };
+import {
+  storefrontPaymentIcon,
+  storefrontPaymentMethodLabel,
+  storefrontPaymentMethodSubtitle,
+} from "@/lib/storefront-payment-methods";
 
 /** The payment-method picker. Never invalid — one method is always selected. */
 export function PaymentBlock({
@@ -16,7 +19,7 @@ export function PaymentBlock({
   api: CheckoutApi;
   showHeading?: boolean;
 }) {
-  const { t, methods, effectivePayment, setPayment } = api;
+  const { t, store, methods, effectivePayment, setPayment } = api;
   return (
     <div>
       {showHeading ? <div style={label}>{t.paymentMethod}</div> : null}
@@ -44,20 +47,25 @@ export function PaymentBlock({
               }}
             >
               <span style={{ color: "var(--primary)", display: "flex" }}>
-                <Icon name={PAY_ICON[m]} size={20} />
+                <Icon
+                  name={storefrontPaymentIcon(m, store?.paymentMethods) as IconName}
+                  size={20}
+                />
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>
-                  {m === "cod" ? t.cod : t.bankTransfer}
+                  {storefrontPaymentMethodLabel(m, t, store?.paymentMethods)}
                 </span>
                 {/* Only COD gets a built-in sub-line, and only because COD is
                     the one method whose meaning is a promise we can make
                     without the merchant: you pay on delivery. Bank transfer's
                     next step differs per store, so we never guess it — the
                     store states it itself, and it renders under the list. */}
-                {m === "cod" ? (
+                {m === "cod" || storefrontPaymentMethodSubtitle(m, store?.paymentMethods) ? (
                   <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", marginTop: 1 }}>
-                    {t.codHint}
+                    {m === "cod"
+                      ? t.codHint
+                      : storefrontPaymentMethodSubtitle(m, store?.paymentMethods)}
                   </span>
                 ) : null}
               </span>
