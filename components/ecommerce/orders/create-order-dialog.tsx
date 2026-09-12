@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/currency";
 import type { AdminOrderChannel } from "@/services/api/modules/storefront-orders/api";
 import { BD_DISTRICTS, districtLabel, upazilasOf } from "@/lib/bd-geo";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { useGetStorefrontSettings } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import { Checkbox } from "@/ui/components/checkbox";
 import {
@@ -50,10 +51,17 @@ const CHANNELS: { value: AdminOrderChannel; label: string }[] = [
   { value: "manual", label: "Other" },
 ];
 
-const PAYMENT_METHODS = [
+/**
+ * What this dialog can record, beyond the merchant's own methods.
+ *
+ * `cod` because the platform ships it, and `manual` because it is this endpoint's
+ * whole reason to exist: a chat order settled some way the storefront never
+ * offered. The merchant's defined methods are appended at render — and unlike the
+ * storefront, a DISABLED one is still offered here, because an order taken last
+ * week by a method switched off yesterday still has to be recordable.
+ */
+const BUILT_IN_PAYMENT_METHODS = [
   { value: "cod", label: "Cash on delivery" },
-  { value: "bank", label: "Bank transfer" },
-  // Merchant-only: the model has always allowed it, the shopper schema never did.
   { value: "manual", label: "Already paid / manual" },
 ];
 
@@ -75,6 +83,20 @@ export function CreateOrderDialog({
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const form = useOrderForm(() => onOpenChange(false), initial);
   const areas = useMemo(() => upazilasOf(form.district), [form.district]);
+
+  // The merchant's own methods, appended to the two the platform owns. Every
+  // DEFINED method is listed, enabled or not: an order taken last week by a
+  // method switched off yesterday still has to be recordable.
+  const { data: storeSettings } = useGetStorefrontSettings();
+  const paymentMethodOptions = useMemo(
+    () => [
+      ...BUILT_IN_PAYMENT_METHODS,
+      ...(storeSettings?.paymentMethods ?? [])
+        .filter((m): m is { id: string; title: string } => !!m.id)
+        .map((m) => ({ value: m.id, label: m.title })),
+    ],
+    [storeSettings?.paymentMethods],
+  );
 
   return (
     <Dialog
@@ -159,7 +181,7 @@ export function CreateOrderDialog({
               <SimpleSelect
                 value={form.paymentMethod}
                 onValueChange={form.setPaymentMethod}
-                options={PAYMENT_METHODS}
+                options={paymentMethodOptions}
               />
             </div>
             <div className="space-y-1.5">

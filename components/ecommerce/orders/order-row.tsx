@@ -118,7 +118,7 @@ export function OrderRow({
         </div>
       </td>
       <td className="px-3 py-3 text-muted-foreground">
-        {paymentMethodLabel(order.paymentMethod)} ·{" "}
+        {paymentMethodLabel(order.paymentMethod, undefined, order.paymentMethodTitle)} ·{" "}
         <span className="capitalize">{order.paymentStatus}</span>
       </td>
       {/* Status, and everything that qualifies it: why it was rejected, and who

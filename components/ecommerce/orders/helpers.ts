@@ -145,21 +145,19 @@ export const rejectionReasonLabel = (reason?: string): string | undefined =>
  * Shared because the two places that printed it disagreed, and CSS was doing the
  * work in both: the list row used `capitalize` and produced **"Cod"**, the detail
  * panel used `uppercase` and produced **"BANK"**. Neither is a word. COD is an
- * initialism and the other two are ordinary nouns, which is a distinction no
+ * initialism and the others are ordinary nouns, which is a distinction no
  * text-transform can make — it needs a lookup.
  *
- * Unknown values fall through capitalized rather than being dropped, so a new
- * backend method shows up readable instead of blank while this map catches up.
+ * ⚠ Methods are MERCHANT data now, so a lookup table cannot know them. Pass the
+ * order's `paymentMethodTitle` snapshot and the store's definitions and the
+ * merchant sees their own words — "bKash payment", not "Manual". Called with
+ * neither it still degrades to something readable, which is what the order list
+ * does before settings have loaded.
+ *
+ * Re-exported from `lib/storefront-payment-methods` so the storefront and the
+ * back office cannot drift apart again.
  */
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  cod: "COD",
-  bank: "Bank",
-  manual: "Manual",
-};
-
-export const paymentMethodLabel = (method: string): string =>
-  PAYMENT_METHOD_LABELS[method] ??
-  `${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+export { adminPaymentMethodLabel as paymentMethodLabel } from "@/lib/storefront-payment-methods";
 
 /**
  * Which statuses each tab stands for — a mirror of the server's `ORDER_TABS`,

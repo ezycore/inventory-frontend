@@ -11,7 +11,11 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
-import { CheckoutCustomFields } from "./checkout-custom-fields";
+import {
+  CheckoutCustomFields,
+  isMethodOwnedField,
+  mergeCheckoutFieldGroup,
+} from "./checkout-custom-fields";
 import { Field, SaveBar, ToggleRow, useStoreSettingsSave } from "./settings-form-shared";
 
 const ADDRESS_FIELDS = [
@@ -37,7 +41,17 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [terms, setTerms] = useState(checkout.termsRequired ?? false);
   const [termsPage, setTermsPage] = useState(checkout.termsPageSlug || AUTO_TERMS);
   const [addressMode, setAddressMode] = useState(checkout.addressMode ?? "detailed");
-  const [customFields, setCustomFields] = useState(checkout.customFields ?? []);
+  // Unset reads as ON — every store that predates the toggle was showing it.
+  const [orderNotes, setOrderNotes] = useState(checkout.showOrderNotes !== false);
+  // This editor holds the entries asked on EVERY order. Anything tied to a
+  // payment method is edited on the Payments tab, beside the method it belongs
+  // to — filtered out here so no entry is ever presented in two places, and put
+  // back untouched on save, because this PATCH replaces the array wholesale.
+  const storedFields = checkout.customFields ?? [];
+  const methodOwnedFields = storedFields.filter(isMethodOwnedField);
+  const [customFields, setCustomFields] = useState(() =>
+    storedFields.filter((field) => !isMethodOwnedField(field)),
+  );
   const { data: pages } = useContentPages();
   const pageOptions = [
     { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
@@ -79,7 +93,17 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
               : "Shoppers pick a district from a list, so the delivery zone is exact."}
           </p>
         </div>
-        <CheckoutCustomFields fields={customFields} onChange={setCustomFields} />
+        <ToggleRow
+          label="Ask for delivery notes"
+          desc="A free-text box under the address. What shoppers write goes to the courier with the parcel — a gate code, a landmark, “call before you come”."
+          checked={orderNotes}
+          onChange={setOrderNotes}
+        />
+        <CheckoutCustomFields
+          fields={customFields}
+          onChange={setCustomFields}
+          reservedFieldCount={methodOwnedFields.length}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Minimum order value"><NumberField min={0} precision={2} value={minOrder} onChange={setMinOrder} placeholder="0" /></Field>
           <Field label="Order number prefix"><Input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="e.g. RM-" maxLength={12} /></Field>
@@ -92,9 +116,15 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
         orderPrefix: prefix.trim() || undefined,
         termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
         addressMode,
+        showOrderNotes: orderNotes,
         // Drop entries the merchant started and left blank rather than sending a
-        // labelless field the shopper would meet as an unexplained input.
-        customFields: customFields.filter((field) => field.label.trim()),
+        // labelless field the shopper would meet as an unexplained input, then
+        // splice the Payments tab's entries back where they were.
+        customFields: mergeCheckoutFieldGroup(
+          storedFields,
+          customFields.filter((field) => field.label.trim()),
+          (field) => !isMethodOwnedField(field),
+        ),
       } })} />
     </div>
   );
