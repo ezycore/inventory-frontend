@@ -98,9 +98,24 @@ function resolveLimit(
 function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
   const t = useTranslations("settings.billing.plan");
   const tInterval = useTranslations("settings.billing.interval");
+  const tStatus = useTranslations("settings.billing.statusNames");
+  const tGateway = useTranslations("settings.billing.gatewayNames");
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { formatDate } = useFormatters();
   const subStatus = entitlement.subscriptionStatus ?? entitlement.status;
+
+  // MC sends machine values (`past_due`, `sslcommerz`), which were rendered raw
+  // — English tokens sitting in a Bangla page. Translate the ones we know and
+  // fall back to the de-underscored value so a status or gateway added upstream
+  // ships readable rather than blank.
+  const statusLabel = tStatus.has(subStatus as never)
+    ? tStatus(subStatus as never)
+    : subStatus.replace(/_/g, " ");
+  const gatewayLabel = entitlement.gateway
+    ? tGateway.has(entitlement.gateway as never)
+      ? tGateway(entitlement.gateway as never)
+      : entitlement.gateway
+    : "—";
 
   // Honors intervalCount — a 6-month plan reads "Every 6 months", not "Monthly".
   const intervalLabel = (interval?: string, intervalCount?: number) => {
@@ -125,7 +140,7 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
       <CardContent className="grid gap-4 sm:grid-cols-2">
         <Detail label={t("status")}>
           <Badge variant={SUB_STATUS_VARIANT[subStatus] ?? "secondary"}>
-            {subStatus.replace(/_/g, " ")}
+            {statusLabel}
           </Badge>
         </Detail>
         <Detail label={t("billing")}>
@@ -136,7 +151,7 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
             ? formatCurrency(entitlement.amount, currency)
             : "—"}
         </Detail>
-        <Detail label={t("gateway")}>{entitlement.gateway ?? "—"}</Detail>
+        <Detail label={t("gateway")}>{gatewayLabel}</Detail>
         <Detail label={t("periodEnds")}>
           {entitlement.currentPeriodEnd
             ? formatDate(entitlement.currentPeriodEnd)

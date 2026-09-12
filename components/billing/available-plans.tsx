@@ -20,13 +20,17 @@ import {
   getScheduledPlanChange,
 } from "@/lib/subscription-utils";
 import {
+  defaultCadence,
   groupPlans,
   planCadences,
   resolvePlanChangeDirection,
   trialEndDateFrom,
   variantFor,
 } from "@/utils/plan-groups";
+import { Button } from "@/ui/components/button";
+import { Card, CardContent } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { AvailablePlan } from "@/types";
 
@@ -37,6 +41,46 @@ function PlansSkeleton() {
         <Skeleton key={i} className="h-72 w-full rounded-xl" />
       ))}
     </div>
+  );
+}
+
+/**
+ * Shown when the plan list can't be fetched — never an empty space.
+ *
+ * A canceled or unpaid workspace is force-routed here by the protected layout
+ * precisely so it "lands on a working page, not a wall of failed requests". If
+ * Mission Control is unreachable (an ordinary degraded case, not an exception)
+ * and this grid renders nothing, that merchant is stranded on a page offering
+ * no plan, no error and no way to pay. Retry is the whole point of the card.
+ */
+function PlansLoadError({
+  onRetry,
+  isRetrying,
+}: {
+  onRetry: () => void;
+  isRetrying: boolean;
+}) {
+  const tPlans = useTranslations("settings.billing.plans");
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-start gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <AlertCircle className="size-5 shrink-0 text-destructive" />
+          {tPlans("loadError")}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={onRetry}
+          disabled={isRetrying}
+        >
+          {isRetrying && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
+          {tPlans("retry")}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -54,7 +98,7 @@ export function AvailablePlans() {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { formatDate } = useFormatters();
   const { data: sub } = useGetSubscription();
-  const { data, isLoading, isError } = useGetAvailablePlans();
+  const { data, isLoading, isError, isFetching, refetch } = useGetAvailablePlans();
   const planChange = useRequestPlanChange();
   // Target plan awaiting the "your trial ends now" confirmation (null = closed).
   const [confirmPlan, setConfirmPlan] = useState<AvailablePlan | null>(null);
@@ -71,7 +115,12 @@ export function AvailablePlans() {
   const cadences = useMemo(() => planCadences(groups), [groups]);
 
   if (isLoading) return <PlansSkeleton />;
-  if (isError || !data || plans.length === 0) return null;
+  if (isError) {
+    return <PlansLoadError onRetry={() => refetch()} isRetrying={isFetching} />;
+  }
+  // An empty catalogue is not a failure — MC simply offers this workspace
+  // nothing to buy, and a card saying so would be noise.
+  if (!data || plans.length === 0) return null;
 
   const entitlement = sub?.entitlement;
   // A canceled subscription has no "current" plan — every plan is a fresh
@@ -99,7 +148,10 @@ export function AvailablePlans() {
   const isChangeBlocked = (plan: AvailablePlan) =>
     isCancelScheduled || (isPastDue && plan.amount > 0);
 
-  const selectedMonths = cycle ?? cadences[0]?.months ?? null;
+  // Until the customer touches the switch, open on the cadence they are already
+  // billed at — not the shortest one sold. A canceled sub still counts: their
+  // old cadence is the better guess for the one they are coming back on.
+  const selectedMonths = cycle ?? defaultCadence(cadences, entitlement);
 
   /** True when choosing this plan starts a free trial rather than a payment. */
   const startsTrial = (plan: AvailablePlan) =>
@@ -246,10 +298,16 @@ export function AvailablePlans() {
           // Compared at the same cadence: a yearly card must not be diffed
           // against a monthly one, which could differ for reasons that have
           // nothing to do with the ladder.
-          const below =
-            index > 0
-              ? variantFor(groups[index - 1], selectedMonths)?.features
-              : undefined;
+          //
+          // The name comes off the GROUP, like the card's own title, so the
+          // heading keeps naming the same package when the cycle switch moves.
+          const groupBelow = index > 0 ? groups[index - 1] : undefined;
+          const previousTier = groupBelow
+            ? {
+                name: groupBelow.name,
+                features: variantFor(groupBelow, selectedMonths).features,
+              }
+            : undefined;
           return (
             <PlanCard
               key={group.key}
@@ -258,7 +316,7 @@ export function AvailablePlans() {
               currency={currency}
               state={cardState(plan)}
               onChoose={() => handleChange(plan)}
-              previousFeatures={below}
+              previousTier={previousTier}
             />
           );
         })}
