@@ -10,6 +10,7 @@ const t = {
   poweredBy: "Powered by",
   cod: "Cash on Delivery",
   bankTransfer: "Bank Transfer",
+  customPayment: "Custom payment",
 } as FooterT;
 
 const store = {
@@ -28,6 +29,22 @@ describe("footer payment methods", () => {
       "sf-mobile-only",
       "sf-strip-hidden",
     );
+  });
+
+  it("shows the merchant's own title for a method they defined", () => {
+    render(
+      <BottomBar
+        name="Acme"
+        store={{
+          ...store,
+          allowedPaymentMethods: ["bkash"],
+          paymentMethods: [{ id: "bkash", title: "bKash payment" }],
+        }}
+        t={t}
+      />,
+    );
+
+    expect(screen.getByText("bKash payment")).toBeInTheDocument();
   });
 
   it.each([

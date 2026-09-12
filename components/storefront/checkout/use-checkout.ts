@@ -135,7 +135,8 @@ export function useCheckout() {
     }
   }
 
-  const [payment, setPayment] = useState<"cod" | "bank">(methods[0]);
+  // A method id from the store's own list — nothing here can enumerate them.
+  const [payment, setPayment] = useState<string>(methods[0]);
   const effectivePayment = methods.includes(payment) ? payment : methods[0];
   const [coupon, setCoupon] = useState("");
   const [applied, setApplied] = useState<{ code: string; discountAmount: number } | null>(null);

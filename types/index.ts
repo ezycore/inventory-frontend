@@ -132,7 +132,66 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
  * Storefront (ecommerce) settings — mirrors the backend StorefrontSettings.
  * Money values are decimal numbers in `currency` (no minor-units).
  */
-export type StorefrontPaymentMethod = "cod" | "bank";
+/**
+ * A payment method id: `cod`, or a merchant-defined slug.
+ *
+ * A `string`, not a union — the set is per-store merchant data, so nothing in the
+ * type system can enumerate it. Mirrors the backend's `StorefrontPaymentMethod`.
+ */
+export type StorefrontPaymentMethod = string;
+
+/** Ids the platform owns. A merchant can define neither. */
+export const RESERVED_PAYMENT_METHOD_IDS = ["cod", "manual"] as const;
+
+/** How many methods one store may define. Mirrors the backend cap. */
+export const MAX_PAYMENT_METHODS = 8;
+
+/**
+ * One merchant-defined way to pay — bKash, Nagad, a bank account, anything the
+ * merchant settles by hand. No gateway behind any of them.
+ *
+ * `id` is slugged from the title ONCE by the backend and then frozen: it lands on
+ * every order and keys `paymentAccountMap`, so a rename must never move it. A row
+ * the merchant just added has no `id` yet — that absence is what tells the server
+ * to mint one.
+ */
+export interface StorefrontPaymentMethodDef {
+  /** Absent only for a row the merchant just added and has not saved yet. */
+  id?: string;
+  title: string;
+  subtitle?: string;
+  /** Which shipped mark the checkout draws. Unset (or unknown) renders `card`. */
+  icon?: StorefrontPaymentIcon;
+}
+
+/**
+ * Marks a merchant may put on their own payment method. Mirrors the backend's
+ * `STOREFRONT_PAYMENT_ICONS`; every value is a real `sf-icons` name.
+ *
+ * A closed list on purpose — it lets several methods tell themselves apart
+ * without an image upload, so nothing stores brand assets, meters storage, or
+ * decides whose trademark a merchant may use.
+ */
+export const STOREFRONT_PAYMENT_ICONS = [
+  "card",
+  "bank",
+  "phone",
+  "coins",
+  "receipt",
+  "bolt",
+] as const;
+
+export type StorefrontPaymentIcon = (typeof STOREFRONT_PAYMENT_ICONS)[number];
+
+/** What a merchant is choosing between, in words rather than icon names. */
+export const PAYMENT_ICON_LABELS: Record<StorefrontPaymentIcon, string> = {
+  card: "Card",
+  bank: "Bank",
+  phone: "Mobile wallet",
+  coins: "Cash",
+  receipt: "Invoice",
+  bolt: "Instant",
+};
 export type ShippingRuleMode = "flat" | "free_over_threshold" | "none";
 
 /**
@@ -620,6 +679,8 @@ export interface StorefrontCheckout {
    * server-side. Unset reads as `detailed`.
    */
   addressMode?: "detailed" | "flat";
+  /** The "Delivery notes" box under the address. Unset reads as ON. */
+  showOrderNotes?: boolean;
   /** Merchant-defined notices + inputs, in render order within each slot. Max 5. */
   customFields?: CheckoutField[];
 }
@@ -704,7 +765,16 @@ export interface StorefrontSettings {
    * catalogue follows.
    */
   defaultOutOfStockBehavior?: OutOfStockBehavior;
+  /** Enabled ids, in the order shoppers see them. */
   allowedPaymentMethods: StorefrontPaymentMethod[];
+  /** Wording for every merchant-defined method. `cod` never appears here. */
+  paymentMethods?: StorefrontPaymentMethodDef[];
+  /**
+   * Method id → receiving `Account._id`: where money for an order paid that way
+   * is recorded. Reads back as a plain object. On a WRITE it merges, and `null`
+   * for a key clears that one mapping.
+   */
+  paymentAccountMap?: Record<string, string | null>;
   contact?: { email?: string; phone?: string; address?: string };
   social?: {
     /** Legacy fields migrate into profiles on the next General settings save. */

@@ -1,0 +1,32 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Desktop — one method open", "x": 0, "y": 0, "w": 1040, "h": 900 },
+    { "file": "Collapsed.dc.html", "title": "Desktop — at rest", "x": 1140, "y": 0, "w": 1040, "h": 500 },
+    { "file": "MobileRest.dc.html", "title": "Phone — at rest", "x": 1140, "y": 700, "w": 390, "h": 620 },
+    { "file": "Mobile.dc.html", "title": "Phone — one method open", "x": 1630, "y": 700, "w": 390, "h": 1500 }
+  ],
+  "annotations": [
+    {
+      "id": "at-rest",
+      "x": 1140,
+      "y": -160,
+      "w": 420,
+      "text": "At rest the whole tab is ~470px — every method readable in one glance, no scrolling.\n\nCOD is a row like any other rather than a checkbox in its own block, so it can carry a note too (\"have exact change ready\")."
+    },
+    {
+      "id": "open-one",
+      "x": 0,
+      "y": -160,
+      "w": 460,
+      "text": "Click any row to open it; the others close. Detail is two columns — identity and money on the left, what the shopper reads and sends back on the right.\n\nThe note textarea paints in the tone you pick, so the separate live-preview block is gone. Icons are icon-only with tooltips. A field is one line: label, Required, delete."
+    },
+    {
+      "id": "phone",
+      "x": 1140,
+      "y": 1390,
+      "w": 480,
+      "text": "Same source as the desktop artboards at a 390px frame — the breakpoint does the work, nothing is duplicated.\n\nThe row keeps title + switch on line one and drops the meta beneath, so nothing truncates away. Detail stacks to one column, reorder arrows give way to the open row, and every target grows past 44px: 36px inputs become 44, icon swatches 34→44, the delete button 26→44."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -4,6 +4,7 @@
 import { label } from "@/components/storefront/checkout/checkout-bits";
 import { OrderLines } from "@/components/storefront/checkout/blocks/order-lines";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
+import { storefrontPaymentMethodLabel } from "@/lib/storefront-payment-methods";
 
 /**
  * The order review — the lines, then the ship-to and payment recap.
@@ -25,7 +26,7 @@ export function ReviewBlock({ api }: { api: CheckoutApi }) {
           {isPickup
             ? `${t.fulfillmentPickup}${store?.pickup?.location ? ` · ${store.pickup.location.name}` : ""}`
             : [geo.area, geo.district].filter(Boolean).join(", ")}{" "}
-          · {effectivePayment === "cod" ? t.cod : t.bankTransfer}
+          · {storefrontPaymentMethodLabel(effectivePayment, t, store?.paymentMethods)}
         </span>
       </div>
     </div>

@@ -1,0 +1,420 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --background: oklch(0.148 0.004 228.8);
+      --foreground: oklch(0.987 0.002 197.1);
+      --card: oklch(0.218 0.008 223.9);
+      --primary: oklch(0.780 0.130 173.2);
+      --primary-foreground: oklch(0.240 0.050 173);
+      --muted: oklch(0.275 0.011 216.9);
+      --muted-foreground: oklch(0.723 0.014 214.4);
+      --border: oklch(1 0 0 / 10%);
+      --input: oklch(1 0 0 / 15%);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: Inter, "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary); } a:hover { color: var(--foreground); }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    input, textarea { font: inherit; color: inherit; }
+
+    /* Layout that has to change at a breakpoint lives in classes; everything
+       visual stays inline so it can be restyled directly. */
+    .page { padding: 28px 32px 40px; max-width: 1040px; }
+    .tabs { display: flex; gap: 22px; margin: 18px 0 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+    .head { display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px 14px; }
+    .mrow {
+      display: grid; grid-template-columns: 14px 32px 1fr auto auto auto;
+      gap: 12px; align-items: center; padding: 0 20px; height: 56px; cursor: pointer;
+    }
+    .ident { min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+    .sub { font-size: 12.5px; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+    .detail { display: grid; grid-template-columns: 340px 1fr; gap: 28px; padding: 2px 20px 22px 78px; }
+    .fieldrow { display: flex; align-items: center; gap: 10px; }
+    .foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+    .ctl {
+      height: 36px; border-radius: 8px; border: 1px solid var(--input);
+      background: oklch(1 0 0 / 4%); padding: 0 10px; width: 100%;
+      font-size: 14px; outline: none;
+    }
+    .ctl::placeholder { color: var(--muted-foreground); }
+    .lbl { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+    .ghost {
+      height: 30px; padding: 0 10px; border-radius: 8px;
+      border: 1px solid var(--input); background: transparent;
+      font-size: 13px; font-weight: 500;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .ghost:hover { background: oklch(1 0 0 / 6%); }
+    .swatch { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; }
+    .chip { width: 24px; height: 24px; border-radius: 6px; }
+    .iconbtn {
+      width: 26px; height: 26px; border-radius: 6px; border: 0;
+      background: transparent; color: var(--muted-foreground);
+      display: grid; place-items: center;
+    }
+    .iconbtn:hover { background: oklch(1 0 0 / 8%); color: var(--foreground); }
+    .row { border-top: 1px solid var(--border); }
+
+    /* Phone. The row keeps its identity and switch on the first line and drops
+       the meta beneath, so nothing truncates to nothing; the detail stacks; and
+       every target grows past 44px. */
+    @media (max-width: 700px) {
+      .page { padding: 20px 16px 32px; }
+      .tabs { gap: 18px; overflow-x: auto; scrollbar-width: none; }
+      .tabs::-webkit-scrollbar { display: none; }
+      .head { flex-direction: column; gap: 12px; padding: 16px 16px 12px; }
+      .head > button { width: 100%; height: 44px; }
+
+      .mrow {
+        grid-template-columns: 34px 1fr 44px 28px;
+        grid-template-areas: "mark ident sw chev" "mark meta sw chev";
+        height: auto; padding: 11px 16px; gap: 4px 12px; row-gap: 2px;
+      }
+      .reorder { display: none; }
+      .mark { grid-area: mark; }
+      .ident { grid-area: ident; flex-direction: column; align-items: flex-start; gap: 0; }
+      .meta { grid-area: meta; }
+      .sw { grid-area: sw; justify-self: end; }
+      .chev { grid-area: chev; justify-self: end; }
+      .sub, .meta { max-width: 100%; }
+
+      .detail { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 4px 16px 20px; }
+      .ctl { height: 44px; }
+      .ghost { height: 44px; padding: 0 14px; }
+      .swatch { width: 44px; height: 44px; }
+      .chip { width: 36px; height: 36px; }
+      .iconbtn { width: 44px; height: 44px; }
+      /* A label and its Required tick read better stacked than squeezed. */
+      .fieldrow { flex-wrap: wrap; row-gap: 8px; }
+      .fieldrow > .ctl { flex: 1 1 100%; }
+      .foot { flex-direction: column-reverse; }
+      .foot > button { width: 100%; height: 44px; }
+    }
+  </style>
+</helmet>
+
+<div class="page">
+
+  <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em">Store Settings</h1>
+    <span style="font-size: 13px; color: var(--muted-foreground)">Operational configuration for your online store.</span>
+  </div>
+
+  <div class="tabs">
+    <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="7">
+      <div style="padding: 0 1px 10px; white-space: nowrap; color: {{tab.color}}; font-weight: {{tab.weight}}; box-shadow: {{tab.rule}}">{{tab.name}}</div>
+    </sc-for>
+  </div>
+
+  <!-- ONE card. The shipped design nests three levels of them. -->
+  <div style="margin-top: 22px; background: var(--card); border-radius: 14px; box-shadow: 0 0 0 1px oklch(1 0 0 / 10%)">
+
+    <div class="head">
+      <div style="flex: 1">
+        <div style="font-size: 14px; font-weight: 600">Payment methods</div>
+        <div style="font-size: 12.5px; color: var(--muted-foreground); margin-top: 2px">
+          How shoppers can pay at checkout, in the order they see them.
+        </div>
+      </div>
+      <button class="ghost" style="height: 32px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Add method
+      </button>
+    </div>
+
+    <sc-for list="{{methods}}" as="m" hint-placeholder-count="3">
+      <div class="row">
+
+        <!-- Collapsed row: scannable, reorderable in place -->
+        <div class="mrow" onClick="{{m.toggle}}">
+
+          <div class="reorder" style="display: flex; flex-direction: column; gap: 1px; color: var(--muted-foreground)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="opacity: {{m.upOpacity}}"><path d="M18 15l-6-6-6 6"></path></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="opacity: {{m.downOpacity}}"><path d="M6 9l6 6 6-6"></path></svg>
+          </div>
+
+          <div class="mark" style="width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: {{m.markBg}}; color: {{m.markColor}}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <sc-for list="{{m.iconPaths}}" as="p" hint-placeholder-count="2">
+                <path d="{{p.d}}"></path>
+              </sc-for>
+            </svg>
+          </div>
+
+          <div class="ident">
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; color: {{m.titleColor}}">{{m.title}}</span>
+            <span class="sub">{{m.subtitle}}</span>
+          </div>
+
+          <!-- What used to cost a whole section each, readable at a glance -->
+          <div class="meta">{{m.meta}}</div>
+
+          <div class="sw" style="width: 32px; height: 18.4px; border-radius: 999px; background: {{m.switchBg}}; display: flex; align-items: center; padding: 1px; justify-content: {{m.switchAlign}}">
+            <div style="width: 16px; height: 16px; border-radius: 999px; background: {{m.thumbBg}}"></div>
+          </div>
+
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color: var(--muted-foreground); transform: {{m.chevron}}"><path d="M6 9l6 6 6-6"></path></svg>
+        </div>
+
+        <!-- Expanded detail: two columns on desktop, one on a phone -->
+        <sc-if value="{{m.open}}" hint-placeholder-val="{{ true }}">
+          <div class="detail">
+
+            <!-- Identity, and where the money lands -->
+            <div style="display: flex; flex-direction: column; gap: 13px">
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div class="lbl">Title</div>
+                <input class="ctl" defaultValue="{{m.title}}">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div class="lbl">Subtitle</div>
+                <input class="ctl" defaultValue="{{m.subtitle}}" placeholder="Optional one-liner">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div class="lbl">Icon</div>
+                <!-- Icon-only. Six labelled buttons spent ~430px of width on a 20px decision. -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                  <sc-for list="{{m.icons}}" as="ic" hint-placeholder-count="6">
+                    <button class="swatch" title="{{ic.name}}" onClick="{{ic.pick}}" style="background: {{ic.bg}}; border: 1px solid {{ic.border}}; color: {{ic.color}}">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <sc-for list="{{ic.paths}}" as="p" hint-placeholder-count="2">
+                          <path d="{{p.d}}"></path>
+                        </sc-for>
+                      </svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div class="lbl">Receiving account</div>
+                <div class="ctl" style="display: flex; align-items: center; justify-content: space-between">
+                  <span>{{m.account}}</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color: var(--muted-foreground)"><path d="M6 9l6 6 6-6"></path></svg>
+                </div>
+              </div>
+
+              <sc-if value="{{m.deletable}}" hint-placeholder-val="{{ true }}">
+                <button class="ghost" style="align-self: flex-start; color: oklch(0.70 0.16 22)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path></svg>
+                  Remove method
+                </button>
+              </sc-if>
+            </div>
+
+            <!-- How to pay, and what to send back -->
+            <div style="display: flex; flex-direction: column; gap: 13px">
+
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div class="lbl">Instructions the shopper reads</div>
+                <!-- The note input IS the preview: it paints in the tone you pick,
+                     which is what let the separate preview block go. -->
+                <textarea rows="3" defaultValue="{{m.note}}" style="border-radius: 8px; padding: 10px 13px; width: 100%; resize: vertical; font-size: 13px; line-height: 1.55; outline: none; background: {{m.tone.background}}; border: 1px solid {{m.tone.border}}; color: {{m.tone.color}}; font-weight: {{m.tone.fontWeight}}"></textarea>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px; flex-wrap: wrap">
+                  <div style="display: flex; gap: 5px">
+                    <sc-for list="{{m.tones}}" as="t" hint-placeholder-count="5">
+                      <button class="chip" title="{{t.name}}" onClick="{{t.pick}}" style="background: {{t.background}}; border: 1px solid {{t.border}}; box-shadow: {{t.ring}}"></button>
+                    </sc-for>
+                  </div>
+                  <div style="display: flex; border: 1px solid var(--input); border-radius: 7px; overflow: hidden">
+                    <sc-for list="{{m.sizes}}" as="s" hint-placeholder-count="3">
+                      <button onClick="{{s.pick}}" style="min-height: 24px; padding: 5px 11px; border: 0; font-size: 11.5px; font-weight: 500; background: {{s.bg}}; color: {{s.color}}">{{s.label}}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 7px">
+                <div class="lbl">Details to collect</div>
+                <!-- One line per field. Was a nested card with its own header row. -->
+                <sc-for list="{{m.fields}}" as="f" hint-placeholder-count="1">
+                  <div class="fieldrow">
+                    <input class="ctl" style="flex: 1" defaultValue="{{f.label}}" placeholder="e.g. Transaction ID">
+                    <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; white-space: nowrap; cursor: pointer; flex: 1">
+                      <span style="width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; background: {{f.boxBg}}; border: 1px solid {{f.boxBorder}}; color: var(--primary-foreground)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="opacity: {{f.tickOpacity}}"><path d="M4 12.5 9 17.5 20 6.5"></path></svg>
+                      </span>
+                      Required
+                    </label>
+                    <button class="iconbtn">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path></svg>
+                    </button>
+                  </div>
+                </sc-for>
+
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 2px">
+                  <button class="ghost">Add note</button>
+                  <button class="ghost">Add field</button>
+                  <span style="font-size: 11.5px; color: var(--muted-foreground)">{{m.budget}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <!-- Was five stacked disabled checkboxes. One line says the same thing. -->
+    <div class="row" style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; font-size: 12.5px; color: var(--muted-foreground); flex-wrap: wrap">
+      <span>Online gateway and card payments</span>
+      <span style="font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--muted)">Coming soon</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="ghost" style="padding: 0 14px">Discard</button>
+    <button style="min-height: 36px; padding: 9px 16px; border-radius: 8px; border: 0; background: var(--primary); color: var(--primary-foreground); font-size: 13.5px; font-weight: 600">Save changes</button>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":390,"height":1480}}'>
+/* Icon geometry copied from components/storefront/sf-icons.tsx, expressed as
+   paths only so each renders through one loop. */
+const ICONS = {
+  card: ['M5 5.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z', 'M3 9.5h18'],
+  bank: ['M4 9.5 12 4l8 5.5', 'M5 10v8M9 10v8M15 10v8M19 10v8', 'M3.5 20.5h17'],
+  phone: ['M6.5 3.5h3l1.4 4-1.8 1.2a12 12 0 0 0 5.2 5.2l1.2-1.8 4 1.4v3a1.6 1.6 0 0 1-1.7 1.6A16.5 16.5 0 0 1 5 5.2 1.6 1.6 0 0 1 6.5 3.5Z'],
+  coins: ['M5 6.5a7 3 0 1 0 14 0a7 3 0 1 0-14 0', 'M5 6.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5', 'M5 11.5v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5'],
+  receipt: ['M5 3.5h14v17l-2.5-1.5L14 20.5 11.5 19 9 20.5 6.5 19 5 20.5z', 'M8.5 8h7M8.5 11.5h7M8.5 15h4'],
+  bolt: ['M13 2.5 4.8 13.6H11l-1 7.9 8.2-11.1H12z'],
+};
+const ICON_NAMES = { card: 'Card', bank: 'Bank', phone: 'Mobile wallet', coins: 'Cash', receipt: 'Invoice', bolt: 'Instant' };
+const asPaths = (key) => ICONS[key].map((d) => ({ d }));
+
+/* The production tones, from lib/checkout-notice-style.ts, so the chips and the
+   note body paint exactly what the storefront will. */
+const TONES = {
+  plain:   { name: 'Plain',     background: '#f1f5f9', border: '#e5e7eb', color: '#64748b', fontWeight: 400 },
+  info:    { name: 'Info',      background: '#eff6ff', border: '#2563eb', color: '#0f172a', fontWeight: 500 },
+  warn:    { name: 'Warning',   background: '#fffbeb', border: '#fcd34d', color: '#92400e', fontWeight: 600 },
+  success: { name: 'Good news', background: '#f0fdf4', border: '#86efac', color: '#166534', fontWeight: 500 },
+  accent:  { name: 'Brand',     background: '#eff6ff', border: '#2563eb', color: '#0f172a', fontWeight: 500 },
+};
+
+const TEAL = 'oklch(0.780 0.130 173.2)';
+const TEAL_FG = 'oklch(0.240 0.050 173)';
+const MUTED_FG = 'oklch(0.723 0.014 214.4)';
+const FG = 'oklch(0.987 0.002 197.1)';
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: 'bkash',
+      icon: { cod: 'coins', bkash: 'phone', bank: 'bank' },
+      tone: { cod: 'plain', bkash: 'info', bank: 'plain' },
+      size: { cod: 'sm', bkash: 'sm', bank: 'sm' },
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const tabs = ['General', 'Publish', 'Payments', 'Shipping', 'Couriers', 'Checkout', 'SEO'].map((name) => ({
+      name,
+      color: name === 'Payments' ? TEAL : MUTED_FG,
+      weight: name === 'Payments' ? 600 : 400,
+      rule: name === 'Payments' ? `inset 0 -2px 0 0 ${TEAL}` : 'none',
+    }));
+
+    const defs = [
+      {
+        id: 'cod', title: 'Cash on Delivery', subtitle: 'the shopper pays the rider',
+        meta: 'Cash · built in', account: 'Cash', enabled: true, deletable: false,
+        note: 'Please have the exact amount ready for the rider.',
+        fields: [],
+      },
+      {
+        id: 'bkash', title: 'বিকাশ / নগদ / রকেট', subtitle: 'Send Money',
+        meta: 'Ask each time · note + 1 field', account: 'Ask me each time',
+        enabled: true, deletable: true,
+        note: 'Send Money / Cash In করুন: 01955916843\nএবং যে নম্বর থেকে করেছেন সেটির শেষ ৩ ডিজিট লিখুন অথবা TransactionId দিন',
+        fields: [{ label: 'TransactionId / Last 3 digit', required: true }],
+      },
+      {
+        id: 'bank', title: 'Bank Transfer', subtitle: 'Direct deposit',
+        meta: 'City Bank · note', account: 'City Bank', enabled: false, deletable: true,
+        note: 'Account: EzyCore Ltd · 1402-9938-221 · City Bank, Dhanmondi',
+        fields: [],
+      },
+    ];
+
+    const methods = defs.map((d, i) => {
+      const iconKey = s.icon[d.id];
+      const toneKey = s.tone[d.id];
+      return {
+        title: d.title,
+        subtitle: d.subtitle,
+        meta: d.meta,
+        account: d.account,
+        note: d.note,
+        deletable: d.deletable,
+        open: s.open === d.id,
+        iconPaths: asPaths(iconKey),
+        chevron: s.open === d.id ? 'rotate(180deg)' : 'rotate(0deg)',
+        upOpacity: i === 0 ? 0.18 : 0.5,
+        downOpacity: i === defs.length - 1 ? 0.18 : 0.5,
+        markBg: d.enabled ? 'color-mix(in oklch, var(--primary) 14%, transparent)' : 'oklch(1 0 0 / 6%)',
+        markColor: d.enabled ? TEAL : MUTED_FG,
+        titleColor: d.enabled ? FG : MUTED_FG,
+        switchBg: d.enabled ? TEAL : 'oklch(1 0 0 / 15%)',
+        thumbBg: d.enabled ? TEAL_FG : FG,
+        switchAlign: d.enabled ? 'flex-end' : 'flex-start',
+        toggle: () => this.setState({ open: s.open === d.id ? null : d.id }),
+        tone: TONES[toneKey],
+        budget: '9 of 12 left across the checkout',
+        icons: Object.keys(ICONS).map((k) => ({
+          name: ICON_NAMES[k],
+          paths: asPaths(k),
+          bg: k === iconKey ? 'color-mix(in oklch, var(--primary) 16%, transparent)' : 'transparent',
+          border: k === iconKey ? TEAL : 'oklch(1 0 0 / 15%)',
+          color: k === iconKey ? TEAL : MUTED_FG,
+          pick: () => this.setState({ icon: { ...s.icon, [d.id]: k } }),
+        })),
+        tones: Object.keys(TONES).map((k) => ({
+          name: TONES[k].name,
+          background: TONES[k].background,
+          border: TONES[k].border,
+          ring: k === toneKey ? `0 0 0 2px ${FG}` : 'none',
+          pick: () => this.setState({ tone: { ...s.tone, [d.id]: k } }),
+        })),
+        sizes: [['sm', 'S'], ['md', 'M'], ['lg', 'L']].map((pair) => ({
+          label: pair[1],
+          bg: s.size[d.id] === pair[0] ? 'oklch(1 0 0 / 10%)' : 'transparent',
+          color: s.size[d.id] === pair[0] ? FG : MUTED_FG,
+          pick: () => this.setState({ size: { ...s.size, [d.id]: pair[0] } }),
+        })),
+        fields: d.fields.map((f) => ({
+          label: f.label,
+          boxBg: f.required ? TEAL : 'oklch(1 0 0 / 4%)',
+          boxBorder: f.required ? TEAL : 'oklch(1 0 0 / 15%)',
+          tickOpacity: f.required ? 1 : 0,
+        })),
+      };
+    });
+
+    return { tabs, methods };
+  }
+}
+</script>
+</body>
+</html>
