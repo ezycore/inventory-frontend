@@ -528,7 +528,19 @@ export interface StorefrontStore {
     logo?: StorefrontImage | null;
     receiptSettings?: import("@/types/receipt").ReceiptSettings | null;
   } | null;
-  allowedPaymentMethods: ("cod" | "bank")[];
+  /** Enabled method ids, in the order the checkout renders them. */
+  allowedPaymentMethods: string[];
+  /**
+   * Merchant wording for every method they defined. No `cod` entry — the
+   * storefront translates that one from its own dictionary.
+   */
+  paymentMethods?: {
+    id: string;
+    title: string;
+    subtitle?: string;
+    /** A shipped icon name; unset or unknown renders the default card mark. */
+    icon?: string;
+  }[];
   shippingRule: {
     mode: "flat" | "free_over_threshold" | "none";
     flatFee?: number;
@@ -592,6 +604,8 @@ export interface StorefrontStore {
      * `detailed` — the district select every store had before.
      */
     addressMode?: "detailed" | "flat";
+    /** The "Delivery notes" box under the address. Unset reads as ON. */
+    showOrderNotes?: boolean;
     /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
   };
@@ -1132,6 +1146,8 @@ export interface StorefrontOrder {
   status: string;
   fulfillmentType?: "delivery" | "pickup";
   paymentMethod: string;
+  /** Merchant wording frozen at order time; unset for translated `cod`/`bank`. */
+  paymentMethodTitle?: string;
   paymentStatus: string;
   shippingAddress: ShippingAddress;
   notes?: string;
@@ -1168,7 +1184,8 @@ export interface PlaceOrderInput {
   /** Delivery (default) or in-store pickup. Pickup drops the delivery address. */
   fulfillmentType?: "delivery" | "pickup";
   shippingAddress: ShippingAddress;
-  paymentMethod: "cod" | "bank";
+  /** A method id from `store.allowedPaymentMethods`. */
+  paymentMethod: string;
   notes?: string;
   couponCode?: string;
   /** Shopper accepted the store's terms (required when `checkout.termsRequired`). */
@@ -1206,7 +1223,9 @@ export interface TrackedOrder {
   orderNumber: string;
   status: string;
   fulfillmentType?: "delivery" | "pickup";
-  paymentMethod: "cod" | "bank" | "manual";
+  paymentMethod: string;
+  /** Merchant wording frozen at order time; unset for translated `cod`/`bank`. */
+  paymentMethodTitle?: string;
   paymentStatus: "pending" | "paid" | "refunded";
   placedAt?: string;
   items: { productName: string; quantity: number; price: number; subtotal: number }[];

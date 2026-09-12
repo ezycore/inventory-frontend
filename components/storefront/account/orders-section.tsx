@@ -13,6 +13,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { StatusPill } from "@/components/storefront/sf-bits";
+import { storefrontPaymentMethodLabel } from "@/lib/storefront-payment-methods";
 
 /**
  * Orders section — order history rows; "View details" opens the in-page
@@ -41,7 +42,12 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       {orders.map((o) => {
         const itemCount = o.items.reduce((n, i) => n + i.quantity, 0);
-        const payLabel = o.paymentMethod === "cod" ? t.cod : t.bankTransfer;
+        const payLabel = storefrontPaymentMethodLabel(
+          o.paymentMethod,
+          t,
+          store?.paymentMethods,
+          o.paymentMethodTitle,
+        );
         return (
           <div
             key={o._id}

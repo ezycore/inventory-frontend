@@ -123,7 +123,14 @@ export interface CreateAdminOrderInput {
     notes?: string;
   };
   fulfillmentType?: "delivery" | "pickup";
-  paymentMethod: "cod" | "bank" | "manual";
+  /** `cod`, the admin's `manual`, or a merchant-defined id. */
+  paymentMethod: string;
+  /**
+   * The merchant's wording, frozen when the order was placed. Unset for `cod`
+   * and legacy `bank`, whose labels are translated rather than stored — see
+   * `lib/storefront-payment-methods`.
+   */
+  paymentMethodTitle?: string;
   channel: AdminOrderChannel;
   notes?: string;
   couponCode?: string;
@@ -204,7 +211,7 @@ export interface EditAdminOrderInput {
     notes?: string;
   };
   fulfillmentType?: "delivery" | "pickup";
-  paymentMethod?: "cod" | "bank" | "manual";
+  paymentMethod?: string;
   notes?: string;
   couponCode?: string;
   discount?: ManualDiscountInput;

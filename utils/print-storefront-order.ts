@@ -51,6 +51,7 @@ export interface OrderInvoiceLabels {
   status: string;
   cod: string;
   bankTransfer: string;
+  customPayment: string;
   item: string;
   qty: string;
   price: string;
@@ -77,6 +78,7 @@ export const ORDER_INVOICE_LABELS_EN: OrderInvoiceLabels = {
   status: "Status",
   cod: "Cash on Delivery",
   bankTransfer: "Bank Transfer",
+  customPayment: "Custom payment",
   item: "Item",
   qty: "Qty",
   price: "Price",
@@ -102,6 +104,10 @@ export interface OrderInvoiceOptions {
   formatDate?: (iso: string) => string;
   /** Localized status renderer; default capitalizes the raw status. */
   formatStatus?: (status: string) => string;
+  /** The store's current method definitions, for an order with no snapshot. */
+  paymentMethods?: { id: string; title: string }[];
+  /** The order's frozen wording — wins outright, so a deleted method still prints. */
+  paymentMethodTitle?: string;
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -161,7 +167,16 @@ const orderToDoc = (
       },
       {
         label: t.paymentMethod,
-        value: order.paymentMethod === "cod" ? t.cod : t.bankTransfer,
+        value:
+          opts.paymentMethodTitle?.trim() ||
+          opts.paymentMethods?.find((m) => m.id === order.paymentMethod)?.title?.trim() ||
+          (order.paymentMethod === "cod"
+            ? t.cod
+            : order.paymentMethod === "bank"
+              ? t.bankTransfer
+              : order.paymentMethod === "manual"
+                ? t.customPayment
+                : order.paymentMethod),
       },
       {
         label: t.status,

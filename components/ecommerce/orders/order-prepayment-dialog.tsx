@@ -45,10 +45,12 @@ export function OrderPrepaymentDialog({
 
   const total = order.totalAmount ?? 0;
   const shippingCharged = order.shippingCharged ?? 0;
-  // A bank order is prepaid in full by definition — that is what the shopper was
-  // asked to transfer — so it opens on the total rather than an empty field.
+  // Anything that is not cash-on-delivery was paid up front by definition —
+  // that is what the shopper was asked to send — so it opens on the total rather
+  // than an empty field. Written as "not COD" rather than a list of methods,
+  // because the list is the merchant's now and cannot be enumerated here.
   const [amount, setAmount] = useState<number | null>(
-    order.paymentMethod === "bank" ? total : null,
+    order.paymentMethod === "cod" ? null : total,
   );
   const [open, setOpen] = useState(false);
   const [accountId, setAccountId] = useState("");

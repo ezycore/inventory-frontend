@@ -2,14 +2,14 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import type { CheckoutField } from "@/types";
+import type { CheckoutField, StorefrontPaymentMethod } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { Textarea } from "@/ui/components/textarea";
 import { cn } from "@/ui/lib/utils";
-import { PAYMENT_METHOD_OPTIONS } from "@/lib/storefront-payment-methods";
 import {
   NOTICE_SIZES,
   NOTICE_TONES,
@@ -38,6 +38,63 @@ import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
  * picked it. One group per method now fits.
  */
 const MAX_FIELDS = 12;
+
+/**
+ * Which editor owns a field — and there is exactly one, deliberately.
+ *
+ * The rule a merchant can actually hold in their head is: **an entry in the
+ * Checkout tab is asked on every order; an entry under a payment method is asked
+ * only for that method.** So ownership is simply whether the entry carries a
+ * payment-method condition at all.
+ *
+ * That replaced a rule nobody could see. Ownership used to mean "scoped to
+ * exactly ONE method", with two-method entries staying in Checkout and keeping a
+ * "Show for payment method" picker — so unticking a method there made the entry
+ * silently vanish from that tab and reappear under Payments, unasked. There is
+ * no picker now, and nothing to migrate between tabs.
+ */
+export const isMethodOwnedField = (field: CheckoutField): boolean =>
+  !!field.showWhen?.paymentMethods?.length;
+
+/**
+ * The method whose editor shows this field: the FIRST id in its condition.
+ *
+ * A single id is the only thing the Payments editor can now write, so this is
+ * the identity function for anything it created. It takes the first id rather
+ * than refusing a longer list so that a legacy multi-method entry — or one
+ * written straight into the database — still appears in exactly one editor
+ * instead of becoming invisible in both. Editing that group narrows it to the
+ * one method, which the editor's own `emit` does.
+ */
+export const methodOwnerId = (field: CheckoutField): string | undefined =>
+  field.showWhen?.paymentMethods?.[0];
+
+/**
+ * Put one tab's slice back into the stored list without disturbing the other's.
+ *
+ * Payments and Checkout both write `checkout.customFields`, and the PATCH replaces
+ * that array wholesale — so whichever tab saves has to carry the other's entries
+ * through untouched or they are deleted. The edited slice lands where its first
+ * member sat, which preserves a merchant's interleaved ordering across a save.
+ */
+export const mergeCheckoutFieldGroup = (
+  all: CheckoutField[],
+  edited: CheckoutField[],
+  belongsToGroup: (field: CheckoutField) => boolean,
+): CheckoutField[] => {
+  const merged: CheckoutField[] = [];
+  let inserted = false;
+  for (const field of all) {
+    if (!belongsToGroup(field)) {
+      merged.push(field);
+    } else if (!inserted) {
+      merged.push(...edited);
+      inserted = true;
+    }
+  }
+  if (!inserted) merged.push(...edited);
+  return merged;
+};
 
 const KIND_OPTIONS = [
   { label: "Input — the shopper answers", value: "input" },
@@ -77,34 +134,103 @@ function newKey(): string {
 export function CheckoutCustomFields({
   fields,
   onChange,
+  fixedPaymentMethod,
+  reservedFieldCount = 0,
+  heading = "Extra checkout fields",
+  description = "Asked on every order, whatever the shopper pays with. Each one picks its own place in the checkout; answers appear on the order and never change the total.",
 }: {
   fields: CheckoutField[];
   onChange: (next: CheckoutField[]) => void;
+  /** Lock entries to one method when this editor is embedded in Payments. */
+  fixedPaymentMethod?: StorefrontPaymentMethod;
+  /**
+   * Entries the OTHER editor owns. The backend caps the stored array as a whole,
+   * so an editor counting only its own slice would let a merchant build a list
+   * the save then rejects.
+   */
+  reservedFieldCount?: number;
+  heading?: string;
+  description?: string;
 }) {
+  /**
+   * Payment mode: the cut-down editor the Payments tab embeds.
+   *
+   * A payment method needs exactly two things — **a note** saying how to pay, and
+   * **a field** collecting what the merchant must check afterwards (a bKash TrxID,
+   * a bank reference). Everything else the checkout editor offers is noise here,
+   * and one option was worse than noise: "Where it appears" let a merchant slot
+   * their bKash instructions into the ADDRESS section, which is not a thing
+   * anyone wants and looks broken when it happens. A payment note belongs under
+   * the payment option, full stop, so the slot is forced rather than offered.
+   *
+   * Dropped with it: the field's help text, and its type and option list. A
+   * transaction id is a short line of text; a dropdown or a number spinner has no
+   * payment use case, and every control a merchant has to read before typing
+   * "Transaction ID" is a control that should not be there.
+   *
+   * The note's STYLE stays, and is the exception that proves the rule. It was cut
+   * once and that was wrong: when a shopper selects bKash, "send money to this
+   * number" is the most important thing on the page, and plain text buries it.
+   * Tone is the one control here whose whole job is to stop a payment instruction
+   * being missed, so it earns its place where help text and input types do not.
+   *
+   * ⚠ This hides CONTROLS, not capability. The stored shape is the same
+   * `CheckoutField`, so validation, required-gating, rendering and the order
+   * snapshot stay the one implementation they always were.
+   */
+  const paymentMode = !!fixedPaymentMethod;
+  const atCap = fields.length + reservedFieldCount >= MAX_FIELDS;
+  const emit = (next: CheckoutField[]) =>
+    onChange(
+      fixedPaymentMethod
+        ? next.map((field) => ({
+            ...field,
+            showWhen: { paymentMethods: [fixedPaymentMethod] },
+          }))
+        : next,
+    );
   const update = (index: number, patch: Partial<CheckoutField>) =>
-    onChange(fields.map((field, i) => (i === index ? { ...field, ...patch } : field)));
+    emit(fields.map((field, i) => (i === index ? { ...field, ...patch } : field)));
 
   const move = (index: number, delta: number) => {
     const target = index + delta;
     if (target < 0 || target >= fields.length) return;
     const next = [...fields];
     [next[index], next[target]] = [next[target], next[index]];
-    onChange(next);
+    emit(next);
   };
+
+  const add = (kind: CheckoutField["kind"]) =>
+    emit([
+      ...fields,
+      {
+        key: newKey(),
+        kind,
+        label: "",
+        ...(kind === "input" ? { type: "text" as const, required: false } : {}),
+        // A payment note is instructions, so it starts tinted rather than plain:
+        // the merchant who never opens the style picker still gets a box the
+        // shopper's eye lands on. Elsewhere a note is prose and stays plain.
+        ...(kind === "notice" && fixedPaymentMethod ? { tone: "info" as const } : {}),
+        ...(fixedPaymentMethod ? { slot: "after-payment" as const } : {}),
+      },
+    ]);
 
   return (
     <div className="space-y-3">
       <div>
-        <Label>Extra checkout fields</Label>
-        <p className="text-xs text-muted-foreground">
-          Each one picks its own place in the checkout. Answers appear on the order —
-          they never change the order total.
-        </p>
+        <Label>{heading}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
 
       {fields.map((field, index) => (
         <div key={field.key} className="space-y-3 rounded-md border p-3">
           <div className="flex items-center gap-2">
+            {paymentMode ? (
+              <span className="text-sm font-medium">
+                {field.kind === "notice" ? "Note" : "Field"}
+              </span>
+            ) : (
             <SimpleSelect
               value={field.kind}
               onValueChange={(kind) =>
@@ -125,6 +251,7 @@ export function CheckoutCustomFields({
               options={KIND_OPTIONS}
               className="max-w-[220px]"
             />
+            )}
             <div className="ml-auto flex items-center gap-1">
               <Button
                 type="button"
@@ -151,45 +278,56 @@ export function CheckoutCustomFields({
                 variant="ghost"
                 size="icon"
                 aria-label="Remove"
-                onClick={() => onChange(fields.filter((_, i) => i !== index))}
+                onClick={() => emit(fields.filter((_, i) => i !== index))}
               >
                 <Trash2 className="size-4" />
               </Button>
             </div>
           </div>
 
-          <Input
-            value={field.label}
-            // A notice carries payment instructions now — account name, number,
-            // branch and a reference line do not fit in 200. An input's label is
-            // still held to 200: a 600-character question is not a label.
-            maxLength={field.kind === "notice" ? 600 : 200}
-            placeholder={
-              field.kind === "notice"
-                ? "The text the shopper reads"
-                : "Field label, e.g. Preferred delivery time"
-            }
-            onChange={(e) => update(index, { label: e.target.value })}
-          />
-
-          <div className="space-y-1.5">
-            <Label className="text-xs font-normal text-muted-foreground">
-              Where it appears
-            </Label>
-            <SimpleSelect
-              value={field.slot ?? "after-address"}
-              onValueChange={(slot) =>
-                update(index, { slot: slot as CheckoutField["slot"] })
-              }
-              options={SLOT_OPTIONS}
-              className="max-w-[320px]"
+          {field.kind === "notice" && paymentMode ? (
+            // Instructions run to several lines — account name, number, branch —
+            // and a merchant typing them into a one-line box cannot see them.
+            <Textarea
+              value={field.label}
+              maxLength={600}
+              rows={3}
+              placeholder="How to pay. e.g. Send Money to 01XXXXXXXXX (Personal), then enter the TrxID below."
+              onChange={(e) => update(index, { label: e.target.value })}
             />
-          </div>
+          ) : (
+            <Input
+              value={field.label}
+              // A notice carries payment instructions now — account name, number,
+              // branch and a reference line do not fit in 200. An input's label is
+              // still held to 200: a 600-character question is not a label.
+              maxLength={field.kind === "notice" ? 600 : 200}
+              placeholder={
+                field.kind === "notice"
+                  ? "The text the shopper reads"
+                  : paymentMode
+                    ? "What to ask for, e.g. Transaction ID"
+                    : "Field label, e.g. Preferred delivery time"
+              }
+              onChange={(e) => update(index, { label: e.target.value })}
+            />
+          )}
 
-          <VisibilityField
-            showWhen={field.showWhen}
-            onChange={(showWhen) => update(index, { showWhen })}
-          />
+          {!paymentMode ? (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-normal text-muted-foreground">
+                Where it appears
+              </Label>
+              <SimpleSelect
+                value={field.slot ?? "after-address"}
+                onValueChange={(slot) =>
+                  update(index, { slot: slot as CheckoutField["slot"] })
+                }
+                options={SLOT_OPTIONS}
+                className="max-w-[320px]"
+              />
+            </div>
+          ) : null}
 
           {field.kind === "notice" ? (
             <NoticeStyleFields field={field} onChange={(patch) => update(index, patch)} />
@@ -197,21 +335,27 @@ export function CheckoutCustomFields({
 
           {field.kind === "input" ? (
             <>
-              <Input
-                value={field.helpText ?? ""}
-                maxLength={300}
-                placeholder="Help text under the label (optional)"
-                onChange={(e) => update(index, { helpText: e.target.value || undefined })}
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <SimpleSelect
-                  value={field.type ?? "text"}
-                  onValueChange={(type) =>
-                    update(index, { type: type as CheckoutField["type"] })
+              {!paymentMode ? (
+                <Input
+                  value={field.helpText ?? ""}
+                  maxLength={300}
+                  placeholder="Help text under the label (optional)"
+                  onChange={(e) =>
+                    update(index, { helpText: e.target.value || undefined })
                   }
-                  options={TYPE_OPTIONS}
-                  className="max-w-[200px]"
                 />
+              ) : null}
+              <div className="flex flex-wrap items-center gap-3">
+                {!paymentMode ? (
+                  <SimpleSelect
+                    value={field.type ?? "text"}
+                    onValueChange={(type) =>
+                      update(index, { type: type as CheckoutField["type"] })
+                    }
+                    options={TYPE_OPTIONS}
+                    className="max-w-[200px]"
+                  />
+                ) : null}
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={!!field.required}
@@ -220,7 +364,7 @@ export function CheckoutCustomFields({
                   Required
                 </label>
               </div>
-              {field.type === "select" ? (
+              {field.type === "select" && !paymentMode ? (
                 <OptionsField
                   options={field.options}
                   onChange={(options) => update(index, { options })}
@@ -231,95 +375,33 @@ export function CheckoutCustomFields({
         </div>
       ))}
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={fields.length >= MAX_FIELDS}
-        onClick={() =>
-          onChange([
-            ...fields,
-            { key: newKey(), kind: "input", type: "text", label: "", required: false },
-          ])
-        }
-      >
-        Add field
-      </Button>
-      {fields.length >= MAX_FIELDS ? (
-        <p className="text-xs text-muted-foreground">
-          Five is the maximum — a long checkout is the commonest reason an order is
-          abandoned.
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * When the entry is shown — every payment method, or only some.
- *
- * This is what makes per-method instructions and inputs possible: a notice
- * explaining where to send a bank transfer, and the reference field that goes
- * with it, both appear only once the shopper has chosen bank transfer.
- *
- * **Unticking every method would hide the field everywhere**, which is a state
- * no merchant wants and cannot see the effect of, so the last tick cannot be
- * removed — clearing it goes back to "every method" instead.
- *
- * The hidden half is enforced twice over, in the checkout AND in the order
- * service: a hidden field is never required and its answer is never stored. A
- * required bank field left demanding on a cash-on-delivery order would be an
- * order nobody can place.
- */
-function VisibilityField({
-  showWhen,
-  onChange,
-}: {
-  showWhen?: CheckoutField["showWhen"];
-  onChange: (showWhen: CheckoutField["showWhen"]) => void;
-}) {
-  const selected = showWhen?.paymentMethods;
-  const all = !selected?.length;
-
-  const toggle = (value: (typeof PAYMENT_METHOD_OPTIONS)[number]["value"]) => {
-    // From "every method", the first tick means "only this one".
-    const current = all ? [] : selected!;
-    const next = current.includes(value)
-      ? current.filter((m) => m !== value)
-      : [...current, value];
-    // Empty === every method, which is also the only sane reading of "none".
-    onChange(next.length ? { paymentMethods: next } : undefined);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-normal text-muted-foreground">
-        Show for payment method
-      </Label>
-      <div className="flex flex-wrap gap-4">
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox
-            checked={all}
-            onCheckedChange={(value) => {
-              if (value === true) onChange(undefined);
-            }}
-          />
-          Every method
-        </label>
-        {PAYMENT_METHOD_OPTIONS.map((method) => (
-          <label key={method.value} className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={!all && selected!.includes(method.value)}
-              onCheckedChange={() => toggle(method.value)}
-            />
-            {method.label}
-          </label>
-        ))}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={atCap}
+          onClick={() => add("notice")}
+        >
+          Add note
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={atCap}
+          onClick={() => add("input")}
+        >
+          Add field
+        </Button>
       </div>
-      {!all ? (
+      {atCap ? (
         <p className="text-xs text-muted-foreground">
-          Hidden for other methods — and while hidden it is never required, so it
-          cannot block an order paid a different way.
+          Twelve is the maximum across the whole checkout — a long checkout is a
+          common reason an order is abandoned.
+          {reservedFieldCount > 0
+            ? ` ${reservedFieldCount} of them ${reservedFieldCount === 1 ? "is" : "are"} set up elsewhere.`
+            : ""}
         </p>
       ) : null}
     </div>

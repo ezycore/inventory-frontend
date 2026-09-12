@@ -166,17 +166,23 @@ export function DeliveryFields({
             all four get it without re-deciding where it goes. */}
         <CustomFields api={api} slot="after-address" />
 
-        <LabeledField label={t.orderNotesLabel} optional={t.optionalTag}>
-          {(id) => (
-            <input
-              id={id}
-              style={input}
-              placeholder={t.orderNotesPh}
-              value={addr.notes}
-              onChange={(e) => set("notes", e.target.value)}
-            />
-          )}
-        </LabeledField>
+        {/* Merchant-switchable, and ON unless they turned it off. What a shopper
+            types here is composed into the COURIER's note — the gate code, the
+            landmark, "call before you come" — so hiding it is a deliberate
+            choice rather than the tidier default. */}
+        {store?.checkout?.showOrderNotes !== false ? (
+          <LabeledField label={t.orderNotesLabel} optional={t.optionalTag}>
+            {(id) => (
+              <input
+                id={id}
+                style={input}
+                placeholder={t.orderNotesPh}
+                value={addr.notes}
+                onChange={(e) => set("notes", e.target.value)}
+              />
+            )}
+          </LabeledField>
+        ) : null}
 
         {/* Pickup: show the collection location + any instructions (read-only). */}
         {isPickup && store?.pickup?.location ? (
