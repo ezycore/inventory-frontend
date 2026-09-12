@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, ExternalLink } from "lucide-react";
+import { Copy, ExternalLink, Plus } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { storefrontUrl } from "@/lib/storefront-url";
 import { copyText } from "@/utils/clipboard";
@@ -16,12 +16,8 @@ import type {
 import { StorePublishedDialog } from "@/components/ecommerce/store-published-dialog";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
-import { Checkbox } from "@/ui/components/checkbox";
-import { Label } from "@/ui/components/label";
-import { SimpleSelect } from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
-import { NO_ACCOUNT } from "./custom-payment-method-editor";
 import { SaveBar, useStoreSettingsSave } from "./settings-form-shared";
 import { CustomPaymentMethodEditor } from "./custom-payment-method-editor";
 import {
@@ -29,6 +25,28 @@ import {
   mergeCheckoutFieldGroup,
   methodOwnerId,
 } from "./checkout-custom-fields";
+
+/**
+ * The row key for a method the merchant just added.
+ *
+ * A new row has NO id — the backend mints it from the title on first save — so
+ * it cannot key off `method.id` like the others. Only one unsaved row can exist
+ * at a time (the merchant has to name it before the tab will save), which is
+ * what makes a single shared key safe here.
+ */
+const NEW_METHOD_ID = "__new";
+
+/** "note + 1 field" — what a collapsed row says it asks the shopper for. */
+function describeEntries(fields: CheckoutField[]): string {
+  const named = fields.filter((f) => f.label.trim());
+  const notes = named.filter((f) => f.kind === "notice").length;
+  const inputs = named.filter((f) => f.kind === "input").length;
+  const parts: string[] = [];
+  if (notes) parts.push(notes === 1 ? "note" : `${notes} notes`);
+  if (inputs) parts.push(inputs === 1 ? "1 field" : `${inputs} fields`);
+  return parts.join(" + ");
+}
+
 
 export function PublishSettingsTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useStoreSettingsSave();
@@ -131,15 +149,18 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
   // the minimal multi-domain endpoint, so a role with `storefront.orders.manage`
   // but not `accounts.view` still gets a usable picker instead of an empty one.
   const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
-  const [accountMap, setAccountMap] = useState<Record<string, string>>(
-    () => {
-      const initial: Record<string, string> = {};
-      for (const [method, id] of Object.entries(settings.paymentAccountMap ?? {})) {
-        if (id) initial[method] = String(id);
-      }
-      return initial;
-    },
-  );
+  const [accountMap, setAccountMap] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const [method, id] of Object.entries(settings.paymentAccountMap ?? {})) {
+      if (id) initial[method] = String(id);
+    }
+    return initial;
+  });
+
+  // ONE row open at a time. That is the whole shape of this tab now: the list is
+  // readable at a glance and the detail is somewhere you go, not something you
+  // scroll past three times on the way to the method you wanted.
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const [codEnabled, setCodEnabled] = useState(
     (settings.allowedPaymentMethods ?? ["cod"]).includes("cod"),
@@ -156,29 +177,63 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
   const [enabled, setEnabled] = useState<string[]>(
     (settings.allowedPaymentMethods ?? ["cod"]).filter((id) => id !== "cod"),
   );
-  // Keyed by method id. A method too new to have an id cannot own fields yet —
-  // the id is minted server-side on first save, and the fields name it.
+  // Keyed by method id, `cod` included — it is a row like any other now, so it
+  // can carry instructions ("have the exact amount ready") that it never could
+  // as a checkbox in its own block.
   const [fieldsByMethod, setFieldsByMethod] = useState<Record<string, CheckoutField[]>>(
     () => {
-      const initial: Record<string, CheckoutField[]> = {};
+      const initial: Record<string, CheckoutField[]> = { cod: [] };
       for (const method of settings.paymentMethods ?? []) {
         if (!method.id) continue;
-        initial[method.id] = storedFields.filter((f) => methodOwnerId(f) === method.id);
+        initial[method.id] = [];
+      }
+      for (const field of storedFields) {
+        const owner = methodOwnerId(field);
+        if (!owner) continue;
+        (initial[owner] ??= []).push(field);
       }
       return initial;
     },
   );
 
+
+  /**
+   * ⚠ Adopt the server's answer after a save, or a new row stays "unsaved".
+   *
+   * The backend mints a method's id from its title on first save, and every
+   * piece of state above was seeded by a `useState` initializer that does not
+   * re-run. So a merchant who added bKash and saved would keep looking at a row
+   * with no id — still showing "save to add the payment instructions", with no
+   * route to the field editor short of leaving the tab and coming back.
+   *
+   * Render-time adjust rather than an effect: the same pattern `use-checkout`
+   * uses for its profile prefill, and it avoids painting once with stale ids.
+   * `fieldsByMethod` and `accountMap` are deliberately NOT reset — their keys are
+   * ids that never change, and the save echoed back what we already hold.
+   */
+  const storedSignature = JSON.stringify(settings.paymentMethods ?? []);
+  const [syncedFrom, setSyncedFrom] = useState(storedSignature);
+  if (syncedFrom !== storedSignature) {
+    setSyncedFrom(storedSignature);
+    const fresh = withSynthesizedDefinitions(
+      settings.paymentMethods ?? [],
+      settings.allowedPaymentMethods ?? [],
+    );
+    setMethods(fresh);
+    setCodEnabled((settings.allowedPaymentMethods ?? ["cod"]).includes("cod"));
+    setEnabled((settings.allowedPaymentMethods ?? ["cod"]).filter((id) => id !== "cod"));
+    // A row that was open as "new" reopens under the id it was just given, so
+    // the merchant lands on its instructions instead of a collapsed list.
+    if (openId === NEW_METHOD_ID) setOpenId(fresh[fresh.length - 1]?.id ?? null);
+  }
   const sharedFields = storedFields.filter((f) => !isMethodOwnedField(f));
   // Entries conditioned on a method this store no longer defines. Nothing can
   // edit them and the storefront never renders them (the condition cannot match),
   // but they are the merchant's words, so a save carries them through rather than
   // deleting data no one asked to delete.
-  const definedIds = new Set(
-    (settings.paymentMethods ?? []).map((m) => m.id).filter(Boolean),
-  );
+  const rowIds = new Set(["cod", ...methods.map((m) => m.id).filter(Boolean)]);
   const orphanFields = storedFields.filter(
-    (f) => isMethodOwnedField(f) && !definedIds.has(methodOwnerId(f)),
+    (f) => isMethodOwnedField(f) && !rowIds.has(methodOwnerId(f) ?? ""),
   );
   const ownedCount = Object.values(fieldsByMethod).reduce(
     (n, list) => n + list.filter((f) => f.label.trim()).length,
@@ -209,10 +264,30 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
       delete next[method.id!];
       return next;
     });
+    if (openId === method.id) setOpenId(null);
   };
 
-  const addMethod = () =>
+  const addMethod = () => {
     setMethods((current) => [...current, { title: "", subtitle: undefined }]);
+    // A row the merchant just asked for opens itself; finding it collapsed and
+    // unnamed at the bottom of the list would be a puzzle, not a list.
+    setOpenId(NEW_METHOD_ID);
+  };
+
+  /** The collapsed row's recap: where the money goes, and what it asks for. */
+  const summaryFor = (id: string | undefined, builtIn: boolean) => {
+    const accountLabel = id
+      ? accountOptions.find((o) => o.value === accountMap[id])?.label
+      : undefined;
+    const parts = [
+      accountsEnabled && accountOptions.length
+        ? (accountLabel ?? "Ask each time")
+        : null,
+      builtIn ? "built in" : null,
+      describeEntries(id ? (fieldsByMethod[id] ?? []) : []),
+    ].filter(Boolean);
+    return parts.join(" · ");
+  };
 
   const savePayments = () => {
     const cleaned = methods
@@ -242,11 +317,12 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
       return;
     }
 
-    // Rebuild the shared array: every method's own entries plus the orphans,
-    // with everything the Checkout tab owns put back exactly where it was.
+    // Rebuild the shared array: every row's own entries — `cod` included, since
+    // it owns fields now — plus the orphans, with everything the Checkout tab
+    // owns put back exactly where it was.
     const owned = [
-      ...cleaned.flatMap((m) =>
-        (m.id ? (fieldsByMethod[m.id] ?? []) : []).filter((f) => f.label.trim()),
+      ...["cod", ...cleaned.map((m) => m.id)].flatMap((id) =>
+        (id ? (fieldsByMethod[id] ?? []) : []).filter((f) => f.label.trim()),
       ),
       ...orphanFields,
     ];
@@ -276,117 +352,105 @@ export function PaymentsSettingsTab({ settings }: { settings: StorefrontSettings
     });
   };
 
+  const pickerOptions = accountsEnabled && accountOptions.length ? accountOptions : undefined;
+  const budgetFor = (id: string | undefined) =>
+    sharedFields.length +
+    orphanFields.length +
+    ownedCount -
+    (id ? (fieldsByMethod[id] ?? []).filter((f) => f.label.trim()).length : 0);
+
   return (
     <div className="space-y-5">
-      <Card className="space-y-4 p-5 shadow-none">
-        <div>
-          <h3 className="text-sm font-semibold">Payment methods</h3>
-          <p className="text-xs text-muted-foreground">
-            How shoppers can pay at checkout, in the order they see them.
-          </p>
-        </div>
-
-        <label className="flex items-center gap-2.5 text-sm">
-          <Checkbox
-            checked={codEnabled}
-            onCheckedChange={(value) => setCodEnabled(value === true)}
-          />
-          Cash on Delivery
-          <span className="text-xs text-muted-foreground">
-            Built in — the shopper pays the rider.
-          </span>
-        </label>
-        {codEnabled && accountsEnabled && accountOptions.length ? (
-          <div className="ml-7 max-w-sm space-y-1.5">
-            <Label htmlFor="cod-account" className="text-xs font-normal text-muted-foreground">
-              Receiving account
-            </Label>
-            <SimpleSelect
-              value={accountMap.cod || NO_ACCOUNT}
-              onValueChange={(id) =>
-                setAccountMap((current) => ({
-                  ...current,
-                  cod: id === NO_ACCOUNT ? "" : id,
-                }))
-              }
-              options={[
-                { label: "Ask me each time", value: NO_ACCOUNT },
-                ...accountOptions,
-              ]}
-            />
+      {/* ONE card. The shipped design nested three levels of them. */}
+      <Card className="gap-0 p-0 shadow-none">
+        <div className="flex flex-col gap-3 px-4 pt-4 pb-3 md:flex-row md:items-start md:gap-4 md:px-5 md:pt-5">
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold">Payment methods</h3>
+            <p className="text-xs text-muted-foreground">
+              How shoppers can pay at checkout, in the order they see them.
+            </p>
           </div>
-        ) : null}
-
-        {methods.map((method, index) => (
-          <CustomPaymentMethodEditor
-            key={method.id ?? `new-${index}`}
-            method={method}
-            enabled={!method.id || enabled.includes(method.id)}
-            fields={method.id ? (fieldsByMethod[method.id] ?? []) : []}
-            reservedFieldCount={
-              sharedFields.length +
-              orphanFields.length +
-              ownedCount -
-              (method.id
-                ? (fieldsByMethod[method.id] ?? []).filter((f) => f.label.trim()).length
-                : 0)
-            }
-            canMoveUp={index > 0}
-            canMoveDown={index < methods.length - 1}
-            accountOptions={accountsEnabled ? accountOptions : undefined}
-            accountId={method.id ? accountMap[method.id] : undefined}
-            onAccountChange={(accountId) => {
-              if (!method.id) return;
-              setAccountMap((current) => ({ ...current, [method.id!]: accountId }));
-            }}
-            onMethodChange={(next) => updateMethod(index, next)}
-            onEnabledChange={(on) => {
-              if (!method.id) return;
-              setEnabled((current) =>
-                on
-                  ? Array.from(new Set([...current, method.id!]))
-                  : current.filter((id) => id !== method.id),
-              );
-            }}
-            onFieldsChange={(next) => {
-              if (!method.id) return;
-              setFieldsByMethod((current) => ({ ...current, [method.id!]: next }));
-            }}
-            onMove={(delta) => moveMethod(index, delta)}
-            onRemove={() => removeMethod(index)}
-          />
-        ))}
-
-        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="h-11 w-full md:h-8 md:w-auto"
             disabled={methods.length >= MAX_PAYMENT_METHODS}
             onClick={addMethod}
           >
-            Add payment method
+            <Plus className="size-4" /> Add method
           </Button>
-          <span className="text-xs text-muted-foreground">
-            {methods.length >= MAX_PAYMENT_METHODS
-              ? `${MAX_PAYMENT_METHODS} is the maximum.`
-              : "For bKash, Nagad, a bank account — anything you confirm by hand."}
-          </span>
         </div>
 
-        <div className="space-y-2 border-t pt-3">
-          {COMING_SOON.map((method) => (
-            <label
-              key={method}
-              className="flex cursor-not-allowed items-center gap-2.5 text-sm text-muted-foreground"
-            >
-              <Checkbox disabled />
-              {method}
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
-                Coming soon
-              </span>
-            </label>
-          ))}
+        {/* Cash on Delivery is a row in the same list, not a checkbox above it. */}
+        <CustomPaymentMethodEditor
+          method={{ id: "cod", title: "Cash on Delivery", subtitle: "the shopper pays the rider" }}
+          builtIn
+          enabled={codEnabled}
+          open={openId === "cod"}
+          summary={summaryFor("cod", true)}
+          fields={fieldsByMethod.cod ?? []}
+          reservedFieldCount={budgetFor("cod")}
+          canMoveUp={false}
+          canMoveDown={false}
+          accountOptions={pickerOptions}
+          accountId={accountMap.cod}
+          onToggleOpen={() => setOpenId(openId === "cod" ? null : "cod")}
+          onAccountChange={(id) => setAccountMap((current) => ({ ...current, cod: id }))}
+          onMethodChange={() => {}}
+          onEnabledChange={setCodEnabled}
+          onFieldsChange={(next) =>
+            setFieldsByMethod((current) => ({ ...current, cod: next }))
+          }
+          onMove={() => {}}
+          onRemove={() => {}}
+        />
+
+        {methods.map((method, index) => {
+          const rowId = method.id ?? NEW_METHOD_ID;
+          return (
+            <CustomPaymentMethodEditor
+              key={rowId}
+              method={method}
+              enabled={!method.id || enabled.includes(method.id)}
+              open={openId === rowId}
+              summary={summaryFor(method.id, false)}
+              fields={method.id ? (fieldsByMethod[method.id] ?? []) : []}
+              reservedFieldCount={budgetFor(method.id)}
+              canMoveUp={index > 0}
+              canMoveDown={index < methods.length - 1}
+              accountOptions={pickerOptions}
+              accountId={method.id ? accountMap[method.id] : undefined}
+              onToggleOpen={() => setOpenId(openId === rowId ? null : rowId)}
+              onAccountChange={(id) => {
+                if (!method.id) return;
+                setAccountMap((current) => ({ ...current, [method.id!]: id }));
+              }}
+              onMethodChange={(next) => updateMethod(index, next)}
+              onEnabledChange={(on) => {
+                if (!method.id) return;
+                setEnabled((current) =>
+                  on
+                    ? Array.from(new Set([...current, method.id!]))
+                    : current.filter((id) => id !== method.id),
+                );
+              }}
+              onFieldsChange={(next) => {
+                if (!method.id) return;
+                setFieldsByMethod((current) => ({ ...current, [method.id!]: next }));
+              }}
+              onMove={(delta) => moveMethod(index, delta)}
+              onRemove={() => removeMethod(index)}
+            />
+          );
+        })}
+
+        {/* Was five stacked disabled checkboxes. One line says the same thing. */}
+        <div className="flex flex-wrap items-center gap-2 border-t px-4 py-3 text-xs text-muted-foreground md:px-5">
+          <span>{COMING_SOON.join(" and ").toLowerCase()} payments</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+            Coming soon
+          </span>
         </div>
       </Card>
       <SaveBar pending={pending} onSave={savePayments} />

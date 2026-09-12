@@ -286,7 +286,7 @@
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"$preview":{"width":1040,"height":860}}'>
+<script data-dc-script data-props='{"$preview":{"width":390,"height":600}}'>
 /* Icon geometry copied from components/storefront/sf-icons.tsx, expressed as
    paths only so each renders through one loop. */
 const ICONS = {
@@ -319,7 +319,7 @@ class Component extends DCLogic {
   constructor(props) {
     super(props);
     this.state = {
-      open: 'bkash',
+      open: null,
       icon: { cod: 'coins', bkash: 'phone', bank: 'bank' },
       tone: { cod: 'plain', bkash: 'info', bank: 'plain' },
       size: { cod: 'sm', bkash: 'sm', bank: 'sm' },

@@ -1759,9 +1759,23 @@ checkout fields scoped to its id. Notes:
 - `bank` is an ordinary merchant method, not a built-in — a backfill migration
   gave every pre-existing store a `{ id: "bank", title: "Bank Transfer" }`
   definition. Its id never changed, so bank-scoped checkout notices kept matching.
-- The Payments tab edits the whole list: each method's title, subtitle, its
-  on/off switch, its order, and its own “Add note” / “Add field” controls. Those
-  write ordinary `checkout.customFields` entries scoped to that method's id.
+- **The Payments tab is an ACCORDION: a 56px row per method, one open at a
+  time.** Every method used to render every control at once, so three methods
+  made a page thousands of pixels tall. The row carries what you read — mark,
+  title, subtitle, a one-line `summary` (account + what it asks for), the switch
+  — and the detail opens two columns wide. Cash on Delivery is a row in the same
+  list (`builtIn`), not a checkbox above it; that unification is what lets it
+  carry instructions at all. `md:` is the breakpoint: on a phone the row goes
+  title-over-summary, the detail stacks, reorder moves into the open row, and
+  every target grows past 44px.
+- ⚠ **The switch and the reorder chevrons are siblings of the toggle target, not
+  children.** Nested inside it, every enable/disable would also expand the row.
+- ⚠ **`PaymentsSettingsTab` adopts the server's ids after a save** (render-time
+  adjust on a signature of `settings.paymentMethods`). Without it a new row keeps
+  the `useState` seed that has no id, so it reads as unsaved forever and the field
+  editor stays out of reach. A row open as `__new` reopens under its minted id.
+- A method with no id yet gets neither the field editor nor the account picker:
+  both are keyed by that id, and it does not exist until the first save.
 - The address block's **"Delivery notes"** box is switchable —
   `store.checkout.showOrderNotes`, and **unset reads as ON** so every store that
   predates the toggle is unchanged. Do not treat it as decoration: what shoppers

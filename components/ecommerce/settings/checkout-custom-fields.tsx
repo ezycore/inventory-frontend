@@ -136,8 +136,6 @@ export function CheckoutCustomFields({
   onChange,
   fixedPaymentMethod,
   reservedFieldCount = 0,
-  heading = "Extra checkout fields",
-  description = "Asked on every order, whatever the shopper pays with. Each one picks its own place in the checkout; answers appear on the order and never change the total.",
 }: {
   fields: CheckoutField[];
   onChange: (next: CheckoutField[]) => void;
@@ -149,8 +147,6 @@ export function CheckoutCustomFields({
    * the save then rejects.
    */
   reservedFieldCount?: number;
-  heading?: string;
-  description?: string;
 }) {
   /**
    * Payment mode: the cut-down editor the Payments tab embeds.
@@ -216,21 +212,150 @@ export function CheckoutCustomFields({
       },
     ]);
 
+  /**
+   * Payment mode renders FLAT: labelled blocks, no nested cards.
+   *
+   * The shipped layout wrapped every entry in a bordered card with its own
+   * header row (kind dropdown, move up, move down, delete) — three levels of
+   * card nesting inside one settings card, and a page thousands of pixels tall.
+   * A payment method has at most a note and a question or two, so the label
+   * above each block already says what it is.
+   *
+   * Reorder is gone here on purpose: the slot is pinned to `after-payment` and
+   * instructions-then-questions is the only order that reads, so two chevrons
+   * per entry bought nothing. The Checkout tab keeps them, where slots and
+   * ordering are the whole point.
+   */
+  if (paymentMode) {
+    const notices = fields
+      .map((field, index) => ({ field, index }))
+      .filter((e) => e.field.kind === "notice");
+    const inputs = fields
+      .map((field, index) => ({ field, index }))
+      .filter((e) => e.field.kind === "input");
+
+    return (
+      <div className="space-y-4">
+        {notices.map(({ field, index }) => {
+          const surface = noticeSurfaceLiteral(field.tone);
+          return (
+            <div key={field.key} className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs font-normal text-muted-foreground">
+                  Instructions the shopper reads
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove note"
+                  className="size-11 md:size-7"
+                  onClick={() => emit(fields.filter((_, i) => i !== index))}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+              {/* The input IS the preview: it paints in the chosen tone, which is
+                  what let the separate preview block go. */}
+              <Textarea
+                value={field.label}
+                maxLength={600}
+                rows={3}
+                placeholder="How to pay. e.g. Send Money to 01XXXXXXXXX (Personal), then enter the TrxID below."
+                onChange={(e) => update(index, { label: e.target.value })}
+                style={{
+                  background: surface.background,
+                  borderColor: surface.border,
+                  color: surface.color,
+                  fontWeight: surface.fontWeight,
+                }}
+              />
+              <NoticeStyleFields field={field} onChange={(patch) => update(index, patch)} />
+            </div>
+          );
+        })}
+
+        {inputs.length ? (
+          <div className="space-y-2">
+            <Label className="text-xs font-normal text-muted-foreground">
+              Details to collect
+            </Label>
+            {inputs.map(({ field, index }) => (
+              // One line on a desktop; the label takes its own line on a phone
+              // rather than being crushed against the Required tick.
+              <div key={field.key} className="flex flex-wrap items-center gap-2.5">
+                <Input
+                  value={field.label}
+                  maxLength={200}
+                  placeholder="What to ask for, e.g. Transaction ID"
+                  className="h-11 flex-[1_1_100%] md:h-9 md:flex-1"
+                  onChange={(e) => update(index, { label: e.target.value })}
+                />
+                <label className="flex flex-1 cursor-pointer items-center gap-2 text-sm whitespace-nowrap md:flex-none">
+                  <Checkbox
+                    checked={!!field.required}
+                    onCheckedChange={(value) => update(index, { required: value === true })}
+                  />
+                  Required
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove field"
+                  className="size-11 md:size-7"
+                  onClick={() => emit(fields.filter((_, i) => i !== index))}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-11 md:h-8"
+            disabled={atCap}
+            onClick={() => add("notice")}
+          >
+            Add note
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-11 md:h-8"
+            disabled={atCap}
+            onClick={() => add("input")}
+          >
+            Add field
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {atCap
+              ? "Twelve is the maximum across the whole checkout."
+              : `${MAX_FIELDS - fields.length - reservedFieldCount} of ${MAX_FIELDS} left across the checkout`}
+          </span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-3">
       <div>
-        <Label>{heading}</Label>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <Label>Extra checkout fields</Label>
+        <p className="text-xs text-muted-foreground">
+          Asked on every order, whatever the shopper pays with. Each one picks its own
+          place in the checkout; answers appear on the order and never change the total.
+        </p>
       </div>
 
       {fields.map((field, index) => (
         <div key={field.key} className="space-y-3 rounded-md border p-3">
           <div className="flex items-center gap-2">
-            {paymentMode ? (
-              <span className="text-sm font-medium">
-                {field.kind === "notice" ? "Note" : "Field"}
-              </span>
-            ) : (
             <SimpleSelect
               value={field.kind}
               onValueChange={(kind) =>
@@ -251,7 +376,6 @@ export function CheckoutCustomFields({
               options={KIND_OPTIONS}
               className="max-w-[220px]"
             />
-            )}
             <div className="ml-auto flex items-center gap-1">
               <Button
                 type="button"
@@ -285,7 +409,7 @@ export function CheckoutCustomFields({
             </div>
           </div>
 
-          {field.kind === "notice" && paymentMode ? (
+          {false ? (
             // Instructions run to several lines — account name, number, branch —
             // and a merchant typing them into a one-line box cannot see them.
             <Textarea
@@ -313,21 +437,19 @@ export function CheckoutCustomFields({
             />
           )}
 
-          {!paymentMode ? (
-            <div className="space-y-1.5">
-              <Label className="text-xs font-normal text-muted-foreground">
-                Where it appears
-              </Label>
-              <SimpleSelect
-                value={field.slot ?? "after-address"}
-                onValueChange={(slot) =>
-                  update(index, { slot: slot as CheckoutField["slot"] })
-                }
-                options={SLOT_OPTIONS}
-                className="max-w-[320px]"
-              />
-            </div>
-          ) : null}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-normal text-muted-foreground">
+              Where it appears
+            </Label>
+            <SimpleSelect
+              value={field.slot ?? "after-address"}
+              onValueChange={(slot) =>
+                update(index, { slot: slot as CheckoutField["slot"] })
+              }
+              options={SLOT_OPTIONS}
+              className="max-w-[320px]"
+            />
+          </div>
 
           {field.kind === "notice" ? (
             <NoticeStyleFields field={field} onChange={(patch) => update(index, patch)} />
@@ -335,27 +457,21 @@ export function CheckoutCustomFields({
 
           {field.kind === "input" ? (
             <>
-              {!paymentMode ? (
-                <Input
-                  value={field.helpText ?? ""}
-                  maxLength={300}
-                  placeholder="Help text under the label (optional)"
-                  onChange={(e) =>
-                    update(index, { helpText: e.target.value || undefined })
-                  }
-                />
-              ) : null}
+              <Input
+                value={field.helpText ?? ""}
+                maxLength={300}
+                placeholder="Help text under the label (optional)"
+                onChange={(e) => update(index, { helpText: e.target.value || undefined })}
+              />
               <div className="flex flex-wrap items-center gap-3">
-                {!paymentMode ? (
-                  <SimpleSelect
-                    value={field.type ?? "text"}
-                    onValueChange={(type) =>
-                      update(index, { type: type as CheckoutField["type"] })
-                    }
-                    options={TYPE_OPTIONS}
-                    className="max-w-[200px]"
-                  />
-                ) : null}
+                <SimpleSelect
+                  value={field.type ?? "text"}
+                  onValueChange={(type) =>
+                    update(index, { type: type as CheckoutField["type"] })
+                  }
+                  options={TYPE_OPTIONS}
+                  className="max-w-[200px]"
+                />
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={!!field.required}
@@ -364,7 +480,7 @@ export function CheckoutCustomFields({
                   Required
                 </label>
               </div>
-              {field.type === "select" && !paymentMode ? (
+              {field.type === "select" ? (
                 <OptionsField
                   options={field.options}
                   onChange={(options) => update(index, { options })}
