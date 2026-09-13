@@ -108,11 +108,18 @@ export function FinancialInsights({
   // was still owed read 7% — with a progress bar implying the refunded ৳18,850
   // was outstanding (QA-N9).
   //
-  // Clamped at 100. A sale paid and then refunded in cash leaves `paid` behind
-  // while the denominator drops, and a collection rate above 100% describes
-  // nothing a merchant can act on.
+  // Derived as "owed less still owing" rather than read off `sales.paid`, which
+  // is the GROSS figure: against a net denominator it printed the contradiction
+  // "৳81,847.26 collected of ৳77,662.82" and leaned on the clamp below to keep
+  // the percentage sane. `netRevenue - due` also stays right when the returned
+  // sale was on credit, where the refund never touched `paid` at all.
+  const collected = Math.max(0, netRevenue - (overview.sales?.due ?? 0))
+
+  // Clamped at 100 all the same: a sale paid and then refunded in cash leaves
+  // money in hand against a denominator that has dropped, and a collection rate
+  // above 100% describes nothing a merchant can act on.
   const collectionRate = netRevenue > 0
-    ? Math.min(100, Math.round(((overview.sales?.paid ?? 0) / netRevenue) * 100))
+    ? Math.min(100, Math.round((collected / netRevenue) * 100))
     : 0
   // Net revenue over a GROSS count — settled, and settled twice.
   //
@@ -184,7 +191,7 @@ export function FinancialInsights({
             </div>
             <Progress value={collectionRate} className="h-1.5" />
             <p className="text-[11px] text-muted-foreground">
-              {t('collectedOfTotal', { collected: formatCurrency((overview.sales?.paid ?? 0)), total: formatCurrency(netRevenue) })}
+              {t('collectedOfTotal', { collected: formatCurrency(collected), total: formatCurrency(netRevenue) })}
             </p>
           </div>
 

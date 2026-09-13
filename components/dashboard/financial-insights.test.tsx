@@ -94,6 +94,23 @@ describe('financial insights — rates read net, like the tile above them', () =
     ).toBeInTheDocument()
   })
 
+  it('counts as collected what is not still owed, never the gross paid figure', () => {
+    // Browser QA read "৳81,847.26 collected of ৳77,662.82" — `sales.paid` is the
+    // GROSS figure and the denominator is net, so the caption contradicted
+    // itself while the clamp hid it at a tidy 100%.
+    draw(
+      overview({
+        sales: { ...overview().sales, total: 2000, paid: 1200, due: 300 },
+        returns: { refund: 500, cogs: 0, count: 1 },
+      } as never),
+    )
+    // Net 2000 - 500 = 1500, of which 300 is still owing.
+    expect(
+      screen.getByText('collectedOfTotal:{"collected":"৳1200","total":"৳1500"}'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('80%')).toBeInTheDocument()
+  })
+
   it('clamps a collection rate that a cash refund pushed over 100%', () => {
     // Paid in full, then refunded in cash: `paid` stays behind while the
     // denominator drops. "145%" collected describes nothing actionable.

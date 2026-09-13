@@ -241,9 +241,18 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     }
 
     const grossProfit = overview.grossProfit ?? 0
-    // Of the revenue whose cost is actually known. Dividing by the whole would
-    // flatter the margin by however much revenue has no cost behind it.
-    const margin = known > 0 ? Math.round((grossProfit / known) * 100) : 0
+    /**
+     * Margin is of the KNOWN slice, so the numerator has to be that slice's
+     * profit too — not the page headline.
+     *
+     * `grossProfit` is `netRevenue - COGS - carriage` over the WHOLE period, and
+     * revenue with no cost behind it enters it at full value. Dividing that by
+     * `known` mixes scopes and prints a margin above 100% (a sample workspace
+     * read 133%). `grossProfit - unknown` is exactly
+     * `known - COGS - carriage`, which is what this denominator is a margin of.
+     */
+    const knownProfit = grossProfit - unknown
+    const margin = known > 0 ? Math.round((knownProfit / known) * 100) : 0
     return {
       label: t('grossProfit'),
       value: formatCurrency(grossProfit),
