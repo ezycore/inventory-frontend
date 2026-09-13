@@ -22,7 +22,10 @@ authoritative for every number** — the FE displays and submits, it never re-de
 - [`app/(protected)/accounts/page.tsx`](../../../app/(protected)/accounts) — the accounts list, plus
   `accounts/transactions/` for the ledger view.
 - [`components/accounts/`](../../../components/accounts):
-  - `cardview.tsx` — account cards with balances.
+  - `cardview.tsx` — account cards with balances. Its type tokens are typed
+    `Record<AccountType, …>` and read **without a fallback** on purpose: a `?? typeConfig.cash`
+    default is what silently drew every courier clearing account as **Cash** when the backend
+    added the fifth type. A new account type must break the build here.
   - `investment-dialog.tsx` — record an owner investment / capital entry.
   - `transactions/columns.tsx`, `transactions/transaction-dialogs.tsx`,
     `transactions/form-configs.ts`, `transactions/transaction-stats-section.tsx` — the transactions
@@ -49,6 +52,32 @@ value; don't compute credit locally.
 
 ---
 
+## 2b. The fifth account type: `courier_clearing`
+
+COD a courier has collected and not yet remitted lives in a **system** account per
+(courier × location) — see [`docs/plan/cod-remittance-frontend.md`](../../../docs/plan/cod-remittance-frontend.md)
+and the backend plan it implements. Four rules for any screen that touches `Account`:
+
+1. **Never sum it into cash.** `AccountSummary.totalBalance`, `CashReport.summary.totalBalance` and
+   `PositionReport.assets.cash` all **exclude** it and report `withCourier` separately; `assets.total`
+   includes it (it is an asset, just not a spendable one). A new total over `Account.balance` must
+   decide which side it is on — silence here reads as money vanishing.
+2. **`AccountType` is five; the create form's list is four.** `MerchantAccountType`
+   (`types/index.ts`) is the union `CreateAccountDto` takes, mirroring the backend's
+   `MERCHANT_ACCOUNT_TYPES`. A merchant never chooses this type — the remittance flow provisions it.
+3. **A `systemKey` account is read-only.** Rename / retype / delete are refused server-side
+   (`ACCOUNT_SYSTEM_LOCKED`, `ACCOUNT_IN_USE_DEFAULT`), so hide those actions; keep *view
+   transactions*, which is the useful half. Do not hide the card — the balance is the answer the
+   merchant came for.
+4. **It is not a payment destination.** `/accounts/payment-options` filters system accounts out, so
+   every picker built on `useAccountPaymentOptions` / `useOrderAccountOptions` is already correct —
+   don't reach for the full account list to "fix" a missing option.
+
+The screens that reconcile it live under `/ecommerce/payouts`, not here: they are gated on
+`storefront`, not `accounts`. See the [`storefront`](../storefront/SKILL.md) skill.
+
+---
+
 ## 3. Gating & display rules
 
 - The whole accounting surface is behind the **`accounts`** feature — gate with
@@ -69,6 +98,9 @@ value; don't compute credit locally.
 | Credit balance shows 0 despite credit | reading a field the server didn't select (old bug) | server now returns `creditBalance` on the ref — regen types, read it |
 | Transfer double-counts | posting both legs client-side | one transfer call; the backend writes both ledger legs |
 | Accounts UI visible without the feature | missing gate | wrap in `isFeatureEnabled(org, "accounts")` |
+| A clearing account renders as Cash | a `?? typeConfig.cash` fallback over a `Record<string, …>` | type the map `Record<AccountType, …>` and drop the fallback |
+| Cash total dropped with nothing explaining it | `withCourier` not rendered beside `totalBalance` | show it as its own tile/row — never add it in |
+| Edit/Delete on an account 400s | the account has a `systemKey` | gate those actions on `item.systemKey` |
 
 ---
 
@@ -77,4 +109,6 @@ value; don't compute credit locally.
 - Don't re-derive a balance, due, or credit on the client — display the server value.
 - Don't record a payment outside the shared payment-entry components (keeps sales/purchase parity).
 - Don't show the accounting surface when the `accounts` feature is off.
+- Don't add `withCourier` into any figure labelled cash, and don't let a merchant create or edit a
+  `courier_clearing` account.
 - Don't duplicate the ledger rules here — link to the backend skill.

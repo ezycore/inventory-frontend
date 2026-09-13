@@ -195,6 +195,39 @@ export const EFFECTS = {
     MONEY,
   ),
 
+  /**
+   * A courier's remittance statement was FILED — recorded, not posted.
+   *
+   * No money has moved: `recordPayout` writes the statement, stamps the parcels it covers
+   * with their `payoutRef`, and stops there, because the destination account is the
+   * merchant's to choose and the deductions are theirs to agree to first. So this event
+   * deliberately carries **no `MONEY`** — flushing the whole ledger on a filing that touched
+   * none of it is the wasted refetch this file exists to prevent.
+   */
+  "payout.recorded": [
+    k.courierPayouts.all(),
+    k.storefrontOrders.all(),
+  ],
+
+  /**
+   * A payout was POSTED: the net transferred out of the courier's clearing account and each
+   * deduction booked as an expense against it.
+   *
+   * This is where the money moves, and it moves a lot of it — the clearing balance, the
+   * destination account, several expense rows, and the delivery expense that dispatch
+   * deferred while the courier still held the cash. Hence the full `MONEY` spread, which
+   * carries `DERIVED` (dashboard + reports) with it: the cash report and the position report
+   * both split with-courier out of cash, so both are wrong the instant this lands.
+   */
+  "payout.posted": union(
+    [
+      k.courierPayouts.all(),
+      k.storefrontOrders.all(),
+      k.storefrontDashboard.all(),
+    ],
+    MONEY,
+  ),
+
   /** An order was cancelled or returned — reserved stock is released and money may go back. */
   "order.returned": union(
     [

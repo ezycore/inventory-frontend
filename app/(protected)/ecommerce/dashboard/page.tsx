@@ -1,19 +1,10 @@
 "use client";
+// coding-standard: maintained
 
 import Link from "next/link";
-import {
-  AlertTriangle,
-  Banknote,
-  Clock,
-  Package,
-  PackageX,
-  ShoppingBag,
-  ShoppingCart,
-  TrendingDown,
-  Wallet,
-} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Package, ShoppingCart, TrendingDown, Wallet } from "lucide-react";
 import { useEcommerceDashboard } from "@/services/api";
-import { RecentOrders } from "@/components/dashboard/recent-orders";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import { StoreLookCard } from "@/components/ecommerce/store-look-card";
@@ -21,21 +12,31 @@ import { StoreStatusCard } from "@/components/ecommerce/store-status-card";
 import { storefrontUrl } from "@/lib/storefront-url";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
-import { ChannelMixCard } from "@/components/ecommerce/dashboard/channel-mix-card";
 import { Skeleton } from "@/ui/components/skeleton";
-import { StatusBadge } from "@/ui/components/status-badge";
-import { ORDER_STATUS_BADGE } from "@/lib/order-status";
-import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "short",
-  });
-
+/**
+ * Store operations — the things about the SHOP rather than about the trade.
+ *
+ * Everything that answers "how is business" moved to `/dashboard`, which composes
+ * itself from the org's capabilities and now leads with orders for a merchant who
+ * sells online (see `inventory-backend/docs/plan/dashboard-composition.md`).
+ * Today's orders, today's revenue, what came back, the queue, the channel mix,
+ * low stock and the recent-order list all live there, on one clock and beside the
+ * counter figures they have to be read against.
+ *
+ * What stays here is what has no home-screen equivalent: whether the shop is
+ * open and reachable, whether it still looks like every other EzyCore shop, how
+ * much of the catalogue is actually listed, and the cart funnel. The main
+ * dashboard carries a four-line summary of this and links back.
+ *
+ * **No period filter, deliberately.** Nothing left on this page is a period
+ * figure — published, listed, abandoned-right-now are all current state. Period
+ * questions belong to the dashboard's filter, and a second one here would be a
+ * second answer to the same question.
+ */
 export default function EcommerceDashboardPage() {
+  const t = useTranslations("dashboard.storeOverview");
   const { data, isLoading } = useEcommerceDashboard();
-  const { labelFor } = useOrderStatusLabels();
   const orgCurrency = useAuthStore((s) => s.user?.organization?.currency);
   const slug = useAuthStore((s) => s.user?.organization?.slug);
   const currency = data?.currency ?? orgCurrency;
@@ -44,10 +45,8 @@ export default function EcommerceDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Store Overview</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your online store at a glance.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       {/* Store status banner */}
@@ -66,71 +65,27 @@ export default function EcommerceDashboardPage() {
           removes itself once it has a theme, a logo and a palette. */}
       <StoreLookCard />
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          icon={<ShoppingBag className="h-4 w-4" />}
-          label="Today's orders"
-          value={isLoading ? null : String(data?.stats.todayOrders ?? 0)}
-        />
-        {/* Net, and labelled so. This tile used to read "Today's revenue" over
-            the gross value of today's orders — a parcel that came back in full
-            still counted for all of it, as did a doorstep concession. The day
-            that was found it showed ৳13,230 against ৳8,280 actually taken. */}
-        <StatCard
-          icon={<Banknote className="h-4 w-4" />}
-          label="Net revenue today"
-          value={
-            isLoading
-              ? null
-              : formatMoney(data?.stats.todayNetRevenue ?? 0, currency)
-          }
-        />
-        {/* What came back today, so the tile beside it can be read honestly —
-            a net figure with nothing to compare it against just looks like a
-            slow day. Deliberately NOT the difference between gross and net:
-            this is scoped to when the return was TAKEN (a parcel shipped last
-            week and refused this morning is today's loss), while revenue is
-            scoped to orders placed today. The two do not subtract. */}
-        <StatCard
-          icon={<PackageX className="h-4 w-4" />}
-          label="Returned today"
-          value={
-            isLoading
-              ? null
-              : formatMoney(data?.stats.todayReturned ?? 0, currency)
-          }
-          href="/ecommerce/orders?status=returned"
-        />
-        <StatCard
-          icon={<Clock className="h-4 w-4" />}
-          label="Awaiting confirmation"
-          value={isLoading ? null : String(data?.stats.pendingCount ?? 0)}
-          href="/ecommerce/orders?status=pending"
-          highlight={!!data && data.stats.pendingCount > 0}
-        />
-        {/* The online listing is a tab on Products now — /ecommerce/catalog was
-            removed with the sidebar entry, so this deep-links the tab. */}
+        {/* The online listing is a tab on Products — this deep-links the tab. */}
         <StatCard
           icon={<Package className="h-4 w-4" />}
-          label="Online products live"
+          label={t("liveProducts")}
           value={isLoading ? null : String(data?.stats.liveProducts ?? 0)}
           href="/products?tab=online"
         />
         {/* Carts built and left. Links to the full funnel, which computes these
             same numbers from the same aggregate — the tile and the page cannot
-            disagree. `abandonedRate` is null until there are carts to divide by;
-            rendering that as 0% would report a flawless funnel to a new store. */}
+            disagree. */}
         <StatCard
           icon={<ShoppingCart className="h-4 w-4" />}
-          label="Abandoned carts"
+          label={t("abandonedCarts")}
           value={isLoading ? null : String(data?.stats.abandonedCarts ?? 0)}
           href="/ecommerce/carts"
           highlight={!!data && data.stats.abandonedCarts > 0}
         />
         <StatCard
           icon={<Wallet className="h-4 w-4" />}
-          label="Value left in carts"
+          label={t("cartValue")}
           value={
             isLoading
               ? null
@@ -140,11 +95,13 @@ export default function EcommerceDashboardPage() {
         />
         <StatCard
           icon={<TrendingDown className="h-4 w-4" />}
-          label="Cart abandonment"
+          label={t("abandonmentRate")}
           value={
             isLoading
               ? null
-              : data?.stats.abandonedRate == null
+              : // Null until there are carts to divide by; rendering that as 0%
+                // would report a flawless funnel to a brand-new store.
+                data?.stats.abandonedRate == null
                 ? "—"
                 : `${Math.round(data.stats.abandonedRate * 100)}%`
           }
@@ -152,103 +109,16 @@ export default function EcommerceDashboardPage() {
         />
       </div>
 
-      {/* The number this whole omnichannel effort is measured by — and the way
-          into the orders list filtered by each source. */}
-      <ChannelMixCard
-        mix={data?.channelMix}
-        currency={currency}
-        isLoading={isLoading}
-      />
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        {/* Needs attention */}
-        <Card className="p-5 shadow-none">
-          <h2 className="mb-4 text-sm font-semibold">Needs attention</h2>
-          {isLoading || !data ? (
-            <Skeleton className="h-32 w-full" />
-          ) : (
-            <div className="space-y-4">
-              <Link
-                href="/ecommerce/orders?status=pending"
-                className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-              >
-                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-200">
-                  <Clock className="h-4 w-4" />
-                </span>
-                <div className="flex-1 text-sm">
-                  <div className="font-medium">
-                    {data.stats.pendingCount} order
-                    {data.stats.pendingCount === 1 ? "" : "s"} awaiting
-                    confirmation
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {/*
-                      Confirming is what reserves stock on a tracked tier and
-                      what simply starts fulfilment on a stock-free one, so the
-                      sentence has to drop the half that is not true rather than
-                      describe a step the merchant has no way to observe.
-                    */}
-                    {data.stockTracked === false
-                      ? "Confirm to start fulfillment."
-                      : "Confirm to commit stock and start fulfillment."}
-                  </div>
-                </div>
-              </Link>
-
-              {/*
-                Hidden outright for a merchant who keeps no stock, rather than
-                rendered empty.
-
-                The server already skips the query — the low-stock test is
-                `<= threshold`, which the untracked sentinel never satisfies, so
-                leaving it in would report every product as healthy. But a
-                skipped query and a shop with nothing running low are the same
-                empty array on the wire. Without `stockTracked` this panel
-                announced "Low-stock online products / No low-stock listed
-                products." to a business that does not count stock — an answer
-                to a question they never asked, and a reassuring one at that.
-              */}
-              {data.stockTracked !== false && (
-              <div>
-                <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Low-stock online
-                  products
-                </div>
-                {data.lowStockProducts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No low-stock listed products.
-                  </p>
-                ) : (
-                  <ul className="divide-y rounded-lg border">
-                    {data.lowStockProducts.map((p) => (
-                      <li
-                        key={p._id}
-                        className="flex items-center justify-between px-3 py-2 text-sm"
-                      >
-                        <span className="truncate pr-2">{p.name}</span>
-                        <span
-                          className={cn(
-                            "flex-none rounded-full border px-2 py-0.5 text-xs font-semibold",
-                            p.availableQuantity === 0
-                              ? "border-red-200 bg-red-50 text-red-700"
-                              : "border-yellow-200 bg-yellow-50 text-yellow-800",
-                          )}
-                        >
-                          {p.availableQuantity} left
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              )}
-            </div>
-          )}
-        </Card>
-
-        {/* Recent orders — shared with the main dashboard. */}
-        <RecentOrders />
-      </div>
+      <Card className="p-5 shadow-none">
+        <h2 className="text-sm font-semibold">{t("tradeTitle")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("tradeBody")}</p>
+        <Link
+          href="/dashboard"
+          className="mt-3 inline-block text-sm font-semibold text-primary"
+        >
+          {t("tradeLink")}
+        </Link>
+      </Card>
     </div>
   );
 }

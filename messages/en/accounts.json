@@ -17,13 +17,16 @@
       "bank": "Bank",
       "bankDescription": "Bank balances",
       "mobileBanking": "Mobile Banking",
-      "mobileBankingDescription": "Mobile Financial Service"
+      "mobileBankingDescription": "Mobile Financial Service",
+      "withCourier": "With Courier",
+      "withCourierDescription": "COD collected, not yet remitted"
     },
     "types": {
       "cash": "Cash",
       "bank": "Bank",
       "mfs": "Mobile Banking",
-      "custom": "Custom"
+      "custom": "Custom",
+      "courier_clearing": "With Courier"
     },
     "card": {
       "defaultAccount": "Default account",
@@ -35,7 +38,9 @@
       "addInvestment": "Add Investment",
       "viewTransactions": "View Transactions",
       "delete": "Delete",
-      "withdrawCapital": "Withdraw capital"
+      "withdrawCapital": "Withdraw capital",
+      "systemManaged": "System managed",
+      "systemManagedHint": "Maintained by the courier remittance flow — its name, type and balance are not edited by hand."
     },
     "form": {
       "name": "Account Name",

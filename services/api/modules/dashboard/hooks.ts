@@ -16,6 +16,20 @@ export const useDashboardStats = () => {
 }
 
 /**
+ * Hook for the dashboard's block composition.
+ *
+ * Long `staleTime`: the answer only changes when the org's plan/features change
+ * or the user's role does, both of which reload the session anyway.
+ */
+export const useDashboardBlocks = () => {
+  return useQuery({
+    queryKey: queryKeys.dashboard.blocks(),
+    queryFn: () => dashboardApi.getBlocks(),
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/**
  * Hook for fetching dashboard overview data — period-based
  * Automatically refetches when params change
  */

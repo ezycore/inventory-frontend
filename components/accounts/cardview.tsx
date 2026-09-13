@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import type { Account } from "@/types";
+import type { Account, AccountType } from "@/types";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import {
@@ -22,6 +22,7 @@ import {
   Building2,
   CreditCard,
   EllipsisVertical,
+  Truck,
   Pencil,
   MinusCircle,
   PlusCircle,
@@ -72,11 +73,19 @@ export function AccountCardSkeleton() {
   );
 }
 
-// ── Design tokens per account type ──────────────────────────────────────
+/**
+ * Design tokens per account type.
+ *
+ * Typed `Record<AccountType, …>` and read WITHOUT a fallback on purpose. It used to be
+ * `Record<string, …>` with `?? typeConfig.cash`, and when the backend added
+ * `courier_clearing` every clearing account silently rendered as **Cash** — the exact
+ * conflation that type exists to prevent, in the one place a merchant looks. Now a new
+ * account type fails to compile here instead.
+ */
 const getTypeConfig = (
   t: Translator,
 ): Record<
-  string,
+  AccountType,
   {
     icon: typeof Wallet;
     label: string;
@@ -122,6 +131,18 @@ const getTypeConfig = (
     iconColor: "text-amber-600 dark:text-amber-400",
     dot: "bg-amber-500",
   },
+  /**
+   * Money a courier is holding — deliberately not a wallet and not green. It reads as
+   * "elsewhere", because it is: a receivable from the carrier, not cash in the drawer.
+   */
+  courier_clearing: {
+    icon: Truck,
+    label: t("types.courier_clearing"),
+    gradient: "from-slate-400 to-slate-500",
+    iconBg: "bg-slate-100 dark:bg-slate-800/60",
+    iconColor: "text-slate-600 dark:text-slate-300",
+    dot: "bg-slate-400",
+  },
 });
 
 // ── Props ───────────────────────────────────────────────────────────────
@@ -144,8 +165,16 @@ export default function AccountCardView({
   const t = useTranslations("accounts.accounts");
   const { format } = useCurrency();
   const typeConfig = getTypeConfig(t);
-  const config = typeConfig[item.type] || typeConfig.cash;
+  const config = typeConfig[item.type];
   const TypeIcon = config.icon;
+  /**
+   * A system account is the remittance flow's, not the merchant's. Every write the menu
+   * offers is refused server-side (`ACCOUNT_SYSTEM_LOCKED`, or `ACCOUNT_IN_USE_DEFAULT` on
+   * a delete), and owner capital in or out of a courier's clearing balance is not a thing
+   * that can be meant. Its transactions stay reachable — the remittance history is the
+   * useful part of the card.
+   */
+  const isSystem = !!item.systemKey;
   const isPositive = item.balance >= 0;
   const isActive = item.isActive !== false && (item as any).status !== "inactive";
 
@@ -225,17 +254,19 @@ export default function AccountCardView({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={() => actions.onEdit(item)}>
-                <Pencil className="mr-2 h-3.5 w-3.5" />
-                {t("card.edit")}
-              </DropdownMenuItem>
-              {actions.onAddInvestment && (
+              {!isSystem && (
+                <DropdownMenuItem onClick={() => actions.onEdit(item)}>
+                  <Pencil className="mr-2 h-3.5 w-3.5" />
+                  {t("card.edit")}
+                </DropdownMenuItem>
+              )}
+              {!isSystem && actions.onAddInvestment && (
                 <DropdownMenuItem onClick={() => actions.onAddInvestment!(item)}>
                   <PlusCircle className="mr-2 h-3.5 w-3.5" />
                   {t("card.addInvestment")}
                 </DropdownMenuItem>
               )}
-              {actions.onWithdrawCapital && (
+              {!isSystem && actions.onWithdrawCapital && (
                 <DropdownMenuItem
                   onClick={() => actions.onWithdrawCapital!(item)}
                 >
@@ -251,14 +282,18 @@ export default function AccountCardView({
                   {t("card.viewTransactions")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => actions.onDelete(item)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                {t("card.delete")}
-              </DropdownMenuItem>
+              {!isSystem && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => actions.onDelete(item)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                    {t("card.delete")}
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -312,6 +347,23 @@ export default function AccountCardView({
               >
                 {t("card.default")}
               </Badge>
+            </>
+          )}
+
+          {/* Says why the menu is short, so a missing Edit reads as deliberate. */}
+          {isSystem && (
+            <>
+              <span className="text-muted-foreground/30">·</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground/70 cursor-default">
+                    {t("card.systemManaged")}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  {t("card.systemManagedHint")}
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
 

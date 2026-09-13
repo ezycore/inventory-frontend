@@ -17,13 +17,16 @@
       "bank": "ব্যাংক",
       "bankDescription": "ব্যাংক স্থিতি",
       "mobileBanking": "মোবাইল ব্যাংকিং",
-      "mobileBankingDescription": "মোবাইল ফিনান্সিয়াল সার্ভিস"
+      "mobileBankingDescription": "মোবাইল ফিনান্সিয়াল সার্ভিস",
+      "withCourier": "কুরিয়ারের কাছে",
+      "withCourierDescription": "ক্যাশ অন ডেলিভারি সংগ্রহ হয়েছে, এখনও হাতে আসেনি"
     },
     "types": {
       "cash": "নগদ",
       "bank": "ব্যাংক",
       "mfs": "মোবাইল ব্যাংকিং",
-      "custom": "কাস্টম"
+      "custom": "কাস্টম",
+      "courier_clearing": "কুরিয়ারের কাছে"
     },
     "card": {
       "defaultAccount": "ডিফল্ট হিসাব",
@@ -35,7 +38,9 @@
       "addInvestment": "বিনিয়োগ যোগ করুন",
       "viewTransactions": "লেনদেন দেখুন",
       "delete": "মুছুন",
-      "withdrawCapital": "মূলধন উত্তোলন"
+      "withdrawCapital": "মূলধন উত্তোলন",
+      "systemManaged": "সিস্টেম পরিচালিত",
+      "systemManagedHint": "কুরিয়ার রেমিট্যান্স ফ্লো এই অ্যাকাউন্ট রক্ষণাবেক্ষণ করে — নাম, ধরন বা ব্যালেন্স হাতে বদলানো যায় না।"
     },
     "form": {
       "name": "হিসাবের নাম",

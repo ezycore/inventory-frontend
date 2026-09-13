@@ -19,9 +19,22 @@ interface FinancialInsightsProps {
   overview?: DashboardOverview
   isLoading: boolean
   formatCurrency: (v: number) => string
+  /**
+   * Whether this business buys from suppliers — read off the composed block list
+   * by the caller, not from a flag on the payload. Two of the four rows here are
+   * purchase-side; for a merchant who buys from nobody they are not "zero this
+   * period" but permanently undefined, and a 0% bar reads as a shop failing to
+   * pay anyone.
+   */
+  showPurchases: boolean
 }
 
-export function FinancialInsights({ overview, isLoading, formatCurrency }: FinancialInsightsProps) {
+export function FinancialInsights({
+  overview,
+  isLoading,
+  formatCurrency,
+  showPurchases,
+}: FinancialInsightsProps) {
   const t = useTranslations('dashboard.financial')
   if (isLoading) {
     return (
@@ -73,18 +86,40 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
   // the rates and averages behind those headlines. Which means they have to be
   // the SAME kind of number: both rates below read net of refunds, because the
   // revenue tile they sit under does.
-  const netRevenue = overview.netRevenue
+  /**
+   * The COUNTER ledger's net revenue, not the page headline.
+   *
+   * `netRevenue` above combines both channels since P2, while every figure in
+   * this panel — `sales.paid`, `sales.count` — is the Sale ledger's counter half.
+   * Dividing one by the other understates the collection rate by however much
+   * the shop sells online, and reports an average "sale" value over a total that
+   * includes orders no Sale in that count represents.
+   *
+   * Derived rather than sent: `returns` is already counter-filtered server-side,
+   * so this is the same arithmetic the service does for `channelMix.counter`.
+   */
+  const netRevenue =
+    (overview.sales?.total ?? 0) -
+    (overview.sales?.discounts ?? 0) -
+    (overview.returns?.refund ?? 0)
 
   // Collected against what is actually owed. On the gross total a fully-refunded
   // order stayed in the denominator, so a shop that had collected everything it
   // was still owed read 7% — with a progress bar implying the refunded ৳18,850
   // was outstanding (QA-N9).
   //
-  // Clamped at 100. A sale paid and then refunded in cash leaves `paid` behind
-  // while the denominator drops, and a collection rate above 100% describes
-  // nothing a merchant can act on.
+  // Derived as "owed less still owing" rather than read off `sales.paid`, which
+  // is the GROSS figure: against a net denominator it printed the contradiction
+  // "৳81,847.26 collected of ৳77,662.82" and leaned on the clamp below to keep
+  // the percentage sane. `netRevenue - due` also stays right when the returned
+  // sale was on credit, where the refund never touched `paid` at all.
+  const collected = Math.max(0, netRevenue - (overview.sales?.due ?? 0))
+
+  // Clamped at 100 all the same: a sale paid and then refunded in cash leaves
+  // money in hand against a denominator that has dropped, and a collection rate
+  // above 100% describes nothing a merchant can act on.
   const collectionRate = netRevenue > 0
-    ? Math.min(100, Math.round((overview.sales.paid / netRevenue) * 100))
+    ? Math.min(100, Math.round((collected / netRevenue) * 100))
     : 0
   // Net revenue over a GROSS count — settled, and settled twice.
   //
@@ -102,21 +137,16 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
   //
   // What this answers is "what did an average order bring in", counting an
   // order that brought in nothing as exactly that. Do not quietly switch it.
-  const avgOrderValue = overview.sales.count > 0
-    ? netRevenue / overview.sales.count
+  const avgOrderValue = (overview.sales?.count ?? 0) > 0
+    ? netRevenue / (overview.sales?.count ?? 0)
     : 0
-  const avgPurchaseValue = overview.purchases.count > 0
-    ? overview.purchases.total / overview.purchases.count
+  const avgPurchaseValue = (overview.purchases?.count ?? 0) > 0
+    ? (overview.purchases?.total ?? 0) / (overview.purchases?.count ?? 0)
     : 0
-  const paymentRate = overview.purchases.total > 0
-    ? Math.round((overview.purchases.paid / overview.purchases.total) * 100)
+  const paymentRate = (overview.purchases?.total ?? 0) > 0
+    ? Math.round(((overview.purchases?.paid ?? 0) / (overview.purchases?.total ?? 0)) * 100)
     : 0
-  // Two of the four rows here are purchase-side. For a merchant who does not
-  // buy from suppliers they are not "zero this period", they are permanently
-  // undefined — an average over no orders and a payment rate over no bills.
-  // Printing 0% against a full-width progress bar reads as a shop failing to
-  // pay anyone, so drop the rows and leave a two-row panel that is entirely true.
-  const purchasesTracked = overview.purchasesTracked !== false
+  const purchasesTracked = showPurchases
 
   return (
     <Card>
@@ -136,7 +166,7 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
               <p className="text-base font-bold">{formatCurrency(avgOrderValue)}</p>
             </div>
             <p className="text-xs text-muted-foreground">
-              {t('salesCount', { count: overview.sales.count })}
+              {t('salesCount', { count: (overview.sales?.count ?? 0) })}
             </p>
           </div>
 
@@ -148,7 +178,7 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
                 <p className="text-base font-bold">{formatCurrency(avgPurchaseValue)}</p>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t('purchasesCount', { count: overview.purchases.count })}
+                {t('purchasesCount', { count: (overview.purchases?.count ?? 0) })}
               </p>
             </div>
           )}
@@ -161,7 +191,7 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
             </div>
             <Progress value={collectionRate} className="h-1.5" />
             <p className="text-[11px] text-muted-foreground">
-              {t('collectedOfTotal', { collected: formatCurrency(overview.sales.paid), total: formatCurrency(netRevenue) })}
+              {t('collectedOfTotal', { collected: formatCurrency(collected), total: formatCurrency(netRevenue) })}
             </p>
           </div>
 
@@ -174,7 +204,7 @@ export function FinancialInsights({ overview, isLoading, formatCurrency }: Finan
               </div>
               <Progress value={paymentRate} className="h-1.5" />
               <p className="text-[11px] text-muted-foreground">
-                {t('paidOfTotal', { paid: formatCurrency(overview.purchases.paid), total: formatCurrency(overview.purchases.total) })}
+                {t('paidOfTotal', { paid: formatCurrency((overview.purchases?.paid ?? 0)), total: formatCurrency((overview.purchases?.total ?? 0)) })}
               </p>
             </div>
           )}
