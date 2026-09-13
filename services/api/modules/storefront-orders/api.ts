@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   AdminStorefrontOrder,
+  CourierChargeRefresh,
   CourierList,
   CourierLocation,
   CourierPackage,
@@ -24,6 +25,7 @@ import type {
 } from "@/types/api";
 export type {
   AdminStorefrontOrder,
+  CourierChargeRefresh,
   CourierPrice,
   OrderReturnPreview,
   OrderListPeriod,
@@ -78,6 +80,11 @@ export interface CourierBulkResult {
 export type AdminOrderItem = AdminStorefrontOrder["items"][number];
 export type AdminOrderAddress = AdminStorefrontOrder["shippingAddress"];
 export type OrderCourier = NonNullable<AdminStorefrontOrder["courier"]>;
+/** Quoted vs the courier's real bill, with provenance and an append-only history. */
+export type OrderCourierCharges = NonNullable<OrderCourier["charges"]>;
+/** Where this parcel's COD is: not collected, with the courier, or remitted. */
+export type OrderCourierRemittance = NonNullable<OrderCourier["remittance"]>;
+export type CourierChargeSource = NonNullable<OrderCourierCharges["source"]>;
 export type AdminOrderListResult = StorefrontOrderList;
 export type OrderFraudScore = FraudScore;
 export type CourierConfigEntry = CourierUpsert;
@@ -379,6 +386,18 @@ export const storefrontOrdersApi = {
     shippingCost: number,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.patch(`${base}/${id}/courier-cost`, { shippingCost }),
+  /**
+   * Ask the courier what this parcel actually cost.
+   *
+   * Answers `supported: false` where the provider publishes no charge at all (Steadfast,
+   * everywhere in its API) — not a failure, and never a guessed number. When it does answer
+   * and the figure beats what the order is carrying, the server corrects the booked delivery
+   * expense with a delta row, which is why this mutation dirties money.
+   */
+  refreshCourierCharges: (
+    id: string,
+  ): Promise<ApiResponse<CourierChargeRefresh>> =>
+    apiClient.post(`${base}/${id}/courier-charges`, {}),
   markPaid: (
     id: string,
     accountId?: string,

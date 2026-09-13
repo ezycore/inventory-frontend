@@ -128,6 +128,35 @@ describe("EFFECTS", () => {
     }
   });
 
+  /**
+   * Recording a courier's statement and posting it are separate events, and the difference is
+   * the ledger.
+   *
+   * `recordPayout` files the statement and stamps the parcels; no money moves, because the
+   * destination account is the merchant's to choose. `postPayout` writes the transfer and the
+   * expense rows. Collapsing them into one event costs a full ledger refetch on every filing —
+   * and the nightly sweep files in bulk, so that is not a rare path.
+   */
+  it("keeps filing a payout cheaper than posting one", () => {
+    const money = new Set(
+      [queryKeys.accounts.all(), queryKeys.transactions.all()].map((key) =>
+        JSON.stringify(key),
+      ),
+    );
+    const keysOf = (event: DomainEvent) =>
+      EFFECTS[event].map((key) => JSON.stringify(key));
+
+    const recorded = keysOf("payout.recorded");
+    const posted = keysOf("payout.posted");
+
+    expect(recorded.some((key) => money.has(key))).toBe(false);
+    expect(posted.filter((key) => money.has(key))).toHaveLength(money.size);
+    // Both must still name the payouts root, or the list they just changed goes stale.
+    const payoutsRoot = JSON.stringify(queryKeys.courierPayouts.all());
+    expect(recorded).toContain(payoutsRoot);
+    expect(posted).toContain(payoutsRoot);
+  });
+
   it("has no duplicate keys within a single event", () => {
     for (const event of events) {
       const serialized = EFFECTS[event].map((key) => JSON.stringify(key));

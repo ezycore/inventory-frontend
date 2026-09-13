@@ -1,0 +1,141 @@
+"use client";
+// coding-standard: maintained
+
+import { useState } from "react";
+
+import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { useCourierPayouts } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
+import { Card } from "@/ui/components/card";
+import { SimpleSelect } from "@/ui/components/simple-select";
+import { Skeleton } from "@/ui/components/skeleton";
+import { PayoutDetailSheet } from "./payout-detail-sheet";
+import { PayoutRow } from "./payout-row";
+
+/**
+ * The remittance list: filters, rows, pager, and the detail sheet they open.
+ *
+ * Hand-rolled like its neighbours (orders, carts, catalog) rather than a `DataTable`, because
+ * a payout row carries bespoke markup — two badges and a residual that has to read as a
+ * warning. Filters are the server's: provider, status, and `reconciled=false`, which is the
+ * one that answers "show me the payouts worth opening".
+ */
+export function PayoutList() {
+  const currency = useAuthStore((s) => s.user?.organization?.currency);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [provider, setProvider] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const { data, isLoading, isFetching } = useCourierPayouts({
+    page,
+    limit,
+    provider: provider === "all" ? undefined : provider,
+    status:
+      status === "pending" || status === "posted"
+        ? (status as "pending" | "posted")
+        : undefined,
+    // `unreconciled` is not a status on the wire — it is the reconciled flag inverted.
+    reconciled: status === "unreconciled" ? false : undefined,
+  });
+
+  const payouts = data?.items ?? [];
+  const reset = () => setPage(1);
+
+  return (
+    <>
+      <Card className="overflow-hidden p-0 shadow-none">
+        <div className="flex flex-wrap items-center gap-2 border-b p-3">
+          <SimpleSelect
+            value={provider}
+            onValueChange={(v) => {
+              setProvider(v);
+              reset();
+            }}
+            className="w-40"
+            options={[
+              { label: "All couriers", value: "all" },
+              { label: "Steadfast", value: "steadfast" },
+              { label: "Pathao", value: "pathao" },
+              { label: "eCourier", value: "ecourier" },
+            ]}
+          />
+          <SimpleSelect
+            value={status}
+            onValueChange={(v) => {
+              setStatus(v);
+              reset();
+            }}
+            className="w-48"
+            options={[
+              { label: "All payouts", value: "all" },
+              { label: "Awaiting confirmation", value: "pending" },
+              { label: "Posted", value: "posted" },
+              { label: "Did not add up", value: "unreconciled" },
+            ]}
+          />
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-2 p-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : payouts.length === 0 ? (
+          <p className="p-8 text-center text-sm text-muted-foreground">
+            No payouts on file yet. Check for payouts to pull what your couriers report, or
+            record a statement by hand.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-2.5 font-medium">Statement</th>
+                  <th className="px-3 py-2.5 font-medium">Received</th>
+                  <th className="px-3 py-2.5 font-medium">Collected</th>
+                  <th className="px-3 py-2.5 font-medium">They kept</th>
+                  <th className="px-3 py-2.5 font-medium">Paid over</th>
+                  <th className="px-3 py-2.5 font-medium">Parcels</th>
+                  <th className="px-3 py-2.5 font-medium">Status</th>
+                  <th className="px-3 py-2.5 font-medium">Residual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payouts.map((payout) => (
+                  <PayoutRow
+                    key={payout._id}
+                    payout={payout}
+                    currency={currency}
+                    onOpen={() => setOpenId(payout._id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {(data?.totalPages ?? 0) > 0 && (
+          <div className="border-t py-3">
+            <ListPagination
+              page={data?.page ?? page}
+              totalPages={data?.totalPages ?? 1}
+              limit={limit}
+              total={data?.total}
+              onPageChange={setPage}
+              onLimitChange={(next) => {
+                setLimit(next);
+                reset();
+              }}
+              isFetching={isFetching}
+            />
+          </div>
+        )}
+      </Card>
+
+      <PayoutDetailSheet payoutId={openId} onClose={() => setOpenId(null)} />
+    </>
+  );
+}

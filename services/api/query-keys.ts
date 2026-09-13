@@ -245,6 +245,7 @@ export const queryKeys = {
   dashboard: {
     all: () => ["dashboard"] as const,
     stats: () => ["dashboard", "stats"] as const,
+    blocks: () => ["dashboard", "blocks"] as const,
     overview: (params?: Params) => ["dashboard", "overview", params ?? {}] as const,
   },
 
@@ -311,6 +312,17 @@ export const queryKeys = {
     returnPreview: (id: string) =>
       ["storefront-orders", "return-preview", id] as const,
   },
+
+  /**
+   * Courier remittance — the payouts a courier pays over days after collecting COD
+   * (backend `docs/plan/cod-remittance.md`).
+   *
+   * `summary` comes from `resourceKeys` and therefore sits UNDER this root, which is the
+   * point: posting a payout moves the clearing balances the summary is derived from, so one
+   * `invalidateQueries({ queryKey: queryKeys.courierPayouts.all() })` drops the COD-in-transit
+   * figures with the list that produced them.
+   */
+  courierPayouts: resourceKeys("courier-payouts"),
 
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {

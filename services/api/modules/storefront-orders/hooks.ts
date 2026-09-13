@@ -255,6 +255,38 @@ export const useUpdateCourierCost = () => {
   });
 };
 
+/**
+ * Pull the courier's own charge for one parcel.
+ *
+ * A mutation used for its *response* — but it also WRITES (a stronger figure replaces the
+ * dispatch quote on the order, and the booked delivery expense is corrected with a delta row),
+ * so it invalidates like any other money move. It must never be listed as read-only.
+ */
+export const useRefreshCourierCharges = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string }) =>
+      storefrontOrdersApi.refreshCourierCharges(v.id),
+    onSuccess: (res) => {
+      const data = res.data;
+      if (!data?.supported) {
+        // Not an error: this courier publishes no charge. Say so instead of a red toast.
+        handleMutationSuccess(
+          res.message || "This courier does not publish a charge for a parcel",
+        );
+      } else {
+        handleMutationSuccess(
+          data.applied
+            ? `Courier charge updated${data.totalFee !== undefined ? ` to ${data.totalFee}` : ""}`
+            : res.message || "No change — the recorded charge already stands",
+        );
+      }
+      invalidate(qc, "order.settled");
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useMarkOrderPaid = () => {
   const qc = useQueryClient();
   return useMutation({

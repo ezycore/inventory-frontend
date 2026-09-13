@@ -20,6 +20,7 @@ import {
   Repeat,
   BarChart3,
   Eye,
+  Receipt,
 } from 'lucide-react'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import { areAllFeaturesEnabled } from '@/lib/feature-utils'
@@ -52,6 +53,22 @@ const ACTIONS: {
     // an all-of gate, matching the "New Sale" nav item.
     features: ['sales'],
     permissions: ['sales.create'],
+  },
+  {
+    /**
+     * The online seller's daily screen — confirm, pack, dispatch.
+     *
+     * Its absence was the other half of the storefront merchant's empty page:
+     * onboarding removed the POS and purchasing shortcuts for them and put
+     * nothing back, so a shop whose whole trade is online kept two of six
+     * actions, neither of which was the one they open every morning.
+     */
+    labelKey: 'onlineOrders',
+    icon: Receipt,
+    path: '/ecommerce/orders',
+    color: 'text-chart-1',
+    features: ['storefront'],
+    permissions: ['storefront.orders.view'],
   },
   {
     labelKey: 'purchase',

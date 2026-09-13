@@ -177,6 +177,20 @@ describe("filterNavItems", () => {
       expect(permissionsForPath("/reports/sales")).toEqual(["reports.view"]);
     });
 
+    /**
+     * The nav row for courier payouts earns its keep here rather than in the sidebar.
+     *
+     * Without a row of its own, the nearest gated ancestor of `/ecommerce/payouts` is
+     * `/ecommerce` → `storefront.view`. The endpoints want `storefront.orders.view`, so a role
+     * holding one and not the other would pass this guard and then 403 every request behind
+     * it — the failure the nav table exists to prevent.
+     */
+    it("gates courier payouts on the orders permission, not the storefront one", () => {
+      expect(permissionsForPath("/ecommerce/payouts")).toEqual([
+        "storefront.orders.view",
+      ]);
+    });
+
     it("prefers the deepest match — expiry is a shop-floor screen, not a report", () => {
       expect(permissionsForPath("/reports/expiry")).toEqual(["stock.view"]);
     });
@@ -234,6 +248,32 @@ describe("filterNavItems", () => {
       const gate = featuresForPath("/sales/returns");
       expect(gate?.all).toEqual(["returns"]);
       expect(gate?.anyOf).toContainEqual(["sales", "storefront"]);
+    });
+
+    /**
+     * Courier payouts is the case where the URL, not the sidebar tree, decides the gate.
+     *
+     * The endpoints behind it are gated on `storefront` deliberately — a merchant with the
+     * ledger switched off still needs to see what a courier is holding. Because gates resolve
+     * by URL prefix, a page at `/accounts/payouts` would inherit `accounts` from the Cash &
+     * Bank row and feature-lock a screen the backend serves them. So the path matters, and
+     * this test is what stops it being "tidied" into the Money group later.
+     */
+    it("gates courier payouts on storefront, never on accounts", () => {
+      const gate = featuresForPath("/ecommerce/payouts");
+      expect(gate?.all).toEqual(["storefront"]);
+      // It sits under Sell, so it also inherits that group's any-of — which `storefront`
+      // already satisfies, so a shop-less online merchant still gets in.
+      expect(gate?.anyOf).toContainEqual(["sales", "storefront"]);
+      expect(
+        unmetRouteFeatures(gate, {
+          storefront: true,
+          accounts: false,
+          sales: false,
+        } as never),
+      ).toEqual([]);
+      // What the alternative would have cost, pinned so the reasoning survives.
+      expect(featuresForPath("/accounts")?.all).toEqual(["accounts"]);
     });
 
     it("takes the leaf on a shared url, like permissionsForPath", () => {

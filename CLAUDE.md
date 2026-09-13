@@ -538,6 +538,21 @@ were wrong in the same direction — acting on an answer that had not arrived ye
 
 Neither replaces backend enforcement. Both exist so the answer is visible before the work is done.
 
+**A route's gates are resolved from its URL, not from where it sits in the sidebar tree.**
+`featuresForPath` / `permissionsForPath` (`lib/nav-utils.ts`) match a pathname against
+`constants/navItem.ts` **by URL prefix** and accumulate the ancestors' `features` down the chain, so
+the path you choose IS the gate you get. Two consequences worth knowing before naming a new page:
+
+- A page under `/accounts/…` inherits `features: ["accounts"]` from the Cash & Bank row even if its
+  endpoints are gated on something else. Courier payouts live at `/ecommerce/payouts` for exactly
+  this reason — they are `storefront`-gated so a merchant with the ledger off can still see what a
+  courier is holding, and `/accounts/payouts` would have feature-locked a screen the backend serves.
+  Pinned in `lib/__tests__/nav-utils.test.ts`.
+- The **nearest gated ancestor** supplies the permission too, which is usually broader than the
+  endpoint's. `/ecommerce` grants `storefront.view`; the payout endpoints want
+  `storefront.orders.view`. A page whose permission differs from its parent's needs its own nav row,
+  or a role holding the parent's permission passes `RouteAccessGuard` and then 403s every request.
+
 ### Navigation labels are translated, the constants are not
 
 `constants/navItem.ts` keeps **English titles as identity** — they are the message-key source
