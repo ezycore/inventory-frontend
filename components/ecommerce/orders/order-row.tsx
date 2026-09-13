@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import Link from "next/link";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
@@ -11,6 +12,7 @@ import {
   buyerHistoryIsWarning,
   buyerHistoryLabel,
   orderAge,
+  orderDetailHref,
   orderItemCount,
   orderPlacedAt,
   paymentMethodLabel,
@@ -70,7 +72,20 @@ export function OrderRow({
           aria-label={`Select ${order.orderNumber}`}
         />
       </td>
-      <td className="px-3 py-3 font-semibold">{order.orderNumber}</td>
+      {/* An anchor, not just text inside the clickable row: the row's onClick
+          gives a plain click and nothing else, so ctrl/cmd-click, middle-click
+          and "Open link in new tab" all did nothing on a list whose whole job is
+          working several orders at once. The href is what the browser needs;
+          stopPropagation keeps the row from navigating a second time behind it. */}
+      <td className="px-3 py-3 font-semibold">
+        <Link
+          href={orderDetailHref(order._id)}
+          onClick={(e) => e.stopPropagation()}
+          className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {order.orderNumber}
+        </Link>
+      </td>
       {/* Age, not a date. A COD order goes cold in hours, so the useful fact on
           a pending row is how long it has been waiting — the exact timestamp is
           still one hover away rather than gone. */}

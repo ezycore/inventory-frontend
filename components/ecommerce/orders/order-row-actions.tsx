@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 import { useState } from "react";
-import { Check, Eye, MoreHorizontal, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Eye, MoreHorizontal, Trash2, X } from "lucide-react";
 import {
   useConfirmOrder,
   useDeleteOrder,
@@ -9,7 +9,7 @@ import {
 } from "@/services/api";
 import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
-import { isDeletableOrder } from "./helpers";
+import { isDeletableOrder, orderDetailHref } from "./helpers";
 import { Button } from "@/ui/components/button";
 import {
   DropdownMenu,
@@ -79,6 +79,21 @@ export function OrderRowActions({
           <DropdownMenuItem onSelect={onOpen}>
             <Eye className="h-4 w-4" />
             View details
+          </DropdownMenuItem>
+          {/* Spelled out rather than left to ctrl/cmd-click, because triage is
+              the one job here that wants several orders open at once and the
+              keyboard shortcut is not something a merchant is told about. A real
+              anchor, so the browser opens it — not `window.open`, which a popup
+              blocker may swallow. */}
+          <DropdownMenuItem asChild>
+            <a
+              href={orderDetailHref(order._id)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open in new tab
+            </a>
           </DropdownMenuItem>
           {isPending && (
             <>
