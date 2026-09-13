@@ -128,7 +128,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
       </div>
 
       {/* Stepper / terminal banner */}
-      <Card className="p-4 shadow-none sm:p-5">
+      <Card className="gap-0 p-4 shadow-none sm:p-5">
         {isTerminalBad ? (
           <div className="flex items-center gap-2.5 text-sm font-semibold text-red-700">
             <Ban className="h-5 w-5" />
@@ -188,7 +188,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           <OrderFulfillmentPanel order={order} />
 
           {/* Activity log */}
-          <Card className="p-5 shadow-none">
+          <Card className="gap-0 p-5 shadow-none">
             <h3 className="mb-4 text-sm font-semibold">Activity log</h3>
             <OrderActivityLog order={order} />
           </Card>
@@ -197,7 +197,7 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
         {/* RIGHT */}
         <div className="min-w-0 space-y-5">
           {/* Customer & delivery + fraud */}
-          <Card className="p-5 shadow-none">
+          <Card className="gap-0 p-5 shadow-none">
             <h3 className="mb-3 text-sm font-semibold">
               {isPickup ? "Customer" : "Customer & delivery"}
             </h3>
@@ -228,6 +228,18 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
                   </div>
                 )}
               </>
+            )}
+            {/* What the shopper typed under "Delivery notes" at checkout. Distinct
+                from `order.notes` below, which only admin-created orders set, so
+                every website order's instruction was invisible here while still
+                reaching the courier. Pickup orders keep it too. */}
+            {order.shippingAddress.notes && (
+              <div className="mt-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
+                <b className="text-foreground">
+                  {isPickup ? "Customer note:" : "Delivery note:"}
+                </b>{" "}
+                {order.shippingAddress.notes}
+              </div>
             )}
             {order.notes && (
               <div className="mt-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
