@@ -53,7 +53,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
     ["pending", "confirmed", "processing"].includes(order.status);
 
   return (
-    <Card className="p-5 shadow-none">
+    <Card className="gap-0 p-5 shadow-none">
       <h3 className="mb-3 text-sm font-semibold">Payment</h3>
       <div className="mb-2 flex justify-between text-sm">
         <span className="text-muted-foreground">Method</span>

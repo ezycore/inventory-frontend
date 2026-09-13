@@ -64,7 +64,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
 
   if (order.fulfillmentType === "pickup") {
     return (
-      <Card className="space-y-3 p-5 shadow-none">
+      <Card className="gap-3 p-5 shadow-none">
         <h3 className="text-sm font-semibold">Fulfillment</h3>
         <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
           <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
@@ -83,7 +83,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
   }
 
   return (
-    <Card className="space-y-3 p-5 shadow-none">
+    <Card className="gap-3 p-5 shadow-none">
       <h3 className="text-sm font-semibold">Fulfillment</h3>
 
       {isDispatched && !reDispatch ? (
