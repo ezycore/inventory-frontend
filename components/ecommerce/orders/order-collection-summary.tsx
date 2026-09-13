@@ -39,7 +39,7 @@ export function OrderCollectionSummary({
       ?.productName ?? "Item";
 
   return (
-    <Card className="p-5 shadow-none">
+    <Card className="gap-0 p-5 shadow-none">
       <h3 className="mb-1 text-sm font-semibold">Collection</h3>
       <p className="mb-4 text-xs text-muted-foreground">
         What the courier handed over, and what accounts for the rest.
