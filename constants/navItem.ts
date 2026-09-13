@@ -107,6 +107,19 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.orders.view"],
           },
           {
+            // Courier remittance sits with the orders it settles, not with Cash & Bank:
+            // `featuresForPath` resolves a route's gate by URL prefix, so anything under
+            // `/accounts` would demand the `accounts` feature — and these endpoints are gated
+            // on `storefront` precisely so a merchant with the ledger off can still see what
+            // a courier is holding. The row also carries the permission the endpoints want
+            // (`storefront.orders.view`), which `/ecommerce` alone would not.
+            title: "Courier Payouts",
+            url: "/ecommerce/payouts",
+            icon: "truck",
+            features: ["storefront"],
+            permissions: ["storefront.orders.view"],
+          },
+          {
             title: "Sales History",
             url: "/sales/history",
             // Read-only: `sales.routes.ts` gates writes alone, so this data stays

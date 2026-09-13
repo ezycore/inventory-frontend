@@ -76,6 +76,9 @@ question is "what would a shopkeeper call this?", not "what is the correct Bangl
 | Cash | নগদ | translate | |
 | Account | অ্যাকাউন্ট | transliterate | হিসাব alt — REVIEW |
 | Amount in words | কথায় | translate | receipts: "টাকা কথায়:" |
+| With Courier (COD held) | কুরিয়ারের কাছে | translate | the account type and the cash/position line — money collected, not yet remitted; never merged with নগদ |
+| Courier payout | কুরিয়ার পেমেন্ট | mixed | what the courier pays over; পেমেন্ট is what merchants say, রেমিট্যান্স reads as foreign remittance |
+| System managed (account) | সিস্টেম পরিচালিত | mixed | a clearing account the remittance flow owns — not editable by hand |
 
 ## Online store (ecommerce)
 

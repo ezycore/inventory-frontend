@@ -23,6 +23,7 @@ import {
   Smartphone,
   ReceiptText,
   TrendingUp,
+  Truck,
 } from "lucide-react";
 import { TransferDialog } from "@/components/accounts/transactions/transaction-dialogs";
 import { Button } from "@/ui/components/button";
@@ -51,6 +52,8 @@ interface SummaryItem {
   iconBg: string;
   iconColor: string;
   description: string;
+  /** Makes the tile a link. Only the with-courier tile has somewhere to go. */
+  href?: string;
 }
 
 function getAccountStats(
@@ -58,7 +61,7 @@ function getAccountStats(
   format: (v: number) => string,
   t: Translator,
 ): SummaryItem[] {
-  return [
+  const stats: SummaryItem[] = [
     {
       label: t("stats.totalBalance"),
       value: format(summary?.totalBalance || 0),
@@ -96,6 +99,30 @@ function getAccountStats(
       description: t("stats.mobileBankingDescription"),
     },
   ];
+
+  /**
+   * COD a courier has collected and is still holding.
+   *
+   * `totalBalance` **excludes** it (it is a receivable from the carrier, not spendable
+   * cash), so without this tile the total simply drops by the amount in flight and nothing
+   * on the screen accounts for the difference — while the clearing account's own card is
+   * still listed below it. Shown only when there is some: a merchant who never ships COD
+   * should not carry a permanently-zero tile.
+   */
+  if ((summary?.withCourier ?? 0) !== 0) {
+    stats.push({
+      label: t("stats.withCourier"),
+      value: format(summary?.withCourier || 0),
+      icon: Truck,
+      gradient: "from-slate-500/10 to-slate-500/5",
+      iconBg: "bg-slate-100 dark:bg-slate-800/60",
+      iconColor: "text-slate-600 dark:text-slate-300",
+      description: t("stats.withCourierDescription"),
+      href: "/ecommerce/payouts",
+    });
+  }
+
+  return stats;
 }
 
 // ── Premium summary banner ─────────────────────────────────────────────
@@ -120,17 +147,25 @@ function AccountSummaryBanner({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 gap-4",
+        // The with-courier tile is conditional, so the row width follows the count
+        // rather than leaving a fifth tile alone on a second row.
+        stats.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+      )}
+    >
       {stats.map((stat) => {
         const Icon = stat.icon;
-        return (
-          <div
-            key={stat.label}
-            className={cn(
-              "relative overflow-hidden rounded-2xl border bg-card p-5",
-              "transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
-            )}
-          >
+        const className = cn(
+          "relative overflow-hidden rounded-2xl border bg-card p-5",
+          "transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+          stat.href && "block cursor-pointer",
+        );
+        // A tile with somewhere to go becomes a Link; the rest stay plain. Branching on the
+        // element rather than the props keeps `href` a required string for Link's own types.
+        const body = (
+          <>
             {/* subtle gradient bg */}
             <div
               className={cn(
@@ -160,6 +195,15 @@ function AccountSummaryBanner({
                 <Icon className={cn("h-5 w-5", stat.iconColor)} />
               </div>
             </div>
+          </>
+        );
+        return stat.href ? (
+          <Link key={stat.label} href={stat.href} className={className}>
+            {body}
+          </Link>
+        ) : (
+          <div key={stat.label} className={className}>
+            {body}
           </div>
         );
       })}
@@ -246,11 +290,14 @@ const getAccountFilterConfig = (t: Translator): FilterConfig => ({
       label: t("filters.typeLabel"),
       type: "select",
       placeholder: t("filters.typePlaceholder"),
+      // Filterable but not creatable: the create form's list stays four, because a
+      // clearing account is provisioned by the remittance flow, never chosen.
       options: [
         { label: t("form.typeCash"), value: "cash" },
         { label: t("form.typeBank"), value: "bank" },
         { label: t("form.typeMfs"), value: "mfs" },
         { label: t("form.typeCustom"), value: "custom" },
+        { label: t("types.courier_clearing"), value: "courier_clearing" },
       ],
     },
     {

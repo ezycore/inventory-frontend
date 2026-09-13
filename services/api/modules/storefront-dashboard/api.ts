@@ -6,7 +6,8 @@ import type { StorefrontDashboard } from "@/types/api";
 // Kept under the existing names, with sub-types derived so they cannot drift from the parent.
 export type EcommerceDashboard = StorefrontDashboard;
 export type EcommerceDashboardStats = StorefrontDashboard["stats"];
-export type LowStockProduct = StorefrontDashboard["lowStockProducts"][number];
+// `LowStockProduct` is gone with P5: low stock is a dashboard block now
+// (`stock.alerts`), so the store overview neither computes nor returns it.
 
 const base = "/ecommerce/dashboard";
 

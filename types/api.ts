@@ -117,6 +117,8 @@ export type CreateTransferBody =
 
 // Dashboard & reports --------------------------------------------------------
 export type DashboardOverview = Schemas["DashboardOverview"];
+/** Which panels the caller's dashboard is composed of — `GET /dashboard/blocks`. */
+export type DashboardBlocks = Schemas["DashboardBlocks"];
 export type DashboardStats = Schemas["DashboardStats"];
 export type SalesReport = Schemas["SalesReport"];
 export type PurchaseReport = Schemas["PurchaseReport"];
@@ -171,6 +173,19 @@ export type OrderReturnPreview = Schemas["OrderReturnPreview"];
 export type CourierWebhook = Schemas["CourierWebhook"];
 export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];
+
+/**
+ * Courier remittance — the money a courier collected at the door and pays over days later, net
+ * of their charges (backend `docs/plan/cod-remittance.md`).
+ *
+ * `reconciled`, `residual` and `unrecordedGross` are the server's own reconciliation against the
+ * clearing accounts. The client does not have that basis and must never re-derive them.
+ */
+export type CourierPayout = Schemas["CourierPayout"];
+export type CourierPayoutSync = Schemas["CourierPayoutSync"];
+export type CourierMoneySummary = Schemas["CourierMoneySummary"];
+/** `supported: false` is Steadfast's honest answer — it publishes no charge anywhere. */
+export type CourierChargeRefresh = Schemas["CourierChargeRefresh"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */

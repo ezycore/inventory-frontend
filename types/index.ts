@@ -2138,11 +2138,30 @@ export interface OrganizationDomain {
 }
 
 // Account interfaces
-export type AccountType = "cash" | "bank" | "mfs" | "custom";
+/**
+ * Every account type the backend can send, `courier_clearing` included — mirrors
+ * `ACCOUNT_TYPES` (backend `src/types/account.types.ts`).
+ */
+export type AccountType = "cash" | "bank" | "mfs" | "custom" | "courier_clearing";
+
+/**
+ * The types a merchant may CREATE — mirrors the backend's narrower
+ * `MERCHANT_ACCOUNT_TYPES`. A `courier_clearing` account is provisioned by the remittance
+ * flow on first use and is never a choice in a form, so the create/update DTOs take this
+ * union and the account form's options stay four (backend `docs/plan/cod-remittance.md` D2).
+ */
+export type MerchantAccountType = Exclude<AccountType, "courier_clearing">;
 
 export interface Account extends BaseEntity {
   name: string;
   type: AccountType;
+  /**
+   * Set only on an account the SYSTEM maintains (the per-courier clearing account). Its
+   * name, type, status and number are locked server-side and it cannot be deleted, so the
+   * UI hides those actions rather than offering a button that answers
+   * `ACCOUNT_SYSTEM_LOCKED`.
+   */
+  systemKey?: string;
   // `balance` and `isDefault` are optional on the wire (the backend `Account` DTO sends them
   // optional) — see the generated `ApiAccount`. Marked optional here so hand-type consumers
   // stay assignable from the real API shape.
@@ -2156,7 +2175,7 @@ export interface Account extends BaseEntity {
 
 export interface CreateAccountDto {
   name: string;
-  type: AccountType;
+  type: MerchantAccountType;
   initialBalance?: number;
   accountNumber?: string;
   description?: string;
@@ -2168,13 +2187,21 @@ export interface UpdateAccountDto extends Partial<
 > { }
 
 export interface AccountSummary {
+  /**
+   * Money the merchant holds. **Excludes** `courier_clearing` — that is a courier's debt to
+   * them, not cash they can spend, and is reported as `withCourier` so the two are never
+   * added up by accident.
+   */
   totalBalance: number;
+  /** COD a courier has collected and not yet remitted. Never summed into a cash figure. */
+  withCourier: number;
   accountCount: number;
   byType: {
     cash: number;
     bank: number;
     mfs: number;
     custom: number;
+    courier_clearing: number;
   };
 }
 
