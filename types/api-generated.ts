@@ -4112,6 +4112,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/dashboard/blocks
+         * @description Defined in `src/routes/dashboard.route.ts:20`.
+         */
+        get: operations["get_api_dashboard_blocks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard/stats": {
         parameters: {
             query?: never;
@@ -4121,7 +4141,7 @@ export interface paths {
         };
         /**
          * GET /api/dashboard/stats
-         * @description Defined in `src/routes/dashboard.route.ts:11`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/dashboard.route.ts:24`. Requires permission `reports.view`.
          */
         get: operations["get_api_dashboard_stats"];
         put?: never;
@@ -4141,7 +4161,7 @@ export interface paths {
         };
         /**
          * GET /api/dashboard/overview
-         * @description Defined in `src/routes/dashboard.route.ts:15`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/dashboard.route.ts:45`.
          */
         get: operations["get_api_dashboard_overview"];
         put?: never;
@@ -6109,13 +6129,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:76`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:77`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders"];
         put?: never;
         /**
          * POST /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:40`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:41`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders"];
         delete?: never;
@@ -6135,7 +6155,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/quote
-         * @description Defined in `src/routes/storefront-orders.routes.ts:51`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:52`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_quote"];
         delete?: never;
@@ -6153,7 +6173,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/products
-         * @description Defined in `src/routes/storefront-orders.routes.ts:61`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:62`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_products"];
         put?: never;
@@ -6175,7 +6195,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/bulk-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:69`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:70`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_bulk_consignment"];
         delete?: never;
@@ -6193,7 +6213,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/stats
-         * @description Defined in `src/routes/storefront-orders.routes.ts:83`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:84`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_stats"];
         put?: never;
@@ -6213,21 +6233,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:88`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:89`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:106`. Requires permission `storefront.orders.delete`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:107`. Requires permission `storefront.orders.delete`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_orders_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:97`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:98`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id"];
         trace?: never;
@@ -6241,7 +6261,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/fraud-check
-         * @description Defined in `src/routes/storefront-orders.routes.ts:112`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:113`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_fraud_check"];
         put?: never;
@@ -6263,7 +6283,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/confirm
-         * @description Defined in `src/routes/storefront-orders.routes.ts:118`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:119`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_confirm"];
         delete?: never;
@@ -6287,7 +6307,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:124`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:125`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_status"];
         trace?: never;
@@ -6303,7 +6323,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/cancel
-         * @description Defined in `src/routes/storefront-orders.routes.ts:130`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:131`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_cancel"];
         delete?: never;
@@ -6327,7 +6347,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-cost
-         * @description Defined in `src/routes/storefront-orders.routes.ts:136`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:137`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
@@ -6343,7 +6363,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/prepayment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:142`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:143`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_prepayment"];
         delete?: never;
@@ -6363,7 +6383,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/payment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:148`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:149`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_payment"];
         delete?: never;
@@ -6383,7 +6403,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/collection
-         * @description Defined in `src/routes/storefront-orders.routes.ts:158`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:159`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_collection"];
         delete?: never;
@@ -6403,7 +6423,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/return
-         * @description Defined in `src/routes/storefront-orders.routes.ts:164`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:165`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_return"];
         delete?: never;
@@ -6423,7 +6443,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/resolve-location
-         * @description Defined in `src/routes/storefront-orders.routes.ts:170`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:171`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_resolve_location"];
         delete?: never;
@@ -6443,7 +6463,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:176`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:177`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_consignment"];
         delete?: never;
@@ -6463,7 +6483,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/manual-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:182`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:183`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_manual_consignment"];
         delete?: never;
@@ -6487,7 +6507,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:188`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:189`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_status"];
         trace?: never;
@@ -6503,7 +6523,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/refresh-tracking
-         * @description Defined in `src/routes/storefront-orders.routes.ts:194`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:195`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_refresh_tracking"];
         delete?: never;
@@ -6521,7 +6541,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/return-preview
-         * @description Defined in `src/routes/storefront-orders.routes.ts:202`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:203`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_return_preview"];
         put?: never;
@@ -6541,11 +6561,31 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/courier-price
-         * @description Defined in `src/routes/storefront-orders.routes.ts:208`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:209`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_courier_price"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/orders/{id}/courier-charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/orders/:id/courier-charges
+         * @description Defined in `src/routes/storefront-orders.routes.ts:221`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_orders_id_courier_charges"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6758,6 +6798,110 @@ export interface paths {
         get: operations["get_api_ecommerce_couriers_provider_locations"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/payouts/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/payouts/summary
+         * @description Defined in `src/routes/courier-payouts.routes.ts:42`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_payouts_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/payouts/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/payouts/sync
+         * @description Defined in `src/routes/courier-payouts.routes.ts:57`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_payouts_sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/payouts
+         * @description Defined in `src/routes/courier-payouts.routes.ts:64`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_payouts"];
+        put?: never;
+        /**
+         * POST /api/ecommerce/payouts
+         * @description Defined in `src/routes/courier-payouts.routes.ts:72`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_payouts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/payouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/payouts/:id
+         * @description Defined in `src/routes/courier-payouts.routes.ts:79`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_payouts_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/payouts/{id}/post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/payouts/:id/post
+         * @description Defined in `src/routes/courier-payouts.routes.ts:91`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_payouts_id_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7525,13 +7669,14 @@ export interface components {
             name: string;
             locationId: string;
             /** @enum {string} */
-            type: "cash" | "bank" | "mfs" | "custom";
+            type: "cash" | "bank" | "mfs" | "custom" | "courier_clearing";
             balance?: number;
             accountNumber?: string;
             description?: string;
             isDefault?: boolean;
             /** @enum {string} */
             status: "active" | "inactive";
+            systemKey?: string;
         };
         AccountPaymentOption: {
             _id: string;
@@ -10575,12 +10720,7 @@ export interface components {
             currency?: string;
             customDomain: string | null;
             fulfillmentLocationSet: boolean;
-            stockTracked: boolean;
             stats: {
-                todayOrders: number;
-                todayNetRevenue: number;
-                todayReturned: number;
-                pendingCount: number;
                 liveProducts: number;
                 abandonedCarts: number;
                 abandonedCartValue: number;
@@ -10649,6 +10789,7 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
+                shippingCostAdjustmentTxnIds?: string[];
                 prepaidAmount?: number;
                 prepaidShippingAmount?: number;
                 prepaidGoodsAmount?: number;
@@ -10715,6 +10856,41 @@ export interface components {
                     resolvedLocation?: {
                         [key: string]: string | number;
                     };
+                    charges?: {
+                        quoted?: number;
+                        actual?: {
+                            deliveryFee: number;
+                            codFee?: number;
+                            additionalCharge?: number;
+                            compensationCost?: number;
+                            discount?: number;
+                            totalFee: number;
+                            weightKg?: number;
+                        };
+                        /** @enum {string} */
+                        source?: "quote" | "manual" | "webhook" | "api" | "payout";
+                        /** Format: date-time */
+                        at?: string;
+                        history?: {
+                            totalFee: number;
+                            /** @enum {string} */
+                            source: "quote" | "manual" | "webhook" | "api" | "payout";
+                            code?: string;
+                            /** Format: date-time */
+                            at?: string;
+                        }[];
+                    };
+                    remittance?: {
+                        /** @enum {string} */
+                        status: "not_collected" | "with_courier" | "remitted";
+                        payoutId?: string | null;
+                        payoutRef?: string;
+                        /** Format: date-time */
+                        remittedAt?: string | null;
+                        clearingAccountId?: string | null;
+                        clearingAmount?: number;
+                        clearingTxnId?: string | null;
+                    };
                 };
                 statusHistory?: {
                     status: string;
@@ -10749,13 +10925,6 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             }[];
-            lowStockProducts: {
-                _id: string;
-                name: string;
-                image?: string;
-                availableQuantity: number;
-                tracked?: boolean;
-            }[];
             channelMix: {
                 windowDays: number;
                 total: number;
@@ -10766,21 +10935,6 @@ export interface components {
                     share: number;
                 }[];
             };
-            fulfillmentMix: {
-                delivered: number;
-                cancelled: number;
-                returned: number;
-                byCourier: {
-                    [key: string]: number;
-                };
-            };
-            topSelling: {
-                _id: string;
-                name: string;
-                units: number;
-                revenue: number;
-            }[];
-            newCustomers: number;
         };
         StorefrontOrder: {
             _id: string;
@@ -10845,6 +10999,7 @@ export interface components {
             saleId?: string | null;
             shippingIncomeTxnId?: string | null;
             shippingCostTxnId?: string | null;
+            shippingCostAdjustmentTxnIds?: string[];
             prepaidAmount?: number;
             prepaidShippingAmount?: number;
             prepaidGoodsAmount?: number;
@@ -10910,6 +11065,41 @@ export interface components {
                 }[];
                 resolvedLocation?: {
                     [key: string]: string | number;
+                };
+                charges?: {
+                    quoted?: number;
+                    actual?: {
+                        deliveryFee: number;
+                        codFee?: number;
+                        additionalCharge?: number;
+                        compensationCost?: number;
+                        discount?: number;
+                        totalFee: number;
+                        weightKg?: number;
+                    };
+                    /** @enum {string} */
+                    source?: "quote" | "manual" | "webhook" | "api" | "payout";
+                    /** Format: date-time */
+                    at?: string;
+                    history?: {
+                        totalFee: number;
+                        /** @enum {string} */
+                        source: "quote" | "manual" | "webhook" | "api" | "payout";
+                        code?: string;
+                        /** Format: date-time */
+                        at?: string;
+                    }[];
+                };
+                remittance?: {
+                    /** @enum {string} */
+                    status: "not_collected" | "with_courier" | "remitted";
+                    payoutId?: string | null;
+                    payoutRef?: string;
+                    /** Format: date-time */
+                    remittedAt?: string | null;
+                    clearingAccountId?: string | null;
+                    clearingAmount?: number;
+                    clearingTxnId?: string | null;
                 };
             };
             statusHistory?: {
@@ -11009,6 +11199,7 @@ export interface components {
                 saleId?: string | null;
                 shippingIncomeTxnId?: string | null;
                 shippingCostTxnId?: string | null;
+                shippingCostAdjustmentTxnIds?: string[];
                 prepaidAmount?: number;
                 prepaidShippingAmount?: number;
                 prepaidGoodsAmount?: number;
@@ -11075,6 +11266,41 @@ export interface components {
                     resolvedLocation?: {
                         [key: string]: string | number;
                     };
+                    charges?: {
+                        quoted?: number;
+                        actual?: {
+                            deliveryFee: number;
+                            codFee?: number;
+                            additionalCharge?: number;
+                            compensationCost?: number;
+                            discount?: number;
+                            totalFee: number;
+                            weightKg?: number;
+                        };
+                        /** @enum {string} */
+                        source?: "quote" | "manual" | "webhook" | "api" | "payout";
+                        /** Format: date-time */
+                        at?: string;
+                        history?: {
+                            totalFee: number;
+                            /** @enum {string} */
+                            source: "quote" | "manual" | "webhook" | "api" | "payout";
+                            code?: string;
+                            /** Format: date-time */
+                            at?: string;
+                        }[];
+                    };
+                    remittance?: {
+                        /** @enum {string} */
+                        status: "not_collected" | "with_courier" | "remitted";
+                        payoutId?: string | null;
+                        payoutRef?: string;
+                        /** Format: date-time */
+                        remittedAt?: string | null;
+                        clearingAccountId?: string | null;
+                        clearingAmount?: number;
+                        clearingTxnId?: string | null;
+                    };
                 };
                 statusHistory?: {
                     status: string;
@@ -11124,6 +11350,166 @@ export interface components {
                 total: number;
                 totalPages: number;
             };
+        };
+        CourierChargeRefresh: {
+            supported: boolean;
+            applied: boolean;
+            totalFee?: number;
+            previous?: number;
+            reason?: string;
+        };
+        CourierMoneySummary: {
+            codInTransit: {
+                summary: {
+                    withCourier: number;
+                    parcels: number;
+                    courierCount: number;
+                };
+                byCourier: {
+                    provider: string;
+                    label: string;
+                    amount: number;
+                    parcels: number;
+                    oldestDays: number;
+                    ageing: {
+                        [key: string]: {
+                            amount: number;
+                            parcels: number;
+                        };
+                    };
+                }[];
+                clearingAccounts: {
+                    accountId: string;
+                    name: string;
+                    locationId: string;
+                    balance: number;
+                }[];
+                ageingBuckets: string[];
+            };
+            variance: {
+                summary: {
+                    parcels: number;
+                    withoutActual: number;
+                    quoted: number;
+                    actual: number;
+                    variance: number;
+                    shippingCharged: number;
+                    margin: number;
+                };
+                outliers: {
+                    orderNumber: string;
+                    provider?: string;
+                    quoted: number;
+                    actual: number;
+                    variance: number;
+                    shippingCharged: number;
+                    margin: number;
+                }[];
+            };
+            payouts: {
+                summary: {
+                    payouts: number;
+                    gross: number;
+                    delivery: number;
+                    codFee: number;
+                    paymentCharge: number;
+                    returnCharge: number;
+                    adjustment: number;
+                    net: number;
+                    unreconciled: number;
+                    pending: number;
+                };
+                payouts: {
+                    _id: string;
+                    statementRef: string;
+                    /** @enum {string} */
+                    provider?: "pathao" | "steadfast" | "ecourier";
+                    /** Format: date-time */
+                    receivedAt: string;
+                    gross: number;
+                    deductions: {
+                        delivery: number;
+                        codFee: number;
+                        paymentCharge: number;
+                        returnCharge: number;
+                        adjustment: number;
+                    };
+                    net: number;
+                    paymentMode?: string;
+                    parcels: number;
+                    /** @enum {string} */
+                    status: "pending" | "posted";
+                    reconciled: boolean;
+                    residual: number;
+                    unrecordedGross: number;
+                }[];
+            };
+        };
+        CourierPayout: {
+            _id: string;
+            organizationId: string;
+            locationId: string;
+            /** @enum {string} */
+            provider?: "pathao" | "steadfast" | "ecourier";
+            customCourierId?: string | null;
+            statementRef: string;
+            /** Format: date-time */
+            receivedAt: string;
+            accountId?: string | null;
+            clearingAccountId?: string | null;
+            gross: number;
+            deductions: {
+                delivery: number;
+                codFee: number;
+                paymentCharge: number;
+                returnCharge: number;
+                adjustment: number;
+            };
+            net: number;
+            paymentMode?: string;
+            lines: {
+                orderId?: string | null;
+                orderNumber?: string;
+                consignmentRef?: string;
+                trackingCode?: string;
+                /** @enum {string} */
+                legType: "forward" | "return";
+                collected: number;
+                clearingAmount?: number;
+                deliveryFee?: number;
+                codFee?: number;
+                returnCharge?: number;
+                otherCharge?: number;
+                note?: string;
+                status?: string;
+            }[];
+            reconciled: boolean;
+            residual: number;
+            unrecordedGross: number;
+            /** @enum {string} */
+            status: "pending" | "posted";
+            /** Format: date-time */
+            postedAt?: string | null;
+            transferTxnId?: string | null;
+            expenseTxnIds?: string[];
+            adjustmentTxnId?: string | null;
+            /** @enum {string} */
+            source: "api" | "import" | "manual";
+            idempotencyKey?: string;
+            createdBy?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CourierPayoutSync: {
+            results: {
+                /** @enum {string} */
+                provider: "pathao" | "steadfast" | "ecourier";
+                found: number;
+                recorded: number;
+                error?: string;
+            }[];
         };
         EmailWebhookAck: {
             received: boolean;
@@ -13171,6 +13557,7 @@ export interface components {
             };
             summary: {
                 totalBalance: number;
+                withCourier: number;
                 accountCount: number;
                 totalIncome: number;
                 totalExpense: number;
@@ -13218,6 +13605,9 @@ export interface components {
                 endDate: string;
             };
         };
+        DashboardBlocks: {
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "orders.fulfillment" | "topSold" | "stock.alerts" | "stock.movements" | "financial.insights" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+        };
         DashboardOverview: {
             period: {
                 key: string;
@@ -13228,27 +13618,16 @@ export interface components {
                 /** @enum {string} */
                 chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
             };
-            purchasesTracked: boolean;
-            stockTracked: boolean;
-            sales: {
+            sales?: {
                 total: number;
                 paid: number;
                 due: number;
                 count: number;
                 previousTotal: number;
                 previousCount: number;
-                byChannel: {
-                    pos: {
-                        total: number;
-                        count: number;
-                    };
-                    online: {
-                        total: number;
-                        count: number;
-                    };
-                };
+                discounts: number;
             };
-            purchases: {
+            purchases?: {
                 total: number;
                 paid: number;
                 due: number;
@@ -13256,24 +13635,60 @@ export interface components {
                 previousTotal: number;
                 previousCount: number;
             };
-            outstanding: {
-                receivable: number;
-                payable: number;
+            outstanding?: {
+                receivable?: number;
+                payable?: number;
             };
-            chartData: {
+            channelMix?: {
+                counter: number;
+                online: number;
+            };
+            orders?: {
+                placed: number;
+                value: number;
+                previousPlaced: number;
+                previousValue: number;
+            };
+            ordersPipeline?: {
+                pending: number;
+                confirmed: number;
+                processing: number;
+                shipped: number;
+                readyForPickup: number;
+                open: number;
+            };
+            ordersCod?: {
+                inTransit: number;
+                orders: number;
+                rtoRate: number | null;
+                returned: number;
+                delivered: number;
+            };
+            ordersFulfillment?: {
+                delivered: number;
+                returned: number;
+                cancelled: number;
+                returnedValue: number;
+                byCourier: {
+                    provider: string;
+                    count: number;
+                }[];
+            };
+            chartData?: {
                 label: string;
                 sales: number;
                 purchases: number;
+                orders: number;
             }[];
-            topSoldItems: {
+            topSoldItems?: {
                 productName: string;
                 variantName: string | null;
                 totalQuantity: number;
                 totalRevenue: number;
-                totalCost: number;
-                profit: number;
+                totalCost?: number;
+                profit?: number;
             }[];
-            lowStock: {
+            lowStock?: {
                 count: number;
                 outOfStockCount: number;
                 items: {
@@ -13284,19 +13699,41 @@ export interface components {
                     alertThreshold?: number | null;
                 }[];
             };
-            inventory: {
+            inventory?: {
                 totalValue: number;
                 totalItems: number;
             };
-            grossProfit: number;
-            netRevenue: number;
-            previousNetRevenue: number;
-            returns: {
+            grossProfit?: number;
+            costCoverage?: {
+                knownRevenue: number;
+                unknownRevenue: number;
+                unknownLines: number;
+                uncommittedOrders: number;
+            };
+            shipping?: {
+                charged: number;
+                cost: number;
+                margin: number;
+            };
+            cash?: {
+                balance: number;
+                accounts: number;
+            };
+            expiry?: {
+                expiredLots: number;
+                expiredQuantity: number;
+                expiringLots: number;
+                expiringQuantity: number;
+                horizonDays: number;
+            };
+            netRevenue?: number;
+            previousNetRevenue?: number;
+            returns?: {
                 refund: number;
                 cogs: number;
                 count: number;
             };
-            totalCOGS: number;
+            totalCOGS?: number;
         };
         DashboardStats: {
             products: {
@@ -13464,6 +13901,7 @@ export interface components {
             assets: {
                 cash: number;
                 accountCount: number;
+                withCourier: number;
                 stockValue: number;
                 receivables: number;
                 receivableCount: number;
@@ -13549,6 +13987,41 @@ export interface components {
                 previousTotal: number;
                 previousCount: number;
             };
+            channelMix?: {
+                counter: number;
+                online: number;
+            };
+            orders?: {
+                placed: number;
+                value: number;
+                previousPlaced: number;
+                previousValue: number;
+            };
+            ordersPipeline?: {
+                pending: number;
+                confirmed: number;
+                processing: number;
+                shipped: number;
+                readyForPickup: number;
+                open: number;
+            };
+            ordersCod?: {
+                inTransit: number;
+                orders: number;
+                rtoRate: number | null;
+                returned: number;
+                delivered: number;
+            };
+            ordersFulfillment?: {
+                delivered: number;
+                returned: number;
+                cancelled: number;
+                returnedValue: number;
+                byCourier: {
+                    provider: string;
+                    count: number;
+                }[];
+            };
             chartData: {
                 label: string | null;
                 total: number;
@@ -13603,6 +14076,41 @@ export interface components {
                     count: number;
                 };
                 discounts: number;
+            };
+            channelMix?: {
+                counter: number;
+                online: number;
+            };
+            orders?: {
+                placed: number;
+                value: number;
+                previousPlaced: number;
+                previousValue: number;
+            };
+            ordersPipeline?: {
+                pending: number;
+                confirmed: number;
+                processing: number;
+                shipped: number;
+                readyForPickup: number;
+                open: number;
+            };
+            ordersCod?: {
+                inTransit: number;
+                orders: number;
+                rtoRate: number | null;
+                returned: number;
+                delivered: number;
+            };
+            ordersFulfillment?: {
+                delivered: number;
+                returned: number;
+                cancelled: number;
+                returnedValue: number;
+                byCourier: {
+                    provider: string;
+                    count: number;
+                }[];
             };
             chartData: {
                 label: string | null;
@@ -14735,11 +15243,13 @@ export interface components {
         };
         AccountSummary: {
             totalBalance: number;
+            withCourier: number;
             byType: {
                 cash: number;
                 bank: number;
                 mfs: number;
                 custom: number;
+                courier_clearing: number;
             };
             accountCount: number;
         };
@@ -29042,6 +29552,40 @@ export interface operations {
             };
         };
     };
+    get_api_dashboard_blocks: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["DashboardBlocks"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_dashboard_stats: {
         parameters: {
             query?: never;
@@ -29110,15 +29654,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -37182,6 +37717,7 @@ export interface operations {
             content: {
                 "application/json": {
                     accountId?: string;
+                    codHeldByCourier?: boolean;
                 };
             };
         };
@@ -37267,6 +37803,7 @@ export interface operations {
                         mode: "account" | "credit";
                         accountId?: string;
                     };
+                    codHeldByCourier?: boolean;
                     idempotencyKey?: string;
                 };
             };
@@ -37844,6 +38381,69 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["CourierPrice"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_orders_id_courier_charges: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierChargeRefresh"];
                     };
                 };
             };
@@ -38636,6 +39236,419 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["CourierLocation"][];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_payouts_summary: {
+        parameters: {
+            query?: {
+                startDate?: string;
+                endDate?: string;
+                locationId?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierMoneySummary"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_payouts_sync: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    provider?: "pathao" | "steadfast" | "ecourier";
+                    /** Format: date-time */
+                    since?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierPayoutSync"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_payouts: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: "pending" | "posted";
+                start_date?: string;
+                end_date?: string;
+                provider?: "pathao" | "steadfast" | "ecourier";
+                locationId?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["CourierPayout"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_payouts: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    provider?: "pathao" | "steadfast" | "ecourier";
+                    customCourierId?: string;
+                    statementRef: string;
+                    /** Format: date-time */
+                    receivedAt?: string;
+                    accountId?: string;
+                    gross?: number;
+                    deductions?: {
+                        delivery?: number;
+                        codFee?: number;
+                        paymentCharge?: number;
+                        returnCharge?: number;
+                        adjustment?: number;
+                    };
+                    net?: number;
+                    paymentMode?: string;
+                    lines?: {
+                        orderId?: string;
+                        consignmentRef?: string;
+                        trackingCode?: string;
+                        /** @enum {string} */
+                        legType?: "forward" | "return";
+                        collected?: number;
+                        deliveryFee?: number;
+                        codFee?: number;
+                        returnCharge?: number;
+                        otherCharge?: number;
+                        note?: string;
+                    }[];
+                    /** @enum {string} */
+                    source?: "api" | "import" | "manual";
+                    idempotencyKey?: string;
+                    post?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierPayout"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_payouts_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierPayout"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_payouts_id_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    accountId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierPayout"];
                     };
                 };
             };

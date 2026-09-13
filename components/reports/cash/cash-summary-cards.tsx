@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { PiggyBank, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { PiggyBank, TrendingDown, TrendingUp, Truck, Wallet } from "lucide-react";
 import StatsCard, { type StatData } from "@ui/components/StatsCard";
 import { useCurrency } from "@/lib/currency";
 import type { CashReport } from "@/types/api";
@@ -57,6 +57,22 @@ export function CashSummaryCards({
         ? t("acrossAccounts", { count: summary.accountCount })
         : undefined,
     },
+    ...(summary && summary.withCourier !== 0
+      ? [
+          {
+            /**
+             * COD a courier has collected and not yet remitted. Kept out of `totalBalance`
+             * above, so without this tile the report's headline figure just drops by the
+             * amount in flight — on a COD business, most of a week's takings — with nothing
+             * on screen to read it against. Only rendered when there is some.
+             */
+            label: t("withCourier"),
+            value: formatCurrency(summary.withCourier),
+            icon: Truck,
+            description: t("withCourierDescription"),
+          } satisfies StatData,
+        ]
+      : []),
     {
       // Cash, not revenue: settlement (the cash leg of a sale) is in, owner capital is out. The
       // profit report answers a different question and will show a different number.

@@ -83,6 +83,17 @@ export function PositionReport() {
               </CardHeader>
               <CardContent className="divide-y">
                 <Row label={t('cash')} value={data.assets.cash} format={format} />
+                {/* COD a courier collected and has not remitted: an asset, but not cash —
+                    kept out of `assets.cash` and counted in `assets.total`. Without the row
+                    the asset lines stop summing to their own total. Dropped when zero, like
+                    stock above, rather than printing ৳0 for a merchant who ships no COD. */}
+                {data.assets.withCourier !== 0 && (
+                  <Row
+                    label={t('withCourier')}
+                    value={data.assets.withCourier}
+                    format={format}
+                  />
+                )}
                 {/* Dropped, not zeroed. "Stock ৳0" as an asset line reads as a
                     shop that has sold out; the notice above says the truer
                     thing, which is that this business does not carry stock. */}

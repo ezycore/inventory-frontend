@@ -31,6 +31,7 @@ import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { OrderCollectionSummary } from "@/components/ecommerce/orders/order-collection-summary";
+import { OrderCourierMoney } from "@/components/ecommerce/orders/order-courier-money";
 
 export default function AdminOrderDetailPage() {
   const id = String(useParams().id);
@@ -185,6 +186,10 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
           {/* Directly under the invoice it explains: the totals above are what
               was asked for, this is what actually came back. */}
           <OrderCollectionSummary order={order} />
+          {/* The door is where `OrderCollectionSummary` stops; this is the next step of the
+              same money — what the carrier charged for the parcel, and whether they have
+              handed the COD over yet. */}
+          <OrderCourierMoney order={order} />
           <OrderFulfillmentPanel order={order} />
 
           {/* Activity log */}

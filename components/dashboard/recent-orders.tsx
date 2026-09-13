@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEcommerceDashboard } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
@@ -28,6 +29,7 @@ import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
  * stays usable anywhere that has already made that decision.
  */
 export function RecentOrders() {
+  const t = useTranslations("dashboard.recentOrders");
   const { data, isLoading } = useEcommerceDashboard();
   const { labelFor } = useOrderStatusLabels();
   const orgCurrency = useAuthStore((s) => s.user?.organization?.currency);
@@ -42,18 +44,18 @@ export function RecentOrders() {
   return (
     <Card className="p-5 shadow-none">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Recent orders</h2>
+        <h2 className="text-sm font-semibold">{t("title")}</h2>
         <Link
           href="/ecommerce/orders"
           className="text-xs font-semibold text-primary"
         >
-          View all
+          {t("viewAll")}
         </Link>
       </div>
       {isLoading || !data ? (
         <Skeleton className="h-48 w-full" />
       ) : data.recentOrders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No orders yet.</p>
+        <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <ul className="divide-y">
           {data.recentOrders.map((o) => (

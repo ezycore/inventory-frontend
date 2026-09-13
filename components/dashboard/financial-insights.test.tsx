@@ -33,7 +33,7 @@ const overview = (patch: Partial<DashboardOverview> = {}) =>
       count: 2,
       previousTotal: 0,
       previousCount: 0,
-      byChannel: { pos: { total: 0, count: 0 }, online: { total: 1450, count: 2 } },
+      discounts: 0,
     },
     purchases: {
       total: 0,
@@ -43,19 +43,19 @@ const overview = (patch: Partial<DashboardOverview> = {}) =>
       previousTotal: 0,
       previousCount: 0,
     },
-    purchasesTracked: false,
     netRevenue: 1450,
     previousNetRevenue: 0,
     returns: { refund: 18850, cogs: 11050, count: 1 },
     ...patch,
   }) as unknown as DashboardOverview
 
-const draw = (data: DashboardOverview) =>
+const draw = (data: DashboardOverview, showPurchases = false) =>
   render(
     <FinancialInsights
       overview={data}
       isLoading={false}
       formatCurrency={(v) => `৳${v}`}
+      showPurchases={showPurchases}
     />,
   )
 
@@ -102,7 +102,16 @@ describe('financial insights — rates read net, like the tile above them', () =
   })
 
   it('shows 0% rather than dividing by a period with nothing left in it', () => {
-    draw(overview({ netRevenue: 0 }))
+    // Everything sold came back. Patched on the fields the panel DERIVES from —
+    // since P2 it computes the counter ledger's own net (total − discounts −
+    // refunds) rather than reading the page headline, which now combines both
+    // channels and would understate a collection rate measured on counter
+    // figures alone.
+    draw(
+      overview({
+        returns: { refund: 20300, cogs: 11050, count: 1 },
+      } as never),
+    )
     expect(screen.getByText('0%')).toBeInTheDocument()
     expect(screen.getByText('৳0')).toBeInTheDocument()
   })

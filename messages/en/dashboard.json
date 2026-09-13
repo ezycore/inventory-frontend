@@ -18,7 +18,23 @@
     "transactions": "Transactions",
     "vsPrevious": "vs previous",
     "salesPurchaseCount": "{sales} sales · {purchases} purchases",
-    "afterReturns": "after {amount} returned"
+    "afterReturns": "after {amount} returned",
+    "ordersPlaced": "Orders",
+    "ordersValue": "{amount} placed",
+    "awaitingConfirmation": "Awaiting confirmation",
+    "ordersInFlight": "{count} orders in flight",
+    "codInTransit": "COD with couriers",
+    "codOrders": "{count} parcels out",
+    "codOrdersWithRto": "{count} parcels out · {rate}% returned",
+    "bothChannels": "Counter sales + orders placed",
+    "costsMissing": "Set cost prices to see profit",
+    "marginOfKnown": "{margin}% margin on {known} of {total}",
+    "cashOnHand": "Cash on hand",
+    "acrossAccounts": "across {count} accounts",
+    "deliveryMargin": "Delivery margin",
+    "deliveryChargedCost": "{charged} charged · {cost} to carry",
+    "expiringSoon": "Expiring soon",
+    "expiryBreakdown": "{expired} expired · next {days} days"
   },
   "chart": {
     "title": "Sales vs Purchases",
@@ -31,7 +47,9 @@
     "breakdownSuffix": "{grouping} breakdown",
     "emptyTitle": "No transaction data yet",
     "emptyDescription": "Sales and purchase trends will appear here as you record transactions",
-    "salesTitle": "Sales"
+    "salesTitle": "Sales",
+    "orders": "Orders",
+    "ordersTitle": "Sales & orders"
   },
   "summary": {
     "receivable": "Receivable",
@@ -42,7 +60,8 @@
     "itemsInStock": "{count} items in stock",
     "salesChannels": "Online vs Counter",
     "shareOnline": "{share}% online",
-    "onlineCounterSplit": "Online {online} · Counter {counter}"
+    "onlineCounterSplit": "Online {online} · Counter {counter}",
+    "owedIncludingCouriers": "With customers and couriers"
   },
   "topSold": {
     "title": "Top Sold Items",
@@ -97,10 +116,44 @@
     "addProduct": "Add Product",
     "transferStock": "Transfer Stock",
     "adjustStock": "Adjust Stock",
-    "viewReports": "View Reports"
+    "viewReports": "View Reports",
+    "onlineOrders": "Online Orders"
   },
   "restricted": {
     "title": "Sales figures aren't shown for your role",
     "description": "Your account can manage stock and products, but not view sales or financial reports. Ask an administrator if you need access."
+  },
+  "fulfillment": {
+    "title": "Fulfillment",
+    "viewAll": "View all",
+    "nothingSettled": "No orders have reached a customer yet.",
+    "delivered": "Delivered",
+    "returned": "Returned",
+    "cancelled": "Cancelled",
+    "arrivalRate": "Arrived at the door",
+    "byCourier": "By courier"
+  },
+  "storeHealth": {
+    "title": "Your store",
+    "open": "Store is open",
+    "closed": "Store is not published",
+    "liveProducts": "Products online",
+    "abandonedCarts": "Carts left behind"
+  },
+  "recentOrders": {
+    "title": "Recent orders",
+    "viewAll": "View all",
+    "empty": "No orders yet."
+  },
+  "storeOverview": {
+    "title": "Store Overview",
+    "subtitle": "Your online shop at a glance — how it looks, what is listed, what shoppers left behind.",
+    "liveProducts": "Products online",
+    "abandonedCarts": "Abandoned carts",
+    "cartValue": "Value left in carts",
+    "abandonmentRate": "Cart abandonment",
+    "tradeTitle": "Looking for today’s orders and revenue?",
+    "tradeBody": "Order counts, revenue, the confirmation queue, COD with couriers and delivery outcomes are all on your dashboard, beside the rest of your business.",
+    "tradeLink": "Go to dashboard"
   }
 }

@@ -18,7 +18,23 @@
     "transactions": "লেনদেন",
     "vsPrevious": "আগের তুলনায়",
     "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়",
-    "afterReturns": "{amount} ফেরতের পর"
+    "afterReturns": "{amount} ফেরতের পর",
+    "ordersPlaced": "অর্ডার",
+    "ordersValue": "{amount} এর অর্ডার",
+    "awaitingConfirmation": "নিশ্চিত করা বাকি",
+    "ordersInFlight": "{count}টি অর্ডার চলমান",
+    "codInTransit": "কুরিয়ারের কাছে ক্যাশ",
+    "codOrders": "{count}টি পার্সেল পথে",
+    "codOrdersWithRto": "{count}টি পার্সেল পথে · {rate}% ফেরত",
+    "bothChannels": "কাউন্টার বিক্রি + অনলাইন অর্ডার",
+    "costsMissing": "লাভ দেখতে ক্রয়মূল্য দিন",
+    "marginOfKnown": "{total} এর মধ্যে {known} এ {margin}% মার্জিন",
+    "cashOnHand": "হাতে নগদ",
+    "acrossAccounts": "{count}টি হিসাবে",
+    "deliveryMargin": "ডেলিভারি মার্জিন",
+    "deliveryChargedCost": "{charged} নেওয়া · {cost} খরচ",
+    "expiringSoon": "মেয়াদ শেষ হচ্ছে",
+    "expiryBreakdown": "{expired}টি মেয়াদোত্তীর্ণ · পরের {days} দিন"
   },
   "chart": {
     "title": "বিক্রয় বনাম ক্রয়",
@@ -31,7 +47,9 @@
     "breakdownSuffix": "{grouping} বিভাজন",
     "emptyTitle": "এখনও কোনো লেনদেনের ডেটা নেই",
     "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে",
-    "salesTitle": "বিক্রয়"
+    "salesTitle": "বিক্রয়",
+    "orders": "অর্ডার",
+    "ordersTitle": "বিক্রি ও অর্ডার"
   },
   "summary": {
     "receivable": "পাওনা",
@@ -42,7 +60,8 @@
     "itemsInStock": "{count}টি আইটেম স্টকে আছে",
     "salesChannels": "অনলাইন বনাম দোকান",
     "shareOnline": "{share}% অনলাইন",
-    "onlineCounterSplit": "অনলাইন {online} · দোকান {counter}"
+    "onlineCounterSplit": "অনলাইন {online} · দোকান {counter}",
+    "owedIncludingCouriers": "ক্রেতা ও কুরিয়ারের কাছে"
   },
   "topSold": {
     "title": "সর্বাধিক বিক্রিত আইটেম",
@@ -97,10 +116,44 @@
     "addProduct": "পণ্য যোগ করুন",
     "transferStock": "স্টক স্থানান্তর",
     "adjustStock": "স্টক সমন্বয়",
-    "viewReports": "রিপোর্ট দেখুন"
+    "viewReports": "রিপোর্ট দেখুন",
+    "onlineOrders": "অনলাইন অর্ডার"
   },
   "restricted": {
     "title": "আপনার ভূমিকার জন্য বিক্রয়ের হিসাব দেখানো হয় না",
     "description": "আপনার অ্যাকাউন্ট স্টক ও পণ্য পরিচালনা করতে পারে, কিন্তু বিক্রয় বা আর্থিক রিপোর্ট দেখতে পারে না। প্রয়োজন হলে অ্যাডমিনের সাথে যোগাযোগ করুন।"
+  },
+  "fulfillment": {
+    "title": "ডেলিভারি",
+    "viewAll": "সব দেখুন",
+    "nothingSettled": "এখনও কোনো অর্ডার ক্রেতার কাছে পৌঁছায়নি।",
+    "delivered": "ডেলিভারি হয়েছে",
+    "returned": "ফেরত এসেছে",
+    "cancelled": "বাতিল",
+    "arrivalRate": "দরজায় পৌঁছেছে",
+    "byCourier": "কুরিয়ার অনুযায়ী"
+  },
+  "storeHealth": {
+    "title": "আপনার দোকান",
+    "open": "দোকান খোলা আছে",
+    "closed": "দোকান প্রকাশিত হয়নি",
+    "liveProducts": "অনলাইনে পণ্য",
+    "abandonedCarts": "ফেলে যাওয়া কার্ট"
+  },
+  "recentOrders": {
+    "title": "সাম্প্রতিক অর্ডার",
+    "viewAll": "সব দেখুন",
+    "empty": "এখনও কোনো অর্ডার নেই।"
+  },
+  "storeOverview": {
+    "title": "দোকান সংক্ষেপ",
+    "subtitle": "আপনার অনলাইন দোকান এক নজরে — দেখতে কেমন, কী তালিকাভুক্ত, ক্রেতারা কী ফেলে গেছেন।",
+    "liveProducts": "অনলাইনে পণ্য",
+    "abandonedCarts": "ফেলে যাওয়া কার্ট",
+    "cartValue": "কার্টে থাকা মূল্য",
+    "abandonmentRate": "কার্ট পরিত্যাগের হার",
+    "tradeTitle": "আজকের অর্ডার আর বিক্রি খুঁজছেন?",
+    "tradeBody": "অর্ডার সংখ্যা, বিক্রি, নিশ্চিতকরণের সারি, কুরিয়ারের কাছে থাকা ক্যাশ আর ডেলিভারির ফলাফল — সবই আপনার ড্যাশবোর্ডে, ব্যবসার বাকি সবকিছুর পাশে।",
+    "tradeLink": "ড্যাশবোর্ডে যান"
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: storefront
-description: Map of the multi-tenant ecommerce storefront ("shop") — architecture, shopper auth, print/invoice engine, CMS pages, OAuth, conventions and gotchas. Load BEFORE implementing or fixing anything under app/(storefront)/, services/storefront/, components/storefront/, the ecommerce admin pages, or the backend storefront routes.
+description: Map of the multi-tenant ecommerce storefront ("shop") — architecture, shopper auth, print/invoice engine, CMS pages, OAuth, courier payouts/remittance, conventions and gotchas. Load BEFORE implementing or fixing anything under app/(storefront)/, services/storefront/, components/storefront/, the ecommerce admin pages (orders, courier payouts), or the backend storefront routes.
 ---
 
 # Storefront (multi-tenant ecommerce)
@@ -2753,6 +2753,51 @@ resolved **per request from the host**, never baked.
   every other list in the app offered a number to click — hand-rolling the rows is a markup
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
+
+## Courier remittance — the money screens (2026-09-12)
+
+A BD courier collects COD at the door, holds it 2–7 days, and remits it **net of their charges** in
+one transfer covering many parcels. Two admin surfaces exist for that, and the reasoning behind both
+is in [`docs/plan/cod-remittance-frontend.md`](../../../docs/plan/cod-remittance-frontend.md) (the
+backend half, worth reading first, is `inventory-backend/docs/plan/cod-remittance.md` §12).
+
+**`/ecommerce/payouts`** — `app/(protected)/ecommerce/payouts/page.tsx` +
+`components/ecommerce/payouts/`: the list (`payout-list.tsx`, `payout-row.tsx`), the statement form
+(`payout-record-dialog.tsx`), the parcel breakdown (`payout-detail-sheet.tsx`), the posting step
+(`payout-post-dialog.tsx`), the provider pull (`payout-sync-button.tsx`), and the three summary
+panels (`cod-in-transit.tsx`, `charge-variance.tsx`, `payout-history.tsx`). API module:
+`services/api/modules/courier-payouts/`.
+
+**On the order page** — `components/ecommerce/orders/order-courier-money.tsx`: quoted vs the
+courier's real bill with its provenance, and where this parcel's COD is.
+
+Six things not to re-derive:
+
+1. **The URL decides the feature gate.** `featuresForPath` (`lib/nav-utils.ts`) matches by URL
+   **prefix** and accumulates, so `/accounts/payouts` would demand the `accounts` feature — and these
+   endpoints are gated on `storefront` precisely so a merchant with the ledger off can still see what
+   a courier holds. `/ecommerce/payouts` inherits the right gate for free. Pinned in
+   `lib/__tests__/nav-utils.test.ts`.
+2. **A nav row is still needed for the permission.** `/ecommerce` alone grants `storefront.view`; the
+   endpoints want `storefront.orders.view` / `.manage`. The row in `constants/navItem.ts` is what
+   closes that gap.
+3. **Posting is the whole feature.** The nightly sweep records payouts `pending` and posts nothing —
+   no poller can know which account the money hit. Without `payout-post-dialog`, clearing balances
+   only grow and the delivery expense dispatch deferred is never booked at all.
+4. **Two events, not one** (`services/api/invalidation.ts`): `payout.recorded` moves no money;
+   `payout.posted` carries the whole `MONEY` group. A test pins the difference.
+5. **The client computes no money.** `reconciled`, `residual` and `unrecordedGross` are the server's
+   answers, derived from clearing balances this app never sees. The record form's net arithmetic is a
+   *hint* beside the merchant's typed figure — the server refuses `PAYOUT_UNRECONCILED` and is right to.
+6. **Three shapes that look wrong and are not:** a payout line with no matching order (shipped from
+   the courier's own panel), a return leg collecting nothing while still charged a delivery fee, and
+   `supported: false` from a charge refresh (Steadfast publishes no charge anywhere — an invented
+   number would be worse than an unknown one). Absent is never rendered as zero.
+
+The clearing accounts themselves — the fifth `AccountType`, and the rule that `withCourier` is never
+summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md) skill's §2b.
+
+---
 
 ## Work log (what was built, newest first — as of 2026-08-26)
 
