@@ -23,7 +23,7 @@
     "ordersValue": "{amount} placed",
     "awaitingConfirmation": "Awaiting confirmation",
     "ordersInFlight": "{count} orders in flight",
-    "codInTransit": "COD with couriers",
+    "codInTransit": "COD awaiting collection",
     "codOrders": "{count} parcels out",
     "codOrdersWithRto": "{count} parcels out · {rate}% returned",
     "bothChannels": "Counter sales + orders placed",
@@ -153,7 +153,7 @@
     "cartValue": "Value left in carts",
     "abandonmentRate": "Cart abandonment",
     "tradeTitle": "Looking for today’s orders and revenue?",
-    "tradeBody": "Order counts, revenue, the confirmation queue, COD with couriers and delivery outcomes are all on your dashboard, beside the rest of your business.",
+    "tradeBody": "Order counts, revenue, the confirmation queue, COD awaiting collection and delivery outcomes are all on your dashboard, beside the rest of your business.",
     "tradeLink": "Go to dashboard"
   }
 }

@@ -136,7 +136,16 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     }
   },
 
-  /** What the couriers are holding, and how much of it comes back. */
+  /**
+   * COD a courier has NOT handed over yet, and how much of it comes back.
+   *
+   * "Awaiting collection", not "with couriers" — the payouts page has its own
+   * figure called **COD held by couriers**, and the two are complements rather
+   * than the same money: this one is parcels whose Sale is still due (nobody has
+   * collected), that one is cash the rider took and the courier has not remitted.
+   * They were both called "with couriers" and a merchant reading ৳82,375 here and
+   * ৳28,040 there had no way to tell they were two different questions.
+   */
   'orders.cod': ({ overview, formatCurrency }, t) => {
     if (!overview?.ordersCod) return null
     const { inTransit, orders, rtoRate } = overview.ordersCod

@@ -35,7 +35,7 @@ export function CodInTransit({ data }: { data?: CodInTransit }) {
   if (!data || (byCourier.length === 0 && accounts.length === 0)) {
     return (
       <Card className="p-5 shadow-none">
-        <h3 className="text-sm font-semibold">With the couriers</h3>
+        <h3 className="text-sm font-semibold">COD held by couriers</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           No courier is holding money for you right now.
         </p>
@@ -47,7 +47,7 @@ export function CodInTransit({ data }: { data?: CodInTransit }) {
     <Card className="p-5 shadow-none">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold">With the couriers</h3>
+          <h3 className="text-sm font-semibold">COD held by couriers</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Collected at the door, not yet paid over. Ageing runs from the collection.
           </p>
