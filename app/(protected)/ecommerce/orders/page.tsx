@@ -29,6 +29,7 @@ import {
   deletableOrders,
   getOrderStats,
   isTabActive,
+  orderDetailHref,
   REJECTION_REASON_OPTIONS,
   rejectableOrders,
 } from "@/components/ecommerce/orders/helpers";
@@ -691,7 +692,7 @@ function OrdersList() {
                         : undefined
                     }
                     onToggle={(on) => toggleOne(o._id, on)}
-                    onOpen={() => router.push(`/ecommerce/orders/${o._id}`)}
+                    onOpen={() => router.push(orderDetailHref(o._id))}
                   />
                 ))
               )}

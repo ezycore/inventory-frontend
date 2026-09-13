@@ -14,6 +14,7 @@ import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { orderDetailHref } from "@/components/ecommerce/orders/helpers";
 
 const fmtDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -139,11 +140,21 @@ export default function CustomerDetailPage() {
                     {orders.map((o) => (
                       <tr
                         key={o._id}
-                        onClick={() => router.push(`/ecommerce/orders/${o._id}`)}
+                        onClick={() => router.push(orderDetailHref(o._id))}
                         className="cursor-pointer border-b transition-colors last:border-0 hover:bg-muted/40"
                       >
+                        {/* Same reason as the order list: the row's onClick is a
+                            plain click only, so the order number is an anchor and
+                            ctrl/cmd-click opens it beside this page instead of
+                            replacing the customer you are reading. */}
                         <td className="whitespace-nowrap px-4 py-3 font-semibold">
-                          {o.orderNumber}
+                          <Link
+                            href={orderDetailHref(o._id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {o.orderNumber}
+                          </Link>
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
                           {fmtDate(o.createdAt)}

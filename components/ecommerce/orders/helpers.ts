@@ -348,3 +348,12 @@ export const getOrderStats = (
     },
   ];
 };
+
+/**
+ * The admin route for one order.
+ *
+ * Three tables point at it — the order list, its row menu, and a customer's
+ * order history — so the path lives here rather than as a template literal
+ * repeated at each call site, where a rename would only half-land.
+ */
+export const orderDetailHref = (orderId: string) => `/ecommerce/orders/${orderId}`;

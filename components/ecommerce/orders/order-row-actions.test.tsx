@@ -78,12 +78,24 @@ describe("order row actions", () => {
       expect(item(/reject/i)).toBeTruthy();
     });
 
-    it("offers only view details once the order has moved on", async () => {
+    it("offers only the two ways to open it once the order has moved on", async () => {
       await openMenu({ status: "shipped" });
 
       expect(item(/view details/i)).toBeTruthy();
+      expect(item(/open in new tab/i)).toBeTruthy();
       expect(item(/confirm order/i)).toBeNull();
       expect(item(/reject/i)).toBeNull();
+    });
+
+    /* A real anchor with an href, not a `window.open` handler — that is the
+       whole point of the item, and the only part a click test could not see. */
+    it("opens in a new tab through a real link", async () => {
+      await openMenu();
+      const link = screen.getByRole("menuitem", { name: /open in new tab/i });
+
+      expect(link.tagName).toBe("A");
+      expect(link).toHaveAttribute("href", "/ecommerce/orders/o1");
+      expect(link).toHaveAttribute("target", "_blank");
     });
 
     it("opens the order from the menu", async () => {
