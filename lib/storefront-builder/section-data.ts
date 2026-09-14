@@ -1,7 +1,5 @@
 // coding-standard: maintained
 import type { CatalogProduct } from "@/lib/storefront-client";
-import type { SECTION_SPECS } from "./section-specs";
-import type { SettingsOf } from "./settings";
 
 /**
  * Section data: what a page's sections ask the catalogue for, in ONE batched
@@ -36,21 +34,35 @@ export interface SectionData {
   items: CatalogProduct[];
 }
 
-type ProductGridSettings = SettingsOf<(typeof SECTION_SPECS)["product-grid"]["settings"]>;
+/**
+ * A store-wide list a section reads from the page context instead of querying
+ * for itself: the category tree (collections) and the tag facet (shop by tag).
+ * The page fetches each one once, and only when a section on it needs it.
+ */
+export type StoreListNeed = "categories" | "tags";
+
+/** The settings every product section shares: where its products come from, and how many. */
+export interface ProductSourceSettings {
+  source: ProductSource;
+  categoryId?: string;
+  tagIds?: string[];
+  productIds?: string[];
+  limit: number;
+}
 
 /**
- * The catalogue query a product grid makes — or `null` when its source has
- * nothing to point at (a collection grid with no collection), in which case the
- * grid is not rendered at all.
+ * The catalogue query a product section makes — or `null` when its source has
+ * nothing to point at (a collection section with no collection), in which case
+ * the section is not rendered at all.
  *
  * Catalogue-wide sources ask for in-stock products only, like the homepage rows
  * (`app/(storefront)/shop/page.tsx`): a card nobody can buy is dead space on a
- * page built to sell. A hand-picked grid keeps every pick, because the merchant
- * chose those products by name.
+ * page built to sell. A hand-picked section keeps every pick, because the
+ * merchant chose those products by name.
  */
-export function productGridRequest(
+export function productSectionRequest(
   key: string,
-  settings: ProductGridSettings,
+  settings: ProductSourceSettings,
 ): ProductsDataRequest | null {
   const request: ProductsDataRequest = {
     key,

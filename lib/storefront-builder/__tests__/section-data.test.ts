@@ -4,15 +4,15 @@ import {
   MAX_SECTION_DATA_PARAM_LENGTH,
   MAX_SECTION_DATA_REQUESTS,
   chunkSectionDataRequests,
-  productGridRequest,
+  productSectionRequest,
   type ProductsDataRequest,
 } from "@/lib/storefront-builder/section-data";
 
 const ID = (n: number) => n.toString(16).padStart(24, "0");
 
-describe("productGridRequest", () => {
+describe("productSectionRequest", () => {
   it("asks catalogue-wide sources for in-stock products only", () => {
-    expect(productGridRequest("g1", { source: "featured", limit: 8 })).toEqual({
+    expect(productSectionRequest("g1", { source: "featured", limit: 8 })).toEqual({
       key: "g1",
       type: "products",
       source: "featured",
@@ -22,7 +22,7 @@ describe("productGridRequest", () => {
   });
 
   it("keeps every hand-picked product, sold out or not", () => {
-    expect(productGridRequest("g1", { source: "manual", limit: 4, productIds: [ID(1), ID(2)] })).toEqual({
+    expect(productSectionRequest("g1", { source: "manual", limit: 4, productIds: [ID(1), ID(2)] })).toEqual({
       key: "g1",
       type: "products",
       source: "manual",
@@ -32,9 +32,9 @@ describe("productGridRequest", () => {
   });
 
   it("returns null when the source has nothing to point at", () => {
-    expect(productGridRequest("g1", { source: "category", limit: 8 })).toBeNull();
-    expect(productGridRequest("g1", { source: "tag", limit: 8, tagIds: [] as string[] })).toBeNull();
-    expect(productGridRequest("g1", { source: "manual", limit: 8 })).toBeNull();
+    expect(productSectionRequest("g1", { source: "category", limit: 8 })).toBeNull();
+    expect(productSectionRequest("g1", { source: "tag", limit: 8, tagIds: [] as string[] })).toBeNull();
+    expect(productSectionRequest("g1", { source: "manual", limit: 8 })).toBeNull();
   });
 });
 

@@ -5,10 +5,12 @@ import { publicStorefront } from "@/lib/storefront-server";
 import { buildStorePageMetadata } from "@/lib/storefront-metadata";
 import { storeHref } from "@/lib/storefront-links";
 import { loadSitePage, type SitePageParams } from "@/lib/storefront-site-page";
+import { mediaFitFor, mediaRatioFor, resolveTemplates } from "@/lib/storefront-templates";
 import {
   PageSections,
   prepareSections,
   sectionDataRequests,
+  sectionListNeeds,
 } from "@/components/storefront-builder/page-sections";
 import { LazyStoreContentPage } from "@/components/storefront/content-page-lazy";
 
@@ -84,11 +86,27 @@ export default async function SitePage({
 
   if (builder?.page) {
     const sections = prepareSections(builder.page.sections);
-    const data = await publicStorefront.getSectionData(site.slug, sectionDataRequests(sections));
+    const needs = new Set(sectionListNeeds(sections));
+    // One call for every product section, plus each store-wide list only when a
+    // section reads it — the full chrome's header already fetched the categories,
+    // and Next memoises the identical request.
+    const [data, categories, tags] = await Promise.all([
+      publicStorefront.getSectionData(site.slug, sectionDataRequests(sections)),
+      needs.has("categories") ? publicStorefront.getStoreCategories(site.slug) : null,
+      needs.has("tags") ? publicStorefront.getStoreTags(site.slug) : null,
+    ]);
+    const templates = resolveTemplates(site.store);
     return (
       <PageSections
         sections={sections}
-        context={{ base: site.base, currency: site.store.currency }}
+        context={{
+          base: site.base,
+          currency: site.store.currency,
+          categories: categories ?? [],
+          tags: tags ?? [],
+          imageFit: mediaFitFor(templates.imageFit),
+          imageRatio: mediaRatioFor(templates.imageRatio),
+        }}
         data={data}
       />
     );

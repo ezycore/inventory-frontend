@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useCallback, useId, useRef, useState } from "react";
 import { storeHref } from "@/lib/storefront-links";
 import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
-import { Icon, type IconName } from "@/components/storefront/sf-icons";
+import { Icon } from "@/components/storefront/sf-icons";
+import { PromiseRows } from "@/components/storefront/home/promise-rows";
 import { Media } from "@/components/storefront/sf-bits";
 import { money } from "@/components/storefront/format";
 import {
@@ -21,9 +22,6 @@ import {
  * argument rather than its stock. What a shop puts here is most of what makes it
  * feel like a pharmacy rather than a boutique.
  */
-
-/** Icon fallbacks when a merchant left a trust badge's icon unset. */
-const TRUST_ICONS: IconName[] = ["truck", "shield", "tag"];
 
 /**
  * Full-width tinted authenticity band, in the merchant's OWN words.
@@ -51,33 +49,7 @@ export function TrustBand({ store }: SectionProps) {
     // has set no accent, so a shop that never picks one is unchanged.
     <section style={{ background: "var(--accent-soft)" }}>
       <div style={{ ...wrap, padding: "clamp(13px,1.8vw,19px) var(--pad)" }}>
-        <div className="sf-trust-list">
-          {badges.map((b, i) => (
-            <div key={`${i}:${b.text}`} className="sf-trust-row">
-              {/* The icon gets a solid disc so it survives the tint — an
-                  `--accent` glyph on an `--accent-soft` ground is the one
-                  pairing in the palette with almost no contrast. */}
-              <span
-                style={{
-                  flex: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 34,
-                  height: 34,
-                  borderRadius: 999,
-                  background: "var(--accent)",
-                  color: "var(--on-accent)",
-                }}
-              >
-                <Icon name={(b.icon as IconName) || TRUST_ICONS[i % TRUST_ICONS.length]} size={17} />
-              </span>
-              <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "var(--text)" }}>
-                {b.text}
-              </span>
-            </div>
-          ))}
-        </div>
+        <PromiseRows promises={badges} />
       </div>
     </section>
   );

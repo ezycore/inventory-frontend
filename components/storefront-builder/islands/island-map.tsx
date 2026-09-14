@@ -22,6 +22,10 @@ const ISLANDS = {
   "product-cards": dynamic(() =>
     import("./product-cards").then((module) => module.ProductCardsIsland),
   ),
+  /** The collections strip's paging arrows; the tiles arrive as server-rendered children. */
+  "category-strip": dynamic(() =>
+    import("@/components/storefront/home/category-strip").then((module) => module.CategoryStrip),
+  ),
 };
 
 export type IslandName = keyof typeof ISLANDS;

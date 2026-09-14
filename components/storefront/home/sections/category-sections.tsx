@@ -4,7 +4,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { CatalogCategory, StoreTemplates } from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { collectionHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import {
   DEFAULT_BANNER_COUNT,
@@ -15,11 +15,13 @@ import {
   resolveCardShape,
   sectionCard,
 } from "@/lib/storefront-sections";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { categoryLabelsVisible, resolveTemplates } from "@/lib/storefront-templates";
+import { pickByIds } from "@/lib/storefront-builder/store-lists";
 import { Media, SectionTitle } from "@/components/storefront/sf-bits";
 import { HomeCollections } from "@/components/storefront/home/home-collections";
+import { CollectionLinks } from "@/components/storefront/home/collection-tiles";
+import { TagChipLinks } from "@/components/storefront/home/tag-chip-links";
 import {
-  categoryLabelsVisible,
   categoryTileRowLayout,
   useCategoryRowLayout,
 } from "@/components/storefront/home/category-row-layout";
@@ -133,13 +135,11 @@ export function TagChips({ base, tags, t, config }: SectionProps) {
      `config?.tagIds` present but empty is a real answer ("show none"), not an
      absent one, so it must not reopen the fallback. */
   const configured = config?.tagIds;
-  const bands = (
-    configured
-      ? configured.map((id) => tags?.find((tag) => tag._id === id))
-      : AGE_BANDS.map((name) =>
-          tags?.find((tag) => tag.name.toLowerCase() === name.toLowerCase()),
-        )
-  ).filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+  const bands = configured
+    ? pickByIds(tags ?? [], configured)
+    : AGE_BANDS.map((name) =>
+        tags?.find((tag) => tag.name.toLowerCase() === name.toLowerCase()),
+      ).filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
   if (!bands.length) return null;
 
   return (
@@ -162,37 +162,7 @@ export function TagChips({ base, tags, t, config }: SectionProps) {
           {config?.title?.trim() || t.shopByAge}
         </h2>
       </div>
-      {/* Scrolls on a phone rather than wrapping to three ragged rows — eight
-          chips is one comfortable swipe and the order carries the meaning. */}
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-          overflowX: "auto",
-          paddingBottom: 4,
-          scrollbarWidth: "none",
-        }}
-      >
-        {bands.map((tag) => (
-          <Link
-            key={tag._id}
-            href={storeHref(base, `/products?tags=${encodeURIComponent(tag.slug)}`)}
-            style={{
-              flex: "0 0 auto",
-              border: "1px solid var(--border)",
-              background: "var(--card)",
-              color: "var(--text)",
-              borderRadius: 999,
-              padding: "11px 20px",
-              fontSize: 13.5,
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tag.name}
-          </Link>
-        ))}
-      </div>
+      <TagChipLinks base={base} tags={bands} />
     </div>
   );
 }
@@ -215,23 +185,7 @@ function CategoryLinkRow({
 }: Pick<SectionProps, "base" | "categories">) {
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--pad) clamp(40px,6vw,64px)" }}>
-      <div
-        style={{
-          display: "flex",
-          gap: 26,
-          justifyContent: "center",
-          flexWrap: "wrap",
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          padding: "18px 0",
-        }}
-      >
-        {categories.map((c) => (
-          <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
-            {c.name}
-          </Link>
-        ))}
-      </div>
+      <CollectionLinks base={base} categories={categories} />
     </div>
   );
 }

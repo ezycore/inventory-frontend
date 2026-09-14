@@ -71,6 +71,83 @@ export const SECTION_SPECS = {
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
     },
   },
+  "promises-band": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+    },
+    blocks: {
+      max: 6,
+      settings: {
+        text: { type: "string", min: 1, max: 120 },
+        // Names from `components/storefront/sf-icons.tsx`; unset cycles truck, shield, tag.
+        icon: {
+          type: "enum",
+          values: [
+            "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
+            "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
+          ],
+          optional: true,
+        },
+      },
+    },
+  },
+  "image-text": {
+    v: 1,
+    pages: "all",
+    settings: {
+      image: { type: "image" },
+      imageSide: { type: "enum", values: ["left", "right"], optional: true },
+      imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], optional: true },
+      badge: { type: "string", max: 60, optional: true },
+      heading: { type: "string", min: 1, max: 160 },
+      text: { type: "string", max: 600, optional: true },
+      buttonLabel: { type: "string", max: 40, optional: true },
+      buttonHref: { type: "url", optional: true },
+      secondaryLabel: { type: "string", max: 40, optional: true },
+      secondaryHref: { type: "url", optional: true },
+    },
+  },
+  "shop-by-tag": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      tagIds: { type: "refs", to: "tag", max: 20 },
+    },
+  },
+  "collections-row": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      /** Unset or empty lists every top-level collection. */
+      categoryIds: { type: "refs", to: "category", max: 30, optional: true },
+      style: { type: "enum", values: ["card", "plain"], optional: true },
+      layout: { type: "enum", values: ["strip", "grid"], optional: true },
+      columns: { type: "number", min: 2, max: 6, int: true, optional: true },
+      // Its own setting rather than a responsive `columns`: a phone takes 2–4,
+      // not the desktop's 2–6 (`resolveHomeCollections`).
+      mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
+      align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      showLabels: { type: "boolean", optional: true },
+    },
+  },
+  "selected-products": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      source: { type: "enum", values: ["featured", "newest", "category", "tag", "manual"] },
+      categoryId: { type: "ref", to: "category", optional: true },
+      tagIds: { type: "refs", to: "tag", max: 10, optional: true },
+      productIds: { type: "refs", to: "product", max: 6, optional: true },
+      limit: { type: "number", min: 1, max: 6, int: true },
+      ctaLabel: { type: "string", max: 40, optional: true },
+      ctaHref: { type: "url", optional: true },
+    },
+  },
   countdown: {
     v: 1,
     pages: "all",

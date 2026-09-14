@@ -1,5 +1,9 @@
 // coding-standard: maintained
-import type { SectionData, ProductsDataRequest } from "@/lib/storefront-builder/section-data";
+import type {
+  ProductsDataRequest,
+  SectionData,
+  StoreListNeed,
+} from "@/lib/storefront-builder/section-data";
 import { sectionFrame, type SectionFrame } from "@/lib/storefront-builder/section-style";
 import type { SectionContext } from "@/components/storefront-builder/section-view";
 import {
@@ -67,6 +71,11 @@ export function prepareSections(
 export const sectionDataRequests = (sections: readonly PreparedPageSection[]): ProductsDataRequest[] =>
   sections.flatMap(({ section }) => (section.request ? [section.request] : []));
 
+/** Every store-wide list the prepared sections read, once each. */
+export const sectionListNeeds = (sections: readonly PreparedPageSection[]): StoreListNeed[] => [
+  ...new Set(sections.flatMap(({ section }) => section.needs)),
+];
+
 /**
  * Phase two: draw the prepared sections with the data fetched for them. Each
  * one sits in the common frame (`.sfb-sec`), whose style box arrives as custom
@@ -86,7 +95,7 @@ export function PageSections({
     <>
       {sections.map(({ id, frame, hide, section }) => {
         const sectionData = data[id];
-        if (section.isEmpty(sectionData)) return null;
+        if (section.isEmpty(sectionData, context)) return null;
         return (
           <section
             key={id}

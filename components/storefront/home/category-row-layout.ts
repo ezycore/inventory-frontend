@@ -56,28 +56,6 @@ export function resolveCategoryRowLayout(
   };
 }
 
-/**
- * Does this row draw its category NAMES?
- *
- * Two inputs, and the second is the one that matters: a merchant can ask for a
- * pictures-only row, but a category with no image renders as a letter tile, and
- * a letter with no name under it is not a wayfinding target — it is a mystery
- * box where a department should be. So the preference is honored only when the
- * whole row is photographed.
- *
- * ⚠ **Asked ONCE per section, never per tile.** Keeping the name on just the
- * unphotographed tiles would leave a row of mixed shapes, which is the same
- * mistake `CategoryTiles` already avoids when it asks `photographed` for the
- * whole section rather than tile by tile. One shape used consistently beats a
- * ragged row, even when the consistent one is not what was asked for.
- */
-export function categoryLabelsVisible(
-  showLabels: boolean,
-  allPhotographed: boolean,
-): boolean {
-  return showLabels || !allPhotographed;
-}
-
 /** Distance one arrow press scrolls a strip whose track is `clientWidth` wide. */
 export function stripStep(clientWidth: number): number {
   return Math.max(Math.round(clientWidth * STRIP_PAGE), STRIP_MIN_STEP);

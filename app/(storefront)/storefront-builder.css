@@ -68,6 +68,44 @@
   --cols: var(--sfb-cols);
 }
 
+/* The secondary button: the same shape, outlined. */
+.sfb-button--ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+
+.sfb-button--ghost:hover {
+  background: transparent;
+  border-color: var(--text);
+}
+
+/* A row of buttons; the row's gap replaces each button's own top margin. */
+.sfb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.sfb-actions > .sfb-button {
+  margin-top: 0;
+}
+
+/* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
+.sfb-split {
+  display: grid;
+  gap: clamp(20px, 4vw, 52px);
+  align-items: center;
+}
+
+.sfb-split-media {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
 @media (max-width: 679px) {
   .sfb-cta {
     text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
@@ -87,5 +125,11 @@
 @media (min-width: 680px) {
   .sfb-sec[data-hide="desktop"] {
     display: none;
+  }
+  .sfb-split {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sfb-split[data-image-side="right"] > .sfb-split-media {
+    order: 1;
   }
 }

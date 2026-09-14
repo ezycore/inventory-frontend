@@ -129,12 +129,23 @@ The backend validates saved pages against a **generated** copy,
   instance that is disabled, of an unknown type or version, missing a required setting, pointing at
   nothing, or hidden on both breakpoints; `PageSections` draws the rest in `.sfb-sec` frames and leaves
   out any section whose data came back empty (no empty padded bands).
-- `section-registry.tsx` binds each spec to its view with `defineSection` (plus an optional
-  catalogue `request` and `isEmpty`). A type missing from the registry is skipped on the page.
+- `section-registry.tsx` binds each spec to its view with `defineSection`, plus an optional
+  catalogue `request`, `needs` (store-wide lists the view reads — `categories`, `tags`; the page
+  fetches each once, and only when some section asks) and an `isEmpty` that sees the page context. A
+  type missing from the registry is skipped on the page. Rendered today: rich text, FAQ, call to
+  action, product grid, promises band, image + text, shop by tag, collections row, selected products.
 - Views in `sections/` are **pure server components** of `SectionViewProps` — no fetching, no request
   reads, no `"use client"`. **Client code only through `islands/island-map.tsx`**, one
   `next/dynamic(() => import(...))` per island: Spike B showed any island imported into a server
   module is bundled for every page.
+- **Home sections share markup with the builder** through directive-free modules in
+  `components/storefront/home/`: `promise-rows.tsx`, `tag-chip-links.tsx`, `collection-tiles.tsx`,
+  `pick-grid.tsx`. Merchant-typed links go through `section-link.tsx`, references to tags and
+  categories through `lib/storefront-builder/store-lists.ts`. **A function a server view calls must
+  not be exported from a `"use client"` module** — it is a client reference there and fails at render,
+  which no unit test sees. That is why `categoryLabelsVisible` lives in `lib/storefront-templates.ts`.
+- Builder views draw **only the merchant's own text** — no dictionary labels, no fallback headings
+  (one language per field). A link beside a heading needs both a label and a destination.
 - Settings are read with `lib/storefront-builder/settings.ts` (the backend's rules; an invalid
   required field → the section is skipped). Responsive values become `--x` / `--x-m` custom
   properties (`responsive.ts`); the style box is `section-style.ts`; the CSS is
