@@ -26,6 +26,32 @@ export const SECTION_MANIFEST_VERSION = 1;
  *    saved page carrying that section into a failed save.
  */
 export const SECTION_SPECS = {
+  hero: {
+    v: 1,
+    pages: "all",
+    settings: {
+      layout: { type: "enum", values: ["card", "open", "full-bleed"] },
+      /** Read by the `open` layout only. */
+      align: { type: "enum", values: ["left", "center"], optional: true },
+    },
+    // The limits mirror the home hero's slides (`heroSlidesSchema`), so a
+    // store's slides move onto a builder hero unchanged.
+    blocks: {
+      max: 5,
+      settings: {
+        image: { type: "image", optional: true },
+        mobileImage: { type: "image", optional: true },
+        focal: { type: "focal", responsive: true, optional: true },
+        imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
+        badge: { type: "string", max: 40, optional: true },
+        title: { type: "string", max: 90, optional: true },
+        subtitle: { type: "string", max: 160, optional: true },
+        buttonLabel: { type: "string", max: 30, optional: true },
+        link: { type: "url", optional: true },
+        hideTextOnMobile: { type: "boolean", optional: true },
+      },
+    },
+  },
   "rich-text": {
     v: 1,
     pages: "all",

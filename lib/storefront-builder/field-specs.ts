@@ -47,6 +47,8 @@ export type SectionFieldSpec = FieldBase &
     | { type: "url" }
     | { type: "color" }
     | { type: "image" }
+    /** A crop anchor `{ x, y }`, each 0–100 percent of the image's own box. */
+    | { type: "focal" }
     | { type: "date" }
     | { type: "richText"; maxBytes: number }
     | { type: "ref"; to: SectionRefKind }

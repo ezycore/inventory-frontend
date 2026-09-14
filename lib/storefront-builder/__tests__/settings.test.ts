@@ -59,6 +59,17 @@ describe("readSettings", () => {
     expect(settings?.columns).toBeUndefined();
   });
 
+  it("reads a focal point per breakpoint, dropping one outside the image", () => {
+    const focalSpec = { focal: { type: "focal", responsive: true, optional: true } } as const;
+    expect(readSettings(focalSpec, { focal: { base: { x: 30, y: 72.5 }, mobile: { x: 50, y: 10 } } })).toEqual({
+      focal: { base: { x: 30, y: 72.5 }, mobile: { x: 50, y: 10 } },
+    });
+    expect(readSettings(focalSpec, { focal: { base: { x: 30, y: 40 }, mobile: { x: 120, y: 10 } } })).toEqual({
+      focal: { base: { x: 30, y: 40 } },
+    });
+    expect(readSettings(focalSpec, { focal: { base: { x: "30", y: 40 } } })).toEqual({});
+  });
+
   it("refuses id lists with a bad or repeated id, like the backend", () => {
     expect(readSettings(grid, { source: "manual", limit: 4, productIds: [ID, ID2] })?.productIds).toEqual([ID, ID2]);
     expect(readSettings(grid, { source: "manual", limit: 4, productIds: [ID, ID] })?.productIds).toBeUndefined();

@@ -25,6 +25,12 @@ const ISLANDS = {
   "product-rail": dynamic(() =>
     import("@/components/storefront/home/product-rail-track").then((module) => module.ProductRailTrack),
   ),
+  "hero-carousel": dynamic(() =>
+    import("@/components/storefront/hero-carousel").then((module) => module.HeroCarousel),
+  ),
+  "hero-fullbleed": dynamic(() =>
+    import("@/components/storefront/home/hero-fullbleed").then((module) => module.HeroFullBleedView),
+  ),
   "campaign-offers": dynamic(() =>
     import("./campaign-offers").then((module) => module.CampaignOffersIsland),
   ),

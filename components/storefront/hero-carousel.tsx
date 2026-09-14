@@ -7,7 +7,8 @@ import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroMedia } from "@/components/storefront/hero-media";
 import { Icon } from "@/components/storefront/sf-icons";
-import { HeroCtaLink, HeroSlideLink, wrap } from "@/components/storefront/home/home-shared";
+import { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
+import { wrap } from "@/components/storefront/home/wrap";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
 /** Brand-tinted panel backgrounds for slides without an image (alternating). */
@@ -68,10 +69,13 @@ export function HeroCarousel({
   slides,
   base,
   storeName,
+  bare = false,
 }: {
   slides: StoreHeroSlide[];
   base: string;
   storeName: string;
+  /** Inside a frame that already sets the width and side padding — a builder section. */
+  bare?: boolean;
 }) {
   const count = slides.length;
   // Shared with `HeroFullBleed` so the two rotating heroes keep one beat and one
@@ -82,7 +86,7 @@ export function HeroCarousel({
   if (count === 0) return null;
 
   return (
-    <div style={{ ...wrap, padding: "var(--pad)" }}>
+    <div style={bare ? undefined : { ...wrap, padding: "var(--pad)" }}>
       <div
         className={`sf-hero${paused ? " sf-hero-paused" : ""}`}
         aria-roledescription="carousel"

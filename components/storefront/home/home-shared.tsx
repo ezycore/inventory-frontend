@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import type {
   CatalogCategory,
@@ -20,12 +19,17 @@ import { findSectionCategory, orderByIds, sectionTitle } from "@/lib/storefront-
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { ProductCard } from "@/components/storefront/product-card";
 import { money } from "@/components/storefront/format";
+import { HeroCtaLink } from "@/components/storefront/home/hero-links";
+import {
+  HeroActions,
+  heroPrimaryButton,
+  heroSecondaryButton,
+} from "@/components/storefront/home/hero-static";
 
-export const wrap: CSSProperties = {
-  maxWidth: "var(--maxw)",
-  margin: "0 auto",
-  width: "100%",
-};
+// Moved out so server components can use them without this module's product
+// card; re-exported so every home section keeps its import.
+export { wrap } from "@/components/storefront/home/wrap";
+export { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
 
 /**
  * Data every homepage SECTION receives from `StoreHome`.
@@ -318,97 +322,7 @@ export function Grid({
   );
 }
 
-/**
- * One hero CTA — an owner-entered link is either a store path (rides `base`) or
- * a full URL (opens a new tab); empty falls back to the products collection.
- * Shared by the static hero buttons and the carousel slide CTA.
- */
-export function HeroCtaLink({
-  base,
-  link,
-  style,
-  children,
-}: {
-  base: string;
-  link?: string;
-  style: CSSProperties;
-  children: ReactNode;
-}) {
-  const target = storeLinkHref(base, link);
-  if (/^https?:\/\//i.test(target)) {
-    return (
-      <a href={target} target="_blank" rel="noopener noreferrer" style={style}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link href={target} style={style}>
-      {children}
-    </Link>
-  );
-}
-
-/**
- * The slide's destination when it has one but no button to hang it on.
- *
- * A merchant who fills **Link** and leaves **Button label** empty used to get a
- * slide that stored a URL and did nothing: both heroes gated the link behind the
- * label, and on a picture-only slide the whole copy block — CTA included — was
- * never rendered at all. So the link falls back from the button to the slide.
- *
- * **Rendered only when there is no button label.** With one, the button is the
- * single target and the photo stays inert, which is the merchant's own rule: two
- * overlapping hit areas on the same slide is a worse answer than one.
- *
- * **`data-hero-slide-link` is load-bearing, not a hook for styling.**
- * `useHeroRotation` skips starting a swipe on interactive descendants so a press
- * on a dot or CTA is not stolen by the carousel — and this element matches that
- * selector while covering the entire slide, which would have disabled swipe
- * outright. The attribute is how the hook tells "a control the shopper aimed at"
- * from "the slide itself, wearing an anchor".
- *
- * An empty `link` must not reach `storeLinkHref`: its fallback is `/products`,
- * so a slide with no destination would quietly become a link to the catalogue.
- */
-export function HeroSlideLink({
-  base,
-  link,
-  label,
-  reachable = true,
-}: {
-  base: string;
-  link?: string;
-  /** Accessible name — a picture-only slide has no text to borrow one from. */
-  label: string;
-  /**
-   * False on a slide that is in the DOM but not showing. The carousel keeps
-   * every slide mounted for the crossfade and marks the hidden ones
-   * `aria-hidden`, and `pointer-events: none` does not remove a link from the
-   * tab order — so without this a keyboard shopper tabs through one invisible
-   * full-slide link per slide before reaching the page.
-   */
-  reachable?: boolean;
-}) {
-  if (!link?.trim()) return null;
-  const target = storeLinkHref(base, link);
-  const shared = {
-    className: "sf-hero-slide-link",
-    "data-hero-slide-link": "",
-    "aria-label": label,
-    tabIndex: reachable ? undefined : -1,
-    // An anchor is draggable by default, so a mouse drag across a link the size
-    // of the hero starts a native link-drag with its ghost image instead of
-    // reading as a press on the photograph.
-    draggable: false,
-  };
-  return /^https?:\/\//i.test(target) ? (
-    <a href={target} target="_blank" rel="noopener noreferrer" {...shared} />
-  ) : (
-    <Link href={target} {...shared} />
-  );
-}
-
+/** The static heroes' button pair: the banner's own wording, else the store's defaults. */
 export function heroBtns(
   base: string,
   t: Dict,
@@ -418,46 +332,13 @@ export function heroBtns(
   align: "left" | "center" = "left",
 ) {
   return (
-    /* `justifyContent`, not `textAlign`: the buttons are flex children, so
-       centring the text around them leaves the row itself hard left. That is
-       the exact failure a centred hero shows first — a centred headline over a
-       left-aligned button pair reads as a layout bug rather than a choice. */
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-        justifyContent: align === "center" ? "center" : undefined,
-      }}
-    >
-      <HeroCtaLink
-        base={base}
-        link={hb?.primaryLink}
-        style={{
-          background: "var(--primary)",
-          color: "var(--on-primary)",
-          padding: "12px 24px",
-          borderRadius: "var(--radius-sm)",
-          fontSize: 14,
-          fontWeight: 600,
-        }}
-      >
+    <HeroActions align={align}>
+      <HeroCtaLink base={base} link={hb?.primaryLink} style={heroPrimaryButton}>
         {hb?.primaryLabel || primaryLabel}
       </HeroCtaLink>
-      <HeroCtaLink
-        base={base}
-        link={hb?.secondaryLink}
-        style={{
-          color: "var(--text)",
-          border: "1px solid var(--border-strong)",
-          padding: "12px 22px",
-          borderRadius: "var(--radius-sm)",
-          fontSize: 14,
-          fontWeight: 600,
-        }}
-      >
+      <HeroCtaLink base={base} link={hb?.secondaryLink} style={heroSecondaryButton}>
         {hb?.secondaryLabel || t.browseCats}
       </HeroCtaLink>
-    </div>
+    </HeroActions>
   );
 }

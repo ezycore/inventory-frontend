@@ -21,6 +21,7 @@ import {
 import { CategoryTilesSection } from "@/components/storefront-builder/sections/category-tiles";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
+import { HeroSection, heroSlides } from "@/components/storefront-builder/sections/hero";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
 import { ProductCarouselSection } from "@/components/storefront-builder/sections/product-carousel";
 import { ProductGridSection } from "@/components/storefront-builder/sections/product-grid";
@@ -114,14 +115,17 @@ const noProducts = (_settings: unknown, _blocks: unknown, data: SectionData | un
  * (tag chips), `collections-row` (collection chips and links),
  * `selected-products` (minimal picks), `product-carousel` (product rail),
  * `campaign-offers` (deal strip), `category-tiles` and `category-promo-cards`
- * (category banners); `product-grid` replaced the featured grid. The hero is
- * still to come.
+ * (category banners), and `hero` (card, open and full-bleed heroes, slides as
+ * blocks); `product-grid` replaced the featured grid.
  *
  * `countdown` is specified but not rendered yet: its labels (days, hours,
  * minutes, seconds) have no Bangla terms in `docs/I18N-GLOSSARY.md`, and
  * storefront copy must not invent them.
  */
 export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> = {
+  hero: defineSection(SECTION_SPECS.hero, HeroSection, {
+    isEmpty: (_settings, blocks) => heroSlides(blocks).length === 0,
+  }),
   "rich-text": defineSection(SECTION_SPECS["rich-text"], RichTextSection, {
     isEmpty: (settings) => parseRichDoc(settings.body) === null,
   }),

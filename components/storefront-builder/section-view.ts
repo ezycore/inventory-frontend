@@ -19,6 +19,8 @@ export interface SectionContext {
   /** Public link base: `/shop` on a tenant host, `""` on a custom domain. */
   base: string;
   currency?: string;
+  /** The store's name — the hidden page heading behind a hero slide that has no title. */
+  storeName?: string;
   /** The store's category tree; filled when a section on the page `needs` it. */
   categories?: CatalogCategory[];
   /** The store's tags; filled when a section on the page `needs` them. */

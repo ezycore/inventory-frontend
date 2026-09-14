@@ -33,6 +33,12 @@ export interface SectionImage {
   alt?: string;
 }
 
+/** A crop anchor in percent of the image's own box — what `focalPosition` turns into CSS. */
+export interface SectionFocal {
+  x: number;
+  y: number;
+}
+
 type ScalarOf<S> = S extends { type: "number" }
   ? number
   : S extends { type: "boolean" }
@@ -41,9 +47,11 @@ type ScalarOf<S> = S extends { type: "number" }
       ? V
       : S extends { type: "image" }
         ? SectionImage
-        : S extends { type: "refs" }
-          ? string[]
-          : string;
+        : S extends { type: "focal" }
+          ? SectionFocal
+          : S extends { type: "refs" }
+            ? string[]
+            : string;
 
 type FieldOf<S> = S extends { responsive: true } ? Responsive<ScalarOf<S>> : ScalarOf<S>;
 
@@ -98,6 +106,9 @@ export const readImage = (value: unknown): SectionImage | undefined => {
   };
 };
 
+const isPercent = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+
 const byteLength = (text: string) => new TextEncoder().encode(text).length;
 
 const readScalar = (spec: SectionFieldSpec, value: unknown): unknown => {
@@ -119,6 +130,10 @@ const readScalar = (spec: SectionFieldSpec, value: unknown): unknown => {
       return typeof value === "string" && HEX_COLOR.test(value) ? value : undefined;
     case "image":
       return readImage(value);
+    case "focal":
+      return isPlainObject(value) && isPercent(value.x) && isPercent(value.y)
+        ? { x: value.x, y: value.y }
+        : undefined;
     case "date":
       return typeof value === "string" &&
         value.length <= MAX_DATE_LENGTH &&

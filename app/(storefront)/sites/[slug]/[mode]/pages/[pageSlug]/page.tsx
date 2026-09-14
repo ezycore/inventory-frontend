@@ -103,6 +103,7 @@ export default async function SitePage({
         context={{
           base: site.base,
           currency: site.store.currency,
+          storeName: site.store.name,
           categories: categories ?? [],
           tags: tags ?? [],
           campaigns: campaigns ?? [],

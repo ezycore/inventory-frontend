@@ -122,6 +122,10 @@ The backend validates saved pages against a **generated** copy,
 - Both files must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
   and `field-specs.ts` imports nothing, because its body is copied verbatim into the backend.
 - Bump a section's `v` for any change that would make an already-saved instance invalid.
+- A **new field type** (as `focal` was) needs a case in the backend's `checkValue`
+  (`inventory-backend/src/utils/storefront-section-validation.ts`) and in `readScalar`
+  (`lib/storefront-builder/settings.ts`). The backend switch has no default, so an unhandled type is
+  accepted unchecked.
 
 **Storefront Builder renderer (since 2026-09-14).** Lives in `components/storefront-builder/`:
 
@@ -134,18 +138,22 @@ The backend validates saved pages against a **generated** copy,
   fetches each once, and only when some section asks) and an `isEmpty` that sees the page context. A
   type missing from the registry is skipped on the page. Rendered today: rich text, FAQ, call to
   action, product grid, promises band, image + text, shop by tag, collections row, selected products,
-  product carousel, campaign offers, category tiles, category promo cards.
+  product carousel, campaign offers, category tiles, category promo cards, hero.
 - Views in `sections/` are **pure server components** of `SectionViewProps` — no fetching, no request
   reads, no `"use client"`. **Client code only through `islands/island-map.tsx`**, one
   `next/dynamic(() => import(...))` per island: Spike B showed any island imported into a server
   module is bundled for every page.
 - **Home sections share markup with the builder** through directive-free modules in
   `components/storefront/home/`: `promise-rows.tsx`, `tag-chip-links.tsx`, `collection-tiles.tsx`,
-  `pick-grid.tsx`, `category-tile-row.tsx`, `category-banner-row.tsx`, `product-rail-track.tsx`, plus
-  the client `deal-strip.tsx` (loaded through an island). A shared row takes its scrolling track as
+  `pick-grid.tsx`, `category-tile-row.tsx`, `category-banner-row.tsx`, `product-rail-track.tsx`,
+  `hero-static.tsx`, `hero-links.tsx`, plus the client `deal-strip.tsx` and `hero-fullbleed.tsx` (loaded
+  through islands). **A server view must not render a component from `home-shared.tsx`**: that client
+  module imports `ProductCard`, and its chunk would ship on every builder page (why the hero links and
+  `wrap` moved out; `home-shared.tsx` re-exports them). A shared row takes its scrolling track as
   `renderStrip`: `CategoryStrip` on the home page, the `category-strip` island on a builder page. The
   category-row layout helpers (`category-row-layout.ts`) are directive-free; the Customize-aware hook is
-  `use-category-row-layout.ts`. Merchant-typed links go through `section-link.tsx`, references to tags and
+  `use-category-row-layout.ts`. Merchant-typed links resolve through `merchantLinkHref` (`lib/storefront-links.ts`,
+  which keeps `tel:` and `mailto:`), via `section-link.tsx` or `hero-links.tsx`; references to tags and
   categories through `lib/storefront-builder/store-lists.ts`. **A function a server view calls must
   not be exported from a `"use client"` module** — it is a client reference there and fails at render,
   which no unit test sees. That is why `categoryLabelsVisible` lives in `lib/storefront-templates.ts`.
