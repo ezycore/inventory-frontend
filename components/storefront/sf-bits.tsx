@@ -125,7 +125,12 @@ export function Media({
         sizes="100vw"
         alt={imageAlt}
         decorative={hidden}
-        priority={priority && !hidden}
+        /* The blurred copy gets the priority too. It is first in the DOM and
+           shares the photo's URL, so the browser starts the one download at its
+           priority — measured `Low` when only the foreground asked, and the
+           copy is also what Lighthouse times as the LCP element. `preload()`
+           dedupes the shared URL. */
+        priority={priority}
         loading={loading ?? "eager"}
         className={imageClassName}
         style={{ ...focusStyle, ...imageStyle }}

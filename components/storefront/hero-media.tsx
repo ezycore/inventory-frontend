@@ -67,7 +67,9 @@ export function HeroMedia({
     <div className={`sf-hero-media${className ? ` ${className}` : ""}`} style={style}>
       {fit === "canvas" ? (
         <>
-          {photo("sf-hero-media-bg", false)}
+          {/* Same priority as the foreground: this copy is first in the DOM and
+              shares its URL, so it decides the download's priority. */}
+          {photo("sf-hero-media-bg", eager)}
           {photo("sf-hero-media-fg", eager)}
         </>
       ) : (
