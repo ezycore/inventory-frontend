@@ -340,7 +340,7 @@ custom domains all read that one field, and it **never falls back to the org or 
 are separate uploads (Settings → Organization) because they are separate jobs: a wordmark logo
 cover-cropped to the 200×200 thumbnail renders in a tab as an unreadable middle slice, so an org with
 no favicon gets the platform mark instead. Don't "helpfully" re-add a `favicon ?? logo` fallback in
-`useOrgFavicon`, `shop/layout.tsx` or `StoreShell` — it was removed on purpose. The **one** place the
+`useOrgFavicon`, `StoreHead` (`components/storefront/store-head.tsx`) or `StoreShell` — it was removed on purpose. The **one** place the
 two mix is the 20×20 brand mark in storefront email (backend `storefront-shopper.service`), where
 `favicon ?? store.logo ?? org.logo` applies because no mark at all is worse than a cropped one.
 The storefront reads a **pre-resolved** `store.favicon` — the backend `getStoreInfo` owns that

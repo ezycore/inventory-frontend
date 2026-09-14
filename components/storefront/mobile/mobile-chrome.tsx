@@ -4,7 +4,6 @@
 import { useCallback } from "react";
 import type { CSSProperties, RefObject } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type {
   CatalogCategory,
   StorefrontStore,
@@ -16,6 +15,7 @@ import type {
 } from "@/lib/storefront-mobile";
 import { keptSlot } from "@/lib/storefront-mobile";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useMobileNav } from "@/services/stores/use-mobile-nav-store";
 import { Brand } from "@/components/storefront/logo-mark";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -72,7 +72,7 @@ function useActionCtx(
   chrome: Chrome,
   store?: StorefrontStore,
 ): MobileActionCtx {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const menuOpen = useMobileNav((s) => s.menuOpen);
   const openMenu = useMobileNav((s) => s.openMenu);
   const openSearch = useMobileNav((s) => s.openSearch);

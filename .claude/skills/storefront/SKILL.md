@@ -147,10 +147,51 @@ The backend validates saved pages against a **generated** copy,
 - `countdown` is specified but **not rendered**: days/hours/minutes/seconds have no Bangla terms in
   `docs/I18N-GLOSSARY.md`, and storefront copy must not invent them.
 
+**Cached store pages — the `/sites` route (since 2026-09-14).** Every `/shop` route reads the request
+(host headers, the owner-preview token), so none of them can be HTML-cached. `/pages/<slug>` — builder
+pages and content pages alike — is served from `app/(storefront)/sites/[slug]/[mode]/pages/[pageSlug]/`,
+which reads only its params:
+
+- `proxy.ts` rewrites a public **GET/HEAD without a preview token, for a page that exists**, there
+  (`cachedPageSlug` + `sitesPagePath` in `lib/storefront-sites.ts`): `{slug}.ezycore.com/shop/pages/x` →
+  `/sites/{slug}/shop/pages/x`, `mystore.com/pages/x` → `/sites/{slug}/root/pages/x`. Owner preview, hosts
+  with no store and **missing pages** stay on `shop/pages/[pageSlug]`.
+- **Why "exists" matters:** a cached (ISR) render that calls `notFound()` gets Next's bare error
+  document — a correct 404 status, but no shop and no way back. Next 16.1 never renders a nested
+  `not-found.tsx` on that path (tried a client and a server one, 2026-09-14). `lib/storefront-page-lookup.ts`
+  asks the public page endpoints and caches only "exists" (60 s per instance; an API failure also answers
+  "exists", for 10 s, so cached pages keep serving), so a dead link gets the shop's own 404 and a new page
+  is served at once. The route deliberately has no `not-found.tsx`. A direct request for `/sites/…` is a 404, except on a custom domain, where
+  that path is rewritten under `/shop` and is an ordinary collection path. **There is no host segment**:
+  the proxy matcher skips paths containing a dot, so a host in the path would dodge the block.
+- **Nothing under that route may read the request** — no `headers()`/`cookies()`, no
+  `getStoreContext`, no request-aware fetcher. Use `publicStorefront` and `loadSitePage`
+  (`lib/storefront-site-page.ts`). One such read makes the whole route dynamic, with a green build.
+- **Storefront client code reads the pathname through `useStorePathname()`**
+  (`services/storefront/use-store-pathname.ts`), never `usePathname()`. On a rewritten cached page the
+  server renders with the `/sites/…` URL and the browser with the public one, so anything derived from
+  a raw pathname (active tab, breadcrumb, strip visibility) fails hydration.
+- The route's layout draws `PageFrame` (`components/storefront-builder/page-frame.tsx`). Chrome is the
+  builder page's own `chrome`: `full` = `StoreShell`, `minimal` = a logo bar, `none` = nothing; content
+  pages get `full`.
+  Both frames load through `next/dynamic` in `components/storefront-builder/frames.tsx` so a `none` page
+  does not download the shell (Spike B). `BareStoreFrame` still carries the colours
+  (`lib/storefront-shell-theme.ts`, shared with `StoreShell`), design attributes, store context and
+  seeded store query, cart drawer, contact button and owner bar.
+- The page tries the builder page, then its rename redirect (308), then the content page
+  (`StoreContentPage` in `components/storefront/content-page-view.tsx`, shared with the preview route,
+  loaded through `content-page-lazy.tsx` so a landing page does not download it), then 404. A noindex
+  landing page emits no canonical and lets crawlers follow its links.
+- Shared by both routes: `StoreHead` (`components/storefront/store-head.tsx` — favicon link + Meta
+  Pixel).
+- Freshness is unchanged: every fetch carries `store:{slug}`, and `revalidateTag` drops the cached
+  HTML of every page built from a tagged fetch (Spike A). `revalidate = 300` is the backstop.
+
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
-`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
-account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,
-`orders/[orderNumber]/invoice`), and the **`[...categoryPath]` catch-all**.
+`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS — owner preview only, see above),
+`account/*` (auth card + account area, `verify-email`, `reset-password`, `oauth`, `orders`,
+`orders/[orderNumber]`, `orders/[orderNumber]/invoice`), and the **`[...categoryPath]` catch-all**.
+Plus the cached `app/(storefront)/sites/[slug]/[mode]/pages/[pageSlug]`.
 
 ### `[...categoryPath]` — collection pages at real paths (2026-08-06)
 
@@ -2203,13 +2244,16 @@ Background: [`docs/plan/query-invalidation.md`](../../../docs/plan/query-invalid
 ## SEO (multi-tenant — every store must rank on its own)
 
 Each store is a separate public site with its own host, name, logo and copy. All of the following is
-resolved **per request from the host**, never baked.
+resolved **per store**, never baked into the build — per request from the host on `/shop` routes, per
+cached entry on the `/sites` route (see "Cached store pages").
 
 - **Metadata** — `generateMetadata` in each `page.tsx`. Home reads `store.seo.title/description`
   (falling back to the store name), PDP reads `product.seo.*` then the online title/description,
   og:image = product image ∥ store banner ∥ logo. Everything else goes through `storePageMetadata`
   (`"<Page> · <Store>"`, host-correct canonical, robots directive). Favicon is a raw
-  `<link rel="icon">` in `shop/layout.tsx`, deliberately **not** `metadata.icons` (see the note there).
+  `<link rel="icon">` in `StoreHead` (`components/storefront/store-head.tsx`, rendered by
+  `shop/layout.tsx` and the cached route's `PageFrame`), deliberately **not** `metadata.icons` (see the
+  note there).
   Its source is `store.favicon` — the **org-level favicon**, pre-resolved by the backend
   `getStoreInfo` — and **not** the store logo: the tab icon never falls back to a logo, so a store
   without a favicon renders no `<link>` at all and the per-host `/favicon.ico` route answers.
@@ -2278,7 +2322,8 @@ resolved **per request from the host**, never baked.
   offer at all), and `backorder` is `schema.org/BackOrder`, not `OutOfStock`.
 - **404s are real 404s.** `products/[productSlug]` and `pages/[pageSlug]` call `notFound()` →
   `app/(storefront)/shop/not-found.tsx` (renders inside `StoreShell`, so the shopper keeps the store
-  chrome). ⚠ The guard is `if (store && !product) notFound()` — **not** a bare `!product`: the
+  chrome). A missing `/pages/<slug>` never reaches the cached `/sites` route, because a cached render
+  cannot draw this page (see "Cached store pages"). ⚠ The guard is `if (store && !product) notFound()` — **not** a bare `!product`: the
   `storefront-server.ts` helpers return null for *any* failure, so a backend blip would otherwise tell
   crawlers a live product is permanently gone. A successful store fetch proves the API is reachable.
 - **One canonical host per store.** A shop with a custom domain is live on **both** `acme.com` and
@@ -3641,7 +3686,7 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   header — anchored via a `display:contents` wrapper so the layer resolves against the header),
   `HeaderSearchMobile` (mobile: full-screen takeover sheet, body-scroll locked). The header never
   unmounts across routes, so the controller **clears the input on any navigation off the /search
-  page** (`usePathname` vs `storeHref(base,"/search")`) — otherwise a committed term lingered in
+  page** (`useStorePathname` vs `storeHref(base,"/search")`) — otherwise a committed term lingered in
   the box on Home/product/category pages; the /search page keeps the term (matches its own input).
   The typeahead fetch is gated on the panel being `open` (passed into the hook) so a retained term
   never fires a background request. `goSearch`

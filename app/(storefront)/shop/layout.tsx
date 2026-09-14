@@ -7,17 +7,9 @@ import {
   getStoreCategories,
   getStorePages,
 } from "@/lib/storefront-server";
-import { faviconHref } from "@/lib/storefront-client";
 import { StoreShell } from "@/components/storefront/store-shell";
-import { MetaPixel } from "@/components/storefront/meta-pixel";
+import { StoreHead } from "@/components/storefront/store-head";
 import { StorefrontPreviewBanner } from "@/components/storefront/preview-banner";
-
-// Note: the browser-tab icon (the store's favicon) is a raw <link rel="icon"> rendered
-// below (React hoists it into <head>), NOT `generateMetadata`. Metadata icons
-// are Next-managed and get re-asserted on every router-integrated navigation,
-// flashing the platform default. The raw link ships in the SSR HTML so the very
-// first paint already has the logo (no icon-less gap before hydration), and
-// `useFaviconOverride` in StoreShell keeps the same tag fresh client-side.
 
 /** Chrome-less wrapper for the two states where there is no store to build a
  *  header from. The `.sf-root` design tokens come from the group layout above,
@@ -33,6 +25,10 @@ const BareStorefront = ({ children }: { children: ReactNode }) => (
  * `slug`/`base` to the client `StoreShell`. Server boundary so the slug comes
  * from the host, not a `[slug]` route param (Option A: the store lives at
  * `/shop`, and at the root on custom domains).
+ *
+ * Reads the request, so every route beneath it renders per request. Pages that
+ * can be cached are rewritten onto `app/(storefront)/sites` instead
+ * (`lib/storefront-sites.ts`).
  */
 export default async function ShopLayout({
   children,
@@ -79,31 +75,9 @@ export default async function ShopLayout({
   // status.
   if (!store) return <BareStorefront>{children}</BareStorefront>;
 
-  const favicon = faviconHref(store?.favicon);
-
   return (
     <>
-      {/* The store's favicon as tab icon, in the SSR <head> from the first byte
-          (see note above). The store logo is NOT a fallback here — the favicon
-          is the only source of the tab icon — so without one the browser's
-          implicit /favicon.ico answers instead (`app/favicon.ico/route.ts`,
-          which resolves the same store): render nothing.
-
-          ONE icon link, not one per format. This tag is also what Google reads
-          for the icon beside a search result, and `faviconHref` resolves to the
-          PNG precisely because Google cannot read webp — offering both would
-          just hand the crawler two candidates and no stated preference. */}
-      {favicon ? <link rel="icon" href={favicon} /> : null}
-      {/* Meta Pixel base tag. Rendered HERE, from the server, because `store` is already
-          awaited above — so the id ships in the SSR HTML and the first PageView fires on first
-          paint instead of after hydration. The sale is always reported by the backend through
-          the Conversions API; a browser `Purchase` is a per-merchant opt-in fired from checkout
-          (docs/features/meta-pixel-capi.md). */}
-      <MetaPixel
-        slug={slug}
-        pixelId={store.meta?.pixelId}
-        pageViewEnabled={store.meta?.events.pageView !== false}
-      />
+      <StoreHead slug={slug} store={store} />
       {/* Owner preview is remembered in a cookie for four hours, so it long
           outlives the trip from the Customize editor — without this the merchant
           cannot tell their preview from their live shop, and a draft page in the
@@ -112,7 +86,7 @@ export default async function ShopLayout({
       <StoreShell
         slug={slug}
         base={base}
-        initialStore={store ?? undefined}
+        initialStore={store}
         initialPages={pages ?? undefined}
         initialCampaigns={campaigns ?? undefined}
         initialCategories={categories ?? undefined}

@@ -1,9 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type {
   CatalogCategory,
   ContentPageLink,
@@ -20,10 +19,11 @@ import {
 } from "@/services/stores/use-sf-preview-store";
 import { StoreContextProvider } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
+import { shellTheme } from "@/lib/storefront-shell-theme";
 import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
-import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
 import { shellCrumbLabel } from "@/lib/storefront-shell-breadcrumb";
 import {
   ShellBottomNav,
@@ -64,7 +64,7 @@ export function StoreShell({
   initialCategories?: CatalogCategory[];
   children: ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const { t } = useStorefrontUI();
 
   const { data: store, isError } = useStore(slug, initialStore);
@@ -127,47 +127,15 @@ export function StoreShell({
     );
   }
 
-  // Live preview brand (admin Customize editor) wins so the whole page repaints
-  // instantly; otherwise the merchant's saved brand colour overrides --primary.
-  // Both theme variants ship as vars — storefront.css picks per data-theme, so
-  // a dark brand is auto-lifted on the dark theme and stays readable.
-  const brandColor = previewBrand ?? store?.theme?.brandColor;
-  const darkBrand = brandColor ? brightenForDark(brandColor) : undefined;
-
-  /* The merchant's SECOND colour, published the same way and for the same
-     reason. Only when it actually differs from the brand: an accent equal to
-     the brand is not a second colour, and `--accent*` already falls back to the
-     primary pair in storefront.css, so stamping it would be a no-op that costs
-     two attributes and a stack of vars.
-     Draft first, exactly like `brandColor` above. The payload has always carried
-     `accentColor` and the preview store has always kept it, but nothing read it
-     — so the Customize editor's accent field repainted nothing until a save and
-     a reload, while the brand control directly above it updated live. */
-  const accentColor = previewAccent ?? store?.theme?.accentColor;
-  const accent =
-    accentColor && accentColor.toLowerCase() !== brandColor?.toLowerCase()
-      ? accentColor
-      : undefined;
-  const darkAccent = accent ? brightenForDark(accent) : undefined;
-
-  const shellVars = {
-    ...(brandColor
-      ? {
-          "--sf-brand-light": brandColor,
-          "--sf-brand-dark": darkBrand,
-          "--sf-brand-on-light": readableTextOn(brandColor),
-          "--sf-brand-on-dark": readableTextOn(darkBrand ?? brandColor),
-        }
-      : {}),
-    ...(accent
-      ? {
-          "--sf-accent-light": accent,
-          "--sf-accent-dark": darkAccent,
-          "--sf-accent-on-light": readableTextOn(accent),
-          "--sf-accent-on-dark": readableTextOn(darkAccent ?? accent),
-        }
-      : {}),
-  } as CSSProperties;
+  // Live preview colours (admin Customize editor) win so the whole page repaints
+  // instantly; otherwise the merchant's saved ones override --primary/--accent.
+  // Draft first for the accent too: the payload always carried `accentColor`,
+  // but until it was read here the Customize accent field repainted nothing
+  // until a save and a reload, while the brand control above it updated live.
+  const theme = shellTheme(
+    previewBrand ?? store?.theme?.brandColor,
+    previewAccent ?? store?.theme?.accentColor,
+  );
 
   // Type family + spatial rhythm. Stamped as data attributes rather than inline
   // style vars ON PURPOSE: --pad/--gap/--cols/--h1/--h2 are redefined at two
@@ -207,8 +175,8 @@ export function StoreShell({
     <StoreContextProvider slug={slug} base={base}>
       <div
         className="sf-shell"
-        data-brand={brandColor ? "" : undefined}
-        data-accent={accent ? "" : undefined}
+        data-brand={theme.brand ? "" : undefined}
+        data-accent={theme.accent ? "" : undefined}
         /* Reserves — or releases — the 56px the fixed tab bar stands in.
            `--sf-bottom-nav-h` is not decoration: the sticky buy bar, the contact
            launcher and the page's own bottom padding all stack on it
@@ -220,7 +188,7 @@ export function StoreShell({
         data-sf-tabs={hasMobileTabs ? "1" : "0"}
         {...designAttributes}
         style={{
-          ...shellVars,
+          ...theme.style,
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",

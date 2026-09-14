@@ -19,6 +19,8 @@ import {
   PREVIEW_REQUEST_HEADER,
   PREVIEW_TOKEN_PARAM,
 } from "@/lib/storefront-preview";
+import { cachedPageSlug, isSitesPath, sitesPagePath } from "@/lib/storefront-sites";
+import { storePageExists } from "@/lib/storefront-page-lookup";
 
 /**
  * Option A routing + admin auth gate.
@@ -46,6 +48,10 @@ import {
  * so store traffic is additionally **301'd onto its canonical host**
  * (`canonicalRedirectFor`) — the admin app is never touched by it. See
  * `lib/storefront-canonical-redirect.ts`.
+ *
+ * Store pages that can be HTML-cached are rewritten one step further, onto
+ * `app/(storefront)/sites/[slug]/[mode]/…` — a route that reads only its params
+ * (`lib/storefront-sites.ts`). That internal path is never served directly.
  */
 
 // Public admin routes that don't require authentication.
@@ -112,6 +118,15 @@ export async function proxy(request: NextRequest) {
   headers.delete("x-ezy-store-base");
   headers.delete("x-ezy-store-origin");
   headers.delete(PREVIEW_REQUEST_HEADER);
+
+  // The cached route's internal path is not a public URL. Served directly it would
+  // put any store on the platform host (`app.ezycore.com/sites/<slug>/…`) — a
+  // second, uncanonical copy of every tenant. A custom domain is exempt only
+  // because it never gets here: its `/sites/…` is rewritten under `/shop` below,
+  // where it is an ordinary collection path.
+  if (isSitesPath(pathname) && store?.base !== "") {
+    return new NextResponse(null, { status: 404 });
+  }
 
   if (store) {
     const proto =
@@ -205,6 +220,26 @@ export async function proxy(request: NextRequest) {
         const destination = `${scheme}://${sameHost ? hostHeader : target.host}${target.path}${request.nextUrl.search}`;
         return NextResponse.redirect(destination, 301);
       }
+    }
+
+    // ---- HTML-cached store pages ----
+    //
+    // Onto the route that reads nothing but its params, so Next can cache the
+    // page per store and path. A preview is excluded — the cached route never
+    // previews, and the preview token is exactly the request state it cannot
+    // read — and so is anything but a read.
+    //
+    // And only a page that exists: a cached render cannot draw the shop's own
+    // 404 (see `lib/storefront-page-lookup.ts`), so a miss stays on the
+    // request-reading route below, which can.
+    const pageSlug =
+      !previewToken && (request.method === "GET" || request.method === "HEAD")
+        ? cachedPageSlug(store, pathname)
+        : null;
+    if (pageSlug && (await storePageExists(store.slug, pageSlug))) {
+      const url = request.nextUrl.clone();
+      url.pathname = sitesPagePath(store, pageSlug);
+      return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
     }
 
     if (store.base === "") {

@@ -17,9 +17,12 @@ import type { ContentPageView } from "@/lib/storefront-client";
  * CMS content page (About / FAQ / policies) — centered prose column rendering
  * the owner-authored body through the storefront markdown renderer.
  *
- * `initialPage` is server-fetched in `page.tsx` so the prose is in the SSR HTML.
+ * `initialPage` is server-fetched by the route so the prose is in the SSR HTML.
+ * Two routes render it: the cached `sites/…/pages/[pageSlug]` for shoppers, and
+ * `shop/pages/[pageSlug]` for owner preview and hosts that name no store. Both
+ * name the slug param `pageSlug`, which is what `useParams` reads below.
  */
-export default function StoreContentPage({
+export function StoreContentPage({
   initialPage,
 }: {
   initialPage?: ContentPageView;

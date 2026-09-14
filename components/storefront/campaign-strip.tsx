@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { pageOf } from "@/lib/storefront-contact-message";
@@ -19,6 +18,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { useStoreCampaigns, useStoreCategories, useStoreTags } from "@/services/storefront/hooks";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 
@@ -57,7 +57,7 @@ export function CampaignStrip({
   initialCampaigns?: StoreCampaign[];
 }) {
   const { t } = useStorefrontUI();
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const hydrated = useHydrated();
   const { data: campaigns } = useStoreCampaigns(slug, initialCampaigns);
   // Both levels of the tree, flattened: a campaign's target may be either.
