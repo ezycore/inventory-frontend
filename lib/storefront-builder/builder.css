@@ -1,0 +1,55 @@
+/*
+ * Storefront Builder section frame. Every section renders inside `.sfb-sec`;
+ * its style box arrives as custom properties from `section-style.ts` and every
+ * responsive value from `responsive.ts`.
+ *
+ * ONE breakpoint, the storefront's own: `max-width: 679px` (see `storefront.css`
+ * "Responsive show/hide"). Do not add a second one here.
+ */
+
+.sfb-sec {
+  padding-block: var(--sfb-pt, 0px) var(--sfb-pb, 0px);
+  background-color: var(--sfb-bg, transparent);
+  background-image: var(--sfb-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  text-align: var(--sfb-align, left);
+}
+
+.sfb-sec[data-tone="light"] {
+  color: #ffffff;
+}
+
+.sfb-sec[data-tone="dark"] {
+  color: #0f172a;
+}
+
+.sfb-inner {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.sfb-sec[data-width="wide"] > .sfb-inner {
+  max-width: calc(var(--maxw) + 240px);
+}
+
+.sfb-sec[data-width="full"] > .sfb-inner {
+  max-width: none;
+}
+
+@media (max-width: 679px) {
+  .sfb-sec {
+    padding-block: var(--sfb-pt-m, var(--sfb-pt, 0px)) var(--sfb-pb-m, var(--sfb-pb, 0px));
+    text-align: var(--sfb-align-m, var(--sfb-align, left));
+  }
+  .sfb-sec[data-hide="mobile"] {
+    display: none;
+  }
+}
+
+@media (min-width: 680px) {
+  .sfb-sec[data-hide="desktop"] {
+    display: none;
+  }
+}
