@@ -94,6 +94,23 @@ month/year caption note in the `dynamic-form` skill.
 
 ## Frontend layout
 
+**The storefront is its own root layout (since 2026-09-14).** There is no `app/layout.tsx`:
+`app/(storefront)/layout.tsx` renders the shop's `<html>`, and the admin trees render
+`components/layout/admin-root-layout.tsx`. Two rules keep it that way, one per reason it was split:
+
+- **No admin CSS.** The shop's Tailwind comes from `app/(storefront)/storefront-base.css` — preflight
+  plus only utilities found in `components/storefront` and `app/(storefront)` (`source(none)` + two
+  `@source` lines). A storefront component outside those paths gets no CSS for its Tailwind classes;
+  add the path rather than importing `globals.css`. The admin sheet was 312 KB and render-blocking
+  (~920 ms of first paint on a phone, measured 2026-09-14).
+- **The root layout never reads the request** — no `headers()`, `cookies()` or next-intl. A root
+  layout that does makes every route beneath it dynamic, which rules out the per-store HTML cache the
+  Storefront Builder depends on (`inventory-backend/docs/plan/storefront-builder.md` §17).
+
+Only TanStack Query was carried over from the admin providers. There is no admin `<Toaster>` on shop
+pages, so a toast that bypasses `lib/storefront-toast.ts` is never shown. Shop hosts no longer run the
+workspace gate either; a closed or inactive store 404s through the backend's `resolveStore` instead.
+
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
 `cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
 account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,
@@ -227,9 +244,11 @@ reads as two filters at once.
     covers the viewport, and plainly wrong the instant it does not. `.sf-shell` inherits them by
     ordinary cascade, so nothing downstream changed.
   - ⚠ **And `body` needs its own rule per surface, per theme.** The browser takes the OVERSCROLL
-    CANVAS colour from `<body>`, which belongs to the admin's root layout and carries its near-black
-    `bg-background` — so a cream shop flashed black on a rubber-band scroll and showed black under any
-    page shorter than the viewport. `body:has(.sf-shell…)` scopes the fix to storefront pages. The
+    CANVAS colour from `<body>`. Until 2026-09-14 that body belonged to the admin's root layout and
+    carried its near-black `bg-background`, so a cream shop flashed black on a rubber-band scroll and
+    showed black under any page shorter than the viewport. The storefront now has its own root layout
+    (`app/(storefront)/layout.tsx`) whose body has no background at all — which is browser white, so
+    a cream or dark shop still needs these rules. `body:has(.sf-shell…)` scopes the fix to shop pages. The
     values there are **literal repeats** of that surface's `--page`, because body sits outside
     `.sf-root` and cannot read its custom properties — a `var(--page)` on body silently resolves to
     the fallback, always. Change the two together. (The plain `body:has(.sf-shell)` pair is not

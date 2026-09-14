@@ -92,8 +92,8 @@ or the fixture silently becomes a partial grant the next time an entry is gated.
 `entitlementAccess` 3-tier classifier — **keep the two in sync**:
 
 - `classifyEntitlementAccess()` → `active | read_only | blocked`.
-- `shouldBlockWorkspaceAccess()` — the protected layout
-  ([`app/(protected)/layout.tsx`](../../../app/(protected)/layout.tsx)) force-logs-out only `blocked`
+- `shouldBlockWorkspaceAccess()` — the protected shell
+  ([`components/layout/protected-shell.tsx`](../../../components/layout/protected-shell.tsx)) force-logs-out only `blocked`
   orgs (to `/login?subscription=inactive`). `read_only` (past-due) is **let through** so the user can
   reach billing and pay.
 - `isPaymentOverdue()` — drives the overdue banner + "Pay now".

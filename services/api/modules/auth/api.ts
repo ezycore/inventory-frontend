@@ -12,7 +12,7 @@ export type SignupPayload = FormData | Record<string, any>;
  * -----------
  * signup          → useSignupAPi (use-auth.ts) → app/(auth)/signup/page.tsx
  * login           → useLogin (use-auth.ts) → components/login/login-form.tsx
- * me              → useMe (use-auth.ts) → app/(protected)/layout.tsx
+ * me              → useMe (use-auth.ts) → components/layout/protected-shell.tsx
  * verifyEmail     → useVerifyEmail (use-auth.ts) → app/(auth)/verify-email/page.tsx
  * resendVerification → useResendVerification (use-auth.ts) → app/(auth)/resend-verification/page.tsx
  * forgotPassword  → useForgotPassword (use-auth.ts) → app/(auth)/forgot-password/page.tsx

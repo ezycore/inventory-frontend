@@ -3,12 +3,12 @@
  * `storefront-toast` exists so the shop's toasts are ONE decision rather than a
  * per-call-site option, and the decision is now a single field: `toasterId`.
  *
- * It is worth a test because dropping it fails SILENTLY and in the most
- * misleading way available. Sonner renders an id-less toast on the id-less
- * `<Toaster>` — the admin's, in `app/layout.tsx` — so an unstamped shop toast
- * still appears, just bottom-right, in next-themes' theme, with no close button.
- * It looks like a styling regression rather than a routing one, which is exactly
- * the bug that was there before `StorefrontToaster` existed.
+ * It is worth a test because dropping it fails SILENTLY. Sonner renders an
+ * id-less toast only on an id-less `<Toaster>`, and the storefront's root layout
+ * mounts none (the admin's lives in `components/layout/admin-root-layout.tsx`),
+ * so an unstamped shop toast is never shown at all. Before the storefront had
+ * its own root layout it still appeared, bottom-right, in next-themes' theme —
+ * which is the bug that was there before `StorefrontToaster` existed.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

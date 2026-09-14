@@ -184,9 +184,18 @@ This is a **Next.js 16 App Router** application for an inventory management SaaS
 ### Route Structure
 
 - `app/(auth)/` — Public auth pages (login, signup, forgot-password, etc.)
-- `app/(protected)/` — All authenticated pages; guarded by `app/(protected)/layout.tsx`
+- `app/(protected)/` — All authenticated pages; guarded by `ProtectedShell` (`components/layout/protected-shell.tsx`)
+- `app/(storefront)/` — The public shop
 
-The protected layout (`app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
+**There is no `app/layout.tsx` — the app has two root layouts.** `(auth)` and `(protected)` each render
+`AdminRootLayout` (`components/layout/admin-root-layout.tsx`: `<html>`, fonts, `globals.css`, next-intl,
+the workspace gate, the admin providers); `app/(storefront)/layout.tsx` renders the shop's own `<html>`
+with its own Tailwind build (`storefront-base.css`). Split on 2026-09-14 because one shared root cost
+every shopper the admin's 312 KB render-blocking stylesheet, and because a root layout that reads
+`headers()`/`cookies()` makes every route beneath it dynamic. **Never import `globals.css` or read the
+request in the storefront root layout.** Moving between the two trees is a full page load.
+
+The protected shell (`components/layout/protected-shell.tsx`, rendered by the server `app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
 
 ### State Management
 
@@ -319,7 +328,7 @@ render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeo
 
 **Browser tab (title + icon) is client-side, by necessity.** The organization lives in the persisted
 auth store, which no server `generateMetadata` can read — so both are set imperatively from
-`app/(protected)/layout.tsx`: `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
+`ProtectedShell` (`components/layout/protected-shell.tsx`): `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
 `useOrgDocumentTitle()` (`"<Page> · <Org>"`, e.g. `Products · ZeroDrop`). The page name is the **last
 breadcrumb**, so it is already translated and already matches the sidebar label — renaming a nav item
 renames the tab, and no page needs its own `metadata`. The storefront titles tabs separately via its

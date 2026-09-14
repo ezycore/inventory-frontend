@@ -188,7 +188,7 @@ export const organizationApi = {
 
   // GET /api/organization/subscription/status - Minimal, permission-free
   // status (no billing detail). Used in: useGetSubscriptionStatus →
-  // app/(protected)/layout.tsx + billing-alert-banner.tsx, both of which run
+  // components/layout/protected-shell.tsx + billing-alert-banner.tsx, both of which run
   // for every role, not just organization.view holders.
   getSubscriptionStatus: (): Promise<ApiResponse<SubscriptionStatusInfo>> =>
     apiClient.get(`/organization/subscription/status`),
