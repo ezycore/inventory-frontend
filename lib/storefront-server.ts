@@ -13,6 +13,14 @@
  * via `POST /api/storefront/revalidate`. Raising one of these numbers is therefore
  * cheap for merchant-authored data and expensive for anything else — see
  * "Cache + on-demand revalidation" in `.claude/skills/storefront/SKILL.md`.
+ *
+ * **Two sets of the same fetchers.** The named exports read the owner-preview
+ * token off the request, so the merchant previewing an unpublished shop sees
+ * it — and reading the request makes the calling route dynamic.
+ * `publicStorefront` never reads the request and never previews, for routes
+ * that must stay HTML-cacheable (the Storefront Builder's `/sites` route).
+ * Catching the error `headers()` throws does not undo the dynamic bail-out, so a
+ * cacheable route must not call the request-aware set at all.
  */
 
 import { getStorePreviewToken } from "@/lib/storefront-host";
@@ -38,15 +46,14 @@ import type {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-async function sf<T>(
+/** One storefront API read. `preview` is the owner-preview token, or `null` for the public payload. */
+async function fetchStorefront<T>(
   slug: string,
   path: string,
   revalidate: number,
+  preview: string | null,
 ): Promise<T | null> {
   try {
-    // Owner preview (`lib/storefront-preview.ts`): the merchant looking at their
-    // own unpublished shop from the Customize editor.
-    const preview = await getStorePreviewToken();
     const res = await fetch(`${API_BASE}/storefront/${slug}${path}`, {
       // A preview response is NOT shared cache. It is the one case where this
       // URL can return a payload the public may not have, so letting it settle
@@ -66,6 +73,8 @@ async function sf<T>(
   }
 }
 
+type StorefrontRead = <T>(slug: string, path: string, revalidate: number) => Promise<T | null>;
+
 function query(params: Record<string, string | number | undefined>): string {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -73,76 +82,6 @@ function query(params: Record<string, string | number | undefined>): string {
   }
   const s = qs.toString();
   return s ? `?${s}` : "";
-}
-
-/** Store config (branding, theme, payment/shipping rules). Cached 5 min. */
-export const getStore = (slug: string) => sf<StorefrontStore>(slug, "", 300);
-
-/** Product list. Cached 1 min (catalog/stock changes more often). */
-export const getStoreProducts = (
-  slug: string,
-  params: Record<string, string | number | undefined> = {},
-) => sf<ProductListResult>(slug, `/products${query(params)}`, 60);
-
-export const getStoreProduct = (slug: string, productSlug: string) =>
-  sf<CatalogProduct>(slug, `/products/${productSlug}`, 60);
-
-export const getStoreCategories = (slug: string) =>
-  sf<CatalogCategory[]>(slug, "/categories", 300);
-
-/**
- * Resolve a collection path (`phones`, `phones/accessories`) to the category
- * plus its breadcrumb parent. `null` when the path is unknown OR sits under a
- * hidden parent — the page 404s on either.
- */
-export const getStoreCategoryByPath = (slug: string, path: string) =>
-  sf<CatalogCategoryDetail>(
-    slug,
-    `/categories/resolve${query({ path })}`,
-    300,
-  );
-
-export const getStoreTags = (slug: string) =>
-  sf<StoreTag[]>(slug, "/tags", 300);
-
-export const getStoreCampaigns = (slug: string) =>
-  sf<StoreCampaign[]>(slug, "/campaigns", 60);
-
-export const getStorePages = (slug: string) =>
-  sf<ContentPageLink[]>(slug, "/pages", 300);
-
-export const getStorePage = (slug: string, pageSlug: string) =>
-  sf<ContentPageView>(slug, `/pages/${pageSlug}`, 300);
-
-/**
- * One Storefront Builder page by its public path (`/pages/<slug>`). The
- * response carries either the page or, for a renamed page, the redirect to its
- * new address. Under owner preview it is the draft (`isDraft`).
- */
-export const getStorefrontPage = (slug: string, path: string) =>
-  sf<StorefrontPublicPage>(slug, `/page${query({ path })}`, 300);
-
-/**
- * Every catalogue query a builder page's sections make, in as few backend calls
- * as the backend's limits allow (usually one), merged into one map keyed by
- * section instance id. A failed chunk leaves its sections without data, and
- * those sections render nothing.
- */
-export async function getSectionData(
-  slug: string,
-  requests: readonly ProductsDataRequest[],
-): Promise<Record<string, SectionData>> {
-  if (requests.length === 0) return {};
-  const chunks = await Promise.all(
-    chunkSectionDataRequests(requests).map((chunk) =>
-      sf<{ results: Record<string, SectionData> }>(
-        slug,
-        `/section-data${query({ r: JSON.stringify(chunk) })}`,
-        60,
-      ),
-    ),
-  );
-  return Object.assign({}, ...chunks.map((chunk) => chunk?.results ?? {}));
 }
 
 /**
@@ -159,7 +98,106 @@ export interface StorefrontSitemap {
   pages: { slug: string; updatedAt?: string }[];
 }
 
-/** Cached 1h: crawlers re-fetch far less often than shoppers browse, and the
- *  `store:{slug}` tag still flushes it on an admin edit. */
-export const getStoreSitemap = (slug: string) =>
-  sf<StorefrontSitemap>(slug, "/sitemap", 3600);
+/** Every endpoint, declared once, over a given way of reading. */
+function fetchersFor(read: StorefrontRead) {
+  return {
+    /** Store config (branding, theme, payment/shipping rules). Cached 5 min. */
+    getStore: (slug: string) => read<StorefrontStore>(slug, "", 300),
+
+    /** Product list. Cached 1 min (catalog/stock changes more often). */
+    getStoreProducts: (
+      slug: string,
+      params: Record<string, string | number | undefined> = {},
+    ) => read<ProductListResult>(slug, `/products${query(params)}`, 60),
+
+    getStoreProduct: (slug: string, productSlug: string) =>
+      read<CatalogProduct>(slug, `/products/${productSlug}`, 60),
+
+    getStoreCategories: (slug: string) =>
+      read<CatalogCategory[]>(slug, "/categories", 300),
+
+    /**
+     * Resolve a collection path (`phones`, `phones/accessories`) to the category
+     * plus its breadcrumb parent. `null` when the path is unknown OR sits under a
+     * hidden parent — the page 404s on either.
+     */
+    getStoreCategoryByPath: (slug: string, path: string) =>
+      read<CatalogCategoryDetail>(slug, `/categories/resolve${query({ path })}`, 300),
+
+    getStoreTags: (slug: string) => read<StoreTag[]>(slug, "/tags", 300),
+
+    getStoreCampaigns: (slug: string) => read<StoreCampaign[]>(slug, "/campaigns", 60),
+
+    getStorePages: (slug: string) => read<ContentPageLink[]>(slug, "/pages", 300),
+
+    getStorePage: (slug: string, pageSlug: string) =>
+      read<ContentPageView>(slug, `/pages/${pageSlug}`, 300),
+
+    /**
+     * One Storefront Builder page by its public path (`/pages/<slug>`). The
+     * response carries either the page or, for a renamed page, the redirect to
+     * its new address. Under owner preview it is the draft (`isDraft`).
+     */
+    getStorefrontPage: (slug: string, path: string) =>
+      read<StorefrontPublicPage>(slug, `/page${query({ path })}`, 300),
+
+    /**
+     * Every catalogue query a builder page's sections make, in as few backend
+     * calls as the backend's limits allow (usually one), merged into one map
+     * keyed by section instance id. A failed chunk leaves its sections without
+     * data, and those sections render nothing.
+     */
+    getSectionData: async (
+      slug: string,
+      requests: readonly ProductsDataRequest[],
+    ): Promise<Record<string, SectionData>> => {
+      if (requests.length === 0) return {};
+      const chunks = await Promise.all(
+        chunkSectionDataRequests(requests).map((chunk) =>
+          read<{ results: Record<string, SectionData> }>(
+            slug,
+            `/section-data${query({ r: JSON.stringify(chunk) })}`,
+            60,
+          ),
+        ),
+      );
+      return Object.assign({}, ...chunks.map((chunk) => chunk?.results ?? {}));
+    },
+
+    /** Cached 1h: crawlers re-fetch far less often than shoppers browse, and the
+     *  `store:{slug}` tag still flushes it on an admin edit. */
+    getStoreSitemap: (slug: string) => read<StorefrontSitemap>(slug, "/sitemap", 3600),
+  };
+}
+
+/**
+ * Request-aware reads: the owner-preview token (`lib/storefront-preview.ts`) is
+ * taken from the request, so a merchant previewing their unpublished shop from
+ * the Customize editor sees it. Makes the calling route dynamic.
+ */
+const requestStorefront = fetchersFor(async <T>(slug: string, path: string, revalidate: number) =>
+  fetchStorefront<T>(slug, path, revalidate, await getStorePreviewToken()),
+);
+
+export const {
+  getStore,
+  getStoreProducts,
+  getStoreProduct,
+  getStoreCategories,
+  getStoreCategoryByPath,
+  getStoreTags,
+  getStoreCampaigns,
+  getStorePages,
+  getStorePage,
+  getStorefrontPage,
+  getSectionData,
+  getStoreSitemap,
+} = requestStorefront;
+
+/**
+ * Public reads that never touch the request and never preview — the only set a
+ * route that must stay HTML-cacheable may call. See the module note.
+ */
+export const publicStorefront = fetchersFor(<T>(slug: string, path: string, revalidate: number) =>
+  fetchStorefront<T>(slug, path, revalidate, null),
+);
