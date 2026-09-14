@@ -36,10 +36,10 @@ export interface SectionData {
 
 /**
  * A store-wide list a section reads from the page context instead of querying
- * for itself: the category tree (collections) and the tag facet (shop by tag).
- * The page fetches each one once, and only when a section on it needs it.
+ * for itself: the category tree, the tag facet and the running campaigns. The
+ * page fetches each one once, and only when a section on it needs it.
  */
-export type StoreListNeed = "categories" | "tags";
+export type StoreListNeed = "categories" | "tags" | "campaigns";
 
 /** The settings every product section shares: where its products come from, and how many. */
 export interface ProductSourceSettings {

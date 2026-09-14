@@ -9,13 +9,20 @@ import {
   type StoreListNeed,
 } from "@/lib/storefront-builder/section-data";
 import { readBlocks, readSettings, type SettingsOf } from "@/lib/storefront-builder/settings";
-import { pickByIds, sectionCategories } from "@/lib/storefront-builder/store-lists";
+import { offerCampaigns, pickByIds, sectionCategories } from "@/lib/storefront-builder/store-lists";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
 import type { SectionContext, SectionViewProps } from "@/components/storefront-builder/section-view";
 import { CallToActionSection } from "@/components/storefront-builder/sections/call-to-action";
+import { CampaignOffersSection } from "@/components/storefront-builder/sections/campaign-offers";
+import {
+  CategoryPromoCardsSection,
+  promoCards,
+} from "@/components/storefront-builder/sections/category-promo-cards";
+import { CategoryTilesSection } from "@/components/storefront-builder/sections/category-tiles";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
+import { ProductCarouselSection } from "@/components/storefront-builder/sections/product-carousel";
 import { ProductGridSection } from "@/components/storefront-builder/sections/product-grid";
 import { PromisesBandSection } from "@/components/storefront-builder/sections/promises-band";
 import { RichTextSection } from "@/components/storefront-builder/sections/rich-text";
@@ -46,8 +53,9 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
    */
   request?: (id: string, settings: SettingsOf<S>) => ProductsDataRequest | null;
   /**
-   * Store-wide lists the view reads (`context.categories`, `context.tags`). The
-   * page fetches each list once, and only when some section on it asks.
+   * Store-wide lists the view reads (`context.categories`, `context.tags`,
+   * `context.campaigns`). The page fetches each list once, and only when some
+   * section on it asks.
    */
   needs?: readonly StoreListNeed[];
   isEmpty?: (
@@ -101,10 +109,13 @@ const noProducts = (_settings: unknown, _blocks: unknown, data: SectionData | un
  * Every section type this build renders. A type missing here is skipped on the
  * page rather than breaking it.
  *
- * The home page's sections arrive here as builder sections (plan §8): so far
+ * The home page's sections arrive here as builder sections (plan §8):
  * `promises-band` (trust band), `image-text` (editorial split), `shop-by-tag`
- * (tag chips), `collections-row` (collection chips and links) and
- * `selected-products` (minimal picks); `product-grid` replaced the featured grid.
+ * (tag chips), `collections-row` (collection chips and links),
+ * `selected-products` (minimal picks), `product-carousel` (product rail),
+ * `campaign-offers` (deal strip), `category-tiles` and `category-promo-cards`
+ * (category banners); `product-grid` replaced the featured grid. The hero is
+ * still to come.
  *
  * `countdown` is specified but not rendered yet: its labels (days, hours,
  * minutes, seconds) have no Bangla terms in `docs/I18N-GLOSSARY.md`, and
@@ -139,5 +150,24 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   "selected-products": defineSection(SECTION_SPECS["selected-products"], SelectedProductsSection, {
     request: productSectionRequest,
     isEmpty: noProducts,
+  }),
+  "product-carousel": defineSection(SECTION_SPECS["product-carousel"], ProductCarouselSection, {
+    request: productSectionRequest,
+    isEmpty: noProducts,
+  }),
+  "campaign-offers": defineSection(SECTION_SPECS["campaign-offers"], CampaignOffersSection, {
+    needs: ["campaigns"],
+    isEmpty: (_settings, _blocks, _data, context) =>
+      offerCampaigns(context.campaigns ?? []).length === 0,
+  }),
+  "category-tiles": defineSection(SECTION_SPECS["category-tiles"], CategoryTilesSection, {
+    needs: ["categories"],
+    isEmpty: (settings, _blocks, _data, context) =>
+      sectionCategories(context.categories ?? [], settings.categoryIds).length === 0,
+  }),
+  "category-promo-cards": defineSection(SECTION_SPECS["category-promo-cards"], CategoryPromoCardsSection, {
+    needs: ["categories"],
+    isEmpty: (_settings, blocks, _data, context) =>
+      promoCards(context.categories ?? [], blocks).length === 0,
   }),
 };

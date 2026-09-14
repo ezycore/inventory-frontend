@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import type { CatalogCategory, StoreTag } from "@/lib/storefront-client";
+import type { CatalogCategory, StoreCampaign, StoreTag } from "@/lib/storefront-client";
 import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
 import type { SectionData } from "@/lib/storefront-builder/section-data";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
@@ -23,6 +23,8 @@ export interface SectionContext {
   categories?: CatalogCategory[];
   /** The store's tags; filled when a section on the page `needs` them. */
   tags?: StoreTag[];
+  /** The store's running campaigns; filled when a section on the page `needs` them. */
+  campaigns?: StoreCampaign[];
   /** Customize → Product cards → image fit, for sections drawing product photos. */
   imageFit?: "cover" | "canvas";
   /** Customize → Product cards → image ratio, as a CSS `aspect-ratio`. */

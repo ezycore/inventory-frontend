@@ -90,10 +90,11 @@ export default async function SitePage({
     // One call for every product section, plus each store-wide list only when a
     // section reads it — the full chrome's header already fetched the categories,
     // and Next memoises the identical request.
-    const [data, categories, tags] = await Promise.all([
+    const [data, categories, tags, campaigns] = await Promise.all([
       publicStorefront.getSectionData(site.slug, sectionDataRequests(sections)),
       needs.has("categories") ? publicStorefront.getStoreCategories(site.slug) : null,
       needs.has("tags") ? publicStorefront.getStoreTags(site.slug) : null,
+      needs.has("campaigns") ? publicStorefront.getStoreCampaigns(site.slug) : null,
     ]);
     const templates = resolveTemplates(site.store);
     return (
@@ -104,6 +105,7 @@ export default async function SitePage({
           currency: site.store.currency,
           categories: categories ?? [],
           tags: tags ?? [],
+          campaigns: campaigns ?? [],
           imageFit: mediaFitFor(templates.imageFit),
           imageRatio: mediaRatioFor(templates.imageRatio),
         }}

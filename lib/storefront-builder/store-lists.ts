@@ -22,6 +22,10 @@ export function pickByIds<T extends { _id: string }>(
   });
 }
 
+/** Campaigns an offer strip can show — a campaign with no name has nothing to print. */
+export const offerCampaigns = <T extends { name?: string }>(campaigns: readonly T[]): T[] =>
+  campaigns.filter((campaign) => campaign.name);
+
 /**
  * A collections section's categories: the picked ones, top-level or
  * sub-collection, in pick order — or every top-level collection when none are

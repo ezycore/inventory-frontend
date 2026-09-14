@@ -148,6 +148,72 @@ export const SECTION_SPECS = {
       ctaHref: { type: "url", optional: true },
     },
   },
+  "product-carousel": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      source: { type: "enum", values: ["featured", "newest", "category", "tag", "manual"] },
+      categoryId: { type: "ref", to: "category", optional: true },
+      tagIds: { type: "refs", to: "tag", max: 10, optional: true },
+      productIds: { type: "refs", to: "product", max: 24, optional: true },
+      limit: { type: "number", min: 1, max: 24, int: true },
+      ctaLabel: { type: "string", max: 40, optional: true },
+      ctaHref: { type: "url", optional: true },
+    },
+  },
+  "campaign-offers": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+    },
+  },
+  "category-tiles": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      /** Unset or empty lists every top-level collection. */
+      categoryIds: { type: "refs", to: "category", max: 30, optional: true },
+      mode: { type: "enum", values: ["tile", "overlay", "circle", "disc"], optional: true },
+      layout: { type: "enum", values: ["strip", "grid"], optional: true },
+      columns: { type: "number", min: 2, max: 6, int: true, optional: true },
+      mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
+      align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      showLabels: { type: "boolean", optional: true },
+    },
+  },
+  "category-promo-cards": {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      shape: { type: "enum", values: ["stacked", "split"], responsive: true, optional: true },
+      side: { type: "enum", values: ["left", "right", "alternate"], responsive: true, optional: true },
+      /** The picture's share of a split card, in percent. */
+      split: { type: "number", min: 20, max: 80, int: true, responsive: true, optional: true },
+      hideText: { type: "boolean", responsive: true, optional: true },
+      /** The picture's height in px; replaces the ratio. */
+      height: { type: "number", min: 20, max: 800, int: true, responsive: true, optional: true },
+      flow: { type: "enum", values: ["wrap", "scroll"], responsive: true, optional: true },
+      perRow: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
+      ratio: { type: "enum", values: ["16:9", "4:3", "1:1", "3:4"], optional: true },
+      radius: { type: "number", min: 0, max: 40, int: true, optional: true },
+      arrows: { type: "boolean", optional: true },
+    },
+    blocks: {
+      max: 4,
+      settings: {
+        categoryId: { type: "ref", to: "category" },
+        title: { type: "string", max: 80, optional: true },
+        description: { type: "string", max: 240, optional: true },
+        image: { type: "image", optional: true },
+        buttonLabel: { type: "string", max: 40, optional: true },
+        buttonHref: { type: "url", optional: true },
+      },
+    },
+  },
   countdown: {
     v: 1,
     pages: "all",

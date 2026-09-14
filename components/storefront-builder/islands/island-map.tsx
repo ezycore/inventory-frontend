@@ -22,7 +22,13 @@ const ISLANDS = {
   "product-cards": dynamic(() =>
     import("./product-cards").then((module) => module.ProductCardsIsland),
   ),
-  /** The collections strip's paging arrows; the tiles arrive as server-rendered children. */
+  "product-rail": dynamic(() =>
+    import("@/components/storefront/home/product-rail-track").then((module) => module.ProductRailTrack),
+  ),
+  "campaign-offers": dynamic(() =>
+    import("./campaign-offers").then((module) => module.CampaignOffersIsland),
+  ),
+  /** A category strip's paging arrows; the tiles arrive as server-rendered children. */
   "category-strip": dynamic(() =>
     import("@/components/storefront/home/category-strip").then((module) => module.CategoryStrip),
   ),

@@ -2,8 +2,8 @@
 // coding-standard: maintained
 
 import { SectionTitle } from "@/components/storefront/sf-bits";
-import { ProductCard } from "@/components/storefront/product-card";
 import { PickGrid } from "@/components/storefront/home/pick-grid";
+import { ProductRailTrack } from "@/components/storefront/home/product-rail-track";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import {
@@ -88,27 +88,7 @@ export function ProductRail(props: SectionProps) {
       >
         {row.title}
       </SectionTitle>
-      {/* `grid-auto-flow: column` + an explicit track width, because a flex row
-          of `flex: 1` cards would divide the viewport instead of overflowing. */}
-      <div
-        style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gridAutoColumns: "minmax(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)))",
-          gap: "var(--gap)",
-          overflowX: "auto",
-          scrollSnapType: "x mandatory",
-          // Room for the cards' shadow and the scrollbar, so neither is clipped.
-          padding: "2px 0 10px",
-          scrollbarWidth: "thin",
-        }}
-      >
-        {row.products.map((p) => (
-          <div key={p._id} style={{ scrollSnapAlign: "start" }}>
-            <ProductCard product={p} currency={currency} variant="compact" />
-          </div>
-        ))}
-      </div>
+      <ProductRailTrack products={row.products} currency={currency} />
     </div>
     </section>
   );

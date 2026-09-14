@@ -30,7 +30,7 @@ import type { CatalogCategory } from "@/lib/storefront-client";
 import { collectionHref } from "@/lib/storefront-links";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import { useCategoryRowLayout } from "@/components/storefront/home/category-row-layout";
+import { useCategoryRowLayout } from "@/components/storefront/home/use-category-row-layout";
 import { CategoryStrip } from "@/components/storefront/home/category-strip";
 import {
   COLLECTION_STRIP_GAP,
