@@ -2655,6 +2655,15 @@ cached entry on the `/sites` route (see "Cached store pages").
   picking it for a card both upscales and crops the product out of frame. That was the bug on the
   shop grid until 2026-07-31. URL-imported images store one URL in all three fields, so every helper
   degrades to it.
+  - **`SfImage`** (`components/storefront/sf-image.tsx`, since 2026-09-14) is the one `<img>` for
+    uploaded photos: a `srcset` over medium 800w + original 1600w (`responsiveImageSources` — never the
+    square thumbnail), a required `sizes`, lazy by default, and **`priority`** for the page's likely LCP
+    image (eager, `fetchpriority="high"`, and a preload hint split by the phone media query). Not
+    `next/image`: its optimizer would re-encode R2 images on the one VPS. `Media` and `HeroMedia` render
+    through it. `priority` is set on the home hero banner (`HeroCard`, `HeroOpen`), the carousel's first
+    slide and the product page's main photo — nowhere else. `Media` stays **eager** by default, because a
+    collection page's LCP is often a product card; pass `loading="lazy"` only where a slot is known to sit
+    below the fold.
   - ⚠ **A logo is a MARK, not a photo, and `logoImageUrl` puts the thumbnail LAST.** A 200×200 centre
     crop of a wide wordmark is not a smaller version of it — it is an unreadable slice of the middle.
     `cardImageUrl` is not a substitute (its *second* choice is that crop), and neither is

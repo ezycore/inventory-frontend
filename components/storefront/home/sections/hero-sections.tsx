@@ -120,6 +120,9 @@ export function HeroCard(props: SectionProps) {
               label="hero banner"
               ratio="var(--herocard-ratio)"
               radius={0}
+              /* The likely LCP image: every preset puts the hero first, and a
+                 hero moved lower costs one early request, not a slow page. */
+              priority
               {...photo}
             />
           </div>
@@ -250,6 +253,8 @@ export function HeroOpen(props: SectionProps) {
             ratio="4 / 3"
             radius={0}
             style={{ borderRadius: "var(--radius-md)" }}
+            // The likely LCP image — see HeroCard.
+            priority
             {...photo}
           />
         </div>

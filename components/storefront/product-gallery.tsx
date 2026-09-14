@@ -118,6 +118,8 @@ export function ProductGallery({
         }
         radius={RADIUS}
         fit={fit}
+        // The product page's LCP image.
+        priority
         className="sf-pdp-zoom-img"
         style={{
           display: "block",
