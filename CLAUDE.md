@@ -423,10 +423,13 @@ paper sizes, popup toast, `invoicePrinting` gate; one page per order in bulk), a
 from the public store payload's `printable` block). Never hand-roll invoice markup or a raw
 `window.print()` — add an adapter to the engine instead.
 
-**Storefront CMS page bodies** render through `lib/storefront-markdown.ts` (dependency-free subset
-parser → block model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`);
-consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
-a markdown dependency without checking here first.
+**Storefront CMS page bodies** render through `<ContentBodyView>` (`components/storefront/content-body-view.tsx`).
+A body saved from the rich-text editor is TipTap JSON and renders with `<RichDocView>`
+(`components/storefront/rich-doc-view.tsx`, parsed by `lib/storefront-rich-doc.ts`). Only a **legacy** body
+that is not rich-doc JSON falls back to `lib/storefront-markdown.ts` (dependency-free subset parser → block
+model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`), where
+consecutive `Q:`/`A:` lines become styled FAQ cards. Never dump raw page text or add a markdown dependency
+without checking here first.
 
 The parser is now shared with the **customer help docs**, so it is no longer storefront-only despite the
 filename. Two renderers consume it and both must handle every block kind, or new syntax silently vanishes

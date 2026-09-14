@@ -480,17 +480,20 @@ reads as two filters at once.
 
 ## Cache + on-demand revalidation (why an admin edit used to take 5 minutes)
 
-The shop is served from **three** stacked caches, and only the third is in the shopper's browser:
+The shop is served from **two** caches that are actually in effect — the Next Data Cache on the
+server and TanStack in the shopper's browser. The rendered-HTML cache is **not** one of them:
 
 | Cache | Set by | Lifetime |
 |---|---|---|
 | Next **Data Cache** (per fetch) | `next: { revalidate, tags: ["store:{slug}"] }` in `lib/storefront-server.ts` | `getStore` 300s; products/campaigns 60s; sitemap 1h |
-| Next **Full Route Cache** (rendered HTML) | `export const revalidate` in each shop `page.tsx` | 60s (home/products/PDP), 300s (CMS pages) |
+| Next **Full Route Cache** (rendered HTML) | **Not in effect.** Each shop `page.tsx` exports `revalidate`, but every storefront route reads `headers()` through `getStoreContext()` (`lib/storefront-host.ts`), which makes it render dynamically on every request | none — production answers `cache-control: private, no-cache, no-store` on home, product, cart and checkout (measured 2026-09-14) |
 | TanStack `staleTime` | `services/storefront/hooks.ts` | 5 min, seeded from the SSR value |
 
-The first two live **in the Next server and are shared by every visitor**, which is why a merchant
-could never clear one by reloading — hard reload tells the *browser* to refetch, and the server
+The Data Cache lives **in the Next server and is shared by every visitor**, which is why a merchant
+could never clear it by reloading — hard reload tells the *browser* to refetch, and the server
 answers from the same stored copy. **Don't debug a "stale storefront" report in the browser.**
+Caching the rendered HTML per store is planned in `inventory-backend/docs/plan/storefront-builder.md`
+(§5.4); until it ships, every shopper page view is a full server render.
 
 Until 2026-07-31 the `store:{slug}` tag was declared on every fetch and **never called** — no
 `revalidateTag` existed anywhere in the workspace, so time expiry was the only flush and a theme

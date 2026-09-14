@@ -10,9 +10,14 @@ This is a loop, not a build. It exists because the alternative is that "common a
 means *whoever asked most recently* — and the person who remembers the third merchant is rarely the
 person who answered the first.
 
-> **It is empty on purpose right now.** There are no production customers yet (see the pre-launch
-> section of the backend `CLAUDE.md`), so there is nothing to count. An empty register at pre-launch
-> is the correct state; an empty one six months after launch means the loop is not running.
+> **The product launched on 2026-09-01, so the register is live.** It was empty before launch because
+> there was nothing to count. An empty register six months after launch means the loop is not running.
+>
+> **Scope change, 2026-09-14.** The product owner decided on full storefront customization and approved
+> the [Storefront Builder plan](../../../inventory-backend/docs/plan/storefront-builder.md). For work
+> inside that plan, the three-merchant rule no longer decides what gets built. Keep logging requests
+> here, because they show what merchants actually ask for, and keep applying the bar below to every
+> control: *a merchant can answer the question the setting asks.*
 
 ---
 
