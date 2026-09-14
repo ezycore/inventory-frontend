@@ -111,6 +111,18 @@ Only TanStack Query was carried over from the admin providers. There is no admin
 pages, so a toast that bypasses `lib/storefront-toast.ts` is never shown. Shop hosts no longer run the
 workspace gate either; a closed or inactive store 404s through the backend's `resolveStore` instead.
 
+**Storefront Builder section specs (since 2026-09-14).** Builder sections are declared once, as plain
+data, in `lib/storefront-builder/section-specs.ts` (field types in `lib/storefront-builder/field-specs.ts`).
+The backend validates saved pages against a **generated** copy,
+`inventory-backend/src/constants/storefront-section-manifest.ts`:
+
+- After changing either file run `pnpm gen:section-manifest` and commit the backend file in the
+  backend repo. `pnpm verify` runs `verify:section-manifest`, which fails while they differ (and skips
+  when the backend repo is not checked out beside this one).
+- Both files must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
+  and `field-specs.ts` imports nothing, because its body is copied verbatim into the backend.
+- Bump a section's `v` for any change that would make an already-saved instance invalid.
+
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
 `cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
 account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,
