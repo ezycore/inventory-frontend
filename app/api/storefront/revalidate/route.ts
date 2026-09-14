@@ -18,6 +18,10 @@
  * their ISR. The bearer token is the only input, so the worst a valid caller can do
  * is expire their own store.
  *
+ * The body may name the scopes a save touched (`{ "scopes": ["catalog"] }`, see
+ * `lib/storefront-cache-tags.ts`); only those tags are flushed. No body, or
+ * anything that does not parse, flushes the whole store.
+ *
  * Called by `lib/revalidate-storefront.ts` from admin mutations. Deployment note:
  * `revalidateTag` reaches the cache of the instance that serves the request, so a
  * multi-replica deployment needs a shared `cacheHandler` for this to be global.
@@ -25,6 +29,7 @@
 import { createHash } from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
+import { tagsToFlush } from "@/lib/storefront-cache-tags";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -104,7 +109,9 @@ export async function POST(request: NextRequest) {
   // default profile ("max") would let the next request still serve the stale copy
   // and only refresh in the background — i.e. the merchant would have to reload
   // twice to see their own save, which is the complaint this endpoint answers.
-  revalidateTag(`store:${slug}`, { expire: 0 });
+  const body = await request.json().catch(() => null);
+  const tags = tagsToFlush(slug, body?.scopes);
+  for (const tag of tags) revalidateTag(tag, { expire: 0 });
 
-  return NextResponse.json({ success: true, data: { slug } });
+  return NextResponse.json({ success: true, data: { slug, tags } });
 }

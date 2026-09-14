@@ -184,8 +184,8 @@ which reads only its params:
   landing page emits no canonical and lets crawlers follow its links.
 - Shared by both routes: `StoreHead` (`components/storefront/store-head.tsx` — favicon link + Meta
   Pixel).
-- Freshness is unchanged: every fetch carries `store:{slug}`, and `revalidateTag` drops the cached
-  HTML of every page built from a tagged fetch (Spike A). `revalidate = 300` is the backstop.
+- Freshness follows the fetch tags (see "Cache + on-demand revalidation"): `revalidateTag` drops the
+  cached HTML of every page built from a flushed fetch (Spike A). `revalidate = 300` is the backstop.
 
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
 `cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS — owner preview only, see above),
@@ -576,40 +576,44 @@ reads as two filters at once.
 
 ## Cache + on-demand revalidation (why an admin edit used to take 5 minutes)
 
-The shop is served from **two** caches that are actually in effect — the Next Data Cache on the
-server and TanStack in the shopper's browser. The rendered-HTML cache is **not** one of them:
+The shop is served from three caches — the Next Data Cache and, for `/pages/<slug>` only, the Full
+Route Cache on the server, and TanStack in the shopper's browser:
 
 | Cache | Set by | Lifetime |
 |---|---|---|
-| Next **Data Cache** (per fetch) | `next: { revalidate, tags: ["store:{slug}"] }` in `lib/storefront-server.ts` | `getStore` 300s; products/campaigns 60s; sitemap 1h |
-| Next **Full Route Cache** (rendered HTML) | **Not in effect.** Each shop `page.tsx` exports `revalidate`, but every storefront route reads `headers()` through `getStoreContext()` (`lib/storefront-host.ts`), which makes it render dynamically on every request | none — production answers `cache-control: private, no-cache, no-store` on home, product, cart and checkout (measured 2026-09-14) |
+| Next **Data Cache** (per fetch) | `next: { revalidate, tags }` in `lib/storefront-server.ts` — every fetch carries `store:{slug}` **plus its scope** (`site` / `catalog` / `content`, `lib/storefront-cache-tags.ts`) | `getStore` 300s; products/campaigns 60s; sitemap 1h |
+| Next **Full Route Cache** (rendered HTML) | **Only the cached `/sites` route** (`/pages/<slug>`, see "Cached store pages"). Every `/shop` route reads `headers()` through `getStoreContext()` (`lib/storefront-host.ts`) and renders on every request | `/pages/<slug>`: the shortest fetch `revalidate` on the page (60–300s); other shop routes: none (`cache-control: private, no-cache, no-store`, measured 2026-09-14) |
 | TanStack `staleTime` | `services/storefront/hooks.ts` | 5 min, seeded from the SSR value |
 
-The Data Cache lives **in the Next server and is shared by every visitor**, which is why a merchant
-could never clear it by reloading — hard reload tells the *browser* to refetch, and the server
-answers from the same stored copy. **Don't debug a "stale storefront" report in the browser.**
-Caching the rendered HTML per store is planned in `inventory-backend/docs/plan/storefront-builder.md`
-(§5.4); until it ships, every shopper page view is a full server render.
+Both server caches live **in the Next server and are shared by every visitor**, which is why a
+merchant could never clear them by reloading — hard reload tells the *browser* to refetch, and the
+server answers from the same stored copy. **Don't debug a "stale storefront" report in the browser.**
+A cached page is dropped whenever any fetch it was built from is flushed, so pages need no tag of
+their own.
 
 Until 2026-07-31 the `store:{slug}` tag was declared on every fetch and **never called** — no
 `revalidateTag` existed anywhere in the workspace, so time expiry was the only flush and a theme
 colour took up to five minutes to appear. Now:
 
-- **`POST /api/storefront/revalidate`** (`app/api/storefront/revalidate/route.ts`) calls
-  `revalidateTag("store:{slug}", { expire: 0 })`. The slug comes from the caller's session via the
-  backend's `/auth/me` — **never from the request body**, or one tenant could strip another's cache.
-  Bearer header only (a cookie would make it CSRF-triggerable). `{ expire: 0 }` rather than the
-  `"max"` profile so there is no stale-while-revalidate window: with one, the merchant's *next*
-  reload still serves the old copy and they have to reload twice.
-- **`lib/revalidate-storefront.ts`** `revalidateStorefront()` is the only caller — fire-and-forget,
-  silent on failure (the save already succeeded and the timer is still a backstop), `keepalive` so
-  navigating away right after saving doesn't cancel it.
-- **Wiring**: `services/api/invalidation.ts` fires it for every event in `PUBLIC_STOREFRONT_EVENTS`
-  (`storefront.catalog.changed`, `catalog.changed`), so catalog/campaign/coupon/CMS mutations get it
-  for free. The two storefront-settings mutations in `services/api/modules/organization/hooks.ts`
-  call it directly — they write the response into the cache with `setQueryData` and so deliberately
-  don't go through `invalidate()`. **A new admin mutation that changes public shop data needs one of
-  those two paths**, or it ships the old bug.
+- **`POST /api/storefront/revalidate`** (`app/api/storefront/revalidate/route.ts`) flushes the scopes
+  named in its body (`{ "scopes": ["catalog"] }` → `catalog:{slug}`), or `store:{slug}` — the whole
+  store — when the body names none or does not parse (`tagsToFlush`; flushing too much costs a cold
+  render, too little hides a save). Each tag gets `revalidateTag(tag, { expire: 0 })`. The slug comes
+  from the caller's session via the backend's `/auth/me` — **never from the request body**, or one
+  tenant could strip another's cache. Bearer header only (a cookie would make it CSRF-triggerable).
+  `{ expire: 0 }` rather than the `"max"` profile so there is no stale-while-revalidate window: with
+  one, the merchant's *next* reload still serves the old copy and they have to reload twice.
+- **`lib/revalidate-storefront.ts`** `revalidateStorefront(scopes?)` is the only caller —
+  fire-and-forget, silent on failure (the save already succeeded and the timer is still a backstop),
+  `keepalive` so navigating away right after saving doesn't cancel it.
+- **Wiring**: `services/api/invalidation.ts` maps each event in `PUBLIC_STOREFRONT_EVENTS` to its
+  scope — `catalog.changed` and `storefront.catalog.changed` → `catalog`,
+  `storefront.content.changed` → `content` — and flushes the union, so catalog/campaign/coupon/CMS
+  mutations get it for free. The storefront-settings, media, features, onboarding and organization
+  mutations in `services/api/modules/organization/hooks.ts` call `revalidateStorefront()` directly with
+  **no scope** (a settings save can reach anything the shop renders); the Meta Pixel save flushes
+  `site` only. **A new admin mutation that changes public shop data needs one of those two paths, with
+  the narrowest scope that is still true**, or it ships the old bug.
 - **`stock.moved` is deliberately excluded** — stock moves on every sale, so flushing per movement
   would keep the cache permanently empty. The 60s catalogue revalidate covers stock freshness.
 - **Deployment**: `revalidateTag` only reaches the instance that serves the POST. Multi-replica

@@ -9,10 +9,12 @@
  * (cart, shopper auth) on the existing `services/storefront/hooks` client layer.
  *
  * The `revalidate` values below are the *backstop*, not the freshness guarantee:
- * every entry is tagged `store:{slug}` and an admin save flushes the tag on demand
- * via `POST /api/storefront/revalidate`. Raising one of these numbers is therefore
- * cheap for merchant-authored data and expensive for anything else — see
- * "Cache + on-demand revalidation" in `.claude/skills/storefront/SKILL.md`.
+ * every entry is tagged `store:{slug}` plus its scope — `site`, `catalog` or
+ * `content` (`lib/storefront-cache-tags.ts`) — and an admin save flushes its
+ * scope on demand via `POST /api/storefront/revalidate`. Raising one of these
+ * numbers is therefore cheap for merchant-authored data and expensive for
+ * anything else — see "Cache + on-demand revalidation" in
+ * `.claude/skills/storefront/SKILL.md`.
  *
  * **Two sets of the same fetchers.** The named exports read the owner-preview
  * token off the request, so the merchant previewing an unpublished shop sees
@@ -25,6 +27,7 @@
 
 import { getStorePreviewToken } from "@/lib/storefront-host";
 import { previewApiHeaders } from "@/lib/storefront-preview";
+import { storefrontCacheTags, type StorefrontCacheScope } from "@/lib/storefront-cache-tags";
 import {
   chunkSectionDataRequests,
   type ProductsDataRequest,
@@ -46,11 +49,16 @@ import type {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+const SITE: readonly StorefrontCacheScope[] = ["site"];
+const CATALOG: readonly StorefrontCacheScope[] = ["catalog"];
+const CONTENT: readonly StorefrontCacheScope[] = ["content"];
+
 /** One storefront API read. `preview` is the owner-preview token, or `null` for the public payload. */
 async function fetchStorefront<T>(
   slug: string,
   path: string,
   revalidate: number,
+  scopes: readonly StorefrontCacheScope[],
   preview: string | null,
 ): Promise<T | null> {
   try {
@@ -62,7 +70,7 @@ async function fetchStorefront<T>(
       // paying full price for them is the correct trade.
       ...(preview
         ? { cache: "no-store" as const }
-        : { next: { revalidate, tags: [`store:${slug}`] } }),
+        : { next: { revalidate, tags: storefrontCacheTags(slug, scopes) } }),
       headers: { Accept: "application/json", ...previewApiHeaders(preview) },
     });
     if (!res.ok) return null;
@@ -73,7 +81,12 @@ async function fetchStorefront<T>(
   }
 }
 
-type StorefrontRead = <T>(slug: string, path: string, revalidate: number) => Promise<T | null>;
+type StorefrontRead = <T>(
+  slug: string,
+  path: string,
+  revalidate: number,
+  scopes: readonly StorefrontCacheScope[],
+) => Promise<T | null>;
 
 function query(params: Record<string, string | number | undefined>): string {
   const qs = new URLSearchParams();
@@ -102,19 +115,19 @@ export interface StorefrontSitemap {
 function fetchersFor(read: StorefrontRead) {
   return {
     /** Store config (branding, theme, payment/shipping rules). Cached 5 min. */
-    getStore: (slug: string) => read<StorefrontStore>(slug, "", 300),
+    getStore: (slug: string) => read<StorefrontStore>(slug, "", 300, SITE),
 
     /** Product list. Cached 1 min (catalog/stock changes more often). */
     getStoreProducts: (
       slug: string,
       params: Record<string, string | number | undefined> = {},
-    ) => read<ProductListResult>(slug, `/products${query(params)}`, 60),
+    ) => read<ProductListResult>(slug, `/products${query(params)}`, 60, CATALOG),
 
     getStoreProduct: (slug: string, productSlug: string) =>
-      read<CatalogProduct>(slug, `/products/${productSlug}`, 60),
+      read<CatalogProduct>(slug, `/products/${productSlug}`, 60, CATALOG),
 
     getStoreCategories: (slug: string) =>
-      read<CatalogCategory[]>(slug, "/categories", 300),
+      read<CatalogCategory[]>(slug, "/categories", 300, CATALOG),
 
     /**
      * Resolve a collection path (`phones`, `phones/accessories`) to the category
@@ -122,16 +135,16 @@ function fetchersFor(read: StorefrontRead) {
      * hidden parent — the page 404s on either.
      */
     getStoreCategoryByPath: (slug: string, path: string) =>
-      read<CatalogCategoryDetail>(slug, `/categories/resolve${query({ path })}`, 300),
+      read<CatalogCategoryDetail>(slug, `/categories/resolve${query({ path })}`, 300, CATALOG),
 
-    getStoreTags: (slug: string) => read<StoreTag[]>(slug, "/tags", 300),
+    getStoreTags: (slug: string) => read<StoreTag[]>(slug, "/tags", 300, CATALOG),
 
-    getStoreCampaigns: (slug: string) => read<StoreCampaign[]>(slug, "/campaigns", 60),
+    getStoreCampaigns: (slug: string) => read<StoreCampaign[]>(slug, "/campaigns", 60, CATALOG),
 
-    getStorePages: (slug: string) => read<ContentPageLink[]>(slug, "/pages", 300),
+    getStorePages: (slug: string) => read<ContentPageLink[]>(slug, "/pages", 300, CONTENT),
 
     getStorePage: (slug: string, pageSlug: string) =>
-      read<ContentPageView>(slug, `/pages/${pageSlug}`, 300),
+      read<ContentPageView>(slug, `/pages/${pageSlug}`, 300, CONTENT),
 
     /**
      * One Storefront Builder page by its public path (`/pages/<slug>`). The
@@ -139,7 +152,7 @@ function fetchersFor(read: StorefrontRead) {
      * its new address. Under owner preview it is the draft (`isDraft`).
      */
     getStorefrontPage: (slug: string, path: string) =>
-      read<StorefrontPublicPage>(slug, `/page${query({ path })}`, 300),
+      read<StorefrontPublicPage>(slug, `/page${query({ path })}`, 300, CONTENT),
 
     /**
      * Every catalogue query a builder page's sections make, in as few backend
@@ -158,6 +171,7 @@ function fetchersFor(read: StorefrontRead) {
             slug,
             `/section-data${query({ r: JSON.stringify(chunk) })}`,
             60,
+            CATALOG,
           ),
         ),
       );
@@ -165,8 +179,9 @@ function fetchersFor(read: StorefrontRead) {
     },
 
     /** Cached 1h: crawlers re-fetch far less often than shoppers browse, and the
-     *  `store:{slug}` tag still flushes it on an admin edit. */
-    getStoreSitemap: (slug: string) => read<StorefrontSitemap>(slug, "/sitemap", 3600),
+     *  catalog and content tags still flush it on an admin edit. */
+    getStoreSitemap: (slug: string) =>
+      read<StorefrontSitemap>(slug, "/sitemap", 3600, ["catalog", "content"]),
   };
 }
 
@@ -175,8 +190,8 @@ function fetchersFor(read: StorefrontRead) {
  * taken from the request, so a merchant previewing their unpublished shop from
  * the Customize editor sees it. Makes the calling route dynamic.
  */
-const requestStorefront = fetchersFor(async <T>(slug: string, path: string, revalidate: number) =>
-  fetchStorefront<T>(slug, path, revalidate, await getStorePreviewToken()),
+const requestStorefront = fetchersFor(async (slug, path, revalidate, scopes) =>
+  fetchStorefront(slug, path, revalidate, scopes, await getStorePreviewToken()),
 );
 
 export const {
@@ -198,6 +213,6 @@ export const {
  * Public reads that never touch the request and never preview — the only set a
  * route that must stay HTML-cacheable may call. See the module note.
  */
-export const publicStorefront = fetchersFor(<T>(slug: string, path: string, revalidate: number) =>
-  fetchStorefront<T>(slug, path, revalidate, null),
+export const publicStorefront = fetchersFor((slug, path, revalidate, scopes) =>
+  fetchStorefront(slug, path, revalidate, scopes, null),
 );

@@ -22,6 +22,7 @@
  */
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
+import type { StorefrontCacheScope } from "@/lib/storefront-cache-tags";
 import { queryKeys as k } from "./query-keys";
 
 /**
@@ -324,10 +325,14 @@ export type DomainEvent = keyof typeof EFFECTS;
 
 /**
  * Events whose data the **public storefront** renders server-side, and which therefore dirty a
- * second cache no `QueryClient` can reach: Next's Data Cache + Full Route Cache, tagged
- * `store:{slug}` by `lib/storefront-server.ts`. Those entries are shared by every shopper and live
- * in the server, so a merchant cannot clear one by reloading — before this list existed, an edit
- * took up to five minutes to appear on the shop.
+ * second cache no `QueryClient` can reach: Next's Data Cache + Full Route Cache, tagged by
+ * `lib/storefront-server.ts`. Those entries are shared by every shopper and live in the server, so a
+ * merchant cannot clear one by reloading — before this list existed, an edit took up to five minutes
+ * to appear on the shop.
+ *
+ * Each event names the cache scope it dirties (`lib/storefront-cache-tags.ts`). A product edit
+ * expires the catalogue and every page built from it, and leaves the store payload — and a landing
+ * page that shows no products — cached.
  *
  * Declared here rather than at each `onSuccess` for the reason this whole file exists: thirteen
  * mutation authors each remembering a second flush is exactly the graph nobody keeps in their head.
@@ -337,11 +342,11 @@ export type DomainEvent = keyof typeof EFFECTS;
  * routes' own 60s `revalidate` covers stock freshness; this list is for merchant-authored edits,
  * which are rare and expected to appear at once.
  */
-const PUBLIC_STOREFRONT_EVENTS = new Set<DomainEvent>([
-  "storefront.catalog.changed",
-  "storefront.content.changed",
-  "catalog.changed",
-]);
+const PUBLIC_STOREFRONT_EVENTS: Partial<Record<DomainEvent, StorefrontCacheScope>> = {
+  "storefront.catalog.changed": "catalog",
+  "storefront.content.changed": "content",
+  "catalog.changed": "catalog",
+};
 
 /**
  * Invalidate everything the given events dirty. Duplicate keys across composed events are collapsed,
@@ -360,9 +365,12 @@ export const invalidate = (qc: QueryClient, ...events: DomainEvent[]) => {
     for (const key of EFFECTS[event]) keys.set(JSON.stringify(key), key);
   }
 
-  if (events.some((event) => PUBLIC_STOREFRONT_EVENTS.has(event))) {
-    void revalidateStorefront();
+  const scopes = new Set<StorefrontCacheScope>();
+  for (const event of events) {
+    const scope = PUBLIC_STOREFRONT_EVENTS[event];
+    if (scope) scopes.add(scope);
   }
+  if (scopes.size > 0) void revalidateStorefront([...scopes]);
 
   return Promise.all(
     [...keys.values()].map((queryKey) => qc.invalidateQueries({ queryKey })),
