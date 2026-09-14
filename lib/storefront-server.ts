@@ -23,6 +23,14 @@
  * that must stay HTML-cacheable (the Storefront Builder's `/sites` route).
  * Catching the error `headers()` throws does not undo the dynamic bail-out, so a
  * cacheable route must not call the request-aware set at all.
+ *
+ * **The two sets also fail differently.** A 4xx is the API's answer — the store
+ * or the thing is not there — and both return `null`. When the API gives no
+ * answer (unreachable, or a 5xx) the request-aware set still returns `null`, but
+ * `publicStorefront` throws `StorefrontUnavailableError`: a cached render that
+ * turned an outage into `notFound()` stored that 404 for five minutes after the
+ * API came back (measured 2026-09-14). A thrown render is not cached, and a
+ * failed revalidation keeps the last good page.
  */
 
 import { getStorePreviewToken } from "@/lib/storefront-host";
@@ -53,6 +61,17 @@ const SITE: readonly StorefrontCacheScope[] = ["site"];
 const CATALOG: readonly StorefrontCacheScope[] = ["catalog"];
 const CONTENT: readonly StorefrontCacheScope[] = ["content"];
 
+/** The storefront API gave no answer — unreachable, or a 5xx. Not a statement about the store. */
+export class StorefrontUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StorefrontUnavailableError";
+  }
+}
+
+/** What a read does when the API gives no answer: read it as "not there", or throw. */
+type OnNoAnswer = "null" | "throw";
+
 /** One storefront API read. `preview` is the owner-preview token, or `null` for the public payload. */
 async function fetchStorefront<T>(
   slug: string,
@@ -60,9 +79,12 @@ async function fetchStorefront<T>(
   revalidate: number,
   scopes: readonly StorefrontCacheScope[],
   preview: string | null,
+  onNoAnswer: OnNoAnswer,
 ): Promise<T | null> {
+  const endpoint = `/storefront/${slug}${path}`;
+  let res: Response;
   try {
-    const res = await fetch(`${API_BASE}/storefront/${slug}${path}`, {
+    res = await fetch(`${API_BASE}${endpoint}`, {
       // A preview response is NOT shared cache. It is the one case where this
       // URL can return a payload the public may not have, so letting it settle
       // into the `store:{slug}` entry would serve an unpublished shop to the
@@ -73,12 +95,20 @@ async function fetchStorefront<T>(
         : { next: { revalidate, tags: storefrontCacheTags(slug, scopes) } }),
       headers: { Accept: "application/json", ...previewApiHeaders(preview) },
     });
-    if (!res.ok) return null;
-    const json = await res.json().catch(() => ({}));
-    return (json?.data ?? null) as T;
-  } catch {
+  } catch (error) {
+    if (onNoAnswer === "throw") {
+      throw new StorefrontUnavailableError(
+        `Storefront API unreachable (${endpoint}): ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
     return null;
   }
+  if (res.status >= 500 && onNoAnswer === "throw") {
+    throw new StorefrontUnavailableError(`Storefront API failed with ${res.status} (${endpoint})`);
+  }
+  if (!res.ok) return null;
+  const json = await res.json().catch(() => ({}));
+  return (json?.data ?? null) as T;
 }
 
 type StorefrontRead = <T>(
@@ -157,8 +187,9 @@ function fetchersFor(read: StorefrontRead) {
     /**
      * Every catalogue query a builder page's sections make, in as few backend
      * calls as the backend's limits allow (usually one), merged into one map
-     * keyed by section instance id. A failed chunk leaves its sections without
-     * data, and those sections render nothing.
+     * keyed by section instance id. On the request-aware set a failed chunk
+     * leaves its sections without data, and those sections render nothing; on
+     * `publicStorefront` it throws, so a cached page never stores empty sections.
      */
     getSectionData: async (
       slug: string,
@@ -191,7 +222,7 @@ function fetchersFor(read: StorefrontRead) {
  * the Customize editor sees it. Makes the calling route dynamic.
  */
 const requestStorefront = fetchersFor(async (slug, path, revalidate, scopes) =>
-  fetchStorefront(slug, path, revalidate, scopes, await getStorePreviewToken()),
+  fetchStorefront(slug, path, revalidate, scopes, await getStorePreviewToken(), "null"),
 );
 
 export const {
@@ -214,5 +245,5 @@ export const {
  * route that must stay HTML-cacheable may call. See the module note.
  */
 export const publicStorefront = fetchersFor((slug, path, revalidate, scopes) =>
-  fetchStorefront(slug, path, revalidate, scopes, null),
+  fetchStorefront(slug, path, revalidate, scopes, null, "throw"),
 );

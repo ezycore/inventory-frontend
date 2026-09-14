@@ -210,6 +210,10 @@ which reads only its params:
   landing page emits no canonical and lets crawlers follow its links.
 - Shared by both routes: `StoreHead` (`components/storefront/store-head.tsx` — favicon link + Meta
   Pixel).
+- **`publicStorefront` throws when the API gives no answer** — unreachable, or a 5xx
+  (`StorefrontUnavailableError` in `lib/storefront-server.ts`); a 4xx still reads as `null`, and the
+  request-aware set keeps returning `null`. A cached render must never turn an outage into
+  `notFound()`: ISR stored that bare 404 for five minutes after the API recovered (found 2026-09-14).
 - Freshness follows the fetch tags (see "Cache + on-demand revalidation"): `revalidateTag` drops the
   cached HTML of every page built from a flushed fetch (Spike A). `revalidate = 300` is the backstop.
 
