@@ -123,6 +123,30 @@ The backend validates saved pages against a **generated** copy,
   and `field-specs.ts` imports nothing, because its body is copied verbatim into the backend.
 - Bump a section's `v` for any change that would make an already-saved instance invalid.
 
+**Storefront Builder renderer (since 2026-09-14).** Lives in `components/storefront-builder/`:
+
+- `page-sections.tsx` renders a page in two phases. `prepareSections` drops, without a trace, every
+  instance that is disabled, of an unknown type or version, missing a required setting, pointing at
+  nothing, or hidden on both breakpoints; `PageSections` draws the rest in `.sfb-sec` frames and leaves
+  out any section whose data came back empty (no empty padded bands).
+- `section-registry.tsx` binds each spec to its view with `defineSection` (plus an optional
+  catalogue `request` and `isEmpty`). A type missing from the registry is skipped on the page.
+- Views in `sections/` are **pure server components** of `SectionViewProps` — no fetching, no request
+  reads, no `"use client"`. **Client code only through `islands/island-map.tsx`**, one
+  `next/dynamic(() => import(...))` per island: Spike B showed any island imported into a server
+  module is bundled for every page.
+- Settings are read with `lib/storefront-builder/settings.ts` (the backend's rules; an invalid
+  required field → the section is skipped). Responsive values become `--x` / `--x-m` custom
+  properties (`responsive.ts`); the style box is `section-style.ts`; the CSS is
+  `app/(storefront)/storefront-builder.css`, loaded by the storefront root layout. **Never import a
+  CSS file from a component** — vitest cannot load the project's PostCSS config and the whole test
+  file fails to import.
+- Data: `getStorefrontPage` and `getSectionData` in `lib/storefront-server.ts`. Section data is one
+  batched call, split only when the encoded `r` would pass the backend's 4,000-character cap.
+  Catalogue-wide product grids ask for in-stock products; hand-picked grids keep every pick.
+- `countdown` is specified but **not rendered**: days/hours/minutes/seconds have no Bangla terms in
+  `docs/I18N-GLOSSARY.md`, and storefront copy must not invent them.
+
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
 `cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS), `account/*` (auth card +
 account area, `verify-email`, `reset-password`, `oauth`, `orders`, `orders/[orderNumber]`,

@@ -17,6 +17,12 @@
 
 import { getStorePreviewToken } from "@/lib/storefront-host";
 import { previewApiHeaders } from "@/lib/storefront-preview";
+import {
+  chunkSectionDataRequests,
+  type ProductsDataRequest,
+  type SectionData,
+} from "@/lib/storefront-builder/section-data";
+import type { StorefrontPublicPage } from "@/types/api";
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -107,6 +113,37 @@ export const getStorePages = (slug: string) =>
 
 export const getStorePage = (slug: string, pageSlug: string) =>
   sf<ContentPageView>(slug, `/pages/${pageSlug}`, 300);
+
+/**
+ * One Storefront Builder page by its public path (`/pages/<slug>`). The
+ * response carries either the page or, for a renamed page, the redirect to its
+ * new address. Under owner preview it is the draft (`isDraft`).
+ */
+export const getStorefrontPage = (slug: string, path: string) =>
+  sf<StorefrontPublicPage>(slug, `/page${query({ path })}`, 300);
+
+/**
+ * Every catalogue query a builder page's sections make, in as few backend calls
+ * as the backend's limits allow (usually one), merged into one map keyed by
+ * section instance id. A failed chunk leaves its sections without data, and
+ * those sections render nothing.
+ */
+export async function getSectionData(
+  slug: string,
+  requests: readonly ProductsDataRequest[],
+): Promise<Record<string, SectionData>> {
+  if (requests.length === 0) return {};
+  const chunks = await Promise.all(
+    chunkSectionDataRequests(requests).map((chunk) =>
+      sf<{ results: Record<string, SectionData> }>(
+        slug,
+        `/section-data${query({ r: JSON.stringify(chunk) })}`,
+        60,
+      ),
+    ),
+  );
+  return Object.assign({}, ...chunks.map((chunk) => chunk?.results ?? {}));
+}
 
 /**
  * Every crawlable URL for the store, for `app/sitemap.ts`. Server-only — no client

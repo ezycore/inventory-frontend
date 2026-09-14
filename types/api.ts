@@ -190,6 +190,9 @@ export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */
 export type StorefrontPreviewToken = Schemas["StorefrontPreviewToken"];
+// Storefront Builder public reads — `GET /storefront/:slug/page` and `/section-data`.
+export type StorefrontPublicPage = Schemas["StorefrontPublicPage"];
+export type StorefrontSectionData = Schemas["StorefrontSectionData"];
 
 /**
  * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).

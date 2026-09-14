@@ -6,6 +6,10 @@ import { StorefrontToaster } from "@/components/storefront/storefront-toaster";
 import { STOREFRONT_FONT_VARS } from "./fonts";
 import "./storefront-base.css";
 import "./storefront.css";
+// Storefront Builder section frame (`.sfb-*`). Loaded here rather than by the
+// renderer: a CSS import inside a component breaks every vitest file that
+// imports it, and this sheet is small enough to ride on every shop page.
+import "./storefront-builder.css";
 
 // Set the stored theme before paint so dark-mode users don't flash light.
 const NO_FLASH = `(function(){try{var t=localStorage.getItem('ezy-sf-theme');var r=document.querySelector('.sf-root');if(r){if(t==='dark')r.setAttribute('data-theme','dark');var l=localStorage.getItem('ezy-sf-lang');if(l==='bn')r.setAttribute('lang','bn');}}catch(e){}})();`;

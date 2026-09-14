@@ -8,7 +8,7 @@ import { readImage, type Responsive } from "./settings";
  * `SectionStyle`): background, vertical padding, width, alignment and text tone.
  *
  * Resolved to CSS custom properties and two data attributes on the section
- * element, which `builder.css` turns into layout. Like `readSettings`, anything
+ * element, which `app/(storefront)/storefront-builder.css` turns into layout. Like `readSettings`, anything
  * invalid falls back to the default rather than failing the section — the
  * backend has already refused invalid style on save.
  */

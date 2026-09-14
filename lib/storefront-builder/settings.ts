@@ -47,9 +47,19 @@ type ScalarOf<S> = S extends { type: "number" }
 
 type FieldOf<S> = S extends { responsive: true } ? Responsive<ScalarOf<S>> : ScalarOf<S>;
 
-/** The typed settings of a section, derived from its `as const` spec. */
+type OptionalKeys<T> = {
+  [K in keyof T]: T[K] extends { optional: true } ? K : never;
+}[keyof T];
+
+/**
+ * The typed settings of a section, derived from its `as const` spec: required
+ * settings are required keys, optional ones are optional keys — so a settings
+ * object may simply leave an optional setting out.
+ */
 export type SettingsOf<T extends Record<string, SectionFieldSpec>> = {
-  [K in keyof T]: T[K] extends { optional: true } ? FieldOf<T[K]> | undefined : FieldOf<T[K]>;
+  [K in Exclude<keyof T, OptionalKeys<T>>]: FieldOf<T[K]>;
+} & {
+  [K in OptionalKeys<T>]?: FieldOf<T[K]>;
 };
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -136,6 +146,31 @@ const readField = (spec: SectionFieldSpec, value: unknown): unknown => {
   const mobile = readScalar(spec, value.mobile);
   return mobile === undefined ? { base } : { base, mobile };
 };
+
+const BLOCK_ID = /^[A-Za-z0-9_-]{1,40}$/;
+
+/**
+ * A section's repeatable blocks, typed by the block spec. An invalid block —
+ * bad id, repeated id, or a required setting that does not read — is skipped
+ * on its own, so one broken FAQ item never hides the rest.
+ */
+export function readBlocks<T extends Record<string, SectionFieldSpec>>(
+  specs: { max: number; settings: T } | undefined,
+  raw: unknown,
+): { id: string; settings: SettingsOf<T> }[] {
+  if (!specs || !Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const blocks: { id: string; settings: SettingsOf<T> }[] = [];
+  for (const block of raw.slice(0, specs.max)) {
+    if (!isPlainObject(block) || typeof block.id !== "string" || !BLOCK_ID.test(block.id)) continue;
+    if (seen.has(block.id)) continue;
+    const settings = readSettings(specs.settings, block.settings);
+    if (!settings) continue;
+    seen.add(block.id);
+    blocks.push({ id: block.id, settings });
+  }
+  return blocks;
+}
 
 /**
  * A section's settings, typed by its spec — or `null` when a required field is

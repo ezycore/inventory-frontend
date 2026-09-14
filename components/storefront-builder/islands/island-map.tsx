@@ -1,0 +1,39 @@
+"use client";
+// coding-standard: maintained
+
+import dynamic from "next/dynamic";
+import type { ComponentProps, ComponentType } from "react";
+
+/**
+ * The only way a Storefront Builder section loads client code.
+ *
+ * Spike B (plan §2.7) tested every way of mixing server sections with client
+ * islands. Importing an island into a server module — statically, or through
+ * `next/dynamic` — merged every island into one chunk that every page
+ * downloaded. Only this shape split them: a `"use client"` module holding one
+ * `next/dynamic(() => import(...))` per island type. A page without a product
+ * grid then downloads no product-card code at all.
+ *
+ * So: a section view renders `<Island name="…" props={…} />` and never imports
+ * a client component itself. Props cross the server → client boundary, so they
+ * must be serializable.
+ */
+const ISLANDS = {
+  "product-cards": dynamic(() =>
+    import("./product-cards").then((module) => module.ProductCardsIsland),
+  ),
+};
+
+export type IslandName = keyof typeof ISLANDS;
+export type IslandProps<N extends IslandName> = ComponentProps<(typeof ISLANDS)[N]>;
+
+export function Island<N extends IslandName>({
+  name,
+  props,
+}: {
+  name: N;
+  props: IslandProps<N>;
+}) {
+  const Component = ISLANDS[name] as ComponentType<IslandProps<N>>;
+  return <Component {...props} />;
+}

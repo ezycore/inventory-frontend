@@ -38,7 +38,43 @@
   max-width: none;
 }
 
+/* ---- Shared pieces sections draw with ---- */
+
+/* The store's primary button, in the store's own colours. */
+.sfb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sfb-button:hover {
+  background: var(--primary-hover, var(--primary));
+}
+
+/* A section's own alignment wins over the style box's inherited one. */
+.sfb-cta {
+  text-align: var(--sfb-cta-align, inherit);
+}
+
+/* A product section's column override; unset keeps the store's `--cols` ramp. */
+.sfb-cols {
+  --cols: var(--sfb-cols);
+}
+
 @media (max-width: 679px) {
+  .sfb-cta {
+    text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
+  }
+  .sfb-cols {
+    --cols: var(--sfb-cols-m, var(--sfb-cols));
+  }
   .sfb-sec {
     padding-block: var(--sfb-pt-m, var(--sfb-pt, 0px)) var(--sfb-pb-m, var(--sfb-pb, 0px));
     text-align: var(--sfb-align-m, var(--sfb-align, left));
