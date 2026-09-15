@@ -726,8 +726,13 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   `content` scope. **Never let an autosave refetch the page** — the refetch races the merchant's next
   edit and hands the editor a `draftVersion` it did not save. `useSaveStorefrontPageDraft` shows no
   toast and handles no error itself: the editor has to tell a version conflict from a refused section.
-- **Creating asks for a name only** (`components/ecommerce/pages/new-page-dialog.tsx`) and opens the
-  editor; the backend picks the address, the minimal chrome and `noindex`.
+- **Creating starts from a template** (`components/ecommerce/pages/new-page-dialog.tsx`): Single
+  product COD, Offer or campaign, Product launch, Blank, then the product and a name. Templates live in
+  `components/ecommerce/pages/page-templates.ts` as section lists built with `newSection`, so they
+  start from the same defaults as the editor; the picked product's id goes into every product section,
+  and nothing of the product is copied (its sections draw it live). The page is created with those
+  sections as its first draft in ONE request (`POST /ecommerce/pages` `sections`, checked like a draft
+  save before anything is written). The backend picks the address, the minimal chrome and `noindex`.
 - **Editor copy is English for now** (owner decision, 2026-09-15), like the rest of Online Store; only
   the sidebar label is translated (`পেজ`).
 - **A draft is previewed** through the owner-preview page route — see "Cached store pages" above.

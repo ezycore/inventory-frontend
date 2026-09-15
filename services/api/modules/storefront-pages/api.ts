@@ -29,12 +29,14 @@ export interface StorefrontPageListParams {
   status?: StorefrontPage["status"];
 }
 
-/** Landing pages only: content pages move into the builder in Phase 4, system pages in Phase 5. */
+/** Landing pages only: content pages move into the builder with the store migration, system pages in Phase 5. */
 export interface CreateStorefrontPageInput {
   title: string;
   /** Unset takes a free slug made from the title. */
   slug?: string;
   chrome?: StorefrontPage["chrome"];
+  /** A template's starting sections, saved as the first draft — refused whole, like a draft save. */
+  sections?: StorefrontPageSection[];
 }
 
 export interface UpdateStorefrontPageInput {

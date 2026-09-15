@@ -31,10 +31,19 @@ A landing page does not change your homepage, and shoppers only find it through 
 ## Make a page
 
 1. Open **Pages** and press **New landing page**.
-2. Give it a **Page name** you will recognise, like "Eid offer". Shoppers do not see this name.
-3. Press **Create and open editor**.
+2. Pick a starting point:
+   - **Single product, cash on delivery** — the product, your promises, an order form and common
+     questions.
+   - **Offer or campaign** — the price and discount first, then an order form with a coupon box.
+   - **Product launch** — large photos and room to tell shoppers what is new.
+   - **Blank** — an empty page you fill yourself.
+3. Unless you picked Blank, choose the **Product** the page sells. Its photos, price and description
+   fill the page, and stay up to date when you change the product.
+4. Give it a **Page name** you will recognise, like "Eid offer". Shoppers do not see this name.
+5. Press **Create and open editor**.
 
-The page starts empty and hidden. Nobody can open it until you publish it.
+The page starts hidden. Nobody can open it until you publish it. Change the starting words — the
+promises, questions and headings are examples — and move or remove any section.
 
 ## Add and arrange sections
 

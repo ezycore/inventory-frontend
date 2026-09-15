@@ -41600,6 +41600,31 @@ export interface operations {
                     slug?: string;
                     /** @enum {string} */
                     chrome?: "full" | "minimal" | "none";
+                    sections?: ({
+                        id: string;
+                        type: string;
+                        v: number;
+                        enabled: boolean;
+                        visibility?: {
+                            [key: string]: unknown;
+                        };
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                        style?: {
+                            [key: string]: unknown;
+                        };
+                        blocks?: ({
+                            id: string;
+                            settings: {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                    } & {
+                        [key: string]: unknown;
+                    })[];
                 };
             };
         };
