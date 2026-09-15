@@ -7400,6 +7400,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organization/storefront/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/storefront/site
+         * @description Defined in `src/routes/storefront-site.routes.ts:26`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_organization_storefront_site"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * DELETE /api/organization/storefront/site/draft
+         * @description Defined in `src/routes/storefront-site.routes.ts:33`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_organization_storefront_site_draft"];
+        options?: never;
+        head?: never;
+        /**
+         * PATCH /api/organization/storefront/site/draft
+         * @description Defined in `src/routes/storefront-site.routes.ts:27`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        patch: operations["patch_api_organization_storefront_site_draft"];
+        trace?: never;
+    };
+    "/api/organization/storefront/site/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/storefront/site/publish
+         * @description Defined in `src/routes/storefront-site.routes.ts:34`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         */
+        post: operations["post_api_organization_storefront_site_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/storefront/site/revisions
+         * @description Defined in `src/routes/storefront-site.routes.ts:40`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_organization_storefront_site_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/revisions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/storefront/site/revisions/:version/restore
+         * @description Defined in `src/routes/storefront-site.routes.ts:45`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_organization_storefront_site_revisions_version_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ecommerce/catalog": {
         parameters: {
             query?: never;
@@ -12541,6 +12645,8 @@ export interface components {
             organizationId: string;
             published: boolean;
             homePageId?: string;
+            /** Format: date-time */
+            siteCutoverAt?: string;
             displayName?: string;
             logo?: {
                 url: string;
@@ -14061,6 +14167,660 @@ export interface components {
                     [key: string]: unknown;
                 };
             }[];
+        };
+        StorefrontSite: {
+            _id: string;
+            organizationId: string;
+            published: {
+                look: {
+                    theme?: {
+                        preset: string;
+                        brandColor?: string;
+                        accentColor?: string;
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        }[];
+                        logo?: {
+                            background?: string;
+                            height?: number;
+                            padding?: number;
+                            radius?: number;
+                        };
+                        homeCollections?: {
+                            /** @enum {string} */
+                            style?: "card" | "plain";
+                            /** @enum {string} */
+                            layout?: "strip" | "grid";
+                            columns?: number;
+                            mobileColumns?: number;
+                            /** @enum {string} */
+                            align?: "left" | "center" | "right";
+                            showLabels?: boolean;
+                        };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                            width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
+                        };
+                        mobile?: {
+                            left?: string[];
+                            right?: string[];
+                            brand?: string;
+                            row?: string;
+                            searchInline?: boolean;
+                            tabs?: string[];
+                            menuStyle?: string;
+                            icons?: {
+                                [key: string]: string;
+                            };
+                            logoHeight?: number;
+                            sticky?: boolean;
+                        };
+                        appliedThemeId?: string;
+                        /** @enum {string} */
+                        heroAlign?: "left" | "center";
+                    };
+                    copy?: {
+                        footerText?: string;
+                        footerNote?: string;
+                        footerContactHeading?: string;
+                        footerNewsletter?: {
+                            heading?: string;
+                            blurb?: string;
+                            buttonLabel?: string;
+                        };
+                    };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category" | "manual";
+                        categoryId?: string;
+                        categoryIds?: string[];
+                        /** @enum {string} */
+                        cardShape?: "stacked" | "split";
+                        /** @enum {string} */
+                        cardSide?: "left" | "right" | "alternate";
+                        cardSplit?: number;
+                        cardHideText?: boolean;
+                        cardHeight?: number;
+                        /** @enum {string} */
+                        cardFlow?: "wrap" | "scroll";
+                        cardPerRow?: number;
+                        cardRadius?: number;
+                        cardArrows?: boolean;
+                        /** @enum {string} */
+                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                        fullWidth?: boolean;
+                        mobile?: {
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            cardHeight?: number;
+                        };
+                        cards?: {
+                            categoryId: string;
+                            title?: string;
+                            description?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            buttonLabel?: string;
+                            buttonHref?: string;
+                        }[];
+                        title?: string;
+                        limit?: number;
+                        tagIds?: string[];
+                        productIds?: string[];
+                        ctaLabel?: string;
+                        ctaHref?: string;
+                        showCta?: boolean;
+                    }[];
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
+                    heroBanner?: {
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        primaryLabel?: string;
+                        primaryLink?: string;
+                        secondaryLabel?: string;
+                        secondaryLink?: string;
+                        imageFit?: string;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                    };
+                    heroSlides?: {
+                        image?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                        imageFit?: string;
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        buttonLabel?: string;
+                        link?: string;
+                        hideTextOnMobile?: boolean;
+                    }[];
+                    templates?: {
+                        home?: string;
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        hero?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    nav?: {
+                        header?: {
+                            label: string;
+                            /** @enum {string} */
+                            type: "category" | "page" | "url";
+                            value?: string;
+                            children?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url";
+                                value?: string;
+                            }[];
+                        }[];
+                        footer?: {
+                            title: string;
+                            links: {
+                                label?: string;
+                                url?: string;
+                            }[];
+                        }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        footerContentPages?: {
+                            show?: boolean;
+                            title?: string;
+                        };
+                        announcement?: {
+                            enabled: boolean;
+                            useShippingRule?: boolean;
+                            text?: string;
+                            link?: string;
+                            bgColor?: string;
+                            textColor?: string;
+                            icon?: string;
+                            ctaLabel?: string;
+                            dismissible?: boolean;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            overlay?: string;
+                            overlayOpacity?: number;
+                            /** @enum {string} */
+                            bgFit?: "cover" | "tile";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        campaignStrip?: {
+                            enabled?: boolean;
+                            /** @enum {string} */
+                            showOn?: "all" | "home";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            bgColor?: string;
+                            textColor?: string;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingY?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingX?: "sm" | "md" | "lg";
+                            dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
+                        };
+                    };
+                    contactButton?: {
+                        enabled?: boolean;
+                        label?: string;
+                        greeting?: string;
+                        /** @enum {string} */
+                        position?: "right" | "left";
+                        showOn?: string[];
+                        channels?: {
+                            kind: string;
+                            value: string;
+                            label?: string;
+                            enabled?: boolean;
+                        }[];
+                        hours?: {
+                            enabled?: boolean;
+                            days?: number[];
+                            from?: string;
+                            to?: string;
+                            offlineNote?: string;
+                        };
+                        nudge?: {
+                            enabled?: boolean;
+                            delaySeconds?: number;
+                            text?: string;
+                        };
+                    };
+                };
+                version: number;
+                /** Format: date-time */
+                publishedAt: string;
+            };
+            draft: {
+                look: {
+                    theme?: {
+                        preset: string;
+                        brandColor?: string;
+                        accentColor?: string;
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        }[];
+                        logo?: {
+                            background?: string;
+                            height?: number;
+                            padding?: number;
+                            radius?: number;
+                        };
+                        homeCollections?: {
+                            /** @enum {string} */
+                            style?: "card" | "plain";
+                            /** @enum {string} */
+                            layout?: "strip" | "grid";
+                            columns?: number;
+                            mobileColumns?: number;
+                            /** @enum {string} */
+                            align?: "left" | "center" | "right";
+                            showLabels?: boolean;
+                        };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                            width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
+                        };
+                        mobile?: {
+                            left?: string[];
+                            right?: string[];
+                            brand?: string;
+                            row?: string;
+                            searchInline?: boolean;
+                            tabs?: string[];
+                            menuStyle?: string;
+                            icons?: {
+                                [key: string]: string;
+                            };
+                            logoHeight?: number;
+                            sticky?: boolean;
+                        };
+                        appliedThemeId?: string;
+                        /** @enum {string} */
+                        heroAlign?: "left" | "center";
+                    };
+                    copy?: {
+                        footerText?: string;
+                        footerNote?: string;
+                        footerContactHeading?: string;
+                        footerNewsletter?: {
+                            heading?: string;
+                            blurb?: string;
+                            buttonLabel?: string;
+                        };
+                    };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category" | "manual";
+                        categoryId?: string;
+                        categoryIds?: string[];
+                        /** @enum {string} */
+                        cardShape?: "stacked" | "split";
+                        /** @enum {string} */
+                        cardSide?: "left" | "right" | "alternate";
+                        cardSplit?: number;
+                        cardHideText?: boolean;
+                        cardHeight?: number;
+                        /** @enum {string} */
+                        cardFlow?: "wrap" | "scroll";
+                        cardPerRow?: number;
+                        cardRadius?: number;
+                        cardArrows?: boolean;
+                        /** @enum {string} */
+                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                        fullWidth?: boolean;
+                        mobile?: {
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            cardHeight?: number;
+                        };
+                        cards?: {
+                            categoryId: string;
+                            title?: string;
+                            description?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            buttonLabel?: string;
+                            buttonHref?: string;
+                        }[];
+                        title?: string;
+                        limit?: number;
+                        tagIds?: string[];
+                        productIds?: string[];
+                        ctaLabel?: string;
+                        ctaHref?: string;
+                        showCta?: boolean;
+                    }[];
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
+                    heroBanner?: {
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        primaryLabel?: string;
+                        primaryLink?: string;
+                        secondaryLabel?: string;
+                        secondaryLink?: string;
+                        imageFit?: string;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                    };
+                    heroSlides?: {
+                        image?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                        imageFit?: string;
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        buttonLabel?: string;
+                        link?: string;
+                        hideTextOnMobile?: boolean;
+                    }[];
+                    templates?: {
+                        home?: string;
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        hero?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    nav?: {
+                        header?: {
+                            label: string;
+                            /** @enum {string} */
+                            type: "category" | "page" | "url";
+                            value?: string;
+                            children?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url";
+                                value?: string;
+                            }[];
+                        }[];
+                        footer?: {
+                            title: string;
+                            links: {
+                                label?: string;
+                                url?: string;
+                            }[];
+                        }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        footerContentPages?: {
+                            show?: boolean;
+                            title?: string;
+                        };
+                        announcement?: {
+                            enabled: boolean;
+                            useShippingRule?: boolean;
+                            text?: string;
+                            link?: string;
+                            bgColor?: string;
+                            textColor?: string;
+                            icon?: string;
+                            ctaLabel?: string;
+                            dismissible?: boolean;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            overlay?: string;
+                            overlayOpacity?: number;
+                            /** @enum {string} */
+                            bgFit?: "cover" | "tile";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        campaignStrip?: {
+                            enabled?: boolean;
+                            /** @enum {string} */
+                            showOn?: "all" | "home";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            bgColor?: string;
+                            textColor?: string;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingY?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingX?: "sm" | "md" | "lg";
+                            dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
+                        };
+                    };
+                    contactButton?: {
+                        enabled?: boolean;
+                        label?: string;
+                        greeting?: string;
+                        /** @enum {string} */
+                        position?: "right" | "left";
+                        showOn?: string[];
+                        channels?: {
+                            kind: string;
+                            value: string;
+                            label?: string;
+                            enabled?: boolean;
+                        }[];
+                        hours?: {
+                            enabled?: boolean;
+                            days?: number[];
+                            from?: string;
+                            to?: string;
+                            offlineNote?: string;
+                        };
+                        nudge?: {
+                            enabled?: boolean;
+                            delaySeconds?: number;
+                            text?: string;
+                        };
+                    };
+                };
+                /** Format: date-time */
+                updatedAt: string;
+            } | null;
+            draftVersion: number;
+            isDemoData?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StorefrontSiteRevision: {
+            _id: string;
+            version: number;
+            /** Format: date-time */
+            publishedAt: string;
+            publishedBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         CapitalReport: {
             period: {
@@ -42464,6 +43224,617 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_storefront_site: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_organization_storefront_site_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_api_organization_storefront_site_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    look: {
+                        theme?: {
+                            preset: string;
+                            brandColor?: string;
+                            accentColor?: string;
+                            homepageSections?: {
+                                key: string;
+                                type: string;
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            }[];
+                            logo?: {
+                                background?: "" | string;
+                                height?: number;
+                                padding?: number;
+                                radius?: number;
+                            };
+                            mobile?: {
+                                left?: string[];
+                                right?: string[];
+                                brand?: string;
+                                row?: string;
+                                searchInline?: boolean;
+                                tabs?: string[];
+                                menuStyle?: string;
+                                icons?: {
+                                    [key: string]: string;
+                                };
+                                logoHeight?: number;
+                                sticky?: boolean;
+                            };
+                            homeCollections?: {
+                                /** @enum {string} */
+                                style?: "card" | "plain";
+                                /** @enum {string} */
+                                layout?: "strip" | "grid";
+                                columns?: number;
+                                mobileColumns?: number;
+                                /** @enum {string} */
+                                align?: "left" | "center" | "right";
+                                showLabels?: boolean;
+                            };
+                            design?: {
+                                font?: string;
+                                surface?: string;
+                                scale?: string;
+                                density?: string;
+                                radius?: string;
+                                width?: string;
+                                navHover?: string;
+                                navChildHover?: string;
+                            };
+                            /** @enum {string} */
+                            heroAlign?: "left" | "center";
+                            appliedThemeId?: string;
+                        };
+                        copy?: {
+                            footerText?: string;
+                            footerNote?: string;
+                            footerContactHeading?: string;
+                            footerNewsletter?: {
+                                heading?: string;
+                                blurb?: string;
+                                buttonLabel?: string;
+                            };
+                        };
+                        sectionConfig?: {
+                            key: string;
+                            /** @enum {string} */
+                            source?: "featured" | "newest" | "category" | "manual";
+                            categoryId?: string;
+                            categoryIds?: string[];
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            mobile?: {
+                                /** @enum {string} */
+                                cardFlow?: "wrap" | "scroll";
+                                cardPerRow?: number;
+                                /** @enum {string} */
+                                cardShape?: "stacked" | "split";
+                                /** @enum {string} */
+                                cardSide?: "left" | "right" | "alternate";
+                                cardSplit?: number;
+                                cardHideText?: boolean;
+                                cardHeight?: number;
+                            };
+                            /** @enum {string} */
+                            cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                            cardHeight?: number;
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            cardRadius?: number;
+                            cardArrows?: boolean;
+                            fullWidth?: boolean;
+                            cards?: {
+                                categoryId: string;
+                                title?: string;
+                                description?: string;
+                                image?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                buttonLabel?: string;
+                                buttonHref?: string;
+                            }[];
+                            title?: string;
+                            limit?: number;
+                            tagIds?: string[];
+                            productIds?: string[];
+                            ctaLabel?: string;
+                            ctaHref?: string;
+                            showCta?: boolean;
+                        }[];
+                        trustBadges?: {
+                            text: string;
+                            icon?: string;
+                        }[];
+                        heroBanner?: {
+                            badge?: string;
+                            title?: string;
+                            subtitle?: string;
+                            primaryLabel?: string;
+                            primaryLink?: string;
+                            secondaryLabel?: string;
+                            secondaryLink?: string;
+                            imageFit?: string;
+                            mobileImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            focal?: {
+                                x: number;
+                                y: number;
+                            };
+                            mobileFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                        };
+                        heroSlides?: {
+                            image?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            mobileImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            focal?: {
+                                x: number;
+                                y: number;
+                            };
+                            mobileFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                            imageFit?: string;
+                            badge?: string;
+                            title?: string;
+                            subtitle?: string;
+                            buttonLabel?: string;
+                            link?: string;
+                            hideTextOnMobile?: boolean;
+                        }[];
+                        templates?: {
+                            home?: string;
+                            collection?: string;
+                            product?: string;
+                            checkout?: string;
+                            footer?: string;
+                            header?: string;
+                            productCard?: string;
+                            cardActions?: string;
+                            hero?: string;
+                            headerMenu?: string;
+                            pagination?: string;
+                            imageFit?: string;
+                            imageRatio?: string;
+                            categoryTiles?: string;
+                            accountLayout?: string;
+                            contentLayout?: string;
+                            cartLayout?: string;
+                            shell?: string;
+                            mobile?: string;
+                        };
+                        nav?: {
+                            header?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url" | "collections";
+                                value: string;
+                                children?: {
+                                    label: string;
+                                    /** @enum {string} */
+                                    type: "category" | "page" | "url" | "collections";
+                                    value: string;
+                                }[];
+                            }[];
+                            footer?: {
+                                title: string;
+                                links: {
+                                    label: string;
+                                    url: string;
+                                }[];
+                            }[];
+                            footerPaymentMethods?: {
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            };
+                            footerContentPages?: {
+                                show?: boolean;
+                                title?: string;
+                            };
+                            announcement?: {
+                                enabled?: boolean;
+                                useShippingRule?: boolean;
+                                text?: string;
+                                link?: string;
+                                bgColor?: "" | string;
+                                textColor?: "" | string;
+                                icon?: string;
+                                ctaLabel?: string;
+                                dismissible?: boolean;
+                                /** @enum {string} */
+                                size?: "sm" | "md" | "lg";
+                                marquee?: boolean;
+                                /** @enum {string} */
+                                marqueeSpeed?: "slow" | "normal" | "fast";
+                                bgImage?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                overlay?: "" | string;
+                                overlayOpacity?: number;
+                                /** @enum {string} */
+                                bgFit?: "cover" | "tile";
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            };
+                            campaignStrip?: {
+                                enabled?: boolean;
+                                /** @enum {string} */
+                                showOn?: "all" | "home";
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                                bgColor?: "" | string;
+                                textColor?: "" | string;
+                                /** @enum {string} */
+                                size?: "sm" | "md" | "lg";
+                                /** @enum {string} */
+                                paddingY?: "sm" | "md" | "lg";
+                                /** @enum {string} */
+                                paddingX?: "sm" | "md" | "lg";
+                                dismissible?: boolean;
+                            };
+                            utilityBar?: {
+                                enabled?: boolean;
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                                showPhone?: boolean;
+                                showTrackOrder?: boolean;
+                                showLanguage?: boolean;
+                                showTheme?: boolean;
+                                trackOrderLabel?: string;
+                            };
+                        };
+                        contactButton?: {
+                            enabled?: boolean;
+                            label?: string;
+                            greeting?: string;
+                            /** @enum {string} */
+                            position?: "right" | "left";
+                            showOn?: ("home" | "collection" | "product" | "cart" | "checkout" | "order" | "page" | "account")[];
+                            channels?: {
+                                /** @enum {string} */
+                                kind: "whatsapp";
+                                value: string;
+                                label?: string;
+                                enabled?: boolean;
+                            }[];
+                            hours?: {
+                                enabled?: boolean;
+                                days?: number[];
+                                from?: (unknown | string) | "";
+                                to?: (unknown | string) | "";
+                                offlineNote?: string;
+                            };
+                            nudge?: {
+                                enabled?: boolean;
+                                delaySeconds?: number;
+                                text?: string;
+                            };
+                        };
+                    };
+                    draftVersion: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_storefront_site_publish: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (60 requests / 15 minutes per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_storefront_site_revisions: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSiteRevision"][];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_storefront_site_revisions_version_restore: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
                     };
                 };
             };
