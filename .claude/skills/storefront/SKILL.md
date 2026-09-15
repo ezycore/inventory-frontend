@@ -714,6 +714,13 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     `scrollIntoView` also scrolled the editor page around the frame. Import the message names from that
     module, never from `page-draft-preview.tsx`, which would pull every section view into the admin
     bundle.
+- **A product section can set its own card photo shape and fit** (`cardImageRatio` / `cardImageFit`,
+  `CARD_PHOTO` in the section specs; owner decision 2026-09-15). `sectionCardMedia`
+  (`lib/storefront-builder/card-media.ts`) returns only what the section sets, and `ProductCard`'s
+  `imageFit` / `imageRatio` props win over `useStoreImageFit` / `useStoreImageRatio` only when given.
+  **Never resolve the store's value into those props** — an unset section must keep following
+  Customize → Product cards, including Customize's live draft. Per-product shapes were declined: cards
+  in one row would differ in height.
 
 ## Live preview (Customize) — how it works, and how to add a field
 

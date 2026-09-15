@@ -25,6 +25,18 @@ export const SECTION_MANIFEST_VERSION = 1;
  *    refuses any other version, so an unbumped breaking change turns every
  *    saved page carrying that section into a failed save.
  */
+/**
+ * A product section's own card photo frame and fit. Both optional: unset follows
+ * the store's Customize → Product cards choice (`templates.imageRatio` /
+ * `imageFit`, same ids), set applies to that section's cards alone. Added to
+ * existing sections without a `v` bump — an optional setting leaves every
+ * saved instance valid.
+ */
+const CARD_PHOTO = {
+  cardImageRatio: { type: "enum", values: ["square", "portrait", "landscape", "tall"], optional: true },
+  cardImageFit: { type: "enum", values: ["fit", "crop"], optional: true },
+} as const;
+
 export const SECTION_SPECS = {
   hero: {
     v: 1,
@@ -95,6 +107,7 @@ export const SECTION_SPECS = {
       productIds: { type: "refs", to: "product", max: 24, optional: true },
       limit: { type: "number", min: 1, max: 24, int: true },
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      ...CARD_PHOTO,
     },
   },
   "promises-band": {
@@ -172,6 +185,7 @@ export const SECTION_SPECS = {
       limit: { type: "number", min: 1, max: 6, int: true },
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
+      ...CARD_PHOTO,
     },
   },
   "product-carousel": {
@@ -186,6 +200,7 @@ export const SECTION_SPECS = {
       limit: { type: "number", min: 1, max: 24, int: true },
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
+      ...CARD_PHOTO,
     },
   },
   "campaign-offers": {

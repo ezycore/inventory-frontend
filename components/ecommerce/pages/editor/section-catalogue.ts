@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
+import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 
 /**
  * What the page editor calls things: section names, their groups in the add
@@ -138,6 +139,8 @@ const FIELD_LABELS: Record<string, string> = {
   body: "Text",
   buttonHref: "Button link",
   buttonLabel: "Button label",
+  cardImageFit: "Card photo fit",
+  cardImageRatio: "Card photo shape",
   categoryId: "Collection",
   categoryIds: "Collections",
   columns: "Columns",
@@ -180,12 +183,26 @@ const FIELD_LABELS: Record<string, string> = {
   title: "Title",
 };
 
+const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
+
 const HINTS: Record<string, string> = {
   buttonHref: "A page on your store like /products, a full web address, or tel: / mailto:.",
   link: "A page on your store like /products, a full web address, or tel: / mailto:.",
   ctaHref: "A page on your store like /products, or a full web address.",
   categoryIds: "Leave empty to show every collection.",
   mobileImage: "Optional. Shown on phones instead of the main picture.",
+  cardImageFit: CARD_PHOTO_HINT,
+  cardImageRatio: CARD_PHOTO_HINT,
+};
+
+/**
+ * Settings whose options ARE a Customize choice, named the way Customize names
+ * them — so "Extra tall" or "Full photo" reads the same on both screens, and a
+ * rename there is a rename here.
+ */
+const CUSTOMIZE_OPTIONS: Record<string, string> = {
+  cardImageFit: "imageFit",
+  cardImageRatio: "imageRatio",
 };
 
 /** Readable names for enum values, where the raw value would not read well. */
@@ -217,7 +234,12 @@ export const fieldLabel = (key: string): string => FIELD_LABELS[key] ?? sentence
 
 export const fieldHint = (key: string): string | undefined => HINTS[key];
 
-export const valueLabel = (value: string): string => VALUE_LABELS[value] ?? sentence(words(value));
+/** An option's label — Customize's own wording for a setting that mirrors a Customize choice. */
+export const valueLabel = (value: string, field?: string): string => {
+  const source = field ? CUSTOMIZE_OPTIONS[field] : undefined;
+  const customize = source ? TEMPLATE_OPTIONS[source]?.find((option) => option.value === value) : undefined;
+  return customize?.label ?? VALUE_LABELS[value] ?? sentence(words(value));
+};
 
 export const sectionLabel = (type: string): string =>
   Object.hasOwn(SECTION_CATALOGUE, type) ? SECTION_CATALOGUE[type as SectionType].label : sentence(words(type));

@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { CatalogProduct } from "@/lib/storefront-client";
+import type { CardMedia } from "@/lib/storefront-builder/card-media";
 import { ProductCard } from "@/components/storefront/product-card";
 
 /**
@@ -9,14 +10,19 @@ import { ProductCard } from "@/components/storefront/product-card";
  * `grid-auto-flow: column` + an explicit track width, because a flex row of
  * `flex: 1` cards would divide the viewport instead of overflowing. Snap points
  * keep a swipe landing on a card rather than between two.
+ *
+ * `imageFit` / `imageRatio` are a builder section's own card photo settings;
+ * unset, every card follows the store's.
  */
 export function ProductRailTrack({
   products,
   currency,
+  imageFit,
+  imageRatio,
 }: {
   products: readonly CatalogProduct[];
   currency?: string;
-}) {
+} & CardMedia) {
   return (
     <div
       style={{
@@ -33,7 +39,13 @@ export function ProductRailTrack({
     >
       {products.map((p) => (
         <div key={p._id} style={{ scrollSnapAlign: "start" }}>
-          <ProductCard product={p} currency={currency} variant="compact" />
+          <ProductCard
+            product={p}
+            currency={currency}
+            variant="compact"
+            imageFit={imageFit}
+            imageRatio={imageRatio}
+          />
         </div>
       ))}
     </div>

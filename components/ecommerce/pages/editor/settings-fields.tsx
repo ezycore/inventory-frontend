@@ -100,7 +100,7 @@ export function SettingsFields({
               </Label>
               {phoneNote}
             </div>
-            <FieldControl id={id} spec={spec} value={value} onChange={set} />
+            <FieldControl id={id} name={key} spec={spec} value={value} onChange={set} />
             {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
             {resetToDesktop}
           </div>

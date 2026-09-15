@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { Island } from "@/components/storefront-builder/islands/island-map";
@@ -13,7 +14,8 @@ type Spec = (typeof SECTION_SPECS)["product-grid"]["settings"];
  * because they carry the cart and quick-buy.
  *
  * `columns` overrides the store's responsive `--cols` ramp only when the
- * merchant set it (`.sfb-cols` in `app/(storefront)/storefront-builder.css`).
+ * merchant set it (`.sfb-cols` in `app/(storefront)/storefront-builder.css`);
+ * the card photo shape and fit likewise, only when the section sets them.
  */
 export function ProductGridSection({ settings, context, data }: SectionViewProps<Spec>) {
   const products = data?.items ?? [];
@@ -24,7 +26,10 @@ export function ProductGridSection({ settings, context, data }: SectionViewProps
       style={responsiveVars("sfb-cols", settings.columns)}
     >
       {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
-      <Island name="product-cards" props={{ products, currency: context.currency }} />
+      <Island
+        name="product-cards"
+        props={{ products, currency: context.currency, ...sectionCardMedia(settings) }}
+      />
     </div>
   );
 }

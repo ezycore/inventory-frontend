@@ -303,9 +303,14 @@ export function ViewAll({ href, label }: { href: string; label: string }) {
 export function Grid({
   products,
   currency,
+  imageFit,
+  imageRatio,
 }: {
   products: CatalogProduct[];
   currency?: string;
+  /** A builder section's own card photo fit and frame; unset follows Customize. */
+  imageFit?: "cover" | "canvas";
+  imageRatio?: string;
 }) {
   return (
     <div
@@ -316,7 +321,13 @@ export function Grid({
       }}
     >
       {products.map((p) => (
-        <ProductCard key={p._id} product={p} currency={currency} />
+        <ProductCard
+          key={p._id}
+          product={p}
+          currency={currency}
+          imageFit={imageFit}
+          imageRatio={imageRatio}
+        />
       ))}
     </div>
   );

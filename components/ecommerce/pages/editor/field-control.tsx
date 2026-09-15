@@ -29,11 +29,14 @@ const DEFAULT_CHOICE = "__default";
  */
 export function FieldControl({
   id,
+  name,
   spec,
   value,
   onChange,
 }: {
   id: string;
+  /** The setting's key — it names options that mirror a Customize choice (`valueLabel`). */
+  name: string;
   spec: SectionFieldSpec;
   value: unknown;
   onChange: (value: unknown) => void;
@@ -77,7 +80,7 @@ export function FieldControl({
     case "boolean":
       return <Switch id={id} checked={value === true} onCheckedChange={(checked) => onChange(checked)} />;
     case "enum": {
-      const options = spec.values.map((option) => ({ value: option, label: valueLabel(option) }));
+      const options = spec.values.map((option) => ({ value: option, label: valueLabel(option, name) }));
       return (
         <SimpleSelect
           id={id}
