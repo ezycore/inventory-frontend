@@ -698,6 +698,28 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   and the quick-buy sheet use the same helper, so price, stock and the default option cannot differ
   between them. A list row has no `variants`; a variable product waits for the detail payload. The
   quantity control is `QtyStepper` (`components/storefront/qty-stepper.tsx`), shared with the sheet.
+- **Single product, Offer & pricing, Sticky order bar** (landing pages only; Phase 4). All three ask for
+  their one product by id through the registry's `oneProduct` request, like the order form.
+  - **Single product** (`islands/single-product.tsx`) is the product page's own top, not a copy: the
+    info column is `ProductOverview` + `ProductLongDescription`
+    (`components/storefront/product-detail/product-overview.tsx`) and buying is `useProductBuy`
+    (`product-detail/use-product-buy.ts`) — picks, quantity, photo, `ViewContent`, add / buy now /
+    wishlist. `useProductDetail` wraps that hook with the product page's queries and template, and
+    `ProductBuyPanel` takes the hook's `ProductBuy`. **Reuse these for any other surface that sells one
+    product.** On a landing page Add to cart opens the cart drawer instead of a toast (there is often no
+    header cart to reach).
+  - **Offer & pricing** is a server view with an `offer-price` island for the words ("From", "off",
+    "Out of stock" — interface language a cached view cannot know). No stock-left line: owner decision,
+    no glossary term. `listingSoldOut` (`components/storefront/product-choice.ts`) is the sold-out rule
+    for a listing row before any option is chosen.
+  - **Sticky order bar** (`islands/sticky-order-bar.tsx`) is phones only (`.sfb-orderbar`), fixed, and
+    publishes `--sf-buybar-h` through `useBuybarHeight` so the contact launcher stacks above it. Its
+    button scrolls to the first element carrying `ORDER_FORM_ANCHOR`
+    (`components/storefront-builder/order-form-anchor.ts`, stamped by the order form section), or opens
+    the product page. It hides while a form is on screen, at the page end and when sold out. The
+    registry marks it **`floating`**: `PageSections` stamps `data-float` and the frame becomes
+    `display: contents`, so it takes no room where it is placed. A floating frame has no box, so the
+    editor preview outlines its content instead (`EDITOR_FRAME_CSS`).
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

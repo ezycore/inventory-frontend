@@ -5,17 +5,18 @@ import type { CSSProperties } from "react";
 import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import { AskAboutButton } from "@/components/storefront/ask-about-button";
-import type { ProductDetail } from "@/components/storefront/product-detail/use-product-detail";
+import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
 
 /**
- * The buy controls: variant chips, quantity stepper, and the action row.
+ * The buy controls: variant chips, quantity stepper, and the action row — on the
+ * product page and in a landing page's Single product section.
  *
  * A variable product with no purchasable variants falls back to the
  * call-to-order card instead of an empty selector — that branch lives here
  * rather than in the page because it *replaces* this whole panel, and splitting
  * the two apart is what would let a future edit render both.
  */
-export function ProductBuyPanel({ d }: { d: ProductDetail }) {
+export function ProductBuyPanel({ d }: { d: ProductBuy }) {
   const { t, store, product, variable, variants, soldOut } = d;
   if (!product) return null;
 

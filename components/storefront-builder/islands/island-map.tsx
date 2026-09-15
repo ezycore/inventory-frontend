@@ -42,6 +42,18 @@ const ISLANDS = {
   "order-form": dynamic(() =>
     import("./order-form").then((module) => module.OrderFormIsland),
   ),
+  /** One product with the product page's photos, options, price and buy controls. */
+  "single-product": dynamic(() =>
+    import("./single-product").then((module) => module.SingleProductIsland),
+  ),
+  /** An offer's price block, worded in the shopper's language. */
+  "offer-price": dynamic(() =>
+    import("./offer-price").then((module) => module.OfferPriceIsland),
+  ),
+  /** A phone bar pinned to the bottom, leading to the page's order form. */
+  "sticky-order-bar": dynamic(() =>
+    import("./sticky-order-bar").then((module) => module.StickyOrderBarIsland),
+  ),
   /** A landing page's id, remembered for the order this visit may end in. Renders nothing. */
   "visit-source": dynamic(() =>
     import("@/components/storefront/visit-source-capture").then((module) => module.VisitSourceCapture),

@@ -127,6 +127,25 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "One product with its options and your checkout form — shoppers order without leaving the page.",
     addable: true,
   },
+  "single-product": {
+    label: "Single product",
+    group: "Products",
+    description: "One product with its photos, options, price and buy buttons, like its product page.",
+    addable: true,
+  },
+  "offer-pricing": {
+    label: "Offer & pricing",
+    group: "Offers",
+    description: "A product's price with its original price crossed out and the discount.",
+    addable: true,
+  },
+  "sticky-order-bar": {
+    label: "Sticky order bar",
+    group: "Conversion",
+    description:
+      "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product page when there is none.",
+    addable: true,
+  },
   countdown: {
     label: "Countdown",
     group: "Offers",
@@ -156,8 +175,10 @@ const FIELD_LABELS: Record<string, string> = {
   description: "Description",
   flow: "Layout",
   focal: "Focus point",
+  galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
+  hideDescription: "Hide the description",
   hideText: "Hide text",
   hideTextOnMobile: "Hide text on phones",
   icon: "Icon",
@@ -172,6 +193,7 @@ const FIELD_LABELS: Record<string, string> = {
   mobileImage: "Phone picture",
   mode: "Style",
   perRow: "Cards per row",
+  productId: "Product",
   productIds: "Products",
   question: "Question",
   radius: "Corner roundness",
@@ -201,6 +223,7 @@ const HINTS: Record<string, string> = {
   cardImageFit: CARD_PHOTO_HINT,
   cardImageRatio: CARD_PHOTO_HINT,
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
+  galleryLayout: "Default follows Customize → Product page.",
 };
 
 /**
@@ -211,6 +234,7 @@ const HINTS: Record<string, string> = {
 const CUSTOMIZE_OPTIONS: Record<string, string> = {
   cardImageFit: "imageFit",
   cardImageRatio: "imageRatio",
+  galleryLayout: "product",
 };
 
 /** Readable names for enum values, where the raw value would not read well. */

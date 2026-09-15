@@ -24,10 +24,11 @@ const phoneAlign: SectionFieldSpec = { type: "enum", values: ["left", "center"],
 describe("new sections", () => {
   const addable = (Object.keys(SECTION_SPECS) as SectionType[]).filter((type) => SECTION_CATALOGUE[type].addable);
 
-  it("start complete — they save and draw at once — except image and text, which needs a picture", () => {
+  it("start complete — they save and draw at once — except those needing a picture or a product", () => {
+    // A picture and a product cannot be invented, so these start unfinished.
+    const unfinished = new Set(["image-text", "order-form", "single-product", "offer-pricing", "sticky-order-bar"]);
     for (const type of addable) {
-      // A picture and a product cannot be invented, so those two start unfinished.
-      expect(isComplete(newSection(type, [])), type).toBe(type !== "image-text" && type !== "order-form");
+      expect(isComplete(newSection(type, [])), type).toBe(!unfinished.has(type));
     }
   });
 

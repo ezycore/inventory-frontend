@@ -80,6 +80,32 @@ website order. The shopper's cart is not touched.
 Turn on **Coupon box** if your ad offers a coupon code. Order forms only work on landing pages. If the
 product sells out or is removed from your online store, the form says so or disappears.
 
+### Show one product
+
+Add a **Single product** section to show a product the way its product page does: its photos,
+options, price and the buttons to buy it. Pick the product. **Photo layout** puts the photos beside or
+above the details; leave it on **Default** to match your product pages. Turn on **Hide the
+description** when the rest of your page already describes the product.
+
+When a shopper adds the product to their cart here, the cart opens so they can check out straight away.
+
+### Show the offer price
+
+Add an **Offer & pricing** section for your offer's headline and the product's price. It shows the
+price, the old price crossed out and the discount. These come from the product and any campaign running
+on it, so the page never shows a price your checkout does not charge. If the product sells out, it says
+so.
+
+### Keep an order button on phones
+
+Add a **Sticky order bar** to keep the product's name, price and a button at the bottom of the screen
+while shoppers scroll on a phone. The button takes them to the order form on the page. If the page has
+no order form, it opens the product's page instead.
+
+The bar hides while the order form is on screen, and it does not show on computers — switch the preview
+to **Mobile view** to see it. Leave **Button label** empty and the button says "Buy now" in the
+shopper's language.
+
 ## Saving
 
 You do not need to press save. Your changes save by themselves a moment after you stop typing. The

@@ -38,6 +38,13 @@
   max-width: none;
 }
 
+/* A section pinned to the screen (the sticky order bar) takes no room in the
+   page flow: its frame's box, padding and background go, its content stays.
+   Declared before the breakpoint blocks so `data-hide` still wins. */
+.sfb-sec[data-float] {
+  display: contents;
+}
+
 /* A full-bleed hero in a full-width section runs to the window edge. */
 .sfb-sec[data-width="full"] > .sfb-inner:has(> .sf-hero-fullbleed) {
   padding-inline: 0;
@@ -97,6 +104,13 @@
   margin-top: 0;
 }
 
+/* The sticky order bar's bottom padding clears the phone's home indicator — but
+   only when no tab bar sits under it, since `--sf-bottom-nav-h` already includes
+   the inset. The bar itself is phones only (hidden past the breakpoint below). */
+.sfb-orderbar {
+  padding-bottom: calc(10px + max(0px, env(safe-area-inset-bottom) - var(--sf-bottom-nav-h, 0px)));
+}
+
 /* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
 .sfb-split {
   display: grid;
@@ -130,6 +144,9 @@
 @media (min-width: 680px) {
   .sfb-sec[data-hide="desktop"] {
     display: none;
+  }
+  .sfb-orderbar {
+    display: none !important;
   }
   .sfb-split {
     grid-template-columns: 1fr 1fr;

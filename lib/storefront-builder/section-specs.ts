@@ -270,6 +270,48 @@ export const SECTION_SPECS = {
       coupon: { type: "boolean", optional: true },
     },
   },
+  /**
+   * One product, bought on the page: the product page's photos, options, price
+   * and buy controls. Landing pages only for now; the plan also names home,
+   * which is not a builder page until the store migration.
+   */
+  "single-product": {
+    v: 1,
+    pages: ["landing"],
+    settings: {
+      productId: { type: "ref", to: "product" },
+      /** Unset follows Customize → Product page (`templates.product`, same ids). */
+      galleryLayout: { type: "enum", values: ["gallery-left", "gallery-top"], optional: true },
+      hideDescription: { type: "boolean", optional: true },
+    },
+  },
+  /**
+   * A product's price as an offer: the price, the struck original and the
+   * discount, under the merchant's headline. No "only N left" line — the
+   * glossary has no Bangla wording for it (owner decision, plan §17).
+   */
+  "offer-pricing": {
+    v: 1,
+    pages: ["landing"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      text: { type: "string", max: 400, optional: true },
+      productId: { type: "ref", to: "product" },
+    },
+  },
+  /**
+   * A bar pinned to the bottom of a phone screen: the product's name and price,
+   * and a button to the page's order form — or to the product page when the page
+   * has none. Hidden while an order form is on screen.
+   */
+  "sticky-order-bar": {
+    v: 1,
+    pages: ["landing"],
+    settings: {
+      productId: { type: "ref", to: "product" },
+      buttonLabel: { type: "string", max: 30, optional: true },
+    },
+  },
   countdown: {
     v: 1,
     pages: "all",

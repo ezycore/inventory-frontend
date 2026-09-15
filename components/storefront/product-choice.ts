@@ -63,6 +63,14 @@ export function resolveProductChoice(
 
 export type ProductChoice = ReturnType<typeof resolveProductChoice>;
 
+/**
+ * Sold out as a listing row can tell, before any option is chosen — the rule
+ * `resolveProductChoice` applies to a choice: only "show"/"hide" products sell
+ * out, a backorder one never does.
+ */
+export const listingSoldOut = (product: CatalogProduct): boolean =>
+  product.availableQuantity <= 0 && product.outOfStockBehavior !== "backorder";
+
 /** The line a choice orders — the shape the cart, quick buy and the order form all take. */
 export function choiceLine(product: CatalogProduct, choice: ProductChoice, quantity: number): CartItem {
   return {

@@ -109,6 +109,7 @@ export function PageSections({
             data-width={frame.width}
             data-tone={frame.tone}
             data-hide={hide}
+            data-float={section.floating ? "" : undefined}
             data-section-id={annotate ? id : undefined}
             style={frame.style}
           >

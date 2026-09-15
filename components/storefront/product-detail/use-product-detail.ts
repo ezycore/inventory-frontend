@@ -1,30 +1,21 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { toast } from "@/lib/storefront-toast";
+import { useParams } from "next/navigation";
 import {
-  useStore,
   useStoreCategories,
   useStoreProduct,
   useStoreProducts,
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
-import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore } from "@/services/stores/use-cart-store";
-import { useWishlistStore } from "@/services/stores/use-wishlist-store";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
-import { storeHref } from "@/lib/storefront-links";
-import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
-import { cartLineCap } from "@/lib/storefront-cart-qty";
-import { resolveProductChoice } from "@/components/storefront/product-choice";
+import { useProductBuy } from "@/components/storefront/product-detail/use-product-buy";
 import type { CatalogProduct } from "@/lib/storefront-client";
 
 /**
- * Everything the product page knows and can do — queries, shopper selection, the
- * prices and stock those two resolve to, and the three actions.
+ * Everything the product page knows and can do — its queries, the product
+ * template, and buying (`useProductBuy`, shared with a landing page's Single
+ * product section).
  *
  * Split out of the page component so the page is composition and this is
  * behaviour. The split point is deliberate: **every hook lives here**, so the
@@ -32,12 +23,9 @@ import type { CatalogProduct } from "@/lib/storefront-client";
  * the trap the old file carried two comments about.
  */
 export function useProductDetail(initialProduct?: CatalogProduct) {
-  const { slug, base } = useStoreContext();
-  const { t } = useStorefrontUI();
-  const router = useRouter();
+  const { slug } = useStoreContext();
   const productSlug = String(useParams().productSlug);
 
-  const { data: store } = useStore(slug);
   // Seeded by shop/layout.tsx through the shell, so the breadcrumb's category
   // rungs are in the SSR HTML. That seeding was added because of this line: the
   // query had no `initialData` at all, so the visible trail server-rendered as
@@ -56,157 +44,22 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     product?.categoryId ? { categoryId: product.categoryId, limit: 8 } : { limit: 8 },
   );
 
-  const addItem = useCartStore((s) => s.addItem);
-  const toggleWish = useWishlistStore((s) => s.toggle);
-  const wished = useWishlistStore(
-    (s) => s.storeSlug === slug && s.items.some((i) => i.productId === product?._id),
-  );
-
-  const [qty, setQty] = useState(1);
-  // Gallery image the shopper tapped (clamped later — variant switches can swap
-  // in a shorter image list).
-  const [imgIdx, setImgIdx] = useState(0);
-  // Variant chip selection (variable products) — empty until the shopper picks,
-  // in which case the first in-stock variant acts as the default.
-  const [picked, setPicked] = useState<Record<string, string>>({});
-
-  // The component survives PDP→PDP navigation (related products), so shopper
-  // state resets per product — render-time adjust, per react.dev's "adjusting
-  // state when a prop changes" guidance (no effect, no extra pass).
-  const [prevSlug, setPrevSlug] = useState(productSlug);
-  if (prevSlug !== productSlug) {
-    setPrevSlug(productSlug);
-    setQty(1);
-    setPicked({});
-    setImgIdx(0);
-  }
-
-  const variant = useStoreTemplate(store, "product");
-
-  // Price, stock and gallery for the shopper's pick — the same answer the
-  // quick-buy sheet and a landing page's order form give (`resolveProductChoice`).
-  // Backorder products stay buyable past zero stock on every surface that
-  // branches on stock: the buy button, the stepper, the cart cap and the chips.
-  const {
-    variable,
-    variants,
-    canBackorder,
-    selection,
-    selected: selectedVariant,
-    price,
-    compareAt,
-    availableQty,
-    images,
-  } = resolveProductChoice(product, picked);
-  const outOfStock = availableQty <= 0;
-  // Only "show"/"hide" products are truly sold out. `soldOut` gates the buy
-  // buttons + the red stock badge — and it is the ONLY stock fact the page
-  // states, deliberately: a backorder product is presented as an ordinary
-  // available one (see the badge in `view.tsx`). Nothing downstream needs the
-  // raw `outOfStock`, which is why it is not returned.
-
-  // Meta `ViewContent` — one per product the shopper opens.
-  //
-  // Keyed on the product id, NOT on this hook's render: it re-runs on every variant selection,
-  // quantity tap and related-products refetch, and reporting each of those as a fresh product
-  // view would multiply a single visit into a dozen. The variant is deliberately not part of the
-  // key either — picking a size is not viewing a second product.
-  const viewedProductId = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    if (!product || viewedProductId.current === product._id) return;
-    viewedProductId.current = product._id;
-    trackMetaEvent(store, "ViewContent", {
-      currency: store?.currency,
-      value: price,
-      content_ids: [metaContentId(product._id)],
-      content_name: product.name,
-      content_type: "product",
-    });
-    // `price` is read but intentionally not a dependency — see the keying note above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?._id, store]);
-
-  const add = (notify = true) => {
-    if (!product) return;
-    if (variable && !selectedVariant) return;
-    addItem(
-      slug,
-      {
-        productId: product._id,
-        variantId: selectedVariant?._id,
-        variantLabel: selectedVariant?.label,
-        slug: product.slug,
-        name: product.name,
-        price,
-        image: thumbImageUrl(images[0] ?? product.images?.[0]),
-        maxQty: cartLineCap(availableQty, canBackorder),
-      },
-      qty,
-    );
-    if (notify) toast.success(t.added);
-  };
-
-  const buyNow = () => {
-    // Straight to checkout, matching the card's Buy now — "Buy now" has to mean
-    // the same thing on both surfaces or it means nothing. (It opened the cart
-    // drawer until 2026-08-01; /cart is still reachable from the cart icon.)
-    // No toast: the screen change is the confirmation.
-    add(false);
-    router.push(storeHref(base, "/checkout"));
-  };
-
-  const onWish = () => {
-    if (!product) return;
-    toggleWish(slug, {
-      productId: product._id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
-      // The wishlist renders this at card size, not as a row thumb.
-      image: cardImageUrl(product.images?.[0]),
-      hasVariants: variable,
-      availableQuantity: product.availableQuantity,
-      outOfStockBehavior: product.outOfStockBehavior,
-    });
-  };
+  // The component survives PDP→PDP navigation (related products), so the
+  // shopper's picks reset per product slug.
+  const buy = useProductBuy(product, productSlug);
+  const variant = useStoreTemplate(buy.store, "product");
 
   return {
-    slug,
-    base,
-    t,
+    ...buy,
     productSlug,
-    store,
     categories,
-    product,
     isLoading,
     isError,
-    currency: store?.currency,
     /** Gallery above the info column on every layout except "gallery left". */
     galleryTop: variant !== "left",
     /** The "sticky bar" layout — <ProductStickyBar> measures its own height. */
     sticky: variant === "sticky",
-    variable,
-    variants,
-    selection,
-    selectedVariant,
-    price,
-    compareAt,
-    hasOld: !!compareAt && compareAt > price,
-    availableQty,
-    canBackorder,
-    soldOut: outOfStock && !canBackorder,
-    images,
     related: (relatedData?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, 4),
-    qty,
-    setQty,
-    imgIdx,
-    setImgIdx,
-    setPicked,
-    wished,
-    add,
-    buyNow,
-    onWish,
   };
 }
 

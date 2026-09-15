@@ -23,6 +23,7 @@ import { CollectionsRowSection } from "@/components/storefront-builder/sections/
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides } from "@/components/storefront-builder/sections/hero";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
+import { OfferPricingSection } from "@/components/storefront-builder/sections/offer-pricing";
 import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
 import { ProductCarouselSection } from "@/components/storefront-builder/sections/product-carousel";
 import { ProductGridSection } from "@/components/storefront-builder/sections/product-grid";
@@ -30,6 +31,8 @@ import { PromisesBandSection } from "@/components/storefront-builder/sections/pr
 import { RichTextSection } from "@/components/storefront-builder/sections/rich-text";
 import { SelectedProductsSection } from "@/components/storefront-builder/sections/selected-products";
 import { ShopByTagSection } from "@/components/storefront-builder/sections/shop-by-tag";
+import { SingleProductSection } from "@/components/storefront-builder/sections/single-product";
+import { StickyOrderBarSection } from "@/components/storefront-builder/sections/sticky-order-bar";
 
 /** A section instance whose settings have been read and found renderable. */
 export interface PreparedSection {
@@ -39,6 +42,8 @@ export interface PreparedSection {
   needs: readonly StoreListNeed[];
   /** True when, given its data and the page context, the section would draw nothing. */
   isEmpty: (data: SectionData | undefined, context: SectionContext) => boolean;
+  /** Pinned to the screen rather than placed in the page flow — its frame takes no room. */
+  floating: boolean;
   render: (context: SectionContext, data: SectionData | undefined) => ReactNode;
 }
 
@@ -66,6 +71,8 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
     data: SectionData | undefined,
     context: SectionContext,
   ) => boolean;
+  /** The view pins itself to the screen, so its frame's padding and background never show. */
+  floating?: boolean;
 }
 
 /**
@@ -96,6 +103,7 @@ function defineSection<
         request,
         needs: options.needs ?? [],
         isEmpty: (data, context) => options.isEmpty?.(settings, blocks, data, context) ?? false,
+        floating: options.floating ?? false,
         render: (context, data) => (
           <View id={instance.id} settings={settings} blocks={blocks} context={context} data={data} />
         ),
@@ -106,6 +114,19 @@ function defineSection<
 
 const noProducts = (_settings: unknown, _blocks: unknown, data: SectionData | undefined) =>
   !data?.items.length;
+
+/**
+ * The one product a section is about, asked for by id. A hand-picked product is
+ * returned whatever its stock, so a sold-out offer says so instead of vanishing
+ * from the page an ad points at.
+ */
+const oneProduct = (id: string, settings: { productId: string }): ProductsDataRequest => ({
+  key: id,
+  type: "products",
+  source: "manual",
+  productIds: [settings.productId],
+  limit: 1,
+});
 
 /**
  * Every section type this build renders. A type missing here is skipped on the
@@ -135,17 +156,21 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "call-to-action": defineSection(SECTION_SPECS["call-to-action"], CallToActionSection),
   "order-form": defineSection(SECTION_SPECS["order-form"], OrderFormSection, {
-    // One product, asked for by id: a hand-picked product is returned whatever
-    // its stock, so a sold-out offer says so instead of vanishing from the page
-    // an ad points at.
-    request: (id, settings) => ({
-      key: id,
-      type: "products",
-      source: "manual",
-      productIds: [settings.productId],
-      limit: 1,
-    }),
+    request: oneProduct,
     isEmpty: noProducts,
+  }),
+  "single-product": defineSection(SECTION_SPECS["single-product"], SingleProductSection, {
+    request: oneProduct,
+    isEmpty: noProducts,
+  }),
+  "offer-pricing": defineSection(SECTION_SPECS["offer-pricing"], OfferPricingSection, {
+    request: oneProduct,
+    isEmpty: noProducts,
+  }),
+  "sticky-order-bar": defineSection(SECTION_SPECS["sticky-order-bar"], StickyOrderBarSection, {
+    request: oneProduct,
+    isEmpty: noProducts,
+    floating: true,
   }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,

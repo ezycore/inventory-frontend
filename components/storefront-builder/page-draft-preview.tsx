@@ -30,11 +30,17 @@ export const requestSignature = (request: ProductsDataRequest): string =>
 /** The id a single re-query is filed under in its one-request call. */
 const SINGLE_KEY = "preview";
 
-/** Hover and selection outlines, added to the page only while the editor drives it. */
+/**
+ * Hover and selection outlines, added to the page only while the editor drives
+ * it. A floating section's frame has no box to outline (`display: contents`), so
+ * its pinned content carries the outline instead.
+ */
 const EDITOR_FRAME_CSS =
   "[data-section-id]{cursor:pointer}" +
   "[data-section-id]:hover{outline:2px dashed #2563eb;outline-offset:-2px}" +
-  "[data-section-focused]{outline:2px solid #2563eb;outline-offset:-2px}";
+  "[data-section-focused]{outline:2px solid #2563eb;outline-offset:-2px}" +
+  "[data-float][data-section-id] .sfb-inner>*:hover{outline:2px dashed #2563eb;outline-offset:-2px}" +
+  "[data-float][data-section-focused] .sfb-inner>*{outline:2px solid #2563eb;outline-offset:-2px}";
 
 /** Marks the section the editor has open, clearing any other; returns its element. */
 function markFocusedSection(id: string | null): Element | null {
