@@ -41,10 +41,15 @@ export default async function SiteHomePage({
   params: Promise<SiteHomeParams>;
 }) {
   const site = await loadSiteHome(await params);
-  if (!site?.store || !site.builder?.page) notFound();
+  const page = site?.builder?.page;
+  if (!site?.store || !page) notFound();
+  // Every hero layout draws the page's <h1>; without one the store's name stands
+  // in, hidden, as on the classic home (`resolveHomePrimaryHeading`).
+  const hasHero = page.sections.some((section) => section.type === "hero");
   return (
     <>
       <StoreHomeJsonLd store={site.store} origin={site.origin} base={site.base} />
+      {hasHero ? null : <h1 className="sf-visually-hidden">{site.store.name}</h1>}
       <StorePageBody reads={publicStorefront} site={site} />
     </>
   );

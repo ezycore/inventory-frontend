@@ -238,12 +238,19 @@ export async function proxy(request: NextRequest) {
     // — and the question is asked with that token, since an unpublished shop
     // answers only its owner.
     //
+    // The same routes draw the store's `home` system page, once its classic home has
+    // moved onto the builder (the backend answers `/` with whichever applies).
+    //
     // Never inside the Customize editor's frame (`?preview=1`): that frame edits
     // the Customize home, which the shop draws again once the choice is cleared.
+    // The page editor's frame of a builder home says so (`builder=1`) and is let
+    // through, since it streams that page's unsaved sections.
+    const search = request.nextUrl.searchParams;
+    const customizeFrame = search.get("preview") === "1" && search.get("builder") !== "1";
     if (
       (request.method === "GET" || request.method === "HEAD") &&
       isStoreHomePath(store, pathname) &&
-      request.nextUrl.searchParams.get("preview") !== "1" &&
+      !customizeFrame &&
       (await storeHomePageExists(store.slug, previewToken))
     ) {
       const url = request.nextUrl.clone();

@@ -36,6 +36,7 @@ const toolbarButton =
 export function PagePreviewFrame({
   slug,
   pageSlug,
+  home = false,
   sections,
   device,
   onDeviceChange,
@@ -45,6 +46,8 @@ export function PagePreviewFrame({
 }: {
   slug?: string;
   pageSlug?: string;
+  /** The store's home page, drawn at the store's own address rather than `/pages/<slug>`. */
+  home?: boolean;
   sections: EditorSection[];
   device: EditorDevice;
   onDeviceChange: (device: EditorDevice) => void;
@@ -93,7 +96,7 @@ export function PagePreviewFrame({
     return () => window.removeEventListener("message", onMessage);
   }, [sendDraft, sendFocus, onSelect]);
 
-  if (!slug || !pageSlug) {
+  if (!slug || (!pageSlug && !home)) {
     return (
       <div className="rounded-xl border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
         Store address unavailable.
@@ -102,8 +105,11 @@ export function PagePreviewFrame({
   }
 
   const token = preview?.token;
-  const pageUrl = `${storefrontUrl(slug)}/pages/${pageSlug}`;
+  const pageUrl = home ? storefrontUrl(slug) : `${storefrontUrl(slug)}/pages/${pageSlug}`;
+  const address = home ? "/" : `/pages/${pageSlug}`;
   const frameQuery = new URLSearchParams({ preview: "1" });
+  // `preview=1` alone keeps the store's address on the Customize home; `builder=1` asks for this page.
+  if (home) frameQuery.set("builder", "1");
   if (token) frameQuery.set(PREVIEW_TOKEN_PARAM, token);
   // No `preview=1`: a tab of its own shows the saved draft and can be browsed.
   const tabUrl = token ? `${pageUrl}?${PREVIEW_TOKEN_PARAM}=${encodeURIComponent(token)}` : pageUrl;
@@ -111,7 +117,7 @@ export function PagePreviewFrame({
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-3 py-2">
-        <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">/pages/{pageSlug}</span>
+        <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{address}</span>
         <div className="ml-auto flex flex-none items-center gap-1">
           <PreviewDeviceToggle device={device} onChange={onDeviceChange} />
           <button
@@ -138,7 +144,7 @@ export function PagePreviewFrame({
             unpublished page is a 404 and the frame would have to reload. */}
         {ready && !mintingToken ? (
           <iframe
-            key={`${pageSlug}#${reloadKey}`}
+            key={`${address}#${reloadKey}`}
             ref={frameRef}
             src={`${pageUrl}?${frameQuery}`}
             title="Page preview"

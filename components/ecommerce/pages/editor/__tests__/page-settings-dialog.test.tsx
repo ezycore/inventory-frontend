@@ -50,4 +50,13 @@ describe("PageSettingsDialog", () => {
     expect(body).not.toHaveProperty("slug");
     expect(body).toMatchObject({ title: "QA editor landing", chrome: "minimal", seo: { noindex: true } });
   });
+
+  it("offers no address for the home page, which keeps the store's own, and still saves", () => {
+    const home = { ...page, kind: "system", systemKey: "home", slug: undefined, title: "Home" } as unknown as StorefrontPage;
+    render(<PageSettingsDialog page={home} open onOpenChange={() => {}} />);
+    expect(screen.queryByLabelText("Address")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(mutate.mock.calls[0][0].body).not.toHaveProperty("slug");
+  });
 });

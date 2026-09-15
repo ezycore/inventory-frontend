@@ -146,7 +146,8 @@ export function EditorToolbar({
             Discard changes
           </Button>
         ) : null}
-        {live ? (
+        {/* A system page (the home page) is always on: the backend refuses to turn one off. */}
+        {live && page.kind !== "system" ? (
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={onUnpublish}>
             Unpublish
           </Button>

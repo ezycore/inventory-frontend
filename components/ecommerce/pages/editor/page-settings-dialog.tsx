@@ -38,17 +38,20 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
   const [seoDescription, setSeoDescription] = useState(page.seo.description ?? "");
   const [noindex, setNoindex] = useState(page.seo.noindex);
   const address = slug.trim();
+  // A system page (the home page) has a fixed address; the backend refuses a slug for one.
+  const fixedAddress = page.kind === "system";
+  const ready = !!title.trim() && (fixedAddress || !!address);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!title.trim() || !address || update.isPending) return;
+    if (!ready || update.isPending) return;
     update.mutate(
       {
         id: page._id,
         body: {
           title: title.trim(),
           // Sent only when it changed: a rename leaves a redirect behind.
-          ...(address !== page.slug ? { slug: address } : {}),
+          ...(!fixedAddress && address !== page.slug ? { slug: address } : {}),
           chrome,
           seo: { title: seoTitle.trim(), description: seoDescription.trim(), noindex },
         },
@@ -69,17 +72,19 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
         <Input id="page-title" value={title} maxLength={LIMITS.title} onChange={(event) => setTitle(event.target.value)} />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="page-slug">Address</Label>
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono text-sm text-muted-foreground">/pages/</span>
-          <Input id="page-slug" value={slug} maxLength={LIMITS.slug} onChange={(event) => setSlug(event.target.value)} />
+      {fixedAddress ? null : (
+        <div className="space-y-1.5">
+          <Label htmlFor="page-slug">Address</Label>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-sm text-muted-foreground">/pages/</span>
+            <Input id="page-slug" value={slug} maxLength={LIMITS.slug} onChange={(event) => setSlug(event.target.value)} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Letters, numbers and dashes.
+            {page.published ? " Links to the old address keep working and lead here." : null}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Letters, numbers and dashes.
-          {page.published ? " Links to the old address keep working and lead here." : null}
-        </p>
-      </div>
+      )}
 
       <div className="space-y-1.5">
         <Label htmlFor="page-chrome">Header and footer</Label>
@@ -128,7 +133,7 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
         <Button type="button" variant="outline" onClick={onDone} disabled={update.isPending}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!title.trim() || !address || update.isPending}>
+        <Button type="submit" disabled={!ready || update.isPending}>
           {update.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save
         </Button>

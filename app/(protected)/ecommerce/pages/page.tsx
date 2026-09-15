@@ -17,13 +17,15 @@ import {
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
+import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
 import { NewPageDialog } from "@/components/ecommerce/pages/new-page-dialog";
 
 /**
- * Landing pages only. The builder API also holds content and system pages, but
- * content pages keep the Content screen until Phase 4 and system pages arrive in
- * Phase 5 — listing them here would offer a Delete the backend refuses.
+ * Landing pages in the table. The builder API also holds content and system
+ * pages, and listing those here would offer a Duplicate and a Delete the backend
+ * refuses; a home page that is a builder page has its own card above
+ * (`HomePageCard`), and content pages keep the Content screen until step 6.
  */
 const listLandingPages = (params: StorefrontPageListParams = {}) =>
   storefrontPagesApi.list({ ...params, kind: "landing" });
@@ -89,6 +91,8 @@ export default function StorefrontPagesPage() {
         title="Pages"
         subTitle="Landing pages for your ads and offers, built from sections. Each one has its own address on your store."
       />
+
+      <HomePageCard />
 
       <DataTable<StorefrontPageListItem>
         cardTitle={(n) => `Landing pages (${n})`}

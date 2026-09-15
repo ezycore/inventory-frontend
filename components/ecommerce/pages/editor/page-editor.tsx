@@ -132,6 +132,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
           <PagePreviewFrame
             slug={slug}
             pageSlug={page.slug}
+            home={page.kind === "system" && page.systemKey === "home"}
             sections={editor.sections}
             device={editor.device}
             onDeviceChange={editor.setDevice}

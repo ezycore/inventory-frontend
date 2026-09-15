@@ -849,6 +849,15 @@ change first — cached store HTML lags a publish by minutes locally, and a comp
 passes. Keep the threshold absolute (`maxDiffPixels`): a ratio of a tall full-page image let a changed
 footer line pass. Never point it at a live store without `PIXEL_ALLOW_LIVE=1` and the merchant's agreement.
 
+**A home moved onto the builder must draw what the classic home drew** (Phase 5 step 5). Builder sections
+print only the merchant's words by default; a converted instance turns on optional settings that bring the
+classic behaviour back — `storeHeading`, `viewAll`, `storeWords`, `storeBanner`, `campaignBadge`,
+`promises`, `storePromises`, `slideshow`, `wholeRows`. Dictionary words go through the `store-word` island
+(`lib/storefront-builder/store-words.ts`), never baked into a cached server view, so a Bangla shopper still
+sees Bangla. A section type's classic padding and band is its `frame` in `section-registry.tsx`. The backend's
+`convertClassicHome` mirrors `HOME_PRESET_SECTIONS`, `resolveSections`, `sectionRow`/`sectionQuery` and
+`resolveHomeCollections` — change a classic home rule and you change that converter too.
+
 **Rules, each of which was a real defect:**
 
 - **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
