@@ -53,6 +53,38 @@ const renderPage = (instances: PageSectionInstance[], data = {}) =>
 
 const hrefs = (root: ParentNode) => [...root.querySelectorAll("a")].map((a) => a.getAttribute("href"));
 
+describe("home frames", () => {
+  const frameOf = (instance: PageSectionInstance) => prepareSections([instance])[0]?.frame;
+
+  it("spaces a home section as the home page does until its style box says otherwise", () => {
+    expect(frameOf(section("g1", "product-grid", { source: "featured", limit: 8 }))?.style).toMatchObject({
+      "--sfb-pt": "22px",
+      "--sfb-pb": "22px",
+    });
+    expect(frameOf(section("r1", "product-carousel", { source: "newest", limit: 8 }))?.style).toMatchObject({
+      "--sfb-bg": "var(--surface)",
+    });
+    expect(
+      frameOf({ ...section("r2", "product-carousel", { source: "newest", limit: 8 }), style: { padding: { base: { top: "lg", bottom: "lg" } } } })
+        ?.style,
+    ).toMatchObject({ "--sfb-pt": "clamp(40px, 6vw, 64px)" });
+    // A section the home page never had keeps the common frame.
+    expect(frameOf(section("f1", "faq", {}, [{ id: "q", settings: { question: "Q?", answer: "A." } }]))?.style)
+      .toMatchObject({ "--sfb-pt": "clamp(24px, 4vw, 40px)" });
+  });
+
+  it("frames the hero by its layout and slide count", () => {
+    const slide = (id: string) => ({ id, settings: { title: "Eid sale" } });
+    expect(frameOf(section("h1", "hero", { layout: "open" }, [slide("a")]))?.style).toMatchObject({
+      "--sfb-pt": "clamp(28px,5vw,64px)",
+    });
+    expect(frameOf(section("h2", "hero", { layout: "open" }, [slide("a"), slide("b")]))?.style).toMatchObject({
+      "--sfb-pt": "var(--pad)",
+    });
+    expect(frameOf(section("h3", "hero", { layout: "full-bleed" }, [slide("a")]))?.width).toBe("full");
+  });
+});
+
 describe("store-wide lists", () => {
   it("asks for each list once, and only when a section on the page reads it", () => {
     const needs = sectionListNeeds(

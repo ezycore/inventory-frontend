@@ -9,6 +9,7 @@ import {
   type StoreListNeed,
 } from "@/lib/storefront-builder/section-data";
 import { readBlocks, readSettings, type SettingsOf } from "@/lib/storefront-builder/settings";
+import type { FrameDefaults } from "@/lib/storefront-builder/section-style";
 import { offerCampaigns, pickByIds, sectionCategories } from "@/lib/storefront-builder/store-lists";
 import { parseVideoEmbed } from "@/lib/storefront-builder/video-embed";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
@@ -52,6 +53,8 @@ export interface PreparedSection {
   isEmpty: (data: SectionData | undefined, context: SectionContext) => boolean;
   /** Pinned to the screen rather than placed in the page flow — its frame takes no room. */
   floating: boolean;
+  /** The type's own frame where the instance's style box sets nothing. */
+  frame?: FrameDefaults;
   render: (context: SectionContext, data: SectionData | undefined) => ReactNode;
 }
 
@@ -81,6 +84,13 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
   ) => boolean;
   /** The view pins itself to the screen, so its frame's padding and background never show. */
   floating?: boolean;
+  /**
+   * The padding, band and width this section has on the classic home page, so a
+   * home moved onto the builder keeps its spacing. Unset is the common `md` frame.
+   */
+  frame?:
+    | FrameDefaults
+    | ((settings: SettingsOf<S>, blocks: { id: string; settings: SettingsOf<B> }[]) => FrameDefaults);
 }
 
 /**
@@ -112,6 +122,7 @@ function defineSection<
         needs: options.needs ?? [],
         isEmpty: (data, context) => options.isEmpty?.(settings, blocks, data, context) ?? false,
         floating: options.floating ?? false,
+        frame: typeof options.frame === "function" ? options.frame(settings, blocks) : options.frame,
         render: (context, data) => (
           <View id={instance.id} settings={settings} blocks={blocks} context={context} data={data} />
         ),
@@ -122,6 +133,19 @@ function defineSection<
 
 const noProducts = (_settings: unknown, _blocks: unknown, data: SectionData | undefined) =>
   !data?.items.length;
+
+/**
+ * The classic home sections' own vertical padding (`components/storefront/home/sections`).
+ * Their side padding is the frame's `--pad` already.
+ */
+const even = (padding: string): FrameDefaults => ({ top: padding, bottom: padding });
+const HOME_FRAMES = {
+  heroCard: even("var(--pad)"),
+  heroOpen: { top: "clamp(28px,5vw,64px)", bottom: "clamp(20px,3vw,40px)" },
+  heroFullBleed: { top: "0px", bottom: "0px", width: "full" },
+  row: { top: "clamp(16px,3vw,28px)", bottom: "8px" },
+  tiles: even("clamp(16px,3vw,28px)"),
+} satisfies Record<string, FrameDefaults>;
 
 /**
  * The one product a section is about, asked for by id. A hand-picked product is
@@ -155,6 +179,13 @@ const oneProduct = (id: string, settings: { productId: string }): ProductsDataRe
 export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> = {
   hero: defineSection(SECTION_SPECS.hero, HeroSection, {
     isEmpty: (_settings, blocks) => heroSlides(blocks).length === 0,
+    // Slides rotate in a card spaced like the framed hero; only one open slide is the open hero.
+    frame: (settings, blocks) =>
+      settings.layout === "full-bleed"
+        ? HOME_FRAMES.heroFullBleed
+        : settings.layout === "open" && heroSlides(blocks).length === 1
+          ? HOME_FRAMES.heroOpen
+          : HOME_FRAMES.heroCard,
   }),
   "rich-text": defineSection(SECTION_SPECS["rich-text"], RichTextSection, {
     isEmpty: (settings) => parseRichDoc(settings.body) === null,
@@ -195,42 +226,55 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,
     isEmpty: noProducts,
+    frame: even("22px"),
   }),
   "promises-band": defineSection(SECTION_SPECS["promises-band"], PromisesBandSection, {
     isEmpty: (_settings, blocks) => blocks.length === 0,
+    frame: { ...even("clamp(13px,1.8vw,19px)"), band: "accent-soft" },
   }),
-  "image-text": defineSection(SECTION_SPECS["image-text"], ImageTextSection),
+  "image-text": defineSection(SECTION_SPECS["image-text"], ImageTextSection, {
+    frame: even("clamp(28px,5vw,56px)"),
+  }),
   "shop-by-tag": defineSection(SECTION_SPECS["shop-by-tag"], ShopByTagSection, {
     needs: ["tags"],
     isEmpty: (settings, _blocks, _data, context) =>
       pickByIds(context.tags ?? [], settings.tagIds).length === 0,
+    frame: HOME_FRAMES.row,
   }),
   "collections-row": defineSection(SECTION_SPECS["collections-row"], CollectionsRowSection, {
     needs: ["categories"],
     isEmpty: (settings, _blocks, _data, context) =>
       sectionCategories(context.categories ?? [], settings.categoryIds).length === 0,
+    // Plain links sit under the row above them, with room to breathe below.
+    frame: (settings) =>
+      settings.style === "plain" ? { top: "0px", bottom: "clamp(40px,6vw,64px)" } : HOME_FRAMES.row,
   }),
   "selected-products": defineSection(SECTION_SPECS["selected-products"], SelectedProductsSection, {
     request: productSectionRequest,
     isEmpty: noProducts,
+    frame: { top: "0px", bottom: "clamp(48px,7vw,80px)" },
   }),
   "product-carousel": defineSection(SECTION_SPECS["product-carousel"], ProductCarouselSection, {
     request: productSectionRequest,
     isEmpty: noProducts,
+    frame: { ...even("clamp(20px,3vw,32px)"), band: "surface" },
   }),
   "campaign-offers": defineSection(SECTION_SPECS["campaign-offers"], CampaignOffersSection, {
     needs: ["campaigns"],
     isEmpty: (_settings, _blocks, _data, context) =>
       offerCampaigns(context.campaigns ?? []).length === 0,
+    frame: even("clamp(12px,2vw,20px)"),
   }),
   "category-tiles": defineSection(SECTION_SPECS["category-tiles"], CategoryTilesSection, {
     needs: ["categories"],
     isEmpty: (settings, _blocks, _data, context) =>
       sectionCategories(context.categories ?? [], settings.categoryIds).length === 0,
+    frame: HOME_FRAMES.tiles,
   }),
   "category-promo-cards": defineSection(SECTION_SPECS["category-promo-cards"], CategoryPromoCardsSection, {
     needs: ["categories"],
     isEmpty: (_settings, blocks, _data, context) =>
       promoCards(context.categories ?? [], blocks).length === 0,
+    frame: HOME_FRAMES.tiles,
   }),
 };

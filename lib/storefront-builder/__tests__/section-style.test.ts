@@ -46,6 +46,25 @@ describe("sectionFrame", () => {
     ).not.toHaveProperty("--sfb-bg-image");
   });
 
+  it("uses a section type's own frame where the style box sets nothing", () => {
+    const home = { top: "22px", bottom: "8px", band: "surface", width: "full" } as const;
+    const frame = sectionFrame(undefined, home);
+    expect(frame.style).toEqual({ "--sfb-pt": "22px", "--sfb-pb": "8px", "--sfb-bg": "var(--surface)" });
+    expect(frame.width).toBe("full");
+
+    const chosen = sectionFrame(
+      { padding: { base: { top: "lg", bottom: "sm" } }, background: { kind: "color", color: "#1A2B3C" }, width: "content" },
+      home,
+    );
+    expect(chosen.style).toMatchObject({
+      "--sfb-pt": "clamp(40px, 6vw, 64px)",
+      "--sfb-pb": "clamp(12px, 2vw, 20px)",
+      "--sfb-bg": "#1A2B3C",
+    });
+    expect(chosen.width).toBe("content");
+    expect(sectionFrame({ background: { kind: "none" } }, home).style).toMatchObject({ "--sfb-bg": "transparent" });
+  });
+
   it("falls back to defaults for invalid values", () => {
     const frame = sectionFrame({ width: "huge", textTone: "neon", padding: { base: { top: "xxl" } } });
     expect(frame.width).toBe("content");

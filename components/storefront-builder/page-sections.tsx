@@ -59,7 +59,7 @@ export function prepareSections(
     if (!section) continue;
     prepared.push({
       id: instance.id,
-      frame: sectionFrame(instance.style),
+      frame: sectionFrame(instance.style, section.frame),
       hide: !desktop ? "desktop" : !mobile ? "mobile" : undefined,
       section,
     });

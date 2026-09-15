@@ -36,6 +36,20 @@ export interface SectionFrame {
   tone: SectionTone;
 }
 
+/**
+ * A section type's own frame where the style box sets nothing: the padding, band
+ * and width it has on the classic home page, so a home moved onto the builder
+ * keeps its spacing. CSS values rather than spacing steps — the home page's
+ * sections were never spaced in steps, and they are not merchant choices.
+ */
+export interface FrameDefaults {
+  top: string;
+  bottom: string;
+  /** A full-width tint behind the section, in the theme's own colour. */
+  band?: "surface" | "accent-soft";
+  width?: SectionWidth;
+}
+
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -60,16 +74,25 @@ const readAlign = (value: unknown): Responsive<Align> | undefined => {
   return mobile ? { base, mobile } : { base };
 };
 
-/** Resolve a section instance's `style` into the element's frame. */
-export function sectionFrame(raw: unknown): SectionFrame {
+/**
+ * Resolve a section instance's `style` into the element's frame. `defaults` is
+ * the section type's own frame (`FrameDefaults`); without one, unset padding is
+ * `md`, the background none and the width the content column.
+ */
+export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFrame {
   const style = isPlainObject(raw) ? raw : {};
   const vars: Record<string, string> = {};
 
   const padding = isPlainObject(style.padding) ? style.padding : {};
-  const base = readPadding(padding.base) ?? DEFAULT_PADDING;
+  const base = readPadding(padding.base);
   const mobile = readPadding(padding.mobile);
-  vars["--sfb-pt"] = SPACING[base.top];
-  vars["--sfb-pb"] = SPACING[base.bottom];
+  if (base || !defaults) {
+    vars["--sfb-pt"] = SPACING[(base ?? DEFAULT_PADDING).top];
+    vars["--sfb-pb"] = SPACING[(base ?? DEFAULT_PADDING).bottom];
+  } else {
+    vars["--sfb-pt"] = defaults.top;
+    vars["--sfb-pb"] = defaults.bottom;
+  }
   if (mobile) {
     vars["--sfb-pt-m"] = SPACING[mobile.top];
     vars["--sfb-pb-m"] = SPACING[mobile.bottom];
@@ -78,17 +101,19 @@ export function sectionFrame(raw: unknown): SectionFrame {
   const background = isPlainObject(style.background) ? style.background : {};
   if (background.kind === "color" && typeof background.color === "string" && HEX_COLOR.test(background.color)) {
     vars["--sfb-bg"] = background.color;
-  }
-  if (background.kind === "image") {
+  } else if (background.kind === "image") {
     const image = readImage(background.image);
     // JSON string quoting is valid CSS string syntax; the URL is already a
     // plain http(s) link with no whitespace, so it cannot break out of url().
     if (image) vars["--sfb-bg-image"] = `url(${JSON.stringify(image.url)})`;
+  } else if (defaults?.band) {
+    // An explicit "none" takes the band away; anything unset keeps it.
+    vars["--sfb-bg"] = background.kind === "none" ? "transparent" : `var(--${defaults.band})`;
   }
 
   return {
     style: { ...(vars as CSSProperties), ...responsiveVars("sfb-align", readAlign(style.align)) },
-    width: oneOf(["content", "wide", "full"] as const, style.width) ?? "content",
+    width: oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content",
     tone: oneOf(["auto", "light", "dark"] as const, style.textTone) ?? "auto",
   };
 }
