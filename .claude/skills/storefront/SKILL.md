@@ -714,6 +714,16 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     `scrollIntoView` also scrolled the editor page around the frame. Import the message names from that
     module, never from `page-draft-preview.tsx`, which would pull every section view into the admin
     bundle.
+  - **Saving** (`use-page-autosave.ts`): 1.2 s after the last edit, only `savable`, pinned to the
+    `draftVersion` the server last returned. One editor per page is assumed (owner decision
+    2026-09-15): `STOREFRONT_PAGE_DRAFT_CONFLICT` stops autosave and asks for a reload, and content the
+    backend refused is not retried until it changes. **Publish calls `flush()` first** — the backend
+    publishes the saved draft. A publish, discard or restore answer goes through `autosave.adopt` **and**
+    `editor.reset` together: one without the other pins the next save to a stale version, or shows a
+    draft the server no longer has.
+  - **Undo/redo** (`history.ts`): whole-section snapshots, 100 steps, edits to one section within a
+    second merged into one; `reset` clears it. Ctrl/Cmd+Z is ignored inside text fields
+    (`use-undo-shortcuts.ts`), where the field's own undo is what the merchant expects.
 - **A product section can set its own card photo shape and fit** (`cardImageRatio` / `cardImageFit`,
   `CARD_PHOTO` in the section specs; owner decision 2026-09-15). `sectionCardMedia`
   (`lib/storefront-builder/card-media.ts`) returns only what the section sets, and `ProductCard`'s
