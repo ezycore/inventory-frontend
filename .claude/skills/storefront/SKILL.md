@@ -3995,6 +3995,12 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   on every reload (fixed 2026-07-11 in header account chip, /account, checkout, invoice page).
   QA: detect flashes with a rAF frame-scanner injected via `Page.addScriptToEvaluateOnNewDocument`
   (MutationObserver misses them) + a guest control run to prove the detector fires.
+  **A client-only page reserves a screen on its wrapper, in every branch** — checkout's `wrap` has
+  `minHeight: "100svh"`. Under a 320px splash the store footer sat inside a phone's viewport and
+  hydration moved it: checkout's 0.138 layout shift (budget 0.1) until 2026-09-15. Reserving the
+  height on the splash alone made it worse (0.461), because Lighthouse — like any fresh browser — has
+  an empty cart, and the two-line empty-cart message pulled the footer up into view. A footer that
+  starts and stays below the fold moves for free.
 - **`json.error` not `json.message`** is where backend error text lives.
 - **The settings PATCH replaces `templates`, `theme` and every provided sub-field WHOLESALE** —
   `updateSettings` is a shallow `Object.assign`. Any admin section saving one key inside

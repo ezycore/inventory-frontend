@@ -18,10 +18,18 @@ import { SteppedCheckout } from "@/components/storefront/checkout/layouts/steppe
 import { GuidedCheckout } from "@/components/storefront/checkout/layouts/guided-checkout";
 import { EditorialCheckout } from "@/components/storefront/checkout/layouts/editorial-checkout";
 
+/**
+ * A screen tall in every branch, so the store footer starts below the fold and
+ * stays there. Checkout renders nothing real before hydration, and what replaces
+ * the splash is either the tall form or a two-line empty-cart message: with no
+ * reserved height the footer sat in view and hydration moved it — down for the
+ * form, up for the empty cart (0.138 on a phone, measured; budget 0.1).
+ */
 const wrap: CSSProperties = {
   maxWidth: 940,
   margin: "0 auto",
   width: "100%",
+  minHeight: "100svh",
   padding: "22px var(--pad) 40px",
 };
 
