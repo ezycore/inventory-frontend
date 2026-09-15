@@ -2698,6 +2698,14 @@ cached entry on the `/sites` route (see "Cached store pages").
     slide and the product page's main photo — nowhere else. `Media` stays **eager** by default, because a
     collection page's LCP is often a product card; pass `loading="lazy"` only where a slot is known to sit
     below the fold.
+  - ⚠ **A URL string has no variants.** `Media`'s `src` takes the stored image *or* a URL, and only the
+    image object gives `SfImage` a `srcset` — a string from `fullImageUrl()` renders that one file at every
+    width. The product page's main photo passed the string until 2026-09-15, so every phone downloaded the
+    1600px original of the page's LCP image (505 KB, against 100 KB for the medium, on a locally generated
+    rafi5 upload). It now passes the image with `sizes={\`${SF_MOBILE_MEDIA} 100vw, 1600px\`}`: phones take
+    the medium, wider screens keep the original because the hover zoom magnifies 2.4×. A wide slot that
+    should shrink on phones passes the image and a `sizes`; a card still gets `cardImageUrl` (a string),
+    because there is no variant between the 200px crop and the 800px medium to choose.
   - ⚠ **A logo is a MARK, not a photo, and `logoImageUrl` puts the thumbnail LAST.** A 200×200 centre
     crop of a wide wordmark is not a smaller version of it — it is an unreadable slice of the middle.
     `cardImageUrl` is not a substitute (its *second* choice is that crop), and neither is

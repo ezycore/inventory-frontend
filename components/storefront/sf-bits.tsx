@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { ORDER_STATUS, type Lang } from "@/lib/storefront-i18n";
 import { money, discountPct } from "@/components/storefront/format";
 import { SfImage } from "@/components/storefront/sf-image";
+import type { StorefrontImage } from "@/lib/storefront-client";
 
 /**
  * Striped placeholder used wherever a real image is missing — mirrors the
@@ -78,10 +79,18 @@ export function Media({
   style,
   priority = false,
   loading,
+  sizes = "100vw",
 }: {
-  src?: string | null;
+  /**
+   * The stored image, or a single URL. Pass the image when the slot is wide enough
+   * that a phone should get the 800px medium rather than the original: only the
+   * object carries the variants `srcset` is built from.
+   */
+  src?: StorefrontImage | string | null;
   /** Optional phone source; unset keeps using `src`. */
-  mobileSrc?: string | null;
+  mobileSrc?: StorefrontImage | string | null;
+  /** The slot's rendered width per breakpoint, for `srcset`. See `SfImage`. */
+  sizes?: string;
   alt?: string;
   label?: string;
   ratio?: string;
@@ -122,7 +131,7 @@ export function Media({
         image={src}
         mobileImage={mobileSrc}
         mobileMedia="(max-width: 640px)"
-        sizes="100vw"
+        sizes={sizes}
         alt={imageAlt}
         decorative={hidden}
         /* The blurred copy gets the priority too. It is first in the DOM and
