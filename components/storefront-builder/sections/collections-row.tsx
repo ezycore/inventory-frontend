@@ -32,10 +32,11 @@ export function CollectionsRowSection({ settings, context }: SectionViewProps<Sp
 
   if (settings.style === "plain") {
     return (
-      <>
+      // The home page's 980px column for plain links, measured with its padding inside.
+      <div style={{ maxWidth: "calc(980px - 2 * var(--pad))", margin: "0 auto" }}>
         {heading}
         <CollectionLinks base={context.base} categories={categories} />
-      </>
+      </div>
     );
   }
 

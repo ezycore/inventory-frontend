@@ -204,6 +204,9 @@ export function HeroSection({
   return settings.layout === "open" ? (
     <HeroOpenView {...copy} align={align} />
   ) : (
-    <HeroCardView {...copy} promises={settings.promises ? (context.promises ?? []) : []} />
+    <HeroCardView
+      {...copy}
+      promises={settings.promises ? (context.trustBadges ?? []).map((badge) => badge.text.trim()) : []}
+    />
   );
 }

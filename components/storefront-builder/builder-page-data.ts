@@ -75,7 +75,7 @@ export async function loadBuilderPageData(
       imageFit: mediaFitFor(templates.imageFit),
       imageRatio: mediaRatioFor(templates.imageRatio),
       banner: store.banner ?? null,
-      promises: (store.trustBadges ?? []).flatMap((badge) => (badge.text?.trim() ? [badge.text.trim()] : [])),
+      trustBadges: (store.trustBadges ?? []).filter((badge) => badge.text?.trim()),
     },
   };
 }

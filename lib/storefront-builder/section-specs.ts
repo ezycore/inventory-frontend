@@ -95,7 +95,8 @@ export const SECTION_SPECS = {
         mobileImage: { type: "image", optional: true },
         focal: { type: "focal", responsive: true, optional: true },
         imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
-        badge: { type: "string", max: 40, optional: true },
+        // 60, the home banner hero's badge limit; its slides allow 40.
+        badge: { type: "string", max: 60, optional: true },
         title: { type: "string", max: 90, optional: true },
         subtitle: { type: "string", max: 160, optional: true },
         buttonLabel: { type: "string", max: 30, optional: true },
@@ -163,6 +164,8 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      /** The store's own promises (Customize → Footer) in place of the blocks, as the classic home band. */
+      storePromises: { type: "boolean", optional: true },
     },
     blocks: {
       max: 6,
@@ -195,6 +198,8 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       tagIds: { type: "refs", to: "tag", max: 20 },
+      /** The classic home row's heading — "Shop by age" in the shopper's language when Heading is empty. */
+      storeHeading: { type: "enum", values: ["shopByAge"], optional: true },
     },
   },
   "collections-row": {
@@ -251,6 +256,8 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      /** "Current offers" in the shopper's language when Heading is empty, as the classic home row. */
+      storeHeading: { type: "enum", values: ["campaignOffers"], optional: true },
     },
   },
   "category-tiles": {
@@ -285,6 +292,8 @@ export const SECTION_SPECS = {
       ratio: { type: "enum", values: ["16:9", "4:3", "1:1", "3:4"], optional: true },
       radius: { type: "number", min: 0, max: 40, int: true, optional: true },
       arrows: { type: "boolean", optional: true },
+      /** Every card gets a button — "Shop now" in the shopper's language where the card has no label — as on the classic home. */
+      storeWords: { type: "boolean", optional: true },
     },
     blocks: {
       max: 4,

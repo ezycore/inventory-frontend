@@ -12,8 +12,10 @@ import {
 } from "@/components/storefront-builder/page-sections";
 
 vi.mock("@/components/storefront-builder/islands/island-map", () => ({
-  Island: ({ name, props }: { name: string; props: { children?: ReactNode } }) => (
-    <div data-island={name}>{props.children}</div>
+  Island: ({ name, props }: { name: string; props: { children?: ReactNode; word?: string } }) => (
+    <div data-island={name} data-word={props.word}>
+      {props.children}
+    </div>
   ),
 }));
 
@@ -112,6 +114,20 @@ describe("promises-band", () => {
     expect(container.querySelectorAll(".sf-trust-row")).toHaveLength(2);
     expect(container.textContent).toContain("Cash on delivery");
   });
+
+  it("draws the store's own promises under storePromises, and nothing when the store has none", () => {
+    const store = section("p1", "promises-band", { storePromises: true }, []);
+    const drawn = render(
+      <PageSections
+        sections={prepareSections([store])}
+        context={{ base: "/shop", trustBadges: [{ text: "Genuine products", icon: "shield" }] }}
+        data={{}}
+      />,
+    );
+    expect(drawn.container.querySelectorAll(".sf-trust-row")).toHaveLength(1);
+    expect(drawn.container.textContent).toContain("Genuine products");
+    expect(renderPage([store]).container.querySelectorAll("section")).toHaveLength(0);
+  });
 });
 
 describe("shop-by-tag", () => {
@@ -122,6 +138,16 @@ describe("shop-by-tag", () => {
     ]);
     expect(container.querySelectorAll("section")).toHaveLength(1);
     expect(hrefs(container)).toEqual(["/shop/products?tags=0-3m", "/shop/products?tags=newborn"]);
+  });
+
+  it("keeps the classic row's heading under storeHeading: the merchant's, else Shop by age", () => {
+    const { container } = renderPage([
+      section("t1", "shop-by-tag", { tagIds: [ID(1)], storeHeading: "shopByAge" }),
+      section("t2", "shop-by-tag", { tagIds: [ID(2)], storeHeading: "shopByAge", heading: "By size" }),
+    ]);
+    const [word, own] = container.querySelectorAll("h2");
+    expect(word.querySelector('[data-word="shopByAge"]')).not.toBeNull();
+    expect(own.textContent).toBe("By size");
   });
 });
 

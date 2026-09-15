@@ -244,6 +244,7 @@ const FIELD_LABELS: Record<string, string> = {
   split: "Picture share (%)",
   storeBanner: "Use the store banner",
   storeHeading: "Heading when empty",
+  storePromises: "Use your store's promises",
   storeWords: "Use the store's wording",
   style: "Style",
   subtitle: "Subtitle",
@@ -276,7 +277,8 @@ const HINTS: Record<string, string> = {
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
   storeBanner: "Shows the banner from Customize → Hero when the first slide has no picture.",
-  storeWords: "Keeps your store's name as the title and words the buttons in the shopper's language when yours are empty.",
+  storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
+  storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",
   campaignBadge: "Names your running campaign when the first slide has no badge.",
   promises: "Lists your promises from Customize → Footer under the hero card.",
   viewAll: "Goes to Link, or else to this row's collection or all products.",
@@ -290,6 +292,8 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
     newArrivals: "“New arrivals”",
     selected: "“Selected for you”",
     collection: "The collection's name",
+    shopByAge: "“Shop by age”",
+    campaignOffers: "“Current offers”",
   },
 };
 

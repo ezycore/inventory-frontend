@@ -21,7 +21,13 @@ export function CampaignOffersSection({ settings, context }: SectionViewProps<Sp
   return (
     <Island
       name="campaign-offers"
-      props={{ base: context.base, campaigns, currency: context.currency, heading: settings.heading }}
+      props={{
+        base: context.base,
+        campaigns,
+        currency: context.currency,
+        heading: settings.heading,
+        headingWord: settings.heading ? undefined : settings.storeHeading,
+      }}
     />
   );
 }

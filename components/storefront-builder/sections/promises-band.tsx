@@ -9,16 +9,22 @@ type BlockSpec = (typeof SECTION_SPECS)["promises-band"]["blocks"]["settings"];
 
 /**
  * The shop's promises — delivery, returns, authenticity — as icon + text rows:
- * the home page's trust band as a section, every word the merchant's own.
+ * the home page's trust band as a section, every word the merchant's own. Rows
+ * are the blocks, or under `storePromises` the store's own promises from
+ * Customize → Footer, which the header and footer show too — so a band moved
+ * from the classic home stays in step with them.
  *
- * The home band's tint is not built in here. The section's style box carries
- * the background, so the same rows can sit on any ground the page needs.
+ * The band's accent tint is the section type's default frame (`section-registry.tsx`),
+ * so the style box can put the same rows on any other ground.
  */
-export function PromisesBandSection({ settings, blocks }: SectionViewProps<Spec, BlockSpec>) {
+export function PromisesBandSection({ settings, blocks, context }: SectionViewProps<Spec, BlockSpec>) {
+  const promises = settings.storePromises
+    ? (context.trustBadges ?? [])
+    : blocks.map((block) => block.settings);
   return (
     <>
       {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
-      <PromiseRows promises={blocks.map((block) => block.settings)} />
+      <PromiseRows promises={promises} />
     </>
   );
 }

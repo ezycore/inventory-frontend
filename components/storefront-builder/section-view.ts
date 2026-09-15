@@ -33,8 +33,8 @@ export interface SectionContext {
   imageRatio?: string;
   /** The store banner (Customize → Hero), for a hero that uses it. */
   banner?: StorefrontImage | null;
-  /** The store's promises (trust badges), for a card hero that shows them. */
-  promises?: string[];
+  /** The store's promises (Customize → Footer), those with words, for sections that show them. */
+  trustBadges?: { text: string; icon?: string }[];
 }
 
 export interface SectionViewProps<

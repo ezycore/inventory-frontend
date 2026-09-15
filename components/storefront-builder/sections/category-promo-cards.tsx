@@ -76,7 +76,9 @@ const bannerConfig = (settings: Settings, cards: StoreSectionCard[]): BannerRowC
  * One to four collections advertised large, each with a photo, the merchant's
  * line about it and a button: the home page's category promo cards as a
  * section. Each block is a card; its words and photo override the collection's
- * for this card only. A card shows a button only when the merchant wrote one.
+ * for this card only. A card shows a button only when the merchant wrote one —
+ * or, for cards moved from the classic home (`storeWords`), always, worded
+ * "Shop now" in the shopper's language until the merchant writes their own.
  */
 export function CategoryPromoCardsSection({
   settings,
@@ -92,6 +94,7 @@ export function CategoryPromoCardsSection({
         base={context.base}
         categories={cards.map(({ category }) => category)}
         config={bannerConfig(settings, cards.map(({ card }) => card))}
+        defaultButtonLabel={settings.storeWords ? <Island name="store-word" props={{ word: "shopNow" }} /> : undefined}
         imageFit={context.imageFit ?? "cover"}
         renderStrip={(strip) => <Island name="category-strip" props={strip} />}
       />

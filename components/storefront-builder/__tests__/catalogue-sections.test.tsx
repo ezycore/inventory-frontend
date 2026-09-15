@@ -22,6 +22,7 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       products?: unknown[];
       campaigns?: unknown[];
       heading?: string;
+      headingWord?: string;
       word?: string;
       wholeRows?: boolean;
     };
@@ -30,6 +31,7 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       data-island={name}
       data-count={(props.products ?? props.campaigns)?.length}
       data-heading={props.heading}
+      data-heading-word={props.headingWord}
       data-word={props.word}
       data-whole-rows={props.wholeRows === undefined ? undefined : String(props.wholeRows)}
     >
@@ -172,6 +174,17 @@ describe("campaign-offers", () => {
     expect(island.dataset.heading).toBe("This week");
   });
 
+  it("names the row Current offers in the shopper's language only when the merchant gave no heading", () => {
+    const { container } = renderPage([
+      section("o1", "campaign-offers", { storeHeading: "campaignOffers" }),
+      section("o2", "campaign-offers", { storeHeading: "campaignOffers", heading: "Eid deals" }),
+    ]);
+    const [word, own] = container.querySelectorAll('[data-island="campaign-offers"]') as NodeListOf<HTMLElement>;
+    expect(word.dataset.headingWord).toBe("campaignOffers");
+    expect(own.dataset.headingWord).toBeUndefined();
+    expect(own.dataset.heading).toBe("Eid deals");
+  });
+
   it("is left out when no campaign is running", () => {
     const { container } = renderPage([section("o1", "campaign-offers", {})], {}, { campaigns: [] });
     expect(container.querySelectorAll("section")).toHaveLength(0);
@@ -221,6 +234,19 @@ describe("category-promo-cards", () => {
     ]);
     const island = container.querySelector('[data-island="category-strip"]') as HTMLElement;
     expect(island.querySelectorAll(".sf-banner-card")).toHaveLength(1);
+  });
+
+  it("gives every card a Shop now button under storeWords, keeping a card's own label", () => {
+    const { container } = renderPage([
+      section("pc1", "category-promo-cards", { storeWords: true }, [
+        { id: "c1", settings: { categoryId: ID(12) } },
+        { id: "c2", settings: { categoryId: ID(10), buttonLabel: "See phones" } },
+      ]),
+    ]);
+    const cards = [...container.querySelectorAll(".sf-banner-card")] as HTMLElement[];
+    expect(cards[0].querySelector('[data-word="shopNow"]')).not.toBeNull();
+    expect(cards[1].textContent).toContain("See phones");
+    expect(cards[1].querySelector("[data-word]")).toBeNull();
   });
 
   it("is left out when none of its collections exist", () => {

@@ -123,7 +123,7 @@ describe("hero", () => {
             storeName: "Rafi's Mart",
             currency: "BDT",
             banner,
-            promises: ["Cash on delivery"],
+            trustBadges: [{ text: "Cash on delivery" }],
             campaigns: [{ _id: "c1", name: "Eid sale", type: "percentage", value: 10, scope: "storewide" }] as never,
           }}
           data={{}}

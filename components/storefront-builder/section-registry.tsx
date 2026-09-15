@@ -241,7 +241,8 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
     frame: even("22px"),
   }),
   "promises-band": defineSection(SECTION_SPECS["promises-band"], PromisesBandSection, {
-    isEmpty: (_settings, blocks) => blocks.length === 0,
+    isEmpty: (settings, blocks, _data, context) =>
+      settings.storePromises ? !context.trustBadges?.length : blocks.length === 0,
     frame: { ...even("clamp(13px,1.8vw,19px)"), band: "accent-soft" },
   }),
   "image-text": defineSection(SECTION_SPECS["image-text"], ImageTextSection, {

@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import type { CatalogCategory, StoreSectionConfig } from "@/lib/storefront-client";
 import { collectionHref, storeLinkHref } from "@/lib/storefront-links";
@@ -102,7 +102,7 @@ export function CategoryBannerRow({
    * The button's wording for a card that has none of its own. Unset ⇒ such a
    * card draws no button: a builder section prints only the merchant's words.
    */
-  defaultButtonLabel?: string;
+  defaultButtonLabel?: ReactNode;
   renderStrip: StripRenderer;
 }) {
   /* ⚠ **Both screens, resolved together, because this page has no viewport.**
