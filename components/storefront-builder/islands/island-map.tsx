@@ -38,6 +38,10 @@ const ISLANDS = {
   "category-strip": dynamic(() =>
     import("@/components/storefront/home/category-strip").then((module) => module.CategoryStrip),
   ),
+  /** A landing page's id, remembered for the order this visit may end in. Renders nothing. */
+  "visit-source": dynamic(() =>
+    import("@/components/storefront/visit-source-capture").then((module) => module.VisitSourceCapture),
+  ),
 };
 
 export type IslandName = keyof typeof ISLANDS;

@@ -674,7 +674,20 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   permission every `/ecommerce/pages` route checks, so a role holding only `manage` would open a screen
   whose every request 403s.
 - **Landing pages only** (`kind: "landing"` on the list call). Content pages keep the Content screen
-  until Phase 4; system pages arrive in Phase 5.
+  until the Phase 5 store migration (owner decision, 2026-09-15); system pages arrive then too.
+- **Orders per landing page** (Phase 4, 2026-09-15). `lib/storefront-attribution.ts` keeps the visit's
+  source in `sessionStorage` (`ezy-visit-source`): `utm_*` tags from any URL the shopper arrives on and
+  the id of the last landing page they came through, each last-touch on its own, never under
+  `?preview=1`. `VisitSourceCapture` is mounted in both shop frames (tags only) and on a landing page
+  through the `visit-source` island in `BuilderPageBody` (with the page id) — the capture merges, so
+  effect order does not matter. **Owner preview never attributes a page:** with the preview cookie the
+  proxy serves the owner-preview route, which draws through `PageDraftPreview` and has no island — so a
+  merchant checking their own page in the browser they edit from sees no page id stored (this looked
+  like a bug in browser QA; test as a shopper with `?previewEnded=1` first). `useCheckout` sends
+  `orderSource()` as `source`; the backend keeps the
+  page only when it is this store's landing page, and the shopper never gets it back. The Pages list's
+  **Orders** column links to `/ecommerce/orders?pageId=…`, drawn there as `LandingPageFilter`: a chip,
+  never a dropdown, because a store can hold hundreds of landing pages.
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

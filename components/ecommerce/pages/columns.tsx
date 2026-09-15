@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { StorefrontPageListItem } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
@@ -48,6 +49,24 @@ export function buildPageColumns({
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "orders",
+      header: "Orders",
+      cell: ({ row }) => {
+        const { _id, orders } = row.original;
+        // Every order from a shopper who came through this page, any status; the
+        // link opens them in the order list.
+        if (!orders) return <span className="text-muted-foreground">0</span>;
+        return (
+          <Link
+            href={`/ecommerce/orders?pageId=${_id}`}
+            className="font-medium text-primary hover:underline"
+          >
+            {orders}
+          </Link>
+        );
+      },
     },
     {
       accessorKey: "updatedAt",

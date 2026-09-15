@@ -2,6 +2,7 @@
 import type { StorefrontStore } from "@/lib/storefront-client";
 import type { StorefrontReads } from "@/lib/storefront-server";
 import { PageSections } from "@/components/storefront-builder/page-sections";
+import { Island } from "@/components/storefront-builder/islands/island-map";
 import {
   loadBuilderPageData,
   type BuilderPage,
@@ -29,5 +30,11 @@ export async function BuilderPageBody({
   page: BuilderPage;
 }) {
   const { sections, context, data } = await loadBuilderPageData(reads, { slug, base, store, page });
-  return <PageSections sections={sections} context={context} data={data} />;
+  return (
+    <>
+      {/* Orders are attributed to the landing page a visit came through. */}
+      {page.kind === "landing" ? <Island name="visit-source" props={{ pageId: page._id }} /> : null}
+      <PageSections sections={sections} context={context} data={data} />
+    </>
+  );
 }

@@ -10972,6 +10972,16 @@ export interface components {
                 /** @enum {string} */
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
                 isGuest?: boolean;
+                source?: {
+                    pageId?: string;
+                    utm?: {
+                        source?: string;
+                        medium?: string;
+                        campaign?: string;
+                        content?: string;
+                        term?: string;
+                    };
+                };
                 items: {
                     _id?: string;
                     productId: string;
@@ -11182,6 +11192,16 @@ export interface components {
             /** @enum {string} */
             channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
             isGuest?: boolean;
+            source?: {
+                pageId?: string;
+                utm?: {
+                    source?: string;
+                    medium?: string;
+                    campaign?: string;
+                    content?: string;
+                    term?: string;
+                };
+            };
             items: {
                 _id?: string;
                 productId: string;
@@ -11382,6 +11402,16 @@ export interface components {
                 /** @enum {string} */
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
                 isGuest?: boolean;
+                source?: {
+                    pageId?: string;
+                    utm?: {
+                        source?: string;
+                        medium?: string;
+                        campaign?: string;
+                        content?: string;
+                        term?: string;
+                    };
+                };
                 items: {
                     _id?: string;
                     productId: string;
@@ -13856,6 +13886,7 @@ export interface components {
                 sectionCount: number;
                 configBytes: number;
             };
+            orders: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -18570,6 +18601,16 @@ export interface operations {
                         fbp?: string;
                         fbc?: string;
                         eventSourceUrl?: string;
+                    };
+                    source?: {
+                        pageId?: string;
+                        utm?: {
+                            source?: string;
+                            medium?: string;
+                            campaign?: string;
+                            content?: string;
+                            term?: string;
+                        };
                     };
                 };
             };
@@ -37276,6 +37317,7 @@ export interface operations {
                 fulfillmentType?: "delivery" | "pickup";
                 paymentStatus?: "pending" | "paid" | "refunded";
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
+                pageId?: string;
                 period?: "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "last6Months" | "thisYear" | "lastYear" | "custom";
                 startDate?: string;
                 endDate?: string;

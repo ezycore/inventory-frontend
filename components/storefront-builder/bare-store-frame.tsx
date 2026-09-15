@@ -15,6 +15,7 @@ import { Brand } from "@/components/storefront/logo-mark";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
+import { VisitSourceCapture } from "@/components/storefront/visit-source-capture";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 
 /**
@@ -87,6 +88,7 @@ export function BareStoreFrame({
         <CartDrawer />
         <OwnerAdminBar />
         <CartSync slug={slug} />
+        <VisitSourceCapture />
       </div>
     </StoreContextProvider>
   );

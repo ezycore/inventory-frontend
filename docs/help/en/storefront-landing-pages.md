@@ -117,6 +117,15 @@ Press **Page settings** to change:
 
 These save when you press **Save**, and take effect straight away, even on a published page.
 
+## See the orders a page brought in
+
+In **Pages**, the **Orders** column counts the orders placed by shoppers who came through each page —
+including a shopper who looked at another product first and ordered from the normal checkout. Press the
+number to open just those orders in your order list.
+
+An order counts for a page only when it is placed on the same visit, in the same browser. A shopper who
+comes back days later without opening the page again is not counted for it.
+
 ## Copy or delete a page
 
 In **Pages**, **Duplicate** makes a copy to start the next campaign from. **Delete page** removes it

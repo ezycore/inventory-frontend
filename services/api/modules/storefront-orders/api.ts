@@ -47,6 +47,8 @@ export interface AdminOrderListParams {
   paymentStatus?: string;
   /** Where the order came from — see `AdminOrderChannel`. */
   channel?: string;
+  /** Orders from shoppers who came through one landing page (`source.pageId`). */
+  pageId?: string;
   /**
    * Resolved server-side against the ORG's timezone, so a Dhaka merchant's day
    * does not roll over at a UTC boundary. Omit all three for no date filter —
@@ -253,6 +255,7 @@ export const storefrontOrdersApi = {
       qs.append("fulfillmentType", params.fulfillmentType);
     if (params.paymentStatus) qs.append("paymentStatus", params.paymentStatus);
     if (params.channel) qs.append("channel", params.channel);
+    if (params.pageId) qs.append("pageId", params.pageId);
     if (params.period) qs.append("period", params.period);
     if (params.startDate) qs.append("startDate", params.startDate);
     if (params.endDate) qs.append("endDate", params.endDate);

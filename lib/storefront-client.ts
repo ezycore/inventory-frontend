@@ -1214,6 +1214,15 @@ export interface PlaceOrderInput {
    * or an ad blocker installed still checks out, and an order must never depend on tracking.
    */
   meta?: { fbp?: string; fbc?: string; eventSourceUrl?: string };
+  /**
+   * The landing page and ad tags this visit came through (`lib/storefront-attribution.ts`).
+   * Optional for the same reason as `meta`; the server keeps the page only when it is this
+   * store's landing page, and stores it for the merchant alone.
+   */
+  source?: {
+    pageId?: string;
+    utm?: Partial<Record<"source" | "medium" | "campaign" | "content" | "term", string>>;
+  };
 }
 
 /**

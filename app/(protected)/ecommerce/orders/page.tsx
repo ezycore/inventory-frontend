@@ -24,6 +24,7 @@ import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-pr
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
 import { CreateOrderDialog } from "@/components/ecommerce/orders/create-order-dialog";
+import { LandingPageFilter } from "@/components/ecommerce/orders/landing-page-filter";
 import {
   confirmableOrders,
   deletableOrders,
@@ -101,7 +102,10 @@ export default function EcommerceOrdersPage() {
 
 function OrdersList() {
   const router = useRouter();
-  const initialStatus = useSearchParams().get("status") ?? "";
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status") ?? "";
+  // Set only by the Orders count on Online Store → Pages; see `LandingPageFilter`.
+  const pageId = searchParams.get("pageId") ?? undefined;
   const qc = useQueryClient();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const canDelete = useHasPermission(PERMISSIONS.storefrontOrdersDelete);
@@ -183,6 +187,12 @@ function OrdersList() {
     setPage(1);
     setSelected(new Set());
   };
+  // Back to every page's orders, from the chip `LandingPageFilter` draws.
+  const clearPageFilter = () => {
+    setPage(1);
+    setSelected(new Set());
+    router.replace("/ecommerce/orders");
+  };
   // No cast any more: the shared filter is generic over the period type, so the
   // pills and this handler are checked against `OrderListPeriod` end to end.
   const changePeriod = (v: OrderListPeriod | typeof ALL_TIME) => {
@@ -240,6 +250,7 @@ function OrdersList() {
     courier: courier === "all" ? undefined : courier,
     fulfillmentType: fulfillment === "all" ? undefined : fulfillment,
     channel: channel === "all" ? undefined : channel,
+    pageId,
     ...dateParams,
     page,
     limit,
@@ -418,12 +429,15 @@ function OrdersList() {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">
-          All Orders{" "}
-          <span className="font-normal text-muted-foreground">
-            ({counts.all ?? pagination?.total ?? 0})
-          </span>
-        </h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-base font-semibold">
+            All Orders{" "}
+            <span className="font-normal text-muted-foreground">
+              ({counts.all ?? pagination?.total ?? 0})
+            </span>
+          </h2>
+          {pageId ? <LandingPageFilter pageId={pageId} onClear={clearPageFilter} /> : null}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <SimpleSelect
             value={courier}

@@ -36,6 +36,7 @@ import {
   trackMetaEvent,
   trackMetaPurchase,
 } from "@/lib/storefront-meta";
+import { orderSource } from "@/lib/storefront-attribution";
 import { canonicalizeBdPhone, isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
@@ -479,6 +480,9 @@ export function useCheckout() {
         // cross-site request never carries them. Undefined is normal (blocked cookies, no ad
         // click) and an order must never depend on it — same rule as `anonymousId` above.
         meta: metaCheckoutAttribution(),
+        // Which landing page and ad this visit came through, for the merchant's
+        // orders-per-page count. Optional like `meta` — see `orderSource`.
+        source: orderSource(),
       },
       {
         onSuccess: (order) => {

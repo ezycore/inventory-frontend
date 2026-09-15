@@ -36,6 +36,7 @@ import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
+import { VisitSourceCapture } from "@/components/storefront/visit-source-capture";
 import { StorePreviewBridge } from "@/components/storefront/preview-bridge";
 import { money } from "@/components/storefront/format";
 import { effectiveFreeShippingThreshold } from "@/lib/storefront-delivery";
@@ -235,6 +236,8 @@ export function StoreShell({
             shop route, and it deliberately holds no reactive cart subscription
             (see cart-sync.tsx) so it cannot re-render this shell. */}
         <CartSync slug={slug} />
+        {/* Renders nothing — remembers the ad tags this visit arrived with. */}
+        <VisitSourceCapture />
       </div>
     </StoreContextProvider>
   );
