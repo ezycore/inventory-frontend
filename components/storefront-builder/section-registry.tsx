@@ -31,6 +31,10 @@ import { OfferPricingSection } from "@/components/storefront-builder/sections/of
 import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
 import { ProductCarouselSection } from "@/components/storefront-builder/sections/product-carousel";
 import { ProductGridSection } from "@/components/storefront-builder/sections/product-grid";
+import {
+  productRowNeedsCategories,
+  type ProductRowWording,
+} from "@/components/storefront-builder/product-row-heading";
 import { PromisesBandSection } from "@/components/storefront-builder/sections/promises-band";
 import { RichTextSection } from "@/components/storefront-builder/sections/rich-text";
 import { SelectedProductsSection } from "@/components/storefront-builder/sections/selected-products";
@@ -73,9 +77,9 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
   /**
    * Store-wide lists the view reads (`context.categories`, `context.tags`,
    * `context.campaigns`). The page fetches each list once, and only when some
-   * section on it asks.
+   * section on it asks — a function when only some settings read one.
    */
-  needs?: readonly StoreListNeed[];
+  needs?: readonly StoreListNeed[] | ((settings: SettingsOf<S>) => readonly StoreListNeed[]);
   isEmpty?: (
     settings: SettingsOf<S>,
     blocks: { id: string; settings: SettingsOf<B> }[],
@@ -119,7 +123,7 @@ function defineSection<
       }
       return {
         request,
-        needs: options.needs ?? [],
+        needs: typeof options.needs === "function" ? options.needs(settings) : (options.needs ?? []),
         isEmpty: (data, context) => options.isEmpty?.(settings, blocks, data, context) ?? false,
         floating: options.floating ?? false,
         frame: typeof options.frame === "function" ? options.frame(settings, blocks) : options.frame,
@@ -133,6 +137,10 @@ function defineSection<
 
 const noProducts = (_settings: unknown, _blocks: unknown, data: SectionData | undefined) =>
   !data?.items.length;
+
+/** A product row fetches the category tree only when it names itself after, or links to, its collection. */
+const productRowNeeds = (settings: ProductRowWording): readonly StoreListNeed[] =>
+  productRowNeedsCategories(settings) ? ["categories"] : [];
 
 /**
  * The classic home sections' own vertical padding (`components/storefront/home/sections`).
@@ -225,6 +233,7 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,
+    needs: productRowNeeds,
     isEmpty: noProducts,
     frame: even("22px"),
   }),
@@ -251,11 +260,13 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "selected-products": defineSection(SECTION_SPECS["selected-products"], SelectedProductsSection, {
     request: productSectionRequest,
+    needs: productRowNeeds,
     isEmpty: noProducts,
     frame: { top: "0px", bottom: "clamp(48px,7vw,80px)" },
   }),
   "product-carousel": defineSection(SECTION_SPECS["product-carousel"], ProductCarouselSection, {
     request: productSectionRequest,
+    needs: productRowNeeds,
     isEmpty: noProducts,
     frame: { ...even("clamp(20px,3vw,32px)"), band: "surface" },
   }),

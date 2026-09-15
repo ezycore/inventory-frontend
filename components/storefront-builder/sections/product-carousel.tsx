@@ -2,6 +2,7 @@
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { SectionHeading } from "@/components/storefront-builder/section-heading";
+import { productRowHeading } from "@/components/storefront-builder/product-row-heading";
 import { Island } from "@/components/storefront-builder/islands/island-map";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
@@ -20,12 +21,7 @@ export function ProductCarouselSection({ settings, context, data }: SectionViewP
   if (products.length === 0) return null;
   return (
     <>
-      <SectionHeading
-        base={context.base}
-        heading={settings.heading}
-        linkLabel={settings.ctaLabel}
-        linkHref={settings.ctaHref}
-      />
+      <SectionHeading base={context.base} {...productRowHeading(settings, context, "newArrivals")} />
       <Island
         name="product-rail"
         props={{ products, currency: context.currency, ...sectionCardMedia(settings) }}

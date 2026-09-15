@@ -238,12 +238,15 @@ const FIELD_LABELS: Record<string, string> = {
   side: "Picture side",
   source: "Products to show",
   split: "Picture share (%)",
+  storeHeading: "Heading when empty",
   style: "Style",
   subtitle: "Subtitle",
   tagIds: "Tags",
   text: "Text",
   title: "Title",
   url: "Video link",
+  viewAll: "Show a “View all” link",
+  wholeRows: "Only full rows",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
@@ -263,6 +266,19 @@ const HINTS: Record<string, string> = {
   poster: "Optional. A YouTube video uses its own cover when this is empty.",
   rating: "Leave empty for no stars.",
   url: "A YouTube or Facebook video link. Any other link shows nothing.",
+  storeHeading: "Shown in the shopper's language when Heading is empty.",
+  viewAll: "Goes to Link, or else to this row's collection or all products.",
+  wholeRows: "Hides the few products a short last row would leave on their own.",
+};
+
+/** Option names that only make sense for one setting, where the same value means something else elsewhere. */
+const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
+  storeHeading: {
+    featured: "“Featured products”",
+    newArrivals: "“New arrivals”",
+    selected: "“Selected for you”",
+    collection: "The collection's name",
+  },
 };
 
 /**
@@ -310,7 +326,8 @@ export const fieldHint = (key: string): string | undefined => HINTS[key];
 export const valueLabel = (value: string, field?: string): string => {
   const source = field ? CUSTOMIZE_OPTIONS[field] : undefined;
   const customize = source ? TEMPLATE_OPTIONS[source]?.find((option) => option.value === value) : undefined;
-  return customize?.label ?? VALUE_LABELS[value] ?? sentence(words(value));
+  const own = field ? FIELD_VALUE_LABELS[field]?.[value] : undefined;
+  return customize?.label ?? own ?? VALUE_LABELS[value] ?? sentence(words(value));
 };
 
 export const sectionLabel = (type: string): string =>

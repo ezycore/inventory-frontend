@@ -17,12 +17,21 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
     props,
   }: {
     name: string;
-    props: { children?: ReactNode; products?: unknown[]; campaigns?: unknown[]; heading?: string };
+    props: {
+      children?: ReactNode;
+      products?: unknown[];
+      campaigns?: unknown[];
+      heading?: string;
+      word?: string;
+      wholeRows?: boolean;
+    };
   }) => (
     <div
       data-island={name}
       data-count={(props.products ?? props.campaigns)?.length}
       data-heading={props.heading}
+      data-word={props.word}
+      data-whole-rows={props.wholeRows === undefined ? undefined : String(props.wholeRows)}
     >
       {props.children}
     </div>
@@ -85,6 +94,70 @@ describe("product-carousel", () => {
     expect(island.dataset.count).toBe("3");
     expect(container.textContent).toContain("New in");
     expect(hrefs(container)).toEqual(["/shop/products?sort=newest"]);
+  });
+});
+
+describe("product rows moved from the classic home", () => {
+  const items = [{ _id: "p1" }, { _id: "p2" }] as CatalogProduct[];
+  const cards = (root: ParentNode) => root.querySelector('[data-island="product-cards"]') as HTMLElement;
+
+  it("names a grid in the shopper's language, links View all to the catalogue and trims to full rows", () => {
+    const instance = section("g1", "product-grid", {
+      source: "featured",
+      limit: 8,
+      storeHeading: "featured",
+      viewAll: true,
+      wholeRows: true,
+    });
+    expect(sectionListNeeds(prepareSections([instance]))).toEqual([]);
+    const { container } = renderPage([instance], { g1: { items } });
+    expect(container.querySelector('h2 [data-word="featured"]')).not.toBeNull();
+    expect(container.querySelector('a [data-word="viewAll"]')).not.toBeNull();
+    expect(hrefs(container)).toEqual(["/shop/products"]);
+    expect(cards(container).dataset.wholeRows).toBe("true");
+  });
+
+  it("names a collection row after its collection and links to it", () => {
+    const instance = section("g2", "product-grid", {
+      source: "category",
+      categoryId: ID(11),
+      limit: 8,
+      storeHeading: "collection",
+      viewAll: true,
+      ctaLabel: "Every case",
+    });
+    expect(sectionListNeeds(prepareSections([instance]))).toEqual(["categories"]);
+    const { container } = renderPage([instance], { g2: { items } });
+    expect(container.querySelector("h2")?.textContent).toBe("Cases");
+    expect(container.querySelector("a")?.textContent).toBe("Every case →");
+    expect(hrefs(container)).toEqual(["/shop/phones/cases"]);
+  });
+
+  it("keeps every pick of a hand-picked row, and a new row shows only the merchant's words", () => {
+    const instance = section("g3", "product-grid", {
+      source: "manual",
+      productIds: [ID(20), ID(21)],
+      limit: 2,
+      wholeRows: true,
+      heading: "Our picks",
+      ctaLabel: "More",
+    });
+    const { container } = renderPage([instance], { g3: { items } });
+    expect(cards(container).dataset.wholeRows).toBe("false");
+    expect(container.querySelector("[data-word]")).toBeNull();
+    expect(container.querySelector("h2")?.textContent).toBe("Our picks");
+    expect(hrefs(container)).toEqual([]);
+  });
+
+  it("gives selected products the home page's narrow column and heading row", () => {
+    const { container } = renderPage(
+      [section("s1", "selected-products", { source: "featured", limit: 6, storeHeading: "selected" })],
+      { s1: { items } },
+    );
+    expect(container.querySelector('h2 [data-word="selected"]')).not.toBeNull();
+    expect((container.querySelector(".sfb-inner > div") as HTMLElement).style.maxWidth).toBe(
+      "calc(980px - 2 * var(--pad))",
+    );
   });
 });
 

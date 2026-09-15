@@ -1,12 +1,13 @@
 // coding-standard: maintained
+import type { ReactNode } from "react";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { SectionLink } from "@/components/storefront-builder/section-link";
 
 /**
- * A product section's heading row: the merchant's heading, with their link
- * beside it. The link draws only with both a label and a destination — a
- * builder section carries no platform wording ("View all") of its own — and
- * sits alone at the right when there is a link but no heading.
+ * A product section's heading row: the heading, with a link beside it. The link
+ * draws only with both a label and a destination, and sits alone at the right
+ * when there is a link but no heading. Either may be the storefront's own word
+ * (`productRowHeading`) rather than the merchant's.
  */
 export function SectionHeading({
   base,
@@ -15,8 +16,8 @@ export function SectionHeading({
   linkHref,
 }: {
   base: string;
-  heading?: string;
-  linkLabel?: string;
+  heading?: ReactNode;
+  linkLabel?: ReactNode;
   linkHref?: string;
 }) {
   const link =

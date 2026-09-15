@@ -2,7 +2,8 @@
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
-import { SectionTitle } from "@/components/storefront/sf-bits";
+import { SectionHeading } from "@/components/storefront-builder/section-heading";
+import { productRowHeading } from "@/components/storefront-builder/product-row-heading";
 import { Island } from "@/components/storefront-builder/islands/island-map";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
@@ -15,7 +16,9 @@ type Spec = (typeof SECTION_SPECS)["product-grid"]["settings"];
  *
  * `columns` overrides the store's responsive `--cols` ramp only when the
  * merchant set it (`.sfb-cols` in `app/(storefront)/storefront-builder.css`);
- * the card photo shape and fit likewise, only when the section sets them.
+ * the card photo shape and fit likewise, only when the section sets them. A row
+ * moved from the classic home keeps its own wording, "View all" link and
+ * whole-row trim (`productRowHeading`, `wholeRows`).
  */
 export function ProductGridSection({ settings, context, data }: SectionViewProps<Spec>) {
   const products = data?.items ?? [];
@@ -25,10 +28,15 @@ export function ProductGridSection({ settings, context, data }: SectionViewProps
       className={settings.columns ? "sfb-cols" : undefined}
       style={responsiveVars("sfb-cols", settings.columns)}
     >
-      {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
+      <SectionHeading base={context.base} {...productRowHeading(settings, context, "featured")} />
       <Island
         name="product-cards"
-        props={{ products, currency: context.currency, ...sectionCardMedia(settings) }}
+        props={{
+          products,
+          currency: context.currency,
+          wholeRows: !!settings.wholeRows && settings.source !== "manual",
+          ...sectionCardMedia(settings),
+        }}
       />
     </div>
   );

@@ -38,6 +38,20 @@ const CARD_PHOTO = {
 } as const;
 
 /** An icon a row or card may carry — names from `components/storefront/sf-icons.tsx`. */
+/**
+ * A product row's link to where its products live, and the heading it takes
+ * when the merchant typed none — the classic home page's rows, moved as they
+ * were (plan §17, Phase 5 step 5). `storeHeading` names the row in the
+ * shopper's language (`featured`, `newArrivals`, `selected`) or after its
+ * collection; `viewAll` draws the link, worded "View all" unless `ctaLabel` is
+ * set, to `ctaHref` or else the row's collection or the catalogue. Both unset on
+ * a new section, which shows only the merchant's words.
+ */
+const STORE_ROW = {
+  storeHeading: { type: "enum", values: ["featured", "newArrivals", "selected", "collection"], optional: true },
+  viewAll: { type: "boolean", optional: true },
+} as const;
+
 const ICON = {
   type: "enum",
   values: [
@@ -118,6 +132,11 @@ export const SECTION_SPECS = {
       limit: { type: "number", min: 1, max: 24, int: true },
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
       ...CARD_PHOTO,
+      ...STORE_ROW,
+      ctaLabel: { type: "string", max: 40, optional: true },
+      ctaHref: { type: "url", optional: true },
+      /** Drop the cards a last, short row would leave alone. A hand-picked row keeps every pick. */
+      wholeRows: { type: "boolean", optional: true },
     },
   },
   "promises-band": {
@@ -189,6 +208,7 @@ export const SECTION_SPECS = {
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
+      ...STORE_ROW,
     },
   },
   "product-carousel": {
@@ -204,6 +224,7 @@ export const SECTION_SPECS = {
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
+      ...STORE_ROW,
     },
   },
   "campaign-offers": {
