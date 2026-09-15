@@ -754,6 +754,8 @@ export interface StorefrontSettings {
   published: boolean;
   /** The landing page shown at the store's `/`; unset ⇒ the Customize home. Set on Pages, never by the settings save. */
   homePageId?: string;
+  /** Set once the store publishes its look through `/organization/storefront/site`; Customize then saves drafts. */
+  siteCutoverAt?: string;
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;

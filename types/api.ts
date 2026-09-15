@@ -200,6 +200,9 @@ export type StorefrontPageListItem = Schemas["StorefrontPageListItem"];
 export type StorefrontPageRevision = Schemas["StorefrontPageRevision"];
 // The landing page the store shows at `/` — `PUT /ecommerce/pages/home`.
 export type StorefrontHomePage = Schemas["StorefrontHomePage"];
+// The store's look with draft and publish — `/organization/storefront/site` (Phase 5).
+export type StorefrontSite = Schemas["StorefrontSite"];
+export type StorefrontSiteRevision = Schemas["StorefrontSiteRevision"];
 
 /**
  * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).

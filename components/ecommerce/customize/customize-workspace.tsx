@@ -1,10 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import type { StorefrontSite } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
+import { settingsWithSiteLook } from "@/components/ecommerce/customize/site-look";
+import { SitePublishBar } from "@/components/ecommerce/customize/site-publish-bar";
 import {
   BrowserPreview,
   type PreviewPage,
@@ -31,13 +34,26 @@ import {
  * something else — while the preview, fed from the same draft, went on showing
  * the edit that had just been lost.
  */
-export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings }) {
+export function CustomizeWorkspace({
+  settings: savedSettings,
+  site,
+}: {
+  settings: StorefrontSettings;
+  /** Present once the store publishes its look through the Site (see `SitePublishBar`). */
+  site?: StorefrontSite;
+}) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
   // The shop inherits the org logo when it has no store-specific one — the
   // preview applies the same fallback, or removing the store logo would blank
   // the header instead of reverting to the org mark.
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
-  const api = useCustomizeDraft(settings);
+  // Memoised: `useCustomizeDraft` re-seeds when this object changes, so it must
+  // change only when the settings or the Site do.
+  const settings = useMemo(
+    () => settingsWithSiteLook(savedSettings, site),
+    [savedSettings, site],
+  );
+  const api = useCustomizeDraft(settings, site);
 
   // ?part= deep-links a part open — the retired /ecommerce/navigation route and
   // the catalog's collections tab both point here.
@@ -109,11 +125,19 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
   };
 
   return (
+    <div className="space-y-4">
+    {site ? <SitePublishBar site={site} unsavedEdits={api.isDirty} /> : null}
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[440px_minmax(0,1fr)]">
       {/* LEFT — fixed-height sticky rail: content scrolls INSIDE it and each
           mode fills the same frame, so a panel takeover never changes the
-          column height. */}
-      <div className="flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]">
+          column height. Shorter by the publish bar when the store has one. */}
+      <div
+        className={
+          site
+            ? "flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-12.25rem)]"
+            : "flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]"
+        }
+      >
         {slidesPanel !== null ? (
           <HeroSlidesPanel
             slides={api.draft.heroSlides}
@@ -170,6 +194,7 @@ export function CustomizeWorkspace({ settings }: { settings: StorefrontSettings 
           mobileLogo={settings.mobileLogo ?? null}
         />
       </div>
+    </div>
     </div>
   );
 }

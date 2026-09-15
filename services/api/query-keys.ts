@@ -373,6 +373,12 @@ export const queryKeys = {
     ...resourceKeys("storefront-pages"),
     revisions: (id: string) => ["storefront-pages", "detail", id, "revisions"] as const,
   },
+  /** The store's look with draft and publish — one per store. Revisions sit under the root, so a publish flushes them. */
+  storefrontSite: {
+    all: () => ["storefront-site"] as const,
+    detail: () => ["storefront-site", "detail"] as const,
+    revisions: () => ["storefront-site", "revisions"] as const,
+  },
   domains: resourceKeys("domains"),
   // Read-only Mission Control access to this workspace. No mutation of ours
   // creates one — only MC can — so nothing else invalidates this root.

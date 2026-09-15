@@ -298,6 +298,13 @@ export const EFFECTS = {
    */
   "storefront.home.changed": [k.storefrontPages.lists(), k.organization.storefront()],
 
+  /**
+   * A switched store published its look (theme, header, footer, home sections) through the Site.
+   * Draft saves, discards and restores write the answered Site into the cache and fire nothing —
+   * shoppers see none of them. Public on `site`: the look travels in the store payload.
+   */
+  "storefront.site.published": [k.storefrontSite.all()],
+
   /** The storefront catalog overlay changed (listing flags, collections, campaigns, coupons). */
   "storefront.catalog.changed": [
     k.storefrontCatalog.all(),
@@ -374,6 +381,7 @@ const PUBLIC_STOREFRONT_EVENTS: Partial<
   "storefront.content.changed": "content",
   "storefront.page.published": "content",
   "storefront.home.changed": ["site", "content"],
+  "storefront.site.published": "site",
   "catalog.changed": "catalog",
 };
 

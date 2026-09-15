@@ -193,6 +193,7 @@ export function PartsRail({
     discard,
     save,
     saving,
+    savesDraft,
   } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
@@ -383,7 +384,9 @@ export function PartsRail({
             <span className="truncate">{dirtyNames.join(", ")} changed</span>
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">All changes saved</span>
+          <span className="text-xs text-muted-foreground">
+            {savesDraft ? "Draft saved" : "All changes saved"}
+          </span>
         )}
         <span className="ml-auto flex flex-none gap-2">
           <Button
@@ -395,7 +398,7 @@ export function PartsRail({
             Discard
           </Button>
           <Button size="sm" onClick={save} disabled={!isDirty || !isValid || saving}>
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? "Saving…" : savesDraft ? "Save draft" : "Save changes"}
           </Button>
         </span>
       </div>

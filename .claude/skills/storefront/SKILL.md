@@ -834,6 +834,15 @@ Four files, in payload order:
 3. `services/stores/use-sf-preview-store.ts` — the override state.
 4. The storefront component reads its override and prefers it over the saved payload.
 
+**A store whose look is published through the Site (Phase 5) saves a draft, not the live look.** When
+`settings.siteCutoverAt` is set, the Customize page loads `useStorefrontSite`, the workspace edits
+`settingsWithSiteLook(settings, site)` (`customize/site-look.ts` — every look block from the Site's
+draft or live look), Save sends the same `toSettingsPatch` blocks to the Site draft, and
+`SitePublishBar` publishes, discards and restores. The backend refuses look blocks on the settings PATCH
+for such a store (`STOREFRONT_LOOK_ON_SITE`), so never route a look save around this. `SITE_LOOK_KEYS`
+mirrors the backend's `STOREFRONT_SITE_LOOK_KEYS`; collections and media stay live-on-save. The preview
+path above is unchanged — it streams the client draft either way.
+
 **Rules, each of which was a real defect:**
 
 - **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
