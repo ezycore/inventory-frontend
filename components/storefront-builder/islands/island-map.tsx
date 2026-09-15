@@ -54,6 +54,8 @@ const ISLANDS = {
   "sticky-order-bar": dynamic(() =>
     import("./sticky-order-bar").then((module) => module.StickyOrderBarIsland),
   ),
+  /** A video's click-to-load cover; the provider's player loads on press. */
+  video: dynamic(() => import("./video").then((module) => module.VideoIsland)),
   /** A landing page's id, remembered for the order this visit may end in. Renders nothing. */
   "visit-source": dynamic(() =>
     import("@/components/storefront/visit-source-capture").then((module) => module.VisitSourceCapture),

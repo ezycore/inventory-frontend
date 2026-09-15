@@ -720,6 +720,16 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     registry marks it **`floating`**: `PageSections` stamps `data-float` and the frame becomes
     `display: contents`, so it takes no room where it is placed. A floating frame has no box, so the
     editor preview outlines its content instead (`EDITOR_FRAME_CSS`).
+- **Testimonials, Benefits, How to order, Video** (Phase 4; How to order is landing-only). Merchant text
+  only. **Testimonials are never labelled "verified"** — a review needs a `name` and words or a
+  screenshot (`shownTestimonials`), and a new one starts nameless so a placeholder can't be saved; a
+  CSS scroll-snap row on phones (`.sfb-cards`), no island. Benefits use `IconDisc`
+  (`components/storefront/icon-disc.tsx`, shared with `PromiseRows`) and the section specs' shared
+  `ICON` enum. **Video embeds only through `parseVideoEmbed`** (`lib/storefront-builder/video-embed.ts`):
+  YouTube (watch, youtu.be, shorts, embed, live) and Facebook (videos, watch, reel, fb.watch), any other
+  link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
+  picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
+  press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

@@ -111,6 +111,36 @@
   padding-bottom: calc(10px + max(0px, env(safe-area-inset-bottom) - var(--sf-bottom-nav-h, 0px)));
 }
 
+/* Testimonial cards: a grid past the breakpoint, one swipeable row on a phone. */
+.sfb-cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: stretch;
+}
+
+/* Benefit cards: the section's column count past the breakpoint, one column on a phone. */
+.sfb-benefits {
+  display: grid;
+  gap: 16px;
+}
+
+/* How to order: numbered steps, stacked on a phone, side by side past the breakpoint. */
+.sfb-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.sfb-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+
 /* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
 .sfb-split {
   display: grid;
@@ -139,6 +169,18 @@
   .sfb-sec[data-hide="mobile"] {
     display: none;
   }
+  .sfb-cards {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--pad));
+    padding-inline: var(--pad);
+    scroll-padding-inline: var(--pad);
+  }
+  .sfb-cards > * {
+    flex: 0 0 85%;
+    scroll-snap-align: start;
+  }
 }
 
 @media (min-width: 680px) {
@@ -147,6 +189,13 @@
   }
   .sfb-orderbar {
     display: none !important;
+  }
+  .sfb-benefits {
+    grid-template-columns: repeat(var(--sfb-benefit-cols, 3), minmax(0, 1fr));
+  }
+  .sfb-steps {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
   }
   .sfb-split {
     grid-template-columns: 1fr 1fr;

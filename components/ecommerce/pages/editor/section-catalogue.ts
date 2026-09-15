@@ -17,6 +17,7 @@ export const SECTION_GROUPS = [
   "Products",
   "Categories",
   "Offers",
+  "Social proof",
   "Content",
   "Conversion",
 ] as const;
@@ -146,6 +147,33 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
       "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product page when there is none.",
     addable: true,
   },
+  testimonials: {
+    label: "Testimonials",
+    group: "Social proof",
+    description: "What real customers said — their words, stars, photo or a screenshot of the review.",
+    item: "Review",
+    addable: true,
+  },
+  benefits: {
+    label: "Benefits",
+    group: "Content",
+    description: "Cards with an icon, a title and a line about what the product does.",
+    item: "Benefit",
+    addable: true,
+  },
+  "how-to-order": {
+    label: "How to order",
+    group: "Content",
+    description: "Numbered steps that show shoppers how ordering works.",
+    item: "Step",
+    addable: true,
+  },
+  video: {
+    label: "Video",
+    group: "Content",
+    description: "A YouTube or Facebook video that starts when tapped.",
+    addable: true,
+  },
   countdown: {
     label: "Countdown",
     group: "Offers",
@@ -186,17 +214,22 @@ const FIELD_LABELS: Record<string, string> = {
   imageFit: "Picture fit",
   imageRatio: "Picture shape",
   imageSide: "Picture side",
+  label: "Video name",
   layout: "Layout",
   limit: "Number of products",
   link: "Link",
   mobileColumns: "Columns on phones",
   mobileImage: "Phone picture",
   mode: "Style",
+  name: "Name",
   perRow: "Cards per row",
+  photo: "Photo",
+  poster: "Cover picture",
   productId: "Product",
   productIds: "Products",
   question: "Question",
   radius: "Corner roundness",
+  rating: "Stars (1–5)",
   ratio: "Picture shape",
   secondaryHref: "Second button link",
   secondaryLabel: "Second button label",
@@ -210,6 +243,7 @@ const FIELD_LABELS: Record<string, string> = {
   tagIds: "Tags",
   text: "Text",
   title: "Title",
+  url: "Video link",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
@@ -224,6 +258,11 @@ const HINTS: Record<string, string> = {
   cardImageRatio: CARD_PHOTO_HINT,
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
   galleryLayout: "Default follows Customize → Product page.",
+  label: "Read aloud by screen readers for the play button.",
+  photo: "Optional. Only with the customer's permission.",
+  poster: "Optional. A YouTube video uses its own cover when this is empty.",
+  rating: "Leave empty for no stars.",
+  url: "A YouTube or Facebook video link. Any other link shows nothing.",
 };
 
 /**
@@ -245,6 +284,7 @@ const VALUE_LABELS: Record<string, string> = {
   "4:3": "Landscape 4:3",
   "16:9": "Wide 16:9",
   "3:4": "Portrait 3:4",
+  "9:16": "Tall 9:16",
   crop: "Fill and crop",
   fit: "Show the whole picture",
   manual: "Picked by hand",

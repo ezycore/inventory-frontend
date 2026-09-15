@@ -37,6 +37,16 @@ const CARD_PHOTO = {
   cardImageFit: { type: "enum", values: ["fit", "crop"], optional: true },
 } as const;
 
+/** An icon a row or card may carry — names from `components/storefront/sf-icons.tsx`. */
+const ICON = {
+  type: "enum",
+  values: [
+    "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
+    "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
+  ],
+  optional: true,
+} as const;
+
 export const SECTION_SPECS = {
   hero: {
     v: 1,
@@ -120,15 +130,8 @@ export const SECTION_SPECS = {
       max: 6,
       settings: {
         text: { type: "string", min: 1, max: 120 },
-        // Names from `components/storefront/sf-icons.tsx`; unset cycles truck, shield, tag.
-        icon: {
-          type: "enum",
-          values: [
-            "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
-            "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
-          ],
-          optional: true,
-        },
+        // Unset cycles truck, shield, tag.
+        icon: ICON,
       },
     },
   },
@@ -310,6 +313,76 @@ export const SECTION_SPECS = {
     settings: {
       productId: { type: "ref", to: "product" },
       buttonLabel: { type: "string", max: 30, optional: true },
+    },
+  },
+  /**
+   * What customers said, as the merchant entered it: words, stars, a photo, or a
+   * screenshot of the review. A review needs a name, and words or a screenshot
+   * to show. Never labelled "verified" (plan §8).
+   */
+  testimonials: {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+    },
+    blocks: {
+      max: 12,
+      settings: {
+        name: { type: "string", min: 1, max: 80 },
+        text: { type: "string", max: 600, optional: true },
+        rating: { type: "number", min: 1, max: 5, int: true, optional: true },
+        photo: { type: "image", optional: true },
+        /** A screenshot of the review. */
+        image: { type: "image", optional: true },
+      },
+    },
+  },
+  benefits: {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      /** Past the breakpoint; a phone takes one column. */
+      columns: { type: "number", min: 1, max: 4, int: true, optional: true },
+    },
+    blocks: {
+      max: 12,
+      settings: {
+        icon: ICON,
+        title: { type: "string", min: 1, max: 80 },
+        text: { type: "string", max: 300, optional: true },
+      },
+    },
+  },
+  "how-to-order": {
+    v: 1,
+    pages: ["landing"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+    },
+    blocks: {
+      max: 8,
+      settings: {
+        title: { type: "string", min: 1, max: 80 },
+        text: { type: "string", max: 300, optional: true },
+      },
+    },
+  },
+  /**
+   * A YouTube or Facebook video behind a click-to-load cover. Any other link
+   * draws nothing: an embed is provider + id from an allowlist (plan §11).
+   */
+  video: {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      url: { type: "url" },
+      /** The play button's and player's accessible name. */
+      label: { type: "string", min: 1, max: 120 },
+      poster: { type: "image", optional: true },
+      ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], optional: true },
     },
   },
   countdown: {

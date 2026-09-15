@@ -32,10 +32,10 @@ A landing page does not change your homepage, and shoppers only find it through 
 
 1. Open **Pages** and press **New landing page**.
 2. Pick a starting point:
-   - **Single product, cash on delivery** — the product, your promises, an order form and common
-     questions.
+   - **Single product, cash on delivery** — the product, your promises, how to order, an order form
+     and common questions.
    - **Offer or campaign** — the price and discount first, then an order form with a coupon box.
-   - **Product launch** — large photos and room to tell shoppers what is new.
+   - **Product launch** — large photos, room to tell shoppers what is new, and its benefits.
    - **Blank** — an empty page you fill yourself.
 3. Unless you picked Blank, choose the **Product** the page sells. Its photos, price and description
    fill the page, and stay up to date when you change the product.
@@ -114,6 +114,17 @@ no order form, it opens the product's page instead.
 The bar hides while the order form is on screen, and it does not show on computers — switch the preview
 to **Mobile view** to see it. Leave **Button label** empty and the button says "Buy now" in the
 shopper's language.
+
+### Reviews, benefits, steps and video
+
+- **Testimonials** show what customers said: their words, stars, photo, or a screenshot of their review.
+  Add only real reviews from real customers, and a customer's photo only with their permission. Each
+  review needs a **Name**, and its words or a screenshot, before it shows.
+- **Benefits** are cards with an icon, a title and a line about what the product does.
+- **How to order** shows numbered steps. It is for landing pages only.
+- **Video** plays a YouTube or Facebook video. Paste the video's address into **Video link** — any other
+  link shows nothing. Shoppers see a cover picture, and the video only loads when they tap it, so it does
+  not slow the page down. Fill in **Video name**: screen readers read it out for the play button.
 
 ## Saving
 

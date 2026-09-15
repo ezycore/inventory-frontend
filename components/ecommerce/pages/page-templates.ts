@@ -39,11 +39,12 @@ export const PAGE_TEMPLATES: readonly PageTemplate[] = [
   {
     id: "single-product",
     label: "Single product, cash on delivery",
-    description: "The product, your promises, an order form and common questions.",
+    description: "The product, your promises, how to order, an order form and common questions.",
     needsProduct: true,
     sections: [
       { type: "single-product" },
       { type: "promises-band" },
+      { type: "how-to-order" },
       { type: "order-form" },
       { type: "faq" },
       { type: "sticky-order-bar" },
@@ -65,11 +66,12 @@ export const PAGE_TEMPLATES: readonly PageTemplate[] = [
   {
     id: "launch",
     label: "Product launch",
-    description: "Large photos and room to tell shoppers what is new.",
+    description: "Large photos, room to tell shoppers what is new, and its benefits.",
     needsProduct: true,
     sections: [
       { type: "single-product", settings: { galleryLayout: "gallery-top" } },
       { type: "rich-text" },
+      { type: "benefits" },
       { type: "promises-band" },
       { type: "faq" },
       { type: "order-form" },

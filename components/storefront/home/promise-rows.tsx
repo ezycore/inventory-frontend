@@ -1,5 +1,6 @@
 // coding-standard: maintained
-import { Icon, type IconName } from "@/components/storefront/sf-icons";
+import type { IconName } from "@/components/storefront/sf-icons";
+import { IconDisc } from "@/components/storefront/icon-disc";
 
 /** Icon fallbacks for a promise the merchant left without one. */
 const PROMISE_ICONS: IconName[] = ["truck", "shield", "tag"];
@@ -20,27 +21,7 @@ export function PromiseRows({
     <div className="sf-trust-list">
       {promises.map((promise, i) => (
         <div key={`${i}:${promise.text}`} className="sf-trust-row">
-          {/* The icon gets a solid disc so it survives a tinted band — an
-              `--accent` glyph on an `--accent-soft` ground is the one pairing
-              in the palette with almost no contrast. */}
-          <span
-            style={{
-              flex: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              background: "var(--accent)",
-              color: "var(--on-accent)",
-            }}
-          >
-            <Icon
-              name={(promise.icon as IconName) || PROMISE_ICONS[i % PROMISE_ICONS.length]}
-              size={17}
-            />
-          </span>
+          <IconDisc name={(promise.icon as IconName) || PROMISE_ICONS[i % PROMISE_ICONS.length]} />
           <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "var(--text)" }}>
             {promise.text}
           </span>

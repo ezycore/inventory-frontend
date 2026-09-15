@@ -56,6 +56,23 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "single-product": { settings: {} },
   "offer-pricing": { settings: { heading: "Special offer" } },
   "sticky-order-bar": { settings: {} },
+  // Reviews cannot be invented: the first starts without a name, so the section
+  // stays unfinished until the merchant enters a real one.
+  testimonials: { settings: { heading: "What customers say" }, blocks: [{ name: "" }] },
+  benefits: {
+    settings: { heading: "Why you'll love it" },
+    blocks: [{ icon: "check", title: "A benefit", text: "Say what it does for the shopper." }],
+  },
+  "how-to-order": {
+    settings: { heading: "How to order" },
+    blocks: [
+      { title: "Choose your product" },
+      { title: "Fill in the order form" },
+      { title: "Get it at your door" },
+    ],
+  },
+  // The link cannot be guessed: it starts incomplete.
+  video: { settings: { label: "Watch the video" } },
   countdown: { settings: { endsAt: "" } },
 };
 
@@ -66,4 +83,8 @@ export const BLOCK_DEFAULTS: Partial<Record<SectionType, Record<string, unknown>
   "promises-band": { text: "New promise" },
   // A card needs a collection, which cannot be guessed: it starts incomplete.
   "category-promo-cards": {},
+  // A review needs a real customer's name.
+  testimonials: { name: "" },
+  benefits: { title: "New benefit" },
+  "how-to-order": { title: "New step" },
 };

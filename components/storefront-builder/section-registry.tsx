@@ -10,8 +10,10 @@ import {
 } from "@/lib/storefront-builder/section-data";
 import { readBlocks, readSettings, type SettingsOf } from "@/lib/storefront-builder/settings";
 import { offerCampaigns, pickByIds, sectionCategories } from "@/lib/storefront-builder/store-lists";
+import { parseVideoEmbed } from "@/lib/storefront-builder/video-embed";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
 import type { SectionContext, SectionViewProps } from "@/components/storefront-builder/section-view";
+import { BenefitsSection } from "@/components/storefront-builder/sections/benefits";
 import { CallToActionSection } from "@/components/storefront-builder/sections/call-to-action";
 import { CampaignOffersSection } from "@/components/storefront-builder/sections/campaign-offers";
 import {
@@ -22,6 +24,7 @@ import { CategoryTilesSection } from "@/components/storefront-builder/sections/c
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides } from "@/components/storefront-builder/sections/hero";
+import { HowToOrderSection } from "@/components/storefront-builder/sections/how-to-order";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
 import { OfferPricingSection } from "@/components/storefront-builder/sections/offer-pricing";
 import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
@@ -33,6 +36,11 @@ import { SelectedProductsSection } from "@/components/storefront-builder/section
 import { ShopByTagSection } from "@/components/storefront-builder/sections/shop-by-tag";
 import { SingleProductSection } from "@/components/storefront-builder/sections/single-product";
 import { StickyOrderBarSection } from "@/components/storefront-builder/sections/sticky-order-bar";
+import {
+  TestimonialsSection,
+  shownTestimonials,
+} from "@/components/storefront-builder/sections/testimonials";
+import { VideoSection } from "@/components/storefront-builder/sections/video";
 
 /** A section instance whose settings have been read and found renderable. */
 export interface PreparedSection {
@@ -171,6 +179,18 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
     request: oneProduct,
     isEmpty: noProducts,
     floating: true,
+  }),
+  testimonials: defineSection(SECTION_SPECS.testimonials, TestimonialsSection, {
+    isEmpty: (_settings, blocks) => shownTestimonials(blocks).length === 0,
+  }),
+  benefits: defineSection(SECTION_SPECS.benefits, BenefitsSection, {
+    isEmpty: (_settings, blocks) => blocks.length === 0,
+  }),
+  "how-to-order": defineSection(SECTION_SPECS["how-to-order"], HowToOrderSection, {
+    isEmpty: (_settings, blocks) => blocks.length === 0,
+  }),
+  video: defineSection(SECTION_SPECS.video, VideoSection, {
+    isEmpty: (settings) => parseVideoEmbed(settings.url) === null,
   }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,
