@@ -171,7 +171,8 @@ Press **Page settings** to change:
   shows nothing but your sections.
 - **Search engines** — the **Title** and **Description** Google shows. **Hide from search engines** is
   on for every new page, because an ad page is usually not worth finding by search. Turn it off for a
-  page you want people to find on their own.
+  page you want people to find on their own — it is then listed in your store's sitemap, the list of
+  pages search engines read.
 
 These save when you press **Save**, and take effect straight away, even on a published page.
 
