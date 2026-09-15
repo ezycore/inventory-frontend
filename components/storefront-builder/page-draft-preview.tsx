@@ -1,9 +1,16 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQueries } from "@tanstack/react-query";
 import { storefrontApi } from "@/lib/storefront-client";
+import {
+  PAGE_DRAFT_APPLIED,
+  PAGE_DRAFT_MESSAGE,
+  PAGE_DRAFT_READY,
+  PAGE_SECTION_FOCUS,
+  PAGE_SECTION_SELECT,
+} from "@/lib/storefront-builder/page-draft-messages";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import { storefront } from "@/services/storefront/hooks";
 import {
@@ -14,12 +21,7 @@ import {
 } from "@/components/storefront-builder/page-sections";
 import type { SectionContext } from "@/components/storefront-builder/section-view";
 
-/** Editor → preview frame: the page's sections as they are now, saved or not. */
-export const PAGE_DRAFT_MESSAGE = "ezycore-page-draft";
-/** Preview frame → editor: mounted and listening, send the sections. */
-export const PAGE_DRAFT_READY = "ezycore-page-draft-ready";
-/** Preview frame → editor: the last sections sent are on screen. */
-export const PAGE_DRAFT_APPLIED = "ezycore-page-draft-applied";
+export { PAGE_DRAFT_APPLIED, PAGE_DRAFT_MESSAGE, PAGE_DRAFT_READY };
 
 /** What a product request asks for, apart from the instance it is filed under. */
 export const requestSignature = (request: ProductsDataRequest): string =>
@@ -27,6 +29,23 @@ export const requestSignature = (request: ProductsDataRequest): string =>
 
 /** The id a single re-query is filed under in its one-request call. */
 const SINGLE_KEY = "preview";
+
+/** Hover and selection outlines, added to the page only while the editor drives it. */
+const EDITOR_FRAME_CSS =
+  "[data-section-id]{cursor:pointer}" +
+  "[data-section-id]:hover{outline:2px dashed #2563eb;outline-offset:-2px}" +
+  "[data-section-focused]{outline:2px solid #2563eb;outline-offset:-2px}";
+
+/** Marks the section the editor has open, clearing any other; returns its element. */
+function markFocusedSection(id: string | null): Element | null {
+  document
+    .querySelectorAll("[data-section-focused]")
+    .forEach((node) => node.removeAttribute("data-section-focused"));
+  if (!id) return null;
+  const section = document.querySelector(`[data-section-id="${CSS.escape(id)}"]`);
+  section?.setAttribute("data-section-focused", "");
+  return section;
+}
 
 /**
  * A builder page in the editor's preview frame, redrawn as the merchant edits —
@@ -54,21 +73,68 @@ export function PageDraftPreview({
   context: SectionContext;
 }) {
   const [draft, setDraft] = useState(instances);
+  // The section open in the editor. A ref, not state: marking it is a DOM change,
+  // re-applied after each redraw, and it must not redraw the page itself.
+  const focusedId = useRef<string | null>(null);
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("preview") !== "1") return;
+
+    const style = document.createElement("style");
+    style.textContent = EDITOR_FRAME_CSS;
+    document.head.appendChild(style);
+
     const onMessage = (event: MessageEvent) => {
-      // Only the frame's own parent — the editor — may redraw the page.
-      if (event.source !== window.parent || event.data?.type !== PAGE_DRAFT_MESSAGE) return;
+      // Only the frame's own parent — the editor — may drive the page.
+      if (event.source !== window.parent) return;
+      if (event.data?.type === PAGE_SECTION_FOCUS) {
+        const id = typeof event.data.payload?.id === "string" ? event.data.payload.id : null;
+        focusedId.current = id;
+        const section = markFocusedSection(id);
+        // The frame's own window only: `scrollIntoView` scrolls every scrollable
+        // ancestor, the editor page around the frame included.
+        if (section) {
+          const box = section.getBoundingClientRect();
+          if (box.top < 0 || box.bottom > window.innerHeight) {
+            window.scrollTo({ top: window.scrollY + box.top - 16, behavior: "smooth" });
+          }
+        }
+        return;
+      }
+      if (event.data?.type !== PAGE_DRAFT_MESSAGE) return;
       const sections = event.data.payload?.sections;
       if (!Array.isArray(sections)) return;
       setDraft(sections as PageSectionInstance[]);
       window.parent.postMessage({ type: PAGE_DRAFT_APPLIED }, "*");
     };
+
+    // Editing, not browsing: a click on a section picks it instead of following
+    // whatever link it landed on.
+    const onClick = (event: MouseEvent) => {
+      const section = event.target instanceof Element ? event.target.closest("[data-section-id]") : null;
+      if (!section) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.parent.postMessage(
+        { type: PAGE_SECTION_SELECT, payload: { id: section.getAttribute("data-section-id") } },
+        "*",
+      );
+    };
+
     window.addEventListener("message", onMessage);
+    document.addEventListener("click", onClick, true);
     window.parent?.postMessage({ type: PAGE_DRAFT_READY }, "*");
-    return () => window.removeEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      document.removeEventListener("click", onClick, true);
+      style.remove();
+    };
   }, []);
+
+  // A redraw can replace the focused section's element; mark it again.
+  useEffect(() => {
+    markFocusedSection(focusedId.current);
+  }, [draft]);
 
   // The server's answers, filed by the query that produced them.
   const served = useMemo(() => {
@@ -103,5 +169,5 @@ export function PageDraftPreview({
     if (answer) dataById[request.key] = answer;
   }
 
-  return <PageSections sections={sections} context={context} data={dataById} />;
+  return <PageSections sections={sections} context={context} data={dataById} annotate />;
 }

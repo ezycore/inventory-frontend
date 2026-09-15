@@ -695,6 +695,25 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
 - **Section pictures upload through `storefrontPagesApi.uploadImage`** (`POST /ecommerce/pages/images`,
   `storefront.design`); a rich-text field in the page editor uses image scope `"page"`. Never point the
   page editor at the content-page upload — it needs `storefront.manage`.
+- **The editor** (`app/(protected)/ecommerce/pages/[id]/`, `components/ecommerce/pages/editor/`).
+  `usePageEditor` holds the sections, the selection and the device, above the rail and the preview. The
+  rail is `SectionTree`, or with a section open `SectionInspector` → `SettingsFields` → `FieldControl` /
+  `ImageField` / `RefField`, all chosen by the `SECTION_SPECS` field type — **a new spec field needs no
+  editor code**, only a label in `section-catalogue.ts` (it falls back to a readable form of its key).
+  What a new section starts with is `section-defaults.ts`; a test requires every addable default to be
+  complete, except Image and text, whose picture cannot be invented.
+  - **The editor holds anything; a save sends only `savableSections`.** The backend refuses a whole draft
+    over one invalid field, so an unfinished section or item stays local and is marked in the list.
+  - **Clearing an optional setting deletes its key** (`withFieldValue`) — the backend refuses `""` where it
+    expects a link. A responsive setting is `{ base, mobile? }`; the device switch picks which one is
+    edited, and a phone value with no desktop value becomes the base.
+  - **The preview stage is shared with Customize** (`components/ecommerce/customize/preview-stage.tsx`:
+    the device switch, the phone frame, the desktop `zoom` rule). Never copy it back into either preview.
+  - **Click-to-select goes both ways** through `lib/storefront-builder/page-draft-messages.ts`. The owner
+    preview stamps `data-section-id` (`PageSections annotate`) and scrolls **its own window only** —
+    `scrollIntoView` also scrolled the editor page around the frame. Import the message names from that
+    module, never from `page-draft-preview.tsx`, which would pull every section view into the admin
+    bundle.
 
 ## Live preview (Customize) — how it works, and how to add a field
 

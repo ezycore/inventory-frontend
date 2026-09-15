@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink, Monitor, RotateCw, Smartphone } from "lucide-react";
+import { ExternalLink, RotateCw } from "lucide-react";
 import { useStoreProducts } from "@/services/storefront/hooks";
 import { useStorefrontPreviewToken } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
@@ -15,11 +15,13 @@ import type { Image } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { toPreviewPayload } from "@/components/ecommerce/customize/draft-payloads";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
-import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import {
-  DESKTOP_PREVIEW_WIDTH,
-  usePreviewScale,
-} from "@/components/ecommerce/customize/use-preview-scale";
+  PreviewDeviceToggle,
+  PreviewStage,
+  previewFrameSize,
+} from "@/components/ecommerce/customize/preview-stage";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
 
 /** Which storefront page the preview is pointed at. */
 export type PreviewPage = "home" | "collection" | "product";
@@ -324,36 +326,7 @@ export function BrowserPreview({
         </div>
 
         <div className="ml-auto flex flex-none items-center gap-1">
-          <div className="flex rounded-md border p-0.5">
-            <button
-              type="button"
-              onClick={() => setDevice("desktop")}
-              aria-label="Desktop view"
-              aria-pressed={device === "desktop"}
-              className={cn(
-                "rounded p-1.5 transition-colors",
-                device === "desktop"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Monitor className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setDevice("mobile")}
-              aria-label="Mobile view"
-              aria-pressed={device === "mobile"}
-              className={cn(
-                "rounded p-1.5 transition-colors",
-                device === "mobile"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
-          </div>
+          <PreviewDeviceToggle device={device} onChange={setDevice} />
           <button
             type="button"
             onClick={() => setReloadKey((k) => k + 1)}
@@ -375,72 +348,41 @@ export function BrowserPreview({
       </div>
 
       {/* Viewport — switching device only resizes the same iframe (no reload) */}
-      <div
-        className="relative flex justify-center overflow-auto bg-muted/20"
-        style={{ height: viewportHeight, minHeight: 560 }}
+      <PreviewStage
+        device={device}
+        hostRef={hostRef}
+        height={viewportHeight}
+        overlay={
+          !painted ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
+              Loading preview…
+            </div>
+          ) : null
+        }
       >
-        <div
-          ref={device === "desktop" ? hostRef : undefined}
-          className={cn(
-            "flex-none overflow-hidden bg-white",
-            device === "mobile"
-              ? // `max-w-`, not a hard `w-`: 390px plus the 10px bezels is wider
-                // than the phone a merchant may be standing on.
-                "my-5 h-[calc(100%-2.5rem)] w-full max-w-[390px] rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
-              : "h-full w-full",
-          )}
-        >
-          {/* `visibility`, not conditional mounting: the frame has to load and
-              run to send the ack that reveals it. Opacity alone would still let
-              the saved theme paint through the transition.
-
-              On desktop the frame is laid out at a real desktop width and scaled
-              down to fit, rather than laid out at the panel's own width — see
-              `usePreviewScale` for why a rail theme was previewing with no rail. */}
-          {/* `previewReady` as well as `ready`: mounting before the owner-preview
-              token is in hand would load the shop's own "not published yet" 404
-              and then reload it a moment later — a wasted render of the wrong
-              page, and one the 1.5s reveal could catch mid-flight. */}
-          {ready && previewReady ? (
-            <iframe
-              key={reloadKey}
-              ref={ref}
-              src={url}
-              title="Storefront preview"
-              onLoad={post}
-              className="border-0 bg-white"
-              style={{
-                visibility: painted ? "visible" : "hidden",
-                ...(device === "desktop"
-                  ? {
-                      /* `zoom`, NOT `transform: scale()`. The storefront is on
-                         its own subdomain, so this frame is an OOPIF, and a
-                         transformed OOPIF does not repaint — Chrome keeps showing
-                         a stale blank layer while the DOM inside is fully built.
-                         Proven directly in the browser: setting `transform: none`
-                         on the live element made it paint instantly. Neither
-                         `will-change` nor deferring the mount until the host was
-                         measured fixed it, because both leave it a compositing
-                         problem. `zoom` scales through LAYOUT, so the frame is
-                         laid out at its final size and paints like any other. */
-                      zoom: scale,
-                      width: DESKTOP_PREVIEW_WIDTH,
-                      // In the frame's own unzoomed coordinates — height × zoom
-                      // lands on the host exactly. A percentage resolves in the
-                      // zoomed space and comes up short.
-                      height: frameHeight || "100%",
-                    }
-                  : { width: "100%", height: "100%" }),
-              }}
-            />
-          ) : null}
-        </div>
-        {!painted ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
-            Loading preview…
-          </div>
+        {/* `visibility`, not conditional mounting: the frame has to load and
+            run to send the ack that reveals it. Opacity alone would still let
+            the saved theme paint through the transition. Its size per device —
+            and why desktop uses `zoom` — is `previewFrameSize`. */}
+        {/* `previewReady` as well as `ready`: mounting before the owner-preview
+            token is in hand would load the shop's own "not published yet" 404
+            and then reload it a moment later — a wasted render of the wrong
+            page, and one the 1.5s reveal could catch mid-flight. */}
+        {ready && previewReady ? (
+          <iframe
+            key={reloadKey}
+            ref={ref}
+            src={url}
+            title="Storefront preview"
+            onLoad={post}
+            className="border-0 bg-white"
+            style={{
+              visibility: painted ? "visible" : "hidden",
+              ...previewFrameSize(device, scale, frameHeight),
+            }}
+          />
         ) : null}
-      </div>
+      </PreviewStage>
     </div>
   );
 }

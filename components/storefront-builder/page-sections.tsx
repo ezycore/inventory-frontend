@@ -86,10 +86,16 @@ export function PageSections({
   sections,
   context,
   data,
+  annotate = false,
 }: {
   sections: readonly PreparedPageSection[];
   context: SectionContext;
   data: Readonly<Record<string, SectionData>>;
+  /**
+   * Stamp each section with `data-section-id`, for the editor's click-to-select.
+   * Only the owner preview asks: a shopper's page carries no editor markup.
+   */
+  annotate?: boolean;
 }) {
   return (
     <>
@@ -103,6 +109,7 @@ export function PageSections({
             data-width={frame.width}
             data-tone={frame.tone}
             data-hide={hide}
+            data-section-id={annotate ? id : undefined}
             style={frame.style}
           >
             <div className="sfb-inner">{section.render(context, sectionData)}</div>
