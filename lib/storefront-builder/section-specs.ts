@@ -255,6 +255,21 @@ export const SECTION_SPECS = {
       },
     },
   },
+  /**
+   * The embedded order form (backend plan storefront-builder §9): one product,
+   * its options and quantity, and the store's own checkout rules — the order is
+   * placed on the page, with no hop to /checkout. Landing pages only.
+   */
+  "order-form": {
+    v: 1,
+    pages: ["landing"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      text: { type: "string", max: 400, optional: true },
+      productId: { type: "ref", to: "product" },
+      coupon: { type: "boolean", optional: true },
+    },
+  },
   countdown: {
     v: 1,
     pages: "all",

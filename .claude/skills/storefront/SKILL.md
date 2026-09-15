@@ -688,6 +688,16 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   page only when it is this store's landing page, and the shopper never gets it back. The Pages list's
   **Orders** column links to `/ecommerce/orders?pageId=…`, drawn there as `LandingPageFilter`: a chip,
   never a dropdown, because a store can hold hundreds of landing pages.
+- **The order form section** (`order-form`, landing pages only; Phase 4). Server view
+  `sections/order-form.tsx` asks for its one product by id (manual source, so a sold-out offer still
+  draws and says so) and hands it to the `order-form` island (`islands/order-form.tsx`). The island is
+  **checkout, not a second checkout**: `useCheckout({ lines })` orders the form's own line with every
+  checkout rule, never reads or empties the cart, sends no cart handle, and reports `InitiateCheckout`
+  on the first edit (`use-initiate-checkout.ts`) instead of on arrival. Options resolve through
+  `resolveProductChoice` / `choiceLine` (`components/storefront/product-choice.ts`) — the product page
+  and the quick-buy sheet use the same helper, so price, stock and the default option cannot differ
+  between them. A list row has no `variants`; a variable product waits for the detail payload. The
+  quantity control is `QtyStepper` (`components/storefront/qty-stepper.tsx`), shared with the sheet.
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

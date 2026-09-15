@@ -23,6 +23,7 @@ import { CollectionsRowSection } from "@/components/storefront-builder/sections/
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides } from "@/components/storefront-builder/sections/hero";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
+import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
 import { ProductCarouselSection } from "@/components/storefront-builder/sections/product-carousel";
 import { ProductGridSection } from "@/components/storefront-builder/sections/product-grid";
 import { PromisesBandSection } from "@/components/storefront-builder/sections/promises-band";
@@ -133,6 +134,19 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
     isEmpty: (_settings, blocks) => blocks.length === 0,
   }),
   "call-to-action": defineSection(SECTION_SPECS["call-to-action"], CallToActionSection),
+  "order-form": defineSection(SECTION_SPECS["order-form"], OrderFormSection, {
+    // One product, asked for by id: a hand-picked product is returned whatever
+    // its stock, so a sold-out offer says so instead of vanishing from the page
+    // an ad points at.
+    request: (id, settings) => ({
+      key: id,
+      type: "products",
+      source: "manual",
+      productIds: [settings.productId],
+      limit: 1,
+    }),
+    isEmpty: noProducts,
+  }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,
     isEmpty: noProducts,

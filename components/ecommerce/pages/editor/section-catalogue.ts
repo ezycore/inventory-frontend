@@ -121,6 +121,12 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     item: "Card",
     addable: true,
   },
+  "order-form": {
+    label: "Order form",
+    group: "Conversion",
+    description: "One product with its options and your checkout form — shoppers order without leaving the page.",
+    addable: true,
+  },
   countdown: {
     label: "Countdown",
     group: "Offers",
@@ -144,6 +150,7 @@ const FIELD_LABELS: Record<string, string> = {
   categoryId: "Collection",
   categoryIds: "Collections",
   columns: "Columns",
+  coupon: "Coupon box",
   ctaHref: "Link",
   ctaLabel: "Link label",
   description: "Description",
@@ -193,6 +200,7 @@ const HINTS: Record<string, string> = {
   mobileImage: "Optional. Shown on phones instead of the main picture.",
   cardImageFit: CARD_PHOTO_HINT,
   cardImageRatio: CARD_PHOTO_HINT,
+  coupon: "Lets shoppers type a coupon code into the form. Off by default.",
 };
 
 /**

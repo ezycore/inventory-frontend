@@ -51,6 +51,8 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "campaign-offers": { settings: {} },
   "category-tiles": { settings: {} },
   "category-promo-cards": { settings: {} },
+  // The product cannot be guessed: like Image and text, it starts incomplete.
+  "order-form": { settings: { heading: "Order now" } },
   countdown: { settings: { endsAt: "" } },
 };
 

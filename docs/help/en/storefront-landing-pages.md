@@ -70,6 +70,16 @@ look better in another shape — tall photos for sarees, wide ones for furniture
 
 Pictures you add to a section can be up to 5 MB.
 
+### Take orders on the page
+
+Add an **Order form** section to let shoppers order without leaving the page. Pick the product it
+sells: the form shows its options and a quantity, then the same delivery, payment and terms questions
+as your checkout, with the same delivery charges. The order arrives in your order list like any other
+website order. The shopper's cart is not touched.
+
+Turn on **Coupon box** if your ad offers a coupon code. Order forms only work on landing pages. If the
+product sells out or is removed from your online store, the form says so or disappears.
+
 ## Saving
 
 You do not need to press save. Your changes save by themselves a moment after you stop typing. The

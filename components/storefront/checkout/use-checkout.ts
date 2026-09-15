@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "@/lib/storefront-toast";
 import {
   usePlaceOrder,
@@ -11,7 +11,7 @@ import {
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { useCartStore } from "@/services/stores/use-cart-store";
+import { useCartStore, type CartItem } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 import { storefrontApi } from "@/lib/storefront-client";
 import type {
@@ -30,13 +30,9 @@ import { money } from "@/components/storefront/format";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
 import { cartAnonymousId } from "@/services/storefront/cart-identity";
-import {
-  metaCheckoutAttribution,
-  metaContentId,
-  trackMetaEvent,
-  trackMetaPurchase,
-} from "@/lib/storefront-meta";
+import { metaCheckoutAttribution, trackMetaPurchase } from "@/lib/storefront-meta";
 import { orderSource } from "@/lib/storefront-attribution";
+import { useInitiateCheckout } from "@/components/storefront/checkout/use-initiate-checkout";
 import { canonicalizeBdPhone, isValidBdPhone } from "@/services/storefront/bd-phone";
 import type { GeoValue } from "@/components/storefront/checkout/geo-picker";
 import {
@@ -69,8 +65,13 @@ const emptyGeo = (): GeoValue => ({ district: "", area: "" });
  * "the price changed at the last step".**
  *
  * Layouts own: the arrangement, the number of screens, the chrome. Nothing else.
+ *
+ * **`lines`** orders those instead of the cart — a landing page's order form
+ * (plan storefront-builder §9). Everything above still applies; what changes is
+ * only what belongs to the cart: the basket is neither read nor emptied, no
+ * mirrored cart is closed, and `InitiateCheckout` waits for the first edit.
  */
-export function useCheckout() {
+export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
   const { slug, base } = useStoreContext();
   const { t, lang } = useStorefrontUI();
   const { data: store } = useStore(slug);
@@ -89,13 +90,17 @@ export function useCheckout() {
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
 
-  const items = storeSlug === slug ? allItems : [];
+  const items = lines ?? (storeSlug === slug ? allItems : []);
   const currency = store?.currency;
   const methods = store?.allowedPaymentMethods ?? ["cod"];
   const savedAddresses = shopper?.addresses ?? [];
 
   const [addr, setAddr] = useState({ name: "", phone: "", address: "", notes: "" });
-  const set = (k: keyof typeof addr, v: string) => setAddr((a) => ({ ...a, [k]: v }));
+  const set = (k: keyof typeof addr, v: string) => {
+    // A form on a landing page starts its checkout when the shopper starts typing.
+    if (lines) reportCheckout();
+    setAddr((a) => ({ ...a, [k]: v }));
+  };
   // Merchant visibility only (abandoned carts), guests only, fire-and-forget —
   // a shopper who fills this form and leaves is otherwise unreachable.
   const captureContact = useGuestContactCapture(slug, !shopper);
@@ -192,32 +197,9 @@ export function useCheckout() {
   const total = Math.max(0, subtotal - discount) + shipping;
   const zoneLabel = zone === "inside" ? t.insideDhaka : t.outsideDhaka;
 
-  // Meta `InitiateCheckout` — once per visit to this page, not once per keystroke.
-  //
-  // Gated on a hydrated, non-empty cart: on the server there is no cart, and on the first client
-  // render the persisted store has not rehydrated yet, so an ungated effect reports an empty
-  // basket worth 0 for every shopper. `num_items` is sent here and nowhere else — Meta documents
-  // it for this event alone.
-  const checkoutReported = useRef(false);
-  useEffect(() => {
-    if (checkoutReported.current || !hydrated || items.length === 0) return;
-    checkoutReported.current = true;
-    trackMetaEvent(store, "InitiateCheckout", {
-      currency,
-      value: Number(subtotal.toFixed(2)),
-      content_type: "product",
-      num_items: items.reduce((sum, i) => sum + i.quantity, 0),
-      content_ids: items.map((i) => metaContentId(i.productId, i.variantId)),
-      contents: items.map((i) => ({
-        id: metaContentId(i.productId, i.variantId),
-        quantity: i.quantity,
-        item_price: i.price,
-      })),
-    });
-    // Deliberately narrow: this must fire on arrival, not re-fire as the shopper edits the cart
-    // or the coupon recomputes the total.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, items.length]);
+  // Meta `InitiateCheckout`: on arrival at the checkout page, on the first edit
+  // in a landing page's order form — see `useInitiateCheckout`.
+  const reportCheckout = useInitiateCheckout({ store, items, hydrated, onArrival: !lines });
 
   // --- address book selection ---
   const pickSaved = (a: ShopperAddress) => {
@@ -473,7 +455,8 @@ export function useCheckout() {
         // conversion funnel, and eventually eligible for a "you left these behind"
         // reminder about a parcel that already arrived. `null` here is normal
         // (Safari private mode), and the order must not depend on it.
-        anonymousId: cartAnonymousId(slug) ?? undefined,
+        // A landing page's form orders its own lines, so it has no cart to close.
+        anonymousId: lines ? undefined : (cartAnonymousId(slug) ?? undefined),
         // Meta attribution, snapshotted HERE and replayed by the backend when the order reaches
         // the merchant's purchase trigger. It has to travel in the body: `_fbp`/`_fbc` are
         // first-party cookies on the storefront's host and the API is on another one, so a
@@ -497,7 +480,8 @@ export function useCheckout() {
           // own guard. Before `clear()` would work equally well — it reads the order, not the
           // cart — but ahead of it is where the sale is unambiguously real.
           trackMetaPurchase(store, order);
-          clear();
+          // The shopper's basket is not what a landing page's form ordered.
+          if (!lines) clear();
           setPlaced(order);
           toast.success(t.orderPlaced);
         },

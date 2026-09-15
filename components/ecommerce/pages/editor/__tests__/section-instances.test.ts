@@ -26,7 +26,8 @@ describe("new sections", () => {
 
   it("start complete — they save and draw at once — except image and text, which needs a picture", () => {
     for (const type of addable) {
-      expect(isComplete(newSection(type, [])), type).toBe(type !== "image-text");
+      // A picture and a product cannot be invented, so those two start unfinished.
+      expect(isComplete(newSection(type, [])), type).toBe(type !== "image-text" && type !== "order-form");
     }
   });
 

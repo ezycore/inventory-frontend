@@ -19,11 +19,8 @@ import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { storeHref } from "@/lib/storefront-links";
 import { cardImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { cartLineCap } from "@/lib/storefront-cart-qty";
-import {
-  defaultSelection,
-  matchVariant,
-} from "@/components/storefront/variant-selector";
-import type { CatalogProduct, CatalogVariant } from "@/lib/storefront-client";
+import { resolveProductChoice } from "@/components/storefront/product-choice";
+import type { CatalogProduct } from "@/lib/storefront-client";
 
 /**
  * Everything the product page knows and can do — queries, shopper selection, the
@@ -86,38 +83,27 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
 
   const variant = useStoreTemplate(store, "product");
 
-  const variable = product?.productType === "variable";
-  const variants: CatalogVariant[] = product?.variants ?? [];
-
-  // Backorder products stay buyable past zero stock, on every surface that
-  // branches on stock: the buy button, the quantity stepper, the cart cap AND
-  // the variant chips. Declared before `selection` because the default
-  // highlight is one of those branches.
-  const canBackorder = product?.outOfStockBehavior === "backorder";
-
-  // Selected variant: shopper's picks win, else default to first buyable.
-  const selection = Object.keys(picked).length
-    ? picked
-    : defaultSelection(variants, canBackorder);
-  const selectedVariant = variable ? matchVariant(variants, selection) : undefined;
-
-  // Variable products price/stock/gallery from the selected variant; a variant
-  // with images swaps the gallery, otherwise the parent images stay.
-  const price = (variable ? selectedVariant?.price : product?.price) ?? 0;
-  const compareAt = variable ? selectedVariant?.compareAtPrice : product?.compareAtPrice;
-  const availableQty = variable
-    ? (selectedVariant?.availableQuantity ?? 0)
-    : (product?.availableQuantity ?? 0);
+  // Price, stock and gallery for the shopper's pick — the same answer the
+  // quick-buy sheet and a landing page's order form give (`resolveProductChoice`).
+  // Backorder products stay buyable past zero stock on every surface that
+  // branches on stock: the buy button, the stepper, the cart cap and the chips.
+  const {
+    variable,
+    variants,
+    canBackorder,
+    selection,
+    selected: selectedVariant,
+    price,
+    compareAt,
+    availableQty,
+    images,
+  } = resolveProductChoice(product, picked);
   const outOfStock = availableQty <= 0;
   // Only "show"/"hide" products are truly sold out. `soldOut` gates the buy
   // buttons + the red stock badge — and it is the ONLY stock fact the page
   // states, deliberately: a backorder product is presented as an ordinary
   // available one (see the badge in `view.tsx`). Nothing downstream needs the
   // raw `outOfStock`, which is why it is not returned.
-  const images =
-    variable && selectedVariant?.images?.length
-      ? selectedVariant.images
-      : (product?.images ?? []);
 
   // Meta `ViewContent` — one per product the shopper opens.
   //
