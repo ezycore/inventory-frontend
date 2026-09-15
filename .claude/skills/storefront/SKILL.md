@@ -686,6 +686,15 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
 - **Editor copy is English for now** (owner decision, 2026-09-15), like the rest of Online Store; only
   the sidebar label is translated (`পেজ`).
 - **A draft is previewed** through the owner-preview page route — see "Cached store pages" above.
+  There a builder page draws through `PageDraftPreview`
+  (`components/storefront-builder/page-draft-preview.tsx`): under `?preview=1` it takes
+  `ezycore-page-draft` messages **from its parent frame only** (`event.source === window.parent`),
+  redraws with the shop's own section registry, and answers `ezycore-page-draft-ready` /
+  `ezycore-page-draft-applied`. Products are reused **by query** (`requestSignature`), so only a changed
+  query is fetched, alone, through `storefrontApi.sectionData`.
+- **Section pictures upload through `storefrontPagesApi.uploadImage`** (`POST /ecommerce/pages/images`,
+  `storefront.design`); a rich-text field in the page editor uses image scope `"page"`. Never point the
+  page editor at the content-page upload — it needs `storefront.manage`.
 
 ## Live preview (Customize) — how it works, and how to add a field
 
@@ -2691,10 +2700,10 @@ cached entry on the `/sites` route (see "Cached store pages").
     `CharacterCount` has no `limit` — a hard stop would fire at a number that is not the one being
     enforced.
   - **Images are opt-in per field and the field names a SCOPE** — `FormFieldConfig.imageUpload`
-    is `"content"` or `"product"`, not a boolean, because the two surfaces post to different
+    is `"content"`, `"page"` or `"product"`, not a boolean, because the surfaces post to different
     endpoints behind different permissions: `POST /ecommerce/content/images`
-    (`storefront.manage`) and `POST /products/description-image` (`products.create` OR
-    `products.edit`). A field that can reach neither omits the scope and gets no button rather
+    (`storefront.manage`), `POST /ecommerce/pages/images` (`storefront.design`, the Storefront
+    Builder) and `POST /products/description-image` (`products.create` OR `products.edit`). A field that can reach neither omits the scope and gets no button rather
     than one that always 403s. `data:` URIs are refused twice — `allowBase64: false` in the
     editor, and `SAFE_RICH_IMAGE_SRC` in the renderer, which is the real boundary because the
     stored tree is writable through the raw API.

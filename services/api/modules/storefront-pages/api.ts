@@ -2,6 +2,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
+  ApiImage,
   StorefrontPage,
   StorefrontPageListItem,
   StorefrontPageRevision,
@@ -80,4 +81,14 @@ export const storefrontPagesApi = {
   /** Copies the revision into the draft; the live page is unchanged until the next publish. */
   restoreRevision: (id: string, version: number): Promise<ApiResponse<StorefrontPage>> =>
     apiClient.post(`${base}/${id}/revisions/${version}/restore`, {}),
+  /**
+   * Upload a picture for a section. Written at once — the editor needs its URL
+   * before the draft is saved — under `storefront.design`, which the content-page
+   * upload (`storefront.manage`) does not accept.
+   */
+  uploadImage: (file: File): Promise<ApiResponse<ApiImage>> => {
+    const body = new FormData();
+    body.append("image", file);
+    return apiClient.post(`${base}/images`, body);
+  },
 };

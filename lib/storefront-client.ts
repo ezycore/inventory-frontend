@@ -14,6 +14,7 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -1486,6 +1487,17 @@ export const storefrontApi = {
     sfFetch<ContentPageLink[]>(slug, "/pages"),
   getPage: (slug: string, pageSlug: string) =>
     sfFetch<ContentPageView>(slug, `/pages/${pageSlug}`),
+  /**
+   * Builder section products, from the browser — the editor preview re-querying
+   * a section whose products changed before the page was saved. At most
+   * `MAX_SECTION_DATA_REQUESTS` per call; the server read batches a whole page
+   * instead (`getSectionData` in `lib/storefront-server.ts`).
+   */
+  sectionData: (slug: string, requests: readonly ProductsDataRequest[]) =>
+    sfFetch<{ results: Record<string, SectionData> }>(
+      slug,
+      `/section-data${buildQuery({ r: JSON.stringify(requests) })}`,
+    ),
 
   register: (
     slug: string,

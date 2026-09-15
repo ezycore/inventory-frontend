@@ -1,20 +1,21 @@
 // coding-standard: maintained
 import type { ApiResponse } from "@/types";
-import { contentPagesApi, productsApi } from "@/services/api";
+import { contentPagesApi, productsApi, storefrontPagesApi } from "@/services/api";
 
 /**
  * Which endpoint an editor's insert-image button posts to.
  *
- * A scope rather than a boolean, because the two surfaces that embed images sit
- * behind **different permissions**: page bodies need `storefront.manage`,
- * product descriptions need `products.create` or `products.edit`. A single
- * `allowImages: true` could only ever point at one of them, which is why the
- * product-description editor shipped with no button at all — the only endpoint
- * available would have 403'd for a product-only role.
+ * A scope rather than a boolean, because the surfaces that embed images sit
+ * behind **different permissions**: content page bodies need `storefront.manage`,
+ * Storefront Builder pages need `storefront.design`, product descriptions need
+ * `products.create` or `products.edit`. A single `allowImages: true` could only
+ * ever point at one of them, which is why the product-description editor shipped
+ * with no button at all — the only endpoint available would have 403'd for a
+ * product-only role.
  *
  * Omitting the scope is how a field opts OUT: no scope, no button.
  */
-export type RichImageScope = "content" | "product";
+export type RichImageScope = "content" | "page" | "product";
 
 /** Bytes. Mirrors the backend's multer limit — reject before the round trip. */
 export const RICH_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
@@ -23,5 +24,6 @@ type Uploader = (file: File) => Promise<ApiResponse<{ url?: string }>>;
 
 export const RICH_IMAGE_UPLOADERS: Record<RichImageScope, Uploader> = {
   content: (file) => contentPagesApi.uploadImage(file),
+  page: (file) => storefrontPagesApi.uploadImage(file),
   product: (file) => productsApi.uploadDescriptionImage(file),
 };
