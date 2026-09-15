@@ -65,7 +65,8 @@ export function HeroActions({
 }
 
 interface HeroCopy {
-  badge?: string;
+  /** Text, or a builder hero's running-offer badge with its word in the shopper's language. */
+  badge?: ReactNode;
   title: string;
   /** The title is the store's name standing in for one — kept for the outline, hidden from view. */
   hideTitle?: boolean;

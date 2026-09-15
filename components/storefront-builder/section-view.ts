@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import type { CatalogCategory, StoreCampaign, StoreTag } from "@/lib/storefront-client";
+import type { CatalogCategory, StoreCampaign, StoreTag, StorefrontImage } from "@/lib/storefront-client";
 import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
 import type { SectionData } from "@/lib/storefront-builder/section-data";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
@@ -31,6 +31,10 @@ export interface SectionContext {
   imageFit?: "cover" | "canvas";
   /** Customize → Product cards → image ratio, as a CSS `aspect-ratio`. */
   imageRatio?: string;
+  /** The store banner (Customize → Hero), for a hero that uses it. */
+  banner?: StorefrontImage | null;
+  /** The store's promises (trust badges), for a card hero that shows them. */
+  promises?: string[];
 }
 
 export interface SectionViewProps<

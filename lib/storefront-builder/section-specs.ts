@@ -69,6 +69,22 @@ export const SECTION_SPECS = {
       layout: { type: "enum", values: ["card", "open", "full-bleed"] },
       /** Read by the `open` layout only. */
       align: { type: "enum", values: ["left", "center"], optional: true },
+      /*
+       * The classic home hero, for a hero moved from it (plan §17, Phase 5 step 5);
+       * all unset on a new hero. `slideshow` rotates even one slide, as the home
+       * page's slides always did. The rest describe its banner hero, drawn from the
+       * first slide: `storeBanner` shows the store banner where the slide has no
+       * picture; `storeWords` keeps the store's name as a visible title and words
+       * both buttons in the shopper's language ("Shop now", "Browse categories" —
+       * "Start shopping" full width), each going to the catalogue without a link;
+       * `campaignBadge` shows the running offer where the slide has no badge;
+       * `promises` lists the store's promises under a card.
+       */
+      slideshow: { type: "boolean", optional: true },
+      storeBanner: { type: "boolean", optional: true },
+      storeWords: { type: "boolean", optional: true },
+      campaignBadge: { type: "boolean", optional: true },
+      promises: { type: "boolean", optional: true },
     },
     // The limits mirror the home hero's slides (`heroSlidesSchema`), so a
     // store's slides move onto a builder hero unchanged.
@@ -85,6 +101,9 @@ export const SECTION_SPECS = {
         buttonLabel: { type: "string", max: 30, optional: true },
         link: { type: "url", optional: true },
         hideTextOnMobile: { type: "boolean", optional: true },
+        /** A second button, on a single card or open slide only. */
+        secondaryLabel: { type: "string", max: 30, optional: true },
+        secondaryLink: { type: "url", optional: true },
       },
     },
   },

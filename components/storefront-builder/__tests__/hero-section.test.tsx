@@ -4,13 +4,26 @@ import { describe, expect, it, vi } from "vitest";
 import {
   PageSections,
   prepareSections,
+  sectionListNeeds,
   type PageSectionInstance,
 } from "@/components/storefront-builder/page-sections";
 import { heroSlides } from "@/components/storefront-builder/sections/hero";
 
 vi.mock("@/components/storefront-builder/islands/island-map", () => ({
-  Island: ({ name, props }: { name: string; props: { slides?: unknown[]; bare?: boolean } }) => (
-    <div data-island={name} data-count={props.slides?.length} data-bare={props.bare ? "true" : undefined} />
+  Island: ({
+    name,
+    props,
+  }: {
+    name: string;
+    props: { slides?: unknown[]; bare?: boolean; word?: string; fallback?: { title?: string } };
+  }) => (
+    <span
+      data-island={name}
+      data-count={props.slides?.length}
+      data-bare={props.bare ? "true" : undefined}
+      data-word={props.word}
+      data-title={props.fallback?.title}
+    />
   ),
 }));
 
@@ -96,6 +109,75 @@ describe("hero", () => {
 
   it("is skipped without a layout it knows", () => {
     expect(prepareSections([hero({ layout: "split" }, [{ id: "s1", settings: { title: "Hi" } }])])).toEqual([]);
+  });
+
+  describe("moved from the classic home", () => {
+    const banner = { url: "https://cdn.example.com/banner.jpg", mediumUrl: "https://cdn.example.com/banner-md.jpg" };
+    const storeHero = { layout: "card", storeBanner: true, storeWords: true, campaignBadge: true, promises: true };
+    const renderStore = (instances: PageSectionInstance[]) =>
+      render(
+        <PageSections
+          sections={prepareSections(instances)}
+          context={{
+            base: "/shop",
+            storeName: "Rafi's Mart",
+            currency: "BDT",
+            banner,
+            promises: ["Cash on delivery"],
+            campaigns: [{ _id: "c1", name: "Eid sale", type: "percentage", value: 10, scope: "storewide" }] as never,
+          }}
+          data={{}}
+        />,
+      );
+
+    it("draws the banner hero from an empty slide: store name, banner, offer, both buttons, promises", () => {
+      expect(sectionListNeeds(prepareSections([hero(storeHero, [{ id: "b", settings: {} }])]))).toEqual([
+        "campaigns",
+      ]);
+      const { container } = renderStore([hero(storeHero, [{ id: "b", settings: {} }])]);
+      const heading = container.querySelector("h1") as HTMLElement;
+      expect(heading.textContent).toBe("Rafi's Mart");
+      expect(heading.className).toBe("sf-herocard-title");
+      expect(container.querySelector("img")?.getAttribute("src")).toContain("banner-md.jpg");
+      expect(container.querySelector(".sf-herocard-badge")?.textContent).toBe("Eid sale · 10% ");
+      expect(container.querySelector('.sf-herocard-badge [data-word="campaignOff"]')).not.toBeNull();
+      const links = [...container.querySelectorAll("a")];
+      expect(links.map((a) => a.getAttribute("href"))).toEqual(["/shop/products", "/shop/products"]);
+      expect(links.map((a) => a.querySelector("[data-word]")?.getAttribute("data-word"))).toEqual([
+        "shopNow",
+        "browseCats",
+      ]);
+      expect(container.querySelector(".sf-herocard-trust")?.textContent).toContain("Cash on delivery");
+    });
+
+    it("keeps the merchant's own copy and second button over the store's", () => {
+      const { container } = renderStore([
+        hero({ ...storeHero, campaignBadge: false, promises: false }, [
+          {
+            id: "b",
+            settings: { title: "Eid edit", buttonLabel: "Buy", link: "/pages/eid", secondaryLabel: "Call", secondaryLink: "tel:+8801711000000" },
+          },
+        ]),
+      ]);
+      expect(container.querySelector("h1")?.textContent).toBe("Eid edit");
+      expect(container.querySelector(".sf-herocard-badge")).toBeNull();
+      expect([...container.querySelectorAll("a")].map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+        ["Buy", "/shop/pages/eid"],
+        ["Call", "tel:+8801711000000"],
+      ]);
+      expect(container.querySelector(".sf-herocard-trust")).toBeNull();
+    });
+
+    it("rotates one slide under slideshow, and sends a full-width banner hero to its own island", () => {
+      const one = [{ id: "s1", settings: { image } }];
+      const { container } = renderStore([hero({ layout: "card", slideshow: true }, one)]);
+      expect((container.querySelector("[data-island]") as HTMLElement).dataset.island).toBe("hero-carousel");
+
+      const wide = renderStore([hero({ layout: "full-bleed", storeBanner: true, storeWords: true }, [{ id: "b", settings: {} }])]);
+      const island = wide.container.querySelector("[data-island]") as HTMLElement;
+      expect(island.dataset.island).toBe("hero-fullbleed-store");
+      expect(island.dataset.title).toBe("Rafi's Mart");
+    });
   });
 
   it("maps a slide's focal point per breakpoint onto its desktop and phone anchors", () => {

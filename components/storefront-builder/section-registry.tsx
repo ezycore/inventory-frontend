@@ -24,7 +24,7 @@ import {
 import { CategoryTilesSection } from "@/components/storefront-builder/sections/category-tiles";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
-import { HeroSection, heroSlides } from "@/components/storefront-builder/sections/hero";
+import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
 import { HowToOrderSection } from "@/components/storefront-builder/sections/how-to-order";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
 import { OfferPricingSection } from "@/components/storefront-builder/sections/offer-pricing";
@@ -186,12 +186,15 @@ const oneProduct = (id: string, settings: { productId: string }): ProductsDataRe
  */
 export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> = {
   hero: defineSection(SECTION_SPECS.hero, HeroSection, {
-    isEmpty: (_settings, blocks) => heroSlides(blocks).length === 0,
+    needs: (settings) => (settings.campaignBadge ? ["campaigns"] : []),
+    isEmpty: (settings, blocks) => heroSlides(blocks, keepsEmptySlides(settings)).length === 0,
     // Slides rotate in a card spaced like the framed hero; only one open slide is the open hero.
     frame: (settings, blocks) =>
       settings.layout === "full-bleed"
         ? HOME_FRAMES.heroFullBleed
-        : settings.layout === "open" && heroSlides(blocks).length === 1
+        : settings.layout === "open" &&
+            !settings.slideshow &&
+            heroSlides(blocks, keepsEmptySlides(settings)).length === 1
           ? HOME_FRAMES.heroOpen
           : HOME_FRAMES.heroCard,
   }),
