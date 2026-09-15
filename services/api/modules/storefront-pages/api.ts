@@ -1,0 +1,83 @@
+// coding-standard: maintained
+import { apiClient } from "@/lib/api-client";
+import type { ApiResponse, PaginatedResponse } from "@/types";
+import type {
+  StorefrontPage,
+  StorefrontPageListItem,
+  StorefrontPageRevision,
+} from "@/types/api";
+import { buildQueryParams } from "../../utils";
+
+/**
+ * Storefront Builder pages — `/ecommerce/pages` (backend `storefront-pages.routes.ts`,
+ * gated on `storefront.design`). Responses are the generated types; the request
+ * bodies mirror `storefront-page.validator.ts`, which checks only the envelope — a
+ * section's settings are checked against the section manifest, and a refusal names
+ * the failing path.
+ */
+export type { StorefrontPage, StorefrontPageListItem, StorefrontPageRevision };
+
+/** One section instance as a draft stores it. */
+export type StorefrontPageSection = NonNullable<StorefrontPage["draft"]>["sections"][number];
+
+export interface StorefrontPageListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  kind?: StorefrontPage["kind"];
+  status?: StorefrontPage["status"];
+}
+
+/** Landing pages only: content pages move into the builder in Phase 4, system pages in Phase 5. */
+export interface CreateStorefrontPageInput {
+  title: string;
+  /** Unset takes a free slug made from the title. */
+  slug?: string;
+  chrome?: StorefrontPage["chrome"];
+}
+
+export interface UpdateStorefrontPageInput {
+  title?: string;
+  /** Renaming a published page keeps the old address as a redirect. */
+  slug?: string;
+  chrome?: StorefrontPage["chrome"];
+  seo?: { title?: string; description?: string; noindex?: boolean };
+}
+
+export interface SaveStorefrontPageDraftInput {
+  sections: StorefrontPageSection[];
+  /** The `draftVersion` the editor loaded. A stale one is refused, so two tabs cannot overwrite each other. */
+  draftVersion: number;
+}
+
+const base = "/ecommerce/pages";
+
+export const storefrontPagesApi = {
+  list: (
+    params: StorefrontPageListParams = {},
+  ): Promise<ApiResponse<PaginatedResponse<StorefrontPageListItem>>> =>
+    apiClient.get(`${base}${buildQueryParams(params)}`),
+  get: (id: string): Promise<ApiResponse<StorefrontPage>> => apiClient.get(`${base}/${id}`),
+  create: (body: CreateStorefrontPageInput): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(base, { kind: "landing", ...body }),
+  update: (id: string, body: UpdateStorefrontPageInput): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.patch(`${base}/${id}`, body),
+  remove: (id: string): Promise<ApiResponse<{ id: string }>> => apiClient.delete(`${base}/${id}`),
+  saveDraft: (
+    id: string,
+    body: SaveStorefrontPageDraftInput,
+  ): Promise<ApiResponse<StorefrontPage>> => apiClient.put(`${base}/${id}/draft`, body),
+  discardDraft: (id: string): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.delete(`${base}/${id}/draft`),
+  publish: (id: string): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/${id}/publish`, {}),
+  unpublish: (id: string): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/${id}/unpublish`, {}),
+  duplicate: (id: string): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/${id}/duplicate`, {}),
+  revisions: (id: string): Promise<ApiResponse<StorefrontPageRevision[]>> =>
+    apiClient.get(`${base}/${id}/revisions`),
+  /** Copies the revision into the draft; the live page is unchanged until the next publish. */
+  restoreRevision: (id: string, version: number): Promise<ApiResponse<StorefrontPage>> =>
+    apiClient.post(`${base}/${id}/revisions/${version}/restore`, {}),
+};

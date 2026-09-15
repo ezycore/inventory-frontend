@@ -9,9 +9,10 @@ import { StoreContentPage } from "@/components/storefront/content-page-view";
 // `revalidate` in lib/storefront-server.ts.
 //
 // Shoppers normally never reach this route: `proxy.ts` rewrites a public
-// `/pages/<slug>` GET onto the cached `app/(storefront)/sites` route. What still
-// lands here is owner preview (it must read the preview token off the request)
-// and a `/shop/pages/…` request on a host that names no store.
+// `/pages/<slug>` GET onto the cached `app/(storefront)/sites` route, and an owner
+// preview onto the `preview` route beside it. What still lands here is a page
+// that does not exist (so the shop's own 404 can render), a slug outside the
+// backend's grammar, and a `/shop/pages/…` request on a host that names no store.
 export const revalidate = 300;
 
 export async function generateMetadata({

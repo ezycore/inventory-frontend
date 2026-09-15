@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { publicStorefront } from "@/lib/storefront-server";
 import { loadSitePage, type SitePageParams } from "@/lib/storefront-site-page";
 import { PageFrame } from "@/components/storefront-builder/page-frame";
 
@@ -31,6 +32,7 @@ export default async function SitePageLayout({
   return (
     <PageFrame
       chrome={site.builder?.page?.chrome ?? "full"}
+      reads={publicStorefront}
       slug={site.slug}
       base={site.base}
       store={site.store}

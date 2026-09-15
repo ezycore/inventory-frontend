@@ -144,7 +144,12 @@ Grouped bundles `DERIVED` (dashboard + reports), `STOCK`, `MONEY` are composed i
 Current list: `stock.moved`, `money.moved`, `sale.posted`, `sale.drafted`, `sale.paid`,
 `sale.returned`, `purchase.ordered`, `purchase.received`, `purchase.paid`, `purchase.returned`,
 `order.changed`, `order.confirmed`, `order.settled`, `order.returned`, `catalog.changed`,
-`storefront.catalog.changed`, `party.changed`, `org.changed`.
+`storefront.catalog.changed`, `storefront.content.changed`, `storefront.page.drafted`,
+`storefront.page.published`, `party.changed`, `org.changed`.
+
+`storefront.page.drafted` is deliberately **lists only**: its hooks `setQueryData` the page they got
+back, because a refetch under an open page editor would race the next autosave (storefront skill →
+"Pages").
 
 Keep them aligned with the backend skills (`sales-flow`, `purchase-flow`, `inventory-stock`,
 `accounting-ledger`, `storefront-orders`). An event with no backend counterpart means the frontend is

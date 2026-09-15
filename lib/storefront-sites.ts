@@ -75,6 +75,17 @@ export function cachedPageSlug(
 export const sitesPagePath = (store: { slug: string; base: string }, pageSlug: string): string =>
   `${SITES_PREFIX}/${encodeURIComponent(store.slug)}/${siteModeFor(store.base)}/pages/${pageSlug}`;
 
+/** The segment the owner-preview page route sits under, beside the cached `pages`. */
+const PREVIEW_SEGMENT = "preview";
+
+/**
+ * The internal path of one store page under owner preview — a request-reading
+ * route that draws the draft in the page's own chrome. Under `/sites`, so the
+ * proxy's block on direct `/sites` requests covers it too.
+ */
+export const sitesPreviewPath = (store: { slug: string; base: string }, pageSlug: string): string =>
+  `${SITES_PREFIX}/${encodeURIComponent(store.slug)}/${siteModeFor(store.base)}/${PREVIEW_SEGMENT}/${pageSlug}`;
+
 /**
  * The public pathname for a pathname read inside the app.
  *
@@ -84,12 +95,14 @@ export const sitesPagePath = (store: { slug: string; base: string }, pageSlug: s
  * derives from the pathname — the active tab, the breadcrumb, whether a strip
  * shows — would then differ between the two renders and fail hydration. Mapping
  * the internal spelling back makes both sides agree; every other pathname is
- * returned untouched.
+ * returned untouched. The owner-preview route's `preview` segment maps back to
+ * `pages`, which is what the browser asked for.
  */
 export function publicPathname(pathname: string): string {
   if (!pathname.startsWith(`${SITES_PREFIX}/`)) return pathname;
   const [, , slug, mode, ...rest] = pathname.split("/");
   if (!slug || !mode || !isSiteMode(mode)) return pathname;
+  if (rest[0] === PREVIEW_SEGMENT) rest[0] = "pages";
   const tail = rest.length ? `/${rest.join("/")}` : "";
   return `${siteBaseFor(mode)}${tail}` || "/";
 }

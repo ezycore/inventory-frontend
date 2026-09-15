@@ -368,6 +368,11 @@ export const queryKeys = {
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
   contentPages: resourceKeys("content-pages"),
+  /** Storefront Builder pages. Revisions sit under the root, so a publish flushes them with the rest. */
+  storefrontPages: {
+    ...resourceKeys("storefront-pages"),
+    revisions: (id: string) => ["storefront-pages", "detail", id, "revisions"] as const,
+  },
   domains: resourceKeys("domains"),
   // Read-only Mission Control access to this workspace. No mutation of ours
   // creates one — only MC can — so nothing else invalidates this root.

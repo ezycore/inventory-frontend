@@ -19,7 +19,12 @@ import {
   PREVIEW_REQUEST_HEADER,
   PREVIEW_TOKEN_PARAM,
 } from "@/lib/storefront-preview";
-import { cachedPageSlug, isSitesPath, sitesPagePath } from "@/lib/storefront-sites";
+import {
+  cachedPageSlug,
+  isSitesPath,
+  sitesPagePath,
+  sitesPreviewPath,
+} from "@/lib/storefront-sites";
 import { storePageExists } from "@/lib/storefront-page-lookup";
 
 /**
@@ -232,6 +237,21 @@ export async function proxy(request: NextRequest) {
     // And only a page that exists: a cached render cannot draw the shop's own
     // 404 (see `lib/storefront-page-lookup.ts`), so a miss stays on the
     // request-reading route below, which can.
+    // ---- Owner preview of a store page ----
+    //
+    // Onto its own request-reading route beside the cached one, which draws the
+    // draft in the page's own chrome. `shop/pages/[pageSlug]` cannot: its layout
+    // always draws the full shop shell. No existence check — a preview may be of
+    // a page nobody else can see, and the route answers its own 404.
+    if (previewToken && (request.method === "GET" || request.method === "HEAD")) {
+      const previewSlug = cachedPageSlug(store, pathname);
+      if (previewSlug) {
+        const url = request.nextUrl.clone();
+        url.pathname = sitesPreviewPath(store, previewSlug);
+        return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
+      }
+    }
+
     const pageSlug =
       !previewToken && (request.method === "GET" || request.method === "HEAD")
         ? cachedPageSlug(store, pathname)

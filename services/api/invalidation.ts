@@ -273,6 +273,24 @@ export const EFFECTS = {
    */
   "storefront.content.changed": [k.contentPages.all()],
 
+  /**
+   * A Storefront Builder page's DRAFT changed — created, duplicated, autosaved,
+   * discarded or restored from a revision. Shoppers see none of it, so it stays
+   * out of `PUBLIC_STOREFRONT_EVENTS`.
+   *
+   * Lists only, on purpose. The hooks that change a draft write the returned page
+   * into its detail cache themselves: refetching the page under an open editor on
+   * every autosave would race the merchant's next keystroke and hand the editor a
+   * `draftVersion` it did not save.
+   */
+  "storefront.page.drafted": [k.storefrontPages.lists()],
+
+  /**
+   * What shoppers see changed — a page published, unpublished, renamed, re-titled
+   * or deleted. In `PUBLIC_STOREFRONT_EVENTS`, so the shop's page HTML is flushed.
+   */
+  "storefront.page.published": [k.storefrontPages.all()],
+
   /** The storefront catalog overlay changed (listing flags, collections, campaigns, coupons). */
   "storefront.catalog.changed": [
     k.storefrontCatalog.all(),
@@ -345,6 +363,7 @@ export type DomainEvent = keyof typeof EFFECTS;
 const PUBLIC_STOREFRONT_EVENTS: Partial<Record<DomainEvent, StorefrontCacheScope>> = {
   "storefront.catalog.changed": "catalog",
   "storefront.content.changed": "content",
+  "storefront.page.published": "content",
   "catalog.changed": "catalog",
 };
 

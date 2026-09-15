@@ -7,6 +7,7 @@ import {
   publicPathname,
   siteOrigin,
   sitesPagePath,
+  sitesPreviewPath,
 } from "@/lib/storefront-sites";
 
 const tenant = { slug: "rafi5", base: "/shop" };
@@ -48,6 +49,15 @@ describe("sitesPagePath", () => {
   });
 });
 
+describe("sitesPreviewPath", () => {
+  it("puts owner preview beside the cached page, under /sites", () => {
+    expect(sitesPreviewPath(tenant, "about")).toBe("/sites/rafi5/shop/preview/about");
+    expect(sitesPreviewPath(custom, "about")).toBe("/sites/rafi5/root/preview/about");
+    // So the proxy's block on direct `/sites` requests covers it too.
+    expect(isSitesPath(sitesPreviewPath(tenant, "about"))).toBe(true);
+  });
+});
+
 describe("isPageSlug", () => {
   it("accepts exactly what normalizePageSlug writes", () => {
     expect(isPageSlug("summer-sale-2")).toBe(true);
@@ -79,12 +89,19 @@ describe("publicPathname", () => {
     }
   });
 
-  it("round-trips a rewrite", () => {
+  it("maps the owner-preview route back to the page the browser asked for", () => {
+    expect(publicPathname("/sites/rafi5/shop/preview/about")).toBe("/shop/pages/about");
+    expect(publicPathname("/sites/rafi5/root/preview/about")).toBe("/pages/about");
+  });
+
+  it("round-trips a rewrite, cached or previewed", () => {
     for (const [store, path] of [
       [tenant, "/shop/pages/about"],
       [custom, "/pages/about"],
     ] as const) {
-      expect(publicPathname(sitesPagePath(store, cachedPageSlug(store, path)!))).toBe(path);
+      const pageSlug = cachedPageSlug(store, path)!;
+      expect(publicPathname(sitesPagePath(store, pageSlug))).toBe(path);
+      expect(publicPathname(sitesPreviewPath(store, pageSlug))).toBe(path);
     }
   });
 });

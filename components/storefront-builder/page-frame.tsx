@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
 import type { StorefrontStore } from "@/lib/storefront-client";
-import { publicStorefront } from "@/lib/storefront-server";
+import type { StorefrontReads } from "@/lib/storefront-server";
 import type { StorefrontPublicPage } from "@/types/api";
 import { StoreHead } from "@/components/storefront/store-head";
 import { BareStoreFrame, FullStoreFrame } from "@/components/storefront-builder/frames";
@@ -9,7 +9,7 @@ import { BareStoreFrame, FullStoreFrame } from "@/components/storefront-builder/
 export type PageChrome = NonNullable<StorefrontPublicPage["page"]>["chrome"];
 
 /**
- * The chrome around a cached store page, chosen by the page itself (plan §5.4):
+ * The chrome around a store page, chosen by the page itself (plan §5.4):
  *
  *  - `full`    — the shop's own shell: header, nav, footer, phone tab bar.
  *  - `minimal` — a logo bar that links home, and nothing else.
@@ -21,16 +21,20 @@ export type PageChrome = NonNullable<StorefrontPublicPage["page"]>["chrome"];
  * shop: the tab icon, the Meta Pixel, the merchant's colours and type, and the
  * cart.
  *
- * Only public reads: this renders inside the cached route.
+ * It reads through `reads`: `publicStorefront` inside the cached route, which
+ * must never read the request, and the request-aware set in owner preview, so a
+ * draft is framed exactly as it will be once published.
  */
 export async function PageFrame({
   chrome,
+  reads,
   slug,
   base,
   store,
   children,
 }: {
   chrome: PageChrome;
+  reads: StorefrontReads;
   slug: string;
   base: string;
   store: StorefrontStore;
@@ -48,9 +52,9 @@ export async function PageFrame({
   }
 
   const [pages, campaigns, categories] = await Promise.all([
-    publicStorefront.getStorePages(slug),
-    publicStorefront.getStoreCampaigns(slug),
-    publicStorefront.getStoreCategories(slug),
+    reads.getStorePages(slug),
+    reads.getStoreCampaigns(slug),
+    reads.getStoreCategories(slug),
   ]);
 
   return (

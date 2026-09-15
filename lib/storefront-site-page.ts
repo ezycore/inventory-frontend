@@ -1,6 +1,8 @@
 // coding-standard: maintained
+import type { Metadata } from "next";
 import type { StorefrontStore } from "@/lib/storefront-client";
-import { publicStorefront } from "@/lib/storefront-server";
+import { buildStorePageMetadata } from "@/lib/storefront-metadata";
+import { publicStorefront, type StorefrontReads } from "@/lib/storefront-server";
 import {
   isPageSlug,
   isSiteMode,
@@ -9,7 +11,10 @@ import {
 } from "@/lib/storefront-sites";
 import type { StorefrontPublicPage } from "@/types/api";
 
-/** The params of `app/(storefront)/sites/[slug]/[mode]/pages/[pageSlug]`. */
+/**
+ * The params of the store page routes under `app/(storefront)/sites/[slug]/[mode]`:
+ * the cached `pages/[pageSlug]` and the owner-preview `preview/[pageSlug]`.
+ */
 export interface SitePageParams {
   slug: string;
   mode: string;
@@ -25,30 +30,36 @@ export interface SitePage {
   origin: string;
   /** The store-relative path, `/pages/<slug>`. */
   path: string;
-  /** `null` when the host named a store the public API will not serve. */
+  /** `null` when the host named a store the API will not serve. */
   store: StorefrontStore | null;
   /** The builder page or its rename redirect; `null` when the path is not a builder page. */
   builder: StorefrontPublicPage | null;
 }
 
 /**
- * Everything the cached page route resolves before it decides what to draw,
- * shared by its layout, page and metadata. Each of those calls this separately;
- * Next memoises identical `fetch`es within one render, so the backend is asked
- * once per render, not three times.
+ * Everything a store page route resolves before it decides what to draw, shared
+ * by its layout, page and metadata. Each of those calls this separately; Next
+ * memoises identical `fetch`es within one render, so the backend is asked once
+ * per render, not three times.
  *
  * `null` for params no public URL maps to — an unknown mode, or a page slug
  * outside the backend's grammar (see `isPageSlug`).
  *
- * Only public reads (`publicStorefront`): this route must never read the request.
+ * `reads` decides whose page this is: `publicStorefront` for the cached route,
+ * which must never read the request, and `requestStorefront` for owner preview,
+ * where the token turns a builder page into its draft and makes an unpublished
+ * page reachable.
  */
-export async function loadSitePage(params: SitePageParams): Promise<SitePage | null> {
+export async function loadStorePage(
+  reads: StorefrontReads,
+  params: SitePageParams,
+): Promise<SitePage | null> {
   const { slug, mode, pageSlug } = params;
   if (!isSiteMode(mode) || !isPageSlug(pageSlug)) return null;
 
   const path = `/pages/${pageSlug}`;
-  const store = await publicStorefront.getStore(slug);
-  const builder = store ? await publicStorefront.getStorefrontPage(slug, path) : null;
+  const store = await reads.getStore(slug);
+  const builder = store ? await reads.getStorefrontPage(slug, path) : null;
   return {
     slug,
     pageSlug,
@@ -58,4 +69,43 @@ export async function loadSitePage(params: SitePageParams): Promise<SitePage | n
     store,
     builder,
   };
+}
+
+/** The cached route's loader — public reads only. */
+export const loadSitePage = (params: SitePageParams) => loadStorePage(publicStorefront, params);
+
+/**
+ * Metadata for a loaded store page.
+ *
+ * A preview is never indexed and names no canonical: it is one owner's view of a
+ * draft, and the page it would point a crawler at may not be live.
+ */
+export async function storePageMetadataFor(
+  reads: StorefrontReads,
+  site: SitePage | null,
+  { preview = false }: { preview?: boolean } = {},
+): Promise<Metadata> {
+  if (!site?.store) return {};
+  const target = { origin: site.origin, base: site.base };
+
+  const page = site.builder?.page;
+  if (page) {
+    const index = !preview && !page.seo.noindex;
+    return buildStorePageMetadata(site.store, target, {
+      title: page.seo.title || page.title,
+      description: page.seo.description || undefined,
+      // A noindex page emits no canonical, and still lets crawlers follow its
+      // links: a campaign page is not worth indexing, the products on it are.
+      path: index ? site.path : undefined,
+      index,
+      follow: true,
+    });
+  }
+
+  const content = await reads.getStorePage(site.slug, site.pageSlug);
+  return buildStorePageMetadata(site.store, target, {
+    title: content?.seo?.title || content?.title || "Page",
+    description: content?.seo?.description || undefined,
+    ...(preview ? { index: false, follow: true } : { path: site.path }),
+  });
 }

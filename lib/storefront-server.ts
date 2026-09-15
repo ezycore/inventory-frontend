@@ -216,12 +216,19 @@ function fetchersFor(read: StorefrontRead) {
   };
 }
 
+/** Every endpoint over one way of reading — the shape both sets below share. */
+export type StorefrontReads = ReturnType<typeof fetchersFor>;
+
 /**
  * Request-aware reads: the owner-preview token (`lib/storefront-preview.ts`) is
  * taken from the request, so a merchant previewing their unpublished shop from
  * the Customize editor sees it. Makes the calling route dynamic.
+ *
+ * Exported as a set as well as by name, for the server components that are
+ * handed their reads (`PageFrame`, `BuilderPageBody`): the owner-preview page
+ * route passes this set, the cached route passes `publicStorefront`.
  */
-const requestStorefront = fetchersFor(async (slug, path, revalidate, scopes) =>
+export const requestStorefront: StorefrontReads = fetchersFor(async (slug, path, revalidate, scopes) =>
   fetchStorefront(slug, path, revalidate, scopes, await getStorePreviewToken(), "null"),
 );
 

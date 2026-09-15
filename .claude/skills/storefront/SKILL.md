@@ -180,8 +180,15 @@ which reads only its params:
 
 - `proxy.ts` rewrites a public **GET/HEAD without a preview token, for a page that exists**, there
   (`cachedPageSlug` + `sitesPagePath` in `lib/storefront-sites.ts`): `{slug}.ezycore.com/shop/pages/x` →
-  `/sites/{slug}/shop/pages/x`, `mystore.com/pages/x` → `/sites/{slug}/root/pages/x`. Owner preview, hosts
-  with no store and **missing pages** stay on `shop/pages/[pageSlug]`.
+  `/sites/{slug}/shop/pages/x`, `mystore.com/pages/x` → `/sites/{slug}/root/pages/x`. Hosts with no store
+  and **missing pages** stay on `shop/pages/[pageSlug]`.
+- **Owner preview of a page has its own route beside it** (since 2026-09-15):
+  `app/(storefront)/sites/[slug]/[mode]/preview/[pageSlug]/`, reached by a GET/HEAD **with** a preview token
+  (`sitesPreviewPath`; no existence check — a draft is exactly what the public lookup cannot see). It reads
+  the request through `requestStorefront`, so the backend returns the **draft** and an unpublished page is
+  reachable, and it draws the page in its **own chrome** — which `shop/pages/[pageSlug]` cannot, because
+  `shop/layout.tsx` always wraps `StoreShell`. `publicPathname` maps its `preview` segment back to `pages`,
+  and the direct-request block on `/sites` covers it.
 - **Why "exists" matters:** a cached (ISR) render that calls `notFound()` gets Next's bare error
   document — a correct 404 status, but no shop and no way back. Next 16.1 never renders a nested
   `not-found.tsx` on that path (tried a client and a server one, 2026-09-14). `lib/storefront-page-lookup.ts`
@@ -190,24 +197,30 @@ which reads only its params:
   is served at once. The route deliberately has no `not-found.tsx`. A direct request for `/sites/…` is a 404, except on a custom domain, where
   that path is rewritten under `/shop` and is an ordinary collection path. **There is no host segment**:
   the proxy matcher skips paths containing a dot, so a host in the path would dodge the block.
-- **Nothing under that route may read the request** — no `headers()`/`cookies()`, no
+- **Nothing under the cached route may read the request** — no `headers()`/`cookies()`, no
   `getStoreContext`, no request-aware fetcher. Use `publicStorefront` and `loadSitePage`
   (`lib/storefront-site-page.ts`). One such read makes the whole route dynamic, with a green build.
+- **The server pieces both page routes share take their reads as a parameter** (`StorefrontReads`):
+  `PageFrame`, `StorePageBody` and `BuilderPageBody` in `components/storefront-builder/`, and
+  `loadStorePage` / `storePageMetadataFor` in `lib/storefront-site-page.ts`. The cached route passes
+  `publicStorefront`, the preview route `requestStorefront`. Never import a fetcher set inside one of
+  them — that is how the cached route would start reading the request.
 - **Storefront client code reads the pathname through `useStorePathname()`**
   (`services/storefront/use-store-pathname.ts`), never `usePathname()`. On a rewritten cached page the
   server renders with the `/sites/…` URL and the browser with the public one, so anything derived from
   a raw pathname (active tab, breadcrumb, strip visibility) fails hydration.
-- The route's layout draws `PageFrame` (`components/storefront-builder/page-frame.tsx`). Chrome is the
+- Both routes' layouts draw `PageFrame` (`components/storefront-builder/page-frame.tsx`). Chrome is the
   builder page's own `chrome`: `full` = `StoreShell`, `minimal` = a logo bar, `none` = nothing; content
   pages get `full`.
   Both frames load through `next/dynamic` in `components/storefront-builder/frames.tsx` so a `none` page
   does not download the shell (Spike B). `BareStoreFrame` still carries the colours
   (`lib/storefront-shell-theme.ts`, shared with `StoreShell`), design attributes, store context and
   seeded store query, cart drawer, contact button and owner bar.
-- The page tries the builder page, then its rename redirect (308), then the content page
-  (`StoreContentPage` in `components/storefront/content-page-view.tsx`, shared with the preview route,
-  loaded through `content-page-lazy.tsx` so a landing page does not download it), then 404. A noindex
-  landing page emits no canonical and lets crawlers follow its links.
+- `StorePageBody` tries the builder page, then its rename redirect (308), then the content page
+  (`StoreContentPage` in `components/storefront/content-page-view.tsx`, shared with
+  `shop/pages/[pageSlug]`, loaded through `content-page-lazy.tsx` so a landing page does not download
+  it), then 404. A noindex landing page emits no canonical and lets crawlers follow its links; a
+  preview is never indexed.
 - Shared by both routes: `StoreHead` (`components/storefront/store-head.tsx` — favicon link + Meta
   Pixel).
 - **`publicStorefront` throws when the API gives no answer** — unreachable, or a 5xx
@@ -218,10 +231,11 @@ which reads only its params:
   cached HTML of every page built from a flushed fetch (Spike A). `revalidate = 300` is the backstop.
 
 Routes in `app/(storefront)/shop/`: home, `products` (collection+filters), `products/[productSlug]`,
-`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS — owner preview only, see above),
-`account/*` (auth card + account area, `verify-email`, `reset-password`, `oauth`, `orders`,
+`cart`, `checkout`, `search`, `track`, `pages/[pageSlug]` (CMS — missing pages and hosts with no store,
+see above), `account/*` (auth card + account area, `verify-email`, `reset-password`, `oauth`, `orders`,
 `orders/[orderNumber]`, `orders/[orderNumber]/invoice`), and the **`[...categoryPath]` catch-all**.
-Plus the cached `app/(storefront)/sites/[slug]/[mode]/pages/[pageSlug]`.
+Plus the cached `app/(storefront)/sites/[slug]/[mode]/pages/[pageSlug]` and its owner-preview twin
+`app/(storefront)/sites/[slug]/[mode]/preview/[pageSlug]`.
 
 ### `[...categoryPath]` — collection pages at real paths (2026-08-06)
 
@@ -638,8 +652,9 @@ colour took up to five minutes to appear. Now:
   `keepalive` so navigating away right after saving doesn't cancel it.
 - **Wiring**: `services/api/invalidation.ts` maps each event in `PUBLIC_STOREFRONT_EVENTS` to its
   scope — `catalog.changed` and `storefront.catalog.changed` → `catalog`,
-  `storefront.content.changed` → `content` — and flushes the union, so catalog/campaign/coupon/CMS
-  mutations get it for free. The storefront-settings, media, features, onboarding and organization
+  `storefront.content.changed` and `storefront.page.published` → `content` — and flushes the union, so
+  catalog/campaign/coupon/CMS and builder-page publishes get it for free. A builder page's draft
+  (`storefront.page.drafted`) flushes nothing: shoppers cannot see it. The storefront-settings, media, features, onboarding and organization
   mutations in `services/api/modules/organization/hooks.ts` call `revalidateStorefront()` directly with
   **no scope** (a settings save can reach anything the shop renders); the Meta Pixel save flushes
   `site` only. **A new admin mutation that changes public shop data needs one of those two paths, with
@@ -648,6 +663,29 @@ colour took up to five minutes to appear. Now:
   would keep the cache permanently empty. The 60s catalogue revalidate covers stock freshness.
 - **Deployment**: `revalidateTag` only reaches the instance that serves the POST. Multi-replica
   needs a shared `cacheHandler`; single instance (current) is fine.
+
+## Pages — the Storefront Builder's admin screen (Phase 3, since 2026-09-15)
+
+Online Store → **Pages** (`app/(protected)/ecommerce/pages/`) is where landing pages are made and, as
+Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.md` (§13 the editor,
+§17 what changed).
+
+- **Gated on `storefront.design`**, not `storefront.manage` like the rest of Online Store: it is the
+  permission every `/ecommerce/pages` route checks, so a role holding only `manage` would open a screen
+  whose every request 403s.
+- **Landing pages only** (`kind: "landing"` on the list call). Content pages keep the Content screen
+  until Phase 4; system pages arrive in Phase 5.
+- **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
+  hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
+  refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's
+  `content` scope. **Never let an autosave refetch the page** — the refetch races the merchant's next
+  edit and hands the editor a `draftVersion` it did not save. `useSaveStorefrontPageDraft` shows no
+  toast and handles no error itself: the editor has to tell a version conflict from a refused section.
+- **Creating asks for a name only** (`components/ecommerce/pages/new-page-dialog.tsx`) and opens the
+  editor; the backend picks the address, the minimal chrome and `noindex`.
+- **Editor copy is English for now** (owner decision, 2026-09-15), like the rest of Online Store; only
+  the sidebar label is translated (`পেজ`).
+- **A draft is previewed** through the owner-preview page route — see "Cached store pages" above.
 
 ## Live preview (Customize) — how it works, and how to add a field
 

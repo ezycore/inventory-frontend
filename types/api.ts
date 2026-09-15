@@ -193,6 +193,11 @@ export type StorefrontPreviewToken = Schemas["StorefrontPreviewToken"];
 // Storefront Builder public reads — `GET /storefront/:slug/page` and `/section-data`.
 export type StorefrontPublicPage = Schemas["StorefrontPublicPage"];
 export type StorefrontSectionData = Schemas["StorefrontSectionData"];
+// Storefront Builder admin — `/ecommerce/pages`: the full page (draft and published side by side),
+// its list row (no section configs), and one published revision.
+export type StorefrontPage = Schemas["StorefrontPage"];
+export type StorefrontPageListItem = Schemas["StorefrontPageListItem"];
+export type StorefrontPageRevision = Schemas["StorefrontPageRevision"];
 
 /**
  * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).
