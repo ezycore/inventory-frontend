@@ -14,10 +14,7 @@ Tick a box and delete the line when the page lands.
 Every other route in `constants/navItem.ts` is covered by a page in `en/`. Adding a screen to the
 sidebar will fail `pnpm help:verify` until it is either documented or listed here with a reason.
 
-- [ ] `/ecommerce/pages` — Pages (Storefront Builder landing pages), added 2026-09-15 with the first
-      step of the Phase 3 editor (`inventory-backend/docs/plan/storefront-builder.md`). The screen
-      grows through the phase; its guide is written in the phase's last step, once the editor's
-      controls have settled, rather than rewritten after every step.
+Nothing is deferred right now.
 
 ## Known gaps that are not routes
 
