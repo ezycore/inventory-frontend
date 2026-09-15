@@ -128,6 +128,10 @@ pnpm test         # Run tests once (Vitest)
 pnpm test:watch   # Run tests in watch mode
 pnpm test:coverage  # Run tests with coverage
 
+# Pixel diff for moving a store onto the Storefront Builder (tests/pixel, output in .pixel/)
+PIXEL_STORE=<slug> pnpm pixel:capture   # screenshot the store's pages before a change
+PIXEL_STORE=<slug> pnpm pixel:compare   # fail on any page that no longer matches
+
 # Docs & contract gates — see "Docs on touch" above
 pnpm help:build       # Regenerate lib/help/content.generated.ts from docs/help/** (also predev/prebuild)
 pnpm help:verify      # Help freshness gate: stale ui_labels, phantom covers_routes, uncovered routes

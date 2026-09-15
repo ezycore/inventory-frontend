@@ -25,6 +25,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "pixel:capture": "playwright test -c tests/pixel/pixel.config.ts --update-snapshots=all",
+    "pixel:compare": "playwright test -c tests/pixel/pixel.config.ts",
     "gen:persona-appendix": "node scripts/gen-persona-appendix.mjs > ../inventory-backend/docs/features/merchant-persona-appendix.md"
   },
   "dependencies": {
@@ -109,6 +111,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@next/bundle-analyzer": "^16.2.10",
+    "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -843,6 +843,12 @@ for such a store (`STOREFRONT_LOOK_ON_SITE`), so never route a look save around 
 mirrors the backend's `STOREFRONT_SITE_LOOK_KEYS`; collections and media stay live-on-save. The preview
 path above is unchanged — it streams the client draft either way.
 
+**Any change that moves an existing store's pages gets a pixel diff** (`tests/pixel`):
+`PIXEL_STORE=<slug> pnpm pixel:capture` before, `pnpm pixel:compare` after. Wait until the store shows the
+change first — cached store HTML lags a publish by minutes locally, and a compare against the old page
+passes. Keep the threshold absolute (`maxDiffPixels`): a ratio of a tall full-page image let a changed
+footer line pass. Never point it at a live store without `PIXEL_ALLOW_LIVE=1` and the merchant's agreement.
+
 **Rules, each of which was a real defect:**
 
 - **Normalize in the payload exactly as `submit()`/`save()` does** — filter blank-titled footer
