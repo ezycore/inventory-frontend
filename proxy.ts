@@ -22,10 +22,12 @@ import {
 import {
   cachedPageSlug,
   isSitesPath,
+  isStoreHomePath,
+  sitesHomePath,
   sitesPagePath,
   sitesPreviewPath,
 } from "@/lib/storefront-sites";
-import { storePageExists } from "@/lib/storefront-page-lookup";
+import { storeHomePageExists, storePageExists } from "@/lib/storefront-page-lookup";
 
 /**
  * Option A routing + admin auth gate.
@@ -225,6 +227,28 @@ export async function proxy(request: NextRequest) {
         const destination = `${scheme}://${sameHost ? hostHeader : target.host}${target.path}${request.nextUrl.search}`;
         return NextResponse.redirect(destination, 301);
       }
+    }
+
+    // ---- A landing page as the homepage ----
+    //
+    // The store's front door is the Customize home, drawn by the request-reading
+    // `shop` route, unless the merchant chose a landing page for it (backend
+    // `settings.homePageId`). Then it goes to the home routes beside the page
+    // routes: the cached one, or under owner preview the one that reads the token
+    // — and the question is asked with that token, since an unpublished shop
+    // answers only its owner.
+    //
+    // Never inside the Customize editor's frame (`?preview=1`): that frame edits
+    // the Customize home, which the shop draws again once the choice is cleared.
+    if (
+      (request.method === "GET" || request.method === "HEAD") &&
+      isStoreHomePath(store, pathname) &&
+      request.nextUrl.searchParams.get("preview") !== "1" &&
+      (await storeHomePageExists(store.slug, previewToken))
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = sitesHomePath(store, { preview: Boolean(previewToken) });
+      return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
     }
 
     // ---- HTML-cached store pages ----

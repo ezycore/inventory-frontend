@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { StorefrontPageListItem } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
+import { Badge } from "@/ui/components/badge";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 
@@ -26,7 +27,11 @@ export function buildPageColumns({
         const page = row.original;
         return (
           <div className="min-w-0">
-            <div className="font-medium">{page.title}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium">{page.title}</span>
+              {/* The page shoppers see at the store's own address. */}
+              {page.isHome ? <Badge variant="secondary">Homepage</Badge> : null}
+            </div>
             {/* A live page with edits nobody has published yet — the one state a
                 merchant cannot see from the shop. */}
             {page.status === "published" && page.hasDraft ? (

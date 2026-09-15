@@ -291,6 +291,13 @@ export const EFFECTS = {
    */
   "storefront.page.published": [k.storefrontPages.all()],
 
+  /**
+   * The landing page the store shows at `/` changed. The page list marks the homepage and
+   * Customize's Home part reads the choice off the storefront settings. Public on two scopes: the
+   * store payload names the homepage (`site`), and the home route renders the page (`content`).
+   */
+  "storefront.home.changed": [k.storefrontPages.lists(), k.organization.storefront()],
+
   /** The storefront catalog overlay changed (listing flags, collections, campaigns, coupons). */
   "storefront.catalog.changed": [
     k.storefrontCatalog.all(),
@@ -360,10 +367,13 @@ export type DomainEvent = keyof typeof EFFECTS;
  * routes' own 60s `revalidate` covers stock freshness; this list is for merchant-authored edits,
  * which are rare and expected to appear at once.
  */
-const PUBLIC_STOREFRONT_EVENTS: Partial<Record<DomainEvent, StorefrontCacheScope>> = {
+const PUBLIC_STOREFRONT_EVENTS: Partial<
+  Record<DomainEvent, StorefrontCacheScope | readonly StorefrontCacheScope[]>
+> = {
   "storefront.catalog.changed": "catalog",
   "storefront.content.changed": "content",
   "storefront.page.published": "content",
+  "storefront.home.changed": ["site", "content"],
   "catalog.changed": "catalog",
 };
 
@@ -386,8 +396,7 @@ export const invalidate = (qc: QueryClient, ...events: DomainEvent[]) => {
 
   const scopes = new Set<StorefrontCacheScope>();
   for (const event of events) {
-    const scope = PUBLIC_STOREFRONT_EVENTS[event];
-    if (scope) scopes.add(scope);
+    for (const scope of [PUBLIC_STOREFRONT_EVENTS[event] ?? []].flat()) scopes.add(scope);
   }
   if (scopes.size > 0) void revalidateStorefront([...scopes]);
 

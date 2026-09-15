@@ -410,6 +410,13 @@ export interface StorefrontStore {
    * serving host. Always go through `canonicalTarget` (lib/storefront-canonical.ts).
    */
   canonicalHost?: string | null;
+  /**
+   * The landing page the merchant uses as the homepage, or null for the
+   * Customize home. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
+   * by the proxy (`storeHomePageExists`); this only tells that page's own
+   * address it is not the one to index.
+   */
+  homePageId?: string | null;
   logo?: StorefrontImage | null;
   /**
    * Tab icon, already resolved server-side (backend `getStoreInfo`) so nothing

@@ -4,8 +4,10 @@ import {
   cachedPageSlug,
   isPageSlug,
   isSitesPath,
+  isStoreHomePath,
   publicPathname,
   siteOrigin,
+  sitesHomePath,
   sitesPagePath,
   sitesPreviewPath,
 } from "@/lib/storefront-sites";
@@ -55,6 +57,39 @@ describe("sitesPreviewPath", () => {
     expect(sitesPreviewPath(custom, "about")).toBe("/sites/rafi5/root/preview/about");
     // So the proxy's block on direct `/sites` requests covers it too.
     expect(isSitesPath(sitesPreviewPath(tenant, "about"))).toBe(true);
+  });
+});
+
+describe("isStoreHomePath", () => {
+  it("matches the store's front door on each kind of host", () => {
+    expect(isStoreHomePath(tenant, "/shop")).toBe(true);
+    expect(isStoreHomePath(tenant, "/shop/")).toBe(true);
+    expect(isStoreHomePath(custom, "/")).toBe(true);
+  });
+
+  it("matches nothing else", () => {
+    for (const path of ["/", "/shopx", "/shop/pages/home", "/shop/products"]) {
+      expect(isStoreHomePath(tenant, path)).toBe(false);
+    }
+    for (const path of ["/shop", "/pages/home"]) {
+      expect(isStoreHomePath(custom, path)).toBe(false);
+    }
+  });
+});
+
+describe("sitesHomePath", () => {
+  it("puts both home routes beside the page routes, under /sites", () => {
+    expect(sitesHomePath(tenant)).toBe("/sites/rafi5/shop/home");
+    expect(sitesHomePath(custom, { preview: true })).toBe("/sites/rafi5/root/preview-home");
+    expect(isSitesPath(sitesHomePath(tenant, { preview: true }))).toBe(true);
+  });
+
+  it("maps back to the front door the browser asked for", () => {
+    expect(publicPathname(sitesHomePath(tenant))).toBe("/shop");
+    expect(publicPathname(sitesHomePath(tenant, { preview: true }))).toBe("/shop");
+    expect(publicPathname(sitesHomePath(custom))).toBe("/");
+    // A landing page whose own address is `/pages/home` is not the home route.
+    expect(publicPathname(sitesPagePath(tenant, "home"))).toBe("/shop/pages/home");
   });
 });
 

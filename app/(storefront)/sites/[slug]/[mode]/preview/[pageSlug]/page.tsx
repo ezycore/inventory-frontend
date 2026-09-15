@@ -7,8 +7,7 @@ import {
   storePageMetadataFor,
   type SitePageParams,
 } from "@/lib/storefront-site-page";
-import { loadBuilderPageData } from "@/components/storefront-builder/builder-page-data";
-import { PageDraftPreview } from "@/components/storefront-builder/page-draft-preview";
+import { BuilderPagePreview } from "@/components/storefront-builder/builder-page-preview";
 import { StorePageBody } from "@/components/storefront-builder/store-page-body";
 
 /** Owner preview of one store page — see the layout beside this. Never indexed. */
@@ -22,11 +21,9 @@ export async function generateMetadata({
 }
 
 /**
- * A builder page draws through `PageDraftPreview`, which the editor's frame
- * redraws as the merchant edits, before anything is saved. Every store-wide list
- * is loaded up front for it: a section added in the editor may need a list the
- * saved page did not. A content page, or a renamed page's redirect, takes the
- * cached route's path.
+ * A builder page draws through `BuilderPagePreview`, which the editor's frame
+ * redraws as the merchant edits. A content page, or a renamed page's redirect,
+ * takes the cached route's path.
  */
 export default async function PreviewPage({
   params,
@@ -38,13 +35,5 @@ export default async function PreviewPage({
 
   const page = site.builder?.page;
   if (!page) return <StorePageBody reads={requestStorefront} site={site} />;
-
-  const { instances, data, context } = await loadBuilderPageData(requestStorefront, {
-    slug: site.slug,
-    base: site.base,
-    store: site.store,
-    page,
-    allLists: true,
-  });
-  return <PageDraftPreview slug={site.slug} instances={instances} data={data} context={context} />;
+  return <BuilderPagePreview reads={requestStorefront} site={site} store={site.store} page={page} />;
 }

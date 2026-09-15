@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
   ApiImage,
+  StorefrontHomePage,
   StorefrontPage,
   StorefrontPageListItem,
   StorefrontPageRevision,
@@ -78,6 +79,13 @@ export const storefrontPagesApi = {
     apiClient.post(`${base}/${id}/unpublish`, {}),
   duplicate: (id: string): Promise<ApiResponse<StorefrontPage>> =>
     apiClient.post(`${base}/${id}/duplicate`, {}),
+  /**
+   * Draw a landing page at the store's `/`, or `null` for the Customize home. Only
+   * a published landing page is accepted, and the homepage cannot be turned off or
+   * deleted until another choice is made.
+   */
+  setHome: (pageId: string | null): Promise<ApiResponse<StorefrontHomePage>> =>
+    apiClient.put(`${base}/home`, { pageId }),
   revisions: (id: string): Promise<ApiResponse<StorefrontPageRevision[]>> =>
     apiClient.get(`${base}/${id}/revisions`),
   /** Copies the revision into the draft; the live page is unchanged until the next publish. */

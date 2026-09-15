@@ -86,6 +86,25 @@ const PREVIEW_SEGMENT = "preview";
 export const sitesPreviewPath = (store: { slug: string; base: string }, pageSlug: string): string =>
   `${SITES_PREFIX}/${encodeURIComponent(store.slug)}/${siteModeFor(store.base)}/${PREVIEW_SEGMENT}/${pageSlug}`;
 
+/** The home routes beside `pages` and `preview`: cached, and under owner preview. */
+const HOME_SEGMENT = "home";
+const PREVIEW_HOME_SEGMENT = "preview-home";
+
+/** Is `pathname` the store's front door — `/shop` on a tenant subdomain, `/` on a custom domain? */
+export const isStoreHomePath = (store: { base: string }, pathname: string): boolean =>
+  store.base ? pathname === store.base || pathname === `${store.base}/` : pathname === "/";
+
+/**
+ * The internal path of the store's `/` when the merchant uses a landing page as
+ * the homepage (backend `settings.homePageId`) — cached, or under owner preview.
+ * The Customize home stays on the request-reading `shop` route.
+ */
+export const sitesHomePath = (
+  store: { slug: string; base: string },
+  { preview = false }: { preview?: boolean } = {},
+): string =>
+  `${SITES_PREFIX}/${encodeURIComponent(store.slug)}/${siteModeFor(store.base)}/${preview ? PREVIEW_HOME_SEGMENT : HOME_SEGMENT}`;
+
 /**
  * The public pathname for a pathname read inside the app.
  *
@@ -96,12 +115,16 @@ export const sitesPreviewPath = (store: { slug: string; base: string }, pageSlug
  * shows — would then differ between the two renders and fail hydration. Mapping
  * the internal spelling back makes both sides agree; every other pathname is
  * returned untouched. The owner-preview route's `preview` segment maps back to
- * `pages`, which is what the browser asked for.
+ * `pages`, which is what the browser asked for, and both home routes map back to
+ * the store's front door.
  */
 export function publicPathname(pathname: string): string {
   if (!pathname.startsWith(`${SITES_PREFIX}/`)) return pathname;
   const [, , slug, mode, ...rest] = pathname.split("/");
   if (!slug || !mode || !isSiteMode(mode)) return pathname;
+  if (rest.length === 1 && (rest[0] === HOME_SEGMENT || rest[0] === PREVIEW_HOME_SEGMENT)) {
+    return siteBaseFor(mode) || "/";
+  }
   if (rest[0] === PREVIEW_SEGMENT) rest[0] = "pages";
   const tail = rest.length ? `/${rest.join("/")}` : "";
   return `${siteBaseFor(mode)}${tail}` || "/";

@@ -4,6 +4,7 @@ import { getStoreContext } from "@/lib/storefront-host";
 import { getStore } from "@/lib/storefront-server";
 import { canonicalTarget } from "@/lib/storefront-canonical";
 import type { StorefrontStore } from "@/lib/storefront-client";
+import { fullImageUrl } from "@/lib/storefront-image";
 
 export interface StorePageMetadataOptions {
   title: string;
@@ -99,6 +100,55 @@ export function buildStorePageMetadata(
       card: images ? "summary_large_image" : "summary",
       title: fullTitle,
       description: opts.description,
+      images,
+    },
+  };
+}
+
+/**
+ * Metadata for the store's homepage — the one page with no " · Store" suffix,
+ * because its title IS the store. Built the same whichever page draws `/`, the
+ * Customize home or a landing page used as the homepage: the front door keeps the
+ * store's own search title, description, share card and canonical.
+ *
+ * Everything else about the shape must match `buildStorePageMetadata`; a field
+ * added there belongs here too, or the highest-authority URL on the site is the
+ * one missing it. An owner preview is never indexed and names no canonical.
+ */
+export function buildStoreHomeMetadata(
+  store: StorefrontStore,
+  request: { origin: string; base: string },
+  { preview = false }: { preview?: boolean } = {},
+): Metadata {
+  const title = store.seo?.title || store.name;
+  const description =
+    store.seo?.description || `Shop ${store.name} online — order with delivery.`;
+  // Already chained server-side (socialImage → banner → logo) — see StorefrontStore.
+  const image = fullImageUrl(store.socialImage);
+  const images = image ? [{ url: image }] : undefined;
+  const target = canonicalTarget(store, request);
+  const canonical =
+    !preview && target.origin ? `${target.origin}${target.base || "/"}` : undefined;
+
+  return {
+    title,
+    description,
+    metadataBase: target.origin ? new URL(target.origin) : undefined,
+    alternates: canonical ? { canonical } : undefined,
+    robots: preview ? { index: false, follow: true } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: store.name,
+      locale: "en_US",
+      url: canonical,
+      images,
+    },
+    twitter: {
+      card: images ? "summary_large_image" : "summary",
+      title,
+      description,
       images,
     },
   };

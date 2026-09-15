@@ -155,6 +155,23 @@ export const useDuplicateStorefrontPage = () => {
   });
 };
 
+/**
+ * Use a landing page as the store's homepage, or `null` to go back to the
+ * Customize home. Shoppers see the change at once: the flush also clears the
+ * proxy's remembered answer about the store's `/`.
+ */
+export const useSetStorefrontHomePage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pageId: string | null) => storefrontPagesApi.setHome(pageId),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Homepage changed");
+      invalidate(qc, "storefront.home.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
 /** A restore lands in the DRAFT; the live page changes only when it is published again. */
 export const useRestoreStorefrontPageRevision = () => {
   const qc = useQueryClient();

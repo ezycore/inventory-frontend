@@ -739,6 +739,17 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   product sticky bar and the sticky order bar draw nothing. **A new buy surface must ask it too.** The
   message is the merchant's; the chat link reuses `chatOrderInstead`. The API refuses regardless
   (`STORE_ORDERS_PAUSED`, backend `storefront-orders` skill).
+- **A landing page as the homepage** (backend `settings.homePageId`, set by `PUT /ecommerce/pages/home`;
+  admin: the Pages row actions and `components/ecommerce/pages/homepage-dialog.tsx`). `proxy.ts` rewrites
+  the store's front door (`isStoreHomePath`) to `sites/[slug]/[mode]/home`, or `preview-home` under a
+  preview token, only when `storeHomePageExists` (`lib/storefront-page-lookup.ts`, over
+  `GET /page?path=/`) says so — and never under `?preview=1`, so Customize's frame keeps editing the
+  Customize home while `LandingHomeNotice` tells the merchant shoppers don't see it. The front door keeps
+  the store's own metadata (`buildStoreHomeMetadata`, shared with `shop/page.tsx`, plus
+  `StoreHomeJsonLd`); the page's own address goes noindex while it is home. `storefront.home.changed`
+  flushes `site` and `content`, and the revalidate route calls `forgetStoreLookups`, so the proxy's
+  remembered answers go with the flush. **A new internal `/sites` segment must map back in
+  `publicPathname`**, or pathname-derived chrome mismatches on hydration.
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

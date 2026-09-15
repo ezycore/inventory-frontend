@@ -8,6 +8,7 @@ import {
 } from "@/components/ecommerce/customize/part-group";
 import { SectionsEditor } from "@/components/ecommerce/customize/sections-editor";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
+import { LandingHomeNotice } from "@/components/ecommerce/customize/parts/landing-home-notice";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 import {
   resolveSections,
@@ -69,6 +70,8 @@ export function HomePart({
 
   return (
     <>
+      <LandingHomeNotice />
+
       {/* The home page is two questions: which starting layout, and then the
           sections themselves. The picker seeds the list; the editor owns it from
           then on — which is what makes these controls follow whatever theme was

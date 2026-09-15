@@ -30,6 +30,7 @@ import { createHash } from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { tagsToFlush } from "@/lib/storefront-cache-tags";
+import { forgetStoreLookups } from "@/lib/storefront-page-lookup";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -112,6 +113,9 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const tags = tagsToFlush(slug, body?.scopes);
   for (const tag of tags) revalidateTag(tag, { expire: 0 });
+  // The proxy's answers about which pages exist and which one is the homepage —
+  // otherwise a published, deleted or newly chosen homepage waits out their timers.
+  forgetStoreLookups(slug);
 
   return NextResponse.json({ success: true, data: { slug, tags } });
 }

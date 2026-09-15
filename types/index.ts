@@ -752,6 +752,8 @@ export interface StorefrontSettings {
   _id?: string;
   organizationId?: string;
   published: boolean;
+  /** The landing page shown at the store's `/`; unset ⇒ the Customize home. Set on Pages, never by the settings save. */
+  homePageId?: string;
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;

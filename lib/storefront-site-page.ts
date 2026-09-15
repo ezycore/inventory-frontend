@@ -1,39 +1,65 @@
 // coding-standard: maintained
 import type { Metadata } from "next";
 import type { StorefrontStore } from "@/lib/storefront-client";
-import { buildStorePageMetadata } from "@/lib/storefront-metadata";
+import { buildStoreHomeMetadata, buildStorePageMetadata } from "@/lib/storefront-metadata";
 import { publicStorefront, type StorefrontReads } from "@/lib/storefront-server";
 import {
   isPageSlug,
   isSiteMode,
   siteBaseFor,
   siteOrigin,
+  type SiteMode,
 } from "@/lib/storefront-sites";
 import type { StorefrontPublicPage } from "@/types/api";
 
 /**
- * The params of the store page routes under `app/(storefront)/sites/[slug]/[mode]`:
- * the cached `pages/[pageSlug]` and the owner-preview `preview/[pageSlug]`.
+ * The params of the home routes under `app/(storefront)/sites/[slug]/[mode]`: the
+ * cached `home` and the owner-preview `preview-home`.
  */
-export interface SitePageParams {
+export interface SiteHomeParams {
   slug: string;
   mode: string;
+}
+
+/** The params of the page routes beside them: the cached `pages/[pageSlug]` and the owner-preview `preview/[pageSlug]`. */
+export interface SitePageParams extends SiteHomeParams {
   pageSlug: string;
 }
 
 export interface SitePage {
   slug: string;
+  /** The page's own slug; at `/`, the homepage's — `""` when the store has none. */
   pageSlug: string;
   /** Public link base: `/shop` on a tenant subdomain, `""` on a custom domain. */
   base: "/shop" | "";
   /** Derived, never read off the request — see `siteOrigin`. */
   origin: string;
-  /** The store-relative path, `/pages/<slug>`. */
+  /** The store-relative path: `/pages/<slug>`, or `/` for the homepage. */
   path: string;
   /** `null` when the host named a store the API will not serve. */
   store: StorefrontStore | null;
   /** The builder page or its rename redirect; `null` when the path is not a builder page. */
   builder: StorefrontPublicPage | null;
+}
+
+async function loadSite(
+  reads: StorefrontReads,
+  slug: string,
+  mode: SiteMode,
+  path: string,
+  pageSlug?: string,
+): Promise<SitePage> {
+  const store = await reads.getStore(slug);
+  const builder = store ? await reads.getStorefrontPage(slug, path) : null;
+  return {
+    slug,
+    pageSlug: pageSlug ?? builder?.page?.slug ?? "",
+    base: siteBaseFor(mode),
+    origin: siteOrigin(slug, mode),
+    path,
+    store,
+    builder,
+  };
 }
 
 /**
@@ -56,23 +82,27 @@ export async function loadStorePage(
 ): Promise<SitePage | null> {
   const { slug, mode, pageSlug } = params;
   if (!isSiteMode(mode) || !isPageSlug(pageSlug)) return null;
-
-  const path = `/pages/${pageSlug}`;
-  const store = await reads.getStore(slug);
-  const builder = store ? await reads.getStorefrontPage(slug, path) : null;
-  return {
-    slug,
-    pageSlug,
-    base: siteBaseFor(mode),
-    origin: siteOrigin(slug, mode),
-    path,
-    store,
-    builder,
-  };
+  return loadSite(reads, slug, mode, `/pages/${pageSlug}`, pageSlug);
 }
 
-/** The cached route's loader — public reads only. */
+/**
+ * The store's `/` when a landing page is the homepage — the home routes' loader,
+ * on the same terms as `loadStorePage`. `builder` is `null` when the store has no
+ * landing homepage (the backend answers `/` with a 404 then).
+ */
+export async function loadStoreHome(
+  reads: StorefrontReads,
+  { slug, mode }: SiteHomeParams,
+): Promise<SitePage | null> {
+  if (!isSiteMode(mode)) return null;
+  return loadSite(reads, slug, mode, "/");
+}
+
+/** The cached page route's loader — public reads only. */
 export const loadSitePage = (params: SitePageParams) => loadStorePage(publicStorefront, params);
+
+/** The cached home route's loader — public reads only. */
+export const loadSiteHome = (params: SiteHomeParams) => loadStoreHome(publicStorefront, params);
 
 /**
  * Metadata for a loaded store page.
@@ -90,7 +120,10 @@ export async function storePageMetadataFor(
 
   const page = site.builder?.page;
   if (page) {
-    const index = !preview && !page.seo.noindex;
+    // The homepage is indexed at `/` (`storeHomeMetadataFor`). Its own address
+    // stays out of the index, so search engines do not hold the same page twice.
+    const isHome = site.store.homePageId === page._id;
+    const index = !preview && !isHome && !page.seo.noindex;
     return buildStorePageMetadata(site.store, target, {
       title: page.seo.title || page.title,
       description: page.seo.description || undefined,
@@ -108,4 +141,18 @@ export async function storePageMetadataFor(
     description: content?.seo?.description || undefined,
     ...(preview ? { index: false, follow: true } : { path: site.path }),
   });
+}
+
+/**
+ * Metadata for the store's `/` drawn by a landing page: the homepage's own —
+ * the store's search title and description, indexed, canonical at `/` — whatever
+ * the page's "hide from search engines" says about its campaign address. Never
+ * indexed under owner preview.
+ */
+export function storeHomeMetadataFor(
+  site: SitePage | null,
+  { preview = false }: { preview?: boolean } = {},
+): Metadata {
+  if (!site?.store) return {};
+  return buildStoreHomeMetadata(site.store, { origin: site.origin, base: site.base }, { preview });
 }

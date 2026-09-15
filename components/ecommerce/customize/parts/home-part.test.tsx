@@ -7,6 +7,11 @@ import type { CustomizeDraft } from "@/components/ecommerce/customize/use-custom
 import { getReadyMadeTheme } from "@/lib/storefront-themes";
 import { sectionInstances } from "@/lib/storefront-templates";
 
+// Reads the storefront settings query; its own test covers it.
+vi.mock("@/components/ecommerce/customize/parts/landing-home-notice", () => ({
+  LandingHomeNotice: () => null,
+}));
+
 const collection = (name: string, hasImage: boolean, isListed = true) =>
   ({ _id: name, name, displayName: "", slug: name, isListed, hasImage,
      seoTitle: "", seoDescription: "" }) as CustomizeDraft["collections"][number];

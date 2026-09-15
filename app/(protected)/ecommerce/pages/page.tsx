@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useMemo, useState } from "react";
-import { Copy, PencilRuler, Plus } from "lucide-react";
+import { Copy, HousePlus, PencilRuler, Plus, Undo2 } from "lucide-react";
 import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
@@ -10,12 +10,14 @@ import {
   storefrontPagesApi,
   useDeleteStorefrontPage,
   useDuplicateStorefrontPage,
+  useSetStorefrontHomePage,
   type StorefrontPageListItem,
   type StorefrontPageListParams,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
+import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
 import { NewPageDialog } from "@/components/ecommerce/pages/new-page-dialog";
 
 /**
@@ -29,7 +31,9 @@ const listLandingPages = (params: StorefrontPageListParams = {}) =>
 export default function StorefrontPagesPage() {
   const storeSlug = useAuthStore((s) => s.user?.organization?.slug);
   const [creating, setCreating] = useState(false);
+  const [homepageFor, setHomepageFor] = useState<StorefrontPageListItem | null>(null);
   const { mutate: duplicatePage, isPending: duplicating } = useDuplicateStorefrontPage();
+  const { mutate: setHomePage, isPending: settingHome } = useSetStorefrontHomePage();
   const deletePage = useDeleteStorefrontPage();
   const columns = useMemo(() => buildPageColumns({ storeSlug }), [storeSlug]);
 
@@ -57,8 +61,26 @@ export default function StorefrontPagesPage() {
         onClick: (row: StorefrontPageListItem) => duplicatePage(row._id),
         disabled: () => duplicating,
       },
+      {
+        type: "use-as-homepage",
+        placement: "cell",
+        tooltip: "Use as homepage",
+        icon: <HousePlus className="h-4 w-4" />,
+        onClick: (row: StorefrontPageListItem) => setHomepageFor(row),
+        // Only a live page can be the homepage — the backend refuses anything else.
+        hidden: (row: StorefrontPageListItem) => row.isHome || row.status !== "published",
+      },
+      {
+        type: "stop-homepage",
+        placement: "cell",
+        tooltip: "Stop using as homepage",
+        icon: <Undo2 className="h-4 w-4" />,
+        onClick: () => setHomePage(null),
+        hidden: (row: StorefrontPageListItem) => !row.isHome,
+        disabled: () => settingHome,
+      },
     ],
-    [duplicatePage, duplicating],
+    [duplicatePage, duplicating, setHomePage, settingHome],
   );
 
   return (
@@ -85,6 +107,7 @@ export default function StorefrontPagesPage() {
       />
 
       <NewPageDialog open={creating} onOpenChange={setCreating} />
+      <HomepageDialog page={homepageFor} onClose={() => setHomepageFor(null)} />
     </div>
   );
 }

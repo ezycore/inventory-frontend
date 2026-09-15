@@ -26,7 +26,9 @@ Decide this first.
 - **A page for one campaign** that you point an ad or a message at is a landing page. Make it under
   **Pages**.
 
-A landing page does not change your homepage, and shoppers only find it through the link you share.
+A landing page does not change your homepage unless you choose it as your homepage (see
+[Use a landing page as your homepage](#use-a-landing-page-as-your-homepage)). Otherwise shoppers only
+find it through the link you share.
 
 ## Make a page
 
@@ -181,6 +183,26 @@ number to open just those orders in your order list.
 
 An order counts for a page only when it is placed on the same visit, in the same browser. A shopper who
 comes back days later without opening the page again is not counted for it.
+
+## Use a landing page as your homepage
+
+If you sell one product, or one offer is all your store is about right now, a landing page can be the
+first thing shoppers see when they open your store's own address.
+
+1. Publish the page. Only a published page can be your homepage.
+2. In **Pages**, press **Use as homepage** on its row, then confirm.
+
+The row now shows **Homepage**, and your store's address opens the page with its own header and footer
+settings. The page keeps its own address too, so ads that already link to it keep working.
+
+Your homepage from **Customize** is kept, not replaced. Press **Stop using as homepage** on the same row
+to bring it back. Until then, **Customize** reminds you above the home page sections that shoppers are
+not seeing them.
+
+Search engines are given your store's own search title and description for the homepage, and the page's
+own address is hidden from them, so the same page is not listed twice.
+
+While a page is your homepage you cannot unpublish it or delete it. Stop using it as your homepage first.
 
 ## Copy or delete a page
 
