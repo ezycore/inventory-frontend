@@ -14,6 +14,8 @@ import { VerifyEmailGate } from "@/components/storefront/verify-email-gate";
 import { choiceLine, resolveProductChoice } from "@/components/storefront/product-choice";
 import { useCheckout } from "@/components/storefront/checkout/use-checkout";
 import { OrderPlacedCard } from "@/components/storefront/checkout/order-placed-card";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 import {
   ContactFields,
   CouponRow,
@@ -44,6 +46,7 @@ export function OrderFormIsland({
   coupon?: boolean;
 }) {
   const { slug } = useStoreContext();
+  const paused = useOrdersPaused();
   // The list row the section was drawn with carries no variants; a variable
   // product waits for the detail payload before it can offer a choice.
   const variable = listed.productType === "variable";
@@ -64,6 +67,7 @@ export function OrderFormIsland({
   const { t, base, currency, placed, shopper, hydrated } = api;
 
   if (placed) return <OrderPlacedCard order={placed} base={base} t={t} isGuest={!shopper} />;
+  if (paused) return <OrdersPausedNotice paused={paused} />;
   if (variable && !detail) return <div style={{ minHeight: 320 }} />;
 
   return (

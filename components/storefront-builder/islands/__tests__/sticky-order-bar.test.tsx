@@ -4,9 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { StickyOrderBarIsland } from "@/components/storefront-builder/islands/sticky-order-bar";
 
-const mocks = vi.hoisted(() => ({ push: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  push: vi.fn(),
+  paused: null as { message: string } | null,
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
+vi.mock("@/services/storefront/use-orders-paused", () => ({ useOrdersPaused: () => mocks.paused }));
 vi.mock("@/services/storefront/store-context", () => ({
   useStoreContext: () => ({ slug: "rafi5", base: "/shop" }),
 }));
@@ -49,6 +53,7 @@ const addOrderForm = () => {
 beforeEach(() => {
   observed = undefined;
   mocks.push.mockReset();
+  mocks.paused = null;
   vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
 });
 
@@ -81,6 +86,13 @@ describe("StickyOrderBarIsland", () => {
     expect(screen.queryByRole("button")).toBeNull();
     act(() => observed?.([{ isIntersecting: false, target: form }]));
     expect(screen.getByRole("button")).toBeTruthy();
+  });
+
+  it("is not shown while the store has paused online orders", () => {
+    addOrderForm();
+    mocks.paused = { message: "Closed for Eid" };
+    render(<StickyOrderBarIsland product={product()} currency="BDT" />);
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("is not shown for a sold-out product, but is for a backorder one", () => {

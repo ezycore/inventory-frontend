@@ -5,6 +5,7 @@ import { useRef, type CSSProperties } from "react";
 import { money } from "@/components/storefront/format";
 import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
 import type { ProductDetail } from "@/components/storefront/product-detail/use-product-detail";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 
 /**
  * The "sticky bar" product template's bottom bar — name, price, Add to cart —
@@ -27,7 +28,9 @@ export function ProductStickyBar({ d }: { d: ProductDetail }) {
 
   // A variable product with no purchasable variants shows the call-to-order
   // card instead of buy controls, so a buy bar under it would be a dead button.
-  const show = !!product && d.sticky && !(d.variable && d.variants.length === 0);
+  // Nor while orders are paused: the notice in the buy panel is the only answer.
+  const paused = useOrdersPaused();
+  const show = !paused && !!product && d.sticky && !(d.variable && d.variants.length === 0);
   // Called before the early return, so the hook order stays unconditional — and
   // so `--sf-buybar-h` is reset to 0 on the layouts that render no bar.
   useBuybarHeight(ref, show);

@@ -15,6 +15,8 @@ import { Media } from "@/components/storefront/sf-bits";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import { choiceLine, resolveProductChoice } from "@/components/storefront/product-choice";
 import type { QuickBuyLine } from "@/components/storefront/quick-buy-types";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 
 /** Must cover the .sf-qb-panel CSS transition (0.24s) so the exit finishes. */
 const EXIT_MS = 260;
@@ -51,6 +53,7 @@ export function QuickBuySheet({
   onBuy: (line: QuickBuyLine) => void;
 }) {
   const { t } = useStorefrontUI();
+  const paused = useOrdersPaused();
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [openedFor, setOpenedFor] = useState<string | null>(null);
@@ -180,32 +183,38 @@ export function QuickBuySheet({
           </div>
         ) : null}
 
-        <QtyStepper
-          label={t.quantity}
-          qty={qty}
-          setQty={setQty}
-          availableQty={availableQty}
-          canBackorder={canBackorder}
-        />
+        {paused ? (
+          <OrdersPausedNotice paused={paused} />
+        ) : (
+          <>
+            <QtyStepper
+              label={t.quantity}
+              qty={qty}
+              setQty={setQty}
+              availableQty={availableQty}
+              canBackorder={canBackorder}
+            />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
-          <button
-            type="button"
-            disabled={blocked}
-            onClick={() => onAdd(line())}
-            style={sheetBtn(false, blocked)}
-          >
-            {soldOut ? t.outOfStock : t.addToCartFull}
-          </button>
-          <button
-            type="button"
-            disabled={blocked}
-            onClick={() => onBuy(line())}
-            style={sheetBtn(true, blocked)}
-          >
-            {t.buyNow}
-          </button>
-        </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => onAdd(line())}
+                style={sheetBtn(false, blocked)}
+              >
+                {soldOut ? t.outOfStock : t.addToCartFull}
+              </button>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => onBuy(line())}
+                style={sheetBtn(true, blocked)}
+              >
+                {t.buyNow}
+              </button>
+            </div>
+          </>
+        )}
 
         {/* The escape hatch: quick buy is a shortcut, never a replacement for
             the description, gallery and specs the PDP carries. */}

@@ -683,6 +683,12 @@ export interface StorefrontCheckout {
   showOrderNotes?: boolean;
   /** Merchant-defined notices + inputs, in render order within each slot. Max 5. */
   customFields?: CheckoutField[];
+  /** "Pause online orders" — shoppers browse, the order API refuses. */
+  ordersPaused?: boolean;
+  /** Shown where the buy buttons were. Required to pause. */
+  pausedMessage?: string;
+  /** Also offer "Order on chat instead" through the store's WhatsApp contact. */
+  pausedWhatsApp?: boolean;
 }
 
 export interface StorefrontNotifEvent {

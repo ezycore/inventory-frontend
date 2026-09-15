@@ -50,6 +50,22 @@ off hides the bar everywhere, and the editor warns you when you have done that. 
 the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
 saved, and full `https://` links remain external.
 
+## Pause online orders
+
+When you cannot take orders for a while — Eid, a stock count, a trip — pause them instead of taking
+the store offline. Shoppers can still browse, and your links and ads keep working.
+
+1. In **Store Settings**, with your checkout options, turn on **Pause online orders**.
+2. Write the **Message to shoppers**. It replaces every Buy button, the cart's checkout button, the
+   order form on your landing pages and the checkout page, so say when you are back or how to order
+   meanwhile. It is shown exactly as you write it, so write it in the language your shoppers read.
+3. Turn on **Offer Order on WhatsApp** to add a chat button under the message. It uses the WhatsApp
+   number from your contact button.
+4. Save.
+
+A shopper who already had your checkout open cannot place the order either. Orders already placed carry
+on as normal, and you can still create orders yourself. Turn the switch off to take orders again.
+
 ## Your store dashboard
 
 The ecommerce **Dashboard** covers online trade only — orders, revenue and activity from the

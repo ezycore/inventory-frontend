@@ -10,6 +10,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { money } from "@/components/storefront/format";
 import { listingSoldOut } from "@/components/storefront/product-choice";
 import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { ORDER_FORM_SELECTOR } from "@/components/storefront-builder/order-form-anchor";
 
 /** How close to the end of the page counts as the end — the bar would cover the last of it. */
@@ -68,7 +69,8 @@ export function StickyOrderBarIsland({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const show = !listingSoldOut(product) && !formInView && !atEnd;
+  const paused = useOrdersPaused();
+  const show = !paused && !listingSoldOut(product) && !formInView && !atEnd;
   // Before the early return, so `--sf-buybar-h` is reset whenever the bar hides.
   useBuybarHeight(ref, show);
   if (!show) return null;

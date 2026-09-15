@@ -15,6 +15,8 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { SideDrawer } from "@/components/storefront/side-drawer";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 
 /**
  * Slide-over cart (the "drawer" cart variant). Quick cart review + totals; the
@@ -29,6 +31,7 @@ export function CartDrawer() {
 
   const open = useCartUI((s) => s.open);
   const closeCart = useCartUI((s) => s.closeCart);
+  const paused = useOrdersPaused();
 
   // The drawer IS the add-to-cart confirmation — clear any in-flight "Added"
   // toast so it can't double-speak (or cover the footer CTAs) over the drawer.
@@ -85,13 +88,21 @@ export function CartDrawer() {
               value={shipping === 0 && !estimated ? t.free : amount(shipping)}
               muted
             />
-            <button
-              type="button"
-              onClick={goCheckout}
-              style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
-            >
-              {t.proceed} · {amount(total)}
-            </button>
+            {/* A cart built before the merchant paused keeps its lines, but the
+                way to checkout is the notice. */}
+            {paused ? (
+              <div style={{ marginTop: 6 }}>
+                <OrdersPausedNotice paused={paused} compact />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={goCheckout}
+                style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
+              >
+                {t.proceed} · {amount(total)}
+              </button>
+            )}
             {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
             <button
               type="button"

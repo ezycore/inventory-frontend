@@ -6,6 +6,8 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import { AskAboutButton } from "@/components/storefront/ask-about-button";
 import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 
 /**
  * The buy controls: variant chips, quantity stepper, and the action row — on the
@@ -18,7 +20,18 @@ import type { ProductBuy } from "@/components/storefront/product-detail/use-prod
  */
 export function ProductBuyPanel({ d }: { d: ProductBuy }) {
   const { t, store, product, variable, variants, soldOut } = d;
+  const paused = useOrdersPaused();
   if (!product) return null;
+
+  // Paused orders replace the whole panel: a variant or quantity picked for an
+  // order that cannot be placed is a choice made for nothing.
+  if (paused) {
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <OrdersPausedNotice paused={paused} />
+      </div>
+    );
+  }
 
   if (variable && variants.length === 0) {
     return (

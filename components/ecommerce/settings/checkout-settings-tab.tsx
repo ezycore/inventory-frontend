@@ -11,6 +11,7 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { Textarea } from "@/ui/components/textarea";
 import {
   CheckoutCustomFields,
   isMethodOwnedField,
@@ -43,6 +44,12 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [addressMode, setAddressMode] = useState(checkout.addressMode ?? "detailed");
   // Unset reads as ON — every store that predates the toggle was showing it.
   const [orderNotes, setOrderNotes] = useState(checkout.showOrderNotes !== false);
+  const [ordersPaused, setOrdersPaused] = useState(checkout.ordersPaused ?? false);
+  const [pausedMessage, setPausedMessage] = useState(checkout.pausedMessage ?? "");
+  const [pausedWhatsApp, setPausedWhatsApp] = useState(checkout.pausedWhatsApp ?? false);
+  // The message replaces every buy button, and the shop has no wording of its own
+  // for it — the backend refuses a pause without one (ORDERS_PAUSED_MESSAGE_REQUIRED).
+  const missingPauseMessage = ordersPaused && !pausedMessage.trim();
   // This editor holds the entries asked on EVERY order. Anything tied to a
   // payment method is edited on the Payments tab, beside the method it belongs
   // to — filtered out here so no entry is ever presented in two places, and put
@@ -61,6 +68,40 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
 
   return (
     <div className="space-y-5">
+      <Card className="space-y-4 p-5 shadow-none">
+        <ToggleRow
+          label="Pause online orders"
+          desc="Shoppers can still browse your store but cannot place an order. Orders you create yourself are not affected."
+          checked={ordersPaused}
+          onChange={setOrdersPaused}
+        />
+        {ordersPaused ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="orders-paused-message">Message to shoppers</Label>
+              <Textarea
+                id="orders-paused-message"
+                value={pausedMessage}
+                onChange={(event) => setPausedMessage(event.target.value)}
+                maxLength={300}
+                rows={3}
+                placeholder="We're closed for Eid until 20 April. Message us on WhatsApp to order."
+              />
+              <p className={cn("text-xs", missingPauseMessage ? "text-destructive" : "text-muted-foreground")}>
+                {missingPauseMessage
+                  ? "Write a message before saving — it replaces every Buy button."
+                  : "Shown instead of every Buy button, the cart's checkout button and the checkout page, exactly as you write it."}
+              </p>
+            </div>
+            <ToggleRow
+              label="Offer Order on WhatsApp"
+              desc="Adds a WhatsApp chat button under your message, using your contact button's WhatsApp number."
+              checked={pausedWhatsApp}
+              onChange={setPausedWhatsApp}
+            />
+          </>
+        ) : null}
+      </Card>
       <Card className="space-y-4 p-5 shadow-none">
         <ToggleRow label="Require terms acceptance" desc="Shopper must accept terms before placing an order." checked={terms} onChange={setTerms} />
         {terms ? <div className="space-y-1.5"><Label>Terms page</Label><SimpleSelect value={termsPage} onValueChange={setTermsPage} options={pageOptions} className="max-w-sm" /><p className="text-xs text-muted-foreground">Manage pages under Content. Auto-detect uses a published page slugged like terms.</p></div> : null}
@@ -109,7 +150,10 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           <Field label="Order number prefix"><Input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="e.g. RM-" maxLength={12} /></Field>
         </div>
       </Card>
-      <SaveBar pending={pending} onSave={() => save({ checkout: {
+      <SaveBar pending={pending} onSave={() => !missingPauseMessage && save({ checkout: {
+        ordersPaused,
+        pausedMessage: pausedMessage.trim() || undefined,
+        pausedWhatsApp,
         termsRequired: terms,
         requiredFields: fields,
         minOrderValue: minOrder ?? undefined,

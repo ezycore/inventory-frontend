@@ -17,6 +17,8 @@ import { SingleCheckout } from "@/components/storefront/checkout/layouts/single-
 import { SteppedCheckout } from "@/components/storefront/checkout/layouts/stepped-checkout";
 import { GuidedCheckout } from "@/components/storefront/checkout/layouts/guided-checkout";
 import { EditorialCheckout } from "@/components/storefront/checkout/layouts/editorial-checkout";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
 
 /**
  * A screen tall in every branch, so the store footer starts below the fold and
@@ -61,6 +63,8 @@ export default function CheckoutPage() {
   const api = useCheckout();
   const { t, hydrated, shopper, placed, items } = api;
 
+  const paused = useOrdersPaused();
+
   const variant = useStoreTemplate(store, "checkout") as StoreTemplates["checkout"];
   const Layout = CHECKOUT_LAYOUTS[variant] ?? SingleCheckout;
 
@@ -72,6 +76,17 @@ export default function CheckoutPage() {
     return (
       <div style={wrap}>
         <LoadingSplash />
+      </div>
+    );
+  }
+
+  // Paused orders: the page stays (a 404 here would strand every open cart and
+  // Buy link), and says what the merchant wrote. The order API refuses anyway.
+  if (paused && !placed) {
+    return (
+      <div style={wrap}>
+        <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, marginBottom: 12 }}>{t.checkout}</h1>
+        <OrdersPausedNotice paused={paused} />
       </div>
     );
   }

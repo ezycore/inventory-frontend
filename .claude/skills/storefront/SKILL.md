@@ -730,6 +730,15 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
   picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
   press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
+- **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
+  Checkout settings tab). Every buy surface asks `useOrdersPaused()`
+  (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in
+  `lib/storefront-orders-paused.ts`) and draws `OrdersPausedNotice`
+  (`components/storefront/orders-paused-notice.tsx`) — the product buy panel (so Single product too), the
+  quick-buy sheet, the cart drawer, the checkout page and the order form; card CTAs and flyout, the
+  product sticky bar and the sticky order bar draw nothing. **A new buy surface must ask it too.** The
+  message is the merchant's; the chat link reuses `chatOrderInstead`. The API refuses regardless
+  (`STORE_ORDERS_PAUSED`, backend `storefront-orders` skill).
 - **API: `services/api/modules/storefront-pages/`.** Every write answers with the whole page, and the
   hooks put it straight into the detail cache (`storePage` in `hooks.ts`). `storefront.page.drafted`
   refreshes the lists only; `storefront.page.published` refreshes everything and flushes the shop's

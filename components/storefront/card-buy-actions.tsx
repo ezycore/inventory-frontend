@@ -7,6 +7,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import type { CardQuickBuy } from "@/components/storefront/use-card-quick-buy";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 
 export type CardActions = StoreTemplates["cardActions"];
 
@@ -48,7 +49,8 @@ const OVER_IMAGE: CardActions[] = ["reveal"];
  * empty bar.
  */
 export function CardVariantFlyout({ qb }: { qb: CardQuickBuy }) {
-  if (!qb.fitsInline || qb.soldOut) return null;
+  const paused = useOrdersPaused();
+  if (paused || !qb.fitsInline || qb.soldOut) return null;
   return (
     <div className={`sf-qb-flyout${qb.flyoutOpen ? " sf-open" : ""}`}>
       <VariantSelector
@@ -69,7 +71,8 @@ export function CardVariantFlyout({ qb }: { qb: CardQuickBuy }) {
  */
 export function CardRevealActions({ qb }: { qb: CardQuickBuy }) {
   const { t } = useStorefrontUI();
-  if (qb.soldOut) return null;
+  const paused = useOrdersPaused();
+  if (paused || qb.soldOut) return null;
   return (
     <div className="sf-qb-reveal">
       <button type="button" onClick={() => qb.press("add")} disabled={qb.pending} style={cta(false, false, false)}>
@@ -186,6 +189,13 @@ export function CardCtaRow({
   price?: React.ReactNode;
 }) {
   const { t } = useStorefrontUI();
+  const paused = useOrdersPaused();
+
+  // Paused orders: no buy control on a card at all. The product page carries the
+  // merchant's message; `iconOnly` keeps the price it shares this row with.
+  if (paused) {
+    return actions === "iconOnly" ? <div style={{ marginTop: "auto", minWidth: 0 }}>{price}</div> : null;
+  }
 
   // Checked BEFORE the over-image layouts bail: `reveal` hides its buttons
   // entirely when sold out, so without this that layout's only signal would be

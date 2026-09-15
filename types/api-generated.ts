@@ -20529,6 +20529,9 @@ export interface operations {
                         /** @enum {string} */
                         addressMode?: "detailed" | "flat";
                         showOrderNotes?: boolean;
+                        ordersPaused?: boolean;
+                        pausedMessage?: string;
+                        pausedWhatsApp?: boolean;
                         customFields?: {
                             key: string;
                             /** @enum {string} */

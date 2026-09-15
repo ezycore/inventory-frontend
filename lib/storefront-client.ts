@@ -609,6 +609,11 @@ export interface StorefrontStore {
     showOrderNotes?: boolean;
     /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
+    /** "Pause online orders": buy buttons show `pausedMessage`; the order API refuses. */
+    ordersPaused?: boolean;
+    pausedMessage?: string;
+    /** Offer "Order on chat instead" through the store's WhatsApp contact. */
+    pausedWhatsApp?: boolean;
   };
   /** Social sign-in providers with credentials configured on the backend. */
   oauthProviders?: ("google" | "facebook")[];
