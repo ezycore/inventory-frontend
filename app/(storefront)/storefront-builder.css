@@ -156,6 +156,19 @@
   text-align: left;
 }
 
+/* Spacer: a band of the merchant's height, with an optional line across its middle. */
+.sfb-spacer {
+  display: flex;
+  align-items: center;
+  height: var(--sfb-space, 40px);
+}
+
+.sfb-spacer[data-line]::before {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
 /* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
 .sfb-split {
   display: grid;
@@ -176,6 +189,9 @@
   }
   .sfb-cols {
     --cols: var(--sfb-cols-m, var(--sfb-cols));
+  }
+  .sfb-spacer {
+    height: var(--sfb-space-m, var(--sfb-space, 40px));
   }
   .sfb-sec {
     padding-block: var(--sfb-pt-m, var(--sfb-pt, 0px)) var(--sfb-pb-m, var(--sfb-pb, 0px));

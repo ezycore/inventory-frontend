@@ -20,6 +20,7 @@ export const SECTION_GROUPS = [
   "Social proof",
   "Content",
   "Conversion",
+  "Layout",
 ] as const;
 export type SectionGroup = (typeof SECTION_GROUPS)[number];
 
@@ -218,6 +219,12 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A YouTube or Facebook video that starts when tapped.",
     addable: true,
   },
+  spacer: {
+    label: "Spacer",
+    group: "Layout",
+    description: "Empty space between two sections, with a line across it if you like.",
+    addable: true,
+  },
   countdown: {
     label: "Countdown",
     group: "Offers",
@@ -262,6 +269,7 @@ const FIELD_LABELS: Record<string, string> = {
   label: "Video name",
   layout: "Layout",
   limit: "Number of products",
+  line: "Show a line",
   link: "Link",
   mobileColumns: "Columns on phones",
   mobileImage: "Phone picture",
@@ -284,6 +292,7 @@ const FIELD_LABELS: Record<string, string> = {
   showLabels: "Show names",
   side: "Picture side",
   slideshow: "Show as a slideshow",
+  space: "Height (px)",
   source: "Products to show",
   split: "Picture share (%)",
   storeBanner: "Use the store banner",
@@ -320,6 +329,7 @@ const HINTS: Record<string, string> = {
   storeHeading: "Shown in the shopper's language when Heading is empty.",
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
+  space: "The room between the sections above and below.",
   storeBanner: "Shows the banner from Customize → Hero when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
   storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",

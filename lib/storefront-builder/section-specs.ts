@@ -506,6 +506,19 @@ export const SECTION_SPECS = {
       ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], optional: true },
     },
   },
+  /**
+   * Empty room between two sections, optionally split by a thin line in the
+   * theme's border colour. `space` is the band's height in px; the section's
+   * own frame adds no padding, so the height is exactly what the merchant set.
+   */
+  spacer: {
+    v: 1,
+    pages: "all",
+    settings: {
+      space: { type: "number", min: 4, max: 240, int: true, responsive: true },
+      line: { type: "boolean", optional: true },
+    },
+  },
   countdown: {
     v: 1,
     pages: "all",

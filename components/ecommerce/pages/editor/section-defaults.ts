@@ -83,6 +83,7 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   },
   // The link cannot be guessed: it starts incomplete.
   video: { settings: { label: "Watch the video" } },
+  spacer: { settings: { space: { base: 40 } } },
   countdown: { settings: { endsAt: "" } },
 };
 

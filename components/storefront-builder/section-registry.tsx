@@ -46,6 +46,7 @@ import { PromisesBandSection } from "@/components/storefront-builder/sections/pr
 import { RichTextSection } from "@/components/storefront-builder/sections/rich-text";
 import { SelectedProductsSection } from "@/components/storefront-builder/sections/selected-products";
 import { ShopByTagSection } from "@/components/storefront-builder/sections/shop-by-tag";
+import { SpacerSection } from "@/components/storefront-builder/sections/spacer";
 import { SingleProductSection } from "@/components/storefront-builder/sections/single-product";
 import { StickyOrderBarSection } from "@/components/storefront-builder/sections/sticky-order-bar";
 import {
@@ -265,6 +266,10 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   video: defineSection(SECTION_SPECS.video, VideoSection, {
     isEmpty: (settings) => parseVideoEmbed(settings.url) === null,
+  }),
+  // No padding of its own: the band's height is the merchant's number, exactly.
+  spacer: defineSection(SECTION_SPECS.spacer, SpacerSection, {
+    frame: { top: "0px", bottom: "0px" },
   }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,

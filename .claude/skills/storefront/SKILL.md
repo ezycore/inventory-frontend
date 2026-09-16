@@ -730,6 +730,11 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
   picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
   press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
+- **Spacer** (Phase 6, every page; `sections/spacer.tsx`). `space` is a required responsive px number
+  written to `--sfb-space` / `--sfb-space-m` (`.sfb-spacer`), with a zero-padding registry frame so the
+  band is exactly that tall; `line` draws a `::before` in `--border`. **Setting labels are shared by key**
+  (`FIELD_LABELS`), which is why it is `space` and not `height` ("Picture height (px)" on promo cards) —
+  check the table before naming a new setting.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in
