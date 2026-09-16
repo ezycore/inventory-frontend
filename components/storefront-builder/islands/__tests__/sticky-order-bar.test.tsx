@@ -116,12 +116,27 @@ describe("StickyOrderBarIsland", () => {
 
   describe("on the product page itself", () => {
     it("goes back up to the buy buttons rather than reopening the page", () => {
+      const panel = document.createElement("div");
+      panel.setAttribute("data-sf-buy-panel", "");
+      panel.scrollIntoView = vi.fn();
+      document.body.appendChild(panel);
+      const scrollTo = vi.fn();
+      vi.stubGlobal("scrollTo", scrollTo);
+      render(<StickyOrderBarIsland product={product()} currency="BDT" onProductPage />);
+      fireEvent.click(screen.getByRole("button", { name: "Buy now" }));
+      // To the buttons themselves: on a phone the top of the page is the photos.
+      expect(panel.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "center" });
+      expect(scrollTo).not.toHaveBeenCalled();
+      expect(mocks.push).not.toHaveBeenCalled();
+      panel.remove();
+    });
+
+    it("goes to the top when the page has no buy buttons to find", () => {
       const scrollTo = vi.fn();
       vi.stubGlobal("scrollTo", scrollTo);
       render(<StickyOrderBarIsland product={product()} currency="BDT" onProductPage />);
       fireEvent.click(screen.getByRole("button", { name: "Buy now" }));
       expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
-      expect(mocks.push).not.toHaveBeenCalled();
     });
 
     it("still scrolls to an order form placed on the page", () => {

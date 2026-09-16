@@ -13,7 +13,10 @@ import { money } from "@/components/storefront/format";
 import { listingSoldOut } from "@/components/storefront/product-choice";
 import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
-import { ORDER_FORM_SELECTOR } from "@/components/storefront-builder/order-form-anchor";
+import {
+  BUY_PANEL_SELECTOR,
+  ORDER_FORM_SELECTOR,
+} from "@/components/storefront-builder/order-form-anchor";
 import { brandButton } from "@/lib/storefront-button";
 
 /** How close to the end of the page counts as the end — the bar would cover the last of it. */
@@ -90,7 +93,11 @@ export function StickyOrderBarIsland({
   const go = () => {
     const form = document.querySelector<HTMLElement>(ORDER_FORM_SELECTOR);
     if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
-    else if (onProductPage) window.scrollTo({ top: 0, behavior: "smooth" });
+    else if (onProductPage) {
+      const panel = document.querySelector<HTMLElement>(BUY_PANEL_SELECTOR);
+      if (panel) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }
     else router.push(storeHref(base, `/products/${product.slug}`));
   };
 

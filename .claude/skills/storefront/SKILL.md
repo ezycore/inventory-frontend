@@ -4363,6 +4363,16 @@ through `brandButton({ radius, padding, fontSize, minHeight? }, { overPhoto?, bo
 literal): header cart pill, count badges, step numbers, avatars, banner headers. `.sfb-button` reads
 the same tokens in `storefront-builder.css`.
 
+**Scroll anchors on a page:** the order form stamps `ORDER_FORM_ANCHOR` and the product page's buy panel
+`BUY_PANEL_ANCHOR` (both in `components/storefront-builder/order-form-anchor.ts`). The sticky order bar
+scrolls to the form, else — on the product page — to the buy panel, else the top. Never scroll a phone to
+the top to reach the buy buttons: the photos fill the first screen.
+
+**Image banner words stay in flow** (`.sfb-banner-box` is one grid cell with `overflow: clip`): a chosen
+shape is the height the banner wants, and it grows when the words need more — a Strip 4:1 is ~90 px on a
+phone. Don't put the copy back in an absolute layer, and don't swap `clip` for `hidden` (a scroll container
+loses its content-based minimum height, which is what lets the box grow).
+
 **Headings:** `headingWeight` / `headingCase` restyle `h1–h4, .sf-display` under
 `[data-heading-*]` with `!important` (headings set weight inline). Ready-made themes stamp all five axes
 to Default. Base text size is NOT built (435 inline px sizes).

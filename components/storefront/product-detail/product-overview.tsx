@@ -8,6 +8,7 @@ import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { ProductBuyPanel } from "@/components/storefront/product-detail/product-buy-panel";
+import { BUY_PANEL_ANCHOR } from "@/components/storefront-builder/order-form-anchor";
 import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
 import { deliveryEstimateSummary } from "@/lib/storefront-delivery";
 import {
@@ -124,7 +125,9 @@ export function ProductOverview({
               </div>
             ) : null}
 
-            <ProductBuyPanel d={d} />
+            <div {...{ [BUY_PANEL_ANCHOR]: "" }}>
+              <ProductBuyPanel d={d} />
+            </div>
 
             <div style={deliveryRow}>
               <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13, color: "var(--muted)" }}>

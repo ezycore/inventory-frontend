@@ -108,3 +108,13 @@ describe("SectionInspector — the product page's own product", () => {
     expect(screen.getByText("Hide “You may also like”")).toBeTruthy();
   });
 });
+
+describe("SectionInspector — number settings", () => {
+  it("ties a number box to its label, so the label names it and focuses it", async () => {
+    inspect({ id: "related", type: "related-products", v: 1, enabled: true, settings: {} }, "product");
+    const box = screen.getByLabelText("Number of products");
+    expect(box.tagName).toBe("INPUT");
+    await userEvent.click(screen.getByText("Number of products"));
+    expect(document.activeElement).toBe(box);
+  });
+});

@@ -70,6 +70,7 @@ export function FieldControl({
     case "number":
       return (
         <NumberField
+          id={id}
           value={typeof value === "number" ? value : null}
           onChange={(next) => onChange(next ?? undefined)}
           min={spec.min}
