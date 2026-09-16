@@ -36,13 +36,19 @@ async function storeData<T>(path: string): Promise<T> {
   return ((await res.json()) as { data: T }).data;
 }
 
+/** `PIXEL_PAGES=home,cart` compares only those pages — one page after a change to one page. */
+const only = (process.env.PIXEL_PAGES ?? "")
+  .split(",")
+  .map((name) => name.trim())
+  .filter(Boolean);
+
 async function storePages(): Promise<{ name: string; path: string }[]> {
   const [categories, products, pages] = await Promise.all([
     storeData<{ slugPath: string }[]>("categories"),
     storeData<{ items: { slug: string }[] }>("products?limit=1"),
     storeData<{ slug: string }[]>("pages"),
   ]);
-  return [
+  const all = [
     { name: "home", path: "" },
     ...(categories[0] ? [{ name: "collection", path: `/${categories[0].slugPath}` }] : []),
     ...(products.items[0] ? [{ name: "product", path: `/products/${products.items[0].slug}` }] : []),
@@ -50,6 +56,7 @@ async function storePages(): Promise<{ name: string; path: string }[]> {
     { name: "checkout", path: "/checkout" },
     ...pages.map((page) => ({ name: `page-${page.slug}`, path: `/pages/${page.slug}` })),
   ];
+  return only.length ? all.filter((page) => only.includes(page.name)) : all;
 }
 
 /**
