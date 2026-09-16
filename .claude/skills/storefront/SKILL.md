@@ -4230,3 +4230,38 @@ Owner-entered CTA links are store-relative and must go through `normalizeStoreLi
 Never persist or render the tenant-only `/shop` prefix as part of the owner route. Shipping marketing
 copy must derive from `effectiveFreeShippingThreshold`; delivery windows are merchant-authored and
 must fall back to neutral checkout guidance when absent.
+
+## Page controls — Search / Cart page / Account (2026-09-16)
+
+A merchant can switch off three shopper pages (backend `docs/plan/storefront-builder.md` §6, step
+7a). The backend resolves them into one block on the store payload, `store.pages { search, cartPage,
+accounts }`, and this side reads it through **one** helper.
+
+**`storePages(store)` (`lib/storefront-page-controls.ts`) is the only reader.** Never touch
+`store.pages?.search` directly: **absent means ON**, and that is not a stylistic preference — a store
+configured before these switches existed carries no block, and neither does any payload cached before
+they shipped, so a direct read closes the search, the cart page and the account area of every such
+shop. `lib/storefront-page-controls.test.ts` pins the rule.
+
+Where it is enforced, and why each place is the way it is:
+
+| Surface | How |
+|---|---|
+| Header search | `HeaderSearchBar` / `HeaderSearchIcon` / `HeaderSearchMobile` self-gate, so a new anatomy cannot forget one |
+| Search wrappers | `search-first`, `boutique` and `clinical` wrap search in a `flex: 1` decoration — gate the **wrapper**, or it holds the gap open |
+| Sign-in | `AccountLink` self-gates on `ctx.showAccount` (set once by `StoreHeader` from `storePages`) |
+| Phone chrome | `chromeWithPageControls` filters the RESOLVED chrome — slots, tabs, `searchInline`, a `search` row — never the templates, so a merchant's slot arrangement survives switching a page off and on |
+| Phone menu panel | Reads the **store**, not the chrome — see the trap below |
+| Cart drawer | "View cart" hidden when the drawer is the whole cart |
+| Routes | `/search` 404s, `/cart` redirects to checkout (temporary — the switch is reversible, a 301 would outlive it in browser caches), `shop/account/layout.tsx` 404s the whole account area |
+
+⚠ **The inverted check.** `MobileMenuPanel` offers an account row when the chrome has *no* account
+control (`!chromeHas(chrome, "account")`) — it is the last-resort way in for the templates whose bar
+carries none. Filtering `account` out of the chrome therefore made that row appear **exactly when the
+merchant switched the account area off**. It reads `storePages(store).accounts` for that reason: a
+filtered chrome cannot tell "off" from "not on the bar". Any future "the chrome lacks X, so I must
+offer X" check has the same hazard.
+
+**Tracking is not part of the account area.** Guest checkout, the cart mirror and both tracking routes
+stay open with accounts off, so the utility bar's "Track order" retargets from `/account` to
+`/orders/track` rather than disappearing.

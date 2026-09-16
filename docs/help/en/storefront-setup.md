@@ -50,6 +50,22 @@ off hides the bar everywhere, and the editor warns you when you have done that. 
 the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
 saved, and full `https://` links remain external.
 
+## Turn off a page you do not need
+
+Not every shop wants every page. Under **Shopper pages** in Store Settings you can switch off:
+
+- **Search** — hides the search box in your header and on phones, and closes the search page. Useful
+  for a small catalogue where browsing is faster than typing.
+- **Cart page** — keeps the slide-out cart and removes the separate cart page. Anyone who opens the
+  old cart link lands on checkout instead.
+- **Customer accounts** — shoppers buy as guests only. Sign-in disappears and the account pages close.
+
+All three start switched on, so nothing changes until you switch one off.
+
+**Order tracking always keeps working.** With accounts off, the tracking link you send after an order
+still opens, and **Track order** in your header goes to the tracking lookup instead of a sign-in page —
+so a shopper can still follow their delivery. Turning a page back on restores it immediately.
+
 ## Pause online orders
 
 When you cannot take orders for a while — Eid, a stock count, a trip — pause them instead of taking
