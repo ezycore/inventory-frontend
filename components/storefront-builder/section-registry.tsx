@@ -23,6 +23,10 @@ import {
 } from "@/components/storefront-builder/sections/category-promo-cards";
 import { CategoryTilesSection } from "@/components/storefront-builder/sections/category-tiles";
 import { ContentBodySection } from "@/components/storefront-builder/sections/content-body";
+import { CartLinesSection } from "@/components/storefront-builder/sections/cart-lines";
+import { CheckoutFormSection } from "@/components/storefront-builder/sections/checkout-form";
+import { AccountAreaSection } from "@/components/storefront-builder/sections/account-area";
+import { SearchResultsSection } from "@/components/storefront-builder/sections/search-results";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
@@ -204,6 +208,21 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "content-body": defineSection(SECTION_SPECS["content-body"], ContentBodySection, {
     // The frame draws the title even when the body is empty, as the page always did.
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "cart-lines": defineSection(SECTION_SPECS["cart-lines"], CartLinesSection, {
+    // The cart brings its own page padding and column, exactly as the route
+    // drew it — the section must add none, or a moved cart sits lower on the
+    // page than the cart it replaced. Same rule as `content-body`.
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "checkout-form": defineSection(SECTION_SPECS["checkout-form"], CheckoutFormSection, {
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "account-area": defineSection(SECTION_SPECS["account-area"], AccountAreaSection, {
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "search-results": defineSection(SECTION_SPECS["search-results"], SearchResultsSection, {
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   faq: defineSection(SECTION_SPECS.faq, FaqSection, {

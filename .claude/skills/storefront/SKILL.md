@@ -4265,3 +4265,36 @@ offer X" check has the same hazard.
 **Tracking is not part of the account area.** Guest checkout, the cart mirror and both tracking routes
 stay open with accounts off, so the utility bar's "Track order" retargets from `/account` to
 `/orders/track` rather than disappearing.
+
+## System pages on the builder — core sections (2026-09-16)
+
+The cart, checkout, search and account pages can be **builder pages**. Each route keeps its address,
+its metadata and its gates, and asks for its own page through **`SystemPage`**
+(`components/storefront-builder/system-page.tsx`): the builder page when the store has one, else the
+view directly. A store that has not moved the page hears a 404 from the page read — the normal answer
+until its cutover, not an error.
+
+**The core section renders the same view the route renders.** That is what makes a moved page
+identical, and it is why the four views live in `components/storefront/{cart,checkout,account,search}/`
+rather than in their route folders — a section importing a route file is backwards. Each is exported
+by name (`CartPageView`, `CheckoutPageView`, …), and cart and checkout take an optional layout that is
+today's `templates.*` choice become a section setting, resolved **under** the Customize draft so the
+editor preview still repaints while a merchant drags.
+
+⚠ **Every core section must wrap its view in `.sfb-core`.** The view brings its own column and side
+padding; `.sfb-inner` adds another, and the two gutters stack. A wide page hides it inside its
+max-width column — on a **phone** the page is visibly narrower (733 px of diff, desktop clean). The CSS
+rule lives in `app/(storefront)/storefront-builder.css` beside the identical one `content-body` needs.
+
+**A core section cannot be removed, hidden or duplicated.** `isCoreSection`
+(`components/ecommerce/pages/editor/section-catalogue.ts`) is one source with the add library's
+`addable: false`, so a section a merchant cannot add is one they cannot delete either; the API refuses
+it too (`STOREFRONT_PAGE_CORE_SECTION`).
+
+**Not yet moved: `/products` and the product page.** Their views need the route's own data — the
+collection, the product, the seeded first page of results — which the section runtime has no way to
+hand them.
+
+**Proving a move locally:** the frontend serves a cached page read stale for 300 s, so a baseline taken
+just before a migration compares against a page that has not changed yet and reads as a regression.
+Release the pages, `rm -rf .next/dev/cache`, restart the dev server, capture, migrate, restart, compare.

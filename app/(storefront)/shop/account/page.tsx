@@ -1,10 +1,17 @@
+// coding-standard: maintained
 import { storePageMetadata } from "@/lib/storefront-metadata";
-import View from "./view";
+import { SystemPage } from "@/components/storefront-builder/system-page";
+import { AccountPageView } from "@/components/storefront/account/account-page";
 
 export async function generateMetadata() {
   return storePageMetadata({ title: "My account", index: false });
 }
 
+/** The account area. Whether it exists at all is the layout's business (§6 page controls). */
 export default function Page() {
-  return <View />;
+  return (
+    <SystemPage path="/account">
+      <AccountPageView />
+    </SystemPage>
+  );
 }

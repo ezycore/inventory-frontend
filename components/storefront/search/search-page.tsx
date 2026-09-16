@@ -368,7 +368,7 @@ function SearchRow({
   );
 }
 
-export default function SearchPage() {
+export function SearchPageView() {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>

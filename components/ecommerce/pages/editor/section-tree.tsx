@@ -6,7 +6,7 @@ import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Trash2 } from "lucide-reac
 import { Button } from "@/ui/components/button";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
 import { cn } from "@/ui/lib/utils";
-import { sectionLabel } from "./section-catalogue";
+import { isCoreSection, sectionLabel } from "./section-catalogue";
 import { isComplete, type EditorSection } from "./section-instances";
 
 function RowButton({
@@ -115,18 +115,27 @@ export function SectionTree({
                 >
                   <ArrowDown className="h-3.5 w-3.5" />
                 </RowButton>
-                <RowButton
-                  label={section.enabled ? "Hide section" : "Show section"}
-                  onClick={() => onToggle(section.id)}
-                >
-                  {section.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                </RowButton>
-                <RowButton label="Duplicate section" onClick={() => onDuplicate(section.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </RowButton>
-                <RowButton label="Remove section" onClick={() => setRemoving(section)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </RowButton>
+                {/* A core section IS the page — the cart, the checkout, a content
+                    page's body. It can be configured and moved, but hiding,
+                    duplicating or removing it would leave an address the
+                    storefront still serves with nothing on it, so those three
+                    are not offered. The API refuses them too. */}
+                {isCoreSection(section.type) ? null : (
+                  <>
+                    <RowButton
+                      label={section.enabled ? "Hide section" : "Show section"}
+                      onClick={() => onToggle(section.id)}
+                    >
+                      {section.enabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </RowButton>
+                    <RowButton label="Duplicate section" onClick={() => onDuplicate(section.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </RowButton>
+                    <RowButton label="Remove section" onClick={() => setRemoving(section)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </RowButton>
+                  </>
+                )}
               </li>
             );
           })}

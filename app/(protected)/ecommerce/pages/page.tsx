@@ -21,6 +21,7 @@ import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
 import { NewPageDialog } from "@/components/ecommerce/pages/new-page-dialog";
 import { StorePagesTable } from "@/components/ecommerce/pages/store-pages-table";
+import { SystemPagesCard } from "@/components/ecommerce/pages/system-pages-card";
 
 /**
  * Landing pages in the table. The builder API also holds content and system
@@ -112,6 +113,7 @@ export default function StorefrontPagesPage() {
       />
 
       <StorePagesTable />
+      <SystemPagesCard />
 
       <NewPageDialog open={creating} onOpenChange={setCreating} />
       <HomepageDialog page={homepageFor} onClose={() => setHomepageFor(null)} />

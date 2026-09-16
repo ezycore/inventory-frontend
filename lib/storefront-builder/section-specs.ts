@@ -131,6 +131,50 @@ export const SECTION_SPECS = {
       updatedAt: { type: "date", optional: true },
     },
   },
+  /**
+   * The cart, on a cart page that has moved onto the builder (plan §6, §17
+   * Phase 5 step 7b). One core section per system page: it cannot be removed or
+   * added twice, and the merchant's own sections sit above and below it.
+   *
+   * `layout` is the store's `templates.cartLayout` become a section setting.
+   * Unset means "whatever the store's template says", so a cart page built
+   * before the merchant ever opened this control draws exactly as it did.
+   */
+  "cart-lines": {
+    v: 1,
+    pages: ["cart"],
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["panel", "compact", "cards", "editorial"],
+        optional: true,
+      },
+    },
+  },
+  /** The checkout, on a checkout page that has moved onto the builder. */
+  "checkout-form": {
+    v: 1,
+    pages: ["checkout"],
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["single", "multi", "guided", "editorial"],
+        optional: true,
+      },
+    },
+  },
+  /** The account area, on an account page that has moved onto the builder. */
+  "account-area": {
+    v: 1,
+    pages: ["account"],
+    settings: {},
+  },
+  /** The search results, on a search page that has moved onto the builder. */
+  "search-results": {
+    v: 1,
+    pages: ["search"],
+    settings: {},
+  },
   faq: {
     v: 1,
     pages: "all",

@@ -54,6 +54,31 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     // Never offered in the library: it is the content page's own core section.
     addable: false,
   },
+  "cart-lines": {
+    label: "Cart",
+    group: "Content",
+    description: "The cart itself. Created when your cart page moves onto the builder.",
+    // The cart page's core section: never in the library, never twice on a page.
+    addable: false,
+  },
+  "checkout-form": {
+    label: "Checkout",
+    group: "Content",
+    description: "The checkout itself. Created when your checkout page moves onto the builder.",
+    addable: false,
+  },
+  "account-area": {
+    label: "Account area",
+    group: "Content",
+    description: "Sign-in and a shopper's orders. Created when your account page moves onto the builder.",
+    addable: false,
+  },
+  "search-results": {
+    label: "Search results",
+    group: "Content",
+    description: "What a shopper's search finds. Created when your search page moves onto the builder.",
+    addable: false,
+  },
   faq: {
     label: "FAQ",
     group: "Content",
@@ -355,3 +380,14 @@ export const valueLabel = (value: string, field?: string): string => {
 
 export const sectionLabel = (type: string): string =>
   Object.hasOwn(SECTION_CATALOGUE, type) ? SECTION_CATALOGUE[type as SectionType].label : sentence(words(type));
+
+/**
+ * Is this the page's **core section** — the one that draws the page itself?
+ *
+ * The same answer as "not offered in the add library": a section a merchant
+ * cannot add is one the page's own move created, which is exactly the set that
+ * must not be removed, hidden or duplicated either (§6). One source, so a new
+ * core section cannot be registered as un-addable and still be deletable.
+ */
+export const isCoreSection = (type: string): boolean =>
+  SECTION_CATALOGUE[type as SectionType]?.addable === false;

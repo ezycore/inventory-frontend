@@ -4,23 +4,27 @@ import { getStoreContext } from "@/lib/storefront-host";
 import { getStore } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import { storePages } from "@/lib/storefront-page-controls";
-import View from "./view";
+import { SystemPage } from "@/components/storefront-builder/system-page";
+import { SearchPageView } from "@/components/storefront/search/search-page";
 
 export async function generateMetadata() {
   return storePageMetadata({ title: "Search", index: false });
 }
 
 /**
- * The search page, which the merchant may switch off (§6 page controls).
+ * The search page, drawn by its builder page when the store has one.
  *
- * A 404 rather than an empty page: with search off the header field is gone
- * too, so the only ways here are an old link or a typed URL, and both should
- * hear that this shop has no search — not be shown a box that finds things the
- * merchant decided not to offer.
+ * A merchant may switch search off (§6 page controls); then this 404s rather
+ * than showing a box that finds things they decided not to offer — the header
+ * field is gone too, so the only ways here are an old link or a typed URL.
  */
 export default async function Page() {
   const { slug } = await getStoreContext();
   const store = slug ? await getStore(slug) : null;
   if (store && !storePages(store).search) notFound();
-  return <View />;
+  return (
+    <SystemPage path="/search">
+      <SearchPageView />
+    </SystemPage>
+  );
 }

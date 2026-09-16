@@ -2,7 +2,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import View from "./view";
+import { CheckoutPageView as View } from "./checkout-page";
 
 /**
  * Checkout renders nothing real until the persisted cart and session load, so

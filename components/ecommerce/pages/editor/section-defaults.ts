@@ -29,6 +29,12 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "rich-text": { settings: { body: paragraph("Write something here.") } },
   // Never added by hand (`addable: false`): a page's move fills both settings in.
   "content-body": { settings: { title: "", body: "" } },
+  // Unset layout = "whatever the store's template says", which is what a cart
+  // page drew before it moved.
+  "cart-lines": { settings: {} },
+  "checkout-form": { settings: {} },
+  "account-area": { settings: {} },
+  "search-results": { settings: {} },
   faq: {
     settings: { heading: "Questions" },
     blocks: [{ question: "Do you deliver everywhere?", answer: "Write your answer here." }],

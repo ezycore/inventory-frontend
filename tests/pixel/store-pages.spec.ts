@@ -43,17 +43,24 @@ const only = (process.env.PIXEL_PAGES ?? "")
   .filter(Boolean);
 
 async function storePages(): Promise<{ name: string; path: string }[]> {
-  const [categories, products, pages] = await Promise.all([
+  const [store, categories, products, pages] = await Promise.all([
+    storeData<{ pages?: { search: boolean; cartPage: boolean; accounts: boolean } }>(""),
     storeData<{ slugPath: string }[]>("categories"),
     storeData<{ items: { slug: string }[] }>("products?limit=1"),
     storeData<{ slug: string }[]>("pages"),
   ]);
+  // A page the merchant has switched off (§6 page controls) is not compared: it
+  // answers a 404 or a redirect by design, and screenshotting that would fail
+  // the run for the one thing that is working correctly.
+  const serves = store.pages ?? { search: true, cartPage: true, accounts: true };
   const all = [
     { name: "home", path: "" },
     ...(categories[0] ? [{ name: "collection", path: `/${categories[0].slugPath}` }] : []),
     ...(products.items[0] ? [{ name: "product", path: `/products/${products.items[0].slug}` }] : []),
-    { name: "cart", path: "/cart" },
+    ...(serves.search ? [{ name: "search", path: "/search" }] : []),
+    ...(serves.cartPage ? [{ name: "cart", path: "/cart" }] : []),
     { name: "checkout", path: "/checkout" },
+    ...(serves.accounts ? [{ name: "account", path: "/account" }] : []),
     ...pages.map((page) => ({ name: `page-${page.slug}`, path: `/pages/${page.slug}` })),
   ];
   return only.length ? all.filter((page) => only.includes(page.name)) : all;

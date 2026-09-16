@@ -57,7 +57,7 @@ const wrap: CSSProperties = {
  * `checkoutLayout` key — merchants already have `single-page`/`multi-step`
  * saved, and the two extra ids are purely additive.
  */
-export default function CheckoutPage() {
+export function CheckoutPageView({ layout: chosen }: { layout?: StoreTemplates["checkout"] }) {
   const { slug, base } = useStoreContext();
   const { data: store } = useStore(slug);
   const api = useCheckout();
@@ -65,7 +65,12 @@ export default function CheckoutPage() {
 
   const paused = useOrdersPaused();
 
-  const variant = useStoreTemplate(store, "checkout") as StoreTemplates["checkout"];
+  /* The store's own choice, and — once the checkout page is on the builder —
+     the core section's, which wins when the merchant has set one. `chosen` is
+     unset on every page built by the migration, so a moved checkout draws the
+     layout the store already drew. */
+  const stored = useStoreTemplate(store, "checkout") as StoreTemplates["checkout"];
+  const variant = chosen ?? stored;
   const Layout = CHECKOUT_LAYOUTS[variant] ?? SingleCheckout;
 
   // ----- gates -----

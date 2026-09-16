@@ -44,7 +44,7 @@ const primaryBtn: CSSProperties = {
   cursor: "pointer",
 };
 
-export default function AccountPage() {
+export function AccountPageView() {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
