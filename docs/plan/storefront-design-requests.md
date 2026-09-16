@@ -106,7 +106,7 @@ question every quarter.
 | A few departments shown as large promo cards — photo, name, a line of copy, a Shop Now button | *not recorded* | *not recorded* | *not recorded* | `category-banners` section + `sectionConfig.categoryIds` | 1 | `shipped` 2026-09-06 |
 | A promo card with the photograph **beside** the copy rather than above it | Home textiles (cushions, floor mats) | 1 | 2026-09-07 | `sectionConfig.cardShape: "split"` | 1 | `shipped` 2026-09-07 |
 | The category row's cards are too small and don't line up with the hero | Home textiles | 1 | 2026-09-07 | *(none — the merchant was on `category-tiles`, which is capped small by design; answered by moving them to `category-banners`)* | 1 | `declined` 2026-09-07 |
-| Two promo cards side by side on a **phone** | — | 0 | — | a phone override for `cardShape` | 0 | `open` — speculative, logged so it is counted rather than guessed |
+| Two promo cards side by side on a **phone** | — | 0 | — | a phone override for `cardShape` / cards per row | 0 | `shipped` 2026-09-07 — not on a count: per-device composition added `sectionConfig[].mobile.cardShape` and `.cardPerRow` the same day, and the builder's `category-promo-cards` carries both as phone values (`shape`, `perRow`). Nobody has asked yet; found stale in the Phase 6 review |
 
 **The first row is the worked example of the whole loop, including its failure.** It shipped on one
 sighting rather than three — correctly, because a second argument carried it (a catalogue with few
@@ -131,6 +131,14 @@ merchant asking for a size control there is describing a composition they cannot
 **Row four is logged at zero on purpose.** A 2-up phone row is trivially expressible in CSS, which is
 exactly why it belongs here rather than in the product: nobody has asked for it. If it is ever built,
 it should be because this cell reads three.
+
+**Phase 6 review (2026-09-16)** — the Storefront Builder's exit criterion for Phase 6 is this register
+read against what shipped. Shipped in Phase 6: Spacer, Image banner, Gallery and the section Style tab
+(background, spacing, width, alignment, text colour). **None of them closes a row here, and no row asks
+for them** — they come from the builder plan's §8 widget library, which the owner decision of 2026-09-14
+put outside the three-merchant rule. The one row whose state was wrong is row four, above. No request has
+been logged since 2026-09-07; that is either no demand or the loop not running, and two weeks after launch
+it cannot yet tell which.
 
 ## Unshaped
 
