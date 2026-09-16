@@ -33,6 +33,7 @@ import { CollectionsRowSection } from "@/components/storefront-builder/sections/
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
 import { HowToOrderSection } from "@/components/storefront-builder/sections/how-to-order";
+import { ImageBannerSection } from "@/components/storefront-builder/sections/image-banner";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
 import { OfferPricingSection } from "@/components/storefront-builder/sections/offer-pricing";
 import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
@@ -267,6 +268,7 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   video: defineSection(SECTION_SPECS.video, VideoSection, {
     isEmpty: (settings) => parseVideoEmbed(settings.url) === null,
   }),
+  "image-banner": defineSection(SECTION_SPECS["image-banner"], ImageBannerSection),
   // No padding of its own: the band's height is the merchant's number, exactly.
   spacer: defineSection(SECTION_SPECS.spacer, SpacerSection, {
     frame: { top: "0px", bottom: "0px" },

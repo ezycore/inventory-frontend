@@ -507,6 +507,29 @@ export const SECTION_SPECS = {
     },
   },
   /**
+   * One picture across the page — a promotion strip, a collection banner — with
+   * the merchant's words and a button over it, or the whole picture as a link
+   * when there is no button. `frame` crops it to a shape around `focal`; unset
+   * shows the picture at its own proportions.
+   */
+  "image-banner": {
+    v: 1,
+    pages: "all",
+    settings: {
+      image: { type: "image" },
+      mobileImage: { type: "image", optional: true },
+      /** The picture's words for screen readers and search engines. */
+      alt: { type: "string", max: 160, optional: true },
+      frame: { type: "enum", values: ["4:1", "3:1", "21:9", "16:9", "4:3", "1:1"], responsive: true, optional: true },
+      focal: { type: "focal", responsive: true, optional: true },
+      heading: { type: "string", max: 120, optional: true },
+      text: { type: "string", max: 240, optional: true },
+      align: { type: "enum", values: ["left", "center"], optional: true },
+      buttonLabel: { type: "string", max: 40, optional: true },
+      link: { type: "url", optional: true },
+    },
+  },
+  /**
    * Empty room between two sections, optionally split by a thin line in the
    * theme's border colour. `space` is the band's height in px; the section's
    * own frame adds no padding, so the height is exactly what the merchant set.

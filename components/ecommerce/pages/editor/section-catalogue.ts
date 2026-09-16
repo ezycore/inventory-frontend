@@ -219,6 +219,12 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A YouTube or Facebook video that starts when tapped.",
     addable: true,
   },
+  "image-banner": {
+    label: "Image banner",
+    group: "Hero & banners",
+    description: "One wide picture, with words and a button on it — or, with a link and no button, the whole picture as the link.",
+    addable: true,
+  },
   spacer: {
     label: "Spacer",
     group: "Layout",
@@ -237,6 +243,7 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 /** Setting labels, by setting key. Shared across sections — the same key means the same thing. */
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
+  alt: "Picture description",
   answer: "Answer",
   arrows: "Show arrows",
   badge: "Badge",
@@ -255,6 +262,7 @@ const FIELD_LABELS: Record<string, string> = {
   description: "Description",
   flow: "Layout",
   focal: "Focus point",
+  frame: "Picture shape",
   galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
@@ -312,6 +320,8 @@ const FIELD_LABELS: Record<string, string> = {
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
 
 const HINTS: Record<string, string> = {
+  alt: "Say what the picture shows. Screen readers read it aloud.",
+  frame: "Default shows each picture whole. A shape crops it to fit.",
   buttonHref: "A page on your store like /products, a full web address, or tel: / mailto:.",
   link: "A page on your store like /products, a full web address, or tel: / mailto:.",
   ctaHref: "A page on your store like /products, or a full web address.",
@@ -365,6 +375,9 @@ const CUSTOMIZE_OPTIONS: Record<string, string> = {
 /** Readable names for enum values, where the raw value would not read well. */
 const VALUE_LABELS: Record<string, string> = {
   "full-bleed": "Full width",
+  "4:1": "Strip 4:1",
+  "3:1": "Wide strip 3:1",
+  "21:9": "Cinema 21:9",
   "4:5": "Portrait 4:5",
   "1:1": "Square",
   "4:3": "Landscape 4:3",

@@ -735,6 +735,11 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   band is exactly that tall; `line` draws a `::before` in `--border`. **Setting labels are shared by key**
   (`FIELD_LABELS`), which is why it is `space` and not `height` ("Picture height (px)" on promo cards) —
   check the table before naming a new setting.
+- **Image banner** (Phase 6, every page; `sections/image-banner.tsx`). One `SfImage` (with `mobileImage`)
+  under an optional shade of words. A button needs label **and** link; a link with no label makes the
+  whole banner the `SectionLink` instead — never a link inside a link. `frame` / `focal` are responsive
+  CSS variables (`--sfb-banner-frame`, `--sfb-banner-focal`, `-m`) on `.sfb-banner`; with no frame the
+  image keeps its own width/height attributes. Not `priority` — a section cannot know it is first.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in

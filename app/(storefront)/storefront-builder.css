@@ -169,6 +169,78 @@
   border-top: 1px solid var(--border);
 }
 
+/* Image banner: the picture at its own shape, or cropped to the chosen one around
+   its focus point, with the words on a shade that keeps them readable. */
+.sfb-banner {
+  display: block;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.sfb-banner-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.sfb-banner-media {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sfb-banner-box[data-frame] {
+  aspect-ratio: var(--sfb-banner-frame);
+}
+
+.sfb-banner-box[data-frame] .sfb-banner-media {
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--sfb-banner-focal, 50% 50%);
+}
+
+.sfb-banner-copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: clamp(16px, 4vw, 40px);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 75%);
+  text-align: left;
+}
+
+.sfb-banner-copy[data-align="center"] {
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.sfb-banner-heading {
+  margin: 0;
+  font-size: var(--h2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.sfb-banner-text {
+  margin: 8px 0 0;
+  max-width: 560px;
+  line-height: 1.55;
+}
+
+/* Full width runs the banner to the window edge, square-cornered. */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-banner) {
+  padding-inline: 0;
+}
+
+.sfb-sec[data-width="full"] .sfb-banner-box {
+  border-radius: 0;
+}
+
 /* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
 .sfb-split {
   display: grid;
@@ -192,6 +264,12 @@
   }
   .sfb-spacer {
     height: var(--sfb-space-m, var(--sfb-space, 40px));
+  }
+  .sfb-banner-box[data-frame] {
+    aspect-ratio: var(--sfb-banner-frame-m, var(--sfb-banner-frame));
+  }
+  .sfb-banner-box[data-frame] .sfb-banner-media {
+    object-position: var(--sfb-banner-focal-m, var(--sfb-banner-focal, 50% 50%));
   }
   .sfb-sec {
     padding-block: var(--sfb-pt-m, var(--sfb-pt, 0px)) var(--sfb-pb-m, var(--sfb-pb, 0px));

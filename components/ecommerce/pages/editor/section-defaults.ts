@@ -83,6 +83,8 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   },
   // The link cannot be guessed: it starts incomplete.
   video: { settings: { label: "Watch the video" } },
+  // The picture cannot be invented: it starts incomplete, like Image and text.
+  "image-banner": { settings: {} },
   spacer: { settings: { space: { base: 40 } } },
   countdown: { settings: { endsAt: "" } },
 };
