@@ -37,6 +37,7 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "search-results": { settings: {} },
   "collection-grid": { settings: {} },
   "product-main": { settings: {} },
+  "related-products": { settings: {} },
   faq: {
     settings: { heading: "Questions" },
     blocks: [{ question: "Do you deliver everywhere?", answer: "Write your answer here." }],
@@ -83,6 +84,11 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   },
   // The link cannot be guessed: it starts incomplete.
   video: { settings: { label: "Watch the video" } },
+  // The picture cannot be invented: it starts incomplete, like Image and text.
+  "image-banner": { settings: {} },
+  // Each picture must be chosen: the first starts empty, so the section starts unfinished.
+  gallery: { settings: {}, blocks: [{}] },
+  spacer: { settings: { space: { base: 40 } } },
   countdown: { settings: { endsAt: "" } },
 };
 
@@ -97,4 +103,6 @@ export const BLOCK_DEFAULTS: Partial<Record<SectionType, Record<string, unknown>
   testimonials: { name: "" },
   benefits: { title: "New benefit" },
   "how-to-order": { title: "New step" },
+  // A picture cannot be invented: a new one starts empty.
+  gallery: {},
 };

@@ -181,11 +181,31 @@ export const SECTION_SPECS = {
     pages: ["collection"],
     settings: {},
   },
-  /** The product itself, on the product page once it is on the builder. */
+  /**
+   * The product itself, on the product page once it is on the builder.
+   * `hideRelated` drops its own "You may also like" row, for a page where the
+   * merchant places a Related products section instead; unset keeps the row,
+   * which is what every page moved from the classic product page draws.
+   */
   "product-main": {
     v: 1,
     pages: ["product"],
-    settings: {},
+    settings: {
+      hideRelated: { type: "boolean", optional: true },
+    },
+  },
+  /**
+   * Products like the one on the page — its collection's, else the newest — as
+   * the product page's own row draws them. Product page only: it needs a product
+   * to be like. `limit` unset shows four, the built-in row's number.
+   */
+  "related-products": {
+    v: 1,
+    pages: ["product"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      limit: { type: "number", min: 1, max: 8, int: true, optional: true },
+    },
   },
   faq: {
     v: 1,
@@ -386,11 +406,12 @@ export const SECTION_SPECS = {
    */
   "order-form": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 400, optional: true },
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
       coupon: { type: "boolean", optional: true },
     },
   },
@@ -416,23 +437,26 @@ export const SECTION_SPECS = {
    */
   "offer-pricing": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 400, optional: true },
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
     },
   },
   /**
    * A bar pinned to the bottom of a phone screen: the product's name and price,
-   * and a button to the page's order form — or to the product page when the page
-   * has none. Hidden while an order form is on screen.
+   * and a button to the page's order form — or, with none, to the product page
+   * (on the product page itself: back up to its buy buttons). Hidden while an
+   * order form is on screen.
    */
   "sticky-order-bar": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
       buttonLabel: { type: "string", max: 30, optional: true },
     },
   },
@@ -504,6 +528,66 @@ export const SECTION_SPECS = {
       label: { type: "string", min: 1, max: 120 },
       poster: { type: "image", optional: true },
       ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], optional: true },
+    },
+  },
+  /**
+   * One picture across the page — a promotion strip, a collection banner — with
+   * the merchant's words and a button over it, or the whole picture as a link
+   * when there is no button. `frame` crops it to a shape around `focal`; unset
+   * shows the picture at its own proportions.
+   */
+  "image-banner": {
+    v: 1,
+    pages: "all",
+    settings: {
+      image: { type: "image" },
+      mobileImage: { type: "image", optional: true },
+      /** The picture's words for screen readers and search engines. */
+      alt: { type: "string", max: 160, optional: true },
+      frame: { type: "enum", values: ["4:1", "3:1", "21:9", "16:9", "4:3", "1:1"], responsive: true, optional: true },
+      focal: { type: "focal", responsive: true, optional: true },
+      heading: { type: "string", max: 120, optional: true },
+      text: { type: "string", max: 240, optional: true },
+      align: { type: "enum", values: ["left", "center"], optional: true },
+      buttonLabel: { type: "string", max: 40, optional: true },
+      link: { type: "url", optional: true },
+    },
+  },
+  /**
+   * Pictures in a grid, one block each, with an optional caption and link. `frame`
+   * gives every tile one shape (cropped around the middle); unset keeps each
+   * picture's own proportions. `columns` past the breakpoint; a phone takes its
+   * own value, else two (or one, when the desktop has one).
+   */
+  gallery: {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], optional: true },
+    },
+    blocks: {
+      max: 24,
+      settings: {
+        image: { type: "image" },
+        alt: { type: "string", max: 160, optional: true },
+        caption: { type: "string", max: 120, optional: true },
+        link: { type: "url", optional: true },
+      },
+    },
+  },
+  /**
+   * Empty room between two sections, optionally split by a thin line in the
+   * theme's border colour. `space` is the band's height in px; the section's
+   * own frame adds no padding, so the height is exactly what the merchant set.
+   */
+  spacer: {
+    v: 1,
+    pages: "all",
+    settings: {
+      space: { type: "number", min: 4, max: 240, int: true, responsive: true },
+      line: { type: "boolean", optional: true },
     },
   },
   countdown: {

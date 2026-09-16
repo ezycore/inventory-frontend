@@ -120,7 +120,7 @@ export default async function Page({
     <>
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <ProductDataProvider value={{ initialProduct: product ?? undefined }}>
-        <SystemPage path={`/products/${productSlug}`}>
+        <SystemPage path={`/products/${productSlug}`} product={product ?? undefined}>
           <ProductPageView initialProduct={product ?? undefined} />
         </SystemPage>
       </ProductDataProvider>

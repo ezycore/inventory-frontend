@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import type { CatalogCategory, StoreCampaign, StoreTag, StorefrontImage } from "@/lib/storefront-client";
+import type { CatalogCategory, CatalogProduct, StoreCampaign, StoreTag, StorefrontImage } from "@/lib/storefront-client";
 import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
 import type { SectionData } from "@/lib/storefront-builder/section-data";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
@@ -35,6 +35,12 @@ export interface SectionContext {
   banner?: StorefrontImage | null;
   /** The store's promises (Customize → Footer), those with words, for sections that show them. */
   trustBadges?: { text: string; icon?: string }[];
+  /**
+   * The product the page is about — set on the product page only, from what its
+   * route resolved. Sections whose product setting that page supplies
+   * (`fromPage`) draw this one.
+   */
+  product?: CatalogProduct;
 }
 
 export interface SectionViewProps<

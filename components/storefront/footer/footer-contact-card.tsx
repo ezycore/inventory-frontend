@@ -6,6 +6,7 @@ import type { StorefrontStore } from "@/lib/storefront-client";
 import { useContactLink } from "@/components/storefront/use-contact-link";
 import { Icon } from "@/components/storefront/sf-icons";
 import type { FooterT } from "@/components/storefront/footer/footer-pieces";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * The "talk to a person" block that leads the `contact` footer.
@@ -142,14 +143,10 @@ const hoursLine: CSSProperties = {
   color: "var(--muted)",
 };
 const chatButton: CSSProperties = {
+  ...brandButton({ radius: 8, padding: "8px 13px", fontSize: 12.5 }),
   display: "inline-flex",
   alignItems: "center",
   gap: 7,
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  fontSize: 12.5,
   fontWeight: 600,
-  padding: "8px 13px",
-  borderRadius: 8,
   textDecoration: "none",
 };

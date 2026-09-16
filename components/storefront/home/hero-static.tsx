@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
  * The two static heroes' markup — framed (`HeroCardView`) and open
@@ -21,20 +22,14 @@ export interface HeroPhoto {
 }
 
 export const heroPrimaryButton: CSSProperties = {
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  padding: "12px 24px",
-  borderRadius: "var(--radius-sm)",
-  fontSize: 14,
+  ...brandButton({ radius: "var(--radius-sm)", padding: "12px 24px", fontSize: 14 }),
   fontWeight: 600,
 };
 
 export const heroSecondaryButton: CSSProperties = {
+  ...buttonMetrics({ radius: "var(--radius-sm)", padding: "12px 22px", fontSize: 14 }),
   color: "var(--text)",
   border: "1px solid var(--border-strong)",
-  padding: "12px 22px",
-  borderRadius: "var(--radius-sm)",
-  fontSize: 14,
   fontWeight: 600,
 };
 

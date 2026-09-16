@@ -2,6 +2,7 @@
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { Island } from "@/components/storefront-builder/islands/island-map";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
+import { sectionProduct } from "@/components/storefront-builder/section-product";
 
 type Spec = (typeof SECTION_SPECS)["offer-pricing"]["settings"];
 
@@ -12,9 +13,10 @@ type Spec = (typeof SECTION_SPECS)["offer-pricing"]["settings"];
  * product's price and "off" after the discount are the shopper's interface
  * language, which a cached server view cannot know. The prices themselves are
  * the catalogue's, campaign pricing included — never typed by the merchant.
+ * On the product page the product is the page's own.
  */
 export function OfferPricingSection({ settings, data, context }: SectionViewProps<Spec>) {
-  const product = data?.items[0];
+  const product = sectionProduct(data, context);
   if (!product) return null;
   return (
     <div>

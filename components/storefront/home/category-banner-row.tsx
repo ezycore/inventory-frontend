@@ -17,6 +17,7 @@ import {
 } from "@/lib/storefront-sections";
 import { Media } from "@/components/storefront/sf-bits";
 import type { StripRenderer } from "@/components/storefront/home/category-row-layout";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * The promo-card settings the row reads: the merchant's `sectionConfig` on the
@@ -385,13 +386,9 @@ export function CategoryBannerRow({
             {showCta && buttonLabel ? (
               <span
                 style={{
+                  ...brandButton({ radius: "var(--radius-sm)", padding: "8px 16px", fontSize: 13 }, { overPhoto: true }),
                   marginTop: 12,
                   display: "inline-block",
-                  padding: "8px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  background: "var(--primary)",
-                  color: "var(--on-primary)",
-                  fontSize: 13,
                   fontWeight: 600,
                 }}
               >

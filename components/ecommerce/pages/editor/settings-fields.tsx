@@ -1,13 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { Smartphone } from "lucide-react";
-import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
+import type { SectionFieldSpec, SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import { Label } from "@/ui/components/label";
 import { FocalPointPicker } from "@/components/ecommerce/customize/focal-point-picker";
 import { FieldControl } from "./field-control";
 import { ImageField } from "./image-field";
+import { PhoneNote, ResetToDesktop } from "./responsive-note";
 import { fieldHint, fieldLabel } from "./section-catalogue";
 import {
   fieldValue,
@@ -29,19 +29,23 @@ const pictureUrl = (value: unknown): string | undefined => {
  * desktop value, or the phone's — which follows the desktop until it is set, and
  * can be reset back to it. A focus point is edited over the picture it belongs to
  * (the phone picture, on a phone, when there is one) and is hidden until there is
- * a picture to point at.
+ * a picture to point at. A setting the page supplies itself (`fromPage` — the
+ * product page's product) is not offered; a line says where it comes from.
  */
 export function SettingsFields({
   idPrefix,
   specs,
   settings,
   device,
+  context,
   onChange,
 }: {
   idPrefix: string;
   specs: Record<string, SectionFieldSpec>;
   settings: Record<string, unknown>;
   device: EditorDevice;
+  /** The page being edited. */
+  context?: SectionPageContext;
   onChange: (settings: Record<string, unknown>) => void;
 }) {
   return (
@@ -49,23 +53,20 @@ export function SettingsFields({
       {Object.entries(specs).map(([key, spec]) => {
         const id = `${idPrefix}-${key}`;
         const label = fieldLabel(key);
+        if (context && spec.fromPage?.includes(context)) {
+          return (
+            <p key={key} className="text-sm text-muted-foreground">
+              {label}: the one this page shows.
+            </p>
+          );
+        }
         const hint = fieldHint(key);
         const value = fieldValue(settings, key, spec, device);
         const set = (next: unknown) => onChange(withFieldValue(settings, key, spec, next, device));
         const ownPhoneValue = hasPhoneValue(settings, key, spec);
 
-        const phoneNote = spec.responsive ? (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Smartphone className="h-3 w-3" aria-hidden />
-            {device === "mobile" ? (ownPhoneValue ? "Phone value" : "Same as desktop") : "Can differ on phones"}
-          </span>
-        ) : null;
-        const resetToDesktop =
-          device === "mobile" && ownPhoneValue ? (
-            <button type="button" onClick={() => set(undefined)} className="text-xs font-medium text-primary hover:underline">
-              Reset to desktop
-            </button>
-          ) : null;
+        const phoneNote = spec.responsive ? <PhoneNote device={device} own={ownPhoneValue} /> : null;
+        const resetToDesktop = <ResetToDesktop device={device} own={ownPhoneValue} onReset={() => set(undefined)} />;
 
         if (spec.type === "image") {
           return <ImageField key={key} label={label} value={value} onChange={set} hint={hint} />;

@@ -12796,6 +12796,11 @@ export interface components {
                     width?: string;
                     navHover?: string;
                     navChildHover?: string;
+                    buttonShape?: string;
+                    buttonStyle?: string;
+                    buttonSize?: string;
+                    headingWeight?: string;
+                    headingCase?: string;
                 };
                 mobile?: {
                     left?: string[];
@@ -13949,6 +13954,15 @@ export interface components {
                 show: boolean;
                 order: number;
             };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
+            };
             published: {
                 sections: {
                     id: string;
@@ -14028,6 +14042,15 @@ export interface components {
             footer?: {
                 show: boolean;
                 order: number;
+            };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
             };
             hasDraft: boolean;
             publishedVersion: number | null;
@@ -14226,6 +14249,11 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         mobile?: {
                             left?: string[];
@@ -14544,6 +14572,11 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         mobile?: {
                             left?: string[];
@@ -21174,6 +21207,11 @@ export interface operations {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         /** @enum {string} */
                         heroAlign?: "left" | "center";
@@ -42742,6 +42780,15 @@ export interface operations {
                         description?: string;
                         noindex?: boolean;
                     };
+                    schedule?: {
+                        /** Format: date-time */
+                        startsAt: string | null;
+                        /** Format: date-time */
+                        endsAt: string | null;
+                        /** @enum {string} */
+                        afterEnd: "not-found" | "home" | "page";
+                        afterEndPageId?: string | null;
+                    } | null;
                 };
             };
         };
@@ -43436,6 +43483,11 @@ export interface operations {
                                 width?: string;
                                 navHover?: string;
                                 navChildHover?: string;
+                                buttonShape?: string;
+                                buttonStyle?: string;
+                                buttonSize?: string;
+                                headingWeight?: string;
+                                headingCase?: string;
                             };
                             /** @enum {string} */
                             heroAlign?: "left" | "center";

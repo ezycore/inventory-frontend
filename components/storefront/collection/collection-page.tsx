@@ -38,6 +38,7 @@ import type {
   CatalogCategoryDetail,
   ProductListResult,
 } from "@/lib/storefront-client";
+import { brandButton } from "@/lib/storefront-button";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -238,7 +239,7 @@ function CollectionInner({
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
-            style={{ width: "100%", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "12px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+            style={{ ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }), width: "100%", border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}
           >
             {/* Live count — filters apply instantly, this just closes the drawer. */}
             {t.showResults.replace("{n}", String(total))}

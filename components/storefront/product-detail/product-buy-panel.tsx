@@ -8,6 +8,7 @@ import { AskAboutButton } from "@/components/storefront/ask-about-button";
 import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
  * The buy controls: variant chips, quantity stepper, and the action row — on the
@@ -185,28 +186,22 @@ const qtyBtn: CSSProperties = {
 };
 
 const primaryBtn: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "14px 22px", fontSize: 14.5 }),
   flex: 1,
   minWidth: 150,
-  background: "var(--primary)",
-  color: "var(--on-primary)",
   border: "none",
-  padding: "14px 22px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14.5,
   fontWeight: 700,
 };
 
 const secondaryBtn: CSSProperties = {
+  ...buttonMetrics({ radius: 9, padding: "14px 22px", fontSize: 14.5 }),
   flex: 1,
   minWidth: 130,
   background: "transparent",
   color: "var(--text)",
   border: "1px solid var(--border-strong)",
-  padding: "14px 22px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14.5,
   fontWeight: 600,
 };
 

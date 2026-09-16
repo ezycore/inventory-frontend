@@ -11,6 +11,7 @@ import {
   newBlock,
   newSection,
   removeSection,
+  pageContextOf,
   savableSections,
   type EditorDevice,
   type EditorSection,
@@ -148,7 +149,8 @@ export function usePageEditor(page: StorefrontPage): PageEditor {
     setHistory(startHistory(next));
   }, []);
 
-  const savable = useMemo(() => savableSections(sections), [sections]);
+  const context = pageContextOf(page);
+  const savable = useMemo(() => savableSections(sections, context), [sections, context]);
   const selected = sections.find((section) => section.id === selectedId) ?? null;
 
   return {

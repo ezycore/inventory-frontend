@@ -1,5 +1,6 @@
 // coding-standard: maintained
-import type { StorefrontStore } from "@/lib/storefront-client";
+import type { CatalogProduct, StorefrontStore } from "@/lib/storefront-client";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { StorefrontReads } from "@/lib/storefront-server";
 import { PageSections } from "@/components/storefront-builder/page-sections";
 import { Island } from "@/components/storefront-builder/islands/island-map";
@@ -22,14 +23,25 @@ export async function BuilderPageBody({
   base,
   store,
   page,
+  pageContext,
+  product,
 }: {
   reads: StorefrontReads;
   slug: string;
   base: string;
   store: StorefrontStore;
   page: BuilderPage;
+  pageContext?: SectionPageContext;
+  product?: CatalogProduct;
 }) {
-  const { sections, context, data } = await loadBuilderPageData(reads, { slug, base, store, page });
+  const { sections, context, data } = await loadBuilderPageData(reads, {
+    slug,
+    base,
+    store,
+    page,
+    pageContext,
+    product,
+  });
   return (
     <>
       {/* Orders are attributed to the landing page a visit came through. */}

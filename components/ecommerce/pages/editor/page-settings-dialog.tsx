@@ -18,6 +18,8 @@ import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
+import { scheduleBodyOf, scheduleDraftOf, scheduleProblem } from "../page-schedule";
+import { PageScheduleFields } from "./page-schedule-fields";
 
 /** The backend's limits (`updateStorefrontPageSchema`). */
 const LIMITS = { title: 160, slug: 80, seoTitle: 70, seoDescription: 200 };
@@ -37,10 +39,20 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
   const [seoTitle, setSeoTitle] = useState(page.seo.title ?? "");
   const [seoDescription, setSeoDescription] = useState(page.seo.description ?? "");
   const [noindex, setNoindex] = useState(page.seo.noindex);
+  // Offers are landing pages; the backend refuses a schedule on any other kind.
+  const schedulable = page.kind === "landing";
+  const [schedule, setSchedule] = useState(() => scheduleDraftOf(page.schedule));
+  const scheduleBody = scheduleBodyOf(schedule);
+  const problem = schedulable ? scheduleProblem(schedule) : null;
+  // Sent only when it changed, like the address: re-saving the page's name must
+  // not re-check a schedule whose chosen page has since been deleted.
+  const scheduleChanged =
+    schedulable &&
+    JSON.stringify(scheduleBody) !== JSON.stringify(scheduleBodyOf(scheduleDraftOf(page.schedule)));
   const address = slug.trim();
   // A system page (the home page) has a fixed address; the backend refuses a slug for one.
   const fixedAddress = page.kind === "system";
-  const ready = !!title.trim() && (fixedAddress || !!address);
+  const ready = !!title.trim() && (fixedAddress || !!address) && !problem;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -54,6 +66,7 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
           ...(!fixedAddress && address !== page.slug ? { slug: address } : {}),
           chrome,
           seo: { title: seoTitle.trim(), description: seoDescription.trim(), noindex },
+          ...(scheduleChanged ? { schedule: scheduleBody } : {}),
         },
       },
       { onSuccess: onDone },
@@ -95,6 +108,10 @@ function SettingsForm({ page, onDone }: { page: StorefrontPage; onDone: () => vo
           onValueChange={(value) => setChrome(value as StorefrontPage["chrome"])}
         />
       </div>
+
+      {schedulable ? (
+        <PageScheduleFields pageId={page._id} value={schedule} onChange={setSchedule} problem={problem} />
+      ) : null}
 
       <div className="space-y-3 border-t pt-4">
         <h3 className="text-sm font-semibold">Search engines</h3>

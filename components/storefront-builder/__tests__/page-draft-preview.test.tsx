@@ -2,6 +2,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { CatalogProduct } from "@/lib/storefront-client";
 import {
   PAGE_DRAFT_APPLIED,
   PAGE_DRAFT_MESSAGE,
@@ -9,6 +10,10 @@ import {
   PageDraftPreview,
   requestSignature,
 } from "@/components/storefront-builder/page-draft-preview";
+
+vi.mock("@/components/storefront-builder/islands/island-map", () => ({
+  Island: ({ name }: { name: string }) => <div data-island={name} />,
+}));
 
 /**
  * The editor's preview frame redraws a builder page from sections the parent
@@ -76,6 +81,33 @@ describe("PageDraftPreview", () => {
     post({ type: PAGE_DRAFT_MESSAGE, payload: { sections: [cta("Changed")] } });
     expect(screen.queryByText("Changed")).not.toBeInTheDocument();
     expect(posted).not.toContainEqual({ type: PAGE_DRAFT_READY });
+  });
+
+  it("redraws a product page's add-on with the page's own product, and not without the page", () => {
+    // Offer & pricing names no product on the product page (`fromPage`); read
+    // without the page it is missing a required product and drops out.
+    window.history.replaceState(null, "", "/shop/products/nakshi-kantha?preview=1&builder=1");
+    const offer = { id: "offer", type: "offer-pricing", v: 1, enabled: true, settings: { heading: "Eid price" } };
+    const context = {
+      base: "/shop",
+      currency: "BDT",
+      product: { _id: "0000000000000000000000bb", name: "Nakshi kantha", slug: "nakshi-kantha" } as CatalogProduct,
+    };
+    const draw = (pageContext?: "product") =>
+      render(
+        <QueryClientProvider client={new QueryClient()}>
+          <PageDraftPreview slug="rafi5" instances={[]} data={{}} context={context} pageContext={pageContext} />
+        </QueryClientProvider>,
+      );
+
+    const onPage = draw("product");
+    post({ type: PAGE_DRAFT_MESSAGE, payload: { sections: [offer] } });
+    expect(screen.getByText("Eid price")).toBeInTheDocument();
+    onPage.unmount();
+
+    draw();
+    post({ type: PAGE_DRAFT_MESSAGE, payload: { sections: [offer] } });
+    expect(screen.queryByText("Eid price")).not.toBeInTheDocument();
   });
 });
 

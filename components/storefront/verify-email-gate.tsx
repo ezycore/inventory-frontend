@@ -9,6 +9,7 @@ import { useResendVerification } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
  * Blocking card shown where an action needs a confirmed email (checkout).
@@ -125,29 +126,23 @@ const actions: CSSProperties = {
   marginTop: 20,
 };
 const primaryBtn: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "10px 18px", fontSize: 13.5 }),
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  fontSize: 13.5,
   fontWeight: 700,
-  padding: "10px 18px",
-  borderRadius: 9,
   border: "none",
   cursor: "pointer",
   fontFamily: "inherit",
 };
 const secondaryBtn: CSSProperties = {
+  ...buttonMetrics({ radius: 9, padding: "10px 18px", fontSize: 13.5 }),
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   background: "transparent",
   color: "var(--text)",
-  fontSize: 13.5,
   fontWeight: 600,
-  padding: "10px 18px",
-  borderRadius: 9,
   border: "1px solid var(--border-strong, var(--border))",
   cursor: "pointer",
   fontFamily: "inherit",

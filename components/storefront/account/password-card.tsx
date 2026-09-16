@@ -7,6 +7,7 @@ import { useShopperAccount } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { SfPasswordInput } from "@/components/storefront/sf-password-input";
+import { brandButton } from "@/lib/storefront-button";
 
 const fieldLabel: CSSProperties = {
   display: "block",
@@ -79,7 +80,7 @@ export function PasswordCard() {
             type="button"
             onClick={save}
             disabled={!canSave || changePassword.isPending}
-            style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "11px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: canSave ? "pointer" : "not-allowed", opacity: !canSave || changePassword.isPending ? 0.6 : 1 }}
+            style={{ ...brandButton({ radius: 8, padding: "11px 22px", fontSize: 14 }), border: "none", fontFamily: "inherit", fontWeight: 700, cursor: canSave ? "pointer" : "not-allowed", opacity: !canSave || changePassword.isPending ? 0.6 : 1 }}
           >
             {t.saveChanges}
           </button>

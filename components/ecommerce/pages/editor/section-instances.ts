@@ -1,8 +1,12 @@
 // coding-standard: maintained
-import type { SectionDefinition, SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
+import type {
+  SectionDefinition,
+  SectionFieldSpec,
+  SectionPageContext,
+} from "@/lib/storefront-builder/field-specs";
 import { SECTION_SPECS, type SectionType } from "@/lib/storefront-builder/section-specs";
 import { readSettings } from "@/lib/storefront-builder/settings";
-import type { StorefrontPageSection } from "@/services/api";
+import type { StorefrontPage, StorefrontPageSection } from "@/services/api";
 import { BLOCK_DEFAULTS, SECTION_DEFAULTS } from "./section-defaults";
 
 /**
@@ -23,6 +27,13 @@ type Settings = Record<string, unknown>;
 /** The backend's id grammar for sections and blocks. */
 const INSTANCE_ID = /^[A-Za-z0-9_-]{1,40}$/;
 const ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+/**
+ * The page context a page's sections are validated for — the backend's
+ * `pageContextOf`. A system page is its own context (`product`, `cart`…).
+ */
+export const pageContextOf = (page: Pick<StorefrontPage, "kind" | "systemKey">): SectionPageContext =>
+  page.kind === "system" ? (page.systemKey ?? "home") : page.kind;
 
 export const specOf = (type: string): SectionDefinition | undefined =>
   Object.hasOwn(SECTION_SPECS, type) ? SECTION_SPECS[type as SectionType] : undefined;
@@ -67,29 +78,36 @@ export function newSection(type: SectionType, existing: readonly EditorSection[]
   };
 }
 
-const blockReads = (definition: SectionDefinition, block: EditorBlock) =>
+const blockReads = (definition: SectionDefinition, block: EditorBlock, context?: SectionPageContext) =>
   INSTANCE_ID.test(block.id) && definition.blocks !== undefined &&
-  readSettings(definition.blocks.settings, block.settings) !== null;
+  readSettings(definition.blocks.settings, block.settings, context) !== null;
 
-/** True when the section would pass the backend as it stands, blocks included. */
-export function isComplete(section: EditorSection): boolean {
+/**
+ * True when the section would pass the backend as it stands, blocks included.
+ * `context` is the page it is on: a setting that page supplies (`fromPage`) is
+ * not asked for there.
+ */
+export function isComplete(section: EditorSection, context?: SectionPageContext): boolean {
   const definition = specOf(section.type);
   if (!definition || definition.v !== section.v || !INSTANCE_ID.test(section.id)) return false;
-  if (readSettings(definition.settings, section.settings) === null) return false;
-  return (section.blocks ?? []).every((block) => blockReads(definition, block));
+  if (readSettings(definition.settings, section.settings, context) === null) return false;
+  return (section.blocks ?? []).every((block) => blockReads(definition, block, context));
 }
 
 /**
  * What a draft save sends: complete sections, each with only the blocks that
  * read. An unfinished item stays in the editor and simply is not saved yet.
  */
-export function savableSections(sections: readonly EditorSection[]): EditorSection[] {
+export function savableSections(
+  sections: readonly EditorSection[],
+  context?: SectionPageContext,
+): EditorSection[] {
   return sections.flatMap((section) => {
     const definition = specOf(section.type);
     if (!definition || definition.v !== section.v || !INSTANCE_ID.test(section.id)) return [];
-    if (readSettings(definition.settings, section.settings) === null) return [];
+    if (readSettings(definition.settings, section.settings, context) === null) return [];
     if (!section.blocks) return [section];
-    return [{ ...section, blocks: section.blocks.filter((block) => blockReads(definition, block)) }];
+    return [{ ...section, blocks: section.blocks.filter((block) => blockReads(definition, block, context)) }];
   });
 }
 

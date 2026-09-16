@@ -730,6 +730,29 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
   picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
   press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
+- **Spacer** (Phase 6, every page; `sections/spacer.tsx`). `space` is a required responsive px number
+  written to `--sfb-space` / `--sfb-space-m` (`.sfb-spacer`), with a zero-padding registry frame so the
+  band is exactly that tall; `line` draws a `::before` in `--border`. **Setting labels are shared by key**
+  (`FIELD_LABELS`), which is why it is `space` and not `height` ("Picture height (px)" on promo cards) —
+  check the table before naming a new setting.
+- **Image banner** (Phase 6, every page; `sections/image-banner.tsx`). One `SfImage` (with `mobileImage`)
+  under an optional shade of words. A button needs label **and** link; a link with no label makes the
+  whole banner the `SectionLink` instead — never a link inside a link. `frame` / `focal` are responsive
+  CSS variables (`--sfb-banner-frame`, `--sfb-banner-focal`, `-m`) on `.sfb-banner`; with no frame the
+  image keeps its own width/height attributes. Not `priority` — a section cannot know it is first.
+- **Gallery** (Phase 6, every page; `sections/gallery.tsx`). Pictures are blocks (max 24): `image`,
+  `alt`, `caption`, `link` (the tile becomes a `SectionLink`). `galleryVars` writes
+  `--sfb-gallery-cols` / `-m` (an unset phone value is `min(desktop, 2)`, computed in the view so the stylesheet
+  reads plain variables) and `--sfb-gallery-frame`. **No lightbox island** — deliberately; see
+  plan §17 Phase 6 step 4 before adding one.
+- **The inspector's Style tab** (Phase 6; `editor/section-style-fields.tsx` over the pure
+  `editor/section-style-edits.ts`). Writes `section.style` (§5.2) — the renderer (`sectionFrame`) and the
+  backend (`checkStyle`) are unchanged. **Default is no key**: `withStyle` drops an empty box, `toneOf`
+  reads `auto` as Default. Padding is a `{ top, bottom }` pair per device, so a first edge fills both; a
+  background colour reaches `style` only as a whole hex (the field holds typed text locally — the
+  controlled-input parse round-trip rule). A catalogue entry with `pinned: true` gets a note instead of
+  controls. The responsive marker is `PhoneNote` / `ResetToDesktop` (`editor/responsive-note.tsx`),
+  shared with `SettingsFields` — use it for any new per-device control.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in
@@ -772,6 +795,19 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   redraws with the shop's own section registry, and answers `ezycore-page-draft-ready` /
   `ezycore-page-draft-applied`. Products are reused **by query** (`requestSignature`), so only a changed
   query is fetched, alone, through `storefrontApi.sectionData`.
+- **System pages preview in the editor too.**
+  - **Address.** `previewAddress(page, productSlug)`
+    (`components/ecommerce/pages/editor/preview-address.ts`) places each at its route, mirroring the
+    backend's `SYSTEM_PATHS`. The shared product page is previewed around the store's first product
+    (`usePreviewProductSlug`).
+  - **The builder flag.** At `/` and at a system route, the frame adds `builder=1`
+    (`PREVIEW_BUILDER_PARAM`), because plain `?preview=1` there is the Customize frame. `proxy.ts` turns
+    it into `x-ezy-store-preview-builder`, only beside a preview token.
+  - **Drawing the draft.** `SystemPage` then draws through `BuilderPagePreview` (`isBuilderPreviewFrame()`).
+  - ⚠ **Pass the page context through.** `SystemPage` hands `pageContext`/`product` to
+    `BuilderPagePreview`, and on into `PageDraftPreview`'s `prepareSections(draft, pageContext)`.
+    Without it, a product-page add-on (`fromPage`) reads as missing its product and drops out of the
+    redraw.
 - **Section pictures upload through `storefrontPagesApi.uploadImage`** (`POST /ecommerce/pages/images`,
   `storefront.design`); a rich-text field in the page editor uses image scope `"page"`. Never point the
   page editor at the content-page upload — it needs `storefront.manage`.
@@ -4305,3 +4341,71 @@ appears under the whole catalogue at once. Order tracking and not-found stay cla
 **Proving a move locally:** the frontend serves a cached page read stale for 300 s, so a baseline taken
 just before a migration compares against a page that has not changed yet and reads as a regression.
 Release the pages, `rm -rf .next/dev/cache`, restart the dev server, capture, migrate, restart, compare.
+
+## Phase 6 on the builder — the page's product, buttons and headings (2026-09-16)
+
+**A setting a page supplies itself: `fromPage`.** A field spec can name page contexts that provide its
+value (`productId: { type: "ref", to: "product", fromPage: ["product"] }` on Offer & pricing, Order form
+and Sticky order bar). The backend skips it there and REFUSES it set; `readSettings(specs, raw, context)`
+skips it only when handed the context — without one it stays required, so the renderer is never more
+lenient than the API. The editor passes `pageContextOf(page)` to `isComplete`, `savableSections`,
+`SettingsFields`, the inspector and the tree; forget one and a product-page add-on reads as unfinished and
+silently drops out of the draft.
+
+**The product route hands the product down.** The public page payload has no system key, so
+`app/(storefront)/shop/products/[productSlug]/page.tsx` passes `product` to `SystemPage`, which prepares
+the sections for the `product` context and sets `context.product`. A one-product section draws
+`sectionProduct(data, context)` and, with `pageProduct: true` in the registry, makes no catalogue request
+when no product is named. **Inside the page editor's frame** the same `pageContext`/`product` travel
+through `BuilderPagePreview` into `PageDraftPreview`, whose `prepareSections(draft, pageContext)` needs
+them for the same reason.
+
+**Related products (option B).** `product-main.hideRelated` (unset = the "You may also like" row stays,
+so moved product pages are unchanged) and the `related-products` section share `useRelatedProducts` —
+one query. The order bar on its own product's page scrolls to the buy buttons without an order form and
+hides when `templates.product` is `sticky` (two bars otherwise).
+
+**A core section's Style tab has no Width** (and `assertCoreSection` refuses one other than full): the
+`.sfb-core` gutter rule only matches `data-width="full"`.
+
+**Buttons: Default is each button as drawn, not a value.** `theme.design.buttonShape/buttonStyle/
+buttonSize` stamp `data-button-*` on `.sf-shell` only when not Default, and `storefront.css` defines
+`--btn-radius/--btn-bg/--btn-fg/--btn-ring/--btn-scale` only under those. Every brand button reads them
+through `brandButton({ radius, padding, fontSize, minHeight? }, { overPhoto?, bordered? })`
+(`lib/storefront-button.ts`) with **its own old literal as the fallback**; a secondary beside it uses
+`buttonMetrics` (shape + size, no fill). ⚠ A NEW brand button written with a literal `background:
+"var(--primary)"` ignores the merchant's Buttons choice — go through the helper. Not buttons (leave
+literal): header cart pill, count badges, step numbers, avatars, banner headers. `.sfb-button` reads
+the same tokens in `storefront-builder.css`.
+
+**Scroll anchors on a page:** the order form stamps `ORDER_FORM_ANCHOR` and the product page's buy panel
+`BUY_PANEL_ANCHOR` (both in `components/storefront-builder/order-form-anchor.ts`). The sticky order bar
+scrolls to the form, else — on the product page — to the buy panel, else the top. Never scroll a phone to
+the top to reach the buy buttons: the photos fill the first screen.
+
+**Image banner words stay in flow** (`.sfb-banner-box` is one grid cell with `overflow: clip`): a chosen
+shape is the height the banner wants, and it grows when the words need more — a Strip 4:1 is ~90 px on a
+phone. Don't put the copy back in an absolute layer, and don't swap `clip` for `hidden` (a scroll container
+loses its content-based minimum height, which is what lets the box grow).
+
+**Headings:** `headingWeight` / `headingCase` restyle `h1–h4, .sf-display` under
+`[data-heading-*]` with `!important` (headings set weight inline). Ready-made themes stamp all five axes
+to Default. Base text size is NOT built (435 inline px sizes).
+
+## Phase 7 on the builder — scheduled landing pages (2026-09-16)
+
+**A schedule is a window over a published page, not a timed publish.** `StorefrontPage.schedule
+{ startsAt, endsAt, afterEnd: "not-found" | "home" | "page", afterEndPageId }`, landing pages only. The
+backend decides on every public read (`src/utils/storefront-page-schedule.ts`); the status stays
+`published`. So the storefront needs **no change** for it: an upcoming or ended page arrives as the 404
+the routes already draw, and the offer-over answer as `redirect: { path, permanent: false }`, which
+`store-page-body.tsx` already follows with `redirect()` (307). The page cache bounds how soon a start or
+end is seen (300 s) — do not add a boundary flush.
+
+**Admin side:** `components/ecommerce/pages/page-schedule.ts` is the one place that turns the stored
+instant into the dialog's date + time fields (device time) and back, builds the body, and names what
+blocks Save — reuse it rather than re-parsing dates in a new surface (`scheduleSummary` for a one-line
+"Starts / Ends / Ended …"). Page settings sends `schedule` **only when it changed**: re-sending an
+unchanged one would re-check a chosen page that may have been deleted since, and refuse a plain rename.
+The page picker (`AfterEndPagePicker`) mounts only for "Go to another page", so opening Page settings
+does not fetch the page list.

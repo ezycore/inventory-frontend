@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import type { ComponentType, ReactNode } from "react";
-import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
+import type { SectionFieldSpec, SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import { SECTION_SPECS, type SectionType } from "@/lib/storefront-builder/section-specs";
 import {
   productSectionRequest,
@@ -14,6 +14,7 @@ import { offerCampaigns, pickByIds, sectionCategories } from "@/lib/storefront-b
 import { parseVideoEmbed } from "@/lib/storefront-builder/video-embed";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
 import type { SectionContext, SectionViewProps } from "@/components/storefront-builder/section-view";
+import { sectionProduct } from "@/components/storefront-builder/section-product";
 import { BenefitsSection } from "@/components/storefront-builder/sections/benefits";
 import { CallToActionSection } from "@/components/storefront-builder/sections/call-to-action";
 import { CampaignOffersSection } from "@/components/storefront-builder/sections/campaign-offers";
@@ -29,10 +30,13 @@ import { AccountAreaSection } from "@/components/storefront-builder/sections/acc
 import { SearchResultsSection } from "@/components/storefront-builder/sections/search-results";
 import { CollectionGridSection } from "@/components/storefront-builder/sections/collection-grid";
 import { ProductMainSection } from "@/components/storefront-builder/sections/product-main";
+import { RelatedProductsSection } from "@/components/storefront-builder/sections/related-products";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
+import { GallerySection } from "@/components/storefront-builder/sections/gallery";
 import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
 import { HowToOrderSection } from "@/components/storefront-builder/sections/how-to-order";
+import { ImageBannerSection } from "@/components/storefront-builder/sections/image-banner";
 import { ImageTextSection } from "@/components/storefront-builder/sections/image-text";
 import { OfferPricingSection } from "@/components/storefront-builder/sections/offer-pricing";
 import { OrderFormSection } from "@/components/storefront-builder/sections/order-form";
@@ -46,6 +50,7 @@ import { PromisesBandSection } from "@/components/storefront-builder/sections/pr
 import { RichTextSection } from "@/components/storefront-builder/sections/rich-text";
 import { SelectedProductsSection } from "@/components/storefront-builder/sections/selected-products";
 import { ShopByTagSection } from "@/components/storefront-builder/sections/shop-by-tag";
+import { SpacerSection } from "@/components/storefront-builder/sections/spacer";
 import { SingleProductSection } from "@/components/storefront-builder/sections/single-product";
 import { StickyOrderBarSection } from "@/components/storefront-builder/sections/sticky-order-bar";
 import {
@@ -71,8 +76,15 @@ export interface PreparedSection {
 
 export interface RenderableSection {
   v: number;
-  /** `null` when a required setting does not read — the page skips the instance. */
-  prepare: (instance: { id: string; settings: unknown; blocks?: unknown }) => PreparedSection | null;
+  /**
+   * `null` when a required setting does not read — the page skips the instance.
+   * `page` is the page it sits on, when the caller knows it: a setting that page
+   * supplies itself (`fromPage`) is then not required.
+   */
+  prepare: (
+    instance: { id: string; settings: unknown; blocks?: unknown },
+    page?: SectionPageContext,
+  ) => PreparedSection | null;
 }
 
 interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends Record<string, SectionFieldSpec>> {
@@ -81,6 +93,12 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
    * nothing to query, and the instance is not rendered.
    */
   request?: (id: string, settings: SettingsOf<S>) => ProductsDataRequest | null;
+  /**
+   * The section is about one product, which a product page supplies itself: when
+   * `request` has nothing to ask for (no product named), the instance still
+   * renders and reads `context.product`.
+   */
+  pageProduct?: boolean;
   /**
    * Store-wide lists the view reads (`context.categories`, `context.tags`,
    * `context.campaigns`). The page fetches each list once, and only when some
@@ -119,14 +137,14 @@ function defineSection<
 ): RenderableSection {
   return {
     v: definition.v,
-    prepare(instance) {
-      const settings = readSettings(definition.settings, instance.settings);
+    prepare(instance, page) {
+      const settings = readSettings(definition.settings, instance.settings, page);
       if (!settings) return null;
-      const blocks = readBlocks(definition.blocks, instance.blocks);
+      const blocks = readBlocks(definition.blocks, instance.blocks, page);
       let request: ProductsDataRequest | null = null;
       if (options.request) {
         request = options.request(instance.id, settings);
-        if (!request) return null;
+        if (!request && !options.pageProduct) return null;
       }
       return {
         request,
@@ -165,15 +183,16 @@ const HOME_FRAMES = {
 /**
  * The one product a section is about, asked for by id. A hand-picked product is
  * returned whatever its stock, so a sold-out offer says so instead of vanishing
- * from the page an ad points at.
+ * from the page an ad points at. Nothing to ask for on the product page, which
+ * supplies its own (`pageProduct`).
  */
-const oneProduct = (id: string, settings: { productId: string }): ProductsDataRequest => ({
-  key: id,
-  type: "products",
-  source: "manual",
-  productIds: [settings.productId],
-  limit: 1,
-});
+const oneProduct = (id: string, settings: { productId?: string }): ProductsDataRequest | null =>
+  settings.productId
+    ? { key: id, type: "products", source: "manual", productIds: [settings.productId], limit: 1 }
+    : null;
+
+const noSectionProduct = (_settings: unknown, _blocks: unknown, data: SectionData | undefined, context: SectionContext) =>
+  !sectionProduct(data, context);
 
 /**
  * Every section type this build renders. A type missing here is skipped on the
@@ -233,13 +252,17 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   "product-main": defineSection(SECTION_SPECS["product-main"], ProductMainSection, {
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
+  "related-products": defineSection(SECTION_SPECS["related-products"], RelatedProductsSection, {
+    isEmpty: (_settings, _blocks, _data, context) => !context.product,
+  }),
   faq: defineSection(SECTION_SPECS.faq, FaqSection, {
     isEmpty: (_settings, blocks) => blocks.length === 0,
   }),
   "call-to-action": defineSection(SECTION_SPECS["call-to-action"], CallToActionSection),
   "order-form": defineSection(SECTION_SPECS["order-form"], OrderFormSection, {
     request: oneProduct,
-    isEmpty: noProducts,
+    pageProduct: true,
+    isEmpty: noSectionProduct,
   }),
   "single-product": defineSection(SECTION_SPECS["single-product"], SingleProductSection, {
     request: oneProduct,
@@ -247,11 +270,13 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "offer-pricing": defineSection(SECTION_SPECS["offer-pricing"], OfferPricingSection, {
     request: oneProduct,
-    isEmpty: noProducts,
+    pageProduct: true,
+    isEmpty: noSectionProduct,
   }),
   "sticky-order-bar": defineSection(SECTION_SPECS["sticky-order-bar"], StickyOrderBarSection, {
     request: oneProduct,
-    isEmpty: noProducts,
+    pageProduct: true,
+    isEmpty: noSectionProduct,
     floating: true,
   }),
   testimonials: defineSection(SECTION_SPECS.testimonials, TestimonialsSection, {
@@ -265,6 +290,14 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   video: defineSection(SECTION_SPECS.video, VideoSection, {
     isEmpty: (settings) => parseVideoEmbed(settings.url) === null,
+  }),
+  "image-banner": defineSection(SECTION_SPECS["image-banner"], ImageBannerSection),
+  gallery: defineSection(SECTION_SPECS.gallery, GallerySection, {
+    isEmpty: (_settings, blocks) => blocks.length === 0,
+  }),
+  // No padding of its own: the band's height is the merchant's number, exactly.
+  spacer: defineSection(SECTION_SPECS.spacer, SpacerSection, {
+    frame: { top: "0px", bottom: "0px" },
   }),
   "product-grid": defineSection(SECTION_SPECS["product-grid"], ProductGridSection, {
     request: productSectionRequest,

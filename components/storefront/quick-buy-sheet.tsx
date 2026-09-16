@@ -17,6 +17,7 @@ import { choiceLine, resolveProductChoice } from "@/components/storefront/produc
 import type { QuickBuyLine } from "@/components/storefront/quick-buy-types";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /** Must cover the .sf-qb-panel CSS transition (0.24s) so the exit finishes. */
 const EXIT_MS = 260;
@@ -239,17 +240,15 @@ export function QuickBuySheet({
 }
 
 function sheetBtn(primary: boolean, disabled: boolean) {
+  const metrics = { radius: 9, padding: "14px 10px", fontSize: 14, minHeight: 48 };
   return {
+    ...(primary
+      ? brandButton(metrics)
+      : { background: "transparent", color: "var(--text)", ...buttonMetrics(metrics) }),
     fontFamily: "inherit",
-    fontSize: 14,
     fontWeight: primary ? 700 : 600,
-    padding: "14px 10px",
-    minHeight: 48,
-    borderRadius: 9,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.55 : 1,
-    background: primary ? "var(--primary)" : "transparent",
-    color: primary ? "var(--on-primary)" : "var(--text)",
     border: primary ? "none" : "1px solid var(--border-strong)",
   } as const;
 }

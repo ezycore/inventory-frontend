@@ -59,4 +59,63 @@ describe("PageSettingsDialog", () => {
     expect(mutate).toHaveBeenCalledTimes(1);
     expect(mutate.mock.calls[0][0].body).not.toHaveProperty("slug");
   });
+
+  it("offers no schedule on a page that is not a landing page", () => {
+    const content = { ...page, kind: "content" } as unknown as StorefrontPage;
+    render(<PageSettingsDialog page={content} open onOpenChange={() => {}} />);
+    expect(screen.queryByText("Schedule")).toBeNull();
+  });
+});
+
+describe("PageSettingsDialog — schedule", () => {
+  beforeEach(() => mutate.mockReset());
+
+  const landing = { ...page, kind: "landing" } as unknown as StorefrontPage;
+  /** A local wall-clock instant, so the test reads the same in any time zone. */
+  const local = (day: number, hour: number) => new Date(2026, 8, day, hour, 0).toISOString();
+  const scheduled = {
+    ...landing,
+    schedule: { startsAt: local(20, 9), endsAt: local(25, 21), afterEnd: "home", afterEndPageId: null },
+  } as unknown as StorefrontPage;
+
+  it("sends no schedule when it did not change", () => {
+    render(<PageSettingsDialog page={scheduled} open onOpenChange={() => {}} />);
+    expect(screen.getByLabelText("Starts time")).toHaveValue("09:00");
+    expect(screen.getByLabelText("Ends time")).toHaveValue("21:00");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(mutate.mock.calls[0][0].body).not.toHaveProperty("schedule");
+  });
+
+  it("sends the whole schedule when a time changes", () => {
+    render(<PageSettingsDialog page={scheduled} open onOpenChange={() => {}} />);
+    fireEvent.change(screen.getByLabelText("Ends time"), { target: { value: "23:30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(mutate.mock.calls[0][0].body.schedule).toEqual({
+      startsAt: local(20, 9),
+      endsAt: new Date(2026, 8, 25, 23, 30).toISOString(),
+      afterEnd: "home",
+      afterEndPageId: null,
+    });
+  });
+
+  it("will not save an end before the start", () => {
+    const sameDay = {
+      ...scheduled,
+      schedule: { startsAt: local(20, 9), endsAt: local(20, 21), afterEnd: "not-found", afterEndPageId: null },
+    } as unknown as StorefrontPage;
+    render(<PageSettingsDialog page={sameDay} open onOpenChange={() => {}} />);
+    fireEvent.change(screen.getByLabelText("Ends time"), { target: { value: "08:00" } });
+    expect(screen.getByText("The end must be after the start")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("asks what happens after the end only once there is an end", () => {
+    render(<PageSettingsDialog page={landing} open onOpenChange={() => {}} />);
+    expect(screen.getByText("Schedule")).toBeInTheDocument();
+    expect(screen.getByLabelText("Starts time")).toBeDisabled();
+    expect(screen.queryByLabelText("After it ends")).toBeNull();
+
+    render(<PageSettingsDialog page={scheduled} open onOpenChange={() => {}} />);
+    expect(screen.getByLabelText("After it ends")).toBeInTheDocument();
+  });
 });

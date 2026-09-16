@@ -8,6 +8,11 @@ import {
   DESIGN_SURFACES,
   DESIGN_NAV_HOVERS,
   DESIGN_WIDTHS,
+  DESIGN_BUTTON_SHAPES,
+  DESIGN_BUTTON_SIZES,
+  DESIGN_BUTTON_STYLES,
+  DESIGN_HEADING_CASES,
+  DESIGN_HEADING_WEIGHTS,
   designAttrs,
   resolveDesign,
 } from "@/lib/storefront-theme";
@@ -63,7 +68,32 @@ describe("resolveDesign", () => {
       width: DESIGN_WIDTHS[0].id,
       navHover: DESIGN_NAV_HOVERS[0].id,
       navChildHover: DESIGN_NAV_HOVERS[0].id,
+      buttonShape: DESIGN_BUTTON_SHAPES[0].id,
+      buttonStyle: DESIGN_BUTTON_STYLES[0].id,
+      buttonSize: DESIGN_BUTTON_SIZES[0].id,
+      headingWeight: DESIGN_HEADING_WEIGHTS[0].id,
+      headingCase: DESIGN_HEADING_CASES[0].id,
     });
+  });
+
+  // Phase 6 step 8: each new axis's default is "as drawn today" and must stay
+  // the resolved answer for a store that has never saved it.
+  it("resolves a store saved before Buttons existed to the as-drawn defaults", () => {
+    const saved = resolveDesign({ font: "serif", radius: "pill" });
+    expect(saved).toMatchObject({
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
+    });
+    expect(resolveDesign({ buttonShape: "blob", buttonSize: "xl" })).toEqual(DEFAULT_DESIGN);
+    for (const shape of DESIGN_BUTTON_SHAPES) {
+      expect(resolveDesign({ buttonShape: shape.id }).buttonShape).toBe(shape.id);
+    }
+    for (const style of DESIGN_BUTTON_STYLES) {
+      expect(resolveDesign({ buttonStyle: style.id }).buttonStyle).toBe(style.id);
+    }
   });
 
   // The whole point of the axis: `--maxw` and `--cols` move together, and the
@@ -119,6 +149,11 @@ describe("designAttrs", () => {
         width: "full",
         navHover: "underline",
         navChildHover: "highlight",
+        buttonShape: "pill",
+        buttonStyle: "outline",
+        buttonSize: "lg",
+        headingWeight: "heavy",
+        headingCase: "upper",
       }),
     ).toEqual({
       "data-font": "serif",
@@ -129,6 +164,11 @@ describe("designAttrs", () => {
       "data-width": "full",
       "data-nav-hover": "underline",
       "data-nav-child-hover": "highlight",
+      "data-button-shape": "pill",
+      "data-button-style": "outline",
+      "data-button-size": "lg",
+      "data-heading-weight": "heavy",
+      "data-heading-case": "upper",
     });
   });
 });

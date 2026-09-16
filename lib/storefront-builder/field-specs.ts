@@ -36,6 +36,13 @@ interface FieldBase {
   optional?: boolean;
   /** Stored as `{ base, mobile? }` — the mobile value inherits base until set. */
   responsive?: boolean;
+  /**
+   * Page contexts that supply this value themselves — the product page's own
+   * product, for a section that elsewhere names one. There the setting stays
+   * unset (and is refused when set) and the section reads the page's value;
+   * everywhere else `optional` decides as usual.
+   */
+  fromPage?: readonly SectionPageContext[];
 }
 
 export type SectionFieldSpec = FieldBase &

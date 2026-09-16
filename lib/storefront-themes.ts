@@ -143,6 +143,13 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          left behind. */
       navHover: "none",
       navChildHover: "none",
+      // Buttons and heading type (Phase 6): a theme stamps them back to
+      // Default like every other axis, so applying one is a whole look.
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
     },
     homeCollections: { layout: "strip", align: "left" },
     // Spelled out because Classic is the RESET: a merchant who centred their
@@ -219,6 +226,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // is the same shape language the rest of the theme already speaks.
       navHover: "highlight",
       navChildHover: "highlight",
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
     },
     // No fixed column count: the original department row fits as many roomy
     // discs as the available width allows. The owner can still choose 2–6.
@@ -350,6 +362,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // ordinary highlighted row in the list of departments beneath it.
       navHover: "color",
       navChildHover: "highlight",
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
     },
     homeCollections: { layout: "grid", align: "center" },
     /* **No hero, and no category section.** The `rail` shell puts the conditions
@@ -450,6 +467,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          — an underline is the answer a fashion book would give. */
       navHover: "underline",
       navChildHover: "color",
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
     },
     // Overlay scenes keep their original adaptive, centred composition until
     // the merchant chooses an exact number per row.
@@ -535,6 +557,11 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // Soft and round throughout — the pill is this theme's whole idiom.
       navHover: "highlight",
       navChildHover: "highlight",
+      buttonShape: "auto",
+      buttonStyle: "solid",
+      buttonSize: "md",
+      headingWeight: "default",
+      headingCase: "default",
     },
     homeCollections: { layout: "grid", align: "center" },
     /* **The promises come SECOND, above the catalogue** — the one structural

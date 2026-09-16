@@ -11,6 +11,7 @@ import {
   moveSection,
   newInstanceId,
   newSection,
+  pageContextOf,
   savableSections,
   withFieldValue,
   type EditorSection,
@@ -27,7 +28,7 @@ describe("new sections", () => {
   it("start complete — they save and draw at once — except those needing a picture, product, link or real review", () => {
     // None of these can be invented, so they start unfinished.
     const unfinished = new Set([
-      "image-text", "order-form", "single-product", "offer-pricing", "sticky-order-bar", "testimonials", "video",
+      "image-text", "image-banner", "gallery", "order-form", "single-product", "offer-pricing", "sticky-order-bar", "testimonials", "video",
     ]);
     for (const type of addable) {
       expect(isComplete(newSection(type, [])), type).toBe(!unfinished.has(type));
@@ -64,6 +65,34 @@ describe("saving", () => {
     const saved = savableSections([unfinished, picture]);
     expect(saved.map((section) => section.id)).toEqual([faq.id]);
     expect(saved[0].blocks?.map((block) => block.id)).toEqual(faq.blocks?.map((block) => block.id));
+  });
+});
+
+describe("a product the page supplies (Phase 6, step 6)", () => {
+  const orderForm = (settings: Record<string, unknown> = {}): EditorSection => ({
+    id: "order",
+    type: "order-form",
+    v: 1,
+    enabled: true,
+    settings,
+  });
+
+  it("names every page's context the way the backend validates it", () => {
+    expect(pageContextOf({ kind: "system", systemKey: "product" })).toBe("product");
+    expect(pageContextOf({ kind: "system" })).toBe("home");
+    expect(pageContextOf({ kind: "landing" })).toBe("landing");
+    expect(pageContextOf({ kind: "content" })).toBe("content");
+  });
+
+  it("is complete with no product on the product page, and saved", () => {
+    expect(isComplete(orderForm(), "product")).toBe(true);
+    expect(savableSections([orderForm()], "product")).toHaveLength(1);
+  });
+
+  it("still needs its product on a landing page", () => {
+    expect(isComplete(orderForm(), "landing")).toBe(false);
+    expect(savableSections([orderForm()], "landing")).toEqual([]);
+    expect(isComplete(orderForm({ productId: "0000000000000000000000aa" }), "landing")).toBe(true);
   });
 });
 

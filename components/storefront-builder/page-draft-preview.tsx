@@ -11,6 +11,7 @@ import {
   PAGE_SECTION_FOCUS,
   PAGE_SECTION_SELECT,
 } from "@/lib/storefront-builder/page-draft-messages";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import { storefront } from "@/services/storefront/hooks";
 import {
@@ -66,17 +67,23 @@ function markFocusedSection(id: string | null): Element | null {
  * not change keeps the server's answer, and only a changed query is fetched —
  * one small request each, keeping the previous products on screen while it
  * loads rather than letting the section vanish and reappear.
+ *
+ * `pageContext` is the system page it draws, when that page supplies a setting
+ * itself (`fromPage`): without it the product page's add-ons would read as
+ * missing their product and drop out of the redraw.
  */
 export function PageDraftPreview({
   slug,
   instances,
   data,
   context,
+  pageContext,
 }: {
   slug: string;
   instances: PageSectionInstance[];
   data: Record<string, SectionData>;
   context: SectionContext;
+  pageContext?: SectionPageContext;
 }) {
   const [draft, setDraft] = useState(instances);
   // The section open in the editor. A ref, not state: marking it is a DOM change,
@@ -145,14 +152,14 @@ export function PageDraftPreview({
   // The server's answers, filed by the query that produced them.
   const served = useMemo(() => {
     const bySignature = new Map<string, SectionData>();
-    for (const request of sectionDataRequests(prepareSections(instances))) {
+    for (const request of sectionDataRequests(prepareSections(instances, pageContext))) {
       const answer = data[request.key];
       if (answer) bySignature.set(requestSignature(request), answer);
     }
     return bySignature;
-  }, [instances, data]);
+  }, [instances, data, pageContext]);
 
-  const sections = useMemo(() => prepareSections(draft), [draft]);
+  const sections = useMemo(() => prepareSections(draft, pageContext), [draft, pageContext]);
   const requests = useMemo(() => sectionDataRequests(sections), [sections]);
   const missing = requests.filter((request) => !served.has(requestSignature(request)));
 

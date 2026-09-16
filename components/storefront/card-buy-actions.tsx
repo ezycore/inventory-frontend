@@ -8,6 +8,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import type { CardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 export type CardActions = StoreTemplates["cardActions"];
 
@@ -324,18 +325,23 @@ function cta(
   bold: boolean | undefined,
   disabled: boolean,
 ): CSSProperties {
-  return {
-    background: primary ? "var(--primary)" : "transparent",
-    color: primary ? "var(--on-primary)" : "var(--text)",
-    border: primary ? "1px solid var(--primary)" : "1px solid var(--border-strong)",
+  // The controls step of the merchant's radius scale, not a literal — a card
+  // CTA is the single most visible control in the shop, and hardcoding it here
+  // is what kept the Corners setting from reaching the buy button at all. A
+  // Buttons shape, when chosen, replaces it (`lib/storefront-button.ts`).
+  const metrics = {
+    radius: "var(--radius-sm)",
     padding: bold ? "12px 8px" : "10px 8px",
-    minHeight: 40,
-    // The controls step of the merchant's radius scale, not a literal — a card
-    // CTA is the single most visible control in the shop, and hardcoding it here
-    // is what kept the Corners setting from reaching the buy button at all.
-    borderRadius: "var(--radius-sm)",
-    fontFamily: "inherit",
     fontSize: bold ? 13 : 12.5,
+    minHeight: 40,
+  };
+  return {
+    ...(primary
+      ? // Its border is already the brand colour, so Outline needs no ring.
+        brandButton(metrics, { bordered: true })
+      : { background: "transparent", color: "var(--text)", ...buttonMetrics(metrics) }),
+    border: primary ? "1px solid var(--primary)" : "1px solid var(--border-strong)",
+    fontFamily: "inherit",
     fontWeight: bold ? 700 : 600,
     textTransform: bold ? "uppercase" : "none",
     letterSpacing: bold ? "0.03em" : "normal",

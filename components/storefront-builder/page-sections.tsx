@@ -4,6 +4,7 @@ import type {
   SectionData,
   StoreListNeed,
 } from "@/lib/storefront-builder/section-data";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import { sectionFrame, type SectionFrame } from "@/lib/storefront-builder/section-style";
 import type { SectionContext } from "@/components/storefront-builder/section-view";
 import {
@@ -44,6 +45,7 @@ const registryEntry = (type: string) =>
  */
 export function prepareSections(
   instances: readonly PageSectionInstance[],
+  page?: SectionPageContext,
 ): PreparedPageSection[] {
   const prepared: PreparedPageSection[] = [];
   for (const instance of instances) {
@@ -55,7 +57,7 @@ export function prepareSections(
     const mobile = instance.visibility?.mobile !== false;
     if (!desktop && !mobile) continue;
 
-    const section = entry.prepare(instance);
+    const section = entry.prepare(instance, page);
     if (!section) continue;
     prepared.push({
       id: instance.id,

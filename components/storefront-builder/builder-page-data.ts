@@ -1,5 +1,6 @@
 // coding-standard: maintained
-import type { StorefrontStore } from "@/lib/storefront-client";
+import type { CatalogProduct, StorefrontStore } from "@/lib/storefront-client";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { SectionData, StoreListNeed } from "@/lib/storefront-builder/section-data";
 import type { StorefrontReads } from "@/lib/storefront-server";
 import { mediaFitFor, mediaRatioFor, resolveTemplates } from "@/lib/storefront-templates";
@@ -42,16 +43,27 @@ export async function loadBuilderPageData(
     store,
     page,
     allLists = false,
+    pageContext,
+    product,
   }: {
     slug: string;
     base: string;
     store: StorefrontStore;
     page: BuilderPage;
     allLists?: boolean;
+    /**
+     * Which system page this is, when the route knows — the public payload names
+     * a page's kind but not its system key. Landing and content pages need none.
+     */
+    pageContext?: SectionPageContext;
+    /** The product page's own product, as its route resolved it. */
+    product?: CatalogProduct;
   },
 ): Promise<BuilderPageData> {
   const instances = page.sections as PageSectionInstance[];
-  const sections = prepareSections(instances);
+  const context =
+    page.kind === "landing" || page.kind === "content" ? page.kind : pageContext;
+  const sections = prepareSections(instances, context);
   const needs = new Set(sectionListNeeds(sections));
   const wants = (need: StoreListNeed) => allLists || needs.has(need);
   const [data, categories, tags, campaigns] = await Promise.all([
@@ -76,6 +88,7 @@ export async function loadBuilderPageData(
       imageRatio: mediaRatioFor(templates.imageRatio),
       banner: store.banner ?? null,
       trustBadges: (store.trustBadges ?? []).filter((badge) => badge.text?.trim()),
+      product,
     },
   };
 }

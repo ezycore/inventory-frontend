@@ -20,6 +20,7 @@ export const SECTION_GROUPS = [
   "Social proof",
   "Content",
   "Conversion",
+  "Layout",
 ] as const;
 export type SectionGroup = (typeof SECTION_GROUPS)[number];
 
@@ -31,6 +32,8 @@ export interface SectionEntry {
   item?: string;
   /** False for a type the storefront cannot draw yet — it is never offered. */
   addable: boolean;
+  /** Pinned to the screen rather than placed on the page, so it has no box for the Style tab. */
+  pinned?: boolean;
 }
 
 export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
@@ -90,6 +93,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     group: "Content",
     description: "A product's photos, options and buy buttons. Created when your product page moves onto the builder.",
     addable: false,
+  },
+  "related-products": {
+    label: "Related products",
+    group: "Products",
+    description:
+      "Products like the one on the page, from its collection. To show them here instead of under the product, turn on Hide “You may also like” in the Product section.",
+    addable: true,
   },
   faq: {
     label: "FAQ",
@@ -188,8 +198,9 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     label: "Sticky order bar",
     group: "Conversion",
     description:
-      "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product page when there is none.",
+      "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product's buy buttons when there is none.",
     addable: true,
+    pinned: true,
   },
   testimonials: {
     label: "Testimonials",
@@ -218,6 +229,25 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A YouTube or Facebook video that starts when tapped.",
     addable: true,
   },
+  "image-banner": {
+    label: "Image banner",
+    group: "Hero & banners",
+    description: "One wide picture, with words and a button on it — or, with a link and no button, the whole picture as the link.",
+    addable: true,
+  },
+  gallery: {
+    label: "Gallery",
+    group: "Content",
+    description: "Pictures in a grid, each with a caption and a link if you like.",
+    item: "Picture",
+    addable: true,
+  },
+  spacer: {
+    label: "Spacer",
+    group: "Layout",
+    description: "Empty space between two sections, with a line across it if you like.",
+    addable: true,
+  },
   countdown: {
     label: "Countdown",
     group: "Offers",
@@ -230,6 +260,7 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 /** Setting labels, by setting key. Shared across sections — the same key means the same thing. */
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
+  alt: "Picture description",
   answer: "Answer",
   arrows: "Show arrows",
   badge: "Badge",
@@ -237,6 +268,7 @@ const FIELD_LABELS: Record<string, string> = {
   buttonHref: "Button link",
   buttonLabel: "Button label",
   campaignBadge: "Show the running offer as the badge",
+  caption: "Caption",
   cardImageFit: "Card photo fit",
   cardImageRatio: "Card photo shape",
   categoryId: "Collection",
@@ -248,6 +280,7 @@ const FIELD_LABELS: Record<string, string> = {
   description: "Description",
   flow: "Layout",
   focal: "Focus point",
+  frame: "Picture shape",
   galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
@@ -262,6 +295,7 @@ const FIELD_LABELS: Record<string, string> = {
   label: "Video name",
   layout: "Layout",
   limit: "Number of products",
+  line: "Show a line",
   link: "Link",
   mobileColumns: "Columns on phones",
   mobileImage: "Phone picture",
@@ -271,6 +305,7 @@ const FIELD_LABELS: Record<string, string> = {
   photo: "Photo",
   poster: "Cover picture",
   productId: "Product",
+  hideRelated: "Hide “You may also like”",
   productIds: "Products",
   promises: "Show your promises",
   question: "Question",
@@ -284,6 +319,7 @@ const FIELD_LABELS: Record<string, string> = {
   showLabels: "Show names",
   side: "Picture side",
   slideshow: "Show as a slideshow",
+  space: "Height (px)",
   source: "Products to show",
   split: "Picture share (%)",
   storeBanner: "Use the store banner",
@@ -303,6 +339,9 @@ const FIELD_LABELS: Record<string, string> = {
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
 
 const HINTS: Record<string, string> = {
+  hideRelated: "Add a Related products section to show them somewhere else on the page.",
+  alt: "Say what the picture shows. Screen readers read it aloud.",
+  frame: "Default shows each picture whole. A shape crops it to fit.",
   buttonHref: "A page on your store like /products, a full web address, or tel: / mailto:.",
   link: "A page on your store like /products, a full web address, or tel: / mailto:.",
   ctaHref: "A page on your store like /products, or a full web address.",
@@ -320,6 +359,7 @@ const HINTS: Record<string, string> = {
   storeHeading: "Shown in the shopper's language when Heading is empty.",
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
+  space: "The room between the sections above and below.",
   storeBanner: "Shows the banner from Customize → Hero when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
   storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",
@@ -355,6 +395,9 @@ const CUSTOMIZE_OPTIONS: Record<string, string> = {
 /** Readable names for enum values, where the raw value would not read well. */
 const VALUE_LABELS: Record<string, string> = {
   "full-bleed": "Full width",
+  "4:1": "Strip 4:1",
+  "3:1": "Wide strip 3:1",
+  "21:9": "Cinema 21:9",
   "4:5": "Portrait 4:5",
   "1:1": "Square",
   "4:3": "Landscape 4:3",

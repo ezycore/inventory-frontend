@@ -18,6 +18,7 @@ import { SocialLoginButtons } from "@/components/storefront/account/social-login
 import { LoadingSplash } from "@/components/storefront/loading-splash";
 import { sfInput as input } from "@/components/storefront/field-styles";
 import { SfPasswordInput } from "@/components/storefront/sf-password-input";
+import { brandButton } from "@/lib/storefront-button";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -32,14 +33,10 @@ const card: CSSProperties = {
   padding: 22,
 };
 const primaryBtn: CSSProperties = {
+  ...brandButton({ radius: 8, padding: 12, fontSize: 14 }),
   width: "100%",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
   border: "none",
-  padding: 12,
-  borderRadius: 8,
   fontFamily: "inherit",
-  fontSize: 14,
   fontWeight: 600,
   cursor: "pointer",
 };
@@ -174,7 +171,7 @@ export function AccountPageView() {
                   </p>
                   <Link
                     href="/ecommerce/dashboard"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--primary)", color: "var(--on-primary)", fontSize: 13, fontWeight: 600, padding: "9px 14px", borderRadius: 8 }}
+                    style={{ ...brandButton({ radius: 8, padding: "9px 14px", fontSize: 13 }), display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600 }}
                   >
                     {t.goToAdmin}
                   </Link>

@@ -16,6 +16,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * Wishlist section — products saved via the PDP heart. "Move to cart" adds and
@@ -48,7 +49,7 @@ export function WishlistSection() {
         </p>
         <Link
           href={storeHref(base, "/products")}
-          style={{ display: "inline-block", background: "var(--primary)", color: "var(--on-primary)", padding: "12px 24px", borderRadius: 9, fontSize: 14, fontWeight: 600 }}
+          style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), display: "inline-block", fontWeight: 600 }}
         >
           {t.viewAllProducts}
         </Link>
@@ -122,7 +123,7 @@ export function WishlistSection() {
                 <button
                   type="button"
                   onClick={() => moveToCart(p.productId)}
-                  style={{ marginTop: "auto", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: 9, borderRadius: 7, fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                  style={{ ...brandButton({ radius: 7, padding: 9, fontSize: 13 }), marginTop: "auto", border: "none", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
                 >
                   {p.hasVariants ? t.selectOptions : t.moveToCart}
                 </button>
