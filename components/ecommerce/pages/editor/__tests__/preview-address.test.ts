@@ -1,8 +1,13 @@
 // coding-standard: maintained
 import { describe, expect, it } from "vitest";
+import type { StorefrontPage } from "@/services/api";
 import { needsBuilderParam, previewAddress } from "../preview-address";
 
-const system = (systemKey: string) => ({ kind: "system" as const, systemKey, slug: undefined });
+const system = (systemKey: NonNullable<StorefrontPage["systemKey"]>) => ({
+  kind: "system" as const,
+  systemKey,
+  slug: undefined,
+});
 
 describe("previewAddress", () => {
   it("previews content and landing pages at /pages/<slug>", () => {
