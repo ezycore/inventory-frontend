@@ -79,6 +79,15 @@ Four paths. Pick by use site.
 `queryKey: queryKeys.products.all()`. If you find yourself writing `[...queryKeys.x.all()]`, the
 spread is a leftover from when the prop was `any[]`; drop it.
 
+**Two `DataTable`s over one endpoint need two keys.** The table's key is `[...queryKey, { page,
+limit, … }]` and never includes what `getAllData` adds on its own — so tables that differ only in a
+filter baked into their fetcher (`kind: "landing"` vs `kind: "content"`) share one cache entry at the
+same page and size, and whichever loads first fills both. The Pages screen shipped exactly that
+(2026-09-16): a cut-over store's Store pages table listed its landing page. Put the distinguishing
+filter in the key — `queryKeys.<r>.list({ kind })` — and keep the key and the fetcher in one place so
+they cannot drift ([`page-list-operations.ts`](../../../components/ecommerce/pages/page-list-operations.ts)).
+The `lists()` prefix still reaches both for invalidation.
+
 **A lazy read modelled as a `useMutation`** (runs on click, not on mount) is legitimate — see
 `useOrderFraudScore`, `useOrganizationUsers`. It must be allowlisted in the gate (§7).
 

@@ -55,3 +55,26 @@ describe("SectionInspector tabs", () => {
     expect(screen.queryByText("Spacing")).toBeNull();
   });
 });
+
+describe("SectionInspector — Show on", () => {
+  it("offers both screens for a merchant's own section", () => {
+    inspect({
+      id: "cta",
+      type: "call-to-action",
+      v: 1,
+      enabled: true,
+      settings: { heading: "Need help?", buttonLabel: "Message us", buttonHref: "/pages/faq" },
+    });
+    expect(screen.getByText("Show on")).toBeTruthy();
+    expect(screen.getByLabelText("Phones")).toBeTruthy();
+  });
+
+  it("does not offer to hide a core section on either screen", () => {
+    // The storefront skips a section hidden for a screen — a cart shown on
+    // computers only is a phone shop with no cart — so the switch is not offered.
+    inspect({ id: "cart", type: "cart-lines", v: 1, enabled: true, settings: {} });
+    expect(screen.queryByText("Show on")).toBeNull();
+    expect(screen.queryByLabelText("Phones")).toBeNull();
+    expect(screen.queryByLabelText("Computers and tablets")).toBeNull();
+  });
+});

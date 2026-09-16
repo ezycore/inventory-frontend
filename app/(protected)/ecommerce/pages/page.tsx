@@ -3,16 +3,13 @@
 
 import { useMemo, useState } from "react";
 import { Copy, HousePlus, PencilRuler, Plus, Undo2 } from "lucide-react";
-import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
 import {
-  storefrontPagesApi,
   useDeleteStorefrontPage,
   useDuplicateStorefrontPage,
   useSetStorefrontHomePage,
   type StorefrontPageListItem,
-  type StorefrontPageListParams,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
@@ -20,6 +17,7 @@ import { buildPageColumns } from "@/components/ecommerce/pages/columns";
 import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
 import { NewPageDialog } from "@/components/ecommerce/pages/new-page-dialog";
+import { pageListOperations } from "@/components/ecommerce/pages/page-list-operations";
 import { StorePagesTable } from "@/components/ecommerce/pages/store-pages-table";
 import { SystemPagesCard } from "@/components/ecommerce/pages/system-pages-card";
 
@@ -27,10 +25,10 @@ import { SystemPagesCard } from "@/components/ecommerce/pages/system-pages-card"
  * Landing pages in the table. The builder API also holds content and system
  * pages, and listing those here would offer a Duplicate and a Delete the backend
  * refuses; a home page that is a builder page has its own card above
- * (`HomePageCard`), and content pages keep the Content screen until step 6.
+ * (`HomePageCard`), moved content pages have `StorePagesTable`, and system pages
+ * `SystemPagesCard`.
  */
-const listLandingPages = (params: StorefrontPageListParams = {}) =>
-  storefrontPagesApi.list({ ...params, kind: "landing" });
+const landingPages = pageListOperations("landing");
 
 export default function StorefrontPagesPage() {
   const storeSlug = useAuthStore((s) => s.user?.organization?.slug);
@@ -104,9 +102,8 @@ export default function StorefrontPagesPage() {
         enableRowHover
         customActions={customActions}
         operations={{
-          getAllData: listLandingPages,
+          ...landingPages,
           deleteMutation: deletePage,
-          queryKey: queryKeys.storefrontPages.lists(),
           entityName: "Page",
           deleteTooltip: "Delete page",
         }}

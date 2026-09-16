@@ -3,20 +3,14 @@
 
 import { useMemo } from "react";
 import { PencilRuler } from "lucide-react";
-import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
-import {
-  storefrontPagesApi,
-  useStorefrontPages,
-  type StorefrontPageListItem,
-  type StorefrontPageListParams,
-} from "@/services/api";
+import { useStorefrontPages, type StorefrontPageListItem } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
+import { pageListOperations } from "@/components/ecommerce/pages/page-list-operations";
 
-const listStorePages = (params: StorefrontPageListParams = {}) =>
-  storefrontPagesApi.list({ ...params, kind: "content" });
+const storePages = pageListOperations("content");
 
 /**
  * The store's own pages — About, FAQ, the policies — once they have moved off
@@ -63,8 +57,7 @@ export function StorePagesTable() {
       enableRowHover
       customActions={customActions}
       operations={{
-        getAllData: listStorePages,
-        queryKey: queryKeys.storefrontPages.lists(),
+        ...storePages,
         entityName: "Page",
       }}
     />

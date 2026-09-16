@@ -7,7 +7,7 @@ import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { Switch } from "@/ui/components/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
-import { SECTION_CATALOGUE, sectionLabel } from "./section-catalogue";
+import { SECTION_CATALOGUE, isCoreSection, sectionLabel } from "./section-catalogue";
 import {
   isComplete,
   specOf,
@@ -205,21 +205,26 @@ export function SectionInspector({
             </div>
           ) : null}
 
-          <div className="space-y-3 border-t pt-4">
-            <h3 className="text-sm font-semibold">Show on</h3>
-            {(["desktop", "mobile"] as const).map((screen) => (
-              <div key={screen} className="flex items-center justify-between gap-2">
-                <Label htmlFor={`${section.id}-show-${screen}`}>
-                  {screen === "desktop" ? "Computers and tablets" : "Phones"}
-                </Label>
-                <Switch
-                  id={`${section.id}-show-${screen}`}
-                  checked={section.visibility?.[screen] !== false}
-                  onCheckedChange={(checked) => onChange(withVisibility(section, screen, checked))}
-                />
-              </div>
-            ))}
-          </div>
+          {/* Not for the core section: the storefront skips a section hidden for a
+              screen, and a cart or checkout missing on phones is a shop that cannot
+              sell there. The API refuses it too (`assertCoreSection`). */}
+          {isCoreSection(section.type) ? null : (
+            <div className="space-y-3 border-t pt-4">
+              <h3 className="text-sm font-semibold">Show on</h3>
+              {(["desktop", "mobile"] as const).map((screen) => (
+                <div key={screen} className="flex items-center justify-between gap-2">
+                  <Label htmlFor={`${section.id}-show-${screen}`}>
+                    {screen === "desktop" ? "Computers and tablets" : "Phones"}
+                  </Label>
+                  <Switch
+                    id={`${section.id}-show-${screen}`}
+                    checked={section.visibility?.[screen] !== false}
+                    onCheckedChange={(checked) => onChange(withVisibility(section, screen, checked))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="style">
