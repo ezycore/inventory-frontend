@@ -56,6 +56,16 @@ export interface HeaderCtx {
   /** The `rail` shell lists departments itself; suppress the header row. */
   hideCategoryRow?: boolean;
   /**
+   * The §6 page controls, resolved once by `StoreHeader` (`storePages`).
+   *
+   * Required, not optional: an anatomy that forgot to read one would draw a
+   * control for a page this shop does not serve, and `boolean | undefined`
+   * would let it compile. The pieces below gate themselves on these, so a
+   * variant only handles the case where a hole in the bar needs closing up.
+   */
+  showSearch: boolean;
+  showAccount: boolean;
+  /**
    * Does this anatomy still owe the shopper a theme / language control?
    *
    * False only while the utility bar is on THIS breakpoint and carrying that
@@ -149,8 +159,15 @@ export function UtilityBar({
         ) : null}
       </span>
       <span style={{ display: "flex", gap: 16, alignItems: "center", marginInlineStart: "auto" }}>
+        {/* "Track order" goes to the account area, which is where a signed-in
+            shopper's orders live — but that area is the merchant's to switch
+            off, and tracking is NOT. With accounts off it points at the
+            standalone lookup instead, so the link keeps doing what it says. */}
         {config.showTrackOrder ? (
-          <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>
+          <Link
+            href={storeHref(base, ctx.showAccount ? "/account" : "/orders/track")}
+            style={{ color: "inherit" }}
+          >
             {config.trackOrderLabel || t.trackOrder}
           </Link>
         ) : null}
@@ -206,6 +223,11 @@ export function ThemeBtn({ ctx, compact }: { ctx: HeaderCtx; compact?: boolean }
 
 export function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
   const { base, shopperName, sessionKnown, t } = ctx;
+  // Gated here rather than at six call sites: with accounts off there is no
+  // account area to link to, and a seventh anatomy must not be able to forget
+  // it. Each variant lays this out as a plain flex child, so its absence closes
+  // up on its own — only the search wrappers needed a gate of their own.
+  if (!ctx.showAccount) return null;
   // Until the persisted session hydrates we don't know guest vs member — show a
   // shimmer chip instead of flashing "Sign in" at signed-in shoppers on reload.
   const label = !sessionKnown ? (

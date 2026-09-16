@@ -748,6 +748,17 @@ export interface StorefrontCustomersConfig {
   allowAccounts?: boolean;
 }
 
+/**
+ * The optional shopper pages a store serves (the §6 page controls). The admin
+ * form reads these raw, where **unset means ON** — the shopper side reads the
+ * resolved `store.pages` block instead. The account area is the third control
+ * and stays on `StorefrontCustomersConfig` above, where it has always lived.
+ */
+export interface StorefrontPagesConfig {
+  search?: boolean;
+  cartPage?: boolean;
+}
+
 export interface StorefrontSettings {
   _id?: string;
   organizationId?: string;
@@ -818,6 +829,7 @@ export interface StorefrontSettings {
   notifications?: StorefrontNotifications;
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
+  pagesConfig?: StorefrontPagesConfig;
   /** Admin-panel-only wording for the order pipeline steps; unset → built-ins. */
   adminStatusLabels?: AdminOrderStatusLabels;
   trustBadges?: StorefrontTrustBadge[];

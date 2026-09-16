@@ -175,10 +175,19 @@ export function SearchFirstDesktop({ ctx }: { ctx: HeaderCtx }) {
       ) : null}
 
       {/* `sf-search-pill` rounds the shared search field without forking it —
-          one search implementation, two shapes. */}
-      <div className="sf-search-pill" style={{ flex: 1, display: "flex", minWidth: 0 }}>
-        <HeaderSearchBar categories={cats} />
-      </div>
+          one search implementation, two shapes.
+
+          The WRAPPER is gated, not just the field inside it: it is `flex: 1`,
+          so leaving it would hold the pill's whole width open as a gap across
+          the middle of the bar. The three anatomies whose search sits in a
+          plain flex row need no such gate — the field removes itself. */}
+      {ctx.showSearch ? (
+        <div className="sf-search-pill" style={{ flex: 1, display: "flex", minWidth: 0 }}>
+          <HeaderSearchBar categories={cats} />
+        </div>
+      ) : (
+        <div style={{ flex: 1 }} />
+      )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, flex: "none" }}>
         {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
@@ -237,9 +246,15 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
         <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 9, flex: "none" }}>
           <Brand name={name} logo={logo} markSize={34} nameSize={21} />
         </Link>
-        <div className="sf-search-rule" style={{ flex: 1, display: "flex", minWidth: 0 }}>
-          <HeaderSearchBar categories={cats} />
-        </div>
+        {/* Gated with its rule: an empty `flex: 1` wrapper would draw the
+            hairline across a gap where the field used to be. */}
+        {ctx.showSearch ? (
+          <div className="sf-search-rule" style={{ flex: 1, display: "flex", minWidth: 0 }}>
+            <HeaderSearchBar categories={cats} />
+          </div>
+        ) : (
+          <div style={{ flex: 1 }} />
+        )}
         <div style={{ display: "flex", alignItems: "center", gap: 17, flex: "none" }}>
           {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
           <AccountLink ctx={ctx} />
@@ -301,9 +316,13 @@ export function ClinicalDesktop({ ctx }: { ctx: HeaderCtx }) {
         <Brand name={name} logo={logo} markSize={34} nameSize={18} />
       </Link>
 
-      <div style={{ flex: 1, display: "flex", minWidth: 0, maxWidth: 620 }}>
-        <HeaderSearchBar categories={cats} />
-      </div>
+      {/* The widest thing on this bar by design, so its absence has to close up
+          rather than leave 620px of nothing between the logo and the icons. */}
+      {ctx.showSearch ? (
+        <div style={{ flex: 1, display: "flex", minWidth: 0, maxWidth: 620 }}>
+          <HeaderSearchBar categories={cats} />
+        </div>
+      ) : null}
 
       <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none", marginInlineStart: "auto" }}>
         {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}

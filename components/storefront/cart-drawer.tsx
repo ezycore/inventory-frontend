@@ -10,6 +10,7 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
+import { storePages } from "@/lib/storefront-page-controls";
 import { shippingRange } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
@@ -103,7 +104,11 @@ export function CartDrawer() {
                 {t.proceed} · {amount(total)}
               </button>
             )}
-            {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
+            {/* Full cart page for editing at leisure — the drawer stays the
+                quick path. Hidden when the merchant serves the drawer alone
+                (§6 page controls): the route would only bounce to checkout,
+                which is what the button above already does. */}
+            {storePages(store).cartPage ? (
             <button
               type="button"
               onClick={goCartPage}
@@ -123,6 +128,7 @@ export function CartDrawer() {
             >
               {t.viewCart}
             </button>
+            ) : null}
           </>
         ) : undefined
       }

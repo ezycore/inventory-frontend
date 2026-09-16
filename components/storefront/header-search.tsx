@@ -12,6 +12,9 @@ import {
 } from "@/services/storefront/use-header-search";
 import { SearchPanel } from "@/components/storefront/header-search-panel";
 import type { CatalogCategory } from "@/lib/storefront-client";
+import { storePages } from "@/lib/storefront-page-controls";
+import { useStore } from "@/services/storefront/hooks";
+import { useStoreContext } from "@/services/storefront/store-context";
 
 /* Popover shell for the classic bar. Minimal/centered reuse only the scroll. */
 const popover: CSSProperties = {
@@ -42,6 +45,21 @@ function useOutsideClose(open: boolean, ref: { current: HTMLElement | null }, cl
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, [open, ref, close]);
+}
+
+/**
+ * Does this shop serve search at all (§6 page controls)?
+ *
+ * Read here rather than passed in, because the four entry points have four
+ * different callers — two desktop anatomies, the phone bar's inline field and
+ * the takeover sheet the shell mounts — and a prop would have to be threaded
+ * through every one of them. Absent means ON, so a store that has never touched
+ * the switch is unaffected (`storePages`).
+ */
+function useSearchPageOn(): boolean {
+  const { slug } = useStoreContext();
+  const { data: store } = useStore(slug);
+  return storePages(store).search;
 }
 
 /** The input row itself — icon, field, and a clear button once there's text. */
@@ -126,8 +144,10 @@ export function HeaderSearchBar({ categories }: { categories: CatalogCategory[] 
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const c = useHeaderSearch(() => setOpen(false), open);
+  const searchOn = useSearchPageOn();
   useOutsideClose(open, wrapRef, () => setOpen(false));
 
+  if (!searchOn) return null;
   return (
     <div ref={wrapRef} style={{ position: "relative", flex: 1, minWidth: 200 }} onFocus={() => setOpen(true)}>
       <SearchInput c={c} />
@@ -152,8 +172,10 @@ export function HeaderSearchIcon({ categories }: { categories: CatalogCategory[]
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLSpanElement>(null);
   const c = useHeaderSearch(() => setOpen(false), open);
+  const searchOn = useSearchPageOn();
   useOutsideClose(open, wrapRef, () => setOpen(false));
 
+  if (!searchOn) return null;
   return (
     // `display: contents` keeps this out of the positioning chain, so the layer
     // below resolves against the sticky header and spans its full width.
@@ -216,6 +238,7 @@ export function HeaderSearchMobile({
 }) {
   const { t } = useStorefrontUI();
   const setOpen = onOpenChange;
+  const searchOn = useSearchPageOn();
   const historyMarker = `sf-search-${useId()}`;
   const previousStateRef = useRef<unknown>(null);
 
@@ -315,6 +338,9 @@ export function HeaderSearchMobile({
     if (open) openSheet();
   }, [open, openSheet]);
 
+  // After every hook, never before: the chrome already drops the triggers when
+  // search is off, so this only catches a sheet opened by stale state.
+  if (!searchOn) return null;
   if (typeof document === "undefined" || !sheet) return null;
   return createPortal(
     sheet,

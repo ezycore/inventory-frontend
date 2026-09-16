@@ -622,6 +622,16 @@ export interface StorefrontStore {
     /** Offer "Order on chat instead" through the store's WhatsApp contact. */
     pausedWhatsApp?: boolean;
   };
+  /**
+   * Which optional shopper pages this store serves — the §6 page controls,
+   * resolved by the backend into three plain booleans (the account switch is
+   * stored apart from the other two, and nothing here should know that).
+   *
+   * Optional on the type for the same reason every other block is: a cached
+   * store payload fetched before this shipped carries none. Read it through
+   * `storePages()`, never field by field — absent must mean ON.
+   */
+  pages?: { search: boolean; cartPage: boolean; accounts: boolean };
   /** Social sign-in providers with credentials configured on the backend. */
   oauthProviders?: ("google" | "facebook")[];
 }
