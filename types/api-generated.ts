@@ -13936,6 +13936,10 @@ export interface components {
                 description?: string;
                 noindex: boolean;
             };
+            footer?: {
+                show: boolean;
+                order: number;
+            };
             published: {
                 sections: {
                     id: string;
@@ -14012,6 +14016,10 @@ export interface components {
             status: "draft" | "published" | "disabled";
             /** @enum {string} */
             chrome: "full" | "minimal" | "none";
+            footer?: {
+                show: boolean;
+                order: number;
+            };
             hasDraft: boolean;
             publishedVersion: number | null;
             /** Format: date-time */
