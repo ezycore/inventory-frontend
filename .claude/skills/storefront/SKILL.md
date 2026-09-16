@@ -4328,3 +4328,41 @@ appears under the whole catalogue at once. Order tracking and not-found stay cla
 **Proving a move locally:** the frontend serves a cached page read stale for 300 s, so a baseline taken
 just before a migration compares against a page that has not changed yet and reads as a regression.
 Release the pages, `rm -rf .next/dev/cache`, restart the dev server, capture, migrate, restart, compare.
+
+## Phase 6 on the builder — the page's product, buttons and headings (2026-09-16)
+
+**A setting a page supplies itself: `fromPage`.** A field spec can name page contexts that provide its
+value (`productId: { type: "ref", to: "product", fromPage: ["product"] }` on Offer & pricing, Order form
+and Sticky order bar). The backend skips it there and REFUSES it set; `readSettings(specs, raw, context)`
+skips it only when handed the context — without one it stays required, so the renderer is never more
+lenient than the API. The editor passes `pageContextOf(page)` to `isComplete`, `savableSections`,
+`SettingsFields`, the inspector and the tree; forget one and a product-page add-on reads as unfinished and
+silently drops out of the draft.
+
+**The product route hands the product down.** The public page payload has no system key, so
+`app/(storefront)/shop/products/[productSlug]/page.tsx` passes `product` to `SystemPage`, which prepares
+the sections for the `product` context and sets `context.product`. A one-product section draws
+`sectionProduct(data, context)` and, with `pageProduct: true` in the registry, makes no catalogue request
+when no product is named.
+
+**Related products (option B).** `product-main.hideRelated` (unset = the "You may also like" row stays,
+so moved product pages are unchanged) and the `related-products` section share `useRelatedProducts` —
+one query. The order bar on its own product's page scrolls to the buy buttons without an order form and
+hides when `templates.product` is `sticky` (two bars otherwise).
+
+**A core section's Style tab has no Width** (and `assertCoreSection` refuses one other than full): the
+`.sfb-core` gutter rule only matches `data-width="full"`.
+
+**Buttons: Default is each button as drawn, not a value.** `theme.design.buttonShape/buttonStyle/
+buttonSize` stamp `data-button-*` on `.sf-shell` only when not Default, and `storefront.css` defines
+`--btn-radius/--btn-bg/--btn-fg/--btn-ring/--btn-scale` only under those. Every brand button reads them
+through `brandButton({ radius, padding, fontSize, minHeight? }, { overPhoto?, bordered? })`
+(`lib/storefront-button.ts`) with **its own old literal as the fallback**; a secondary beside it uses
+`buttonMetrics` (shape + size, no fill). ⚠ A NEW brand button written with a literal `background:
+"var(--primary)"` ignores the merchant's Buttons choice — go through the helper. Not buttons (leave
+literal): header cart pill, count badges, step numbers, avatars, banner headers. `.sfb-button` reads
+the same tokens in `storefront-builder.css`.
+
+**Headings:** `headingWeight` / `headingCase` restyle `h1–h4, .sf-display` under
+`[data-heading-*]` with `!important` (headings set weight inline). Ready-made themes stamp all five axes
+to Default. Base text size is NOT built (435 inline px sizes).

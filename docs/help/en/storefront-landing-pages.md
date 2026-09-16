@@ -84,11 +84,12 @@ Pictures you add to a section can be up to 5 MB.
 ### Take orders on the page
 
 Add an **Order form** section to let shoppers order without leaving the page. Pick the product it
-sells: the form shows its options and a quantity, then the same delivery, payment and terms questions
+sells (on your product page it sells that page's product — see [Your shop's own pages](#your-shops-own-pages)): the form shows its options and a quantity, then the same delivery, payment and terms questions
 as your checkout, with the same delivery charges. The order arrives in your order list like any other
 website order. The shopper's cart is not touched.
 
-Turn on **Coupon box** if your ad offers a coupon code. Order forms only work on landing pages. If the
+Turn on **Coupon box** if your ad offers a coupon code. Order forms work on landing pages and on your
+product page. If the
 product sells out or is removed from your online store, the form says so or disappears.
 
 ### Show one product
@@ -116,6 +117,21 @@ no order form, it opens the product's page instead.
 The bar hides while the order form is on screen, and it does not show on computers — switch the preview
 to **Mobile view** to see it. Leave **Button label** empty and the button says "Buy now" in the
 shopper's language.
+
+### Pictures, space and your own layout
+
+- **Image banner** shows one picture across the page, with a heading, a line and a button on it if you
+  want them. Give it a **Phone picture** when your wide picture does not work on a small screen. Leave
+  **Button label** empty and fill in **Link** to make the whole picture the link.
+- **Gallery** puts up to 24 pictures in a grid. Each can have a **Caption** and a **Link**; set how many
+  **Columns** show on computers and, separately, on phones.
+- **Spacer** adds empty room between two sections — set its height in pixels, and a different one for
+  phones if you like. Turn on **Show a line** to draw a thin line across it.
+
+Every section also has a **Style** tab beside **Content**. It changes the box the section sits in: a
+**Background** colour or picture, **Spacing** above and below (separately for phones), **Width**,
+**Text alignment** and **Text colour** — pick **Light** on a dark background. Leave everything on
+**Default** and the section looks as it always did.
 
 ### Reviews, benefits, steps and video
 
@@ -220,10 +236,23 @@ These are not landing pages and they behave differently:
 - **What you add is what is new.** Put a section above or below it — a size guide under every product,
   a delivery promise above the checkout, your best-selling collections under an empty search.
 
+The block that shows the page is also the one section whose **Style** tab has no **Width**: a cart or
+checkout made narrower would squeeze the page on a phone.
+
 One thing to know before you add a section to the product page or a collection page: **there is one
 product page for every product, and one collection page for every collection.** A section you add
 under the product appears under *every* product in your shop, not just the one you were looking at.
 That is what makes it worth adding — write your returns policy once and it sits under all of them.
+
+The product page can also take the sections that sell a product:
+
+- **Offer & pricing**, **Order form** and **Sticky order bar** sell the product the shopper is looking
+  at. There is no product to pick — each product page shows its own. On a product page with no order
+  form, the order bar's button takes the shopper back up to the buy buttons.
+- **Related products** shows products like this one — from its collection, or your newest. The product
+  block already shows these under the product as **You may also like**. To show them somewhere else, or
+  under your own heading, open the **Product** section, turn on **Hide "You may also like"**, and add a
+  **Related products** section where you want the row.
 
 Everything else works as it does for a landing page: sections are drafted, **Preview** shows your
 unpublished version, and nothing reaches shoppers until you press **Publish**.

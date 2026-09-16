@@ -140,6 +140,11 @@ put outside the three-merchant rule. The one row whose state was wrong is row fo
 been logged since 2026-09-07; that is either no demand or the loop not running, and two weeks after launch
 it cannot yet tell which.
 
+Read again once steps 5, 6 and 8 shipped the same day on the owner's decisions: Related products (and the
+product section's switch to hide its own row), Offer & pricing / Order form / Sticky order bar on the product
+page, and Customize's Buttons (shape, style, size) and heading weight and letter case. **These close no row
+either, and no row asks for them** — same source (§5.1 and §8), same rule.
+
 ## Unshaped
 
 Requests that have arrived but cannot yet be stated as a setting. They carry **no count** — shape
