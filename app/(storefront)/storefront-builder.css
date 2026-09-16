@@ -241,6 +241,43 @@
   border-radius: 0;
 }
 
+/* Gallery: the merchant's column count, the phone's own below the breakpoint;
+   one tile shape when `frame` is set, else each picture at its own. */
+.sfb-gallery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(8px, 1.5vw, 16px);
+  grid-template-columns: repeat(var(--sfb-gallery-cols, 3), minmax(0, 1fr));
+  align-items: start;
+}
+
+.sfb-gallery-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sfb-gallery-media {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.sfb-gallery[data-frame] .sfb-gallery-media {
+  aspect-ratio: var(--sfb-gallery-frame);
+  object-fit: cover;
+}
+
+.sfb-gallery-caption {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 /* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
 .sfb-split {
   display: grid;
@@ -264,6 +301,9 @@
   }
   .sfb-spacer {
     height: var(--sfb-space-m, var(--sfb-space, 40px));
+  }
+  .sfb-gallery {
+    grid-template-columns: repeat(var(--sfb-gallery-cols-m, 2), minmax(0, 1fr));
   }
   .sfb-banner-box[data-frame] {
     aspect-ratio: var(--sfb-banner-frame-m, var(--sfb-banner-frame));

@@ -107,3 +107,53 @@ describe("image-banner", () => {
     expect(prepareSections([section("b1", "image-banner", { heading: "Eid" })])).toHaveLength(0);
   });
 });
+
+describe("gallery", () => {
+  const picture = (n: number) => ({ url: `https://cdn.example.com/p${n}.webp`, width: 800, height: 1000 });
+  const tile = (id: string, settings: unknown) => ({ id, settings });
+  const gallery = (settings: unknown, blocks: unknown): PageSectionInstance => ({
+    ...section("g1", "gallery", settings),
+    blocks,
+  });
+
+  it("draws every picture with its caption, and links only the tiles given a link", () => {
+    const { container } = renderPage([
+      gallery({ heading: "Lookbook" }, [
+        tile("a", { image: picture(1), alt: "Blue saree", caption: "Jamdani" }),
+        tile("b", { image: picture(2), link: "/products/jamdani" }),
+      ]),
+    ]);
+    expect(container.querySelectorAll("li")).toHaveLength(2);
+    expect(container.querySelector("img")?.getAttribute("alt")).toBe("Blue saree");
+    expect(container.querySelector(".sfb-gallery-caption")?.textContent).toBe("Jamdani");
+    const links = container.querySelectorAll("a");
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe("/shop/products/jamdani");
+    expect(container.textContent).toContain("Lookbook");
+  });
+
+  it("uses three columns and two on a phone by default, never more on a phone than on a computer", () => {
+    const grid = (settings: unknown) =>
+      renderPage([gallery(settings, [tile("a", { image: picture(1) })])]).container.querySelector(".sfb-gallery") as HTMLElement;
+    expect(grid({}).style.getPropertyValue("--sfb-gallery-cols")).toBe("3");
+    expect(grid({}).style.getPropertyValue("--sfb-gallery-cols-m")).toBe("2");
+    expect(grid({ columns: { base: 1 } }).style.getPropertyValue("--sfb-gallery-cols-m")).toBe("1");
+    expect(grid({ columns: { base: 4, mobile: 3 } }).style.getPropertyValue("--sfb-gallery-cols-m")).toBe("3");
+  });
+
+  it("crops every tile to one shape when asked, and keeps each picture's own otherwise", () => {
+    const framed = renderPage([gallery({ frame: "4:5" }, [tile("a", { image: picture(1) })])]).container;
+    expect((framed.querySelector(".sfb-gallery") as HTMLElement).style.getPropertyValue("--sfb-gallery-frame")).toBe("4 / 5");
+    expect(framed.querySelector("img")?.hasAttribute("width")).toBe(false);
+
+    const natural = renderPage([gallery({}, [tile("a", { image: picture(1) })])]).container;
+    expect(natural.querySelector(".sfb-gallery")?.hasAttribute("data-frame")).toBe(false);
+    expect(natural.querySelector("img")?.getAttribute("height")).toBe("1000");
+  });
+
+  it("is left out when no picture reads", () => {
+    const { container } = renderPage([gallery({}, [tile("a", { caption: "No picture" })])]);
+    expect(container.querySelector("section")).toBeNull();
+  });
+});
+

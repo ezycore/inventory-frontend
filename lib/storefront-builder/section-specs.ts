@@ -530,6 +530,30 @@ export const SECTION_SPECS = {
     },
   },
   /**
+   * Pictures in a grid, one block each, with an optional caption and link. `frame`
+   * gives every tile one shape (cropped around the middle); unset keeps each
+   * picture's own proportions. `columns` past the breakpoint; a phone takes its
+   * own value, else two (or one, when the desktop has one).
+   */
+  gallery: {
+    v: 1,
+    pages: "all",
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], optional: true },
+    },
+    blocks: {
+      max: 24,
+      settings: {
+        image: { type: "image" },
+        alt: { type: "string", max: 160, optional: true },
+        caption: { type: "string", max: 120, optional: true },
+        link: { type: "url", optional: true },
+      },
+    },
+  },
+  /**
    * Empty room between two sections, optionally split by a thin line in the
    * theme's border colour. `space` is the band's height in px; the section's
    * own frame adds no padding, so the height is exactly what the merchant set.

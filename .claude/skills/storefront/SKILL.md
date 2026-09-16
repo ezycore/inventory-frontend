@@ -740,6 +740,11 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   whole banner the `SectionLink` instead — never a link inside a link. `frame` / `focal` are responsive
   CSS variables (`--sfb-banner-frame`, `--sfb-banner-focal`, `-m`) on `.sfb-banner`; with no frame the
   image keeps its own width/height attributes. Not `priority` — a section cannot know it is first.
+- **Gallery** (Phase 6, every page; `sections/gallery.tsx`). Pictures are blocks (max 24): `image`,
+  `alt`, `caption`, `link` (the tile becomes a `SectionLink`). `galleryVars` writes
+  `--sfb-gallery-cols` / `-m` (an unset phone value is `min(desktop, 2)`, computed in the view so the stylesheet
+  reads plain variables) and `--sfb-gallery-frame`. **No lightbox island** — deliberately; see
+  plan §17 Phase 6 step 4 before adding one.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in

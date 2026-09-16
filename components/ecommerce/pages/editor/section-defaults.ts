@@ -85,6 +85,8 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   video: { settings: { label: "Watch the video" } },
   // The picture cannot be invented: it starts incomplete, like Image and text.
   "image-banner": { settings: {} },
+  // Each picture must be chosen: the first starts empty, so the section starts unfinished.
+  gallery: { settings: {}, blocks: [{}] },
   spacer: { settings: { space: { base: 40 } } },
   countdown: { settings: { endsAt: "" } },
 };
@@ -100,4 +102,6 @@ export const BLOCK_DEFAULTS: Partial<Record<SectionType, Record<string, unknown>
   testimonials: { name: "" },
   benefits: { title: "New benefit" },
   "how-to-order": { title: "New step" },
+  // A picture cannot be invented: a new one starts empty.
+  gallery: {},
 };

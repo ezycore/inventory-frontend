@@ -225,6 +225,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "One wide picture, with words and a button on it — or, with a link and no button, the whole picture as the link.",
     addable: true,
   },
+  gallery: {
+    label: "Gallery",
+    group: "Content",
+    description: "Pictures in a grid, each with a caption and a link if you like.",
+    item: "Picture",
+    addable: true,
+  },
   spacer: {
     label: "Spacer",
     group: "Layout",
@@ -251,6 +258,7 @@ const FIELD_LABELS: Record<string, string> = {
   buttonHref: "Button link",
   buttonLabel: "Button label",
   campaignBadge: "Show the running offer as the badge",
+  caption: "Caption",
   cardImageFit: "Card photo fit",
   cardImageRatio: "Card photo shape",
   categoryId: "Collection",
