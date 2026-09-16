@@ -1,13 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { Smartphone } from "lucide-react";
 import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import { Label } from "@/ui/components/label";
 import { FocalPointPicker } from "@/components/ecommerce/customize/focal-point-picker";
 import { FieldControl } from "./field-control";
 import { ImageField } from "./image-field";
+import { PhoneNote, ResetToDesktop } from "./responsive-note";
 import { fieldHint, fieldLabel } from "./section-catalogue";
 import {
   fieldValue,
@@ -54,18 +54,8 @@ export function SettingsFields({
         const set = (next: unknown) => onChange(withFieldValue(settings, key, spec, next, device));
         const ownPhoneValue = hasPhoneValue(settings, key, spec);
 
-        const phoneNote = spec.responsive ? (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Smartphone className="h-3 w-3" aria-hidden />
-            {device === "mobile" ? (ownPhoneValue ? "Phone value" : "Same as desktop") : "Can differ on phones"}
-          </span>
-        ) : null;
-        const resetToDesktop =
-          device === "mobile" && ownPhoneValue ? (
-            <button type="button" onClick={() => set(undefined)} className="text-xs font-medium text-primary hover:underline">
-              Reset to desktop
-            </button>
-          ) : null;
+        const phoneNote = spec.responsive ? <PhoneNote device={device} own={ownPhoneValue} /> : null;
+        const resetToDesktop = <ResetToDesktop device={device} own={ownPhoneValue} onReset={() => set(undefined)} />;
 
         if (spec.type === "image") {
           return <ImageField key={key} label={label} value={value} onChange={set} hint={hint} />;

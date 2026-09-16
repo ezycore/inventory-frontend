@@ -745,6 +745,14 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   `--sfb-gallery-cols` / `-m` (an unset phone value is `min(desktop, 2)`, computed in the view so the stylesheet
   reads plain variables) and `--sfb-gallery-frame`. **No lightbox island** — deliberately; see
   plan §17 Phase 6 step 4 before adding one.
+- **The inspector's Style tab** (Phase 6; `editor/section-style-fields.tsx` over the pure
+  `editor/section-style-edits.ts`). Writes `section.style` (§5.2) — the renderer (`sectionFrame`) and the
+  backend (`checkStyle`) are unchanged. **Default is no key**: `withStyle` drops an empty box, `toneOf`
+  reads `auto` as Default. Padding is a `{ top, bottom }` pair per device, so a first edge fills both; a
+  background colour reaches `style` only as a whole hex (the field holds typed text locally — the
+  controlled-input parse round-trip rule). A catalogue entry with `pinned: true` gets a note instead of
+  controls. The responsive marker is `PhoneNote` / `ResetToDesktop` (`editor/responsive-note.tsx`),
+  shared with `SettingsFields` — use it for any new per-device control.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in

@@ -32,6 +32,8 @@ export interface SectionEntry {
   item?: string;
   /** False for a type the storefront cannot draw yet — it is never offered. */
   addable: boolean;
+  /** Pinned to the screen rather than placed on the page, so it has no box for the Style tab. */
+  pinned?: boolean;
 }
 
 export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
@@ -191,6 +193,7 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description:
       "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product page when there is none.",
     addable: true,
+    pinned: true,
   },
   testimonials: {
     label: "Testimonials",
