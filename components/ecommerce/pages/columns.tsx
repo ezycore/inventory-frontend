@@ -6,6 +6,7 @@ import { storefrontUrl } from "@/lib/storefront-url";
 import { Badge } from "@/ui/components/badge";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
+import { scheduleSummary } from "./page-schedule";
 
 /** A builder page's address on the shop. */
 const pagePath = (slug?: string) => (slug ? `/pages/${slug}` : "");
@@ -53,7 +54,18 @@ export function buildPageColumns({
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => {
+        const page = row.original;
+        // "Published" alone would read as live for an offer that has not started
+        // or is over; only a published page's schedule decides what shoppers get.
+        const schedule = page.status === "published" ? scheduleSummary(page.schedule) : null;
+        return (
+          <div className="space-y-1">
+            <StatusBadge status={page.status} />
+            {schedule ? <div className="text-xs text-muted-foreground">{schedule}</div> : null}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "orders",

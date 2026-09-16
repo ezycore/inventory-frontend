@@ -13954,6 +13954,15 @@ export interface components {
                 show: boolean;
                 order: number;
             };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
+            };
             published: {
                 sections: {
                     id: string;
@@ -14033,6 +14042,15 @@ export interface components {
             footer?: {
                 show: boolean;
                 order: number;
+            };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
             };
             hasDraft: boolean;
             publishedVersion: number | null;
@@ -42762,6 +42780,15 @@ export interface operations {
                         description?: string;
                         noindex?: boolean;
                     };
+                    schedule?: {
+                        /** Format: date-time */
+                        startsAt: string | null;
+                        /** Format: date-time */
+                        endsAt: string | null;
+                        /** @enum {string} */
+                        afterEnd: "not-found" | "home" | "page";
+                        afterEndPageId?: string | null;
+                    } | null;
                 };
             };
         };

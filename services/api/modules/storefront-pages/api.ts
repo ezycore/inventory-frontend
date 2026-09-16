@@ -46,6 +46,13 @@ export interface UpdateStorefrontPageInput {
   slug?: string;
   chrome?: StorefrontPage["chrome"];
   seo?: { title?: string; description?: string; noindex?: boolean };
+  /** Landing pages only; sent whole. `null` removes it. */
+  schedule?: {
+    startsAt: string | null;
+    endsAt: string | null;
+    afterEnd: NonNullable<StorefrontPage["schedule"]>["afterEnd"];
+    afterEndPageId?: string | null;
+  } | null;
 }
 
 export interface SaveStorefrontPageDraftInput {
