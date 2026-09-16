@@ -4,7 +4,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import {
   useDiscardStorefrontPageDraft,
   usePublishStorefrontPage,
@@ -21,14 +20,13 @@ import { PagePreviewFrame } from "./page-preview-frame";
 import { PageSettingsDialog } from "./page-settings-dialog";
 import { RevisionsDialog } from "./revisions-dialog";
 import { SectionInspector } from "./section-inspector";
+import { pageContextOf } from "./section-instances";
 import { SectionTree } from "./section-tree";
 import { usePageAutosave } from "./use-page-autosave";
 import { loadedSections, usePageEditor } from "./use-page-editor";
 import { useUndoShortcuts } from "./use-undo-shortcuts";
 
 /** Which sections a page may hold is decided by what kind of page it is. */
-const contextOf = (page: StorefrontPage): SectionPageContext =>
-  page.kind === "system" ? (page.systemKey ?? "home") : page.kind;
 
 /**
  * The page editor (plan §13): the page's sections on the left — or, with one
@@ -113,6 +111,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
               onChange={(section) => editor.update(section.id, () => section)}
               onAddBlock={() => editor.addBlock(selected.id)}
               onClose={() => editor.select(null)}
+              context={pageContextOf(page)}
             />
           ) : (
             <SectionTree
@@ -124,6 +123,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
               onDuplicate={editor.duplicate}
               onRemove={editor.remove}
               onAdd={() => setAdding(true)}
+              context={pageContextOf(page)}
             />
           )}
         </div>
@@ -143,7 +143,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
         </div>
       </div>
 
-      <AddSectionDialog open={adding} onOpenChange={setAdding} context={contextOf(page)} onAdd={editor.add} />
+      <AddSectionDialog open={adding} onOpenChange={setAdding} context={pageContextOf(page)} onAdd={editor.add} />
       <PageSettingsDialog page={page} open={settingsOpen} onOpenChange={setSettingsOpen} />
       <RevisionsDialog
         page={page}

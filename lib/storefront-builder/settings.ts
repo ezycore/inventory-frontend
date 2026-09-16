@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import type { SectionFieldSpec } from "./field-specs";
+import type { SectionFieldSpec, SectionPageContext } from "./field-specs";
 
 /**
  * Reading a section instance's settings against its spec, for the renderer.
@@ -55,8 +55,9 @@ type ScalarOf<S> = S extends { type: "number" }
 
 type FieldOf<S> = S extends { responsive: true } ? Responsive<ScalarOf<S>> : ScalarOf<S>;
 
+/** Optional, or supplied by some page instead (`fromPage`) — either way it may be absent. */
 type OptionalKeys<T> = {
-  [K in keyof T]: T[K] extends { optional: true } ? K : never;
+  [K in keyof T]: T[K] extends { optional: true } | { fromPage: readonly unknown[] } ? K : never;
 }[keyof T];
 
 /**
@@ -172,6 +173,7 @@ const BLOCK_ID = /^[A-Za-z0-9_-]{1,40}$/;
 export function readBlocks<T extends Record<string, SectionFieldSpec>>(
   specs: { max: number; settings: T } | undefined,
   raw: unknown,
+  context?: SectionPageContext,
 ): { id: string; settings: SettingsOf<T> }[] {
   if (!specs || !Array.isArray(raw)) return [];
   const seen = new Set<string>();
@@ -179,7 +181,7 @@ export function readBlocks<T extends Record<string, SectionFieldSpec>>(
   for (const block of raw.slice(0, specs.max)) {
     if (!isPlainObject(block) || typeof block.id !== "string" || !BLOCK_ID.test(block.id)) continue;
     if (seen.has(block.id)) continue;
-    const settings = readSettings(specs.settings, block.settings);
+    const settings = readSettings(specs.settings, block.settings, context);
     if (!settings) continue;
     seen.add(block.id);
     blocks.push({ id: block.id, settings });
@@ -191,14 +193,21 @@ export function readBlocks<T extends Record<string, SectionFieldSpec>>(
  * A section's settings, typed by its spec — or `null` when a required field is
  * missing or invalid, meaning the section must not render. Keys the spec does
  * not declare are ignored.
+ *
+ * `context` is the page the section sits on. A field that page supplies itself
+ * (`fromPage`) is not read there at all — the section takes the page's value —
+ * and without a context such a field is read like any other, so a caller that
+ * does not know the page is never more lenient than the backend.
  */
 export function readSettings<T extends Record<string, SectionFieldSpec>>(
   specs: T,
   raw: unknown,
+  context?: SectionPageContext,
 ): SettingsOf<T> | null {
   const source = isPlainObject(raw) ? raw : {};
   const settings: Record<string, unknown> = {};
   for (const [key, spec] of Object.entries(specs)) {
+    if (context && spec.fromPage?.includes(context)) continue;
     const value = readField(spec, source[key]);
     if (value === undefined) {
       if (!spec.optional) return null;

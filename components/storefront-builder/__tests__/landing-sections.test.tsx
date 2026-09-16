@@ -108,6 +108,7 @@ describe("sticky-order-bar", () => {
       product,
       currency: "BDT",
       buttonLabel: "Order now",
+      onProductPage: false,
     });
   });
 

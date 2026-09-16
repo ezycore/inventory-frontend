@@ -3,6 +3,7 @@
 
 import { useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import { Button } from "@/ui/components/button";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
 import { cn } from "@/ui/lib/utils";
@@ -52,8 +53,11 @@ export function SectionTree({
   onDuplicate,
   onRemove,
   onAdd,
+  context,
 }: {
   sections: EditorSection[];
+  /** The page being edited, so a setting that page supplies is not reported missing. */
+  context?: SectionPageContext;
   selectedId: string | null;
   onSelect: (id: string) => void;
   onMove: (id: string, delta: -1 | 1) => void;
@@ -74,7 +78,7 @@ export function SectionTree({
         <ol className="space-y-1">
           {sections.map((section, index) => {
             const selected = section.id === selectedId;
-            const complete = isComplete(section);
+            const complete = isComplete(section, context);
             return (
               <li
                 key={section.id}

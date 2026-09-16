@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
+import type { CatalogProduct } from "@/lib/storefront-client";
 import { getStoreContext } from "@/lib/storefront-host";
 import { getStore, getStorefrontPage, requestStorefront } from "@/lib/storefront-server";
 import { BuilderPageBody } from "@/components/storefront-builder/builder-page-body";
@@ -17,12 +18,18 @@ import { BuilderPageBody } from "@/components/storefront-builder/builder-page-bo
  * it either way, and only the merchant's own sections above and below it are
  * new. A store that has not moved this page — every store until its own cutover
  * — hears a 404 from the page read, which is the normal answer, not an error.
+ *
+ * `product` is the product route's own product: it tells the sections they are
+ * on the product page and hands the ones that sell a product (offer, order form,
+ * order bar, related products) the product to sell.
  */
 export async function SystemPage({
   path,
+  product,
   children,
 }: {
   path: string;
+  product?: CatalogProduct;
   children: ReactNode;
 }) {
   const { slug, base } = await getStoreContext();
@@ -36,6 +43,8 @@ export async function SystemPage({
         base={base}
         store={store}
         page={builder.page}
+        pageContext={product ? "product" : undefined}
+        product={product}
       />
     );
   }

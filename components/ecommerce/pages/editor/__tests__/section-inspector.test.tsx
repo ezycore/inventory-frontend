@@ -12,12 +12,14 @@ globalThis.ResizeObserver ??= class {
 
 import { SectionInspector } from "../section-inspector";
 import type { EditorSection } from "../section-instances";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 
-const inspect = (section: EditorSection) =>
+const inspect = (section: EditorSection, context?: SectionPageContext) =>
   renderWithProviders(
     <SectionInspector
       section={section}
       device="desktop"
+      context={context}
       onChange={() => {}}
       onAddBlock={() => {}}
       onClose={() => {}}
@@ -85,5 +87,24 @@ describe("SectionInspector — Show on", () => {
     expect(screen.queryByText("Show on")).toBeNull();
     expect(screen.queryByLabelText("Phones")).toBeNull();
     expect(screen.queryByLabelText("Computers and tablets")).toBeNull();
+  });
+});
+
+describe("SectionInspector — the product page's own product", () => {
+  it("offers no product picker on the product page, and does not call the section unfinished", () => {
+    inspect({ id: "offer", type: "offer-pricing", v: 1, enabled: true, settings: {} }, "product");
+    expect(screen.getByText("Product: the one this page shows.")).toBeTruthy();
+    expect(screen.queryByText(/Fill in the fields marked/)).toBeNull();
+  });
+
+  it("still asks for the product on a landing page", () => {
+    inspect({ id: "offer", type: "offer-pricing", v: 1, enabled: true, settings: {} }, "landing");
+    expect(screen.queryByText("Product: the one this page shows.")).toBeNull();
+    expect(screen.getByText(/Fill in the fields marked/)).toBeTruthy();
+  });
+
+  it("offers the product section's switch for its own related row", () => {
+    inspect({ id: "main", type: "product-main", v: 1, enabled: true, settings: {} }, "product");
+    expect(screen.getByText("Hide “You may also like”")).toBeTruthy();
   });
 });

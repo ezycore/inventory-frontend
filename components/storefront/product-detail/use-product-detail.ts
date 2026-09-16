@@ -38,11 +38,7 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     isLoading,
     isError,
   } = useStoreProduct(slug, productSlug, initialProduct);
-  // Related picks: same category when the product has one, latest otherwise.
-  const { data: relatedData } = useStoreProducts(
-    slug,
-    product?.categoryId ? { categoryId: product.categoryId, limit: 8 } : { limit: 8 },
-  );
+  const related = useRelatedProducts(product);
 
   // The component survives PDP→PDP navigation (related products), so the
   // shopper's picks reset per product slug.
@@ -59,8 +55,27 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
     galleryTop: variant !== "left",
     /** The "sticky bar" layout — <ProductStickyBar> measures its own height. */
     sticky: variant === "sticky",
-    related: (relatedData?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, 4),
+    related,
   };
+}
+
+/**
+ * Products like this one: its collection's when it has one, the newest
+ * otherwise, never itself — the product page's "You may also like" row, and the
+ * Related products section that can take its place (plan §17, Phase 6 step 5).
+ * One query for both, so a page drawing the section beside a hidden row asks
+ * the catalogue once.
+ */
+export function useRelatedProducts(
+  product: Pick<CatalogProduct, "slug" | "categoryId"> | undefined,
+  limit = 4,
+): CatalogProduct[] {
+  const { slug } = useStoreContext();
+  const { data } = useStoreProducts(
+    slug,
+    product?.categoryId ? { categoryId: product.categoryId, limit: 8 } : { limit: 8 },
+  );
+  return (data?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, limit);
 }
 
 export type ProductDetail = ReturnType<typeof useProductDetail>;

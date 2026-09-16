@@ -55,6 +55,9 @@ const ISLANDS = {
     import("./offer-price").then((module) => module.OfferPriceIsland),
   ),
   /** A phone bar pinned to the bottom, leading to the page's order form. */
+  "related-products": dynamic(() =>
+    import("./related-products").then((module) => module.RelatedProductsIsland),
+  ),
   "sticky-order-bar": dynamic(() =>
     import("./sticky-order-bar").then((module) => module.StickyOrderBarIsland),
   ),

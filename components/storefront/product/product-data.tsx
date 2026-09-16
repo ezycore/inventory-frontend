@@ -26,7 +26,7 @@ export function ProductDataProvider({
 }
 
 /** The product, drawn from whatever the route resolved. Used by the core section. */
-export function ProductFromRoute() {
+export function ProductFromRoute({ hideRelated }: { hideRelated?: boolean }) {
   const { initialProduct } = useContext(ProductDataContext);
-  return <ProductPageView initialProduct={initialProduct} />;
+  return <ProductPageView initialProduct={initialProduct} hideRelated={hideRelated} />;
 }

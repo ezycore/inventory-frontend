@@ -181,11 +181,31 @@ export const SECTION_SPECS = {
     pages: ["collection"],
     settings: {},
   },
-  /** The product itself, on the product page once it is on the builder. */
+  /**
+   * The product itself, on the product page once it is on the builder.
+   * `hideRelated` drops its own "You may also like" row, for a page where the
+   * merchant places a Related products section instead; unset keeps the row,
+   * which is what every page moved from the classic product page draws.
+   */
   "product-main": {
     v: 1,
     pages: ["product"],
-    settings: {},
+    settings: {
+      hideRelated: { type: "boolean", optional: true },
+    },
+  },
+  /**
+   * Products like the one on the page — its collection's, else the newest — as
+   * the product page's own row draws them. Product page only: it needs a product
+   * to be like. `limit` unset shows four, the built-in row's number.
+   */
+  "related-products": {
+    v: 1,
+    pages: ["product"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      limit: { type: "number", min: 1, max: 8, int: true, optional: true },
+    },
   },
   faq: {
     v: 1,
@@ -386,11 +406,12 @@ export const SECTION_SPECS = {
    */
   "order-form": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 400, optional: true },
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
       coupon: { type: "boolean", optional: true },
     },
   },
@@ -416,23 +437,26 @@ export const SECTION_SPECS = {
    */
   "offer-pricing": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 400, optional: true },
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
     },
   },
   /**
    * A bar pinned to the bottom of a phone screen: the product's name and price,
-   * and a button to the page's order form — or to the product page when the page
-   * has none. Hidden while an order form is on screen.
+   * and a button to the page's order form — or, with none, to the product page
+   * (on the product page itself: back up to its buy buttons). Hidden while an
+   * order form is on screen.
    */
   "sticky-order-bar": {
     v: 1,
-    pages: ["landing"],
+    pages: ["landing", "product"],
     settings: {
-      productId: { type: "ref", to: "product" },
+      /** On the product page, the page's own product. */
+      productId: { type: "ref", to: "product", fromPage: ["product"] },
       buttonLabel: { type: "string", max: 30, optional: true },
     },
   },

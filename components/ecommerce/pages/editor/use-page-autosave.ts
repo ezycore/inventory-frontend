@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getErrorMessage, isApiError } from "@/lib/error-handling";
 import { useSaveStorefrontPageDraft, type StorefrontPage } from "@/services/api";
-import { savableSections, type EditorSection } from "./section-instances";
+import { pageContextOf, savableSections, type EditorSection } from "./section-instances";
 import { loadedSections } from "./use-page-editor";
 
 /** How long after the last edit the draft saves. */
@@ -28,7 +28,7 @@ export interface PageAutosave {
 }
 
 const savedStateOf = (page: StorefrontPage) => ({
-  json: JSON.stringify(savableSections(loadedSections(page))),
+  json: JSON.stringify(savableSections(loadedSections(page), pageContextOf(page))),
   version: page.draftVersion,
 });
 

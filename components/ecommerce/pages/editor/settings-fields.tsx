@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
+import type { SectionFieldSpec, SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import { Label } from "@/ui/components/label";
 import { FocalPointPicker } from "@/components/ecommerce/customize/focal-point-picker";
@@ -29,19 +29,23 @@ const pictureUrl = (value: unknown): string | undefined => {
  * desktop value, or the phone's — which follows the desktop until it is set, and
  * can be reset back to it. A focus point is edited over the picture it belongs to
  * (the phone picture, on a phone, when there is one) and is hidden until there is
- * a picture to point at.
+ * a picture to point at. A setting the page supplies itself (`fromPage` — the
+ * product page's product) is not offered; a line says where it comes from.
  */
 export function SettingsFields({
   idPrefix,
   specs,
   settings,
   device,
+  context,
   onChange,
 }: {
   idPrefix: string;
   specs: Record<string, SectionFieldSpec>;
   settings: Record<string, unknown>;
   device: EditorDevice;
+  /** The page being edited. */
+  context?: SectionPageContext;
   onChange: (settings: Record<string, unknown>) => void;
 }) {
   return (
@@ -49,6 +53,13 @@ export function SettingsFields({
       {Object.entries(specs).map(([key, spec]) => {
         const id = `${idPrefix}-${key}`;
         const label = fieldLabel(key);
+        if (context && spec.fromPage?.includes(context)) {
+          return (
+            <p key={key} className="text-sm text-muted-foreground">
+              {label}: the one this page shows.
+            </p>
+          );
+        }
         const hint = fieldHint(key);
         const value = fieldValue(settings, key, spec, device);
         const set = (next: unknown) => onChange(withFieldValue(settings, key, spec, next, device));

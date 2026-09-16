@@ -7,12 +7,17 @@ import { StickyOrderBarIsland } from "@/components/storefront-builder/islands/st
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   paused: null as { message: string } | null,
+  productLayout: "default" as string,
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("@/services/storefront/use-orders-paused", () => ({ useOrdersPaused: () => mocks.paused }));
 vi.mock("@/services/storefront/store-context", () => ({
   useStoreContext: () => ({ slug: "rafi5", base: "/shop" }),
+}));
+vi.mock("@/services/storefront/hooks", () => ({ useStore: () => ({ data: undefined }) }));
+vi.mock("@/services/stores/use-sf-preview-store", () => ({
+  useStoreTemplate: () => mocks.productLayout,
 }));
 vi.mock("@/services/storefront/ui-context", () => ({
   useStorefrontUI: () => ({ t: { buyNow: "Buy now", fromPrice: "From" } }),
@@ -54,6 +59,7 @@ beforeEach(() => {
   observed = undefined;
   mocks.push.mockReset();
   mocks.paused = null;
+  mocks.productLayout = "default";
   vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
 });
 
@@ -106,5 +112,33 @@ describe("StickyOrderBarIsland", () => {
       />,
     );
     expect(screen.getByRole("button")).toBeTruthy();
+  });
+
+  describe("on the product page itself", () => {
+    it("goes back up to the buy buttons rather than reopening the page", () => {
+      const scrollTo = vi.fn();
+      vi.stubGlobal("scrollTo", scrollTo);
+      render(<StickyOrderBarIsland product={product()} currency="BDT" onProductPage />);
+      fireEvent.click(screen.getByRole("button", { name: "Buy now" }));
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
+      expect(mocks.push).not.toHaveBeenCalled();
+    });
+
+    it("still scrolls to an order form placed on the page", () => {
+      const form = addOrderForm();
+      render(<StickyOrderBarIsland product={product()} currency="BDT" onProductPage />);
+      fireEvent.click(screen.getByRole("button", { name: "Buy now" }));
+      expect(form.scrollIntoView).toHaveBeenCalled();
+    });
+
+    it("stays away when the product page's sticky-bar layout already pins a bar", () => {
+      mocks.productLayout = "sticky";
+      render(<StickyOrderBarIsland product={product()} currency="BDT" onProductPage />);
+      expect(screen.queryByRole("button")).toBeNull();
+      cleanup();
+      // On a landing page the layout of the product page is not in play.
+      render(<StickyOrderBarIsland product={product()} currency="BDT" />);
+      expect(screen.getByRole("button")).toBeTruthy();
+    });
   });
 });

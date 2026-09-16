@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
+import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
 import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
@@ -62,9 +63,12 @@ export function SectionInspector({
   onChange,
   onAddBlock,
   onClose,
+  context,
 }: {
   section: EditorSection;
   device: EditorDevice;
+  /** The page being edited, for the settings that page supplies itself. */
+  context?: SectionPageContext;
   onChange: (section: EditorSection) => void;
   onAddBlock: () => void;
   onClose: () => void;
@@ -111,7 +115,7 @@ export function SectionInspector({
     <div className="space-y-6">
       {header}
 
-      {isComplete(section) ? null : (
+      {isComplete(section, context) ? null : (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-300">
           Fill in the fields marked * — this section is not saved until they are.
         </p>
@@ -129,6 +133,7 @@ export function SectionInspector({
             specs={spec.settings}
             settings={section.settings}
             device={device}
+            context={context}
             onChange={(settings) => onChange({ ...section, settings })}
           />
 

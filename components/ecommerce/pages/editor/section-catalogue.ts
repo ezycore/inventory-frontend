@@ -94,6 +94,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A product's photos, options and buy buttons. Created when your product page moves onto the builder.",
     addable: false,
   },
+  "related-products": {
+    label: "Related products",
+    group: "Products",
+    description:
+      "Products like the one on the page, from its collection. To show them here instead of under the product, turn on Hide “You may also like” in the Product section.",
+    addable: true,
+  },
   faq: {
     label: "FAQ",
     group: "Content",
@@ -191,7 +198,7 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     label: "Sticky order bar",
     group: "Conversion",
     description:
-      "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product page when there is none.",
+      "A bar pinned to the bottom of phone screens. Its button goes to the order form on the page, or to the product's buy buttons when there is none.",
     addable: true,
     pinned: true,
   },
@@ -298,6 +305,7 @@ const FIELD_LABELS: Record<string, string> = {
   photo: "Photo",
   poster: "Cover picture",
   productId: "Product",
+  hideRelated: "Hide “You may also like”",
   productIds: "Products",
   promises: "Show your promises",
   question: "Question",
@@ -331,6 +339,7 @@ const FIELD_LABELS: Record<string, string> = {
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
 
 const HINTS: Record<string, string> = {
+  hideRelated: "Add a Related products section to show them somewhere else on the page.",
   alt: "Say what the picture shows. Screen readers read it aloud.",
   frame: "Default shows each picture whole. A shape crops it to fit.",
   buttonHref: "A page on your store like /products, a full web address, or tel: / mailto:.",

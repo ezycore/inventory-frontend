@@ -34,8 +34,11 @@ const wrap: CSSProperties = {
  */
 export function ProductPageView({
   initialProduct,
+  hideRelated = false,
 }: {
   initialProduct?: CatalogProduct;
+  /** Leave out "You may also like" — a builder page placing a Related products section instead. */
+  hideRelated?: boolean;
 }) {
   const d = useProductDetail(initialProduct);
   const { t, base, product } = d;
@@ -86,7 +89,7 @@ export function ProductPageView({
           the size chart). */}
       <ProductLongDescription d={d} id="description" />
 
-      {d.related.length > 0 ? (
+      {!hideRelated && d.related.length > 0 ? (
         <div style={{ marginTop: 44 }}>
           <SectionTitle>{t.relatedTitle}</SectionTitle>
           <div className="sf-grid-4">
