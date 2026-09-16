@@ -1,8 +1,9 @@
 // coding-standard: maintained
 import type { ReactNode } from "react";
-import { getStoreContext } from "@/lib/storefront-host";
+import { getStoreContext, isBuilderPreviewFrame } from "@/lib/storefront-host";
 import { getStore, getStorefrontPage, requestStorefront } from "@/lib/storefront-server";
 import { BuilderPageBody } from "@/components/storefront-builder/builder-page-body";
+import { BuilderPagePreview } from "@/components/storefront-builder/builder-page-preview";
 
 /**
  * A system page: the store's builder page for this address when it has one, and
@@ -29,6 +30,19 @@ export async function SystemPage({
   const store = slug ? await getStore(slug) : null;
   const builder = store ? await getStorefrontPage(slug, path) : null;
   if (store && builder?.page) {
+    // Inside the page editor's frame the page is the draft, redrawn as the
+    // merchant edits — the same preview a content or landing page gets.
+    if (await isBuilderPreviewFrame()) {
+      return (
+        <BuilderPagePreview
+          reads={requestStorefront}
+          slug={slug}
+          base={base}
+          store={store}
+          page={builder.page}
+        />
+      );
+    }
     return (
       <BuilderPageBody
         reads={requestStorefront}

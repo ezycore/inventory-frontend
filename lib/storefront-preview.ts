@@ -53,6 +53,22 @@ export const PREVIEW_CLEAR_PARAM = "previewEnded";
  */
 export const PREVIEW_REQUEST_HEADER = "x-ezy-store-preview";
 
+/**
+ * URL param the page editor's frame adds (`builder=1`): this preview streams a
+ * builder page's unsaved sections, rather than being the Customize frame, which
+ * sends `preview=1` alone.
+ */
+export const PREVIEW_BUILDER_PARAM = "builder";
+
+/**
+ * Request header `proxy.ts` sets when a preview request carries
+ * `PREVIEW_BUILDER_PARAM` — how a system route, which never receives
+ * `searchParams` in its shared wrapper, knows it is inside the page editor's
+ * frame. Only ever set beside `PREVIEW_REQUEST_HEADER`, and stripped from
+ * inbound requests with it.
+ */
+export const PREVIEW_BUILDER_HEADER = "x-ezy-store-preview-builder";
+
 /** Header the storefront presents the token to the backend API on. */
 export const PREVIEW_API_HEADER = "x-storefront-preview";
 

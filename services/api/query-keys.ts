@@ -372,6 +372,8 @@ export const queryKeys = {
   storefrontPages: {
     ...resourceKeys("storefront-pages"),
     revisions: (id: string) => ["storefront-pages", "detail", id, "revisions"] as const,
+    /** The product the editor previews the shared product page around. */
+    previewProduct: (slug: string) => ["storefront-pages", "preview-product", slug] as const,
   },
   /** The store's look with draft and publish — one per store. Revisions sit under the root, so a publish flushes them. */
   storefrontSite: {

@@ -35,5 +35,13 @@ export default async function PreviewPage({
 
   const page = site.builder?.page;
   if (!page) return <StorePageBody reads={requestStorefront} site={site} />;
-  return <BuilderPagePreview reads={requestStorefront} site={site} store={site.store} page={page} />;
+  return (
+    <BuilderPagePreview
+      reads={requestStorefront}
+      slug={site.slug}
+      base={site.base}
+      store={site.store}
+      page={page}
+    />
+  );
 }

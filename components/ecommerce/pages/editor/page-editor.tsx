@@ -18,12 +18,14 @@ import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-
 import { AddSectionDialog } from "./add-section-dialog";
 import { EditorToolbar } from "./editor-toolbar";
 import { PagePreviewFrame } from "./page-preview-frame";
+import { previewAddress } from "./preview-address";
 import { PageSettingsDialog } from "./page-settings-dialog";
 import { RevisionsDialog } from "./revisions-dialog";
 import { SectionInspector } from "./section-inspector";
 import { SectionTree } from "./section-tree";
 import { usePageAutosave } from "./use-page-autosave";
 import { loadedSections, usePageEditor } from "./use-page-editor";
+import { usePreviewProductSlug } from "./use-preview-product";
 import { useUndoShortcuts } from "./use-undo-shortcuts";
 
 /** Which sections a page may hold is decided by what kind of page it is. */
@@ -41,6 +43,8 @@ const contextOf = (page: StorefrontPage): SectionPageContext =>
  */
 export function PageEditor({ page }: { page: StorefrontPage }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
+  const isProductPage = page.kind === "system" && page.systemKey === "product";
+  const previewProduct = usePreviewProductSlug(slug, isProductPage);
   const editor = usePageEditor(page);
   const autosave = usePageAutosave(page, editor.savable);
   useUndoShortcuts(editor.undo, editor.redo);
@@ -131,8 +135,14 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
         <div className="min-w-0 lg:sticky lg:top-6">
           <PagePreviewFrame
             slug={slug}
-            pageSlug={page.slug}
-            home={page.kind === "system" && page.systemKey === "home"}
+            address={previewAddress(page, previewProduct.data)}
+            unavailable={
+              isProductPage && previewProduct.isPending
+                ? "Finding a product to preview…"
+                : isProductPage
+                  ? "Add a product to your store to preview this page."
+                  : undefined
+            }
             sections={editor.sections}
             device={editor.device}
             onDeviceChange={editor.setDevice}

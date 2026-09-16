@@ -14,6 +14,8 @@ import {
 } from "@/lib/storefront-domain-lookup";
 import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
 import {
+  PREVIEW_BUILDER_HEADER,
+  PREVIEW_BUILDER_PARAM,
   PREVIEW_CLEAR_PARAM,
   PREVIEW_COOKIE,
   PREVIEW_REQUEST_HEADER,
@@ -125,6 +127,7 @@ export async function proxy(request: NextRequest) {
   headers.delete("x-ezy-store-base");
   headers.delete("x-ezy-store-origin");
   headers.delete(PREVIEW_REQUEST_HEADER);
+  headers.delete(PREVIEW_BUILDER_HEADER);
 
   // The cached route's internal path is not a public URL. Served directly it would
   // put any store on the platform host (`app.ezycore.com/sites/<slug>/…`) — a
@@ -162,6 +165,11 @@ export async function proxy(request: NextRequest) {
       ? null
       : (freshToken ?? request.cookies.get(PREVIEW_COOKIE)?.value ?? null);
     if (previewToken) headers.set(PREVIEW_REQUEST_HEADER, previewToken);
+    // The page editor's frame of a system page (`/cart?builder=1`): the route
+    // draws the draft live instead of as saved. Meaningless without a token.
+    if (previewToken && request.nextUrl.searchParams.get(PREVIEW_BUILDER_PARAM) === "1") {
+      headers.set(PREVIEW_BUILDER_HEADER, "1");
+    }
 
     /** Remembers a token that arrived in the URL, on this store's host only. */
     const keepPreview = (response: NextResponse): NextResponse => {
@@ -246,7 +254,7 @@ export async function proxy(request: NextRequest) {
     // The page editor's frame of a builder home says so (`builder=1`) and is let
     // through, since it streams that page's unsaved sections.
     const search = request.nextUrl.searchParams;
-    const customizeFrame = search.get("preview") === "1" && search.get("builder") !== "1";
+    const customizeFrame = search.get("preview") === "1" && search.get(PREVIEW_BUILDER_PARAM) !== "1";
     if (
       (request.method === "GET" || request.method === "HEAD") &&
       isStoreHomePath(store, pathname) &&

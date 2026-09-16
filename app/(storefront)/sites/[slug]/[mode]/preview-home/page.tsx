@@ -27,5 +27,13 @@ export default async function PreviewHomePage({
   const site = await loadStoreHome(requestStorefront, await params);
   const page = site?.builder?.page;
   if (!site?.store || !page) notFound();
-  return <BuilderPagePreview reads={requestStorefront} site={site} store={site.store} page={page} />;
+  return (
+    <BuilderPagePreview
+      reads={requestStorefront}
+      slug={site.slug}
+      base={site.base}
+      store={site.store}
+      page={page}
+    />
+  );
 }

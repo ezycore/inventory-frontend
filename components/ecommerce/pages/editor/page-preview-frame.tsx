@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, RotateCw } from "lucide-react";
 import { useStorefrontPreviewToken } from "@/services/api";
-import { PREVIEW_TOKEN_PARAM } from "@/lib/storefront-preview";
+import { PREVIEW_BUILDER_PARAM, PREVIEW_TOKEN_PARAM } from "@/lib/storefront-preview";
 import { storefrontUrl } from "@/lib/storefront-url";
 import {
   PAGE_DRAFT_MESSAGE,
@@ -18,6 +18,7 @@ import {
   PreviewStage,
   previewFrameSize,
 } from "@/components/ecommerce/customize/preview-stage";
+import { needsBuilderParam } from "./preview-address";
 import type { EditorDevice, EditorSection } from "./section-instances";
 
 const toolbarButton =
@@ -35,8 +36,8 @@ const toolbarButton =
  */
 export function PagePreviewFrame({
   slug,
-  pageSlug,
-  home = false,
+  address,
+  unavailable = "Store address unavailable.",
   sections,
   device,
   onDeviceChange,
@@ -45,9 +46,10 @@ export function PagePreviewFrame({
   height = "calc(100vh - 11rem)",
 }: {
   slug?: string;
-  pageSlug?: string;
-  /** The store's home page, drawn at the store's own address rather than `/pages/<slug>`. */
-  home?: boolean;
+  /** The store address the page is previewed at (`previewAddress`); `null` when it has none yet. */
+  address: string | null;
+  /** What the pane says in place of a frame when there is no address. */
+  unavailable?: string;
   sections: EditorSection[];
   device: EditorDevice;
   onDeviceChange: (device: EditorDevice) => void;
@@ -96,20 +98,19 @@ export function PagePreviewFrame({
     return () => window.removeEventListener("message", onMessage);
   }, [sendDraft, sendFocus, onSelect]);
 
-  if (!slug || (!pageSlug && !home)) {
+  if (!slug || !address) {
     return (
       <div className="rounded-xl border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-        Store address unavailable.
+        {slug ? unavailable : "Store address unavailable."}
       </div>
     );
   }
 
   const token = preview?.token;
-  const pageUrl = home ? storefrontUrl(slug) : `${storefrontUrl(slug)}/pages/${pageSlug}`;
-  const address = home ? "/" : `/pages/${pageSlug}`;
+  const pageUrl = `${storefrontUrl(slug)}${address === "/" ? "" : address}`;
   const frameQuery = new URLSearchParams({ preview: "1" });
-  // `preview=1` alone keeps the store's address on the Customize home; `builder=1` asks for this page.
-  if (home) frameQuery.set("builder", "1");
+  // `preview=1` alone is the Customize preview at `/` and at a system route; `builder=1` asks for this page.
+  if (needsBuilderParam(address)) frameQuery.set(PREVIEW_BUILDER_PARAM, "1");
   if (token) frameQuery.set(PREVIEW_TOKEN_PARAM, token);
   // No `preview=1`: a tab of its own shows the saved draft and can be browsed.
   const tabUrl = token ? `${pageUrl}?${PREVIEW_TOKEN_PARAM}=${encodeURIComponent(token)}` : pageUrl;
