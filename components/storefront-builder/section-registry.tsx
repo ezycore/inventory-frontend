@@ -27,6 +27,8 @@ import { CartLinesSection } from "@/components/storefront-builder/sections/cart-
 import { CheckoutFormSection } from "@/components/storefront-builder/sections/checkout-form";
 import { AccountAreaSection } from "@/components/storefront-builder/sections/account-area";
 import { SearchResultsSection } from "@/components/storefront-builder/sections/search-results";
+import { CollectionGridSection } from "@/components/storefront-builder/sections/collection-grid";
+import { ProductMainSection } from "@/components/storefront-builder/sections/product-main";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
@@ -223,6 +225,12 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   "search-results": defineSection(SECTION_SPECS["search-results"], SearchResultsSection, {
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "collection-grid": defineSection(SECTION_SPECS["collection-grid"], CollectionGridSection, {
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "product-main": defineSection(SECTION_SPECS["product-main"], ProductMainSection, {
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   faq: defineSection(SECTION_SPECS.faq, FaqSection, {

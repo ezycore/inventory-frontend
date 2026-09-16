@@ -32,7 +32,7 @@ const wrap: CSSProperties = {
  * `initialProduct` is server-fetched in `page.tsx` so this page's content is in
  * the SSR HTML — see the note there.
  */
-export default function ProductDetailPage({
+export function ProductPageView({
   initialProduct,
 }: {
   initialProduct?: CatalogProduct;

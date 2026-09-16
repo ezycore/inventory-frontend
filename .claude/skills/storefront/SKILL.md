@@ -4291,9 +4291,16 @@ rule lives in `app/(storefront)/storefront-builder.css` beside the identical one
 `addable: false`, so a section a merchant cannot add is one they cannot delete either; the API refuses
 it too (`STOREFRONT_PAGE_CORE_SECTION`).
 
-**Not yet moved: `/products` and the product page.** Their views need the route's own data — the
-collection, the product, the seeded first page of results — which the section runtime has no way to
-hand them.
+**The collection and product pages work the other way round.** Their views need the route's own data,
+which the section runtime cannot hand them — so the ROUTE fetches as it always did (it owns the URL,
+the cache key, the breadcrumb and the JSON-LD) and puts the result in a small client context
+(`CollectionDataProvider` / `ProductDataProvider`); the core section reads it (`CollectionFromRoute`,
+`ProductFromRoute`) and takes no settings at all.
+
+**One page serves them all.** `/products` and every `/{category}/{sub?}` ask for the same `collection`
+page, and every `/products/<slug>` answers with the one `product` page — matched by shape on the
+backend, since that slug names a product, not a page. So a section a merchant adds to the product page
+appears under the whole catalogue at once. Order tracking and not-found stay classic.
 
 **Proving a move locally:** the frontend serves a cached page read stale for 300 s, so a baseline taken
 just before a migration compares against a page that has not changed yet and reads as a regression.

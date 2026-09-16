@@ -251,7 +251,7 @@ function CollectionInner({
   );
 }
 
-export default function CollectionPage({
+export function CollectionPageView({
   initialProducts,
   initialPage = 1,
   collection,

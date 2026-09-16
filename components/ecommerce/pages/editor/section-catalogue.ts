@@ -79,6 +79,18 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "What a shopper's search finds. Created when your search page moves onto the builder.",
     addable: false,
   },
+  "collection-grid": {
+    label: "Products",
+    group: "Content",
+    description: "A collection's products. Created when your collection page moves onto the builder.",
+    addable: false,
+  },
+  "product-main": {
+    label: "Product",
+    group: "Content",
+    description: "A product's photos, options and buy buttons. Created when your product page moves onto the builder.",
+    addable: false,
+  },
   faq: {
     label: "FAQ",
     group: "Content",

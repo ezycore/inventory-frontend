@@ -35,6 +35,8 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "checkout-form": { settings: {} },
   "account-area": { settings: {} },
   "search-results": { settings: {} },
+  "collection-grid": { settings: {} },
+  "product-main": { settings: {} },
   faq: {
     settings: { heading: "Questions" },
     blocks: [{ question: "Do you deliver everywhere?", answer: "Write your answer here." }],

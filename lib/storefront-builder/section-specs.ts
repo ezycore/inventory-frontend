@@ -175,6 +175,18 @@ export const SECTION_SPECS = {
     pages: ["search"],
     settings: {},
   },
+  /** A collection's products, on the collection page once it is on the builder. */
+  "collection-grid": {
+    v: 1,
+    pages: ["collection"],
+    settings: {},
+  },
+  /** The product itself, on the product page once it is on the builder. */
+  "product-main": {
+    v: 1,
+    pages: ["product"],
+    settings: {},
+  },
   faq: {
     v: 1,
     pages: "all",
