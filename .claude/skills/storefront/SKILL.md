@@ -4366,3 +4366,21 @@ the same tokens in `storefront-builder.css`.
 **Headings:** `headingWeight` / `headingCase` restyle `h1–h4, .sf-display` under
 `[data-heading-*]` with `!important` (headings set weight inline). Ready-made themes stamp all five axes
 to Default. Base text size is NOT built (435 inline px sizes).
+
+## Phase 7 on the builder — scheduled landing pages (2026-09-16)
+
+**A schedule is a window over a published page, not a timed publish.** `StorefrontPage.schedule
+{ startsAt, endsAt, afterEnd: "not-found" | "home" | "page", afterEndPageId }`, landing pages only. The
+backend decides on every public read (`src/utils/storefront-page-schedule.ts`); the status stays
+`published`. So the storefront needs **no change** for it: an upcoming or ended page arrives as the 404
+the routes already draw, and the offer-over answer as `redirect: { path, permanent: false }`, which
+`store-page-body.tsx` already follows with `redirect()` (307). The page cache bounds how soon a start or
+end is seen (300 s) — do not add a boundary flush.
+
+**Admin side:** `components/ecommerce/pages/page-schedule.ts` is the one place that turns the stored
+instant into the dialog's date + time fields (device time) and back, builds the body, and names what
+blocks Save — reuse it rather than re-parsing dates in a new surface (`scheduleSummary` for a one-line
+"Starts / Ends / Ended …"). Page settings sends `schedule` **only when it changed**: re-sending an
+unchanged one would re-check a chosen page that may have been deleted since, and refuse a plain rename.
+The page picker (`AfterEndPagePicker`) mounts only for "Go to another page", so opening Page settings
+does not fetch the page list.

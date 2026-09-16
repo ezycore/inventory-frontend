@@ -189,8 +189,33 @@ Press **Page settings** to change:
   on for every new page, because an ad page is usually not worth finding by search. Turn it off for a
   page you want people to find on their own — it is then listed in your store's sitemap, the list of
   pages search engines read.
+- **Schedule** — landing pages only: when an offer starts and ends. See below.
 
 These save when you press **Save**, and take effect straight away, even on a published page.
+
+### Schedule an offer
+
+For an offer that runs from one day to another, publish the page first, then in **Page settings** fill in
+**Schedule**:
+
+- **Starts** — the day and time the page opens. Before then, shoppers who open its address see "page not
+  found". Leave it empty to open the page as soon as it is published.
+- **Ends** — the day and time the offer is over. Leave it empty for no end.
+- **After it ends** — what the page's address does once the offer is over:
+  - **Show “page not found”** — as if the page had never been published.
+  - **Go to your homepage** — shoppers from an ad that is still running land in your store.
+  - **Go to another page** — pick your next offer, or a page about it. If that page is not live when a
+    shopper arrives, they see "page not found".
+
+The times are your phone's or computer's own time. A day with no time means the start of that day.
+
+A start or end can take **up to five minutes** to reach shoppers. You can always see the page yourself in
+the editor, before it starts and after it ends.
+
+In **Pages**, a scheduled page shows **Starts**, **Ends** or **Ended** with the time under its status. To
+open the page again, clear both dates and press **Save**.
+
+A shopper who opened the order form before the end can still place their order.
 
 ## See the orders a page brought in
 
@@ -219,7 +244,8 @@ not seeing them.
 Search engines are given your store's own search title and description for the homepage, and the page's
 own address is hidden from them, so the same page is not listed twice.
 
-While a page is your homepage you cannot unpublish it or delete it. Stop using it as your homepage first.
+While a page is your homepage you cannot unpublish it, delete it or give it a schedule. Stop using it as
+your homepage first. A page with a schedule cannot be your homepage.
 
 ## Your shop's own pages
 
@@ -259,8 +285,8 @@ unpublished version, and nothing reaches shoppers until you press **Publish**.
 
 ## Copy or delete a page
 
-In **Pages**, **Duplicate** makes a copy to start the next campaign from. **Delete page** removes it
-for good, and its address stops working.
+In **Pages**, **Duplicate** makes a copy to start the next campaign from. The copy has no schedule, so set
+new dates for the new offer. **Delete page** removes it for good, and its address stops working.
 
 ## Why shoppers do not see my change
 
@@ -273,6 +299,8 @@ Check these in order:
    phone with **Phones** turned off.
 4. **The section is unfinished.** A row marked **Unfinished — not saved yet** is never published.
 5. **The page was unpublished.** The button reads **Turn back on**.
+6. **The offer has not started, or is over.** In **Pages**, the page shows **Starts** or **Ended** under its
+   status. See [Schedule an offer](#schedule-an-offer).
 
 If the editor shows *This page was saved somewhere else*, the page is open in another tab or on
 another device. Press **Reload** and carry on from what was saved — changes made in this tab after the
