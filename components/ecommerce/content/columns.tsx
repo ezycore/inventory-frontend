@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import Link from "next/link";
 import type { ContentPage } from "@/services/api";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { storefrontUrl } from "@/lib/storefront-url";
@@ -30,15 +31,37 @@ function pagePreviewHref(slug: string, pageSlug: string, token?: string): string
 export function buildContentColumns({
   storeSlug,
   previewToken,
+  movedPages,
 }: {
   storeSlug?: string;
   previewToken?: string;
+  /**
+   * Pages that now live on the builder, slug → page id. The storefront serves
+   * those from the builder page, so editing the row here changes nothing a
+   * shopper sees — the row says so and points at the editor that does.
+   */
+  movedPages?: Map<string, string>;
 }): ColumnDef<ContentPage>[] {
   return [
     {
       accessorKey: "title",
       header: "Title",
-      cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
+      cell: ({ row }) => {
+        const movedTo = movedPages?.get(row.original.slug);
+        return (
+          <div className="min-w-0">
+            <span className="font-medium">{row.original.title}</span>
+            {movedTo ? (
+              <div className="text-xs text-muted-foreground">
+                Moved to{" "}
+                <Link href={`/ecommerce/pages/${movedTo}`} className="font-medium text-primary hover:underline">
+                  Pages
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "slug",

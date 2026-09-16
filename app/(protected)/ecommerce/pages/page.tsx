@@ -20,6 +20,7 @@ import { buildPageColumns } from "@/components/ecommerce/pages/columns";
 import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
 import { NewPageDialog } from "@/components/ecommerce/pages/new-page-dialog";
+import { StorePagesTable } from "@/components/ecommerce/pages/store-pages-table";
 
 /**
  * Landing pages in the table. The builder API also holds content and system
@@ -109,6 +110,8 @@ export default function StorefrontPagesPage() {
           deleteTooltip: "Delete page",
         }}
       />
+
+      <StorePagesTable />
 
       <NewPageDialog open={creating} onOpenChange={setCreating} />
       <HomepageDialog page={homepageFor} onClose={() => setHomepageFor(null)} />
