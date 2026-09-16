@@ -205,6 +205,29 @@ own address is hidden from them, so the same page is not listed twice.
 
 While a page is your homepage you cannot unpublish it or delete it. Stop using it as your homepage first.
 
+## Your shop's own pages
+
+Pages also lists the pages your shop already had — your **Home page** at the top, your **Store pages**
+(About, FAQ, your policies) and your **Shop pages**: the cart, the checkout, search and the account
+area, plus the page every product uses and the page every collection uses.
+
+These are not landing pages and they behave differently:
+
+- **They keep their address.** You cannot rename, copy or delete them — shoppers and your own links
+  reach them at the address they have always had.
+- **Each one already shows what it shows.** The cart shows the cart; the product page shows the
+  product. That part sits in the page as a block you can move but not remove or hide.
+- **What you add is what is new.** Put a section above or below it — a size guide under every product,
+  a delivery promise above the checkout, your best-selling collections under an empty search.
+
+One thing to know before you add a section to the product page or a collection page: **there is one
+product page for every product, and one collection page for every collection.** A section you add
+under the product appears under *every* product in your shop, not just the one you were looking at.
+That is what makes it worth adding — write your returns policy once and it sits under all of them.
+
+Everything else works as it does for a landing page: sections are drafted, **Preview** shows your
+unpublished version, and nothing reaches shoppers until you press **Publish**.
+
 ## Copy or delete a page
 
 In **Pages**, **Duplicate** makes a copy to start the next campaign from. **Delete page** removes it
