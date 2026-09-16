@@ -27,6 +27,31 @@ const block = (id: string, settings: unknown) => ({ id, settings });
 const renderPage = (instances: PageSectionInstance[]) =>
   render(<PageSections sections={prepareSections(instances)} context={{ base: "/shop" }} data={{}} />);
 
+describe("content-body", () => {
+  it("hands the page's title, body and date to the store's own content frame", () => {
+    const { container } = renderPage([
+      section("c1", "content-body", {
+        title: "Return policy",
+        body: "## Returns\n\nWithin 7 days.",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }),
+    ]);
+    const island = container.querySelector("[data-island]") as HTMLElement;
+    expect(island.dataset.island).toBe("content-frame");
+    expect(JSON.parse(island.dataset.props ?? "{}")).toEqual({
+      title: "Return policy",
+      body: "## Returns\n\nWithin 7 days.",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    });
+  });
+
+  it("takes no room of its own: the content frame brings its column and padding", () => {
+    const [prepared] = prepareSections([section("c1", "content-body", { title: "About", body: "Hi" })]);
+    expect(prepared.frame.width).toBe("full");
+    expect(prepared.frame.style).toMatchObject({ "--sfb-pt": "0px", "--sfb-pb": "0px" });
+  });
+});
+
 describe("testimonials", () => {
   it("draws each review with its stars and name, and never calls one verified", () => {
     const { container } = renderPage([

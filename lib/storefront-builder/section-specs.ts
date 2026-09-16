@@ -115,6 +115,22 @@ export const SECTION_SPECS = {
       body: { type: "richText", maxBytes: 200_000 },
     },
   },
+  /**
+   * A content page's body in the store's content frame — the core section of a
+   * page moved from the Content screen (plan §6, §17 Phase 5 step 6). `body` is
+   * the page's own text in whichever format it was stored: rich text, or the
+   * markdown the CMS pages have always accepted (`ContentBodyView` reads both).
+   */
+  "content-body": {
+    v: 1,
+    pages: ["content"],
+    settings: {
+      title: { type: "string", max: 160 },
+      body: { type: "string", max: 200_000 },
+      /** The page's own "Last updated" date, kept from before the move. */
+      updatedAt: { type: "date", optional: true },
+    },
+  },
   faq: {
     v: 1,
     pages: "all",

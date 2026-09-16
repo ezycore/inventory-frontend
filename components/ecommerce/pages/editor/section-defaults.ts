@@ -27,6 +27,8 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
     blocks: [{ title: "Your headline", subtitle: "One line about the offer.", buttonLabel: "Shop now", link: "/products" }],
   },
   "rich-text": { settings: { body: paragraph("Write something here.") } },
+  // Never added by hand (`addable: false`): a page's move fills both settings in.
+  "content-body": { settings: { title: "", body: "" } },
   faq: {
     settings: { heading: "Questions" },
     blocks: [{ question: "Do you deliver everywhere?", answer: "Write your answer here." }],

@@ -60,6 +60,10 @@ const ISLANDS = {
   ),
   /** A video's click-to-load cover; the provider's player loads on press. */
   video: dynamic(() => import("./video").then((module) => module.VideoIsland)),
+  /** A content page's body in the store's own content frame, for a page moved onto the builder. */
+  "content-frame": dynamic(() =>
+    import("./content-frame").then((module) => module.ContentFrameIsland),
+  ),
   /** The storefront's own wording, in the shopper's language, where the merchant typed none. */
   "store-word": dynamic(() => import("./store-word").then((module) => module.StoreWordIsland)),
   /** A landing page's id, remembered for the order this visit may end in. Renders nothing. */

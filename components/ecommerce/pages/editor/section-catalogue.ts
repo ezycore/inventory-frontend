@@ -47,6 +47,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "Formatted text — headings, lists, links and pictures.",
     addable: true,
   },
+  "content-body": {
+    label: "Page body",
+    group: "Content",
+    description: "This page's text in your store's page frame. Created when a page moves here from Content.",
+    // Never offered in the library: it is the content page's own core section.
+    addable: false,
+  },
   faq: {
     label: "FAQ",
     group: "Content",

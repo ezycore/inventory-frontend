@@ -22,6 +22,7 @@ import {
   promoCards,
 } from "@/components/storefront-builder/sections/category-promo-cards";
 import { CategoryTilesSection } from "@/components/storefront-builder/sections/category-tiles";
+import { ContentBodySection } from "@/components/storefront-builder/sections/content-body";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { HeroSection, heroSlides, keepsEmptySlides } from "@/components/storefront-builder/sections/hero";
@@ -200,6 +201,10 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "rich-text": defineSection(SECTION_SPECS["rich-text"], RichTextSection, {
     isEmpty: (settings) => parseRichDoc(settings.body) === null,
+  }),
+  "content-body": defineSection(SECTION_SPECS["content-body"], ContentBodySection, {
+    // The frame draws the title even when the body is empty, as the page always did.
+    frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   faq: defineSection(SECTION_SPECS.faq, FaqSection, {
     isEmpty: (_settings, blocks) => blocks.length === 0,

@@ -50,6 +50,12 @@
   padding-inline: 0;
 }
 
+/* A content page's frame carries its own column and side padding (it is the
+   storefront's `ContentFrame`), so the section must not add a second gutter. */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-content-frame) {
+  padding-inline: 0;
+}
+
 /* ---- Shared pieces sections draw with ---- */
 
 /* The store's primary button, in the store's own colours. */
