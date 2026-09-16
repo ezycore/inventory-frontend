@@ -266,6 +266,11 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       width: "wide",
       navHover: "underline",
       navChildHover: "highlight",
+      buttonShape: "pill",
+      buttonStyle: "soft",
+      buttonSize: "sm",
+      headingWeight: "regular",
+      headingCase: "upper",
     };
     expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
   });

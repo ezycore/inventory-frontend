@@ -7,8 +7,13 @@ import { useUpdateStorefrontMedia } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import {
+  DESIGN_BUTTON_SHAPES,
+  DESIGN_BUTTON_SIZES,
+  DESIGN_BUTTON_STYLES,
   DESIGN_DENSITIES,
   DESIGN_FONTS,
+  DESIGN_HEADING_CASES,
+  DESIGN_HEADING_WEIGHTS,
   DEFAULT_DESIGN,
   DESIGN_RADII,
   DESIGN_SCALES,
@@ -222,6 +227,27 @@ export function LookPart({
             />
           </PartField>
 
+          <PartField label="Heading weight">
+            <SegmentedField
+              label="Heading weight"
+              value={draft.design.headingWeight}
+              onChange={(headingWeight) => set({ headingWeight })}
+              options={DESIGN_HEADING_WEIGHTS.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField
+            label="Heading letters"
+            hint="Capitals apply to English headings; Bangla has none."
+          >
+            <SegmentedField
+              label="Heading letters"
+              value={draft.design.headingCase}
+              onChange={(headingCase) => set({ headingCase })}
+              options={DESIGN_HEADING_CASES.map(toSegmentedOption)}
+            />
+          </PartField>
+
           <PartField
             label="Spacing"
             hint="Also sets how many products sit side by side on a wide screen."
@@ -283,6 +309,46 @@ export function LookPart({
               </PartField>
             </>
           ) : null}
+        </div>
+      </PartBlock>
+
+      {/* One block for the three button questions. Default on each keeps every
+          button exactly as it is drawn today — the shop's buttons were never one
+          size or shape, so Default is "as they are", not a fourth style. */}
+      <PartBlock
+        label="Buttons"
+        hint="Applies to the buy, checkout and other main buttons across the shop. Default keeps them as they are."
+      >
+        <div className="space-y-3.5">
+          <PartField label="Shape">
+            <SegmentedField
+              label="Button shape"
+              value={draft.design.buttonShape}
+              onChange={(buttonShape) => set({ buttonShape })}
+              options={DESIGN_BUTTON_SHAPES.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField
+            label="Style"
+            hint="Buttons on a hero or banner picture stay filled, so they can always be seen."
+          >
+            <SegmentedField
+              label="Button style"
+              value={draft.design.buttonStyle}
+              onChange={(buttonStyle) => set({ buttonStyle })}
+              options={DESIGN_BUTTON_STYLES.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField label="Size">
+            <SegmentedField
+              label="Button size"
+              value={draft.design.buttonSize}
+              onChange={(buttonSize) => set({ buttonSize })}
+              options={DESIGN_BUTTON_SIZES.map(toSegmentedOption)}
+            />
+          </PartField>
         </div>
       </PartBlock>
     </>

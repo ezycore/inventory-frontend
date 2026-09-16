@@ -10,6 +10,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
 import { wrap } from "@/components/storefront/home/wrap";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
+import { brandButton } from "@/lib/storefront-button";
 
 /** Brand-tinted panel backgrounds for slides without an image (alternating). */
 const TINTS = [
@@ -22,13 +23,9 @@ const TINTS = [
 ];
 
 const ctaStyle: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "11px 22px", fontSize: 14 }, { overPhoto: true }),
   display: "inline-block",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  fontSize: 14,
   fontWeight: 600,
-  padding: "11px 22px",
-  borderRadius: 9,
   // The hero panel is always dark; a near-black brandColor would sink the
   // button without this separation (see skill: --primary may be near-black).
   border: "1px solid rgba(255, 255, 255, 0.3)",

@@ -6,6 +6,7 @@ import { money } from "@/components/storefront/format";
 import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
 import type { ProductDetail } from "@/components/storefront/product-detail/use-product-detail";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * The "sticky bar" product template's bottom bar — name, price, Add to cart —
@@ -85,13 +86,9 @@ const title: CSSProperties = {
 };
 
 const cta: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "13px 26px", fontSize: 14 }),
   flex: "none",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
   border: "none",
-  padding: "13px 26px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14,
   fontWeight: 700,
 };

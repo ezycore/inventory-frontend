@@ -73,16 +73,20 @@
   align-items: center;
   justify-content: center;
   margin-top: 18px;
-  padding: 12px 22px;
-  border-radius: 10px;
-  background: var(--primary);
-  color: var(--on-primary);
+  /* The store's Buttons choices (storefront.css), each falling back to what
+     this button drew before them. */
+  padding: calc(12px * var(--btn-scale, 1)) calc(22px * var(--btn-scale, 1));
+  border-radius: var(--btn-radius, 10px);
+  background: var(--btn-bg, var(--primary));
+  color: var(--btn-fg, var(--on-primary));
+  box-shadow: var(--btn-ring, none);
+  font-size: calc(1em * var(--btn-scale, 1));
   font-weight: 600;
   text-decoration: none;
 }
 
 .sfb-button:hover {
-  background: var(--primary-hover, var(--primary));
+  background: var(--btn-bg-hover, var(--primary-hover, var(--primary)));
 }
 
 /* A section's own alignment wins over the style box's inherited one. */
@@ -100,6 +104,8 @@
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border-strong);
+  /* The Outline style's ring is for brand buttons; a ghost already has a border. */
+  box-shadow: none;
 }
 
 .sfb-button--ghost:hover {

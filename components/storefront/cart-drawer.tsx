@@ -18,6 +18,7 @@ import { Media } from "@/components/storefront/sf-bits";
 import { SideDrawer } from "@/components/storefront/side-drawer";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
  * Slide-over cart (the "drawer" cart variant). Quick cart review + totals; the
@@ -113,15 +114,13 @@ export function CartDrawer() {
               type="button"
               onClick={goCartPage}
               style={{
+                ...buttonMetrics({ radius: 8, padding: "11px 22px", fontSize: 13.5 }),
                 width: "100%",
                 marginTop: 8,
                 background: "transparent",
                 color: "var(--text)",
                 border: "1px solid var(--border-strong)",
-                padding: "11px 22px",
-                borderRadius: 8,
                 fontFamily: "inherit",
-                fontSize: 13.5,
                 fontWeight: 600,
                 cursor: "pointer",
               }}
@@ -237,13 +236,9 @@ function Row({ label, value, muted }: { label: string; value: string; muted?: bo
 
 function primaryBtn(): React.CSSProperties {
   return {
-    background: "var(--primary)",
-    color: "var(--on-primary)",
+    ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }),
     border: "none",
-    padding: "12px 22px",
-    borderRadius: 8,
     fontFamily: "inherit",
-    fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
   };

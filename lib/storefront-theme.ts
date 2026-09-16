@@ -262,6 +262,62 @@ export const DESIGN_NAV_HOVERS: DesignOption[] = [
   { id: "highlight", label: "Highlight", description: "A soft pill behind the label" },
 ];
 
+/**
+ * Buttons — plan §5.1 `buttons { shape, style, size }` (Storefront Builder
+ * Phase 6, step 8), kept in `design` beside the other axes until the look is
+ * reshaped.
+ *
+ * ⚠ **Every default is "as drawn today", not a value.** The storefront's
+ * buttons were never one style: the cart drawer's is 8px round, the buy panel's
+ * 9px, a builder section's 10px, a card's follows Corners. So the default shape
+ * is not a radius — it is the absence of the `--btn-radius` token, and each
+ * button falls back to its own literal (`brandButton` in
+ * `lib/storefront-button.ts`). Picking a shape is what makes them one family.
+ * Size works the same way: a scale on each button's own padding and type, so a
+ * drawer button stays smaller than a buy button at every size.
+ */
+export const DESIGN_BUTTON_SHAPES: DesignOption[] = [
+  { id: "auto", label: "Default", description: "Each button keeps the corners it has today" },
+  { id: "square", label: "Square", description: "Near-square corners on every button" },
+  { id: "rounded", label: "Rounded", description: "Softly rounded corners on every button" },
+  { id: "pill", label: "Pill", description: "Fully round ends on every button" },
+];
+
+/**
+ * How a main button is filled. Only the brand-coloured buttons change — a
+ * plain secondary button beside one is already an outline. Buttons laid over a
+ * photo (a hero slide, a banner) keep their fill, where an outline in the brand
+ * colour could vanish into the picture.
+ */
+export const DESIGN_BUTTON_STYLES: DesignOption[] = [
+  { id: "solid", label: "Solid", description: "Filled with your brand colour — the default" },
+  { id: "outline", label: "Outline", description: "A brand-colour border and label on a clear button" },
+  { id: "soft", label: "Soft", description: "A pale tint of your brand colour behind the label" },
+];
+
+export const DESIGN_BUTTON_SIZES: DesignOption[] = [
+  { id: "md", label: "Default", description: "Buttons at the size they have today" },
+  { id: "sm", label: "Compact", description: "Slightly smaller buttons" },
+  { id: "lg", label: "Large", description: "Bigger buttons, easier to tap" },
+];
+
+/**
+ * Heading type beyond the typeface and its size ramp: weight and letter case,
+ * on the same headings `--font-display` reaches (h1–h4 and `.sf-display`).
+ * Latin only in effect for case — Bengali has none, so a Bangla shop reads the
+ * same either way.
+ */
+export const DESIGN_HEADING_WEIGHTS: DesignOption[] = [
+  { id: "default", label: "Default", description: "Headings as bold as they are today" },
+  { id: "regular", label: "Light", description: "A lighter weight — quieter, more editorial" },
+  { id: "heavy", label: "Heavy", description: "An extra-bold weight that leads the page" },
+];
+
+export const DESIGN_HEADING_CASES: DesignOption[] = [
+  { id: "default", label: "As typed", description: "Headings in the letters you typed" },
+  { id: "upper", label: "Capitals", description: "Every heading in capital letters, slightly spaced" },
+];
+
 /** The resolved design a storefront renders with. */
 export interface StoreDesign {
   font: string;
@@ -272,6 +328,11 @@ export interface StoreDesign {
   width: string;
   navHover: string;
   navChildHover: string;
+  buttonShape: string;
+  buttonStyle: string;
+  buttonSize: string;
+  headingWeight: string;
+  headingCase: string;
 }
 
 /**
@@ -288,6 +349,11 @@ export const DEFAULT_DESIGN: StoreDesign = {
   width: DESIGN_WIDTHS[0].id,
   navHover: DESIGN_NAV_HOVERS[0].id,
   navChildHover: DESIGN_NAV_HOVERS[0].id,
+  buttonShape: DESIGN_BUTTON_SHAPES[0].id,
+  buttonStyle: DESIGN_BUTTON_STYLES[0].id,
+  buttonSize: DESIGN_BUTTON_SIZES[0].id,
+  headingWeight: DESIGN_HEADING_WEIGHTS[0].id,
+  headingCase: DESIGN_HEADING_CASES[0].id,
 };
 
 const idsOf = (options: DesignOption[]) => new Set(options.map((o) => o.id));
@@ -299,6 +365,11 @@ const RADIUS_IDS = idsOf(DESIGN_RADII);
 const WIDTH_IDS = idsOf(DESIGN_WIDTHS);
 // One catalogue, both axes: the two rows offer the same answers.
 const NAV_HOVER_IDS = idsOf(DESIGN_NAV_HOVERS);
+const BUTTON_SHAPE_IDS = idsOf(DESIGN_BUTTON_SHAPES);
+const BUTTON_STYLE_IDS = idsOf(DESIGN_BUTTON_STYLES);
+const BUTTON_SIZE_IDS = idsOf(DESIGN_BUTTON_SIZES);
+const HEADING_WEIGHT_IDS = idsOf(DESIGN_HEADING_WEIGHTS);
+const HEADING_CASE_IDS = idsOf(DESIGN_HEADING_CASES);
 
 const pickId = (allowed: Set<string>, raw: string | undefined, fallback: string) =>
   raw && allowed.has(raw) ? raw : fallback;
@@ -319,6 +390,11 @@ export function resolveDesign(design?: {
   width?: string;
   navHover?: string;
   navChildHover?: string;
+  buttonShape?: string;
+  buttonStyle?: string;
+  buttonSize?: string;
+  headingWeight?: string;
+  headingCase?: string;
 }): StoreDesign {
   return {
     font: pickId(FONT_IDS, design?.font, DEFAULT_DESIGN.font),
@@ -333,6 +409,11 @@ export function resolveDesign(design?: {
       design?.navChildHover,
       DEFAULT_DESIGN.navChildHover,
     ),
+    buttonShape: pickId(BUTTON_SHAPE_IDS, design?.buttonShape, DEFAULT_DESIGN.buttonShape),
+    buttonStyle: pickId(BUTTON_STYLE_IDS, design?.buttonStyle, DEFAULT_DESIGN.buttonStyle),
+    buttonSize: pickId(BUTTON_SIZE_IDS, design?.buttonSize, DEFAULT_DESIGN.buttonSize),
+    headingWeight: pickId(HEADING_WEIGHT_IDS, design?.headingWeight, DEFAULT_DESIGN.headingWeight),
+    headingCase: pickId(HEADING_CASE_IDS, design?.headingCase, DEFAULT_DESIGN.headingCase),
   };
 }
 
@@ -362,6 +443,11 @@ export function designAttrs(design: StoreDesign) {
       design.navChildHover,
       DEFAULT_DESIGN.navChildHover,
     ),
+    "data-button-shape": omitDefault(design.buttonShape, DEFAULT_DESIGN.buttonShape),
+    "data-button-style": omitDefault(design.buttonStyle, DEFAULT_DESIGN.buttonStyle),
+    "data-button-size": omitDefault(design.buttonSize, DEFAULT_DESIGN.buttonSize),
+    "data-heading-weight": omitDefault(design.headingWeight, DEFAULT_DESIGN.headingWeight),
+    "data-heading-case": omitDefault(design.headingCase, DEFAULT_DESIGN.headingCase),
     /* DERIVED, not an axis the merchant sets — see `isDarkSurface`. Omitted on
        a light ground, so the default shop stamps nothing here either. */
     "data-ground": isDarkSurface(design.surface) ? "dark" : undefined,

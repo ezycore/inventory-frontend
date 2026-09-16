@@ -12796,6 +12796,11 @@ export interface components {
                     width?: string;
                     navHover?: string;
                     navChildHover?: string;
+                    buttonShape?: string;
+                    buttonStyle?: string;
+                    buttonSize?: string;
+                    headingWeight?: string;
+                    headingCase?: string;
                 };
                 mobile?: {
                     left?: string[];
@@ -14226,6 +14231,11 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         mobile?: {
                             left?: string[];
@@ -14544,6 +14554,11 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         mobile?: {
                             left?: string[];
@@ -21174,6 +21189,11 @@ export interface operations {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         /** @enum {string} */
                         heroAlign?: "left" | "center";
@@ -43436,6 +43456,11 @@ export interface operations {
                                 width?: string;
                                 navHover?: string;
                                 navChildHover?: string;
+                                buttonShape?: string;
+                                buttonStyle?: string;
+                                buttonSize?: string;
+                                headingWeight?: string;
+                                headingCase?: string;
                             };
                             /** @enum {string} */
                             heroAlign?: "left" | "center";

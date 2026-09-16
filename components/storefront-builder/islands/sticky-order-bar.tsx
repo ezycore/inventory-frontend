@@ -14,6 +14,7 @@ import { listingSoldOut } from "@/components/storefront/product-choice";
 import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { ORDER_FORM_SELECTOR } from "@/components/storefront-builder/order-form-anchor";
+import { brandButton } from "@/lib/storefront-button";
 
 /** How close to the end of the page counts as the end — the bar would cover the last of it. */
 const END_SLACK = 96;
@@ -139,14 +140,10 @@ const title: CSSProperties = {
 };
 
 const cta: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "13px 24px", fontSize: 14 }),
   flex: "none",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
   border: "none",
-  padding: "13px 24px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14,
   fontWeight: 700,
   cursor: "pointer",
 };

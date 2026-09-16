@@ -9,6 +9,7 @@ import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import type { CartPageApi } from "@/components/storefront/cart/use-cart-page";
 import { deliveryEstimateSummary } from "@/lib/storefront-delivery";
+import { brandButton } from "@/lib/storefront-button";
 
 /** The pieces every cart layout is built from. Layouts arrange, never re-implement. */
 
@@ -129,7 +130,7 @@ export function CartSummary({ api, cta = true }: { api: CartPageApi; cta?: boole
         <>
           <Link
             href={storeHref(base, "/checkout")}
-            style={{ display: "block", textAlign: "center", background: "var(--primary)", color: "var(--on-primary)", padding: 14, borderRadius: "var(--radius-md)", fontSize: 14.5, fontWeight: 700 }}
+            style={{ ...brandButton({ radius: "var(--radius-md)", padding: 14, fontSize: 14.5 }), display: "block", textAlign: "center", fontWeight: 700 }}
           >
             {t.proceed}
           </Link>
@@ -162,7 +163,7 @@ export function EmptyCart({ api }: { api: CartPageApi }) {
       <p style={{ fontSize: 15, color: "var(--muted)", margin: "0 0 20px" }}>{t.emptyCartMsg}</p>
       <Link
         href={storeHref(base, "/products")}
-        style={{ display: "inline-block", background: "var(--primary)", color: "var(--on-primary)", padding: "12px 24px", borderRadius: "var(--radius-md)", fontSize: 14, fontWeight: 600 }}
+        style={{ ...brandButton({ radius: "var(--radius-md)", padding: "12px 24px", fontSize: 14 }), display: "inline-block", fontWeight: 600 }}
       >
         {t.viewAllProducts}
       </Link>

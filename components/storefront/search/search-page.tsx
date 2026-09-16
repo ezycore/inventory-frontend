@@ -39,6 +39,7 @@ import {
   searchQueryParams,
 } from "@/lib/storefront-catalog-params";
 import type { CatalogProduct } from "@/lib/storefront-client";
+import { brandButton } from "@/lib/storefront-button";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -210,12 +211,12 @@ function SearchInner() {
             <button
               type="button"
               onClick={clearAll}
-              style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "12px 24px", borderRadius: 9, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+              style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), border: "none", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
             >
               {t.clearAll}
             </button>
           ) : (
-            <Link href={storeHref(base, "/products")} style={{ display: "inline-block", background: "var(--primary)", color: "var(--on-primary)", padding: "12px 24px", borderRadius: 9, fontSize: 14, fontWeight: 600 }}>
+            <Link href={storeHref(base, "/products")} style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), display: "inline-block", fontWeight: 600 }}>
               {t.viewAllProducts}
             </Link>
           )}
@@ -278,7 +279,7 @@ function SearchInner() {
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
-            style={{ width: "100%", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "12px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+            style={{ ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }), width: "100%", border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}
           >
             {/* Live count — filters apply instantly, this just closes the drawer. */}
             {t.showResults.replace("{n}", String(total))}
@@ -360,7 +361,7 @@ function SearchRow({
           });
           toast.success(addedLabel);
         }}
-        style={{ flex: "none", background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "10px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}
+        style={{ ...brandButton({ radius: 8, padding: "10px 18px", fontSize: 13 }), flex: "none", border: "none", fontFamily: "inherit", fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.55 : 1 }}
       >
         {outOfStock ? outLabel : addLabel}
       </button>

@@ -754,6 +754,53 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   --radius-lg: 28px;
 }
 
+/* ---- Buttons (`theme.design.buttonShape` / `buttonStyle` / `buttonSize`) ----
+   Tokens, set only when the merchant picks something other than Default, and
+   read by every brand button through `brandButton` / `buttonMetrics`
+   (lib/storefront-button.ts) and by `.sfb-button` — each with the value it drew
+   before these existed as the fallback. So a shop that never opens Buttons
+   defines none of these, and every button resolves to exactly its old literal:
+   the default is "as drawn today", not a number.
+
+   `--btn-scale` multiplies a button's OWN padding and type rather than setting a
+   size, so the cart drawer's button stays smaller than the buy button at every
+   step. Outline draws its ring as an inset shadow, not a border, so choosing it
+   moves nothing on the page by a pixel. */
+.sf-shell[data-button-shape="square"] { --btn-radius: 3px; }
+.sf-shell[data-button-shape="rounded"] { --btn-radius: 12px; }
+.sf-shell[data-button-shape="pill"] { --btn-radius: 999px; }
+
+.sf-shell[data-button-style="outline"] {
+  --btn-bg: transparent;
+  --btn-fg: var(--primary);
+  --btn-ring: inset 0 0 0 1.5px var(--primary);
+  --btn-bg-hover: var(--primary-soft);
+}
+.sf-shell[data-button-style="soft"] {
+  --btn-bg: var(--primary-soft);
+  --btn-fg: var(--primary);
+  --btn-bg-hover: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.sf-shell[data-button-size="sm"] { --btn-scale: 0.88; }
+.sf-shell[data-button-size="lg"] { --btn-scale: 1.14; }
+
+/* ---- Heading weight and case (`theme.design.headingWeight` / `headingCase`) ----
+   The same headings `--font-display` reaches (h1–h4 and `.sf-display`, see
+   above). `!important` because headings carry their weight and tracking inline;
+   it is confined to a non-default attribute, so a shop that keeps Default is
+   untouched. Case has no effect on Bengali, which has none. */
+.sf-shell[data-heading-weight="regular"] :is(h1, h2, h3, h4, .sf-display) {
+  font-weight: 500 !important;
+}
+.sf-shell[data-heading-weight="heavy"] :is(h1, h2, h3, h4, .sf-display) {
+  font-weight: 800 !important;
+}
+.sf-shell[data-heading-case="upper"] :is(h1, h2, h3, h4, .sf-display) {
+  text-transform: uppercase;
+  letter-spacing: 0.03em !important;
+}
+
 /* ---- Responsive layout tokens ---- */
 @media (min-width: 680px) {
   .sf-root {

@@ -504,6 +504,14 @@ export interface StorefrontStore {
       scale?: string;
       density?: string;
       radius?: string;
+      width?: string;
+      navHover?: string;
+      navChildHover?: string;
+      buttonShape?: string;
+      buttonStyle?: string;
+      buttonSize?: string;
+      headingWeight?: string;
+      headingCase?: string;
     };
     /**
      * Where the OPEN hero's copy sits. Unset ⇒ left, which every hero was
