@@ -8,6 +8,7 @@ import { Label } from "@/ui/components/label";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { ImageField } from "./image-field";
 import { PhoneNote, ResetToDesktop } from "./responsive-note";
+import { isCoreSection } from "./section-catalogue";
 import type { EditorDevice, EditorSection } from "./section-instances";
 import {
   alignFor,
@@ -193,13 +194,19 @@ export function SectionStyleFields({
         />
       </div>
 
-      <StyleSelect
-        id={id("width")}
-        label="Width"
-        value={widthOf(style)}
-        options={WIDTHS}
-        onChange={(value) => set(withWidth(style, chosen<StyleWidth>(value)))}
-      />
+      {/* Not for the core section: its view brings its own column and gutter, and
+          the frame drops its second gutter only at full width, so a narrower
+          choice squeezes the page on a phone. The API refuses it too
+          (`assertCoreSection`). */}
+      {isCoreSection(section.type) ? null : (
+        <StyleSelect
+          id={id("width")}
+          label="Width"
+          value={widthOf(style)}
+          options={WIDTHS}
+          onChange={(value) => set(withWidth(style, chosen<StyleWidth>(value)))}
+        />
+      )}
 
       <div className="space-y-1.5">
         <StyleSelect

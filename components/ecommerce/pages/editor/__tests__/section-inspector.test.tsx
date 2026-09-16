@@ -48,6 +48,15 @@ describe("SectionInspector tabs", () => {
     expect(screen.queryByText("Show on")).toBeNull();
   });
 
+  it("offers a core section no Width, so it cannot narrow its page on a phone", async () => {
+    inspect({ id: "cart", type: "cart-lines", v: 1, enabled: true, settings: {} });
+    await userEvent.click(screen.getByRole("tab", { name: "Style" }));
+    for (const label of ["Background", "Spacing", "Text alignment", "Text colour"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    expect(screen.queryByText("Width")).toBeNull();
+  });
+
   it("says a pinned section has no box to style", async () => {
     inspect({ id: "bar-1", type: "sticky-order-bar", v: 1, enabled: true, settings: {} });
     await userEvent.click(screen.getByRole("tab", { name: "Style" }));
