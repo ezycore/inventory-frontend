@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { navGroups } from "../navItem";
-import { filterNavItems, flattenNavItems, permissionsForPath } from "@/lib/nav-utils";
+import {
+  featuresForPath,
+  filterNavItems,
+  flattenNavItems,
+  permissionsForPath,
+  unmetRouteFeatures,
+} from "@/lib/nav-utils";
 import { NavItem } from "@/types/layout";
 import { DEFAULT_ORGANIZATION_FEATURES, OrganizationFeatures } from "@/types";
 
@@ -454,5 +460,34 @@ describe("navGroups — gates that follow the API", () => {
     expect(settingsOnly).not.toContain("Themes");
     // …and keeps the settings-side screens that `manage` is for.
     expect(settingsOnly).toEqual(expect.arrayContaining(["Coupons", "Campaigns"]));
+  });
+});
+
+/**
+ * A pre-tier organization's stored map has no `purchases` or `inventoryTracking`
+ * key. The backend reads both as ON, so the sidebar and the route guard must too.
+ */
+describe("navGroups — a feature map missing the newer keys", () => {
+  const legacy = (): OrganizationFeatures => {
+    const { purchases: _p, inventoryTracking: _i, ...rest } = BOTH;
+    return rest as OrganizationFeatures;
+  };
+
+  it("keeps the Buy and Stock groups", () => {
+    const titles = visibleTitles(legacy());
+    expect(titles).toEqual(
+      expect.arrayContaining(["Purchases", "Suppliers", "Inventory", "Current Stock"]),
+    );
+  });
+
+  it("does not lock a purchases or stock screen", () => {
+    expect(unmetRouteFeatures(featuresForPath("/purchases/orders"), legacy())).toEqual([]);
+    expect(unmetRouteFeatures(featuresForPath("/inventory"), legacy())).toEqual([]);
+  });
+
+  it("still hides them on an explicit false", () => {
+    const titles = visibleTitles({ ...legacy(), purchases: false, inventoryTracking: false });
+    expect(titles).not.toContain("Purchases");
+    expect(titles).not.toContain("Inventory");
   });
 });

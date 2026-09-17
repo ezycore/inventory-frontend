@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import { resolveFeatureMap } from "@/lib/feature-utils";
 import type {
   ApiResponse,
   AvailablePlansInfo,
@@ -143,6 +144,28 @@ export interface FeatureState {
 }
 
 /**
+ * Resolve both feature maps in a features response by the backend's rule — a
+ * missing key is ON (`resolveFeatureMap`). The endpoints read the organization
+ * lean, so keys added after it was written (`purchases`, `inventoryTracking`)
+ * arrive absent; the settings page, the wizard and the features cache must not
+ * read that as "off" or "not in your plan".
+ */
+function withResolvedFeatureState<T extends ApiResponse<Partial<FeatureState>>>(
+  response: T,
+): T {
+  const data = response?.data;
+  if (!data) return response;
+  return {
+    ...response,
+    data: {
+      ...data,
+      ...(data.features && { features: resolveFeatureMap(data.features) }),
+      ...(data.planFeatures && { planFeatures: resolveFeatureMap(data.planFeatures) }),
+    },
+  };
+}
+
+/**
  * What one wizard step answers with: the feature state, plus the dated VAT
  * registration.
  *
@@ -253,7 +276,10 @@ export const organizationApi = {
   // `features` = enforced set; `planFeatures` = what the plan grants (ceiling).
   getFeatures: (): Promise<
     ApiResponse<FeatureState>
-  > => apiClient.get(`/organization/features`),
+  > =>
+    apiClient
+      .get<ApiResponse<FeatureState>>(`/organization/features`)
+      .then(withResolvedFeatureState),
 
   // GET /api/organization/features/impact - What switching a feature off hides
   // Used in: the Customize workspace disable-confirm
@@ -266,14 +292,19 @@ export const organizationApi = {
     data: Partial<OrganizationFeatures>,
   ): Promise<
     ApiResponse<FeatureState>
-  > => apiClient.put(`/organization/features`, data),
+  > =>
+    apiClient
+      .put<ApiResponse<FeatureState>>(`/organization/features`, data)
+      .then(withResolvedFeatureState),
 
   // POST /api/organization/onboarding - Apply one step of the setup wizard
   // Used in: the onboarding wizard
   applyOnboardingStep: (
     data: OnboardingStepPayload,
   ): Promise<ApiResponse<OnboardingStepResult>> =>
-    apiClient.post(`/organization/onboarding`, data),
+    apiClient
+      .post<ApiResponse<OnboardingStepResult>>(`/organization/onboarding`, data)
+      .then(withResolvedFeatureState),
 
   // PUT /api/organization/column-settings - Update table column visibility
   // Used in: Column settings management components

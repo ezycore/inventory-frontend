@@ -63,6 +63,13 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 [`lib/feature-utils.ts`](../../../lib/feature-utils.ts) reads `user.organization.features`:
 
 - `isFeatureEnabled(org, key)` / `areAllFeaturesEnabled` / `isAnyFeatureEnabled` — gate a module/nav item.
+- **A feature is OFF only on an explicit `false`; a MISSING key is ON** — the backend's rule
+  (schema `default: true` on every key, `requireFeature` blocks only `false`). Organizations written
+  before `purchases` / `inventoryTracking` existed arrive without those keys. `resolveFeatureMap`
+  fills them in where maps enter the app — the auth store (`setUser`, `updateUser`, `updateFeatures`,
+  rehydration) and the features / onboarding API responses — so direct reads like
+  `features?.purchases` are safe. A map that has not loaded (`undefined`) still reads as off. Never
+  write `features[key] === true` against a map you built yourself; use `isFeatureOn`.
 - `isVatActive(org)` — every VAT surface. **No area argument**: VAT registration belongs to the
   organization, so sales and purchases share one answer. Replaced `isTaxActive(org, area)`.
   `claimsInputRebate(org)` is the separate "may it reclaim input VAT?" question — see the
