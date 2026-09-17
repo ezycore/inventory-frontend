@@ -132,6 +132,8 @@ export type ProfitLossReport = Schemas["ProfitLossReport"];
 export type PositionReport = Schemas["PositionReport"];
 export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
+/** Sales per category / brand / tag — `GET /reports/sales/breakdown`. */
+export type SalesBreakdownReport = Schemas["SalesBreakdownReport"];
 
 // Organization & locations ---------------------------------------------------
 export type ApiOrganization = Schemas["Organization"];

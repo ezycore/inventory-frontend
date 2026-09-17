@@ -254,6 +254,8 @@ export const queryKeys = {
     inventory: (params?: Params) => ["reports", "inventory", params ?? {}] as const,
     sales: (params?: Params) => ["reports", "sales", params ?? {}] as const,
     combos: (params?: Params) => ["reports", "combos", params ?? {}] as const,
+    salesBreakdown: (dimension: string, params?: Params) =>
+      ["reports", "sales-breakdown", dimension, params ?? {}] as const,
     purchases: (params?: Params) => ["reports", "purchases", params ?? {}] as const,
     cash: (params?: Params) => ["reports", "cash", params ?? {}] as const,
     capital: (params?: Params) => ["reports", "capital", params ?? {}] as const,

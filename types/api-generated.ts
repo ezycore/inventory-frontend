@@ -1687,7 +1687,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:277`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:282`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1703,7 +1703,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:289`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:295`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1721,7 +1721,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:306`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:312`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_meta"];
         put?: never;
@@ -1731,7 +1731,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:314`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:320`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_meta"];
         trace?: never;
@@ -1747,7 +1747,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/meta/test
-         * @description Defined in `src/routes/organization.routes.ts:326`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:332`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_storefront_meta_test"];
         delete?: never;
@@ -1768,7 +1768,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/storefront/meta/token
-         * @description Defined in `src/routes/organization.routes.ts:338`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:344`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_organization_storefront_meta_token"];
         options?: never;
@@ -1786,7 +1786,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:347`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:353`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -2529,7 +2529,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_summary"];
         put?: never;
@@ -2549,13 +2549,13 @@ export interface paths {
         };
         /**
          * GET /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers"];
         put?: never;
         /**
          * POST /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.create`.
          */
         post: operations["post_api_customers"];
         delete?: never;
@@ -2573,7 +2573,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:48`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_active"];
         put?: never;
@@ -2593,7 +2593,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:57`. Requires permission `customers.import`.
          */
         get: operations["get_api_customers_import_template"];
         put?: never;
@@ -2615,7 +2615,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.import`.
          */
         post: operations["post_api_customers_import"];
         delete?: never;
@@ -2633,7 +2633,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_slug_slug"];
         put?: never;
@@ -2653,18 +2653,18 @@ export interface paths {
         };
         /**
          * GET /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_id"];
         /**
          * PUT /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.edit`.
          */
         put: operations["put_api_customers_id"];
         post?: never;
         /**
          * DELETE /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_customers_id"];
         options?: never;
@@ -2683,7 +2683,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `customers.delete`.
          */
         post: operations["post_api_customers_bulk_delete"];
         delete?: never;
@@ -2701,7 +2701,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:120`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_dues"];
         put?: never;
@@ -2721,7 +2721,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_ledger"];
         put?: never;
@@ -2741,7 +2741,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_outstanding"];
         put?: never;
@@ -2763,7 +2763,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:143`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_customers_customerId_payments"];
         delete?: never;
@@ -2781,7 +2781,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_statement"];
         put?: never;
@@ -2803,7 +2803,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:161`.
          */
         post: operations["post_api_customers_customerId_email_statement"];
         delete?: never;
@@ -2821,7 +2821,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_summary"];
         put?: never;
@@ -2841,13 +2841,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers"];
         put?: never;
         /**
          * POST /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.create`.
          */
         post: operations["post_api_sales_customers"];
         delete?: never;
@@ -2865,7 +2865,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:48`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_active"];
         put?: never;
@@ -2885,7 +2885,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:57`. Requires permission `customers.import`.
          */
         get: operations["get_api_sales_customers_import_template"];
         put?: never;
@@ -2907,7 +2907,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.import`.
          */
         post: operations["post_api_sales_customers_import"];
         delete?: never;
@@ -2925,7 +2925,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_slug_slug"];
         put?: never;
@@ -2945,18 +2945,18 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_id"];
         /**
          * PUT /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.edit`.
          */
         put: operations["put_api_sales_customers_id"];
         post?: never;
         /**
          * DELETE /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_sales_customers_id"];
         options?: never;
@@ -2975,7 +2975,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `customers.delete`.
          */
         post: operations["post_api_sales_customers_bulk_delete"];
         delete?: never;
@@ -2993,7 +2993,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:120`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_dues"];
         put?: never;
@@ -3013,7 +3013,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_ledger"];
         put?: never;
@@ -3033,7 +3033,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_outstanding"];
         put?: never;
@@ -3055,7 +3055,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:143`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_customers_customerId_payments"];
         delete?: never;
@@ -3073,7 +3073,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_statement"];
         put?: never;
@@ -3095,7 +3095,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:161`.
          */
         post: operations["post_api_sales_customers_customerId_email_statement"];
         delete?: never;
@@ -5493,13 +5493,13 @@ export interface paths {
         };
         /**
          * GET /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:54`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:58`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales"];
         put?: never;
         /**
          * POST /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:44`. Requires permission `sales.create`. Gated by organization feature `sales` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:48`. Requires permission `sales.create`. Gated by organization feature `sales` — returns 403 when disabled.
          */
         post: operations["post_api_sales"];
         delete?: never;
@@ -5517,7 +5517,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/summary
-         * @description Defined in `src/routes/sales.routes.ts:63`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:67`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_summary"];
         put?: never;
@@ -5537,7 +5537,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/customer/:customerId/pending-dues
-         * @description Defined in `src/routes/sales.routes.ts:77`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:81`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_customer_customerId_pending_dues"];
         put?: never;
@@ -5557,13 +5557,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:105`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:109`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns"];
         put?: never;
         /**
          * POST /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:87`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:91`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         post: operations["post_api_sales_returns"];
         delete?: never;
@@ -5581,7 +5581,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/summary
-         * @description Defined in `src/routes/sales.routes.ts:97`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:101`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_summary"];
         put?: never;
@@ -5601,7 +5601,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/:id
-         * @description Defined in `src/routes/sales.routes.ts:114`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:118`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_id"];
         put?: never;
@@ -5621,21 +5621,21 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:193`. Requires permission `sales.delete`.
+         * @description Defined in `src/routes/sales.routes.ts:198`. Requires permission `sales.delete`.
          */
         delete: operations["delete_api_sales_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:176`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:181`. Requires permission `sales.edit`.
          */
         patch: operations["patch_api_sales_id"];
         trace?: never;
@@ -5649,7 +5649,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:saleId/returns
-         * @description Defined in `src/routes/sales.routes.ts:131`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:135`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_saleId_returns"];
         put?: never;
@@ -5671,7 +5671,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/payment
-         * @description Defined in `src/routes/sales.routes.ts:140`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:144`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_id_payment"];
         delete?: never;
@@ -5689,7 +5689,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/payments
-         * @description Defined in `src/routes/sales.routes.ts:149`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:153`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_payments"];
         put?: never;
@@ -5711,7 +5711,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/email-receipt
-         * @description Defined in `src/routes/sales.routes.ts:157`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:162`.
          */
         post: operations["post_api_sales_id_email_receipt"];
         delete?: never;
@@ -5729,7 +5729,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/transactions
-         * @description Defined in `src/routes/sales.routes.ts:166`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:171`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_transactions"];
         put?: never;
@@ -5751,7 +5751,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/finalize
-         * @description Defined in `src/routes/sales.routes.ts:185`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:190`. Requires permission `sales.edit`.
          */
         post: operations["post_api_sales_id_finalize"];
         delete?: never;
@@ -5769,7 +5769,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/inventory
-         * @description Defined in `src/routes/reports.routes.ts:16`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:20`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_inventory"];
         put?: never;
@@ -5789,9 +5789,29 @@ export interface paths {
         };
         /**
          * GET /api/reports/sales
-         * @description Defined in `src/routes/reports.routes.ts:19`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:23`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_sales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales/breakdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/sales/breakdown
+         * @description Defined in `src/routes/reports.routes.ts:28`. Requires permission `reports.view`.
+         */
+        get: operations["get_api_reports_sales_breakdown"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5809,7 +5829,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/combos
-         * @description Defined in `src/routes/reports.routes.ts:22`. Requires permission `reports.view`. Gated by organization feature `combo` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:35`. Requires permission `reports.view`. Gated by organization feature `combo` — returns 403 when disabled.
          */
         get: operations["get_api_reports_combos"];
         put?: never;
@@ -5829,7 +5849,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/purchases
-         * @description Defined in `src/routes/reports.routes.ts:29`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:42`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_purchases"];
         put?: never;
@@ -5849,7 +5869,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/cash
-         * @description Defined in `src/routes/reports.routes.ts:32`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:45`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_cash"];
         put?: never;
@@ -5869,7 +5889,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/capital
-         * @description Defined in `src/routes/reports.routes.ts:36`. Requires permission `reports.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:49`. Requires permission `reports.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_reports_capital"];
         put?: never;
@@ -5889,7 +5909,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/profit-loss
-         * @description Defined in `src/routes/reports.routes.ts:47`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:60`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_profit_loss"];
         put?: never;
@@ -5909,7 +5929,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/position
-         * @description Defined in `src/routes/reports.routes.ts:52`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:65`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_position"];
         put?: never;
@@ -5929,7 +5949,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/valuation
-         * @description Defined in `src/routes/reports.routes.ts:56`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:69`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_valuation"];
         put?: never;
@@ -5949,7 +5969,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/employees
-         * @description Defined in `src/routes/reports.routes.ts:59`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:72`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_employees"];
         put?: never;
@@ -5969,7 +5989,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/export
-         * @description Defined in `src/routes/reports.routes.ts:62`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:75`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_export"];
         put?: never;
@@ -5989,7 +6009,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax
-         * @description Defined in `src/routes/reports.routes.ts:72`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:85`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax"];
         put?: never;
@@ -6009,7 +6029,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax/ledger
-         * @description Defined in `src/routes/reports.routes.ts:75`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:88`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax_ledger"];
         put?: never;
@@ -15403,6 +15423,38 @@ export interface components {
         };
         ReportExport: {
             [key: string]: unknown;
+        };
+        SalesBreakdownReport: {
+            /** @enum {string} */
+            dimension: "category" | "brand" | "tag";
+            period: {
+                key: string;
+                /** Format: date-time */
+                startDate: string;
+                /** Format: date-time */
+                endDate: string;
+            };
+            overlapping: boolean;
+            totals: {
+                units: number;
+                orders: number;
+                revenue: number;
+            };
+            unassigned: {
+                units: number;
+                orders: number;
+                revenue: number;
+                productCount: number;
+            };
+            rows: {
+                id: string;
+                name: string | null;
+                units: number;
+                orders: number;
+                revenue: number;
+                share: number;
+                productCount: number;
+            }[];
         };
         SalesReport: {
             period: {
@@ -25597,15 +25649,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Not found */
             404: {
                 headers: {
@@ -26631,15 +26674,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -37056,15 +37090,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Not found */
             404: {
                 headers: {
@@ -37305,6 +37330,63 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["SalesReport"];
                     };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_sales_breakdown: {
+        parameters: {
+            query?: {
+                dimension?: "category" | "brand" | "tag";
+                period?: string;
+                startDate?: string;
+                endDate?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SalesBreakdownReport"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Missing or invalid credentials */
