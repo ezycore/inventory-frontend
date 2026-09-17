@@ -30,7 +30,12 @@ export function CollectionsPart({
   patchTemplate,
   onManageCollections,
 }: {
-  onManageCollections: () => void;
+  /**
+   * Opens the collections panel. Omitted for a role without `storefront.manage`:
+   * renaming, listing and reordering collections are catalog writes, not look,
+   * so a `storefront.design`-only role would get a 403 on Save.
+   */
+  onManageCollections?: () => void;
 } & Pick<CustomizeDraftApi, "draft" | "patchTemplate">) {
   const listed = draft.collections.filter((c) => c.isListed);
 
@@ -69,15 +74,17 @@ export function CollectionsPart({
             )}
           </div>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          disabled={draft.collections.length === 0}
-          onClick={onManageCollections}
-        >
-          <Pencil className="mr-1.5 h-3.5 w-3.5" /> Rename, reorder or hide
-        </Button>
+        {onManageCollections && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            disabled={draft.collections.length === 0}
+            onClick={onManageCollections}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Rename, reorder or hide
+          </Button>
+        )}
       </PartBlock>
 
       {/* One block, two fields: both describe the category page, and as two

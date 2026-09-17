@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { StorefrontSite } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
+import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
 import type { StorefrontSettings } from "@/types";
 import { settingsWithSiteLook } from "@/components/ecommerce/customize/site-look";
 import { SitePublishBar } from "@/components/ecommerce/customize/site-publish-bar";
@@ -47,6 +48,10 @@ export function CustomizeWorkspace({
   // preview applies the same fallback, or removing the store logo would blank
   // the header instead of reverting to the org mark.
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
+  // Customize is a `storefront.design` page, but collections are catalog
+  // records behind `storefront.manage` — a designer can arrange the look, not
+  // rename or hide the shop's collections.
+  const canManageCollections = useHasPermission(PERMISSIONS.storefrontManage);
   // Memoised: `useCustomizeDraft` re-seeds when this object changes, so it must
   // change only when the settings or the Site do.
   const settings = useMemo(
@@ -157,7 +162,9 @@ export function CustomizeWorkspace({
             api={api}
             open={openPart}
             onToggle={togglePart}
-            onManageCollections={() => setCollectionsPanel(true)}
+            onManageCollections={
+              canManageCollections ? () => setCollectionsPanel(true) : undefined
+            }
             onEditSlide={(index) => setSlidesPanel(index)}
           />
         )}

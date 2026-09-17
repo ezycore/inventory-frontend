@@ -14,7 +14,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/ui/components/tooltip";
+import { visiblePermissions } from "@/components/shared/permissions";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { Translator } from "@/i18n/config";
+import type { OrganizationFeatures } from "@/types";
 import type { OrganizationRole } from "@/types/users";
 
 interface RolesTableProps {
@@ -49,6 +52,7 @@ function SourceBadge({
 
 const getColumns = (
   t: Translator,
+  features: OrganizationFeatures | undefined,
   onEdit?: (role: OrganizationRole) => void,
   onDelete?: (role: OrganizationRole) => void,
 ): SimpleColumn<OrganizationRole>[] => [
@@ -104,8 +108,9 @@ const getColumns = (
     header: t("permissions"),
     align: "right",
     cell: (role) => (
+      // Same count the details drawer shows: switched-off modules left out.
       <Badge variant="outline" className="tabular-nums">
-        {role.permissions.length}
+        {visiblePermissions(role.permissions, features).length}
       </Badge>
     ),
   },
@@ -175,7 +180,8 @@ export function RolesTable({
   onDelete,
 }: RolesTableProps) {
   const t = useTranslations("settings.roles.table");
-  const columns = getColumns(t, onEdit, onDelete);
+  const features = useAuthStore((state) => state.user?.organization?.features);
+  const columns = getColumns(t, features, onEdit, onDelete);
   return (
     <Card>
       <CardContent>

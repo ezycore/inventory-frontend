@@ -19,11 +19,21 @@ correctly. The real enforcement is server-side. Never treat an FE permission che
 
 - **`useHasPermission(permission)`** ([`hooks/use-has-permission.ts`](../../../hooks/use-has-permission.ts))
   reads `user.permissions` from the auth store and returns a boolean. The `PERMISSIONS` const there
-  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`, **85** strings).
+  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`, **87** strings).
   The five declared today: `costs.view` (COGS/unit-cost figures), `stock.manage`, `users.manage`
   (user admin), `roles.view` / `roles.manage` (reading vs authoring roles — see §5), and
   `organization.edit`. **Never hardcode a permission string** in a component — add it to
   `PERMISSIONS`.
+- **Emailing a receipt or dues statement** takes `sales.create` or `sales.edit`
+  (`SALES_DOCUMENT_EMAIL_PERMISSIONS` / `useCanEmailSalesDocuments`), never `sales.view` alone — the
+  backend refuses it for a read-only role since 2026-09-17, so the buttons hide.
+- **Sidebar gates are also route guards.** `RouteAccessGuard` reads `constants/navItem.ts`, so a wrong
+  `permissions` entry denies the page, not just the row. Roles takes `roles.view` or `users.manage`;
+  Customize and Themes take `storefront.design` (the Site API), not `storefront.manage`.
+- **Switched-off features hide their permissions** in every permission list. The builder gets them
+  already filtered from `GET /roles/catalog`; the read-only lists (role details, roles table count,
+  profile tab) use `useVisiblePermissions` from `components/shared/permissions/permission-features.ts`,
+  a mirror of the backend's `MODULE_FEATURES` — change both together.
 - Permission strings are `resource.action`. Display helpers (grouping, action icons, category colors)
   and the `PermissionGroupCard` category card live in
   [`components/shared/permissions/`](../../../components/shared/permissions) — reuse them; don't
@@ -120,13 +130,16 @@ Four things the UI has to get right, each with a reason in the backend:
 - **Only `source: "custom"` rows are editable.** `system` is defined in backend code; `mc` is owned
   by Mission Control and the next push overwrites local edits. The table shows edit/delete only for
   `custom`.
-- **The permission picker renders `GET /roles/catalog`, not `ALL_PERMISSIONS`.** The catalog is
-  filtered by the org's plan and marks unavailable modules `available: false` — render those
-  disabled with a reason rather than hiding them, or a merchant reads a missing module as a bug.
+- **The permission picker renders `GET /roles/catalog`, not `ALL_PERMISSIONS`.** Since 2026-09-17
+  the catalog leaves out every module whose feature is switched off — hidden, not greyed.
   `grantable` is the set a role may actually be composed from.
-- **A permission the role already holds stays checked even when off-plan.** The backend grandfathers
-  it (so a downgraded org can still rename the role); disabling that checkbox would strand the
-  merchant with no way to remove it.
+- **Hidden permissions ride along untouched.** The form's `selected` holds the role's whole array;
+  the picker only renders catalog permissions, so hidden ones are submitted back as they came — and
+  the backend carries them over even if a request leaves them out.
+- **Keeping is not granting.** A checkbox is lockable only for ADDING: `canTickPermission`
+  (`components/settings/roles/grant-rule.ts`) allows what the editor holds or what the role already
+  held when the form opened. Unticking is never locked. This mirrors the backend clamp, which applies
+  to additions only — a delegated author can rename a role holding permissions they lack.
 - **Delete requires reassignment.** Deleting a role someone holds is a *lockout*, not a downgrade —
   the backend refuses with `ROLE_IN_USE`. Read `GET /roles/:slug/usage` first and make the merchant
   pick a target; surface the API error verbatim, because `REASSIGN_WOULD_STRAND_USERS` names a case
@@ -153,7 +166,8 @@ by hand.
 | Costs/COGS columns hidden | `costs.view` not granted | expected — gate is `useHasPermission(PERMISSIONS.costsView)` |
 | Roles page loads but "New role" is missing | has `roles.view`, not `roles.manage` | expected — reading and authoring are separate grants |
 | Edit/delete missing on a role row | it is `system` or `mc` | expected — only `source: "custom"` is editable here |
-| A permission is absent from the builder | the org's plan excludes that module | expected — it renders disabled, not hidden; check `available` on the catalog module |
+| A permission is absent from the builder | its feature is off (plan or Customize workspace) | expected — hidden; the role keeps it and it returns when the feature does |
+| A checkbox is greyed in the builder | the editor does not hold it and the role never did | expected — nobody may grant what they lack; see `grant-rule.ts` |
 | Delete says the role is in use after you moved everyone | the count is read live from `/usage` | refetch; someone was assigned between the read and the delete |
 
 ---

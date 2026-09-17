@@ -178,7 +178,8 @@ export function PartsRail({
   /** Owned by the workspace so it survives a panel taking the rail over. */
   open: PartId | null;
   onToggle: (id: PartId) => void;
-  onManageCollections: () => void;
+  /** Omitted without `storefront.manage` — see `CollectionsPart`. */
+  onManageCollections?: () => void;
   onEditSlide: (index: number) => void;
 }) {
   const {

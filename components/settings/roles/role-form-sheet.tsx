@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck } from "lucide-react";
@@ -18,6 +18,7 @@ import {
   SheetTitle,
 } from "@/ui/components/sheet";
 import { usePermissionCatalog, useCreateRole, useUpdateRole } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { OrganizationRole } from "@/types/users";
 import { PermissionPicker } from "./permission-picker";
 
@@ -45,6 +46,7 @@ export function RoleFormSheet({ role, open, onOpenChange }: RoleFormSheetProps) 
   const [name, setName] = useState(role?.name ?? "");
   const [description, setDescription] = useState(role?.description ?? "");
   const [selected, setSelected] = useState<string[]>(role?.permissions ?? []);
+  const editorPermissions = useAuthStore((state) => state.user?.permissions) ?? [];
 
   // Only fetch the catalog once the builder is actually open — it is plan-shaped
   // and effectively static, so there is nothing to prefetch it for.
@@ -57,22 +59,9 @@ export function RoleFormSheet({ role, open, onOpenChange }: RoleFormSheetProps) 
   const updateRole = useUpdateRole();
   const isSaving = createRole.isPending || updateRole.isPending;
 
-  const grantable = useMemo(
-    () => new Set(catalog?.grantable ?? []),
-    [catalog],
-  );
-
-  /**
-   * Permissions the role already holds but the plan no longer grants. The
-   * backend grandfathers exactly these on update, so they stay checked and
-   * stay submitted — dropping them silently would cost the merchant access
-   * they may get back when the plan changes.
-   */
-  const grandfathered = useMemo(
-    () => (role?.permissions ?? []).filter((p) => !grantable.has(p)),
-    [role, grantable],
-  );
-
+  // `selected` carries the role's hidden permissions too (see PermissionPicker):
+  // the backend grandfathers a permission the role already holds, so a module
+  // switched off after the grant is submitted back rather than dropped.
   const canSubmit = name.trim().length > 0 && selected.length > 0 && !isSaving;
 
   const handleSubmit = async () => {
@@ -141,7 +130,8 @@ export function RoleFormSheet({ role, open, onOpenChange }: RoleFormSheetProps) 
             catalog={catalog}
             isLoading={catalogLoading}
             selected={selected}
-            grandfathered={grandfathered}
+            editorPermissions={editorPermissions}
+            originalPermissions={role?.permissions ?? []}
             onChange={setSelected}
           />
         </div>

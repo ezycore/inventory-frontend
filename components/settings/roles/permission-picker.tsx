@@ -2,22 +2,18 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { Globe, Lock } from "lucide-react";
+import { Globe } from "lucide-react";
 import { Badge } from "@/ui/components/badge";
 import { Checkbox } from "@/ui/components/checkbox";
 import { Label } from "@/ui/components/label";
 import { Skeleton } from "@/ui/components/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/ui/components/tooltip";
 import {
   formatPermission,
   getCategoryConfig,
 } from "@/components/shared/permissions";
 import { cn } from "@/ui/lib/utils";
 import type { PermissionCatalog } from "@/types/api";
+import { canTickPermission } from "./grant-rule";
 
 /**
  * Erases location scoping for everyone holding the role, so it is pulled out of
@@ -27,11 +23,22 @@ import type { PermissionCatalog } from "@/types/api";
 const ALL_LOCATIONS = "locations.all";
 
 interface PermissionPickerProps {
+  /**
+   * Already filtered by the backend: a module whose features are switched off
+   * is not in it, so nothing here needs a "not on your plan" state.
+   */
   catalog?: PermissionCatalog;
   isLoading: boolean;
+  /**
+   * Everything the role holds, including permissions the catalog hides. Those
+   * are never rendered and never touched by a toggle, so they go back to the
+   * API as they came — a switched-off feature must not cost the role a grant.
+   */
   selected: string[];
-  /** Held-but-off-plan permissions: checked, submitted, not removable by the plan. */
-  grandfathered: string[];
+  /** The signed-in editor's own permissions — the ceiling on what they may add. */
+  editorPermissions: string[];
+  /** What the role held when the form opened; keeping one is not granting it. */
+  originalPermissions: string[];
   onChange: (next: string[]) => void;
 }
 
@@ -39,14 +46,18 @@ export function PermissionPicker({
   catalog,
   isLoading,
   selected,
-  grandfathered,
+  editorPermissions,
+  originalPermissions,
   onChange,
 }: PermissionPickerProps) {
   const t = useTranslations("settings.roles.form");
   const tPermissions = useTranslations("settings.permissions");
 
   const selectedSet = new Set(selected);
-  const grandfatheredSet = new Set(grandfathered);
+  const editorSet = new Set(editorPermissions);
+  const originalSet = new Set(originalPermissions);
+  const canTick = (permission: string) =>
+    canTickPermission(permission, editorSet, originalSet);
 
   const toggle = (permission: string, checked: boolean) => {
     onChange(
@@ -56,9 +67,14 @@ export function PermissionPicker({
     );
   };
 
+  // Ticking a module adds only what the editor may tick; unticking clears the
+  // whole module, because removing is never clamped.
   const toggleModule = (permissions: string[], checked: boolean) => {
     const rest = selected.filter((p) => !permissions.includes(p));
-    onChange(checked ? [...rest, ...permissions] : rest);
+    const kept = checked
+      ? permissions.filter((p) => selectedSet.has(p) || canTick(p))
+      : [];
+    onChange([...rest, ...kept]);
   };
 
   if (isLoading || !catalog) {
@@ -73,15 +89,21 @@ export function PermissionPicker({
   }
 
   const allLocationsAvailable = catalog.grantable.includes(ALL_LOCATIONS);
+  // Counts what the merchant can see, not the hidden grants riding along.
+  const selectedVisible = catalog.grantable.filter((p) => selectedSet.has(p)).length;
+  const anyLocked = catalog.grantable.some((p) => !selectedSet.has(p) && !canTick(p));
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label>{t("permissionsLabel")}</Label>
         <Badge variant="outline" className="tabular-nums">
-          {t("selectedCount", { count: selected.length })}
+          {t("selectedCount", { count: selectedVisible })}
         </Badge>
       </div>
+      {anyLocked && (
+        <p className="text-xs text-muted-foreground">{t("lockedHint")}</p>
+      )}
 
       {/* Pulled out of the `locations` group deliberately — see ALL_LOCATIONS. */}
       <label
@@ -95,7 +117,10 @@ export function PermissionPicker({
       >
         <Checkbox
           checked={selectedSet.has(ALL_LOCATIONS)}
-          disabled={!allLocationsAvailable}
+          disabled={
+            !allLocationsAvailable ||
+            (!selectedSet.has(ALL_LOCATIONS) && !canTick(ALL_LOCATIONS))
+          }
           onCheckedChange={(checked) => toggle(ALL_LOCATIONS, checked === true)}
           className="mt-0.5"
         />
@@ -116,16 +141,15 @@ export function PermissionPicker({
         if (permissions.length === 0) return null;
 
         const chosen = permissions.filter((p) => selectedSet.has(p));
-        const allChosen = chosen.length === permissions.length;
+        // "All" means all the editor could have ticked — a locked permission
+        // must not leave the module checkbox stuck unticked forever.
+        const tickable = permissions.filter((p) => selectedSet.has(p) || canTick(p));
+        const allChosen = chosen.length > 0 && chosen.length === tickable.length;
 
         return (
           <div
             key={module.key}
-            className={cn(
-              "overflow-hidden rounded-xl border-2",
-              config.color,
-              !module.available && "opacity-70",
-            )}
+            className={cn("overflow-hidden rounded-xl border-2", config.color)}
           >
             <div
               className={cn(
@@ -136,7 +160,7 @@ export function PermissionPicker({
               <label className="flex min-w-0 items-center gap-2">
                 <Checkbox
                   checked={allChosen}
-                  disabled={!module.available}
+                  disabled={tickable.length === 0}
                   onCheckedChange={(checked) =>
                     toggleModule(permissions, checked === true)
                   }
@@ -146,52 +170,28 @@ export function PermissionPicker({
                 </span>
               </label>
 
-              {module.available ? (
-                <Badge variant="secondary" className="h-5 shrink-0 px-2 text-xs tabular-nums">
-                  {chosen.length}/{permissions.length}
-                </Badge>
-              ) : (
-                // Listed, not hidden: a merchant who cannot find `storefront`
-                // at all assumes a bug, where "not on your plan" is an answer.
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="h-5 shrink-0 gap-1 px-2 text-xs">
-                      <Lock className="h-3 w-3" />
-                      {t("notOnPlan")}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>{t("notOnPlanTooltip")}</TooltipContent>
-                </Tooltip>
-              )}
+              <Badge variant="secondary" className="h-5 shrink-0 px-2 text-xs tabular-nums">
+                {chosen.length}/{permissions.length}
+              </Badge>
             </div>
 
             <div className="grid gap-1 bg-card/50 p-2 sm:grid-cols-2">
-              {permissions.map((permission) => {
-                const isGrandfathered = grandfatheredSet.has(permission);
-                return (
-                  <label
-                    key={permission}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
-                  >
-                    <Checkbox
-                      checked={selectedSet.has(permission)}
-                      // A held permission stays editable even off-plan: the
-                      // backend grandfathers it, and freezing the checkbox
-                      // would strand the merchant with no way to remove it.
-                      disabled={!module.available && !isGrandfathered}
-                      onCheckedChange={(checked) =>
-                        toggle(permission, checked === true)
-                      }
-                    />
-                    <span className="truncate">{formatPermission(permission)}</span>
-                    {isGrandfathered && (
-                      <Badge variant="outline" className="ml-auto h-4 px-1 text-[10px]">
-                        {t("grandfathered")}
-                      </Badge>
-                    )}
-                  </label>
-                );
-              })}
+              {permissions.map((permission) => (
+                <label
+                  key={permission}
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/50",
+                    !selectedSet.has(permission) && !canTick(permission) && "opacity-50",
+                  )}
+                >
+                  <Checkbox
+                    checked={selectedSet.has(permission)}
+                    disabled={!selectedSet.has(permission) && !canTick(permission)}
+                    onCheckedChange={(checked) => toggle(permission, checked === true)}
+                  />
+                  <span className="truncate">{formatPermission(permission)}</span>
+                </label>
+              ))}
             </div>
           </div>
         );

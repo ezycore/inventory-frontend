@@ -16238,8 +16238,6 @@ export interface components {
             modules: {
                 key: string;
                 permissions: string[];
-                feature?: string;
-                available: boolean;
             }[];
             grantable: string[];
         };
