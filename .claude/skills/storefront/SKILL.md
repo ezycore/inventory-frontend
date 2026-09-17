@@ -879,6 +879,14 @@ for such a store (`STOREFRONT_LOOK_ON_SITE`), so never route a look save around 
 mirrors the backend's `STOREFRONT_SITE_LOOK_KEYS`; collections and media stay live-on-save. The preview
 path above is unchanged — it streams the client draft either way.
 
+⚠ **A screen that REPORTS the look must not read `useGetStorefrontSettings` for it.** For a switched store —
+every store created since 2026-09-17 starts switched (backend `storefront-new-store.service`) — the settings
+keep the look from the day it switched. `useLiveStoreSettings()` (`components/ecommerce/use-live-store-settings.ts`)
+lays the Site's **published** look over them (`settingsWithSiteLook(settings, site, "published")`) and stays
+`undefined` until the Site loads. The dashboard's `StoreLookCard`, the Themes page (active theme, "edited"
+badge, preview base) and the Collections tab's header-menu hint use it. Before that, the card told a merchant
+who had published a theme that their shop had "no theme".
+
 **Any change that moves an existing store's pages gets a pixel diff** (`tests/pixel`):
 `PIXEL_STORE=<slug> pnpm pixel:capture` before, `pnpm pixel:compare` after. Wait until the store shows the
 change first — cached store HTML lags a publish by minutes locally, and a compare against the old page

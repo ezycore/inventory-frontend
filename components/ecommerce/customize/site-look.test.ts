@@ -34,6 +34,15 @@ describe("settingsWithSiteLook", () => {
     expect(merged.copy?.footerText).toBe("Draft");
   });
 
+  it("reports only what is live when asked for the published look, draft or not", () => {
+    const merged = settingsWithSiteLook(
+      settings,
+      siteWith({ copy: { footerText: "Live" } }, { copy: { footerText: "Draft" } }),
+      "published",
+    );
+    expect(merged.copy?.footerText).toBe("Live");
+  });
+
   it("edits what is live when there is no draft", () => {
     const merged = settingsWithSiteLook(settings, siteWith({ copy: { footerText: "Live" } }));
     expect(merged.copy?.footerText).toBe("Live");
