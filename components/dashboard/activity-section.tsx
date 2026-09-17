@@ -15,7 +15,8 @@ import ActivityTimeline, { type TimelineItem } from '@ui/components/ActivityTime
 import EmptyState from '@ui/components/EmptyState'
 import { ArrowRight, ArrowDownToLine, ArrowUpFromLine, RotateCcw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
+import { getOrgTimezone } from '@/hooks/use-org-calendar'
 import { REASON_LABEL_KEYS } from './helpers'
 
 interface ActivitySectionProps {
@@ -41,7 +42,7 @@ export function ActivitySection({ stockMovements, isLoading }: ActivitySectionPr
         title: reasonLabel,
         description: `${productName} · ${m.quantity} units${m.notes ? ` · ${m.notes}` : ''}`,
         timestamp: m.createdAt
-          ? format(new Date(m.createdAt), 'MMM d, h:mm a')
+          ? formatInTimeZone(new Date(m.createdAt), getOrgTimezone(), 'MMM d, h:mm a')
           : '',
         variant: (
           m.movementType === 'in' ? 'success' : 'destructive'

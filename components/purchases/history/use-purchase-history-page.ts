@@ -6,7 +6,8 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfirm } from "@/hooks/use-confirm";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 import {
   useAccountPaymentOptions,
@@ -201,7 +202,7 @@ export function usePurchaseHistoryPage() {
   ]);
 
   const formatDateTime = (date: string | Date) =>
-    format(new Date(date), "dd MMM yyyy hh:mm aa");
+    formatInTimeZone(new Date(date), getOrgTimezone(), "dd MMM yyyy hh:mm aa");
 
   // Columns, actions, filters — memoised
   const columns = useMemo(

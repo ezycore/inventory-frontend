@@ -631,6 +631,58 @@ anywhere, so that page cannot load. Don't widen the frontend gate further withou
 
 Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | reactivate | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now", and `needsReactivation()` (`reactivate` = canceled **or** `incomplete`, i.e. awaiting a first payment) routes the user to `/dashboard/billing` to subscribe or re-subscribe (their data is retained; the backend confines them to billing routes). Both of those arrive from MC as `status:"inactive"`, so the classifier resolves them **before** the `inactive → blocked` branch — reordering that check silently locks customers out of checkout.
 
+### Timezones (mandatory policy)
+
+**The organization's calendar, never the browser's or the server's.** Merchants use this app from
+devices in any zone, and Next renders on servers in UTC. A date decided with `new Date().getDate()`,
+`toISOString().slice(0, 10)` or `toLocaleString()` is right on a Dhaka laptop and wrong everywhere
+else. The rule, shared with the backend (`inventory-backend/CLAUDE.md` → Timezones):
+
+- **Timestamps are UTC on the wire.** Format an instant in `organization.timezone`:
+  `useFormatters()` (`formatDate`/`formatDateTime` are org-tz; pass `formatDateOnly` for stored
+  date-only values), or `formatInTimeZone(…, timezone, …)` with `useOrgCalendar().timezone`.
+  Printed documents (`utils/print-documents.ts`) use the org zone too.
+- **Weeks start on `organization.weekStartDay`** (default Sunday, set in Settings → Organization).
+  The server applies it to every period — **never send a hard-coded `weekStartDay`**.
+- **Date-only values** (`YYYY-MM-DD` from `DatePicker`, stored as UTC midnight): keep them as strings
+  end-to-end — never round-trip through `new Date("YYYY-MM-DD")` (UTC midnight → the previous day
+  west of UTC). Read a stored one with `storedDateKey` / `formatDateOnly`; "today" is
+  `orgDateKey(timezone)`.
+- **Expiry dates are good through the end of the org's local expiry day** — decide with
+  `isExpiryPast` / `daysUntilDateOnly` (`lib/org-calendar.ts`), the mirror of the backend's
+  `isPastExpiry`. `ExpiryBadge`, `batch-select`, `use-batch-draws` and the expiry report all go
+  through them.
+- **Campaign and coupon windows** are whole days the server stores as org-local first/last
+  instants. The edit form must put them back as the org-local day (`orgDayOfInstant`), not hand the
+  stored ISO to the date field: the browser's zone can name a different day, and an untouched field
+  is sent back as-is. The backend reads a returned instant on the org's calendar too.
+- **A day clicked in a picker** (`DateRangePicker` hands back local midnight of that day) is keyed with
+  `pickedDayKey` — the one sanctioned read of a `Date`'s local parts. Never pass it an instant.
+- **Helpers:** `lib/org-calendar.ts` (`resolveTimezone`, `orgDateKey`, `orgDayOfInstant`,
+  `pickedDayKey`, `storedDateKey`, `isExpiryPast`, `daysUntilDateOnly`, `isDateKeyBeforeOrgToday`) and
+  `hooks/use-org-calendar.ts` (`useOrgCalendar`, and `getOrgTimezone` outside components).
+- **Enforced on merchant screens.** `eslint.config.mjs` (`merchantRestrictedSyntax`) forbids, in
+  `app/`, `components/`, `hooks/` and `utils/` minus the shopper storefront and tests: browser-clock
+  getters/setters, `toLocaleDateString`/`toLocaleTimeString`/`new Date(…).toLocaleString()` and
+  `Intl.DateTimeFormat` without `timeZone`, and `format`/`startOfDay`/… from `date-fns`. `lib/` holds
+  the sanctioned helpers and is outside the scope. An `eslint-disable` there needs a reason.
+- **Tests run with `TZ=UTC`** (`vitest.config.ts`); write date cases in the 00:00–05:59 Dhaka window
+  where UTC disagrees (`lib/org-calendar.test.ts`).
+- **Known exceptions, documented rather than hidden:** a landing page's schedule
+  (`components/ecommerce/pages/page-schedule.ts`) takes and shows times on the merchant's *device*
+  clock — its own design, predating this policy; moving it onto the org calendar is an open decision.
+  The courier payout "Received" date is sent as `YYYY-MM-DD` and still read as UTC midnight by the
+  backend (`inventory-backend/CLAUDE.md` → Timezones, "Not on the org calendar yet").
+- **Storefront exception — shown on the SHOPPER's clock.** A campaign's end is still one instant
+  decided by the org's timezone server-side, but the "Ends … at …" label prints it in the viewer's
+  own zone (`campaignEndsLabel`), and therefore only after hydration — the UTC server cannot know
+  that zone. The shopper's zone only *prints*; whether the campaign is live and what it costs are
+  decided by the backend on its own clock. See the `storefront` skill.
+- **Four clocks, one job each:** UTC stores instants; the organization's zone decides every merchant
+  date; the shopper's zone only prints an already-resolved instant on the storefront; Asia/Dhaka is
+  Mission Control's (backend `CLAUDE.md` → Timezones has the table).
+- **Mission Control is different** — its admin shows Asia/Dhaka (`mission-control/CLAUDE.md`).
+
 ### Path Aliases
 
 | Alias | Resolves to |

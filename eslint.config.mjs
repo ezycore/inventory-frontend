@@ -96,6 +96,53 @@ const META_PURCHASE_SELECTORS = [
 ]
 
 /**
+ * Timezone policy (CLAUDE.md → "Timezones"). On merchant screens a date is the ORGANIZATION's —
+ * its timezone, its week start — never the browser's: a merchant's phone set to another zone, or a
+ * support session from abroad, must see the same day the backend filed the record under. The
+ * helpers live in `lib/org-calendar.ts`, `lib/format.ts` (`useFormatters`) and
+ * `hooks/use-org-calendar.ts` (`getOrgTimezone`), which is why `lib/` is outside the scope below.
+ *
+ * The shopper storefront is deliberately out of scope: it prints an already-resolved instant on
+ * the SHOPPER's clock (`lib/storefront-campaign-date.ts`).
+ */
+const TIMEZONE_MESSAGE = 'on merchant screens a date is on the organization\'s calendar, not the browser\'s. ' +
+  'Use useFormatters() / formatInTimeZone(…, getOrgTimezone(), …) / lib/org-calendar.ts; ' +
+  'a stored date-only value (expiry, invoice date) is read in UTC. CLAUDE.md → Timezones.'
+
+const TIMEZONE_SELECTORS = [
+  {
+    selector:
+      'CallExpression[callee.property.name=/^(get|set)(FullYear|Month|Date|Day|Hours|Minutes|Seconds)$/]',
+    message: `Browser-clock date getter/setter — ${TIMEZONE_MESSAGE}`,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.name=/^(toLocaleDateString|toLocaleTimeString|toDateString|toTimeString)$/]:not(:has(Property[key.name='timeZone']))",
+    message: `Date formatted in the browser's zone — ${TIMEZONE_MESSAGE}`,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.name='toLocaleString'][callee.object.type='NewExpression'][callee.object.callee.name='Date']:not(:has(Property[key.name='timeZone']))",
+    message: `Date formatted in the browser's zone — ${TIMEZONE_MESSAGE}`,
+  },
+  {
+    selector:
+      "NewExpression[callee.object.name='Intl'][callee.property.name='DateTimeFormat']:not(:has(Property[key.name='timeZone']))",
+    message: `Intl.DateTimeFormat without { timeZone } — ${TIMEZONE_MESSAGE}`,
+  },
+]
+
+/** Merchant surfaces: the admin app and everything it renders, minus the shopper storefront. */
+const MERCHANT_DATE_FILES = ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'hooks/**/*.{ts,tsx}', 'utils/**/*.{ts,tsx}']
+const MERCHANT_DATE_IGNORES = [
+  'app/(storefront)/**',
+  'components/storefront/**',
+  'components/storefront-builder/**',
+  '**/*.test.{ts,tsx}',
+  '**/__tests__/**',
+]
+
+/**
  * ONE config block owns `no-restricted-syntax`, and it has to stay that way.
  *
  * Flat config does not merge rule options — a later block naming the same rule REPLACES the
@@ -116,6 +163,36 @@ const restrictedSyntax = {
  * selectors — not by an `ignores`, which would have to live on the shared block above and would
  * take the Meta guard down with it.
  */
+/**
+ * The one exception to "one block": merchant surfaces also get the timezone selectors, so this block
+ * RE-DECLARES the full list for those files (it replaces `restrictedSyntax` there, it does not add
+ * to it). A new shared selector goes in both.
+ */
+const merchantRestrictedSyntax = {
+  files: MERCHANT_DATE_FILES,
+  ignores: MERCHANT_DATE_IGNORES,
+  rules: {
+    'no-restricted-syntax': [
+      'error',
+      ...QUERY_KEY_SELECTORS,
+      ...META_PURCHASE_SELECTORS,
+      ...TIMEZONE_SELECTORS,
+    ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'date-fns',
+            importNames: ['format', 'startOfDay', 'endOfDay', 'startOfWeek', 'endOfWeek', 'startOfMonth', 'endOfMonth', 'isToday', 'isYesterday'],
+            message: `date-fns works in the browser's zone — ${TIMEZONE_MESSAGE}`,
+          },
+        ],
+      },
+    ],
+  },
+}
+
 const queryKeyRegistryExemption = {
   files: ['services/api/query-keys.ts', 'services/api/**/__tests__/**'],
   rules: {
@@ -139,6 +216,7 @@ const eslintConfig = defineConfig([
     }
   },
   restrictedSyntax,
+  merchantRestrictedSyntax,
   queryKeyRegistryExemption,
   queryCacheConventions,
 ])

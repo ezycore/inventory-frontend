@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import Link from "next/link";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
 import { cn } from "@/ui/lib/utils";
@@ -52,6 +53,7 @@ export function OrderRow({
   onToggle: (on: boolean) => void;
   onOpen: () => void;
 }) {
+  const { timezone } = useOrgCalendar();
   const provider = order.courier?.provider;
   const itemCount = orderItemCount(order.items);
   const reasonLabel = rejectionReasonLabel(order.rejectionReason);
@@ -91,9 +93,9 @@ export function OrderRow({
           still one hover away rather than gone. */}
       <td
         className="px-3 py-3 tabular-nums text-muted-foreground"
-        title={orderPlacedAt(order.createdAt)}
+        title={orderPlacedAt(order.createdAt, timezone)}
       >
-        {orderAge(order.createdAt, now)}
+        {orderAge(order.createdAt, now, timezone)}
       </td>
       {/* The buyer's record sits under their name, which is where the pattern
           was already hiding in plain text: the same customer on three rows, every

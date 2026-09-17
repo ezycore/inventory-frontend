@@ -6,6 +6,7 @@ import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
 import { cn } from "@/ui/lib/utils";
 import { fmtDate } from "@/components/ecommerce/customers/accounts-table";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 
 /**
  * Footer sign-ups — people who asked to hear from the shop and nothing more.
@@ -25,6 +26,7 @@ export function SubscribersTable({
   subscribers: StorefrontSubscriber[];
   isLoading?: boolean;
 }) {
+  const { timezone } = useOrgCalendar();
   return (
     <Card className="overflow-hidden p-0 shadow-none">
       <div className="overflow-x-auto">
@@ -76,7 +78,7 @@ export function SubscribersTable({
                     </span>
                   </td>
                   <td className="px-3 py-3 text-muted-foreground">
-                    {fmtDate(s.createdAt)}
+                    {fmtDate(s.createdAt, timezone)}
                   </td>
                 </tr>
               ))

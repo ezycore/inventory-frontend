@@ -1,5 +1,7 @@
 "use client";
 
+import { orgDayOfInstant } from "@/lib/org-calendar";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
@@ -73,15 +75,16 @@ export default function CampaignsPage() {
           entityName: "Campaign",
           editTooltip: "Edit campaign",
           deleteTooltip: "Delete campaign",
-          // Row → form values: numeric value, ISO dates the DatePicker parses,
+          // Row → form values: numeric value, each window bound as the org-local
+          // day it names (not the browser's — see orgDayOfInstant),
           // targets array routed to the multi-select matching the scope.
           transformEditData: (c: Campaign) => ({
             name: c.name,
             scope: c.scope,
             type: c.type,
             value: c.value ?? 0,
-            startsAt: c.startsAt ?? "",
-            endsAt: c.endsAt ?? "",
+            startsAt: orgDayOfInstant(c.startsAt, getOrgTimezone()),
+            endsAt: orgDayOfInstant(c.endsAt, getOrgTimezone()),
             // Only the field matching this campaign's scope is filled; the
             // rest stay empty so switching scope in the form starts clean.
             ...emptyTargets(),

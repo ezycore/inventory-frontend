@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -43,6 +43,7 @@ import {
 } from "@/constants/organization-options";
 import { useGetOrganizationApi } from "@/hooks";
 import { isFeatureEnabled } from "@/lib/feature-utils";
+import { DEFAULT_WEEK_START_DAY } from "@/lib/org-calendar";
 import { logoImageUrl } from "@/lib/storefront-image";
 
 export function OrganizationTab() {
@@ -55,6 +56,7 @@ export function OrganizationTab() {
     currency,
     name,
     timezone,
+    weekStartDay,
     logo,
     favicon,
     features,
@@ -63,6 +65,22 @@ export function OrganizationTab() {
   // to Settings → Notifications, where they sit beside every other message the
   // product sends and share its on/off matrix.
   const { user } = useAuthStore();
+  const locale = useLocale();
+  // The org's week start, as a Select value. An org saved before the setting
+  // existed has none, and the calendar reads that as Sunday.
+  const storedWeekStartDay = String(weekStartDay ?? DEFAULT_WEEK_START_DAY);
+  // Weekday names from Intl in the app locale — 2026-09-13 is a Sunday.
+  const weekDayOptions = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, day) => ({
+        value: String(day),
+        label: new Intl.DateTimeFormat(locale, {
+          weekday: "long",
+          timeZone: "UTC",
+        }).format(new Date(Date.UTC(2026, 8, 13 + day))),
+      })),
+    [locale],
+  );
 
   const canManageOrganization =
     !!user?.permissions?.includes("organization.edit") ||
@@ -93,6 +111,7 @@ export function OrganizationTab() {
       address: address || "",
       country: country || "",
       timezone: timezone || "",
+      weekStartDay: storedWeekStartDay,
       currency: currency || "",
     }),
     [
@@ -100,6 +119,7 @@ export function OrganizationTab() {
       address,
       country,
       timezone,
+      storedWeekStartDay,
       currency,
     ]
   );
@@ -146,6 +166,7 @@ export function OrganizationTab() {
       fd.append("address", formData.address);
       fd.append("country", formData.country);
       fd.append("timezone", formData.timezone);
+      fd.append("weekStartDay", formData.weekStartDay);
       fd.append("currency", formData.currency);
       if (logoField.pending instanceof File) {
         fd.append("logo", logoField.pending);
@@ -171,6 +192,7 @@ export function OrganizationTab() {
       address: formData.address,
       country: formData.country,
       timezone: formData.timezone,
+      weekStartDay: Number(formData.weekStartDay),
       currency: formData.currency,
     });
   };
@@ -182,6 +204,7 @@ export function OrganizationTab() {
     formData.address !== (address || "") ||
     formData.country !== country ||
     formData.timezone !== timezone ||
+    formData.weekStartDay !== storedWeekStartDay ||
     formData.currency !== currency;
 
   const canSubmit =
@@ -390,6 +413,29 @@ export function OrganizationTab() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="weekStartDay" className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              {tTab("weekStartDay")}
+            </Label>
+            <Select
+              value={formData.weekStartDay}
+              onValueChange={(value) => handleChange("weekStartDay", value)}
+            >
+              <SelectTrigger id="weekStartDay" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {weekDayOptions.map((day) => (
+                  <SelectItem key={day.value} value={day.value}>
+                    {day.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">{tTab("weekStartDayHint")}</p>
           </div>
         </div>
       </div>

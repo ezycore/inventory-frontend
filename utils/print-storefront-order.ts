@@ -100,8 +100,12 @@ export interface OrderInvoiceOptions {
   header: DocHeader;
   currency: (n: number) => string;
   labels?: OrderInvoiceLabels;
-  /** Localized date renderer; default = `toLocaleString()`. */
-  formatDate?: (iso: string) => string;
+  /**
+   * Localized date renderer. Required, because the zone depends on who prints:
+   * the merchant's copy uses the organization's timezone, the shopper's own
+   * invoice the shopper's (CLAUDE.md → Timezones).
+   */
+  formatDate: (iso: string) => string;
   /** Localized status renderer; default capitalizes the raw status. */
   formatStatus?: (status: string) => string;
   /** The store's current method definitions, for an order with no snapshot. */
@@ -150,9 +154,7 @@ const orderToDoc = (
     meta: [
       {
         label: t.date,
-        value: (opts.formatDate ?? ((iso) => new Date(iso).toLocaleString()))(
-          order.createdAt,
-        ),
+        value: opts.formatDate(order.createdAt),
       },
       { label: t.orderRef, value: order.orderNumber },
       { label: t.customer, value: addr.name, key: "customer" },

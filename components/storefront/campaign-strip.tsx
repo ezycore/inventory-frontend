@@ -134,7 +134,10 @@ export function CampaignStrip({
               : storeHref(base, "/products");
           })()
         : storeHref(base, "/products");
-  const ends = campaignEndsLabel(campaign.endsAt, t.langCode);
+  // After hydration only: the label is printed in the SHOPPER's zone, which the
+  // server (UTC) cannot know — rendering it there would mismatch the hydrating
+  // client for every shopper outside UTC.
+  const ends = hydrated ? campaignEndsLabel(campaign.endsAt, t) : null;
 
   const dismiss = () => {
     try {
@@ -175,7 +178,7 @@ export function CampaignStrip({
         </span>
         {ends ? (
           <span style={{ opacity: 0.75 }}>
-            · {t.campaignEnds} {ends}
+            · {ends}
           </span>
         ) : null}
         <span style={{ fontWeight: 700, textDecoration: "underline" }}>

@@ -40,6 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/components/alert-dialog";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
+import { orgDateKey } from "@/lib/org-calendar";
 import { describeVatPeriodSplit } from "@/lib/vat-period-split";
 import { useRequireAccess } from "@/hooks/use-require-access";
 
@@ -54,14 +56,16 @@ const REGISTRATION_TYPES: VatRegistrationType[] = [
 /** Only a standard-rated registrant may reclaim input VAT. */
 const CLAIMS_REBATE: VatRegistrationType = "standard_15";
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 export default function VatSettingsPage() {
   const t = useTranslations("settings.vatSettings");
   const tShell = useTranslations("settings.shell");
   const user = useAuthStore((s) => s.user);
   const updateTaxConfig = useAuthStore((s) => s.updateTaxConfig);
   const { mutateAsync, isPending } = useUpdateVatSettings();
+  // The org's date: `toISOString()` is the UTC date, so between 00:00 and 06:00
+  // in Dhaka it defaulted a registration change to yesterday.
+  const { timezone } = useOrgCalendar();
+  const today = () => orgDateKey(timezone);
 
   const masterVatOn = user?.organization?.features?.tax ?? false;
   const canManage = user?.permissions?.includes("organization.edit") ?? false;

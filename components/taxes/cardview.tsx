@@ -10,6 +10,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Percent, Hash, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator } from "@/i18n/config";
 import type { AppLocale } from "@/i18n/config";
 import type { ApiTax } from "@/types/api";
@@ -67,7 +68,7 @@ const TaxCardView = (
   // Every VAT rate is a percentage.
   const displayValue = `${rate}%`;
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
 
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 border-border/60">

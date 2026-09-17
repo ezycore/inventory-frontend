@@ -9,6 +9,9 @@
  * the backend stores the instant, which is what a merchant setting "ends at 9 pm"
  * on their own phone means.
  */
+// Device-local on purpose (see above) — the one merchant screen not on the org calendar yet; moving
+// it is an open decision, not an oversight (CLAUDE.md → Timezones).
+// eslint-disable-next-line no-restricted-imports -- device-local schedule times, documented above
 import { format, isValid, parse } from "date-fns";
 import type { StorefrontPage } from "@/services/api";
 

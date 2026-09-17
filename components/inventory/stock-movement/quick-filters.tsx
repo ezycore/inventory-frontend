@@ -14,7 +14,9 @@ import {
   CardDescription,
 } from "@/ui/components/card";
 import { DateRangePicker } from "@/ui/components/date-range-picker";
-import { useAuthStore } from "@/services/stores";
+import { formatInTimeZone } from "date-fns-tz";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
+import { orgDateKey, pickedDayKey } from "@/lib/org-calendar";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -25,28 +27,15 @@ import {
 } from "lucide-react";
 import type { StockMovementPeriod } from "@/services/api/modules/stock/api";
 
-// ─── Date helpers (timezone-aware, for display only) ─────────────────────────
-function getLocalDate(tz: string): Date {
-  const now = new Date();
-  const str = now.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD
-  return new Date(str + "T00:00:00");
-}
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
+// ─── Date helpers (the org's calendar) ───────────────────────────────────────
+/** `YYYY-MM-DD`, `n` days before today on the org's calendar. */
 function daysAgo(n: number, tz: string): string {
-  const local = getLocalDate(tz);
-  local.setDate(local.getDate() - n);
-  return formatDate(local);
+  const [y, m, d] = orgDateKey(tz).split("-").map(Number);
+  return formatInTimeZone(new Date(Date.UTC(y, m - 1, d - n)), "UTC", "yyyy-MM-dd");
 }
 
 function todayStr(tz: string): string {
-  return formatDate(getLocalDate(tz));
+  return orgDateKey(tz);
 }
 
 // ─── Preset types ────────────────────────────────────────────────────────────
@@ -165,8 +154,7 @@ interface QuickFiltersProps {
 
 export function QuickFilters({ onChange }: QuickFiltersProps) {
   const t = useTranslations("inventory");
-  const timezone =
-    useAuthStore((s) => s.user?.organization?.timezone) || "UTC";
+  const { timezone } = useOrgCalendar();
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [direction, setDirection] = useState<string>("all");
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
@@ -183,8 +171,8 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
       // Date part — either preset or custom range
       // Send period + YYYY-MM-DD dates; backend handles timezone conversion
       if (custom?.from) {
-        const startStr = formatDate(custom.from);
-        const endStr = custom.to ? formatDate(custom.to) : startStr;
+        const startStr = pickedDayKey(custom.from);
+        const endStr = custom.to ? pickedDayKey(custom.to) : startStr;
         filters.period = "custom";
         filters.startDate = startStr;
         filters.endDate = endStr;
@@ -253,8 +241,8 @@ export function QuickFilters({ onChange }: QuickFiltersProps) {
       const preset = presets.find((p) => p.id === activePreset);
       if (preset) parts.push(t(preset.labelKey));
     } else if (customRange?.from) {
-      const from = formatDate(customRange.from);
-      const to = customRange.to ? formatDate(customRange.to) : from;
+      const from = pickedDayKey(customRange.from);
+      const to = customRange.to ? pickedDayKey(customRange.to) : from;
       parts.push(`${from} → ${to}`);
     }
     if (direction !== "all") {

@@ -8,6 +8,7 @@ import { Button } from '@ui/components/button'
 import { SimpleSelect } from '@ui/components/simple-select'
 import { DatePicker } from '@/ui/components/date-picker'
 import { formatPeriodLabel } from '@/components/dashboard/helpers'
+import { resolveTimezone } from '@/lib/org-calendar'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import type { AppLocale } from '@/i18n/config'
 
@@ -222,7 +223,7 @@ export function PeriodFilter<P extends string>({
       {periodInfo && (
         <Badge variant="secondary" className="h-8 gap-1 text-[11px] font-normal">
           <Info className="h-3 w-3" />
-          {formatPeriodLabel(periodInfo, locale)}
+          {formatPeriodLabel(periodInfo, locale, resolveTimezone(zone))}
         </Badge>
       )}
     </div>

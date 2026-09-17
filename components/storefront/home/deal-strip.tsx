@@ -7,6 +7,7 @@ import type { StoreCampaign } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
 import { storeHref } from "@/lib/storefront-links";
 import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { offerCampaigns } from "@/lib/storefront-builder/store-lists";
 import { Icon } from "@/components/storefront/sf-icons";
 import { money } from "@/components/storefront/format";
@@ -145,8 +146,11 @@ function DealCard({
   const amount =
     c.type === "percentage" ? `${c.value}%` : money(c.value, currency);
   // Shared with `CampaignStrip`, so the two never disagree about when the same
-  // campaign ends — including whether the year is worth showing.
-  const ends = campaignEndsLabel(c.endsAt, t.langCode);
+  // campaign ends — including whether the year is worth showing. After
+  // hydration only: it is printed in the shopper's zone, which the server cannot
+  // know (see `campaignEndsLabel`).
+  const hydrated = useHydrated();
+  const ends = hydrated ? campaignEndsLabel(c.endsAt, t) : null;
 
   return (
     <Link
@@ -197,7 +201,7 @@ function DealCard({
               padding: "3px 9px",
             }}
           >
-            {t.campaignEnds} {ends}
+            {ends}
           </span>
         ) : null}
       </span>

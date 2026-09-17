@@ -35,7 +35,10 @@ export interface User {
     slug: string;
     ownerId?: string;
     currency?: string;
+    /** IANA zone every merchant-facing day is cut in — read via `useOrgCalendar`. */
     timezone?: string;
+    /** 0=Sun … 6=Sat; absent on older orgs, which read as Sunday. */
+    weekStartDay?: number;
     logo?: Image;
     /**
      * Browser-tab icon, and the only source of one — never derived from `logo`.

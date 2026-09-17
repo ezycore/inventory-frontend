@@ -95,6 +95,8 @@
       "currencyPlaceholder": "মুদ্রা নির্বাচন করুন",
       "timezone": "টাইমজোন",
       "timezonePlaceholder": "টাইমজোন নির্বাচন করুন",
+      "weekStartDay": "সপ্তাহ শুরু হয়",
+      "weekStartDayHint": "রিপোর্ট, ড্যাশবোর্ড ও বিক্রয় সারাংশে “এই সপ্তাহ” যেদিন থেকে গণনা হয়।",
       "addressSectionLabel": "ব্যবসার ঠিকানা",
       "address": "ঠিকানা",
       "addressPlaceholder": "প্রতিষ্ঠানের ঠিকানা লিখুন",

@@ -10,7 +10,7 @@ import {
   isDeletableOrder,
   buyerHistoryIsWarning,
   buyerHistoryLabel,
-  orderAge,
+  orderAge as orderAgeIn,
   orderItemCount,
   paymentMethodLabel,
   rejectionReasonLabel,
@@ -385,6 +385,8 @@ describe("paymentMethodLabel", () => {
 describe("orderAge", () => {
   const now = new Date("2026-09-10T12:00:00.000Z");
   const ago = (ms: number) => new Date(now.getTime() - ms).toISOString();
+  const TZ = "Asia/Dhaka";
+  const orderAge = (iso: string, at: Date) => orderAgeIn(iso, at, TZ);
 
   it("reads in the unit that matters for a COD queue", () => {
     expect(orderAge(ago(30 * 1000), now)).toBe("now");
@@ -397,6 +399,11 @@ describe("orderAge", () => {
     // Past four weeks "31d" tells a merchant nothing they can act on, and the
     // date is the more useful fact.
     expect(orderAge("2026-07-04T09:00:00.000Z", now)).toBe("04-07-2026");
+  });
+
+  it("prints that date on the organization's calendar, not the browser's", () => {
+    // 20:00Z on 4 July is 02:00 on 5 July in Dhaka.
+    expect(orderAge("2026-07-04T20:00:00.000Z", now)).toBe("05-07-2026");
   });
 
   it("never prints a negative age when the clocks disagree", () => {

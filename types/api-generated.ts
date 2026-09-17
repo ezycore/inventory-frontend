@@ -12333,6 +12333,7 @@ export interface components {
             industry: string;
             country: string;
             timezone: string;
+            weekStartDay?: number;
             currency: string;
             ownerId: string;
             address?: string;
@@ -15612,6 +15613,7 @@ export interface components {
                 ownerId?: string | null;
                 currency?: string;
                 timezone?: string;
+                weekStartDay?: number;
                 logo?: {
                     url: string;
                     mediumUrl: string;
@@ -15767,6 +15769,7 @@ export interface components {
                 ownerId?: string | null;
                 currency?: string;
                 timezone?: string;
+                weekStartDay?: number;
                 logo?: {
                     url: string;
                     mediumUrl: string;
@@ -15926,6 +15929,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -16082,6 +16086,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -16278,6 +16283,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -16457,6 +16463,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -21899,7 +21906,6 @@ export interface operations {
                     registration?: {
                         /** @enum {string} */
                         type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
-                        /** Format: date-time */
                         effectiveFrom: string;
                     };
                 };

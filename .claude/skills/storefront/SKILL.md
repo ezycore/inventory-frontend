@@ -78,14 +78,26 @@ different things.
 
 ### The "Ends" date is one function (2026-09-08)
 
-`campaignEndsLabel(endsAt, langCode)` in `lib/storefront-campaign-date.ts` — used
+`campaignEndsLabel(endsAt, t)` in `lib/storefront-campaign-date.ts` — used
 by `CampaignStrip` and the deal cards in `band-sections.tsx`, the only two
-surfaces that print it. Both formatted it inline as day + short month, so a
+surfaces that print it.
+
+**One instant, shown on the shopper's clock (2026-09-17).** `endsAt` is the end of the
+merchant's day in the ORGANIZATION's timezone, and the backend alone decides whether a
+campaign is live (`now ∈ [startsAt, endsAt]`) — the shopper's zone never changes that.
+The label prints that same instant in the viewer's own zone, with the time, as one
+dictionary phrase: `campaignEndsAt` = `"Ends {date} at {time}"` /
+`"শেষ হবে {date}, {time}"` (a Dhaka campaign ending 11:59 PM reads 11:29 PM in India and
+Sep 18 2:59 AM in Japan). **It renders only after hydration** (`useHydrated`): the server
+runs in UTC and cannot know the shopper's zone, so a server-rendered label would mismatch
+the hydrating client on every page view outside UTC. Both call sites gate it, and tests
+pin that the SSR HTML carries the offer but not the label. An open tab is not re-checked
+at the end instant — the ≤60 s cache refresh is accepted, and checkout reprices live. Both formatted it inline as day + short month, so a
 campaign scheduled into a later year — the two-year kind a merchant sets up for a
 permanent outlet section — announced "Ends 3 Jan" for a date two Januaries out.
 **The year is added whenever the end date is not in the current one**, and never
-when it is: a same-year date is unambiguous without it, and the strip has one
-line. Still `toLocaleDateString`, which localizes the numerals as well as the
+when it is (both years read in the viewer's zone): a same-year date is unambiguous
+without it, and the strip has one line. Still `toLocaleDateString`, which localizes the numerals as well as the
 month — a hand-built "2d 4h" countdown would need Bengali unit abbreviations that
 are not in `docs/I18N-GLOSSARY.md`.
 

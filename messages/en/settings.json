@@ -95,6 +95,8 @@
       "currencyPlaceholder": "Select currency",
       "timezone": "Timezone",
       "timezonePlaceholder": "Select timezone",
+      "weekStartDay": "Week starts on",
+      "weekStartDayHint": "Where \"This week\" begins in reports, the dashboard and sales summaries.",
       "addressSectionLabel": "Business Address",
       "address": "Address",
       "addressPlaceholder": "Enter organization address",

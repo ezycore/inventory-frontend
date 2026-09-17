@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { CreditCard, Printer, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/ui/components/badge";
@@ -91,7 +92,7 @@ export function PaymentHistoryList({
                     +{formatCurrency(payment.amount)}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(payment.createdAt), "dd MMM yyyy hh:mm aa")}
+                    {formatInTimeZone(new Date(payment.createdAt), getOrgTimezone(), "dd MMM yyyy hh:mm aa")}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">

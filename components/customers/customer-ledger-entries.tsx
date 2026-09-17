@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { useTranslations } from "next-intl";
 import {
   CreditCard,
@@ -158,7 +159,7 @@ function SaleEntry({
             {statusConfig[sale.status] ? t(statusConfig[sale.status].labelKey) : sale.status}
           </Badge>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div>
@@ -224,7 +225,7 @@ function InboundCreditEntry({
           <Undo2 className="h-4 w-4 text-blue-600" />
           <span className="font-medium text-blue-600">{t("creditApplied")}</span>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
@@ -294,7 +295,7 @@ function ReturnEntry({
           <RefreshCw className="h-4 w-4 text-orange-600" />
           <span className="font-medium text-orange-600">{t("returnPrefix", { number: data.returnNumber })}</span>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
@@ -354,7 +355,7 @@ function CashRefundEntry({
           <CreditCard className="h-4 w-4 text-red-600" />
           <span className="font-medium text-red-600">{t("cashRefundIssued")}</span>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>
@@ -396,7 +397,7 @@ function PaymentEntry({
           <CreditCard className="h-4 w-4 text-green-600" />
           <span className="font-medium text-green-600">{t("paymentReceived")}</span>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
       <div className="text-sm space-y-1">
         <div>

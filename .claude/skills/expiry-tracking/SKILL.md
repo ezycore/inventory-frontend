@@ -22,7 +22,7 @@
 |---|---|
 | Lot picker (POS cart + adjustment) | `components/shared/batch-select.tsx` — the **one** picker |
 | Lot label helpers + `isBatchExpired` | same file (`batchNumberLabel`, `expiryLabel`, `isUnknownExpiry`) |
-| Shelf-life badge + `isExpired` / `daysToExpiry` | `components/shared/expiry/expiry-badge.tsx` — the **one** threshold |
+| Shelf-life badge + `isExpired` / `daysToExpiry` | `components/shared/expiry/expiry-badge.tsx` — the **one** threshold; both take the org `timezone` and delegate to `lib/org-calendar.ts` (a lot is good through its whole expiry day on the org's calendar — CLAUDE.md → Timezones) |
 | Adjustment draw allocation | `components/inventory/adjust/use-batch-draws.ts` (+ `.test.ts`) |
 | Adjustment draw UI | `components/inventory/adjust/batch-draw-picker.tsx` |
 | Per-lot table on stock detail | `components/inventory/detail/inventory-batches.tsx` |

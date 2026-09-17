@@ -1,7 +1,8 @@
 'use client';
 // coding-standard: maintained
 
-import { format as formatDate } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { getOrgTimezone } from '@/hooks/use-org-calendar';
 import { populatedRef } from '@/utils/populated-ref';
 import { useLocale, useTranslations } from 'next-intl';
 import { Edit3, PackageCheck, ReceiptText, XCircle } from 'lucide-react';
@@ -184,7 +185,7 @@ export function OrderDetailsDrawer({
                   {
                     label: t('kvInvoiceDate'),
                     value: order.invoiceDate
-                      ? formatDate(new Date(order.invoiceDate), 'dd MMM yyyy')
+                      ? formatInTimeZone(new Date(order.invoiceDate), "UTC", 'dd MMM yyyy')
                       : undefined,
                   },
                   {
@@ -193,11 +194,11 @@ export function OrderDetailsDrawer({
                   },
                   {
                     label: t('kvCreatedAt'),
-                    value: formatDate(new Date(order.createdAt), 'dd MMM yyyy hh:mm aa'),
+                    value: formatInTimeZone(new Date(order.createdAt), getOrgTimezone(), 'dd MMM yyyy hh:mm aa'),
                   },
                   {
                     label: t('kvUpdatedAt'),
-                    value: formatDate(new Date(order.updatedAt), 'dd MMM yyyy hh:mm aa'),
+                    value: formatInTimeZone(new Date(order.updatedAt), getOrgTimezone(), 'dd MMM yyyy hh:mm aa'),
                   },
                 ]}
               />

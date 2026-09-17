@@ -1,5 +1,7 @@
 "use client";
 
+import { orgDayOfInstant } from "@/lib/org-calendar";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
@@ -77,14 +79,14 @@ export default function CouponsPage() {
           entityName: "Coupon",
           editTooltip: "Edit coupon",
           deleteTooltip: "Delete coupon",
-          // Map the row into form-shaped values (numeric defaults, ISO dates
-          // the DatePicker can parse) so edit pre-fill never produces "".
+          // Map the row into form-shaped values (numeric defaults, validity
+          // bounds as the org-local day they name — see orgDayOfInstant).
           transformEditData: (c: Coupon) => ({
             code: c.code,
             type: c.type,
             value: c.value ?? 0,
-            validFrom: c.validFrom ?? "",
-            validUntil: c.validUntil ?? "",
+            validFrom: orgDayOfInstant(c.validFrom, getOrgTimezone()),
+            validUntil: orgDayOfInstant(c.validUntil, getOrgTimezone()),
             minOrderValue: c.minOrderValue ?? 0,
             maxUses: c.maxUses ?? 0,
             perShopperLimit: c.perShopperLimit ?? 0,

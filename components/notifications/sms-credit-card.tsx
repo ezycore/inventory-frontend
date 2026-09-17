@@ -7,6 +7,7 @@ import {
   useUpdateNotificationSettings,
 } from "@/services/api";
 import { formatDate } from "@/lib/format";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import { SmsCreditTerms } from "@/components/notifications/sms-credit-terms";
 import { SmsQuietHours } from "@/components/notifications/sms-quiet-hours";
 import { SmsTestRow } from "@/components/notifications/sms-test-row";
@@ -48,6 +49,7 @@ import { Switch } from "@/ui/components/switch";
 export function SmsCreditCard() {
   const t = useTranslations("settings.notifications");
   const locale = useLocale() as AppLocale;
+  const { timezone } = useOrgCalendar();
   const { data, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
 
@@ -84,7 +86,7 @@ export function SmsCreditCard() {
             {sms?.expiresAt && !expired && (
               <p className="text-xs text-muted-foreground">
                 {t("sms.validUntil", {
-                  date: formatDate(sms.expiresAt, "dd MMM yyyy", locale),
+                  date: formatDate(sms.expiresAt, "dd MMM yyyy", locale, timezone),
                 })}
               </p>
             )}

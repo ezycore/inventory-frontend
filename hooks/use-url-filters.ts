@@ -47,10 +47,13 @@ export function useUrlFilters(
           filters[field.name] = { min: Number(min), max: Number(max) };
         }
       } else if (field.type === "date-range") {
-        // Date range format: startDate,endDate
+        // Date range format: startDate,endDate — kept as `YYYY-MM-DD` strings.
+        // A `Date` here serialized to a UTC ISO instant, which the API reads as
+        // an exact moment and so dropped the whole end day; a picked day is cut
+        // on the organization's calendar server-side (CLAUDE.md → Timezones).
         const [start, end] = urlValue.split(",");
         if (start && end) {
-          filters[field.name] = { from: new Date(start), to: new Date(end) };
+          filters[field.name] = { from: start, to: end };
         }
       } else if (field.type === "boolean" || field.type === "checkbox") {
         filters[field.name] = urlValue === "true";

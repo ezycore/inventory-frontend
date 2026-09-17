@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { useLocale, useTranslations } from 'next-intl';
-import { format as formatDate } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { getOrgTimezone } from '@/hooks/use-org-calendar';
 import { RotateCcw } from 'lucide-react';
 import type { AppLocale } from '@/i18n/config';
 import { Badge } from '@/ui/components/badge';
@@ -566,8 +567,9 @@ export function ReturnDetailsSheet({
                   },
                   {
                     label: t('returnDate'),
-                    value: formatDate(
+                    value: formatInTimeZone(
                       new Date(returnData.date),
+                      getOrgTimezone(),
                       'dd MMM yyyy hh:mm aa',
                     ),
                   },
