@@ -190,15 +190,27 @@ export const useAuthStore = create<AuthStore>()(
         ...initialState,
 
         setUser: (incoming: User, token: string) => {
+          // A session without a bearer is worse than no session: `user` and
+          // `isAuthenticated` make every screen render as signed in, while
+          // `api-client` sends no `Authorization` header — so the first request
+          // 401s and the app bounces to /login, over and over. `tsconfig` has
+          // `strict: false`, so a `string | null` reaching this `string`
+          // parameter is not a compile error; this is the only guard there is.
+          // Keep whatever token the session already holds (a caller refreshing
+          // the user from `/auth/me`, which returns no token), and refuse to
+          // mint a signed-in state that has none at all.
+          const nextToken = token || get().token;
+          if (!nextToken) return;
+
           const user = withResolvedFeatures(incoming);
           // Determine active location: user's default or organization's default
           const activeLocationId = user.defaultLocationId || null;
 
           // Store in Zustand
-          set({ user, token, isAuthenticated: true, activeLocationId });
+          set({ user, token: nextToken, isAuthenticated: true, activeLocationId });
 
           // Store token in cookie for middleware access
-          setCookie("auth-token", token, {
+          setCookie("auth-token", nextToken, {
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: "/",
             sameSite: "lax",
@@ -227,6 +239,10 @@ export const useAuthStore = create<AuthStore>()(
         // `activeLocationId` from the user's default and would silently throw away
         // whichever location they had switched to.
         setToken: (token: string) => {
+          // Same reason as `setUser`: dropping the bearer while the rest of the
+          // session stands leaves a signed-in-looking store that cannot make a
+          // single authenticated request.
+          if (!token) return;
           set({ token });
 
           setCookie("auth-token", token, {

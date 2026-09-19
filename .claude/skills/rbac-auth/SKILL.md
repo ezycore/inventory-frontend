@@ -56,6 +56,24 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 > otherwise you flash the signed-out state at signed-in users, or trigger redirect races. Never hand-roll
 > `typeof window` / `useSyncExternalStore`.
 
+**A session is `user` + `token`, and a writer may never set one without the other.** `setUser` and
+`setToken` ignore a falsy token rather than storing it: with `user` and `isAuthenticated: true` but
+no bearer, every screen renders as signed in while `api-client` sends no `Authorization` header, so
+the next request 401s and the 401 branch bounces to `/login` — and the persisted store keeps that
+state across reloads, so each fresh login walks straight back into it. Found in production on
+2026-09-19, where it 401'd the setup wizard's first answer (`POST /api/organization/onboarding`,
+backend `UNAUTHORIZED` = *no header*, not a bad token).
+
+Two rules follow, and `tsconfig.json` has `strict: false`, so neither is a compile error:
+
+- **`/auth/me` returns no token.** A caller refreshing the user (`useMe`) reads the current one with
+  `useAuthStore.getState().token` **at resolve time** — never a value destructured during render.
+  The closure version wrote back whatever the token was when the hook last rendered, so a
+  `clearAuth` landing while the request was in flight resurrected a token-less session.
+- **Only `clearAuth` ends a session**, and it clears the whole of it. Anything that nulls the token
+  alone is the bug above. Regression tests:
+  [`services/stores/__tests__/use-auth-store-token.test.ts`](../../../services/stores/__tests__/use-auth-store-token.test.ts).
+
 ---
 
 ## 3. Feature gates (plan features)
