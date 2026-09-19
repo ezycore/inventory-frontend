@@ -18,10 +18,13 @@ import type { CustomizeDraft } from "@/components/ecommerce/customize/use-custom
 import {
   PreviewDeviceToggle,
   PreviewStage,
+  PreviewThemeToggle,
   previewFrameSize,
+  previewToolbarButton,
 } from "@/components/ecommerce/customize/preview-stage";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
+import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
 
 /** Which storefront page the preview is pointed at. */
 export type PreviewPage = "home" | "collection" | "product";
@@ -138,6 +141,7 @@ export function BrowserPreview({
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(
     device === "desktop",
   );
+  const { theme, setTheme, postTheme } = usePreviewTheme(ref);
   const [reloadKey, setReloadKey] = useState(0);
 
   /* ── Owner preview ───────────────────────────────────────────────────────
@@ -258,12 +262,18 @@ export function BrowserPreview({
   // …and whenever the storefront (re)loads and announces it's ready.
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
-      if (e.data?.type === "ezycore-preview-ready") post();
+      if (e.data?.type === "ezycore-preview-ready") {
+        post();
+        // The theme override does not survive the frame's (re)load — switching
+        // preview page reloads it, and without this the frame comes back in the
+        // merchant's own theme while the toggle still says the other one.
+        postTheme();
+      }
       if (e.data?.type === "ezycore-preview-applied") setPaintedKey(frameKey);
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [post, frameKey]);
+  }, [post, postTheme, frameKey]);
 
   /* Safety net. If the ack never arrives — an older storefront build, a frame
      that failed to boot, `preview=1` stripped by a redirect — the preview must
@@ -327,11 +337,12 @@ export function BrowserPreview({
 
         <div className="ml-auto flex flex-none items-center gap-1">
           <PreviewDeviceToggle device={device} onChange={setDevice} />
+          <PreviewThemeToggle theme={theme} onChange={setTheme} />
           <button
             type="button"
             onClick={() => setReloadKey((k) => k + 1)}
             aria-label="Reload preview"
-            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className={previewToolbarButton}
           >
             <RotateCw className="h-4 w-4" />
           </button>
@@ -340,7 +351,7 @@ export function BrowserPreview({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open this page in a new tab"
-            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className={previewToolbarButton}
           >
             <ExternalLink className="h-4 w-4" />
           </a>

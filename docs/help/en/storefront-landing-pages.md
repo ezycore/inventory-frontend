@@ -72,6 +72,17 @@ be set separately for phones. They are marked **Can differ on phones**. Switch t
 **Mobile view** and they read **Same as desktop**; change one and phones get their own value.
 **Reset to desktop** puts it back.
 
+### Dark mode
+
+Shoppers can switch your store to dark, so check your page both ways: the moon button above the
+preview shows it in dark, the sun button brings it back. This only changes what you are looking at —
+nothing is saved, and it does not decide what a shopper sees.
+
+A section where you chose the background colour yourself keeps that colour in dark mode, exactly as a
+shopper would see it. If the writing on it becomes hard to read, set that section's **Text colour** to
+**Light, for a dark background** (or the other way round), or leave the background empty so the
+section follows the shopper's choice.
+
 ### Product photos
 
 Product sections have a **Card photo shape** (Square, Portrait, Landscape, Extra tall) and a

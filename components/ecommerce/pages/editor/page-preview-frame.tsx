@@ -16,13 +16,13 @@ import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-sc
 import {
   PreviewDeviceToggle,
   PreviewStage,
+  PreviewThemeToggle,
   previewFrameSize,
+  previewToolbarButton,
 } from "@/components/ecommerce/customize/preview-stage";
+import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
 import { needsBuilderParam } from "./preview-address";
 import type { EditorDevice, EditorSection } from "./section-instances";
-
-const toolbarButton =
-  "rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
 /**
  * The page as shoppers will see it: the real storefront in an iframe, on the
@@ -62,6 +62,7 @@ export function PagePreviewFrame({
   // Needed on a live shop too: a page's draft is not public.
   const { data: preview, isPending: mintingToken } = useStorefrontPreviewToken();
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(device === "desktop");
+  const { theme, setTheme, postTheme } = usePreviewTheme(frameRef);
 
   const post = useCallback((message: unknown) => {
     frameRef.current?.contentWindow?.postMessage(message, "*");
@@ -90,13 +91,16 @@ export function PagePreviewFrame({
       if (event.data?.type === PAGE_DRAFT_READY) {
         sendDraft();
         sendFocus();
+        // A reloaded frame carries no theme override — send it again, or a
+        // reload silently drops the preview back to the merchant's own theme.
+        postTheme();
       } else if (event.data?.type === PAGE_SECTION_SELECT && typeof event.data.payload?.id === "string") {
         onSelect(event.data.payload.id);
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [sendDraft, sendFocus, onSelect]);
+  }, [sendDraft, sendFocus, postTheme, onSelect]);
 
   if (!slug || !address) {
     return (
@@ -121,11 +125,12 @@ export function PagePreviewFrame({
         <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{address}</span>
         <div className="ml-auto flex flex-none items-center gap-1">
           <PreviewDeviceToggle device={device} onChange={onDeviceChange} />
+          <PreviewThemeToggle theme={theme} onChange={setTheme} />
           <button
             type="button"
             onClick={() => setReloadKey((key) => key + 1)}
             aria-label="Reload preview"
-            className={toolbarButton}
+            className={previewToolbarButton}
           >
             <RotateCw className="h-4 w-4" />
           </button>
@@ -134,7 +139,7 @@ export function PagePreviewFrame({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open the saved draft in a new tab"
-            className={toolbarButton}
+            className={previewToolbarButton}
           >
             <ExternalLink className="h-4 w-4" />
           </a>

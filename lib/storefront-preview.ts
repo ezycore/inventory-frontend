@@ -73,6 +73,21 @@ export const PREVIEW_BUILDER_HEADER = "x-ezy-store-preview-builder";
 export const PREVIEW_API_HEADER = "x-storefront-preview";
 
 /**
+ * Editor → preview frame: draw the shop in this light/dark theme
+ * (`payload.theme`). Sent by BOTH admin previews — Customize's `BrowserPreview`
+ * and the page editor's `PagePreviewFrame` — so it lives here rather than in
+ * `page-draft-messages.ts`, which is the page editor's own channel.
+ *
+ * The frame applies it as an override (`setPreviewTheme`), never by writing
+ * `localStorage['ezy-sf-theme']`: that key is the MERCHANT'S OWN shopper
+ * preference on the shop's origin, and an editor button that rewrote it would
+ * silently change how their live shop greets them on every future visit. The
+ * override also makes the preview deterministic — without it a merchant who had
+ * once toggled their shop to dark previewed dark while the editor said light.
+ */
+export const PREVIEW_THEME_MESSAGE = "ezycore-preview-theme";
+
+/**
  * Cookie `proxy.ts` writes on the SHOP's own host the first time it sees the
  * token, and reads on every request after.
  *

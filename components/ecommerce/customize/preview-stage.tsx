@@ -2,17 +2,23 @@
 // coding-standard: maintained
 
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { Monitor, Smartphone } from "lucide-react";
+import { Monitor, Moon, Smartphone, Sun } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
 import { DESKTOP_PREVIEW_WIDTH } from "@/components/ecommerce/customize/use-preview-scale";
+import type { PreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
 
 /**
  * The pieces every storefront preview in the admin shares — Customize's
  * `BrowserPreview` and the page editor's `PagePreviewFrame`: the device switch,
- * the stage the iframe sits on, and the iframe's size for each device.
+ * the theme switch, the stage the iframe sits on, and the iframe's size for each
+ * device.
  */
 
 export type PreviewDevice = "desktop" | "mobile";
+
+/** The icon buttons beside a preview: reload, open-in-a-tab, theme. */
+export const previewToolbarButton =
+  "rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
 const deviceButton = (active: boolean) =>
   cn(
@@ -49,6 +55,40 @@ export function PreviewDeviceToggle({
         <Smartphone className="h-4 w-4" />
       </button>
     </div>
+  );
+}
+
+/**
+ * The Light / Dark switch above a storefront preview.
+ *
+ * One button showing the theme it switches TO, rather than a second segmented
+ * control: the shop's own header toggle is the same gesture, and two segmented
+ * controls side by side read as one four-way switch.
+ *
+ * It previews the SHOPPER's toggle (`.sf-root[data-theme]`), which is not a
+ * merchant setting — there is nothing to save here, and a section whose
+ * background the merchant set to a fixed colour stays that colour in both, which
+ * is exactly what a shopper sees.
+ */
+export function PreviewThemeToggle({
+  theme,
+  onChange,
+}: {
+  theme: PreviewTheme;
+  onChange: (theme: PreviewTheme) => void;
+}) {
+  const dark = theme === "dark";
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(dark ? "light" : "dark")}
+      aria-label={dark ? "Preview in light mode" : "Preview in dark mode"}
+      aria-pressed={dark}
+      title={dark ? "Preview in light mode" : "Preview in dark mode"}
+      className={cn(previewToolbarButton, dark && "bg-muted text-foreground")}
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
   );
 }
 
