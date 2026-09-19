@@ -440,6 +440,8 @@ reads as two filters at once.
     owner's browser had `dark` from an earlier visit and no control to undo it. Four rounds of
     "the background does not match" were two people correctly describing two different renderings.
     `localStorage.getItem('ezy-sf-theme')` is the first thing to print in any storefront colour QA.
+    **In an admin preview frame it is no longer the answer**: the editor's own light/dark toggle posts
+    an override that outranks the stored value (see the page editor's preview notes above).
     is right, something else is painting — probe the point, don't re-read the variable.
   - **`--font-display` is a second font variable, spent only on `h1`–`h4` and `.sf-display`.** It is
     declared on the bare `.sf-shell` rule as `var(--font-storefront)`, so it equals the body face on
@@ -836,7 +838,18 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     expects a link. A responsive setting is `{ base, mobile? }`; the device switch picks which one is
     edited, and a phone value with no desktop value becomes the base.
   - **The preview stage is shared with Customize** (`components/ecommerce/customize/preview-stage.tsx`:
-    the device switch, the phone frame, the desktop `zoom` rule). Never copy it back into either preview.
+    the device switch, the **theme switch**, the phone frame, the desktop `zoom` rule, the toolbar
+    button class). Never copy it back into either preview.
+  - **The light/dark switch previews the SHOPPER's toggle, and is not a setting.** Both previews hold it
+    through `usePreviewTheme` and post `PREVIEW_THEME_MESSAGE` (`lib/storefront-preview.ts`, not
+    `page-draft-messages.ts` — Customize sends it too); `PreviewThemeBridge`, mounted by the storefront
+    **layout** because a builder landing page mounts neither preview's own bridge, applies it through
+    `setPreviewTheme`. ⚠ **Never write `localStorage['ezy-sf-theme']` from an editor** — that key is the
+    merchant's own shopper preference on the shop's origin. The override is also why the preview is
+    deterministic: a merchant who once toggled their live shop to dark previewed dark while the editor
+    said light. **Re-post it on every frame ready** (`PAGE_DRAFT_READY` / `ezycore-preview-ready`): a
+    reload or a preview-page switch drops the override. A toggle inside the frame clears it and wins,
+    so the shop's own header control stays live.
   - **Click-to-select goes both ways** through `lib/storefront-builder/page-draft-messages.ts`. The owner
     preview stamps `data-section-id` (`PageSections annotate`) and scrolls **its own window only** —
     `scrollIntoView` also scrolled the editor page around the frame. Import the message names from that
@@ -881,6 +894,10 @@ Four files, in payload order:
    and calls `apply`. It announces `ezycore-preview-ready` on mount so the editor pushes immediately.
 3. `services/stores/use-sf-preview-store.ts` — the override state.
 4. The storefront component reads its override and prefers it over the saved payload.
+
+The toolbar's **light/dark switch is not part of that payload** — it previews the shopper's own toggle
+over a separate message and a separate bridge, shared with the page editor. See the page editor's
+preview notes above before touching it, and never let it write `ezy-sf-theme`.
 
 **A store whose look is published through the Site (Phase 5) saves a draft, not the live look.** When
 `settings.siteCutoverAt` is set, the Customize page loads `useStorefrontSite`, the workspace edits

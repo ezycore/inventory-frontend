@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import QueryProvider from "@/components/providers/query-provider";
 import { StorefrontUIProvider } from "@/services/storefront/ui-context";
 import { StorefrontToaster } from "@/components/storefront/storefront-toaster";
+import { PreviewThemeBridge } from "@/components/storefront/preview-theme-bridge";
 import { STOREFRONT_FONT_VARS } from "./fonts";
 import "./storefront-base.css";
 import "./storefront.css";
@@ -61,6 +62,9 @@ export default function StorefrontRootLayout({
           >
             <StorefrontUIProvider>
               {children}
+              {/* Here, not in either preview's own bridge: both admin previews
+                  send the theme and a builder landing page mounts neither. */}
+              <PreviewThemeBridge />
               {/* Inside the provider because it follows the SHOPPER's theme — see
                   `StorefrontToaster`. It portals to the body itself, so its
                   position in the tree costs nothing. */}
