@@ -266,6 +266,24 @@ export function BrowserPreview({
     );
   }, [payload, device, markPosted]);
 
+  /* Re-arm the cover on the frame's OWN load event, not just on the reloads the
+     editor asks for.
+     `frameKey` only moves when the editor changes the page or bumps
+     `reloadKey`, so it covers exactly the reloads the editor causes. A frame can
+     also reload without being asked — a link followed inside it, the shop's own
+     redirect, a dev Fast Refresh — and every one of those keeps the same `url`
+     and `reloadKey`. `paintedKey` then still matches, the cover stays lifted,
+     and the merchant watches the SAVED store paint before the draft lands on
+     top of it: a setting they just switched off appears, then vanishes.
+     The `load` event is the one signal that fires for all of them. Clearing on
+     the first load is a no-op (nothing is painted yet), and clearing hands the
+     1.5s safety net and the watchdog back their un-painted state, so a frame
+     that never acks is still revealed rather than stranded blank. */
+  const onFrameLoad = useCallback(() => {
+    setPaintedKey(null);
+    post();
+  }, [post]);
+
   // Push the draft whenever it changes…
   useEffect(() => {
     post();
@@ -401,7 +419,7 @@ export function BrowserPreview({
             ref={ref}
             src={url}
             title="Storefront preview"
-            onLoad={post}
+            onLoad={onFrameLoad}
             className="border-0 bg-white"
             style={{
               visibility: painted ? "visible" : "hidden",

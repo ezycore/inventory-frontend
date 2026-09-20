@@ -914,6 +914,17 @@ Four files, in payload order:
 3. `services/stores/use-sf-preview-store.ts` — the override state.
 4. The storefront component reads its override and prefers it over the saved payload.
 
+⚠ **The frame is covered (`visibility: hidden`) until the draft has landed in it**, because it
+server-renders the merchant's SAVED store and paints that before `ready → post → apply` ever runs.
+`browser-preview.tsx` tracks *which* frame has been painted (`paintedKey` vs
+`frameKey = url#reloadKey`), so an editor-driven reload re-arms the cover by simply not matching.
+**The frame also reloads without the editor asking** — a link followed inside it, the shop's own
+redirect, a dev Fast Refresh — and those keep `url` and `reloadKey` identical, so the cover would
+stay lifted over a frame repainting the saved store. That is why the iframe's `onLoad` clears
+`paintedKey` before re-posting: the `load` event is the only signal that covers every reload. Without
+it, a setting the merchant has just switched off **appears and then vanishes** on the next frame load
+(found 2026-09-20 on the campaign strip's desktop/mobile switches).
+
 ⚠ **`apply` is a hand-written key-by-key merge, so step 3 is four touch points, not one** — state
 type, initial value, patch type, *and a line in the reducer*. Three of the four are enough to make
 the field look wired everywhere you would think to check: the editor streams it, the bridge maps it,
