@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, RotateCw } from "lucide-react";
-import { useStorefrontPreviewToken } from "@/services/api";
+import { useStorefrontPreviewToken, type StorefrontPage } from "@/services/api";
 import { PREVIEW_BUILDER_PARAM, PREVIEW_TOKEN_PARAM } from "@/lib/storefront-preview";
 import { storefrontUrl } from "@/lib/storefront-url";
 import {
@@ -38,6 +38,7 @@ export function PagePreviewFrame({
   slug,
   address,
   unavailable = "Store address unavailable.",
+  chrome,
   sections,
   device,
   onDeviceChange,
@@ -50,6 +51,12 @@ export function PagePreviewFrame({
   address: string | null;
   /** What the pane says in place of a frame when there is no address. */
   unavailable?: string;
+  /**
+   * The page's header and footer choice. Drawn by the preview route's server
+   * layout, not by the draft the editor posts in, so a change to it only shows
+   * once the frame loads again — hence its place in the frame's key below.
+   */
+  chrome: StorefrontPage["chrome"];
   sections: EditorSection[];
   device: EditorDevice;
   onDeviceChange: (device: EditorDevice) => void;
@@ -150,7 +157,7 @@ export function PagePreviewFrame({
             unpublished page is a 404 and the frame would have to reload. */}
         {ready && !mintingToken ? (
           <iframe
-            key={`${address}#${reloadKey}`}
+            key={`${address}#${chrome}#${reloadKey}`}
             ref={frameRef}
             src={`${pageUrl}?${frameQuery}`}
             title="Page preview"

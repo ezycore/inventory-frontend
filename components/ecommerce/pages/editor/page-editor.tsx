@@ -143,6 +143,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
                   ? "Add a product to your store to preview this page."
                   : undefined
             }
+            chrome={page.chrome}
             sections={editor.sections}
             device={editor.device}
             onDeviceChange={editor.setDevice}
