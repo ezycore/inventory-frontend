@@ -1440,10 +1440,21 @@ whole shop down on **every page** — the merchant trades their fold for a sente
   seamless loop never needs a measured width. The clone is `aria-hidden` **and `inert`** — it can
   carry the merchant's CTA, and a focusable control inside an aria-hidden subtree is a tab stop a
   screen reader cannot announce.
-- **`min-width: 100%` on `.sf-marquee-item` is the short-message guard**, and it is why the duration
-  needs a floor: a track narrower than the bar would drag a blank gap across the screen, so a short
-  message is held to the bar's width — at which point chars-per-second no longer describes the
-  distance travelled and an honest sum would strobe.
+- ⚠ **The short-message guard goes on the TRACK (`min-width: 200%`), never on the copies.** A
+  percentage on `.sf-marquee-item` resolves against the track, which is `max-content` — content-sized
+  — so it is circular: each copy came out as wide as the whole track, the pair spanned twice it, and
+  the animation still travelled half a track, i.e. **half a copy**. Live store, 2026-09-20: a 523px
+  bar, a 415px track, two 415px copies, the message creeping 207px then snapping back every loop,
+  both copies on screen at once and the second under the dismiss button. On the track the same
+  percentage resolves against `.sf-marquee`, which has a definite width, and `flex: 1 0 auto` on the
+  copies splits the widened track into two equal halves so `-50%` lands exactly one copy on. Long
+  message ⇒ no leftover ⇒ copies keep their (equal) content width. `prefers-reduced-motion` resets
+  `min-width: 0`, or the bar is twice the shop wide with no loop to use it.
+- **That guard is also why the duration needs a floor**, and why the floor is **per speed**
+  (`MARQUEE_MIN_SECONDS`): every message narrower than the bar travels the same distance, one bar
+  width, so chars-per-second describes nothing down there. One shared floor (8s) made Slow, Normal
+  and Fast identical for anything under 48 characters — i.e. the speed control did nothing on a
+  typical notice, which is how a merchant found it. Test speeds on a SHORT string, not only a 200-char one.
 - ⚠ **`prefers-reduced-motion` must undo `overflow` and `white-space` too**, not just the animation.
   A long message pinned to one line inside a clipped box is one this shopper never sees the end of;
   it falls back to the wrapping static bar. Pausing on `:hover` **and `:focus-within`** is WCAG 2.2.2

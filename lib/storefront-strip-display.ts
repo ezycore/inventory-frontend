@@ -212,6 +212,27 @@ const MARQUEE_CHARS_PER_SECOND: Record<MarqueeSpeed, number> = {
 
 export type MarqueeSpeed = NonNullable<StoreAnnouncement["marqueeSpeed"]>;
 
+/**
+ * Floor seconds for one pass, PER SPEED — and the speed control's only effect
+ * on a message that fits on one line.
+ *
+ * A short notice does not travel the width of its own words: the track is held
+ * to twice the bar (`.sf-marquee-track`'s `min-width` in `storefront.css`), so
+ * every message narrower than the bar covers the SAME distance, one bar width.
+ * Characters per second therefore describes nothing down here, and a single
+ * shared floor made the three speeds one speed: at 8s, every message up to 48
+ * characters scrolled identically whether the merchant picked Slow or Fast —
+ * which is exactly what a merchant reported after finding the control inert.
+ *
+ * The values are the same ramp the rates are, so the pace changes by roughly
+ * the same feel either side of the crossover where length takes over.
+ */
+const MARQUEE_MIN_SECONDS: Record<MarqueeSpeed, number> = {
+  slow: 16,
+  normal: 10,
+  fast: 6,
+};
+
 /** Merchant-facing pace names, for the editor's segmented control. */
 export const MARQUEE_SPEED_LABELS: Record<MarqueeSpeed, string> = {
   slow: "Slow",
@@ -228,17 +249,22 @@ export const MARQUEE_SPEED_LABELS: Record<MarqueeSpeed, string> = {
  * scrolling on — the faster it would have to move to finish in the same time,
  * so the hardest message to read would be the one moving quickest.
  *
- * Clamped at both ends. The floor is for a short message, where the track is
- * held to the width of the bar rather than the width of the words (see
- * `.sf-marquee-item`'s `min-width` in `storefront.css`) so the sum no longer
- * describes the distance travelled — without it, a three-word notice strobes.
- * The ceiling keeps a 200-character message (the field's own maximum) from
- * taking half a minute to come round.
+ * Clamped at both ends. The floor is `MARQUEE_MIN_SECONDS` — per speed, because
+ * below the crossover the distance is fixed and the floor IS the pace; without
+ * it a three-word notice strobes, and with one shared value the speed control
+ * does nothing at all. The ceiling keeps a 200-character message (the field's
+ * own maximum) from taking half a minute to come round.
  */
 export function marqueeDurationSeconds(
   text: string,
   speed: MarqueeSpeed | undefined,
 ): number {
-  const perSecond = MARQUEE_CHARS_PER_SECOND[speed ?? "normal"];
-  return Math.round(Math.min(60, Math.max(8, text.trim().length / perSecond)));
+  const resolved = speed ?? "normal";
+  const perSecond = MARQUEE_CHARS_PER_SECOND[resolved];
+  return Math.round(
+    Math.min(
+      60,
+      Math.max(MARQUEE_MIN_SECONDS[resolved], text.trim().length / perSecond),
+    ),
+  );
 }

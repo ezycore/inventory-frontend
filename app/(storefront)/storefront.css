@@ -1072,14 +1072,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 
    Seamless, so two copies of the message and a track that travels exactly one
    copy before repeating. `-50%` is that copy: whatever the words are, half the
-   track is one of them, so the loop never needs a measured width.
+   track is one of them, so the loop never needs a measured width — but ONLY
+   while the two copies are the same width and together ARE the track. Both
+   halves of that are what the rules below buy.
 
-   `min-width: 100%` on each copy is the SHORT-message guard, and it is doing
-   more than it looks. A track narrower than the bar would run out of content
-   mid-pass and drag a blank gap across the screen. Held to the bar's width, two
-   copies always span at least twice the viewport, so something is always on
-   screen — and a short message centres in its slot, which is exactly how the
-   bar looks when it is not scrolling at all. */
+   The short-message guard belongs on the TRACK (`min-width: 200%`), not on the
+   copies. A percentage on a copy resolves against the track, and the track is
+   `max-content` — content-sized — so the percentage is circular: each copy came
+   out as wide as the whole track, the pair spanned twice it, and the animation
+   still travelled only half a track, i.e. HALF A COPY. Measured on a live store:
+   a 523px bar, a 415px track, two 415px copies, and a message that crept 207px
+   and then snapped back to the start every loop, with both copies on screen at
+   once and the second one sitting under the dismiss button. On the track the
+   same percentage resolves against `.sf-marquee`, which has a definite width.
+
+   `flex: 1 0 auto` is the other half: with the track widened to twice the bar,
+   the two copies share the leftover space equally, so each is exactly half the
+   track and `-50%` lands one copy on. A message longer than the bar leaves no
+   leftover, so the copies keep their content width — equal again, being the same
+   words. Either way a short message centres in its half, which is exactly how
+   the bar looks when it is not scrolling at all. */
 .sf-marquee {
   overflow: hidden;
   /* Its own stacking context, so the message cannot ride over the dismiss
@@ -1090,11 +1102,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-marquee-track {
   display: flex;
   width: max-content;
+  min-width: 200%;
   animation: sf-marquee var(--sf-marquee-dur, 18s) linear infinite;
 }
 .sf-marquee-item {
-  flex: 0 0 auto;
-  min-width: 100%;
+  flex: 1 0 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1142,6 +1155,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     animation: none;
     transform: none;
     width: 100%;
+    /* The 200% floor exists to give the loop a second screen to travel into.
+       With no loop it is just a bar twice the width of the shop, i.e. a
+       horizontal scrollbar on every page. */
+    min-width: 0;
   }
   .sf-marquee-item {
     white-space: normal;
