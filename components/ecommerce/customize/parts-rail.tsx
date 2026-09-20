@@ -119,6 +119,10 @@ const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)]
 /** Opening a part points the preview at a page that actually shows it. */
 const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
+  /* The tracking page is the one page this part's frame wraps that a merchant
+     can reach nowhere else — a content page on the builder previews its own
+     frame, the home page shows none of the four. */
+  content: "track",
 };
 
 /** Parts whose `templates.*` key is not simply their own id. */

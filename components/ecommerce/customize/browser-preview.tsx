@@ -28,12 +28,17 @@ import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-th
 import { usePreviewWatchdog } from "@/components/ecommerce/customize/use-preview-watchdog";
 
 /** Which storefront page the preview is pointed at. */
-export type PreviewPage = "home" | "collection" | "product";
+export type PreviewPage = "home" | "collection" | "product" | "track";
 
 const PAGES: { id: PreviewPage; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "collection", label: "Collection" },
   { id: "product", label: "Product" },
+  /* The order-tracking page. It is the ONLY page the content frame wraps that
+     has no page of its own in the builder, so without a tab here the Content &
+     tracking part had nothing to point at and opened the home page — a panel of
+     four layouts over a preview that shows none of them. */
+  { id: "track", label: "Track order" },
 ];
 
 /**
@@ -190,9 +195,11 @@ export function BrowserPreview({
   const path =
     page === "collection"
       ? "/products"
-      : page === "product" && productSlug
-        ? `/products/${productSlug}`
-        : "";
+      : page === "track"
+        ? "/orders/track"
+        : page === "product" && productSlug
+          ? `/products/${productSlug}`
+          : "";
   // `preview=1` turns on the draft bridge inside the frame; the token is what
   // gets the frame served at all before the shop is published. The token also
   // makes the "open in a new tab" link beside it work pre-launch, which is the
