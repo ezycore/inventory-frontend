@@ -238,7 +238,7 @@ export function gridProducts(row: {
 
 /**
  * The `<Media>` props for the store's banner photo — its own fit and focus
- * point, set beside the banner in Customize → Hero.
+ * point, set beside the banner in Customize → Look.
  *
  * ⚠ **Deliberately NOT `useStoreImageFit()`.** These sections used to read that
  * hook, which is *Customize → Product cards → Image fit* — so changing how

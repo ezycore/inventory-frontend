@@ -45,7 +45,13 @@ export function CollectionDataProvider({
 }
 
 /** The grid, drawn from whatever the route resolved. Used by the core section. */
-export function CollectionFromRoute() {
+export function CollectionFromRoute({
+  layout,
+  pagination,
+}: {
+  layout?: string;
+  pagination?: string;
+} = {}) {
   const data = useContext(CollectionDataContext);
   return (
     <CollectionPageView
@@ -53,6 +59,8 @@ export function CollectionFromRoute() {
       initialPage={data.initialPage ?? 1}
       collection={data.collection}
       crumbs={data.crumbs}
+      layout={layout}
+      pagination={pagination}
     />
   );
 }

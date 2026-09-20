@@ -4,8 +4,7 @@
 import type { ShopperProfile, StoreTemplates } from "@/lib/storefront-client";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { useAccountArea } from "@/components/storefront/account/use-account-area";
 import { SidebarAccount } from "@/components/storefront/account/layouts/sidebar-account";
 import { TabsAccount } from "@/components/storefront/account/layouts/tabs-account";
@@ -32,15 +31,23 @@ import { EditorialAccount } from "@/components/storefront/account/layouts/editor
  * picker works, and a merchant can keep Muslin's shop with Classic's account
  * area if they want. Reading `appliedThemeId` here would break all three.
  */
-export function AccountArea({ shopper }: { shopper: ShopperProfile }) {
+export function AccountArea({
+  shopper,
+  layout: chosen,
+}: {
+  shopper: ShopperProfile;
+  /**
+   * The `account-area` core section's own choice, once this page is on the
+   * builder — a raw `templates.accountLayout` id, so it resolves with the
+   * store's own templates rather than beside them.
+   */
+  layout?: string;
+}) {
   const { slug } = useStoreContext();
   const { data: store } = useStore(slug);
-  const draft = useSfPreview((s) => s.accountLayout);
   const api = useAccountArea(shopper);
 
-  const layout: StoreTemplates["accountLayout"] = isAccountLayout(draft)
-    ? draft
-    : resolveTemplates(store).accountLayout;
+  const layout = useStoreTemplate(store, "accountLayout", chosen);
   const Layout = ACCOUNT_LAYOUTS[layout] ?? SidebarAccount;
 
   return <Layout api={api} shopper={shopper} />;
@@ -55,14 +62,3 @@ const ACCOUNT_LAYOUTS: Record<
   panel: PanelAccount,
   editorial: EditorialAccount,
 };
-
-function isAccountLayout(
-  value: unknown,
-): value is StoreTemplates["accountLayout"] {
-  return (
-    value === "sidebar" ||
-    value === "tabs" ||
-    value === "panel" ||
-    value === "editorial"
-  );
-}

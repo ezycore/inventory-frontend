@@ -17,7 +17,7 @@ describe("fieldEmptyChoice", () => {
     });
     expect(fieldEmptyChoice("single-product", "galleryLayout")).toEqual({
       kind: "inherit",
-      label: "Follow Product page",
+      label: "Store default",
     });
   });
 

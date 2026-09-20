@@ -412,23 +412,43 @@ export const useSfPreviewImage = (
  * rest of `templates` reaches its consumers through the shell (brand colours,
  * header, footer, cards), so only the ones a single page reads live here.
  */
-type DraftedTemplateKey = "collection" | "product" | "checkout" | "pagination";
+type DraftedTemplateKey =
+  | "collection"
+  | "product"
+  | "checkout"
+  | "pagination"
+  | "accountLayout";
 
 /**
- * One page's layout variant, with the Customize draft applied.
+ * One page's layout variant, with the Customize draft and the page's own
+ * core-section override applied.
  *
  * **Every page that renders a `templates` variant must read it through this
  * hook, never `resolveTemplates(store)` directly** — that is what makes the
  * choice repaint while a merchant is picking it. Reading the resolver directly
  * pins the page to the SAVED value, so the picker looks broken until Save: the
  * bug this hook was generalised (from a pagination-only version) to kill.
+ *
+ * `override` is the core section's own setting once the page is on the builder
+ * (§6: "today's `templates.*` layout choice becomes that core section's `layout`
+ * setting"). It is a RAW template id, the same vocabulary the merchant's
+ * settings store — so it is merged into `templates` and resolved with them
+ * rather than translated here, and a section and the Site say the same thing the
+ * same way.
+ *
+ * Precedence: **Customize draft → the section's override → the store's
+ * template**, which is `cart-lines`' rule. The draft sits on top because a
+ * merchant dragging a Customize control has to see it move; the override sits
+ * over the store because choosing one is opting this page out of the Site value.
  */
 export const useStoreTemplate = <K extends DraftedTemplateKey>(
   store: Pick<StorefrontStore, "templates"> | null | undefined,
   key: K,
+  override?: string,
 ): StoreTemplates[K] => {
   const draft = useSfPreview((s) => s[key]);
   const templates: StoreTemplatesRaw = { ...store?.templates };
+  if (override) templates[key] = override;
   if (draft) templates[key] = draft;
   return resolveTemplates({ templates })[key];
 };

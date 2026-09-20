@@ -538,14 +538,32 @@ reads as two filters at once.
   (`load-more` → `loadMore`) — the maps in that file are the only bridge, and a miss silently
   resolves to the default, which reads as "the setting does nothing".
   - **A page that renders a per-page variant reads it through
-    `useStoreTemplate(store, key)`** (`use-sf-preview-store.ts`), never `resolveTemplates(store)`
-    directly. The hook overlays the Customize draft on the saved value, which is what makes the
-    picker repaint while a merchant is choosing; reading the resolver pins the page to the SAVED
-    value and the control looks dead until Save. Covers the four keys only one page each reads —
-    `collection`, `product`, `checkout`, `pagination`. The rest (`home`, `header`, `footer`,
-    `productCard`, `cardActions`, `hero`, `headerMenu`) reach their consumers through the shell,
-    which already reads the preview store. Generalised 2026-08-04 from a pagination-only hook,
-    when the other three were found to be unpreviewable.
+    `useStoreTemplate(store, key, override?)`** (`use-sf-preview-store.ts`), never
+    `resolveTemplates(store)` directly. The hook overlays the Customize draft on the saved value,
+    which is what makes the picker repaint while a merchant is choosing; reading the resolver pins
+    the page to the SAVED value and the control looks dead until Save. Covers the five keys only
+    one page each reads — `collection`, `product`, `checkout`, `pagination`, `accountLayout`. The
+    rest (`home`, `header`, `footer`, `productCard`, `cardActions`, `hero`, `headerMenu`) reach
+    their consumers through the shell, which already reads the preview store. Generalised
+    2026-08-04 from a pagination-only hook, when the other three were found to be unpreviewable;
+    `accountLayout` joined on 2026-09-20 when the account area stopped hand-rolling the same
+    overlay with its own value guard.
+  - **Customize is the SITE editor; a page's settings belong to its page.** Since 2026-09-20 the
+    rail holds only site-wide rows — Look, Header, Utility bar, Phone bar, Footer, Page layout,
+    WhatsApp button, Announcement bar, Campaign strip, Product cards, Content pages. Hero, Home
+    page, Product page, Collections, Cart, Checkout and Account area are gone; each is its page's
+    core-section setting in the page editor. **Do not add a per-page control here** — the preview
+    can only point at home/collection/product, so a control for any other page renders against a
+    page that does not contain it, which is the class of bug this split closed. `MOVED_TO_PAGES`
+    redirects their `?part=` deep links to `/ecommerce/pages`. The store BANNER stayed, in Look:
+    a Hero draws it when "Use the store banner" is on, and it is the shared-link picture when no
+    social image is set.
+  - **`override` is the page's core-section setting** once that system page is on the builder
+    (plan §6). It is a RAW template id — the same vocabulary Customize stores — so it is merged
+    into `templates` and resolved with them, never translated at the call site. Precedence:
+    **Customize draft → the section's override → the store's template**. `cart-lines` states the
+    same rule in prose; `checkout-form` is the one that puts its override ABOVE the draft, which
+    is a known divergence, not a pattern to copy.
 - **Mobile chrome** (`templates.mobile`, default `tabs`) — its own axis, and a **registry**, not a
   set of components. See *The MOBILE axis* below before adding a phone layout.
 - **Card CTA layout** (`templates.cardActions`, default `add-buy`) — **a second axis on the
@@ -4204,12 +4222,11 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   height, sections scroll INSIDE it with their Save buttons pinned at the bottom, and the slides
   panel fills the same frame (pinned header/footer, scrolling rows) — eliminates the height-jump
   "blink" when the panel takes over. Mobile keeps natural flow (all `lg:` gated).
-- **Hero slides edit-in-place panel**: `components/ecommerce/customize/hero-slides-panel.tsx` —
-  a takeover of the Customize LEFT rail (never a modal/right-drawer: those would cover the live
-  preview). Collapsed rows (SlideThumb + title, expand one at a time). Opened from the Hero part's
-  slide rows; while open, BrowserPreview forces `heroSrc="slides"` so edits always show.
-  (2026-08-04: the panel's own Save/Cancel went away with the page's move to one Save — it now
-  edits the shared draft and "Done" just returns.) Shared `slide-thumb.tsx` added.
+- **Hero slides edit-in-place panel** — **DELETED 2026-09-20** with the Hero part (see "Customize
+  is the Site editor"). It was a takeover of the Customize LEFT rail (never a modal/right-drawer:
+  those would cover the live preview), with collapsed rows expanding one at a time. Slides are
+  blocks on the `hero` SECTION now, edited in the page editor's inspector; the rail-takeover rule
+  it established still holds for the collections panel, which is the last one.
   Design sample: claude.ai/code/artifact/09f51325-0c70-4b4d-9359-569d99895bcd.
 - **Hero source switch (`templates.hero`: slides|banner)**: explicit control over what the home
   hero shows — carousel (when slides exist) or the static banner hero — so slides can stay saved
@@ -4259,7 +4276,8 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   and original URLs as 800w/1600w `srcset` candidates and the browser chooses for its viewport.
   Renders on
   Classic + Hero Split when slides exist (Minimal keeps its hero;
-  empty = static hero). Admin: Customize → Hero → `customize/hero-slides-panel.tsx`; slide image upload =
+  empty = static hero). Admin (until 2026-09-20): Customize → Hero; the `hero` section's own
+  slide blocks on Pages since. Slide image upload =
   `POST /organization/storefront/media/hero-slide` (`useUploadHeroSlideImage`), settings PATCH
   cleans up dropped slides' Cloudinary images; live preview via preview store/bridge `heroSlides`.
   Approved design sample: claude.ai/code/artifact/2ea161da-ea0a-4d15-9c31-00a3110804f1.

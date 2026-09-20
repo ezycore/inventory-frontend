@@ -31,7 +31,7 @@ export interface SectionContext {
   imageFit?: "cover" | "canvas";
   /** Customize → Product cards → image ratio, as a CSS `aspect-ratio`. */
   imageRatio?: string;
-  /** The store banner (Customize → Hero), for a hero that uses it. */
+  /** The store banner (Customize → Look), for a hero that uses it. */
   banner?: StorefrontImage | null;
   /** The store's promises (Customize → Footer), those with words, for sections that show them. */
   trustBadges?: { text: string; icon?: string }[];

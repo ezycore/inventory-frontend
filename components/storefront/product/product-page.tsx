@@ -35,12 +35,15 @@ const wrap: CSSProperties = {
 export function ProductPageView({
   initialProduct,
   hideRelated = false,
+  layout,
 }: {
   initialProduct?: CatalogProduct;
   /** Leave out "You may also like" — a builder page placing a Related products section instead. */
   hideRelated?: boolean;
+  /** The `product-main` section's own layout; unset follows the store's template. */
+  layout?: string;
 }) {
-  const d = useProductDetail(initialProduct);
+  const d = useProductDetail(initialProduct, layout);
   const { t, base, product } = d;
 
   if (d.isLoading) {

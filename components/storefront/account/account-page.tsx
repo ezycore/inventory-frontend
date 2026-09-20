@@ -41,7 +41,12 @@ const primaryBtn: CSSProperties = {
   cursor: "pointer",
 };
 
-export function AccountPageView() {
+/**
+ * `layout` is the `account-area` core section's own choice once this page is on
+ * the builder — a RAW `templates.accountLayout` id, unset on every page the
+ * migration builds, so a moved account area draws what the store already drew.
+ */
+export function AccountPageView({ layout }: { layout?: string } = {}) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
@@ -75,7 +80,7 @@ export function AccountPageView() {
     );
   }
   if (shopper) {
-    return <AccountArea shopper={shopper} />;
+    return <AccountArea shopper={shopper} layout={layout} />;
   }
 
   /* ------------------------------- auth (guest) ------------------------------- */

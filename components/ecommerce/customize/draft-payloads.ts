@@ -416,20 +416,18 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
   };
 }
 
+/**
+ * Parts that write a `templates.*` id. Every page part left this set on
+ * 2026-09-20 with its row; `templates` still carries their keys (`seedTemplates`
+ * keeps the ones no picker owns) so the wholesale PATCH cannot drop them.
+ */
 const TEMPLATE_PARTS = new Set<PartId>([
   "header",
   "mobile",
-  "hero",
-  "home",
   "cards",
-  "collections",
-  "product",
   "footer",
-  "account",
   "shell",
-  "cart",
   "content",
-  "checkout",
 ]);
 
 /**
@@ -451,10 +449,9 @@ export function toSettingsPatch(
      (the template id) and `theme.mobile` (the arrangement over it), and the
      PATCH replaces each block wholesale. Taking only `templates` would save the
      merchant's new template and silently drop every slot they had just moved. */
-  if (["look", "home", "mobile"].some((part) => dirty.has(part as PartId))) {
+  if (["look", "mobile"].some((part) => dirty.has(part as PartId))) {
     take("theme");
   }
-  if (dirty.has("home")) take("sectionConfig");
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
   if (
     ["announcement", "campaign", "header", "utility", "footer"].some((part) =>
@@ -462,10 +459,6 @@ export function toSettingsPatch(
     )
   ) {
     take("nav");
-  }
-  if (dirty.has("hero")) {
-    take("heroBanner");
-    take("heroSlides");
   }
   if (dirty.has("footer")) {
     take("copy");

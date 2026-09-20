@@ -22,7 +22,15 @@ import type { CatalogProduct } from "@/lib/storefront-client";
  * page's loading/error early-returns can never make a hook call conditional —
  * the trap the old file carried two comments about.
  */
-export function useProductDetail(initialProduct?: CatalogProduct) {
+export function useProductDetail(
+  initialProduct?: CatalogProduct,
+  /**
+   * The `product-main` core section's own layout, once the product page is on
+   * the builder — a raw `templates.product` id, unset on every page the
+   * migration builds.
+   */
+  layout?: string,
+) {
   const { slug } = useStoreContext();
   const productSlug = String(useParams().productSlug);
 
@@ -43,7 +51,7 @@ export function useProductDetail(initialProduct?: CatalogProduct) {
   // The component survives PDP→PDP navigation (related products), so the
   // shopper's picks reset per product slug.
   const buy = useProductBuy(product, productSlug);
-  const variant = useStoreTemplate(buy.store, "product");
+  const variant = useStoreTemplate(buy.store, "product", layout);
 
   return {
     ...buy,

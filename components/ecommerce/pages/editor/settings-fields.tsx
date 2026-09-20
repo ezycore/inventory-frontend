@@ -55,7 +55,7 @@ export function SettingsFields({
     <div className="space-y-4">
       {Object.entries(specs).map(([key, spec]) => {
         const id = `${idPrefix}-${key}`;
-        const label = fieldLabel(key);
+        const label = fieldLabel(key, sectionType);
         if (context && spec.fromPage?.includes(context)) {
           return (
             <p key={key} className="text-sm text-muted-foreground">
@@ -63,7 +63,7 @@ export function SettingsFields({
             </p>
           );
         }
-        const hint = fieldHint(key);
+        const hint = fieldHint(key, sectionType);
         const value = fieldValue(settings, key, spec, device);
         const set = (next: unknown) => onChange(withFieldValue(settings, key, spec, next, device));
         const ownPhoneValue = hasPhoneValue(settings, key, spec);

@@ -15,7 +15,10 @@
  * phone tab reach the desktop unannounced.
  *
  * So each optional enum declares which it is:
- * - `inherit` — a merchant-configurable source. Keep the choice, name the source.
+ * - `inherit` — the value comes from somewhere else. Keep the choice and name
+ *   that source: the Customize panel that owns it where one still does
+ *   ("Follow Product cards"), or the store's stored value where the panel has
+ *   gone ("Store default").
  * - `meaning` — empty is its own answer. Keep the choice, name the answer.
  * - `value` — empty renders as this listed value. Drop the choice; the control
  *   shows the value, which is what the shopper already sees.
@@ -34,6 +37,17 @@ export type FieldEmptyChoice =
 
 /** Customize → Product cards owns the photo frame and fit for the whole store. */
 const FOLLOW_PRODUCT_CARDS: FieldEmptyChoice = { kind: "inherit", label: "Follow Product cards" };
+/**
+ * The store-wide `templates.*` value this page's layout falls back to.
+ *
+ * It has no panel any more: Customize became the Site editor on 2026-09-20 and
+ * the per-page rows went with it, so the stored value is frozen at whatever the
+ * store last used and THIS control is the only way to change what the page
+ * draws. Named "Store default" rather than "Follow <panel>" for exactly that
+ * reason — a choice that names a screen the merchant cannot open is a worse
+ * answer to "where does it come from?" than no name at all.
+ */
+const STORE_DEFAULT: FieldEmptyChoice = { kind: "inherit", label: "Store default" };
 /** A picture with no shape is drawn whole, at its own proportions. */
 const WHOLE_PICTURE: FieldEmptyChoice = { kind: "meaning", label: "Whole picture" };
 
@@ -42,11 +56,18 @@ const WHOLE_PICTURE: FieldEmptyChoice = { kind: "meaning", label: "Whole picture
  * shared by several sections (`CARD_PHOTO`, `storeHeading`).
  */
 const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
-  // Inherited — the merchant can open the named panel and change it.
+  // Inherited from a Customize panel the merchant can still open and change.
   cardImageRatio: FOLLOW_PRODUCT_CARDS,
   cardImageFit: FOLLOW_PRODUCT_CARDS,
   "hero.imageFit": FOLLOW_PRODUCT_CARDS, // useStoreImageFit(), services/storefront/use-image-fit.ts
-  "single-product.galleryLayout": { kind: "inherit", label: "Follow Product page" },
+  /* A system page's core section overriding the store's own `templates.*`
+     (plan §6). The panels that used to own these left Customize on the same
+     day, so they name the stored value, not a screen — see `STORE_DEFAULT`. */
+  "single-product.galleryLayout": STORE_DEFAULT,
+  "product-main.layout": STORE_DEFAULT,
+  "collection-grid.layout": STORE_DEFAULT,
+  "collection-grid.pagination": STORE_DEFAULT,
+  "account-area.layout": STORE_DEFAULT,
 
   // Empty is its own answer, and no listed value says it.
   storeHeading: { kind: "meaning", label: "My own heading" },

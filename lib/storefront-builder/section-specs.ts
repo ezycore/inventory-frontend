@@ -163,11 +163,25 @@ export const SECTION_SPECS = {
       },
     },
   },
-  /** The account area, on an account page that has moved onto the builder. */
+  /**
+   * The account area, on an account page that has moved onto the builder.
+   *
+   * `layout` is the store's `templates.accountLayout` become a section setting,
+   * in the SAME ids Customize stores (§6). Unset means "whatever the store's
+   * template says", so an account page built by the migration draws exactly as
+   * it did. What the area *shows* is the shopper's own data, and whether it
+   * exists at all is a page control — neither is a setting here.
+   */
   "account-area": {
     v: 1,
     pages: ["account"],
-    settings: {},
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["sidebar", "tabs", "panel", "editorial"],
+        optional: true,
+      },
+    },
   },
   /** The search results, on a search page that has moved onto the builder. */
   "search-results": {
@@ -175,22 +189,57 @@ export const SECTION_SPECS = {
     pages: ["search"],
     settings: {},
   },
-  /** A collection's products, on the collection page once it is on the builder. */
+  /**
+   * A collection's products, on the collection page once it is on the builder.
+   *
+   * `layout` and `pagination` are the store's `templates.collection` and
+   * `templates.pagination` become section settings, in the SAME ids Customize
+   * stores (§6); unset means "whatever the store's template says".
+   *
+   * `pagination` is the one here that is NOT only about this page: the search
+   * results read the same store template. A merchant who sets it on this
+   * section moves the collection page alone and leaves search on the store's
+   * choice — which is the point of a page-level override, and why the field's
+   * hint says which page it moves.
+   */
   "collection-grid": {
     v: 1,
     pages: ["collection"],
-    settings: {},
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["grid-3", "grid-4", "sidebar"],
+        optional: true,
+      },
+      pagination: {
+        type: "enum",
+        values: ["pages", "infinite", "load-more"],
+        optional: true,
+      },
+    },
   },
   /**
    * The product itself, on the product page once it is on the builder.
    * `hideRelated` drops its own "You may also like" row, for a page where the
    * merchant places a Related products section instead; unset keeps the row,
    * which is what every page moved from the classic product page draws.
+   *
+   * `layout` is the store's `templates.product` become a section setting, in
+   * the SAME ids Customize stores and the same ids `single-product`'s
+   * `galleryLayout` already uses. Unset means "whatever the store's template
+   * says". It carries the third value `sticky-bar`, which `galleryLayout` does
+   * not: a landing page's single product is one block on a longer page, while
+   * this is the product page itself.
    */
   "product-main": {
     v: 1,
     pages: ["product"],
     settings: {
+      layout: {
+        type: "enum",
+        values: ["gallery-left", "gallery-top", "sticky-bar"],
+        optional: true,
+      },
       hideRelated: { type: "boolean", optional: true },
     },
   },
@@ -425,7 +474,7 @@ export const SECTION_SPECS = {
     pages: ["landing"],
     settings: {
       productId: { type: "ref", to: "product" },
-      /** Unset follows Customize → Product page (`templates.product`, same ids). */
+      /** Unset follows the store's `templates.product` (same ids). */
       galleryLayout: { type: "enum", values: ["gallery-left", "gallery-top"], optional: true },
       hideDescription: { type: "boolean", optional: true },
     },

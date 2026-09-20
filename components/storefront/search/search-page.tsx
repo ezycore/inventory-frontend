@@ -84,7 +84,7 @@ function SearchInner() {
     if ((sp.get("q") ?? "") !== debouncedQ) setParams({ q: debouncedQ || undefined });
   }, [debouncedQ, sp, setParams]);
 
-  // Listing mode is the merchant's (Customize → Collections), shared with the
+  // Listing mode is the store's — search has no override of its own, shared with the
   // collection page so search doesn't paginate in a second style.
   const mode = useStoreTemplate(store, "pagination");
   const paged = mode === "pages";

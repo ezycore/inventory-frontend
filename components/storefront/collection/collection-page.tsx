@@ -62,11 +62,15 @@ function CollectionInner({
   initialPage,
   collection,
   crumbs,
+  layout,
+  pagination: paginationChoice,
 }: {
   initialProducts?: ProductListResult;
   initialPage: number;
   collection?: CatalogCategoryDetail;
   crumbs?: Crumb[];
+  layout?: string;
+  pagination?: string;
 }) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
@@ -81,11 +85,11 @@ function CollectionInner({
 
   const { data: store } = useStore(slug);
 
-  // Which listing mode the merchant chose (Customize → Collections), with any
+  // Which listing mode the page or the store chose, with any
   // unsaved draft from the live preview applied. `store` is SSR-seeded in
   // shop/layout.tsx, so this is settled on the first render and the page never
   // flips modes under the shopper.
-  const mode = useStoreTemplate(store, "pagination");
+  const mode = useStoreTemplate(store, "pagination", paginationChoice);
   const paged = mode === "pages";
   const filterState = facets.params;
 
@@ -114,7 +118,7 @@ function CollectionInner({
   );
 
   const currency = facets.currency;
-  const variant = useStoreTemplate(store, "collection");
+  const variant = useStoreTemplate(store, "collection", layout);
   const infinitePages = infiniteQuery.data?.pages ?? [];
   const items = paged
     ? (pagedQuery.data?.items ?? [])
@@ -257,6 +261,8 @@ export function CollectionPageView({
   initialPage = 1,
   collection,
   crumbs,
+  layout,
+  pagination,
 }: {
   initialProducts?: ProductListResult;
   /**
@@ -269,6 +275,13 @@ export function CollectionPageView({
   collection?: CatalogCategoryDetail;
   /** Built server-side so the visible trail matches the page's JSON-LD exactly. */
   crumbs?: Crumb[];
+  /**
+   * The `collection-grid` core section's own choices, once the collection page
+   * is on the builder — raw `templates.collection` / `templates.pagination`
+   * ids, unset on every page the migration builds.
+   */
+  layout?: string;
+  pagination?: string;
 }) {
   const { t } = useStorefrontUI();
   return (
@@ -278,6 +291,8 @@ export function CollectionPageView({
         initialPage={initialPage}
         collection={collection}
         crumbs={crumbs}
+        layout={layout}
+        pagination={pagination}
       />
     </Suspense>
   );

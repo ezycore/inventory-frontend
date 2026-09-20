@@ -334,6 +334,12 @@ const FIELD_LABELS: Record<string, string> = {
   url: "Video link",
   viewAll: "Show a “View all” link",
   wholeRows: "Only full rows",
+  /* A core section's override of a store-wide layout, named as its Customize
+     panel names it — one decision should not have two names. */
+  "collection-grid.layout": "Products per row",
+  "collection-grid.pagination": "Loading more products",
+  "product-main.layout": "Photo layout",
+  "account-area.layout": "Account layout",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
@@ -350,7 +356,12 @@ const HINTS: Record<string, string> = {
   cardImageFit: CARD_PHOTO_HINT,
   cardImageRatio: CARD_PHOTO_HINT,
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
-  galleryLayout: "Default follows Customize → Product page.",
+  galleryLayout: "Default uses your store's product page layout.",
+  "product-main.layout": "Default keeps the layout your store already used. This page shows every product, so a change here applies to all of them.",
+  "collection-grid.layout": "Default keeps the layout your store already used, on every category page.",
+  "collection-grid.pagination":
+    "Default keeps your store's choice. Setting it here moves category pages only — search results are unaffected.",
+  "account-area.layout": "Default keeps the layout your store already used.",
   label: "Read aloud by screen readers for the play button.",
   photo: "Optional. Only with the customer's permission.",
   poster: "Optional. A YouTube video uses its own cover when this is empty.",
@@ -360,7 +371,7 @@ const HINTS: Record<string, string> = {
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
   space: "The room between the sections above and below.",
-  storeBanner: "Shows the banner from Customize → Hero when the first slide has no picture.",
+  storeBanner: "Shows the banner from Customize → Look when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
   storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",
   campaignBadge: "Names your running campaign when the first slide has no badge.",
@@ -386,10 +397,24 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
  * them — so "Extra tall" or "Full photo" reads the same on both screens, and a
  * rename there is a rename here.
  */
+/**
+ * Which Customize picker owns a setting's wording, so a section that mirrors a
+ * store-wide choice offers the merchant the SAME option names rather than a
+ * second vocabulary for one decision.
+ *
+ * Keyed by `"<section type>.<field>"` or a bare `"<field>"` — the qualified
+ * entry wins, which is what lets `layout` mean four different lists on four
+ * different sections. Same precedence as `fieldEmptyChoice`.
+ */
 const CUSTOMIZE_OPTIONS: Record<string, string> = {
   cardImageFit: "imageFit",
   cardImageRatio: "imageRatio",
   galleryLayout: "product",
+  // A system page's core section overriding the store's own `templates.*`.
+  "product-main.layout": "product",
+  "collection-grid.layout": "collection",
+  "collection-grid.pagination": "pagination",
+  "account-area.layout": "accountLayout",
 };
 
 /** Readable names for enum values, where the raw value would not read well. */
@@ -421,13 +446,29 @@ const words = (key: string) =>
 
 const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-export const fieldLabel = (key: string): string => FIELD_LABELS[key] ?? sentence(words(key));
+/**
+ * A setting's entry in one of the label maps: the section's own
+ * `"<type>.<field>"` first, then the bare `"<field>"` every section shares.
+ *
+ * The same precedence `fieldEmptyChoice` uses, and for the same reason — `layout`
+ * names a different list on each section that has one, while `heading` means the
+ * same thing everywhere.
+ */
+const bySection = <T,>(
+  map: Record<string, T>,
+  field: string,
+  sectionType?: string,
+): T | undefined => (sectionType ? map[`${sectionType}.${field}`] : undefined) ?? map[field];
 
-export const fieldHint = (key: string): string | undefined => HINTS[key];
+export const fieldLabel = (key: string, sectionType?: string): string =>
+  bySection(FIELD_LABELS, key, sectionType) ?? sentence(words(key));
+
+export const fieldHint = (key: string, sectionType?: string): string | undefined =>
+  bySection(HINTS, key, sectionType);
 
 /** An option's label — Customize's own wording for a setting that mirrors a Customize choice. */
-export const valueLabel = (value: string, field?: string): string => {
-  const source = field ? CUSTOMIZE_OPTIONS[field] : undefined;
+export const valueLabel = (value: string, field?: string, sectionType?: string): string => {
+  const source = field ? bySection(CUSTOMIZE_OPTIONS, field, sectionType) : undefined;
   const customize = source ? TEMPLATE_OPTIONS[source]?.find((option) => option.value === value) : undefined;
   const own = field ? FIELD_VALUE_LABELS[field]?.[value] : undefined;
   return customize?.label ?? own ?? VALUE_LABELS[value] ?? sentence(words(value));

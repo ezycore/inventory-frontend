@@ -16,12 +16,17 @@ type Spec = (typeof SECTION_SPECS)["product-main"]["settings"];
  *
  * `hideRelated` drops the view's own "You may also like" row, so a Related
  * products section placed elsewhere on the page can take its place; unset keeps
- * the row, as the classic product page draws it.
+ * the row, as the classic product page draws it. `layout` is today's
+ * `templates.product` become a section setting, unset on every page the
+ * migration builds.
  */
 export function ProductMainSection({ settings }: SectionViewProps<Spec>) {
   return (
     <div className="sfb-core">
-      <ProductFromRoute hideRelated={settings.hideRelated ?? false} />
+      <ProductFromRoute
+        layout={settings.layout}
+        hideRelated={settings.hideRelated ?? false}
+      />
     </div>
   );
 }

@@ -264,24 +264,24 @@ export type PartId =
   | "header"
   | "utility"
   | "mobile"
-  | "hero"
-  | "home"
   | "cards"
-  | "collections"
-  | "product"
   | "contact"
   | "footer"
-  | "account"
   | "shell"
-  | "cart"
-  | "content"
-  | "checkout";
+  | "content";
 
 /**
  * Which slice of the draft each part owns. Dirty state is derived by comparing
  * these against the baseline rather than set by hand, so a new field in a part
  * is covered the moment it is added to the slice — there is no `setDirty()` call
  * to forget.
+ *
+ * **Only site-wide parts have a slice** (2026-09-20). The draft still CARRIES
+ * every page key it ever did — `heroSlides`, `heroBanner`, `homepageSections`,
+ * `templates.product` and the rest — because a look save replaces each block it
+ * sends wholesale, so a block dropped from the payload would be erased rather
+ * than left alone (`seedTemplates` states the same rule for template ids). They
+ * simply have no editor here any more: their pages own them.
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   look: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle, d.design],
@@ -293,30 +293,12 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   // merchant — their phone header — so they share a slice. Splitting them would
   // let the save bar name a part the merchant never opened.
   mobile: (d) => [d.templates.mobile, d.mobile],
-  hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner, d.heroAlign],
-  // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
-  // belong to this slice — they moved here from `collections` with their
-  // controls on 2026-08-18. A setting left in the wrong slice marks the wrong
-  // part dirty, which is the save bar naming a part the merchant never opened.
-  home: (d) => [
-    d.templates.home,
-    d.homepageSections,
-    d.sectionConfig,
-    d.homeCollections,
-    d.templates.categoryTiles,
-  ],
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
     d.templates.imageFit,
     d.templates.imageRatio,
   ],
-  collections: (d) => [
-    d.collections,
-    d.templates.collection,
-    d.templates.pagination,
-  ],
-  product: (d) => d.templates.product,
   contact: (d) => d.contactButton,
   footer: (d) => [
     d.templates.footer,
@@ -329,11 +311,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerPaymentMethods,
     d.footerContentPages,
   ],
-  account: (d) => d.templates.accountLayout,
   shell: (d) => d.templates.shell,
-  cart: (d) => d.templates.cartLayout,
   content: (d) => d.templates.contentLayout,
-  checkout: (d) => d.templates.checkout,
 };
 
 /**

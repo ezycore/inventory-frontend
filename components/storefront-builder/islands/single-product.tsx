@@ -22,7 +22,7 @@ import {
  *    often has no store header, so a toast would leave the shopper with nowhere
  *    visible to go next.
  *  - **The photo layout is the section's own** when the merchant set one;
- *    unset, it follows Customize → Product page like the product page does.
+ *    unset, it follows the store's saved product layout, as the product page does.
  */
 export function SingleProductIsland({
   product: listed,

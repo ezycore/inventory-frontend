@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { StorefrontSite } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
@@ -14,8 +14,8 @@ import {
   type PreviewPage,
 } from "@/components/ecommerce/customize/browser-preview";
 import { CollectionsPanel } from "@/components/ecommerce/customize/collections-panel";
-import { HeroSlidesPanel } from "@/components/ecommerce/customize/hero-slides-panel";
 import {
+  MOVED_TO_PAGES,
   PartsRail,
   asPartId,
   previewDeviceForPart,
@@ -50,7 +50,8 @@ export function CustomizeWorkspace({
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   // Customize is a `storefront.design` page, but collections are catalog
   // records behind `storefront.manage` — a designer can arrange the look, not
-  // rename or hide the shop's collections.
+  // rename or hide the shop's collections. Reached from the Header part, which
+  // is the one site-wide part that lists them.
   const canManageCollections = useHasPermission(PERMISSIONS.storefrontManage);
   // Memoised: `useCustomizeDraft` re-seeds when this object changes, so it must
   // change only when the settings or the Site do.
@@ -64,6 +65,14 @@ export function CustomizeWorkspace({
   // the catalog's collections tab both point here.
   const params = useSearchParams();
   const partParam = params.get("part");
+  /* Seven rows became pages on 2026-09-20, and `?part=` is a documented deep
+     link — the retired /ecommerce/navigation route, the catalog's collections
+     tab, bookmarks and old support replies all write one. A moved id has no row
+     to open, so it goes to Pages rather than landing on a collapsed rail, which
+     reads as a dead link. The Pages screen names the page it wants (the Home
+     page card, the Shop pages card); jumping straight into one editor would
+     need its id, and a query for that is not worth a redirect. */
+  const movedTo = partParam ? MOVED_TO_PAGES[partParam] : undefined;
   // ?theme= stages a ready-made theme from Online Store → Themes as an UNSAVED
   // edit, which is the whole apply flow: the preview repaints, the save bar
   // lists what changed, Discard undoes it and Save confirms.
@@ -79,7 +88,6 @@ export function CustomizeWorkspace({
     setStagedTheme(themeParam);
     api.applyTheme(themeParam);
   }
-  const [slidesPanel, setSlidesPanel] = useState<number | null>(null);
   const [collectionsPanel, setCollectionsPanel] = useState(false);
   // Which part is open lives here, not in the rail: the panels replace the rail
   // entirely, and a merchant who edits their slides should come back to the Hero
@@ -105,6 +113,11 @@ export function CustomizeWorkspace({
   // dropped every other key. Nothing links here with both today, but `?part=`
   // is a documented deep link and "the theme link silently closed the panel you
   // asked for" is not a bug anyone would think to look for here.
+  const router = useRouter();
+  useEffect(() => {
+    if (movedTo) router.replace("/ecommerce/pages");
+  }, [movedTo, router]);
+
   useEffect(() => {
     if (!stagedTheme) return;
     const next = new URLSearchParams(window.location.search);
@@ -143,14 +156,7 @@ export function CustomizeWorkspace({
             : "flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]"
         }
       >
-        {slidesPanel !== null ? (
-          <HeroSlidesPanel
-            slides={api.draft.heroSlides}
-            setSlides={(heroSlides) => api.patch({ heroSlides })}
-            initialExpanded={slidesPanel}
-            onClose={() => setSlidesPanel(null)}
-          />
-        ) : collectionsPanel ? (
+        {collectionsPanel ? (
           <CollectionsPanel
             collections={api.draft.collections}
             setCollections={(collections) => api.patch({ collections })}
@@ -165,7 +171,6 @@ export function CustomizeWorkspace({
             onManageCollections={
               canManageCollections ? () => setCollectionsPanel(true) : undefined
             }
-            onEditSlide={(index) => setSlidesPanel(index)}
           />
         )}
       </div>
@@ -182,10 +187,10 @@ export function CustomizeWorkspace({
           page={page}
           onPageChange={setPage}
           deviceRequest={deviceRequest}
-          // While a panel is open, force-preview its own subject even if the
-          // saved setting points elsewhere — otherwise reordering collections or
-          // writing slides changes nothing on screen.
-          forceHeroSlides={slidesPanel !== null}
+          // While the panel is open, force-preview its own subject even if the
+          // saved setting points elsewhere — otherwise reordering collections
+          // changes nothing on screen.
+          forceHeroSlides={false}
           forceCollectionsMenu={collectionsPanel}
           // The contact button's number lives in Settings → General, not in this
           // draft, so the preview needs it to mirror the blank-number fallback.

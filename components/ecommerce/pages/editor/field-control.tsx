@@ -85,7 +85,10 @@ export function FieldControl({
     case "boolean":
       return <Switch id={id} checked={value === true} onCheckedChange={(checked) => onChange(checked)} />;
     case "enum": {
-      const options = spec.values.map((option) => ({ value: option, label: valueLabel(option, name) }));
+      const options = spec.values.map((option) => ({
+        value: option,
+        label: valueLabel(option, name, sectionType),
+      }));
       const empty = spec.optional ? fieldEmptyChoice(sectionType, name) : undefined;
       // A built-in fallback is not a state of its own: the control shows the
       // value the section already draws, so nothing sits behind a "Default".
