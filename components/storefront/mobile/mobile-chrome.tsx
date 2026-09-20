@@ -88,7 +88,15 @@ function useActionCtx(
       case "account":
         return pathname.includes("/account");
       case "track":
-        return pathname.includes("/t");
+        // Both tracking surfaces: the lookup the button points at, and the
+        // tokenised link a buyer opens from their SMS. `includes("/t")` was a
+        // substring match that lit this tab up on any path with a `/t…`
+        // segment — `/pages/terms`, a `t-shirts` collection — and is exactly
+        // the kind of match a category name can break from the merchant's side.
+        return (
+          pathname.includes("/orders/track") ||
+          pathname.startsWith(`${base}/t/`)
+        );
       default:
         return false;
     }

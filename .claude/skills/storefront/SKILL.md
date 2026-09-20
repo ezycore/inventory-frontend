@@ -4436,8 +4436,23 @@ filtered chrome cannot tell "off" from "not on the bar". Any future "the chrome 
 offer X" check has the same hazard.
 
 **Tracking is not part of the account area.** Guest checkout, the cart mirror and both tracking routes
-stay open with accounts off, so the utility bar's "Track order" retargets from `/account` to
-`/orders/track` rather than disappearing.
+stay open with accounts off.
+
+⚠ **"Track order" points at `/orders/track`, unconditionally — in the utility bar and in the phone
+bar.** Both pointed somewhere else until 2026-09-20, and both were wrong in production:
+
+- The utility bar sent accounts-ON stores to `/account`, on the reasoning that a signed-in shopper's
+  orders live there. That inverts the paragraph above: accounts-on is precisely the case where the
+  only link named "Track order" stops reaching tracking, and a guest who lost the SMS link met a
+  sign-in wall. Signing in is `AccountLink`'s job and it renders in the same header.
+- `TrackAtom` pointed at **`/t`** — the parent segment of `shop/t/[token]`, which has no page, so the
+  phone bar's button 404'd on every store that enabled it. A token is per-order and arrives by SMS;
+  no standing link can hold one.
+
+Nothing on a live store linked to `/orders/track` as a result. Pinned by
+`components/storefront/header/utility-bar.test.tsx` and by
+`app/(storefront)/shop/store-href-routes.test.ts`, which resolves every double-quoted `storeHref`
+literal against the route tree — a segment whose only child is dynamic fails it.
 
 ## System pages on the builder — core sections (2026-09-16)
 

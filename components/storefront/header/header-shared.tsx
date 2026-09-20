@@ -159,13 +159,20 @@ export function UtilityBar({
         ) : null}
       </span>
       <span style={{ display: "flex", gap: 16, alignItems: "center", marginInlineStart: "auto" }}>
-        {/* "Track order" goes to the account area, which is where a signed-in
-            shopper's orders live — but that area is the merchant's to switch
-            off, and tracking is NOT. With accounts off it points at the
-            standalone lookup instead, so the link keeps doing what it says. */}
+        {/* Always the standalone lookup, never the account area.
+            It used to go to `/account` whenever the merchant had accounts on,
+            on the reasoning that a signed-in shopper's orders live there. That
+            reversed the intent: accounts-on is precisely the case where the one
+            link named "Track order" stopped reaching tracking, so a guest who
+            lost their SMS link met a sign-in wall — on a store that takes guest
+            orders, from a page `/orders/track` that is unauthenticated on
+            purpose and was reachable from nowhere else on the site (QA, live on
+            uriibaba.com). Signing in is `AccountLink`'s job, and it sits in the
+            same header. The lookup serves members too: order number plus phone
+            is data they already have. */}
         {config.showTrackOrder ? (
           <Link
-            href={storeHref(base, ctx.showAccount ? "/account" : "/orders/track")}
+            href={storeHref(base, "/orders/track")}
             style={{ color: "inherit" }}
           >
             {config.trackOrderLabel || t.trackOrder}

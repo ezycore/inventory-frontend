@@ -266,6 +266,16 @@ function HomeAtom({ ctx, mode }: AtomProps) {
   );
 }
 
+/**
+ * The lost-link lookup — NOT `/t`.
+ *
+ * `/t` is the parent segment of `shop/t/[token]`, and a segment with only a
+ * dynamic child has no page: this button 404'd on every store that switched it
+ * on (confirmed live, `uriibaba.com/t` → 404). A token is minted per order and
+ * sent by SMS, so the bar can never hold one — the form that trades an order
+ * number and a phone for the same screen is the only tracking surface a
+ * standing link can point at.
+ */
 function TrackAtom({ ctx, mode }: AtomProps) {
   const { t } = useStorefrontUI();
   return (
@@ -274,7 +284,7 @@ function TrackAtom({ ctx, mode }: AtomProps) {
       label={t.trackOrder}
       mode={mode}
       active={ctx.isActive("track")}
-      href={storeHref(ctx.base, "/t")}
+      href={storeHref(ctx.base, "/orders/track")}
     />
   );
 }

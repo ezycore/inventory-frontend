@@ -62,9 +62,11 @@ Not every shop wants every page. Under **Shopper pages** in Store Settings you c
 
 All three start switched on, so nothing changes until you switch one off.
 
-**Order tracking always keeps working.** With accounts off, the tracking link you send after an order
-still opens, and **Track order** in your header goes to the tracking lookup instead of a sign-in page —
-so a shopper can still follow their delivery. Turning a page back on restores it immediately.
+**Order tracking always keeps working**, whichever pages you switch off. The tracking link you send
+after an order still opens, and **Track order** — in your header and in the phone bar at the bottom
+of the screen — always goes to the tracking lookup, where a shopper finds their order with its number
+and the phone they ordered with. It never asks them to sign in, because a shopper who bought as a
+guest has no account to sign in to. Turning a page back on restores it immediately.
 
 ## Pause online orders
 
