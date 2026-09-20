@@ -173,9 +173,11 @@ const productRowNeeds = (settings: ProductRowWording): readonly StoreListNeed[] 
  */
 const even = (padding: string): FrameDefaults => ({ top: padding, bottom: padding });
 const HOME_FRAMES = {
-  heroCard: even("var(--pad)"),
-  heroOpen: { top: "clamp(28px,5vw,64px)", bottom: "clamp(20px,3vw,40px)" },
-  heroFullBleed: { top: "0px", bottom: "0px", width: "full" },
+  /* Every hero frame owns its alignment: the hero's own Alignment control, on
+     the Content tab, is the only thing that moves hero text (plan phase 5). */
+  heroCard: { ...even("var(--pad)"), ownsAlign: true },
+  heroOpen: { top: "clamp(28px,5vw,64px)", bottom: "clamp(20px,3vw,40px)", ownsAlign: true },
+  heroFullBleed: { top: "0px", bottom: "0px", width: "full", ownsAlign: true },
   row: { top: "clamp(16px,3vw,28px)", bottom: "8px" },
   tiles: even("clamp(16px,3vw,28px)"),
 } satisfies Record<string, FrameDefaults>;
@@ -212,15 +214,23 @@ const noSectionProduct = (_settings: unknown, _blocks: unknown, data: SectionDat
  */
 export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> = {
   hero: defineSection(SECTION_SPECS.hero, HeroSection, {
-    needs: (settings) => (settings.campaignBadge ? ["campaigns"] : []),
+    /* The running offer is drawn by the card and open heroes only — the
+       full-bleed branch has never carried a badge, and its control is hidden
+       there. Without the layout half, a full-bleed hero that still had the flag
+       stored from another layout fetched the store's campaigns on every render
+       to decide nothing. */
+    needs: (settings) =>
+      settings.campaignBadge && settings.layout !== "full-bleed" ? ["campaigns"] : [],
     isEmpty: (settings, blocks) => heroSlides(blocks, keepsEmptySlides(settings)).length === 0,
-    // Slides rotate in a card spaced like the framed hero; only one open slide is the open hero.
-    frame: (settings, blocks) =>
+    /* The frame follows the LAYOUT, and nothing else. It used to give the open
+       hero its own spacing only while the hero had a single slide, because a
+       second slide turned it into the framed carousel; since phase 3 an open
+       hero stays open however many slides it has, so tying its padding to the
+       slide count would move the section's edges as the merchant adds one. */
+    frame: (settings) =>
       settings.layout === "full-bleed"
         ? HOME_FRAMES.heroFullBleed
-        : settings.layout === "open" &&
-            !settings.slideshow &&
-            heroSlides(blocks, keepsEmptySlides(settings)).length === 1
+        : settings.layout === "open"
           ? HOME_FRAMES.heroOpen
           : HOME_FRAMES.heroCard,
   }),

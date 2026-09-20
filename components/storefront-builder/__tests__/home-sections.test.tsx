@@ -75,13 +75,16 @@ describe("home frames", () => {
       .toMatchObject({ "--sfb-pt": "clamp(24px, 4vw, 40px)" });
   });
 
-  it("frames the hero by its layout and slide count", () => {
+  it("frames the hero by its layout alone, however many slides it has", () => {
     const slide = (id: string) => ({ id, settings: { title: "Eid sale" } });
     expect(frameOf(section("h1", "hero", { layout: "open" }, [slide("a")]))?.style).toMatchObject({
       "--sfb-pt": "clamp(28px,5vw,64px)",
     });
+    /* It used to become the card's frame at two slides, because two slides used
+       to become the card-shaped carousel. An open hero stays open now, so its
+       edges must not move as the merchant adds one. */
     expect(frameOf(section("h2", "hero", { layout: "open" }, [slide("a"), slide("b")]))?.style).toMatchObject({
-      "--sfb-pt": "var(--pad)",
+      "--sfb-pt": "clamp(28px,5vw,64px)",
     });
     expect(frameOf(section("h3", "hero", { layout: "full-bleed" }, [slide("a")]))?.width).toBe("full");
   });

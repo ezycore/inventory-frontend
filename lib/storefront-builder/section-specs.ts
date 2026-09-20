@@ -102,7 +102,7 @@ export const SECTION_SPECS = {
         buttonLabel: { type: "string", max: 30, optional: true },
         link: { type: "url", optional: true },
         hideTextOnMobile: { type: "boolean", optional: true },
-        /** A second button, on a single card or open slide only. */
+        /** A second button, on any card or open slide (decision D3). */
         secondaryLabel: { type: "string", max: 30, optional: true },
         secondaryLink: { type: "url", optional: true },
       },

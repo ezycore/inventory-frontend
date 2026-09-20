@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { TooltipProvider } from "@/ui/components/tooltip";
 import { renderWithProviders, screen } from "@/tests/test-utils";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -16,14 +17,18 @@ import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 
 const inspect = (section: EditorSection, context?: SectionPageContext) =>
   renderWithProviders(
-    <SectionInspector
-      section={section}
-      device="desktop"
-      context={context}
-      onChange={() => {}}
-      onAddBlock={() => {}}
-      onClose={() => {}}
-    />,
+    // A section with repeatable items draws tooltipped item controls, and Radix
+    // refuses one outside a provider.
+    <TooltipProvider>
+      <SectionInspector
+        section={section}
+        device="desktop"
+        context={context}
+        onChange={() => {}}
+        onAddBlock={() => {}}
+        onClose={() => {}}
+      />
+    </TooltipProvider>,
   );
 
 /**
@@ -57,6 +62,64 @@ describe("SectionInspector tabs", () => {
       expect(screen.getByText(label)).toBeTruthy();
     }
     expect(screen.queryByText("Width")).toBeNull();
+  });
+
+  it("drops a hero control that does nothing in the layout the merchant picked", () => {
+    const hero = (settings: Record<string, unknown>) => ({
+      id: "hero-1",
+      type: "hero" as const,
+      v: 1,
+      enabled: true,
+      settings,
+      blocks: [{ id: "s1", settings: { title: "Eid edit" } }],
+    });
+
+    const card = inspect(hero({ layout: "card" }));
+    for (const label of ["Show your promises", "Show the running offer as the badge"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    // Never offered anywhere any more: one slide has nothing to rotate to, and
+    // two or more rotate without it. See field-visibility.test.ts.
+    expect(screen.queryByText("Show as a slideshow")).toBeNull();
+    card.unmount();
+
+    /* A full-bleed hero has no card to put promises under, no second button and
+       no badge, and it never reads the slideshow flag — so none of them is
+       offered. The stored values stay: see field-visibility.test.ts. */
+    const wide = inspect(hero({ layout: "full-bleed" }));
+    for (const label of [
+      "Show your promises",
+      "Show as a slideshow",
+      "Show the running offer as the badge",
+      "Second button label",
+      "Use the store's wording",
+    ]) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
+    wide.unmount();
+
+    // …except the wording, which a full-bleed hero DOES read once it is drawn
+    // as the store's banner hero.
+    inspect(hero({ layout: "full-bleed", storeBanner: true }));
+    expect(screen.getByText("Use the store's wording")).toBeTruthy();
+  });
+
+  it("offers the hero no Text alignment, because it has one of its own", async () => {
+    inspect({
+      id: "hero-1",
+      type: "hero",
+      v: 1,
+      enabled: true,
+      settings: { layout: "card" },
+      blocks: [{ id: "s1", settings: { title: "Eid edit" } }],
+    });
+    await userEvent.click(screen.getByRole("tab", { name: "Style" }));
+    for (const label of ["Background", "Spacing", "Width", "Text colour"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    // Two controls for one question, and on a card the Style one only ever
+    // centred half of it. The Content tab's Alignment is the answer now.
+    expect(screen.queryByText("Text alignment")).toBeNull();
   });
 
   it("says a pinned section has no box to style", async () => {

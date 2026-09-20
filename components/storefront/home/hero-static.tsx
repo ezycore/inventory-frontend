@@ -1,5 +1,8 @@
 // coding-standard: maintained
 import type { CSSProperties, ReactNode } from "react";
+import type { StoreHeroSlide, StorefrontImage } from "@/lib/storefront-client";
+import { focalPosition } from "@/lib/storefront-focal";
+import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { brandButton, buttonMetrics } from "@/lib/storefront-button";
@@ -20,6 +23,31 @@ export interface HeroPhoto {
   focal?: string;
   mobileFocal?: string;
 }
+
+const imageSrc = (image: StorefrontImage | null | undefined) => image?.mediumUrl || image?.url;
+
+/**
+ * One slide's photo for the two static heroes — the store banner in its place
+ * where the hero uses it and the slide has none of its own.
+ *
+ * Unset fit shows the whole photo, as a slide and the banner always have. Lives
+ * here rather than in either caller because the builder's server hero and the
+ * rotating client hero both resolve the same slide the same way.
+ */
+export const heroSlidePhoto = (
+  slide: StoreHeroSlide,
+  banner?: StorefrontImage | null,
+): HeroPhoto | undefined => {
+  const src = imageSrc(slide.image) || imageSrc(banner) || imageSrc(slide.mobileImage);
+  if (!src) return undefined;
+  return {
+    src,
+    mobileSrc: imageSrc(slide.mobileImage),
+    fit: isImageFit(slide.imageFit) ? mediaFitFor(slide.imageFit) : "canvas",
+    focal: focalPosition(slide.focal),
+    mobileFocal: focalPosition(slide.mobileFocal || slide.focal),
+  };
+};
 
 export const heroPrimaryButton: CSSProperties = {
   ...brandButton({ radius: "var(--radius-sm)", padding: "12px 24px", fontSize: 14 }),
@@ -68,6 +96,28 @@ interface HeroCopy {
   subtitle?: string;
   actions?: ReactNode;
   photo?: HeroPhoto;
+  /**
+   * The slide's "Hide text on phones", which until now only the two island
+   * heroes honoured — a merchant who ticked it on a card or open hero saw
+   * nothing change. Drops the copy column below 680px and keeps the photograph;
+   * the rules sit beside `.sf-herocard` / `.sf-heroopen` in storefront.css.
+   */
+  hideMobileCopy?: boolean;
+  /**
+   * False on every slide of a rotating hero but the first. A grid stack keeps
+   * all five in the DOM, so marking them all as the likely LCP image would have
+   * the browser fetch the whole deck on the critical path — the opposite of
+   * what the flag is for.
+   */
+  priority?: boolean;
+  /**
+   * `HeroSlideLink` for a slide with a destination but no button to hang it on,
+   * as the islands already render. It covers the whole hero, so the caller must
+   * pass it only where there is no button — two overlapping hit areas is the
+   * worse answer, and here the link would paint over the buttons and swallow
+   * their presses outright.
+   */
+  slideLink?: ReactNode;
 }
 
 /**
@@ -87,10 +137,24 @@ export function HeroCardView({
   subtitle,
   actions,
   photo,
+  hideMobileCopy,
+  priority = true,
+  slideLink,
+  align = "left",
   promises = [],
-}: HeroCopy & { promises?: string[] }) {
+}: HeroCopy & { align?: "left" | "center"; promises?: string[] }) {
   return (
-    <div className="sf-herocard">
+    /* `data-align`, not an inline style: centring a card is four rules, not one
+       — the copy column, the button row's own stretch on a phone and the trust
+       strip all have to agree, and `text-align` alone leaves the buttons and
+       the badges hard left. They live beside `.sf-herocard` in storefront.css.
+       Left is the default everywhere, so a caller that passes nothing (every
+       classic home hero) renders exactly as before. */
+    <div
+      className="sf-herocard"
+      data-align={align === "center" ? "center" : undefined}
+      data-hide-mobile-copy={hideMobileCopy || undefined}
+    >
       <div className="sf-herocard-copy">
         {/* The ACCENT, not the brand. A hero badge is the storefront's most
             purely informational chip — "Week 33 · harvest in", a campaign
@@ -126,8 +190,9 @@ export function HeroCardView({
             ratio="var(--herocard-ratio)"
             radius={0}
             /* The likely LCP image: a hero sits first on nearly every page, and
-               a hero moved lower costs one early request, not a slow page. */
-            priority
+               a hero moved lower costs one early request, not a slow page. Off
+               for the slides behind the first one — see `priority`. */
+            priority={priority}
           />
         </div>
       ) : null}
@@ -140,6 +205,10 @@ export function HeroCardView({
           ))}
         </div>
       ) : null}
+      {/* Last child, and absolutely positioned, so it covers the card without
+          taking a grid track of its own — the card's `grid-template-areas`
+          would otherwise grow an implicit row for it. */}
+      {slideLink}
     </div>
   );
 }
@@ -161,11 +230,19 @@ export function HeroOpenView({
   subtitle,
   actions,
   photo,
+  hideMobileCopy,
+  priority = true,
+  slideLink,
   align = "left",
 }: HeroCopy & { align?: "left" | "center" }) {
   const centred = align === "center";
   return (
+    /* Two classes on an otherwise inline-styled hero, and only because neither
+       job can be done inline: a breakpoint (`sf-heroopen-copy`, dropped below
+       680px) and a whole-hero link that needs a positioned ancestor. */
     <div
+      className="sf-heroopen"
+      data-hide-mobile-copy={hideMobileCopy || undefined}
       style={{
         display: "grid",
         // No photo → the copy panel takes the full width (see HeroCardView).
@@ -182,7 +259,7 @@ export function HeroOpenView({
           The subtitle's `maxWidth` has to be centred too — a 46ch column
           pinned to the left under a centred headline is the giveaway that a
           page was centred by half-measures. */}
-      <div style={centred ? { textAlign: "center" } : undefined}>
+      <div className="sf-heroopen-copy" style={centred ? { textAlign: "center" } : undefined}>
         {/* The accent, like every other informational chip — see the note on
             `HeroCardView`'s badge. */}
         {badge ? (
@@ -257,10 +334,12 @@ export function HeroOpenView({
             radius={0}
             style={{ borderRadius: "var(--radius-md)" }}
             // The likely LCP image — see HeroCardView.
-            priority
+            priority={priority}
           />
         </div>
       ) : null}
+      {/* Last child so it covers both columns — see HeroCardView. */}
+      {slideLink}
     </div>
   );
 }

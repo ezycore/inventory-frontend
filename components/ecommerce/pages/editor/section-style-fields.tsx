@@ -65,6 +65,14 @@ const WIDTHS = withSectionOwn([
   { value: "full", label: "Full width" },
 ]);
 
+/**
+ * Sections whose own settings move their text, so the Style tab must not offer
+ * a second alignment. Their frames carry `ownsAlign`, which is what stops the
+ * stored value applying once the control is gone — the two go together, and a
+ * type added here without it leaves an invisible alignment in force.
+ */
+const SECTIONS_ALIGNING_THEMSELVES = new Set<string>(["hero"]);
+
 const ALIGNS = withSectionOwn([
   { value: "left", label: "Left" },
   { value: "center", label: "Centre" },
@@ -218,17 +226,26 @@ export function SectionStyleFields({
         />
       )}
 
-      <div className="space-y-1.5">
-        <StyleSelect
-          id={id("align")}
-          label="Text alignment"
-          value={align.value}
-          options={ALIGNS}
-          onChange={(value) => set(withAlign(style, chosen<"left" | "center">(value), device))}
-          note={<PhoneNote device={device} own={align.own} />}
-        />
-        <ResetToDesktop device={device} own={align.own} onReset={() => set(withAlign(style, undefined, device))} />
-      </div>
+      {/* Not for a section that moves its own text. The hero has an Alignment
+          control on the Content tab, and offering a second one here gave a
+          merchant two controls for one question with no way to tell which had
+          won — on a card it centred the headline and left the buttons hard
+          left, because they are flex children. `ownsAlign` on the section's
+          frame is the other half: without it the frame would keep applying a
+          stored value the merchant can no longer see or clear. */}
+      {SECTIONS_ALIGNING_THEMSELVES.has(section.type) ? null : (
+        <div className="space-y-1.5">
+          <StyleSelect
+            id={id("align")}
+            label="Text alignment"
+            value={align.value}
+            options={ALIGNS}
+            onChange={(value) => set(withAlign(style, chosen<"left" | "center">(value), device))}
+            note={<PhoneNote device={device} own={align.own} />}
+          />
+          <ResetToDesktop device={device} own={align.own} onReset={() => set(withAlign(style, undefined, device))} />
+        </div>
+      )}
 
       <StyleSelect
         id={id("tone")}

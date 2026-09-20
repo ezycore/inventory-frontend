@@ -25,8 +25,9 @@ const ISLANDS = {
   "product-rail": dynamic(() =>
     import("@/components/storefront/home/product-rail-track").then((module) => module.ProductRailTrack),
   ),
-  "hero-carousel": dynamic(() =>
-    import("@/components/storefront/hero-carousel").then((module) => module.HeroCarousel),
+  /** Card and open heroes, rotating in the shape the merchant chose. */
+  "hero-slides": dynamic(() =>
+    import("@/components/storefront/hero-slides").then((module) => module.HeroSlidesView),
   ),
   "hero-fullbleed": dynamic(() =>
     import("@/components/storefront/home/hero-fullbleed").then((module) => module.HeroFullBleedView),

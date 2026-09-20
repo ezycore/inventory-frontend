@@ -342,6 +342,14 @@ export interface StoreHeroSlide {
   buttonLabel?: string;
   link?: string;
   hideTextOnMobile?: boolean;
+  /**
+   * A second button, on a card or open slide. Builder-only — the home page's
+   * own carousel has never offered one — and per slide since 2026-09-20
+   * (decision D3): it used to be read from the first slide alone, because only
+   * the first slide was ever drawn as a card.
+   */
+  secondaryLabel?: string;
+  secondaryLink?: string;
 }
 
 /**

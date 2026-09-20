@@ -1938,31 +1938,100 @@ and an answer below six rows of products is one they never read. That inversion 
 without badges, and nothing had ever seeded any, so the theme's most distinctive section was a blank
 gap on the shop it was drawn for.
 
-### Two heroes rotate, and they are not the same shape (2026-08-29)
+### Every hero rotates in its OWN shape (2026-09-20)
 
-`heroSlides` reaches the page two different ways, and picking the wrong section is
-how you get a shop that reports "Slides carousel · 3 slides" in Customize and then
-shows one still photograph forever:
+`heroSlides` reaches the page three different ways, and the shape follows the
+section the merchant chose — never the slide count:
 
 | Section | Slides render as |
 |---|---|
-| `hero-card` / `hero-open` | hand off to `HeroCarousel` — a **contained** bordered card inside `--maxw` |
+| `hero-card` / `hero-open` | `HeroSlidesView` — the **same card, or the same open copy**, cross-fading |
 | `hero-fullbleed` | its **own** edge-to-edge rotation, no card, copy laid over the photo |
+
+⚠ **`hero-card` and `hero-open` used to hand off to `HeroCarousel`** — a dark,
+edge-to-edge photo carousel, structurally the opposite of a bordered card — the
+moment a second slide existed, with nothing in the editor saying so. A merchant
+picked Card, added a slide, and the section became a different section. Fixed on
+both surfaces at once (decision D1): the classic home and the Storefront Builder
+both route to `components/storefront/hero-slides.tsx`. **`HeroCarousel` is now
+reached only by the classic full-bleed path; it goes when that does.**
+
+`HeroSlidesView` is a STACK, not a track: every slide sits in one grid cell, so
+the box is as tall as the tallest and its height never jumps mid-rotation. The
+inactive slides are `inert` + `aria-hidden` (and `pointer-events: none` as the
+floor), and **only the first slide's photo is `priority`** — five priority hero
+images would undo the LCP care the static path takes. Dots and swipe, no arrows:
+the carousel's white chevrons are drawn for a photograph and have no light-surface
+treatment.
 
 `HeroFullBleed` used to take only `heroSlides[0]`, on the documented reasoning that
 "a carousel inside a full-bleed hero fights a single confident picture". That was
 overruled when `little-steps` became the first theme to compose the section: it
 seeds three slides, so the promise and the render disagreed. **A still that claims
-to be a slideshow is worse than either choice made honestly.**
+to be a slideshow is worse than either choice made honestly.** The builder's
+store-banner variant repeated the same defect from the other side until 2026-09-20:
+`HeroFullBleedStoreIsland` passed `slides={[]}` and one flattened fallback, so the
+editor said "5 of 5" and the shop drew one photograph. It passes the real slides
+now; `fallback` carries the **banner alone**, which the view uses only where a
+slide has no artwork of its own — which is exactly what "Use the store banner"
+promises.
 
-Both share `useHeroRotation` (`components/storefront/use-hero-rotation.ts`) — one
-5s beat, one set of pause/reduced-motion/swipe rules. Put timing changes there,
+All three share `useHeroRotation` (`components/storefront/use-hero-rotation.ts`) —
+one 5s beat, one set of pause/reduced-motion/swipe rules. Put timing changes there,
 never in a component.
+
+⚠ **No hero calls `useStoreImageFit()`**, and the "Picture fit" control used to
+claim otherwise: its empty choice read "Follow Product cards" while every hero
+branch fell back to showing the whole picture. It reads **"Whole picture"** now
+(`field-empty-choice.ts`). Do not wire a hero back to that hook: a hero is one wide
+banner, product cards are a grid of small squares, and tying them together meant a
+change to thumbnail cropping silently re-cropped the shop's biggest picture.
+
+⚠ **Alignment is the hero's own, on the Content tab, in every layout.** It used to
+be gated to `layout === "open"` while the control was offered on all three, and the
+Style tab offered a second **Text alignment** that half-worked (on a card it centred
+the headline and left the buttons hard left, because they are flex children). The
+Style control is hidden for the hero and its frames carry `ownsAlign`, so
+`--sfb-align` is not emitted for it at all — hiding a control while its stored value
+keeps applying is the one thing the visibility rule below forbids.
 
 ⚠ **Copy ownership flips with the slide count.** One slide keeps the old
 precedence (`heroBanner` first — the merchant's single headline); two or more and
 the slides own badge, title, subtitle and CTA. Pinning one `heroBanner` title over
 three rotating photographs is a slideshow that says the same thing three times.
+
+### A control that does nothing is not shown (2026-09-20)
+
+**Builder-wide, not a hero rule.** A merchant must never be offered a setting that
+does nothing in the configuration they have, that another setting already
+overrides, or that only works in a different layout. A control they change and see
+no change from is the preview teaching them it cannot be trusted — on the screen
+they spend the most time on.
+
+`components/ecommerce/pages/editor/field-visibility.ts` holds the rules, keyed
+`"<section type>.<field>"` falling back to a bare `"<field>"` — the same precedence
+`fieldLabel`, `fieldHint`, `valueLabel` and `fieldEmptyChoice` use. `"<type>.blocks"`
+governs the repeatable list itself, for a section that ignores every item it has.
+
+⚠ **It cannot live in the spec.** `lib/storefront-builder/field-specs.ts` ships
+verbatim into the backend's generated manifest, so it must stay import-free,
+erasable TypeScript — and a predicate is behaviour the backend has no business
+evaluating. Visibility is editor-side only, so there is no manifest to regenerate
+and no deploy ordering.
+
+Three rules go with it, and they are what make it safe:
+
+1. **Hidden is not erased.** The stored value rides through every save untouched
+   (`savableSections` sends `settings` as-is) and comes back when the configuration
+   does. Nothing is rewritten on the merchant's behalf.
+2. **Hiding never replaces a fix.** Where a control *should* work and does not, make
+   it work. The hero audit found six dead controls and six renderer defects; only
+   the first six got rules.
+3. **Only `optional` fields may be hidden**, so a hidden control can never make a
+   section unsaveable. A test asserts it rather than leaving it to care.
+
+**A new section ships with its rules**, and a rule is a claim about the renderer —
+when the renderer changes, the rule is part of the change.
 
 ### `age-chips` — a facet that is not a category
 
@@ -4248,10 +4317,13 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   photo, so moving it would just slide it inside its own letterbox.
 
 - **Home hero slides (carousel)**: `StorefrontSettings.heroSlides[]` (max 5; image?/focal?/imageFit?/
-  badge?/title/subtitle?/buttonLabel?/link?) → public payload → `components/storefront/hero-carousel.tsx`
-  (`.sf-hero-*` in storefront.css; crossfade, 5s autoplay w/ progress dots, hover pause/arrows,
-  swipe, reduced-motion; imageless = brand-tinted panel, image = shared `HeroMedia` blurred-canvas
-  fit or focused cover crop; CTA has a white border for near-black brands). On phones the carousel
+  badge?/title/subtitle?/buttonLabel?/link?) → public payload → the hero the section chose:
+  `components/storefront/hero-slides.tsx` for card and open, `home/hero-fullbleed.tsx` edge to edge.
+  Until 2026-09-20 every one of them handed off to a single dark carousel
+  (`hero-carousel.tsx`, deleted with its last caller — see "Every hero rotates in its OWN shape");
+  its `.sf-hero-*` block in storefront.css is still there, shared with the live heroes. Crossfade, 5s autoplay w/ progress dots, hover pause, swipe, reduced-motion; imageless =
+  brand-tinted panel, image = shared `HeroMedia` blurred-canvas
+  fit or focused cover crop; CTA has a white border for near-black brands. On phones the carousel
   remains one image surface: compact title + CTA overlay a bottom gradient, badge/subtitle hide, and
   optional mobile artwork/focus protects the subject without duplicating promotional copy.
   **`focal` (2026-08-17) is where a cropping slide is anchored** — `{ x, y }` in percent, unset =

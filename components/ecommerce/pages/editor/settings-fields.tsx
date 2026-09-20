@@ -6,6 +6,7 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import { Label } from "@/ui/components/label";
 import { FocalPointPicker } from "@/components/ecommerce/customize/focal-point-picker";
 import { FieldControl } from "./field-control";
+import { isFieldVisible } from "./field-visibility";
 import { ImageField } from "./image-field";
 import { PhoneNote, ResetToDesktop } from "./responsive-note";
 import { fieldHint, fieldLabel } from "./section-catalogue";
@@ -31,6 +32,13 @@ const pictureUrl = (value: unknown): string | undefined => {
  * (the phone picture, on a phone, when there is one) and is hidden until there is
  * a picture to point at. A setting the page supplies itself (`fromPage` — the
  * product page's product) is not offered; a line says where it comes from.
+ *
+ * A setting that would do NOTHING in this section's current configuration is not
+ * drawn at all — no label, no line, nothing (`field-visibility.ts`). That is the
+ * second visibility concept here and it is not the same as `fromPage`: one says
+ * "this value comes from elsewhere", the other says "this control has no effect
+ * here". A hidden control keeps its stored value, so restoring the configuration
+ * brings the merchant's earlier choice back untouched.
  */
 export function SettingsFields({
   idPrefix,
@@ -38,6 +46,9 @@ export function SettingsFields({
   specs,
   settings,
   device,
+  sectionSettings,
+  blocks = [],
+  blockIndex,
   context,
   onChange,
 }: {
@@ -47,6 +58,16 @@ export function SettingsFields({
   specs: Record<string, SectionFieldSpec>;
   settings: Record<string, unknown>;
   device: EditorDevice;
+  /**
+   * The whole section, for the visibility rules. A BLOCK's field often turns on
+   * something outside its own block — a slide's focus point on the section's
+   * layout, say — and `settings` above is only the block's when this list is
+   * drawing one, which is why these are separate props rather than derived.
+   */
+  sectionSettings?: Record<string, unknown>;
+  blocks?: readonly Record<string, unknown>[];
+  /** Set when this list is drawing a block's settings, not the section's. */
+  blockIndex?: number;
   /** The page being edited. */
   context?: SectionPageContext;
   onChange: (settings: Record<string, unknown>) => void;
@@ -54,6 +75,9 @@ export function SettingsFields({
   return (
     <div className="space-y-4">
       {Object.entries(specs).map(([key, spec]) => {
+        if (!isFieldVisible(key, sectionType, { settings: sectionSettings ?? settings, blocks, blockIndex })) {
+          return null;
+        }
         const id = `${idPrefix}-${key}`;
         const label = fieldLabel(key, sectionType);
         if (context && spec.fromPage?.includes(context)) {

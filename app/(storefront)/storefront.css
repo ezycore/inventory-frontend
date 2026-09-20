@@ -2683,6 +2683,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      of the phone's screen; 16:9 shows the same picture and keeps the headline
      and the first CTA above the fold. */
   --herocard-ratio: 16 / 9;
+  /* Containing block for `HeroSlideLink` — a slide with a destination and no
+     button turns the whole card into the link. */
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   background: var(--card);
@@ -2762,6 +2765,44 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   align-items: center;
   gap: 6px;
 }
+/* Centred (`Alignment` on the Content tab). Four rules and not one, which is
+   why this is a data attribute rather than an inline `text-align`:
+
+   - the copy column is a flex column pinned to `flex-start`, so centring its
+     TEXT leaves the badge, the buttons and every other block child hard left;
+   - the button row is stretched edge to edge on a phone and its buttons share
+     that width, so a centred hero would centre nothing — the pair already fills
+     the line. The buttons go back to their natural width here and the row's own
+     `justify-content: center` (set inline by `HeroActions`) then centres them;
+   - the trust strip is a separate flex row and votes on its own.
+
+   Left needs no rules at all: it is what the block above already draws, so a
+   caller that passes no alignment is untouched. */
+.sf-herocard[data-align="center"] .sf-herocard-copy {
+  align-items: center;
+  text-align: center;
+}
+.sf-herocard[data-align="center"] .sf-herocard-copy a {
+  flex: 0 0 auto;
+}
+.sf-herocard[data-align="center"] .sf-herocard-trust {
+  justify-content: center;
+}
+
+/* "Hide text on phones" (`hideTextOnMobile`), which before this only the two
+   island heroes honoured. Mobile-first like the rest of this block rather than
+   fenced in a `max-width` query, and undone in the 680px restore below: the
+   setting means "the layout where the photo leads", and that layout IS this
+   breakpoint, so the two cannot drift apart. A `max-width: 680px` query would
+   also collide with the `min-width: 680px` one at exactly 680px and hide the
+   copy on the desktop card.
+
+   The trust strip stays. It is the card's footer — the store's promises, not
+   this slide's copy — and it is what stops a text-free card reading as a bare
+   floating photograph. */
+.sf-herocard[data-hide-mobile-copy="true"] .sf-herocard-copy {
+  display: none;
+}
 @media (min-width: 680px) {
   .sf-herocard {
     --herocard-ratio: 4 / 3;
@@ -2827,70 +2868,114 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-herocard-badge { margin-bottom: 16px; }
   .sf-herocard-title { font-size: var(--h1); margin-bottom: 14px; }
   .sf-herocard-sub { font-size: 15px; margin-bottom: 22px; }
+  /* Never on a desktop: the setting is "hide text on PHONES". */
+  .sf-herocard[data-hide-mobile-copy="true"] .sf-herocard-copy {
+    display: flex;
+  }
 }
 
-/* ---- Home hero carousel (components/storefront/hero-carousel.tsx) ---- */
-.sf-hero {
+/* ---- Open hero (home/hero-static.tsx → HeroOpenView) ----
+   That hero is inline-styled throughout, and these are the two jobs an inline
+   style cannot do: a breakpoint, and a positioned ancestor for a link that is
+   a later sibling of the thing it covers. Same 680px as the card above, for
+   the same reason — it is where `--herocols` becomes two columns. */
+.sf-heroopen {
   position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background: var(--card);
-  /* The frame IS the canvas the slide editor recommends (5:2 = 1600 × 640), not
-     a fixed height that approximated it. Until 2026-09-06 this read
-     `height: min(clamp(320px, 40vw, 430px), 70svh)` — fluid width against a
-     pinned height — so the real ratio ran 2.53 at the default page width, 3.53
-     on `wide` and past 4.2 on `full`. A correct 1600 × 640 upload therefore
-     still had slack on one axis, and the two photo modes disagreed about where
-     to spend it: `Full photo` pillarboxed it against the blurred fill, `Cropped`
-     trimmed the top and bottom. Two banners built to spec rendered differently
-     for no reason the merchant could see. Pinned, both modes are pixel-identical
-     and neither has anything left to do.
-     `max-height` is the short-viewport guard: a landscape phone is past the
-     640px breakpoint below, and without it the hero took 89% of the screen,
-     leaving zero product content visible. It is also the one thing that can
-     reopen the gap — on `full` at a very wide viewport 5:2 exceeds it — but that
-     degrades to blurred fill, never a crop, which is the right way round.
-     No `height` fallback is needed now the height is derived: `aspect-ratio`
-     predates the `:has()` this stylesheet already relies on, so any browser that
-     gets here supports it. */
-  /* `width` must stay DEFINITE or `max-height` resizes the wrong axis. With
-     `width: auto`, a capped height makes `aspect-ratio` shrink the WIDTH to keep
-     the ratio, so on a short viewport the hero went narrow and left-aligned —
-     310px of dead space beside it at `wide`, 299px on a landscape phone. Pinning
-     the width means the cap clamps the height instead: full-bleed as always, and
-     the ratio (not the layout) is what gives. The mobile block below always set
-     this, which is why only desktop ever showed it. */
-  width: 100%;
-  aspect-ratio: 5 / 2;
-  max-height: 70svh;
-  /* Stays on the global `border-box` reset. `aspect-ratio` shapes whichever box
-     `box-sizing` names and the photo lays out against the PADDING box
-     (`.sf-hero-media` is `inset: 0`), so the 1px border costs the image 0.27% of
-     the ratio — 1118 × 446 rather than 1118 × 447.2, about 1.5px of blurred fill
-     at the extreme edge. `content-box` removes exactly that and was tried; with
-     the `width: 100%` above it also pushes the border box 2px past the
-     container, so the hero stops aligning with every other section. A 2px
-     layout overflow is a real defect and 1.5px of fill under a blur is not, so
-     the border keeps its 2px and the photo keeps its rounding. */
-  touch-action: pan-y;
 }
-.sf-hero-slide {
-  position: absolute;
-  inset: 0;
+.sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
+  display: none;
+}
+@media (min-width: 680px) {
+  .sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
+    display: block;
+  }
+}
+
+/* ---- Rotating card / open hero (components/storefront/hero-slides.tsx) ----
+   A stack, not a track. Every slide sits in the SAME grid cell, so the box is
+   as tall as the tallest slide and its height never jumps mid-rotation — which
+   a carousel that swaps one child for another cannot promise. The inactive
+   slides are painted transparent rather than removed, because removing them is
+   what makes a stack collapse to the current slide's height.
+
+   `inert` (on the element) is what takes a hidden slide out of the pointer and
+   tab order; the `pointer-events` rule below is its floor for a browser that
+   does not implement the attribute — without one of the two, the top slide in
+   the stack swallows every press meant for the one being shown. */
+.sf-heroslides {
+  display: grid;
+}
+.sf-heroslides-slide {
+  grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 0.65s ease;
-  display: flex;
-  align-items: center;
+  transition: opacity 0.6s ease;
+  /* The slide FILLS the cell, and so does the hero inside it. The cell is as
+     tall as the tallest slide, which is the whole point of a stack — but a
+     wrapper that stretches while its card does not leaves the difference as a
+     void under the short slide. Measured: a photo slide 625px tall beside a
+     text-only one of 183px put 442px of empty ground under the second, which
+     reads as a broken section rather than a shorter slide. Every slide is the
+     same height instead, and its contents centre in it (both heroes are grids
+     whose ROW would otherwise sit at the top of the extra space). */
+  display: grid;
+}
+.sf-heroslides-slide > .sf-herocard,
+.sf-heroslides-slide > .sf-heroopen {
+  align-content: center;
+}
+.sf-heroslides-slide[data-active="true"] {
+  opacity: 1;
+}
+.sf-heroslides-slide:not([data-active="true"]) {
   pointer-events: none;
 }
-.sf-hero-slide.sf-hero-active {
-  opacity: 1;
-  pointer-events: auto;
+/* Under the rotating area, not over it. The full-bleed hero can lay its dots on
+   the photograph; a bordered card has no such surface, and dots inside the card
+   would read as part of the merchant's own content. */
+.sf-heroslides-dots {
+  grid-area: 2 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* The dots carry their own tap padding — see `.sf-hero-dot`. */
+  gap: 0;
 }
-/* Shared carousel/full-bleed media. `<HeroMedia>` publishes real `srcset`
-   candidates so the browser can choose resolution; these classes only decide
-   whether the photo fills from its focus point or preserves every edge. */
+/* The shared dot is white, for type over a photograph. These sit on the page's
+   own surface, so they take the store's borders and its brand colour instead. */
+.sf-heroslides-dots .sf-hero-dot::before {
+  background: var(--border-strong);
+}
+.sf-heroslides-dots .sf-hero-dot-active::before {
+  background: var(--border);
+}
+.sf-heroslides-dots .sf-hero-fill {
+  background: var(--primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-heroslides-slide {
+    transition: none;
+  }
+}
+
+/* ---- Shared hero parts (hero-media.tsx, hero-links.tsx, hero-slides.tsx) ----
+   What is left of the home hero carousel's block. `hero-carousel.tsx` was
+   deleted on 2026-09-20 once every hero rotated in its own shape and nothing
+   reached it, and its own rules — the dark panel, the diagonal scrim, the copy
+   column, the arrows and its dot row — went with it. These four families did
+   not, because they were never the carousel's alone:
+
+   - `.sf-hero-media*` — every hero's photograph, painted by `<HeroMedia>`;
+   - `.sf-hero-slide-link` — the whole-slide link, on all of them;
+   - `.sf-hero-dot*` / `.sf-hero-fill` / `.sf-hero-paused` — the rotating
+     heroes' dots. `hero-slides.tsx` restyles them for a light surface under
+     `.sf-heroslides-dots`, in the block above;
+   - `.sf-visually-hidden` and `.sf-media-*`, which only ever lodged here.
+
+   The full-bleed hero's own rules are in its block below. */
+/* Shared hero media — the full-bleed hero and the rotating card/open one.
+   `<HeroMedia>` publishes real `srcset` candidates so the browser can choose
+   resolution; these classes only decide whether the photo fills from its focus
+   point or preserves every edge. */
 .sf-hero-media {
   position: absolute;
   inset: 0;
@@ -2934,9 +3019,8 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 /* Whole-slide link, for a slide with a destination but no button (see
    `HeroSlideLink`). It carries no z-index deliberately: inside the slide it
-   paints last and so covers the photo, while the arrows and dots are later
-   SIBLINGS of the slide and keep painting above it. Give it a z-index and they
-   go dead. The focus ring is inset because the ring of a box the size of the
+   paints last and so covers the photo, while the dots are a later SIBLING of
+   the slide and keep painting above it. Give it a z-index and they go dead. The focus ring is inset because the ring of a box the size of the
    hero would otherwise be clipped away by the card's `overflow: hidden`. */
 .sf-hero-slide-link {
   position: absolute;
@@ -2947,6 +3031,13 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-hero-slide-link:focus-visible {
   outline: 2px solid #fff;
   outline-offset: -4px;
+}
+/* White is the ring for a hero that is a photograph. The card and open heroes
+   are the store's own surface — a white ring on `--card` is no ring at all —
+   so those two take the brand colour instead. */
+.sf-herocard .sf-hero-slide-link:focus-visible,
+.sf-heroopen .sf-hero-slide-link:focus-visible {
+  outline-color: var(--primary);
 }
 @media (max-width: 640px) {
   .sf-hero-media-cover,
@@ -2977,108 +3068,6 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-media-canvas-bg {
     object-position: var(--sf-media-mobile-focus, var(--sf-media-focus, center));
   }
-}
-.sf-hero-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    78deg,
-    rgba(10, 12, 24, 0.78) 0%,
-    rgba(10, 12, 24, 0.55) 44%,
-    rgba(10, 12, 24, 0.12) 78%
-  );
-}
-.sf-hero-copy {
-  position: relative;
-  z-index: 2;
-  max-width: 520px;
-  padding: clamp(22px, 4.5vw, 58px);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-/* staggered rise of the text block when a slide activates */
-.sf-hero-copy > * {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-.sf-hero-active .sf-hero-copy > *:nth-child(1) { transition-delay: 0.12s; }
-.sf-hero-active .sf-hero-copy > *:nth-child(2) { transition-delay: 0.2s; }
-.sf-hero-active .sf-hero-copy > *:nth-child(3) { transition-delay: 0.28s; }
-.sf-hero-active .sf-hero-copy > *:nth-child(4) { transition-delay: 0.36s; }
-.sf-hero-active .sf-hero-copy > * {
-  opacity: 1;
-  transform: translateY(0);
-}
-.sf-hero-badge {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 5px 12px;
-  border-radius: 999px;
-  margin: 0 0 14px;
-}
-.sf-hero-title {
-  color: #fff;
-  font-size: clamp(24px, 3.6vw, 40px);
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  margin: 0 0 10px;
-  text-wrap: balance;
-}
-.sf-hero-sub {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: clamp(13px, 1.4vw, 15px);
-  margin: 0 0 22px;
-  max-width: 42ch;
-}
-.sf-hero-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  background: rgba(12, 14, 26, 0.35);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.25s ease, background 0.2s ease;
-  backdrop-filter: blur(4px);
-}
-.sf-hero:hover .sf-hero-nav,
-.sf-hero-nav:focus-visible {
-  opacity: 1;
-}
-.sf-hero-nav:hover {
-  background: rgba(12, 14, 26, 0.6);
-}
-.sf-hero-prev { left: 14px; }
-.sf-hero-next { right: 14px; }
-.sf-hero-dots {
-  position: absolute;
-  z-index: 3;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* The dots carry their own tap padding, so the visual 7px gap is the sum of
-     the two neighbouring paddings — no extra gap here or they drift apart. */
-  gap: 0;
 }
 /* A 7px dot is far too small to tap. The <button> is a transparent 32×36 hit
    area; `::before` paints the dot itself, so the visual design is unchanged. */
@@ -3132,83 +3121,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     transform: scaleX(1);
   }
 }
-@media (max-width: 640px) {
-  /* One phone hero surface: mobile-specific artwork/focus handles composition;
-     a compact gradient overlay keeps title + action attached to that artwork.
-     A separate copy row made the hero needlessly tall and looked like a second
-     section. Lower-priority badge/subtitle yield on phones instead. */
-  .sf-hero {
-    width: 100%;
-    /* 16:9 is the 1200 × 675 phone canvas the editor has always recommended, and
-       now the frame the phone actually draws. The old
-       `clamp(220px, 62vw, 290px)` rendered ~1.48 (358 × 242 at 390px) — a 20%
-       mismatch against its own published size, wider than the desktop one it sat
-       beside, so a phone image built exactly to spec was still letterboxed.
-       Matching the recommendation costs ~40px of hero height on a typical phone
-       versus that clamp; the alternative was reshooting every mobile banner to
-       fit a number no merchant had been given. `max-height` carries down from
-       the base rule. */
-    aspect-ratio: 16 / 9;
-    background: #171a2e;
-  }
-  .sf-hero-slide {
-    display: flex;
-    align-items: flex-end;
-    background: #171a2e;
-  }
-  .sf-hero-slide > .sf-hero-media {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-  }
-  .sf-hero-copy {
-    justify-content: flex-end;
-    max-width: min(92%, 430px);
-    padding: 14px 14px 40px;
-  }
-  .sf-hero-nav { display: none; } /* swipe instead */
-  .sf-hero-scrim {
-    background: linear-gradient(
-      180deg,
-      rgba(10, 12, 24, 0.02) 20%,
-      rgba(10, 12, 24, 0.38) 56%,
-      rgba(10, 12, 24, 0.86) 100%
-    );
-  }
-  .sf-hero-badge,
-  .sf-hero-sub { display: none; }
-  .sf-hero-title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    font-size: clamp(18px, 5.8vw, 25px);
-    line-height: 1.08;
-    margin-bottom: 10px;
-  }
-  .sf-hero-copy a {
-    padding: 8px 15px !important;
-    font-size: 12px !important;
-  }
-  .sf-hero-dots { bottom: 7px; }
-  .sf-hero-slide[data-hide-mobile-copy="true"] .sf-hero-copy,
-  .sf-hero-slide[data-hide-mobile-copy="true"] .sf-hero-scrim {
-    display: none;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .sf-hero-slide { transition: none; }
-  .sf-hero-copy > * {
-    transition: none;
-    opacity: 1;
-    transform: none;
-  }
   .sf-hero-fill {
     animation: none;
     transform: scaleX(1);
   }
 }
-
 /* ---- Full-bleed home hero ---- */
 .sf-hero-fullbleed {
   position: relative;
@@ -3281,6 +3199,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     display: none;
   }
 }
+/* The full-bleed hero centres from its own inline styles (`marginInline` on the
+   title and subtitle, whose `maxWidth` is what pins them left), so all that is
+   left here is the badge — an `inline-block` chip that `text-align` already
+   moves — and nothing else needs a rule. Kept as a note rather than an empty
+   block: the next person will look for one. */
 
 /* ---- Account nav (account/account-area.tsx) ----
    ONE set of markup, two layouts. --acctgrid is `1fr` below 680px, so the nav

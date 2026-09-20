@@ -48,6 +48,17 @@ export interface FrameDefaults {
   /** A full-width tint behind the section, in the theme's own colour. */
   band?: "surface" | "accent-soft";
   width?: SectionWidth;
+  /**
+   * The section moves its own text, so the frame must not also try.
+   *
+   * `--sfb-align` is applied by `.sfb-sec { text-align: var(--sfb-align, left) }`,
+   * which reaches every word in the section. A section with an alignment control
+   * of its own — the hero's, on the Content tab — would then have two, and the
+   * Style tab's would keep applying a value the merchant can no longer see or
+   * clear once that control is hidden. Hiding the control is therefore not
+   * enough on its own; the variables have to stop being emitted too.
+   */
+  ownsAlign?: boolean;
 }
 
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
@@ -114,7 +125,11 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
   }
 
   return {
-    style: { ...(vars as CSSProperties), ...responsiveVars("sfb-align", readAlign(style.align)) },
+    style: {
+      ...(vars as CSSProperties),
+      // Omitted entirely for a section that aligns its own text — see `ownsAlign`.
+      ...(defaults?.ownsAlign ? {} : responsiveVars("sfb-align", readAlign(style.align))),
+    },
     width: oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content",
     tone: oneOf(["auto", "light", "dark"] as const, style.textTone) ?? "auto",
   };

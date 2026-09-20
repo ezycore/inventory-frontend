@@ -59,7 +59,6 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   // Inherited from a Customize panel the merchant can still open and change.
   cardImageRatio: FOLLOW_PRODUCT_CARDS,
   cardImageFit: FOLLOW_PRODUCT_CARDS,
-  "hero.imageFit": FOLLOW_PRODUCT_CARDS, // useStoreImageFit(), services/storefront/use-image-fit.ts
   /* A system page's core section overriding the store's own `templates.*`
      (plan §6). The panels that used to own these left Customize on the same
      day, so they name the stored value, not a screen — see `STORE_DEFAULT`. */
@@ -78,6 +77,11 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   storeHeading: { kind: "meaning", label: "My own heading" },
   "image-banner.frame": WHOLE_PICTURE,
   "gallery.frame": WHOLE_PICTURE,
+  /* It followed nothing. No hero calls `useStoreImageFit()` — the carousel says
+     so in as many words, having been changed away from it deliberately — and
+     every hero branch falls back to showing the whole picture, so the control
+     named a source it did not have and hid the answer it did. */
+  "hero.imageFit": WHOLE_PICTURE,
   // A stacked card runs 16:9 and a split card 4:3 — see resolveCardRatio.
   "category-promo-cards.ratio": { kind: "meaning", label: "The card decides" },
 

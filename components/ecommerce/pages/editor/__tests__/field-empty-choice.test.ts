@@ -35,8 +35,11 @@ describe("fieldEmptyChoice", () => {
   });
 
   it("reads the same field differently per section, and falls back to the shared entry", () => {
-    // `imageFit` follows Customize on a hero; `cardImageFit` is shared by every product section.
-    expect(fieldEmptyChoice("hero", "imageFit")?.kind).toBe("inherit");
+    /* A hero's `imageFit` follows nothing — no hero calls `useStoreImageFit()`,
+       and every branch draws the whole picture — so empty is its own answer
+       there. `cardImageFit` is the shared entry, and it really does follow the
+       Customize panel for every product section. */
+    expect(fieldEmptyChoice("hero", "imageFit")).toEqual({ kind: "meaning", label: "Whole picture" });
     expect(fieldEmptyChoice("product-carousel", "cardImageFit")?.kind).toBe("inherit");
   });
 

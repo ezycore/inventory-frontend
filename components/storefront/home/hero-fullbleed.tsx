@@ -54,12 +54,21 @@ export function HeroFullBleedView({
   slides,
   storeName,
   fallback,
+  align = "left",
 }: {
   base: string;
   slides: StoreHeroSlide[];
   storeName: string;
   fallback?: HeroFullBleedFallback;
+  /**
+   * Where the type sits over the photograph. The scrim here runs top to bottom
+   * rather than diagonally, so unlike the dark carousel this hero can be
+   * centred without the gradient pointing the wrong way. Left by default — the
+   * classic home passes nothing.
+   */
+  align?: "left" | "center";
 }) {
+  const centred = align === "center";
   const hasSlides = slides.length > 0;
   const rotates = slides.length > 1;
   const { current, go, hoverProps, focusProps, swipeProps } =
@@ -97,6 +106,7 @@ export function HeroFullBleedView({
   return (
     <section
       className={`sf-hero-fullbleed${image ? " sf-hero-fullbleed-image" : ""}`}
+      data-align={centred ? "center" : undefined}
       data-hide-mobile-copy={slide?.hideTextOnMobile || undefined}
       {...(rotates ? { ...hoverProps, ...focusProps, ...swipeProps } : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
@@ -117,7 +127,7 @@ export function HeroFullBleedView({
       {/* Scrim, not a tint: type over an unknown photograph is unreadable
           without one, and the merchant's photo is genuinely unknown. */}
       {hasCopy ? <div className="sf-hero-fullbleed-scrim" /> : null}
-      {hasCopy ? <div className="sf-hero-fullbleed-copy" style={wrap}>
+      {hasCopy ? <div className="sf-hero-fullbleed-copy" style={centred ? { ...wrap, textAlign: "center" } : wrap}>
         {badge ? <span className="sf-hero-fullbleed-badge" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
           {badge}
         </span> : null}
@@ -131,12 +141,15 @@ export function HeroFullBleedView({
             margin: "14px 0 18px",
             letterSpacing: "-0.035em",
             maxWidth: 620,
+            // The `maxWidth` is what pins these left; centring the text without
+            // centring the column leaves a 620px block hard against the gutter.
+            marginInline: centred ? "auto" : undefined,
             whiteSpace: "pre-line",
           }}
         >
           {title}
         </h1> : null}
-        {subtitle ? <p className="sf-hero-fullbleed-sub" style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460 }}>
+        {subtitle ? <p className="sf-hero-fullbleed-sub" style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, margin: "0 0 26px", maxWidth: 460, marginInline: centred ? "auto" : undefined }}>
           {subtitle}
         </p> : null}
         {ctaLabel ? <HeroCtaLink

@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { focalPosition } from "@/lib/storefront-focal";
-import { HeroCarousel } from "@/components/storefront/hero-carousel";
+import { HeroSlidesView } from "@/components/storefront/hero-slides";
 import { HeroCardView, HeroOpenView } from "@/components/storefront/home/hero-static";
 import { HeroFullBleedView } from "@/components/storefront/home/hero-fullbleed";
 import {
@@ -44,11 +44,18 @@ import {
  * gets it up here too.
  *
  * `heroSlides` short-circuits every static hero: an owner who built a carousel
- * gets it, whatever the section chose. That rule predates the registry and is
- * kept per-section rather than hoisted — `hero-fullbleed` still renders the
- * slides in its OWN edge-to-edge shape rather than handing off to
- * `HeroCarousel`, which is a contained card. Both rotate on the same beat via
+ * gets slides, whatever the section chose — but **each hero now rotates them in
+ * its OWN shape** (2026-09-20, decision D1). `hero-card` and `hero-open` used to
+ * hand off to `HeroCarousel`, a dark edge-to-edge photo carousel, so a shop that
+ * chose the framed card and added a second slide was shown a different section
+ * with nothing saying so. They render `HeroSlidesView` instead; `hero-fullbleed`
+ * has always drawn its own slides. Both rotate on the same beat via
  * `useHeroRotation`.
+ *
+ * `HeroCarousel` had no caller left once this landed on both surfaces, and was
+ * deleted with it. Its CSS block in `storefront.css` outlives it for now — the
+ * `.sf-hero-*` prefix is shared with three live heroes, so untangling it is its
+ * own pass (plan §5).
  *
  * The markup lives in `hero-static.tsx` and `hero-fullbleed.tsx`, shared with
  * the Storefront Builder's hero; these components resolve the store's banner
@@ -58,15 +65,25 @@ import {
 /** Classic — the framed hero card (`HeroCardView`). */
 export function HeroCard(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
-  if (heroSlides?.length) {
-    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
-  }
-  const photo = bannerPhoto(hb);
-  const bannerSrc = banner || photo.mobileSrc;
   const promises = (store.trustBadges ?? []).flatMap((item) => {
     const label = item.text?.trim();
     return label ? [label] : [];
   });
+  if (heroSlides?.length) {
+    return (
+      <div style={{ ...wrap, padding: "var(--pad)" }}>
+        <HeroSlidesView
+          base={base}
+          slides={heroSlides}
+          storeName={store.name}
+          layout="card"
+          promises={promises}
+        />
+      </div>
+    );
+  }
+  const photo = bannerPhoto(hb);
+  const bannerSrc = banner || photo.mobileSrc;
   return (
     <div style={{ ...wrap, padding: "var(--pad)" }}>
       <HeroCardView
@@ -90,12 +107,22 @@ export function HeroCard(props: SectionProps) {
  */
 export function HeroOpen(props: SectionProps) {
   const { base, t, banner, heroSlides, heroBanner: hb, store } = props;
+  const align = props.heroAlign ?? "left";
   if (heroSlides?.length) {
-    return <HeroCarousel slides={heroSlides} base={base} storeName={store.name} />;
+    return (
+      <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
+        <HeroSlidesView
+          base={base}
+          slides={heroSlides}
+          storeName={store.name}
+          layout="open"
+          align={align}
+        />
+      </div>
+    );
   }
   const photo = bannerPhoto(hb);
   const bannerSrc = banner || photo.mobileSrc;
-  const align = props.heroAlign ?? "left";
   return (
     <div style={{ ...wrap, padding: "clamp(28px,5vw,64px) var(--pad) clamp(20px,3vw,40px)" }}>
       <HeroOpenView

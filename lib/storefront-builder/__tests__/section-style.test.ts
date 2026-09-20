@@ -33,6 +33,18 @@ describe("sectionFrame", () => {
     expect(frame.tone).toBe("light");
   });
 
+  it("emits no alignment for a section that moves its own text", () => {
+    const style = { align: { base: "center", mobile: "left" } };
+    // Hiding the Style tab's control is only half of it: without this the frame
+    // would keep applying a stored value the merchant can no longer see or clear.
+    expect(sectionFrame(style, { top: "0px", bottom: "0px", ownsAlign: true }).style).not.toHaveProperty(
+      "--sfb-align",
+    );
+    expect(sectionFrame(style, { top: "0px", bottom: "0px" }).style).toMatchObject({
+      "--sfb-align": "center",
+    });
+  });
+
   it("uses a colour or image background only when it is valid", () => {
     expect(sectionFrame({ background: { kind: "color", color: "#1A2B3C" } }).style).toMatchObject({
       "--sfb-bg": "#1A2B3C",

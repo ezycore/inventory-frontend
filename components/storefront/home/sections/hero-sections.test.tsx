@@ -38,7 +38,7 @@ describe("HeroCard", () => {
     expect(screen.getByText("Pickup available")).toBeInTheDocument();
   });
 
-  it("renders an image-only slide without an invented copy overlay", () => {
+  it("renders an image-only slide as a card, without an invented copy overlay", () => {
     const { container } = render(
       <HeroCard
         {...props}
@@ -46,12 +46,37 @@ describe("HeroCard", () => {
       />,
     );
 
-    expect(container.querySelector(".sf-hero-media")).toBeInTheDocument();
-    expect(container.querySelector(".sf-hero-copy")).not.toBeInTheDocument();
+    /* Decision D1: a shop that chose the framed card keeps it once slides
+       exist. This used to render `HeroCarousel` — `.sf-hero-media` over a dark
+       scrim, edge to edge — which is a different section from the one the
+       merchant picked. */
+    expect(container.querySelector(".sf-herocard")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-media")).not.toBeInTheDocument();
     expect(container.querySelector(".sf-hero-scrim")).not.toBeInTheDocument();
+    expect(container.querySelector("img")?.getAttribute("src")).toContain("artwork.jpg");
     expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
       "sf-visually-hidden",
     );
+  });
+
+  it("keeps the open hero open, and the store's promises under the card, once slides exist", () => {
+    const slides = [{ title: "First" }, { title: "Second" }];
+    const card = render(
+      <HeroCard
+        {...props}
+        store={{ ...props.store, trustBadges: [{ text: "Pickup available" }] }}
+        heroSlides={slides}
+      />,
+    );
+    expect(card.container.querySelector(".sf-herocard-trust")?.textContent).toContain(
+      "Pickup available",
+    );
+    // Two slides rotate: one dot each, under the card rather than on it.
+    expect(card.container.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(2);
+
+    const open = render(<HeroOpen {...props} heroSlides={slides} />);
+    expect(open.container.querySelector(".sf-heroopen")).toBeInTheDocument();
+    expect(open.container.querySelector(".sf-herocard")).toBeNull();
   });
 
   it("uses mobile artwork when no desktop banner exists", () => {

@@ -15,7 +15,16 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
     props,
   }: {
     name: string;
-    props: { slides?: unknown[]; bare?: boolean; word?: string; fallback?: { title?: string } };
+    props: {
+      slides?: unknown[];
+      bare?: boolean;
+      word?: string;
+      fallback?: { title?: string };
+      layout?: string;
+      align?: string;
+      promises?: string[];
+      campaignLabel?: string;
+    };
   }) => (
     <span
       data-island={name}
@@ -23,6 +32,10 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       data-bare={props.bare ? "true" : undefined}
       data-word={props.word}
       data-title={props.fallback?.title}
+      data-layout={props.layout}
+      data-align={props.align}
+      data-promises={props.promises?.join("|")}
+      data-campaign={props.campaignLabel}
     />
   ),
 }));
@@ -73,14 +86,52 @@ describe("hero", () => {
     expect(container.querySelector("a")?.getAttribute("href")).toBe("tel:+8801711000000");
   });
 
-  it("draws no button for a label without a link", () => {
+  it("draws a button for a label without a link, pointed at the catalogue", () => {
     const { container } = renderPage([
       hero({ layout: "card" }, [{ id: "s1", settings: { title: "Hello", buttonLabel: "Go" } }]),
     ]);
-    expect(container.querySelectorAll("a")).toHaveLength(0);
+    // It used to draw nothing here while every other hero drew a button.
+    const links = [...container.querySelectorAll("a")];
+    expect(links.map((a) => a.textContent)).toEqual(["Go"]);
+    expect(links[0].getAttribute("href")).toBe("/shop/products");
+    // The button is the target, so the whole-hero link stays away.
+    expect(container.querySelector(".sf-hero-slide-link")).toBeNull();
   });
 
-  it("rotates two slides in the carousel island, inside the section's frame", () => {
+  it("makes the whole hero the link for a link without a label, as the islands do", () => {
+    const { container } = renderPage([
+      hero({ layout: "card" }, [{ id: "s1", settings: { image, title: "Hello", link: "/sale" } }]),
+    ]);
+    const link = container.querySelector(".sf-hero-slide-link") as HTMLElement;
+    expect(link.getAttribute("href")).toBe("/shop/sale");
+    expect(link.getAttribute("aria-label")).toBe("Hello");
+  });
+
+  it("leaves the hero inert where a button already carries the link", () => {
+    const { container } = renderPage([
+      hero({ layout: "open" }, [
+        { id: "s1", settings: { title: "Hello", buttonLabel: "Shop", link: "/sale" } },
+      ]),
+    ]);
+    // Two overlapping hit areas is the worse answer, and the whole-hero link
+    // would paint over the button and swallow its press.
+    expect(container.querySelector(".sf-hero-slide-link")).toBeNull();
+    expect(container.querySelectorAll("a")).toHaveLength(1);
+  });
+
+  it("marks a static hero that hides its copy on phones, in both layouts", () => {
+    const slide = { id: "s1", settings: { image, title: "Hello", hideTextOnMobile: true } };
+    const card = renderPage([hero({ layout: "card" }, [slide])]);
+    expect(
+      card.container.querySelector(".sf-herocard")?.getAttribute("data-hide-mobile-copy"),
+    ).toBe("true");
+    const open = renderPage([hero({ layout: "open" }, [slide])]);
+    expect(
+      open.container.querySelector(".sf-heroopen")?.getAttribute("data-hide-mobile-copy"),
+    ).toBe("true");
+  });
+
+  it("rotates two slides in the shape the merchant chose, not in the dark carousel", () => {
     const { container } = renderPage([
       hero({ layout: "card" }, [
         { id: "s1", settings: { image } },
@@ -88,9 +139,21 @@ describe("hero", () => {
       ]),
     ]);
     const island = container.querySelector("[data-island]") as HTMLElement;
-    expect(island.dataset.island).toBe("hero-carousel");
+    expect(island.dataset.island).toBe("hero-slides");
     expect(island.dataset.count).toBe("2");
-    expect(island.dataset.bare).toBe("true");
+    expect(island.dataset.layout).toBe("card");
+  });
+
+  it("keeps an open hero open when it rotates", () => {
+    const { container } = renderPage([
+      hero({ layout: "open" }, [
+        { id: "s1", settings: { title: "First" } },
+        { id: "s2", settings: { title: "Second" } },
+      ]),
+    ]);
+    const island = container.querySelector("[data-island]") as HTMLElement;
+    expect(island.dataset.island).toBe("hero-slides");
+    expect(island.dataset.layout).toBe("open");
   });
 
   it("sends a full-bleed hero to its island, even with one slide", () => {
@@ -134,6 +197,12 @@ describe("hero", () => {
       expect(sectionListNeeds(prepareSections([hero(storeHero, [{ id: "b", settings: {} }])]))).toEqual([
         "campaigns",
       ]);
+      // …and not for a full-bleed hero, which never draws the badge (R2).
+      expect(
+        sectionListNeeds(
+          prepareSections([hero({ ...storeHero, layout: "full-bleed" }, [{ id: "b", settings: {} }])]),
+        ),
+      ).toEqual([]);
       const { container } = renderStore([hero(storeHero, [{ id: "b", settings: {} }])]);
       const heading = container.querySelector("h1") as HTMLElement;
       expect(heading.textContent).toBe("Rafi's Mart");
@@ -168,16 +237,84 @@ describe("hero", () => {
       expect(container.querySelector(".sf-herocard-trust")).toBeNull();
     });
 
-    it("rotates one slide under slideshow, and sends a full-width banner hero to its own island", () => {
+    it("keeps a single slide on the server under slideshow, and sends a full-width banner hero to its own island", () => {
       const one = [{ id: "s1", settings: { image } }];
       const { container } = renderStore([hero({ layout: "card", slideshow: true }, one)]);
-      expect((container.querySelector("[data-island]") as HTMLElement).dataset.island).toBe("hero-carousel");
+      /* One slide has nothing to rotate to. Under the old dark carousel the
+         toggle turned this into a different section; now it would draw the same
+         card the server already draws, only client-side — so nothing reads it
+         and the card stays server markup. */
+      expect(container.querySelector("[data-island]")).toBeNull();
+      expect(container.querySelector(".sf-herocard")).not.toBeNull();
 
       const wide = renderStore([hero({ layout: "full-bleed", storeBanner: true, storeWords: true }, [{ id: "b", settings: {} }])]);
       const island = wide.container.querySelector("[data-island]") as HTMLElement;
       expect(island.dataset.island).toBe("hero-fullbleed-store");
-      expect(island.dataset.title).toBe("Rafi's Mart");
+      // The copy rides on the slides now, not on a flattened fallback: the
+      // island is what turns an empty first slide into the store's name.
+      expect(island.dataset.title).toBeUndefined();
+      expect(island.dataset.count).toBe("1");
     });
+
+    it("hands the banner hero every slide, not just the first", () => {
+      const wide = renderStore([
+        hero({ layout: "full-bleed", storeBanner: true }, [
+          { id: "s1", settings: { image } },
+          { id: "s2", settings: { title: "Second" } },
+          { id: "s3", settings: { title: "Third" } },
+        ]),
+      ]);
+      const island = wide.container.querySelector("[data-island]") as HTMLElement;
+      expect(island.dataset.island).toBe("hero-fullbleed-store");
+      expect(island.dataset.count).toBe("3");
+    });
+
+    it("hands the rotating card its promises and the running offer, as plain data", () => {
+      const { container } = renderStore([
+        hero(storeHero, [
+          { id: "s1", settings: { title: "First" } },
+          { id: "s2", settings: { title: "Second" } },
+        ]),
+      ]);
+      const island = container.querySelector("[data-island]") as HTMLElement;
+      expect(island.dataset.island).toBe("hero-slides");
+      expect(island.dataset.promises).toBe("Cash on delivery");
+      // Text, not a finished badge: the word "off" is the shopper's, and an
+      // island's props cross the server → client boundary.
+      expect(island.dataset.campaign).toBe("Eid sale · 10%");
+    });
+
+    it("gives an open hero no promises, which only a card draws", () => {
+      const { container } = renderStore([
+        hero({ ...storeHero, layout: "open" }, [
+          { id: "s1", settings: { title: "First" } },
+          { id: "s2", settings: { title: "Second" } },
+        ]),
+      ]);
+      expect((container.querySelector("[data-island]") as HTMLElement).dataset.promises).toBe("");
+    });
+  });
+
+  it("centres every layout, not just the open one", () => {
+    const slide = [{ id: "s1", settings: { image, title: "Hello" } }];
+    const card = renderPage([hero({ layout: "card", align: "center" }, slide)]);
+    expect(card.container.querySelector(".sf-herocard")?.getAttribute("data-align")).toBe("center");
+
+    const wide = renderPage([hero({ layout: "full-bleed", align: "center" }, slide)]);
+    expect((wide.container.querySelector("[data-island]") as HTMLElement).dataset.align).toBe("center");
+
+    // Left is the default and marks nothing, so a hero left alone is untouched.
+    const plain = renderPage([hero({ layout: "card" }, slide)]);
+    expect(plain.container.querySelector(".sf-herocard")?.getAttribute("data-align")).toBeNull();
+  });
+
+  it("carries a slide's second button through to the rotating hero", () => {
+    const [, second] = heroSlides([
+      { id: "s1", settings: { title: "First" } },
+      { id: "s2", settings: { title: "Second", secondaryLabel: "Call", secondaryLink: "tel:+8801711000000" } },
+    ]);
+    // Decision D3: it is read per slide now, not from the first one alone.
+    expect(second).toMatchObject({ secondaryLabel: "Call", secondaryLink: "tel:+8801711000000" });
   });
 
   it("maps a slide's focal point per breakpoint onto its desktop and phone anchors", () => {

@@ -17,6 +17,7 @@ import {
   type EditorSection,
 } from "./section-instances";
 import { SectionStyleFields } from "./section-style-fields";
+import { isFieldVisible } from "./field-visibility";
 import { SettingsFields } from "./settings-fields";
 
 type Screen = "desktop" | "mobile";
@@ -109,6 +110,13 @@ export function SectionInspector({
   }
 
   const blocks = section.blocks ?? [];
+  const blockSettings = blocks.map((block) => block.settings);
+  /* The items list itself, for a section that ignores every item it has in some
+     configuration — then the LIST is what must go, not a field inside it. */
+  const showsBlocks = isFieldVisible("blocks", section.type, {
+    settings: section.settings,
+    blocks: blockSettings,
+  });
   const setBlocks = (next: EditorBlock[]) => onChange({ ...section, blocks: next });
 
   return (
@@ -134,11 +142,12 @@ export function SectionInspector({
             specs={spec.settings}
             settings={section.settings}
             device={device}
+            blocks={blockSettings}
             context={context}
             onChange={(settings) => onChange({ ...section, settings })}
           />
 
-          {spec.blocks ? (
+          {spec.blocks && showsBlocks ? (
             <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{item}s</h3>
@@ -193,6 +202,9 @@ export function SectionInspector({
                     specs={spec.blocks!.settings}
                     settings={block.settings}
                     device={device}
+                    sectionSettings={section.settings}
+                    blocks={blockSettings}
+                    blockIndex={index}
                     onChange={(settings) =>
                       setBlocks(blocks.map((other) => (other.id === block.id ? { ...other, settings } : other)))
                     }
