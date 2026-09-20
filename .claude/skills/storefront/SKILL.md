@@ -914,6 +914,16 @@ Four files, in payload order:
 3. `services/stores/use-sf-preview-store.ts` — the override state.
 4. The storefront component reads its override and prefers it over the saved payload.
 
+⚠ **`apply` is a hand-written key-by-key merge, so step 3 is four touch points, not one** — state
+type, initial value, patch type, *and a line in the reducer*. Three of the four are enough to make
+the field look wired everywhere you would think to check: the editor streams it, the bridge maps it,
+the store declares it — and the reducer silently drops it, so the preview keeps rendering the saved
+value while Save works perfectly. That is exactly how the campaign strip's on/off switch moved the
+live shop and did nothing in the preview (fixed 2026-09-20; `imageFit` is documented with the same
+four-point list under the PDP notes). Every component test mocks this store, so only
+`services/stores/__tests__/use-sf-preview-store.test.ts` can catch it — it walks the whole patch
+rather than naming fields, so a newly forgotten key fails there without anyone remembering to test it.
+
 The toolbar's **light/dark switch is not part of that payload** — it previews the shopper's own toggle
 over a separate message and a separate bridge, shared with the page editor. See the page editor's
 preview notes above before touching it, and never let it write `ezy-sf-theme`.

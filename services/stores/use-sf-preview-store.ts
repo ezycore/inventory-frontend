@@ -351,6 +351,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.announcement !== undefined ? patch.announcement : s.announcement,
       utilityBar:
         patch.utilityBar !== undefined ? patch.utilityBar : s.utilityBar,
+      campaignStrip:
+        patch.campaignStrip !== undefined ? patch.campaignStrip : s.campaignStrip,
       contactButton:
         patch.contactButton !== undefined ? patch.contactButton : s.contactButton,
       collections:
