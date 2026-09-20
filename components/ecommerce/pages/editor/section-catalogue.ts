@@ -340,6 +340,7 @@ const FIELD_LABELS: Record<string, string> = {
   "collection-grid.pagination": "Loading more products",
   "product-main.layout": "Photo layout",
   "account-area.layout": "Account layout",
+  "content-body.layout": "Page frame",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
@@ -362,6 +363,8 @@ const HINTS: Record<string, string> = {
   "collection-grid.pagination":
     "Default keeps your store's choice. Setting it here moves category pages only — search results are unaffected.",
   "account-area.layout": "Default keeps the layout your store already used.",
+  "content-body.layout":
+    "Default follows Customize → Content & tracking, which also frames the order-tracking page. Setting it here moves this page only.",
   label: "Read aloud by screen readers for the play button.",
   photo: "Optional. Only with the customer's permission.",
   poster: "Optional. A YouTube video uses its own cover when this is empty.",
@@ -415,6 +418,7 @@ const CUSTOMIZE_OPTIONS: Record<string, string> = {
   "collection-grid.layout": "collection",
   "collection-grid.pagination": "pagination",
   "account-area.layout": "accountLayout",
+  "content-body.layout": "contentLayout",
 };
 
 /** Readable names for enum values, where the raw value would not read well. */

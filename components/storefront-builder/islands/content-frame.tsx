@@ -18,10 +18,13 @@ export function ContentFrameIsland({
   title,
   body,
   updatedAt,
+  layout,
 }: {
   title: string;
   body: string;
   updatedAt?: string;
+  /** The section's own frame; unset follows the store's `templates.contentLayout`. */
+  layout?: string;
 }) {
   const { t } = useStorefrontUI();
   const meta = updatedAt
@@ -33,7 +36,7 @@ export function ContentFrameIsland({
     : undefined;
   return (
     <div className="sfb-content-frame">
-      <ContentFrame title={title} meta={meta}>
+      <ContentFrame title={title} meta={meta} layout={layout}>
         <ContentBodyView body={body} />
       </ContentFrame>
     </div>

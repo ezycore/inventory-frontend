@@ -550,7 +550,7 @@ reads as two filters at once.
     overlay with its own value guard.
   - **Customize is the SITE editor; a page's settings belong to its page.** Since 2026-09-20 the
     rail holds only site-wide rows — Look, Header, Utility bar, Phone bar, Footer, Page layout,
-    WhatsApp button, Announcement bar, Campaign strip, Product cards, Content pages. Hero, Home
+    WhatsApp button, Announcement bar, Campaign strip, Product cards, Content & tracking. Hero, Home
     page, Product page, Collections, Cart, Checkout and Account area are gone; each is its page's
     core-section setting in the page editor. **Do not add a per-page control here** — the preview
     can only point at home/collection/product, so a control for any other page renders against a

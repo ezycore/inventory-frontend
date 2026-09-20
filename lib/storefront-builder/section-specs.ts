@@ -129,6 +129,20 @@ export const SECTION_SPECS = {
       body: { type: "string", max: 200_000 },
       /** The page's own "Last updated" date, kept from before the move. */
       updatedAt: { type: "date", optional: true },
+      /**
+       * The store's `templates.contentLayout` become a section setting, same
+       * ids. Unset means "whatever the store's template says".
+       *
+       * Unlike the other core-section layouts, the store-wide value it falls
+       * back to still has a Customize panel — `ContentFrame` also wraps the
+       * ORDER TRACKING page, which has no builder page of its own, so the
+       * setting is genuinely site-wide and this is only the per-page opt-out.
+       */
+      layout: {
+        type: "enum",
+        values: ["centered", "banner", "panel", "editorial"],
+        optional: true,
+      },
     },
   },
   /**

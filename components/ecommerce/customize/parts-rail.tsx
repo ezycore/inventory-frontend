@@ -104,7 +104,12 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
       { id: "announcement", title: "Announcement bar", icon: Megaphone },
       { id: "campaign", title: "Campaign strip", icon: Percent },
       { id: "cards", title: "Product cards", icon: LayoutGrid },
-      { id: "content", title: "Content pages", icon: FileText },
+      /* NOT "Content pages": the frame it picks also wraps the ORDER TRACKING
+         page, which has no builder page of its own — so this is genuinely
+         site-wide, and the old name hid the half a merchant cannot reach any
+         other way. A content page on the builder overrides it per page
+         (`content-body.layout`). */
+      { id: "content", title: "Content & tracking", icon: FileText },
     ],
   },
 ];

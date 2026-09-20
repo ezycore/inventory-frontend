@@ -68,6 +68,11 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   "collection-grid.layout": STORE_DEFAULT,
   "collection-grid.pagination": STORE_DEFAULT,
   "account-area.layout": STORE_DEFAULT,
+  /* The exception among the core-section layouts: its store-wide value keeps a
+     Customize panel, because `ContentFrame` also wraps the order-tracking page,
+     which has no builder page of its own. So it names the panel, like the
+     product-card settings do. */
+  "content-body.layout": { kind: "inherit", label: "Follow Content & tracking" },
 
   // Empty is its own answer, and no listed value says it.
   storeHeading: { kind: "meaning", label: "My own heading" },

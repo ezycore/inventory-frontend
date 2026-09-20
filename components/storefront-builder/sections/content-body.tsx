@@ -13,13 +13,19 @@ type Spec = (typeof SECTION_SPECS)["content-body"]["settings"];
  * in whichever format it was written.
  *
  * An island because the frame follows the store's theme and the Customize
- * draft, and the date is written in the shopper's language.
+ * draft, and the date is written in the shopper's language. `layout` is this
+ * page's own frame, overriding the store's for this page alone.
  */
 export function ContentBodySection({ settings }: SectionViewProps<Spec>) {
   return (
     <Island
       name="content-frame"
-      props={{ title: settings.title, body: settings.body, updatedAt: settings.updatedAt }}
+      props={{
+        title: settings.title,
+        body: settings.body,
+        updatedAt: settings.updatedAt,
+        layout: settings.layout,
+      }}
     />
   );
 }

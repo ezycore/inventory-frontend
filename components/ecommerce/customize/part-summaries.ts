@@ -190,7 +190,7 @@ export function partSummary(
        that named ONE page (product, collection, cart, checkout, account) left
        with their rows on 2026-09-20. */
     case "content":
-      return labelOf("contentLayout", draft.templates.contentLayout);
+      return `${labelOf("contentLayout", draft.templates.contentLayout)} · content + tracking`;
     case "shell":
       return labelOf("shell", draft.templates.shell);
     case "mobile": {

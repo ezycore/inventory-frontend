@@ -417,7 +417,8 @@ type DraftedTemplateKey =
   | "product"
   | "checkout"
   | "pagination"
-  | "accountLayout";
+  | "accountLayout"
+  | "contentLayout";
 
 /**
  * One page's layout variant, with the Customize draft and the page's own
