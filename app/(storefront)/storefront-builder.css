@@ -323,10 +323,16 @@
   .sfb-gallery {
     grid-template-columns: repeat(var(--sfb-gallery-cols-m, 2), minmax(0, 1fr));
   }
-  .sfb-banner-box[data-frame] {
+  /* `[data-frame-m]` is a shape the phone alone was given: the desktop above has
+     no frame and draws the picture whole. */
+  .sfb-banner-box[data-frame],
+  .sfb-banner-box[data-frame-m] {
     aspect-ratio: var(--sfb-banner-frame-m, var(--sfb-banner-frame));
   }
-  .sfb-banner-box[data-frame] .sfb-banner-media {
+  .sfb-banner-box[data-frame] .sfb-banner-media,
+  .sfb-banner-box[data-frame-m] .sfb-banner-media {
+    position: absolute;
+    inset: 0;
     object-position: var(--sfb-banner-focal-m, var(--sfb-banner-focal, 50% 50%));
   }
   .sfb-sec {

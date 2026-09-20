@@ -17,9 +17,16 @@ import type { SectionFieldSpec, SectionPageContext } from "./field-specs";
  *    grow a half-drawn section.
  */
 
-/** A value that may differ on phones. `mobile` inherits `base` until set. */
+/**
+ * A value that may differ on phones. `mobile` inherits `base` until set, and
+ * `base` itself may be absent — a merchant who set a phone value on a setting
+ * the desktop had never been given leaves the desktop on whatever it drew
+ * before (the section's own fallback, or the Customize setting it follows).
+ * Writing their phone choice into `base` instead would change the desktop page
+ * they were not looking at.
+ */
 export interface Responsive<T> {
-  base: T;
+  base?: T;
   mobile?: T;
 }
 
@@ -157,9 +164,11 @@ const readField = (spec: SectionFieldSpec, value: unknown): unknown => {
   if (!spec.responsive) return readScalar(spec, value);
   if (!isPlainObject(value)) return undefined;
   const base = readScalar(spec, value.base);
-  if (base === undefined) return undefined;
-  // A bad phone override falls back to the desktop value rather than dropping both.
+  // A bad phone override falls back to the desktop value rather than dropping
+  // both; a phone value with no desktop one is kept, because the desktop then
+  // draws the section's own fallback rather than the phone's choice.
   const mobile = readScalar(spec, value.mobile);
+  if (base === undefined) return mobile === undefined ? undefined : { mobile };
   return mobile === undefined ? { base } : { base, mobile };
 };
 

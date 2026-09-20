@@ -617,8 +617,9 @@ reads as two filters at once.
   Four rules, each a real defect class: **(1)** it subscribes via `useCartStore.subscribe` inside an
   effect, **never a selector** — a selector re-renders the whole shell on every quantity tap;
   **(2)** it is gated on `persist.onFinishHydration`, or the first push overwrites a real server
-  cart with an empty one; **(3)** it is disabled under `?preview=1`, or a merchant theming their
-  shop in Customize pollutes their own funnel; **(4)** it flushes on `pagehide`/`visibilitychange`
+  cart with an empty one; **(3)** it is disabled in an editor preview (`isSfPreview` →
+  `isPreviewSession`, never a raw read of `?preview=1` — see **Preview mode is sticky** below), or a
+  merchant theming their shop in Customize pollutes their own funnel; **(4)** it flushes on `pagehide`/`visibilitychange`
   with `keepalive`, because the shopper who adds an item and closes the tab inside the 2 s debounce
   is precisely the abandoner worth recording. **Do not add a second sync call site** — new cart CTAs
   are picked up automatically, which is the entire reason it is one subscription and not eight.
@@ -761,12 +762,28 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   plan §17 Phase 6 step 4 before adding one.
 - **The inspector's Style tab** (Phase 6; `editor/section-style-fields.tsx` over the pure
   `editor/section-style-edits.ts`). Writes `section.style` (§5.2) — the renderer (`sectionFrame`) and the
-  backend (`checkStyle`) are unchanged. **Default is no key**: `withStyle` drops an empty box, `toneOf`
-  reads `auto` as Default. Padding is a `{ top, bottom }` pair per device, so a first edge fills both; a
+  backend (`checkStyle`) are unchanged. **The empty choice is no key**: `withStyle` drops an empty box,
+  `toneOf` reads `auto` as unset. Every Style list offers it as **"Section's own"**, not "Default" — it
+  leaves the section's own frame, which is what a theme restyles. Padding is a `{ top, bottom }` pair per device, so a first edge fills both; a
   background colour reaches `style` only as a whole hex (the field holds typed text locally — the
   controlled-input parse round-trip rule). A catalogue entry with `pinned: true` gets a note instead of
   controls. The responsive marker is `PhoneNote` / `ResetToDesktop` (`editor/responsive-note.tsx`),
   shared with `SettingsFields` — use it for any new per-device control.
+- ⚠ **An optional list does not say "Default" any more** (`editor/field-empty-choice.ts`). Empty meant
+  three different things behind one word, so each optional enum declares which it is: `inherit` (a
+  Customize panel owns it — "Follow Product cards", "Follow Product page"), `meaning` (empty is its own
+  answer — "Whole picture", "The card decides", "My own heading"), or `value` (a built-in fallback, so
+  the control drops the empty choice and **shows the value the section already draws**). An unclassified
+  field keeps the old "Default". **A `value` entry must equal the renderer's own fallback** — the test
+  checks it is one of the field's listed values, not that it matches the renderer, so read the renderer
+  when you add one.
+- ⚠ **A phone edit never writes the desktop value.** `withFieldValue` on the phone tab writes
+  `{ mobile }` alone when the desktop has none, so `Responsive.base` is now optional end to end: the
+  type (`lib/storefront-builder/settings.ts`), `responsiveVars` (no `--name` var without a base), the
+  backend's `checkField` (base or mobile, and base still required when the field is), and
+  `image-banner`'s `data-frame` / `data-frame-m` pair, which is what keeps a phone-only shape from
+  cropping the desktop. Before this, choosing a value on the phone tab while the desktop had none set
+  the DESKTOP — with the note still reading "Same as desktop" and no "Reset to desktop" to undo it.
 - **Pause online orders** (`settings.checkout.ordersPaused`, `pausedMessage`, `pausedWhatsApp`; admin:
   Checkout settings tab). Every buy surface asks `useOrdersPaused()`
   (`services/storefront/use-orders-paused.ts`, over the pure `ordersPausedOf` in
@@ -890,14 +907,47 @@ Four files, in payload order:
    parts own none, so nothing is lost when one closes), and
    `customize/draft-payloads.ts` `toPreviewPayload()` serializes it. That module also builds the
    save payload, so the two cannot trim differently.
-2. `components/storefront/preview-bridge.tsx` — receives it inside the iframe (gated on `?preview=1`)
-   and calls `apply`. It announces `ezycore-preview-ready` on mount so the editor pushes immediately.
+2. `components/storefront/preview-bridge.tsx` — receives it inside the iframe (gated on
+   `isPreviewSession()`, **not** on `?preview=1` — see below) and calls `apply`. It announces
+   `ezycore-preview-ready` on mount so the editor pushes immediately, and `ezycore-preview-applied`
+   after every apply.
 3. `services/stores/use-sf-preview-store.ts` — the override state.
 4. The storefront component reads its override and prefers it over the saved payload.
 
 The toolbar's **light/dark switch is not part of that payload** — it previews the shopper's own toggle
 over a separate message and a separate bridge, shared with the page editor. See the page editor's
 preview notes above before touching it, and never let it write `ezy-sf-theme`.
+
+### ⚠ Preview mode is STICKY per tab — never read `?preview=1` yourself (2026-09-20)
+
+Every link in the shop is a bare path, so the merchant's **first click inside the preview frame** —
+a category, a product, the logo — client-side navigates and the param is gone. Everything that asks
+"am I in an editor preview?" therefore goes through **`isPreviewSession()`**
+(`lib/storefront-preview.ts`), which remembers the answer in `sessionStorage` for the life of the
+tab. Its consumers: all three receivers (`preview-bridge`, `preview-theme-bridge`,
+`page-draft-preview`) and `isSfPreview()` in `services/storefront/cart-identity.ts`, which is what
+cart-sync, attribution, meta pixel, the newsletter and guest capture read.
+
+The two bugs that produced it, both invisible to tests and to a quick click-through:
+
+- **The preview froze.** The receivers survived the click only because they had already mounted. The
+  moment the document was replaced — a dev Fast Refresh, any hard navigation — the new one read a
+  param-less URL, mounted **no listener**, and every edit the editor posted afterwards was dropped.
+  The frame kept showing its last paint, so it looked like a live preview that had simply stopped
+  agreeing with the panel; reloading the editor (which rebuilds `src` with the param) "fixed" it.
+- **The merchant became a shopper.** After that same click, `isSfPreview()` went false, so the
+  owner's own browsing of their shop was mirrored as abandoned carts and attributed as visits.
+
+The preview **token** beside it already had this solved, with a cookie (`PREVIEW_COOKIE`), for the
+same reason — that comment is where the fix came from.
+
+**The net under it:** `customize/use-preview-watchdog.ts`. The frame acknowledges every apply, so an
+unanswered post means the receiver is gone; after 2 s the editor reloads the frame. Armed only once
+the frame has applied one draft (a cold dev compile outlasts any timeout), skipped while the tab is
+hidden (a throttled reply is late, not missing), capped at 3 reloads until an ack resets the budget.
+
+Still URL-only, deliberately: `proxy.ts`'s `customizeFrame` check — it is a per-request server read,
+with no session to remember anything in.
 
 **A store whose look is published through the Site (Phase 5) saves a draft, not the live look.** When
 `settings.siteCutoverAt` is set, the Customize page loads `useStorefrontSite`, the workspace edits

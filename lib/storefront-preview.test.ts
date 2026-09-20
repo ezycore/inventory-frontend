@@ -9,11 +9,13 @@
  *
  * See `lib/storefront-preview.ts` for the route the token travels.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   PREVIEW_API_HEADER,
   PREVIEW_COOKIE,
+  PREVIEW_SESSION_KEY,
+  isPreviewSession,
   previewApiHeaders,
   setStorefrontPreviewToken,
   storefrontPreviewToken,
@@ -32,6 +34,7 @@ afterEach(() => {
   setStorefrontPreviewToken(null);
   clearCookie();
   setSearch("");
+  window.sessionStorage.clear();
 });
 
 describe("storefrontPreviewToken", () => {
@@ -76,6 +79,64 @@ describe("storefrontPreviewToken", () => {
     setStorefrontPreviewToken("minted.token.value");
 
     expect(storefrontPreviewToken()).toBe("minted.token.value");
+  });
+});
+
+describe("isPreviewSession", () => {
+  it("is false for an ordinary shopper", () => {
+    expect(isPreviewSession()).toBe(false);
+    // …and leaves nothing behind that a later page load could misread.
+    expect(window.sessionStorage.getItem(PREVIEW_SESSION_KEY)).toBeNull();
+  });
+
+  it("is true on the frame's first URL, and remembers it", () => {
+    setSearch("?preview=1");
+
+    expect(isPreviewSession()).toBe(true);
+    expect(window.sessionStorage.getItem(PREVIEW_SESSION_KEY)).toBe("1");
+  });
+
+  it("survives the click that drops the param, and the reload after it", () => {
+    // The shipped bug: every storefront link is a bare path, so one click
+    // inside the preview navigates the frame to a param-less URL. Reading the
+    // URL alone, the next document mounted no receiver and the editor's edits
+    // stopped landing — the preview froze on its last paint until the merchant
+    // reloaded the editor.
+    setSearch("?preview=1");
+    isPreviewSession();
+
+    setSearch("/gadgets");
+
+    expect(isPreviewSession()).toBe(true);
+  });
+
+  it("does not follow the merchant into a different tab", () => {
+    // `sessionStorage` is per tab, so this is really a test that we did not
+    // reach for `localStorage` — which would have put the merchant's own shop
+    // window into preview mode for good.
+    setSearch("?preview=1");
+    isPreviewSession();
+
+    // A fresh tab: empty storage, and the shop's own URL rather than the
+    // editor's.
+    window.sessionStorage.clear();
+    setSearch("/gadgets");
+
+    expect(isPreviewSession()).toBe(false);
+  });
+
+  it("falls back to the URL when storage throws", () => {
+    // Private windows and blocked site data throw on access. Degrading to the
+    // old behaviour is fine; throwing out of a receiver's effect is not.
+    const spy = vi
+      .spyOn(window.sessionStorage, "setItem")
+      .mockImplementation(() => {
+        throw new Error("blocked");
+      });
+    setSearch("?preview=1");
+
+    expect(isPreviewSession()).toBe(true);
+    spy.mockRestore();
   });
 });
 

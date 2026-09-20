@@ -137,9 +137,17 @@ export function hasPhoneValue(settings: Settings, key: string, spec: SectionFiel
  * Blank clears. An optional field's key is removed rather than stored empty (the
  * backend refuses `""` where it expects a link); a required field keeps its blank
  * so the section reads as unfinished. On a responsive field the desktop value is
- * the base; a phone value is an override, and clearing it goes back to the
- * desktop's — while a phone value with no desktop one becomes the base, because
- * a lone override is not a valid value.
+ * the base and a phone value is an override; clearing the override goes back to
+ * the desktop's.
+ *
+ * **An edit on the phone tab only ever writes the phone's value.** It used to
+ * become the `base` when the desktop had none — so a merchant who chose Center
+ * while looking at the phone silently centred their desktop page too, with the
+ * note still reading "Same as desktop" and no "Reset to desktop" to undo it. A
+ * base-less `{ mobile }` is now a valid stored value (the backend's
+ * `checkField` accepts it for an optional field), and the desktop keeps
+ * rendering whatever it rendered before: the section's own fallback, or the
+ * Customize setting it follows.
  */
 export function withFieldValue(
   settings: Settings,
@@ -158,9 +166,14 @@ export function withFieldValue(
   }
 
   const current = isPlainObject(settings[key]) ? (settings[key] as Settings) : undefined;
-  if (device === "mobile" && current?.base !== undefined) {
-    const { mobile: _previous, ...rest } = current;
-    next[key] = blank ? rest : { ...rest, mobile: value };
+  if (device === "mobile") {
+    const { mobile: _previous, ...rest } = current ?? {};
+    // Clearing a phone-only value leaves nothing to store: an empty container is
+    // not a value, so the key goes the way a cleared optional field goes.
+    if (blank && rest.base === undefined) {
+      if (spec.optional) delete next[key];
+      else next[key] = { base: "" };
+    } else next[key] = blank ? rest : { ...rest, mobile: value };
     return next;
   }
   if (blank) {

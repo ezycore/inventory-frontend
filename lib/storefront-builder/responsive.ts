@@ -25,7 +25,10 @@ export function responsiveVars<T extends string | number>(
   format: (value: T) => string = String,
 ): CSSProperties {
   if (!value) return {};
-  const vars: Record<string, string> = { [`--${name}`]: format(value.base) };
+  // A phone-only value leaves the desktop var unset on purpose, so the
+  // stylesheet's own fallback keeps drawing the desktop.
+  const vars: Record<string, string> = {};
+  if (value.base !== undefined) vars[`--${name}`] = format(value.base);
   if (value.mobile !== undefined) vars[`--${name}-m`] = format(value.mobile);
   return vars as CSSProperties;
 }

@@ -53,14 +53,32 @@ describe("padding", () => {
     expect(withPadding(phone, "top", undefined, "mobile")).toEqual({ padding: { base: { top: "md", bottom: "md" } } });
   });
 
-  it("makes a phone choice with no desktop value the desktop value, and Default on desktop clears every screen", () => {
-    expect(withPadding({}, "bottom", "xl", "mobile")).toEqual({ padding: { base: { top: "xl", bottom: "xl" } } });
+  /**
+   * The phone tab used to write the desktop's own spacing when it had none, so a
+   * merchant tightening a section on their phone tightened it on every screen.
+   */
+  it("keeps a phone choice off the desktop, and clearing on desktop clears every screen", () => {
+    expect(withPadding({}, "bottom", "xl", "mobile")).toEqual({ padding: { mobile: { top: "xl", bottom: "xl" } } });
+    const phoneOnly = withPadding({}, "bottom", "xl", "mobile");
+    expect(paddingFor(phoneOnly, "desktop")).toEqual({ value: undefined, own: false });
+    expect(withPadding(phoneOnly, "bottom", undefined, "mobile")).toEqual({});
     const both = { padding: { base: { top: "md", bottom: "md" }, mobile: { top: "sm", bottom: "sm" } }, width: "wide" };
     expect(withPadding(both, "top", undefined, "desktop")).toEqual({ width: "wide" });
   });
 });
 
 describe("alignment", () => {
+  it("keeps a phone-only alignment off the desktop, and renders it as the phone var alone", () => {
+    const phoneOnly = withAlign({}, "center", "mobile");
+    expect(phoneOnly).toEqual({ align: { mobile: "center" } });
+    expect(alignFor(phoneOnly, "desktop")).toEqual({ value: undefined, own: false });
+    expect(alignFor(phoneOnly, "mobile")).toEqual({ value: "center", own: true });
+    const frame = sectionFrame(phoneOnly);
+    expect(frame.style).toMatchObject({ "--sfb-align-m": "center" });
+    expect(frame.style).not.toHaveProperty("--sfb-align");
+    expect(withAlign(phoneOnly, undefined, "mobile")).toEqual({});
+  });
+
   it("follows the same desktop and phone rules", () => {
     const desktop = withAlign({}, "center", "desktop");
     expect(desktop).toEqual({ align: { base: "center" } });

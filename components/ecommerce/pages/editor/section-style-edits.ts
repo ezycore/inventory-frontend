@@ -66,11 +66,11 @@ export function paddingFor(style: SectionStyleBox, device: EditorDevice): { valu
  * Set one edge on `device`, or clear it with `undefined`.
  *
  * - A first choice fills both edges with it, since the backend stores top and
- *   bottom as a pair and "Default" is the section's own frame, not a step.
- * - On a phone, with a desktop value, the choice is an override and clearing it
- *   goes back to the desktop's; with none, it becomes the desktop value too —
- *   a lone phone override is not a valid box.
- * - "Default" on the desktop clears the padding on every screen.
+ *   bottom as a pair and the empty choice is the section's own frame, not a step.
+ * - **On a phone the choice is always the phone's**, whether or not the desktop
+ *   has one, and clearing it goes back to the desktop's. Writing the base from
+ *   the phone tab is what used to move a desktop page nobody was looking at.
+ * - Clearing on the desktop drops the padding on every screen.
  */
 export function withPadding(
   style: SectionStyleBox,
@@ -82,9 +82,10 @@ export function withPadding(
   const base = readPadding(padding.base);
   const mobile = readPadding(padding.mobile);
 
-  if (device === "mobile" && base) {
-    if (step === undefined) return { ...style, padding: { base } };
-    return { ...style, padding: { base, mobile: { ...(mobile ?? base), [edge]: step } } };
+  if (device === "mobile") {
+    if (step === undefined) return base ? { ...style, padding: { base } } : without(style, "padding");
+    const phone = { ...(mobile ?? base ?? { top: step, bottom: step }), [edge]: step };
+    return { ...style, padding: base ? { base, mobile: phone } : { mobile: phone } };
   }
   if (step === undefined) return without(style, "padding");
   const next = { ...(base ?? { top: step, bottom: step }), [edge]: step };
@@ -107,8 +108,9 @@ export function withAlign(style: SectionStyleBox, value: Align | undefined, devi
   const base = readAlign(align.base);
   const mobile = readAlign(align.mobile);
 
-  if (device === "mobile" && base) {
-    return { ...style, align: value === undefined ? { base } : { base, mobile: value } };
+  if (device === "mobile") {
+    if (value === undefined) return base ? { ...style, align: { base } } : without(style, "align");
+    return { ...style, align: base ? { base, mobile: value } : { mobile: value } };
   }
   if (value === undefined) return without(style, "align");
   return { ...style, align: mobile && device === "desktop" ? { base: value, mobile } : { base: value } };

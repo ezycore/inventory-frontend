@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect } from "react";
-import { PREVIEW_THEME_MESSAGE } from "@/lib/storefront-preview";
+import { PREVIEW_THEME_MESSAGE, isPreviewSession } from "@/lib/storefront-preview";
 import { setPreviewTheme } from "@/services/storefront/ui-context";
 
 /**
@@ -12,7 +12,8 @@ import { setPreviewTheme } from "@/services/storefront/ui-context";
  * both admin previews send this message (`StorePreviewBridge` is Customize's
  * alone, `PageDraftPreview` the page editor's), and a builder landing page draws
  * without the shell, so there is no one component below that both frames mount.
- * Off entirely outside `?preview=1`, like every other preview receiver.
+ * Off entirely outside an editor frame (`isPreviewSession`), like every other
+ * preview receiver.
  *
  * The override is module state, so it survives a client-side navigation inside
  * the frame — a merchant who previews dark and clicks through to another page
@@ -20,7 +21,7 @@ import { setPreviewTheme } from "@/services/storefront/ui-context";
  */
 export function PreviewThemeBridge() {
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("preview") !== "1") return;
+    if (!isPreviewSession()) return;
 
     const onMessage = (event: MessageEvent) => {
       // Only the frame's own parent — the editor — may drive the theme.

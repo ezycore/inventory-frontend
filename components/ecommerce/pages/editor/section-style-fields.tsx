@@ -33,15 +33,25 @@ import {
 /** An unset choice — the section's own frame. */
 const DEFAULT = "__default";
 
-const withDefault = (options: { value: string; label: string }[]) => [{ value: DEFAULT, label: "Default" }, ...options];
+/**
+ * Every Style choice can be left to the section itself, and that is worth a
+ * choice of its own: the section's own frame is what a theme restyles, so a
+ * merchant who picks a value here is opting out of the theme for that section.
+ * It is named rather than called "Default" for the reason `fieldEmptyChoice`
+ * gives — a control has to say where its value comes from.
+ */
+const withSectionOwn = (options: { value: string; label: string }[]) => [
+  { value: DEFAULT, label: "Section's own" },
+  ...options,
+];
 
-const BACKGROUNDS = withDefault([
+const BACKGROUNDS = withSectionOwn([
   { value: "none", label: "None" },
   { value: "color", label: "Colour" },
   { value: "image", label: "Picture" },
 ]);
 
-const STEPS = withDefault([
+const STEPS = withSectionOwn([
   { value: "none", label: "None" },
   { value: "sm", label: "Small" },
   { value: "md", label: "Medium" },
@@ -49,18 +59,18 @@ const STEPS = withDefault([
   { value: "xl", label: "Extra large" },
 ]);
 
-const WIDTHS = withDefault([
+const WIDTHS = withSectionOwn([
   { value: "content", label: "Page column" },
   { value: "wide", label: "Wide" },
   { value: "full", label: "Full width" },
 ]);
 
-const ALIGNS = withDefault([
+const ALIGNS = withSectionOwn([
   { value: "left", label: "Left" },
   { value: "center", label: "Centre" },
 ]);
 
-const TONES = withDefault([
+const TONES = withSectionOwn([
   { value: "light", label: "Light, for a dark background" },
   { value: "dark", label: "Dark, for a light background" },
 ]);
@@ -119,8 +129,8 @@ function BackgroundColour({ color, onChange }: { color?: string; onChange: (colo
 
 /**
  * The inspector's Style tab: the box every section sits in (plan §5.2
- * `SectionStyle`). "Default" everywhere is the section's own frame, so a
- * section nobody styled looks exactly as it did. Spacing and alignment follow
+ * `SectionStyle`). "Section's own" everywhere leaves the section's
+ * own frame alone, so a section nobody styled looks exactly as it did. Spacing and alignment follow
  * the device switch, like responsive settings.
  */
 export function SectionStyleFields({
@@ -150,7 +160,7 @@ export function SectionStyleFields({
         value={background.kind}
         options={BACKGROUNDS}
         onChange={(value) => set(withBackground(style, chosen<BackgroundKind>(value)))}
-        hint="Default keeps the section's own background, if it has one."
+        hint="Leave it on Section's own to keep the background the section brings, if it has one."
       />
       {background.kind === "color" ? (
         <BackgroundColour
@@ -184,8 +194,8 @@ export function SectionStyleFields({
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          The room above and below the section. Default on the desktop goes back to the section&apos;s own spacing
-          on every screen.
+          The room above and below the section. Section&apos;s own, chosen on the desktop, goes back to the
+          section&apos;s own spacing on every screen.
         </p>
         <ResetToDesktop
           device={device}

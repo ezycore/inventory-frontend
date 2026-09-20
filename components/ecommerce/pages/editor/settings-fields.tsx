@@ -34,6 +34,7 @@ const pictureUrl = (value: unknown): string | undefined => {
  */
 export function SettingsFields({
   idPrefix,
+  sectionType,
   specs,
   settings,
   device,
@@ -41,6 +42,8 @@ export function SettingsFields({
   onChange,
 }: {
   idPrefix: string;
+  /** The section these settings belong to — what an empty list means is per section. */
+  sectionType?: string;
   specs: Record<string, SectionFieldSpec>;
   settings: Record<string, unknown>;
   device: EditorDevice;
@@ -101,7 +104,7 @@ export function SettingsFields({
               </Label>
               {phoneNote}
             </div>
-            <FieldControl id={id} name={key} spec={spec} value={value} onChange={set} />
+            <FieldControl id={id} name={key} sectionType={sectionType} spec={spec} value={value} onChange={set} />
             {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
             {resetToDesktop}
           </div>

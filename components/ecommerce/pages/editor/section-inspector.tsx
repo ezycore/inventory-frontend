@@ -130,6 +130,7 @@ export function SectionInspector({
         <TabsContent value="content" className="space-y-6">
           <SettingsFields
             idPrefix={section.id}
+            sectionType={section.type}
             specs={spec.settings}
             settings={section.settings}
             device={device}
@@ -188,6 +189,7 @@ export function SectionInspector({
                   </div>
                   <SettingsFields
                     idPrefix={`${section.id}-${block.id}`}
+                    sectionType={section.type}
                     specs={spec.blocks!.settings}
                     settings={block.settings}
                     device={device}

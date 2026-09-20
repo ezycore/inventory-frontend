@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQueries } from "@tanstack/react-query";
 import { storefrontApi } from "@/lib/storefront-client";
+import { isPreviewSession } from "@/lib/storefront-preview";
 import {
   PAGE_DRAFT_APPLIED,
   PAGE_DRAFT_MESSAGE,
@@ -91,7 +92,7 @@ export function PageDraftPreview({
   const focusedId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("preview") !== "1") return;
+    if (!isPreviewSession()) return;
 
     const style = document.createElement("style");
     style.textContent = EDITOR_FRAME_CSS;

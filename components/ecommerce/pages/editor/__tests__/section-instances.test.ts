@@ -126,8 +126,22 @@ describe("setting a field", () => {
     });
   });
 
-  it("turns a phone value with no desktop value into the base, since an override alone is invalid", () => {
-    expect(withFieldValue({}, "align", phoneAlign, "center", "mobile")).toEqual({ align: { base: "center" } });
+  /**
+   * The phone tab used to write the base when the desktop had none, so choosing
+   * Centre while looking at a phone centred the desktop page too — silently, with
+   * the note still reading "Same as desktop".
+   */
+  it("keeps a phone value off the desktop when the desktop has none", () => {
+    const phone = withFieldValue({}, "align", phoneAlign, "center", "mobile");
+    expect(phone).toEqual({ align: { mobile: "center" } });
+    expect(fieldValue(phone, "align", phoneAlign, "desktop")).toBeUndefined();
+    expect(fieldValue(phone, "align", phoneAlign, "mobile")).toBe("center");
+    expect(hasPhoneValue(phone, "align", phoneAlign)).toBe(true);
+  });
+
+  it("drops the whole optional field when its phone-only value is cleared", () => {
+    const phone = withFieldValue({}, "align", phoneAlign, "center", "mobile");
+    expect(withFieldValue(phone, "align", phoneAlign, undefined, "mobile")).not.toHaveProperty("align");
   });
 });
 

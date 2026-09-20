@@ -34,6 +34,58 @@ import { create } from "zustand";
 export const PREVIEW_TOKEN_PARAM = "previewToken";
 
 /**
+ * URL param the admin editors put on the frame's first URL to turn the draft
+ * receivers on. Read through `isPreviewSession()`, never directly — see there.
+ */
+export const PREVIEW_PARAM = "preview";
+
+/**
+ * `sessionStorage` key that remembers "this document is an editor preview frame"
+ * for the rest of the tab's life.
+ *
+ * Per tab and per origin, which is the exact scope wanted: the shop's own host,
+ * the one frame (or the one "open in a new tab" window) the editor opened, and
+ * nothing a real shopper's browser ever holds.
+ */
+export const PREVIEW_SESSION_KEY = "ezy-sf-preview";
+
+/**
+ * Whether this browser context is an admin preview frame.
+ *
+ * **Not a plain read of `?preview=1`, and that is the whole point.** Every link
+ * in the shop is a bare path, so the first click inside the preview — a
+ * category, a product, the logo — client-side navigates and the param is gone.
+ * The receivers survived that only because they had already mounted; the moment
+ * the document was replaced (a dev Fast Refresh, any hard navigation) the new
+ * one read a param-less URL, mounted no listener, and every later edit the
+ * editor posted was dropped on the floor. The frame kept showing its last paint,
+ * so the preview looked alive and simply stopped following the controls, and
+ * only reloading the editor — which rebuilds `src` with the param — brought it
+ * back.
+ *
+ * The token beside it already had this fixed, with a cookie (`PREVIEW_COOKIE`),
+ * for the same reason and in the same words. This is the other half of it.
+ *
+ * `sessionStorage` rather than a cookie: nothing on the server needs to know,
+ * and a tab-scoped value cannot leak into the merchant's ordinary shop window.
+ * Every access is wrapped — a private window or blocked site data throws — and
+ * the URL answer is what a failed read falls back to, so the worst case is
+ * today's behaviour rather than a dead preview.
+ */
+export const isPreviewSession = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const onUrl =
+    new URLSearchParams(window.location.search).get(PREVIEW_PARAM) === "1";
+  try {
+    if (onUrl) window.sessionStorage.setItem(PREVIEW_SESSION_KEY, "1");
+    else return window.sessionStorage.getItem(PREVIEW_SESSION_KEY) === "1";
+  } catch {
+    // Storage unavailable — fall back to what the URL says.
+  }
+  return onUrl;
+};
+
+/**
  * Asks the shop's own origin to forget its preview cookie.
  *
  * The cookie is set on the SHOP's host and the editor lives on the admin's, so

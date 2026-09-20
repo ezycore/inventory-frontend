@@ -53,8 +53,8 @@ export function ImageBannerSection({ settings, context }: SectionViewProps<Spec>
         mobileImage={settings.mobileImage}
         alt={settings.alt?.trim() ?? ""}
         sizes="100vw"
-        width={settings.frame ? undefined : settings.image.width}
-        height={settings.frame ? undefined : settings.image.height}
+        width={settings.frame?.base ? undefined : settings.image.width}
+        height={settings.frame?.base ? undefined : settings.image.height}
         className="sfb-banner-media"
       />
       {hasCopy ? (
@@ -71,21 +71,26 @@ export function ImageBannerSection({ settings, context }: SectionViewProps<Spec>
     </>
   );
 
-  const frameAttr = settings.frame ? "" : undefined;
+  // Two attributes, not one: a shape chosen on the phone alone must not crop the
+  // desktop, which keeps drawing the picture whole (`sfb-banner-box[data-frame]`
+  // and its `-m` twin in the builder stylesheet).
+  const frameAttr = settings.frame?.base ? "" : undefined;
+  const mobileFrameAttr = settings.frame?.mobile ? "" : undefined;
+  const box = (
+    <div data-frame={frameAttr} data-frame-m={mobileFrameAttr} className="sfb-banner-box">
+      {body}
+    </div>
+  );
   if (settings.link && !button) {
     return (
       <SectionLink base={context.base} href={settings.link} className="sfb-banner" style={bannerVars(settings)}>
-        <div data-frame={frameAttr} className="sfb-banner-box">
-          {body}
-        </div>
+        {box}
       </SectionLink>
     );
   }
   return (
     <div className="sfb-banner" style={bannerVars(settings)}>
-      <div data-frame={frameAttr} className="sfb-banner-box">
-        {body}
-      </div>
+      {box}
     </div>
   );
 }

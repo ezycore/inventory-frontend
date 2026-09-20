@@ -25,6 +25,7 @@ import {
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
 import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
+import { usePreviewWatchdog } from "@/components/ecommerce/customize/use-preview-watchdog";
 
 /** Which storefront page the preview is pointed at. */
 export type PreviewPage = "home" | "collection" | "product";
@@ -233,18 +234,6 @@ export function BrowserPreview({
     ],
   );
 
-  const post = useCallback(() => {
-    ref.current?.contentWindow?.postMessage(
-      { type: "ezycore-preview", payload: { ...payload, previewDevice: device } },
-      "*",
-    );
-  }, [payload, device]);
-
-  // Push the draft whenever it changes…
-  useEffect(() => {
-    post();
-  }, [post]);
-
   /* **The frame stays hidden until the draft has actually landed in it.**
      It server-renders the merchant's SAVED store, paints that, and only then
      runs ready → post → apply — so previewing a theme flashed the
@@ -259,6 +248,29 @@ export function BrowserPreview({
   const [paintedKey, setPaintedKey] = useState<string | null>(null);
   const painted = paintedKey === frameKey;
 
+  /* Reload a frame that has stopped acknowledging the drafts we post it — see
+     the hook for what that state looks like on screen and why it is armed only
+     after the first apply. `payload` is the signal because it is exactly "an
+     edit happened": it is memoised above and re-made only on a real change. */
+  const { markPosted, markAcked } = usePreviewWatchdog({
+    armed: painted,
+    signal: payload,
+    onStale: useCallback(() => setReloadKey((k) => k + 1), []),
+  });
+
+  const post = useCallback(() => {
+    markPosted();
+    ref.current?.contentWindow?.postMessage(
+      { type: "ezycore-preview", payload: { ...payload, previewDevice: device } },
+      "*",
+    );
+  }, [payload, device, markPosted]);
+
+  // Push the draft whenever it changes…
+  useEffect(() => {
+    post();
+  }, [post]);
+
   // …and whenever the storefront (re)loads and announces it's ready.
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
@@ -269,11 +281,14 @@ export function BrowserPreview({
         // merchant's own theme while the toggle still says the other one.
         postTheme();
       }
-      if (e.data?.type === "ezycore-preview-applied") setPaintedKey(frameKey);
+      if (e.data?.type === "ezycore-preview-applied") {
+        markAcked();
+        setPaintedKey(frameKey);
+      }
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [post, postTheme, frameKey]);
+  }, [post, postTheme, frameKey, markAcked]);
 
   /* Safety net. If the ack never arrives — an older storefront build, a frame
      that failed to boot, `preview=1` stripped by a redirect — the preview must
@@ -287,6 +302,7 @@ export function BrowserPreview({
     const t = setTimeout(() => setPaintedKey(frameKey), 1500);
     return () => clearTimeout(t);
   }, [painted, frameKey, previewReady]);
+
 
   if (!slug) {
     return (

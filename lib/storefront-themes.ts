@@ -634,7 +634,7 @@ export const getReadyMadeTheme = (id?: string | null): ReadyMadeTheme | undefine
  * **A trade with no entry gets no recommendation, deliberately.** Falling back
  * to Classic would dress the shop as it already looks and call it a suggestion,
  * and pointing an electronics shop at a grocery theme is worse than silence.
- * Five of the twelve trades are unlisted for exactly this reason; each becomes a
+ * Six of the twelve trades are unlisted for exactly this reason; each becomes a
  * row here when a theme is actually drawn for it, and not before.
  *
  * ⚠ `bestFor` on each theme is the merchant-facing half of the same claim.

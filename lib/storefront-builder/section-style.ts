@@ -69,8 +69,10 @@ const readPadding = (value: unknown): { top: SpacingStep; bottom: SpacingStep } 
 const readAlign = (value: unknown): Responsive<Align> | undefined => {
   if (!isPlainObject(value)) return undefined;
   const base = oneOf(["left", "center"] as const, value.base);
-  if (!base) return undefined;
   const mobile = oneOf(["left", "center"] as const, value.mobile);
+  // A phone value with no desktop one stands on its own: the desktop keeps the
+  // section's own alignment, which is what the merchant left it on.
+  if (!base) return mobile ? { mobile } : undefined;
   return mobile ? { base, mobile } : { base };
 };
 
