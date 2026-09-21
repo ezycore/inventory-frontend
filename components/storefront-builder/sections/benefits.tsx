@@ -1,8 +1,11 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
+import { TRACK } from "@/lib/storefront-builder/grid-track";
 import type { IconName } from "@/components/storefront/sf-icons";
 import { IconDisc } from "@/components/storefront/icon-disc";
+import { SectionLede } from "@/components/storefront-builder/section-lede";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["benefits"]["settings"];
@@ -14,15 +17,13 @@ type BlockSpec = (typeof SECTION_SPECS)["benefits"]["blocks"]["settings"];
  * (`.sfb-benefits`); a phone takes one column. Unset, it fits up to three.
  */
 export function BenefitsSection({ settings, blocks }: SectionViewProps<Spec, BlockSpec>) {
-  const columns = settings.columns ?? Math.min(blocks.length, 3);
+  // Unset keeps what the stylesheet drew: up to three past the breakpoint, and
+  // one on a phone. A phone value is the merchant overriding that one.
+  const columns = settings.columns ?? { base: Math.min(blocks.length, 3) };
   return (
     <>
-      {settings.heading ? (
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 16px", letterSpacing: "-0.02em" }}>
-          {settings.heading}
-        </h2>
-      ) : null}
-      <div className="sfb-benefits" style={{ "--sfb-benefit-cols": columns } as CSSProperties}>
+      <SectionLede heading={settings.heading} subheading={settings.subheading} gap={16} />
+      <div className="sfb-benefits" style={responsiveVars("sfb-benefit-track", columns, TRACK) as CSSProperties}>
         {blocks.map(({ id, settings: benefit }) => (
           <div key={id} style={card}>
             <IconDisc name={(benefit.icon as IconName | undefined) ?? "check"} size={40} />

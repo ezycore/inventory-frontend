@@ -68,6 +68,7 @@ export function CategoryStrip({
   className,
   trackClassName,
   arrows = true,
+  arrowLabels,
   children,
 }: {
   align: ResolvedHomeCollections["align"];
@@ -98,9 +99,16 @@ export function CategoryStrip({
    * screens that would.
    */
   arrows?: boolean;
+  /**
+   * What the arrows are called for a screen reader. Defaults to the category
+   * wording every caller had before the product rail borrowed this component —
+   * "previous categories" is simply wrong on a row of products.
+   */
+  arrowLabels?: { previous: string; next: string };
   children: ReactNode;
 }) {
   const { t } = useStorefrontUI();
+  const labels = arrowLabels ?? { previous: t.previousCategories, next: t.nextCategories };
   const track = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: false, end: false });
   const count = Children.count(children);
@@ -158,14 +166,14 @@ export function CategoryStrip({
       {arrows && edges.start ? (
         <StripArrow
           edge="start"
-          label={t.previousCategories}
+          label={labels.previous}
           onPress={() => page(-1)}
         />
       ) : null}
       {arrows && edges.end ? (
         <StripArrow
           edge="end"
-          label={t.nextCategories}
+          label={labels.next}
           onPress={() => page(1)}
         />
       ) : null}

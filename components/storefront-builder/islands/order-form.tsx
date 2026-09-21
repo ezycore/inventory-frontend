@@ -41,9 +41,12 @@ import {
 export function OrderFormIsland({
   product: listed,
   coupon = false,
+  buttonLabel,
 }: {
   product: CatalogProduct;
   coupon?: boolean;
+  /** The merchant's own words for the submit; unset keeps the storefront's. */
+  buttonLabel?: string;
 }) {
   const { slug } = useStoreContext();
   const paused = useOrdersPaused();
@@ -130,7 +133,7 @@ export function OrderFormIsland({
               {coupon ? <CouponRow api={api} /> : null}
               <SummaryLines api={api} />
               <TermsBlock api={api} />
-              <PlaceOrderButton api={api} />
+              <PlaceOrderButton api={api} label={buttonLabel} />
             </div>
           )}
         </>

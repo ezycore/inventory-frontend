@@ -1,4 +1,6 @@
 // coding-standard: maintained
+import { ANCHOR_PATTERN } from "@/lib/storefront-builder/style-specs";
+
 /**
  * Build a storefront link relative to the active store's public base path.
  *
@@ -71,6 +73,17 @@ export function collectionHref(
 const CONTACT_LINK = /^(tel:|mailto:)/i;
 
 /**
+ * A jump to another section of the same page, by the name the merchant gave it
+ * on the Style tab. Kept exactly as typed: prefixing it with the store base
+ * would turn "scroll down to the order form" into a page load of the catalogue,
+ * which is what `storeLinkHref`'s fallback did to it before 2026-09-21.
+ *
+ * The pattern is the style box's own `ANCHOR_PATTERN`, so this accepts exactly
+ * what a merchant can name a section.
+ */
+const ANCHOR_LINK = new RegExp(ANCHOR_PATTERN.replace("^", "^#"));
+
+/**
  * A link a merchant typed into a hero slide or a builder section: like
  * `storeLinkHref`, except that a `tel:` or `mailto:` link is kept as typed.
  * `storeLinkHref` refuses every non-http scheme, which turned "call us" into a
@@ -82,5 +95,6 @@ export function merchantLinkHref(
   fallback = "/products",
 ): string {
   const raw = input?.trim();
-  return raw && CONTACT_LINK.test(raw) ? raw : storeLinkHref(base, input, fallback);
+  if (raw && (CONTACT_LINK.test(raw) || ANCHOR_LINK.test(raw))) return raw;
+  return storeLinkHref(base, input, fallback);
 }

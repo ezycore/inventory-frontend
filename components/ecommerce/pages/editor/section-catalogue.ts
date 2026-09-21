@@ -260,6 +260,25 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 /** Setting labels, by setting key. Shared across sections — the same key means the same thing. */
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
+  subheading: "Line under the heading",
+  tileRatio: "Tile shape",
+  sort: "Order",
+  verticalAlign: "Words up or down",
+  scrim: "Shade under the words",
+  screens: "Show on",
+  emptyHeading: "Heading when nothing is found",
+  emptyText: "Text when nothing is found",
+  expired: "When the clock runs out",
+  expiredText: "What it says then",
+  perView: "Cards in view",
+  openFirst: "Open the first one",
+  /* A different question from the Style tab's Text alignment, and it was asked
+     in the same words. A grid already spans the content column, so there is no
+     row left to move: this places each tile INSIDE its own column (`GRID_ALIGN`
+     in `collection-tiles.tsx`), while the heading above it follows Style → Text
+     alignment. Naming them apart is the fix; they are not duplicates. */
+  "collections-row.align": "Tile position",
+  "category-tiles.align": "Tile position",
   alt: "Picture description",
   answer: "Answer",
   arrows: "Show arrows",
@@ -280,11 +299,17 @@ const FIELD_LABELS: Record<string, string> = {
   description: "Description",
   flow: "Layout",
   focal: "Focus point",
+  dots: "Slide dots",
+  nav: "Slide controls",
+  interval: "Seconds per slide",
   frame: "Picture shape",
   "hero.frame": "Hero shape",
   galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
+  /* The hero is the whole band, not a picture inside one — "Picture height"
+     would be describing the wrong box. */
+  "hero.height": "Hero height (px)",
   hideDescription: "Hide the description",
   hideText: "Hide text",
   hideTextOnMobile: "Hide text on phones",
@@ -350,6 +375,8 @@ const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every 
 
 const HINTS: Record<string, string> = {
   hideRelated: "Add a Related products section to show them somewhere else on the page.",
+  "collections-row.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
+  "category-tiles.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
   alt: "Say what the picture shows. Screen readers read it aloud.",
   frame: "Default shows each picture whole. A shape crops it to fit.",
   /* NOT the bare `frame` hint above. A hero always has a box — it has never
@@ -362,11 +389,38 @@ const HINTS: Record<string, string> = {
   ctaHref: "A page on your store like /products, or a full web address.",
   categoryIds: "Leave empty to show every collection.",
   mobileImage: "Optional. Shown on phones instead of the main picture.",
+  subheading: "One line under the heading, for the sentence the heading cannot hold.",
+  tileRatio: "Empty keeps the square tile this row has always drawn.",
+  sort: "Empty keeps the order the source gives. A hand-picked row always keeps yours.",
+  scrim: "Empty keeps each alignment's own shade — a gradient under words at the bottom, a flat wash under centred ones.",
+  screens: "The bar has always been a phone thing. Computers too puts it on every screen — check it against your header and cart drawer first.",
+  emptyHeading: "Empty keeps your shop's own wording in the shopper's language.",
+  emptyText: "Empty keeps your shop's own wording in the shopper's language.",
+  "order-form.buttonLabel": "Empty keeps your shop's own “Place order” in the shopper's language.",
+  perView: "How many cards a shopper sees at once. Empty keeps the row's own measure.",
+  openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
+  flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
+  "testimonials.columns": "How many reviews sit side by side. On a phone this needs the row set to Wrap — a swipe row has no columns.",
   /* Section-keyed like its neighbours: only the hero has this field today, but a
      bare key is the collision `frame` already walked into — see `"hero.frame"`. */
   "hero.mobileFirst":
     "Default keeps each layout's own order. Text first pushes the picture down the phone's screen, often below the fold — use it where the picture is decoration rather than the product.",
   "hero.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  /* Section-keyed, like `"hero.frame"` above it and for the same reason: the
+     promo row's `height` means a card's height, this one means the whole hero's,
+     and the two layouts answer differently to a number. */
+  "hero.height":
+    "The hero's height in pixels. A height REPLACES Picture shape on the screen you set it for — set one or the other, not both. On a full-width hero it is a minimum, so the hero still grows if the words need more room.",
+  /* Section-keyed for the reason `"hero.frame"` gives: `image-text` and the hero
+     ask the same question of layouts that start from different defaults. */
+  "image-text.mobileFirst":
+    "Default leads the phone with the picture, as this section always has. The text first pushes the picture down the screen — use it where the words are what a shopper came for.",
+  "image-text.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  "image-text.split":
+    "How much of the desktop row the picture takes, 20 to 80 percent. The text takes the rest. Empty splits the row evenly. Phones stack, so this does nothing there.",
+  "image-text.imageFit":
+    "Default crops the picture to the shape. Fit shows the whole picture inside it, which is how the old home page's banner band drew it.",
+  "image-text.imageRatio": "The shape the picture is drawn at. A phone shape applies below 680px.",
   "hero.mobileCopy":
     "A full-width hero lays its words over the photograph, so a phone shows the headline alone. Everything adds the badge and the subtitle back, smaller. The headline is two lines on a phone either way.",
   cardImageFit: CARD_PHOTO_HINT,
@@ -388,6 +442,9 @@ const HINTS: Record<string, string> = {
   storeHeading: "Shown in the shopper's language when Heading is empty.",
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
+  nav: "What a shopper moves the slides with. Swipe works on a phone whichever you choose.",
+  interval: "How long each slide stays before the next one. Empty runs the usual 5 seconds.",
+  dots: "Where the little dots that count the slides sit. On the picture gives the hero back the strip of page the row underneath takes, and needs a picture on every slide.",
   space: "The room between the sections above and below.",
   storeBanner: "Shows the banner from Customize → Look when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
@@ -404,9 +461,32 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
     picture: "The picture",
     text: "The text",
   },
+  screens: {
+    phones: "Phones",
+    "phones-and-computers": "Phones and computers",
+  },
+  sort: {
+    newest: "Newest first",
+    "price-low": "Cheapest first",
+    "price-high": "Dearest first",
+  },
+  expired: {
+    hide: "Hide the section",
+    keepZero: "Keep it, showing zero",
+    message: "Show a message",
+  },
   mobileCopy: {
     full: "Everything",
     "title-only": "Headline only",
+  },
+  dots: {
+    under: "Under the hero",
+    over: "On the picture",
+  },
+  nav: {
+    dots: "Dots",
+    arrows: "Arrows",
+    both: "Both",
   },
   storeHeading: {
     featured: "“Featured products”",

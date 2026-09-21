@@ -2,6 +2,16 @@
 import type { CSSProperties } from "react";
 import { responsiveVars } from "./responsive";
 import { readImage, type Responsive } from "./settings";
+import {
+  ANCHOR_PATTERN,
+  MAX_OVERLAY,
+  SECTION_ALIGNS,
+  SECTION_RADII,
+  SECTION_TONES,
+  SECTION_WIDTHS,
+  SPACING_STEPS,
+  type SpacingStep,
+} from "./style-specs";
 
 /**
  * The common style box every builder section carries (plan §5.2
@@ -13,8 +23,10 @@ import { readImage, type Responsive } from "./settings";
  * backend has already refused invalid style on save.
  */
 
-export const SPACING_STEPS = ["none", "sm", "md", "lg", "xl"] as const;
-export type SpacingStep = (typeof SPACING_STEPS)[number];
+// The vocabulary lives in `style-specs.ts`, which the backend's validator is
+// generated from; re-exported here because the editor reaches the style box
+// through this module and there must not be a second copy to keep in step.
+export { SPACING_STEPS, type SpacingStep };
 
 /** Fluid, so one step reads proportionately on a phone and a desktop. */
 const SPACING: Record<SpacingStep, string> = {
@@ -25,15 +37,54 @@ const SPACING: Record<SpacingStep, string> = {
   xl: "clamp(56px, 9vw, 96px)",
 };
 
-export type SectionWidth = "content" | "wide" | "full";
-export type SectionTone = "auto" | "light" | "dark";
-type Align = "left" | "center";
+export type SectionWidth = (typeof SECTION_WIDTHS)[number];
+export type SectionTone = (typeof SECTION_TONES)[number];
+export type SectionRadius = (typeof SECTION_RADII)[number];
+type Align = (typeof SECTION_ALIGNS)[number];
+
+/** Corner rounding, in the same fluid spirit as the spacing steps. */
+const RADIUS: Record<SectionRadius, string> = {
+  none: "0px",
+  sm: "8px",
+  md: "14px",
+  lg: "24px",
+};
 
 export interface SectionFrame {
   /** Custom properties for the section element. */
   style: CSSProperties;
   width: SectionWidth;
   tone: SectionTone;
+  /** A hairline around the section's band, when the merchant asked for one. */
+  border: boolean;
+  /**
+   * A shade over a background PICTURE, in percent.
+   *
+   * ⚠ Reported separately from `--sfb-overlay` because **CSS cannot ask whether
+   * a custom property was set** — the trap the hero plan's R2 records. The
+   * `::before` that paints it has to be switched on by an attribute, so the
+   * element carries `data-overlay` as well as the value.
+   */
+  overlay?: number;
+  /**
+   * The section's own name on the page, for a link to jump to. Rendered as the
+   * element's `id`, so it is also what `#anchor` in a merchant's link finds.
+   */
+  anchor?: string;
+  /**
+   * The merchant chose a width on the Style tab, rather than leaving the
+   * section its own.
+   *
+   * ⚠ **Not the same question as `width`**, which answers "content" for both an
+   * unset box and an explicit Page column. Six sections carry a built-in column
+   * of their own — `rich-text` and `faq` at 780px, `selected-products` and
+   * `collections-row` at 980, `order-form` at 560, `video` at 880/420 — and
+   * until 2026-09-21 that column silently beat the Width control, the Hero's W1
+   * six times over. They now keep it only while this is false, which is the
+   * same inverted precedence `ownsWidth` uses and for the same reason: a section
+   * nobody has styled must not move.
+   */
+  styledWidth: boolean;
 }
 
 /**
@@ -77,8 +128,25 @@ export interface FrameDefaults {
   ownsWidth?: boolean;
 }
 
+/**
+ * A heading row is a flex row, and `text-align` cannot move a flex item — which
+ * is why the Style tab's alignment did nothing to eight sections' headings until
+ * 2026-09-21. The frame emits the matching `justify-content` beside `--sfb-align`
+ * and `.sfb-title-row` reads it; a classic page sets neither, so its rows keep
+ * `space-between`.
+ *
+ * Typed as a total `Record`, so widening `SECTION_ALIGNS` (Phase 2 adds `right`)
+ * fails to compile until this maps the new value too.
+ */
+const TITLE_JUSTIFY: Record<Align, string> = {
+  left: "flex-start",
+  center: "center",
+  right: "flex-end",
+};
+
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+const ANCHOR = new RegExp(ANCHOR_PATTERN);
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -86,17 +154,26 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 const oneOf = <T extends string>(values: readonly T[], value: unknown): T | undefined =>
   typeof value === "string" && (values as readonly string[]).includes(value) ? (value as T) : undefined;
 
-const readPadding = (value: unknown): { top: SpacingStep; bottom: SpacingStep } | undefined => {
+interface Padding {
+  top: SpacingStep;
+  bottom: SpacingStep;
+  /** Added after top and bottom were already saved on live pages, so optional. */
+  inline?: SpacingStep;
+}
+
+const readPadding = (value: unknown): Padding | undefined => {
   if (!isPlainObject(value)) return undefined;
   const top = oneOf(SPACING_STEPS, value.top);
   const bottom = oneOf(SPACING_STEPS, value.bottom);
-  return top && bottom ? { top, bottom } : undefined;
+  if (!top || !bottom) return undefined;
+  const inline = oneOf(SPACING_STEPS, value.inline);
+  return inline ? { top, bottom, inline } : { top, bottom };
 };
 
 const readAlign = (value: unknown): Responsive<Align> | undefined => {
   if (!isPlainObject(value)) return undefined;
-  const base = oneOf(["left", "center"] as const, value.base);
-  const mobile = oneOf(["left", "center"] as const, value.mobile);
+  const base = oneOf(SECTION_ALIGNS, value.base);
+  const mobile = oneOf(SECTION_ALIGNS, value.mobile);
   // A phone value with no desktop one stands on its own: the desktop keeps the
   // section's own alignment, which is what the merchant left it on.
   if (!base) return mobile ? { mobile } : undefined;
@@ -122,9 +199,23 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     vars["--sfb-pt"] = defaults.top;
     vars["--sfb-pb"] = defaults.bottom;
   }
+  // Side padding has no frame default to fall back to: a section that never
+  // asked for it keeps the inner column's own gutter, which is `--pad`.
+  if (base?.inline) vars["--sfb-pi"] = SPACING[base.inline];
   if (mobile) {
     vars["--sfb-pt-m"] = SPACING[mobile.top];
     vars["--sfb-pb-m"] = SPACING[mobile.bottom];
+    if (mobile.inline) vars["--sfb-pi-m"] = SPACING[mobile.inline];
+  }
+
+  const radius = oneOf(SECTION_RADII, style.radius);
+  if (radius) vars["--sfb-radius"] = RADIUS[radius];
+
+  const tone = oneOf(SECTION_TONES, style.textTone) ?? "auto";
+  // Read only on `custom`, and only when it is a whole colour — but kept in the
+  // stored box either way, so switching tone back and forth loses nothing.
+  if (tone === "custom" && typeof style.textColor === "string" && HEX_COLOR.test(style.textColor)) {
+    vars["--sfb-text"] = style.textColor;
   }
 
   const background = isPlainObject(style.background) ? style.background : {};
@@ -140,17 +231,41 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     vars["--sfb-bg"] = background.kind === "none" ? "transparent" : `var(--${defaults.band})`;
   }
 
+  // Percent of black over a background PICTURE. A colour background has nothing
+  // to shade, and painting one anyway would darken a colour the merchant chose.
+  if (
+    background.kind === "image" &&
+    typeof style.overlay === "number" &&
+    Number.isInteger(style.overlay) &&
+    style.overlay > 0 &&
+    style.overlay <= MAX_OVERLAY
+  ) {
+    vars["--sfb-overlay"] = `${style.overlay}%`;
+  }
+
+  const align = readAlign(style.align);
+
   return {
     style: {
       ...(vars as CSSProperties),
       // Omitted entirely for a section that aligns its own text — see `ownsAlign`.
-      ...(defaults?.ownsAlign ? {} : responsiveVars("sfb-align", readAlign(style.align))),
+      ...(defaults?.ownsAlign
+        ? {}
+        : {
+            ...responsiveVars("sfb-align", align),
+            ...responsiveVars("sfb-title-justify", align, (value) => TITLE_JUSTIFY[value]),
+          }),
     },
     // The frame first where it owns the width — see `ownsWidth`, and note this
     // is an inverted `??` rather than an omitted variable.
     width: defaults?.ownsWidth
       ? (defaults.width ?? "content")
-      : (oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content"),
-    tone: oneOf(["auto", "light", "dark"] as const, style.textTone) ?? "auto",
+      : (oneOf(SECTION_WIDTHS, style.width) ?? defaults?.width ?? "content"),
+    tone,
+    border: style.border === true,
+    overlay: vars["--sfb-overlay"] ? Number(style.overlay) : undefined,
+    anchor: typeof style.anchor === "string" && ANCHOR.test(style.anchor) ? style.anchor : undefined,
+    // A section that owns its width has no Width control to obey.
+    styledWidth: !defaults?.ownsWidth && oneOf(SECTION_WIDTHS, style.width) !== undefined,
   };
 }

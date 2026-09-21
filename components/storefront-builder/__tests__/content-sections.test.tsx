@@ -82,8 +82,35 @@ describe("benefits and how-to-order", () => {
       ]),
     ]);
     const grid = container.querySelector(".sfb-benefits") as HTMLElement;
-    expect(grid.style.getPropertyValue("--sfb-benefit-cols")).toBe("2");
+    // The variable carries the whole TRACK LIST since 2026-09-21, not the count:
+    // the stylesheet's `var(…, <the row's own layout>)` fallback is then the
+    // unset case, which needs no second selector to detect. See `grid-track.ts`.
+    expect(grid.style.getPropertyValue("--sfb-benefit-track")).toBe("repeat(2, minmax(0, 1fr))");
     expect([...container.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Pure cotton", "Fast colours"]);
+  });
+
+  it("gives a phone its own column count, which it could not have before", () => {
+    // ⚠ `columns` was written into a `min-width: 680px` block, so the one screen
+    // the merchant's choice could not reach was the phone — always one column.
+    const { container } = renderPage([
+      section("b1", "benefits", { columns: { base: 4, mobile: 2 } }, [
+        block("a", { title: "Pure cotton" }),
+        block("b", { title: "Fast colours" }),
+      ]),
+    ]);
+    const grid = container.querySelector(".sfb-benefits") as HTMLElement;
+    expect(grid.style.getPropertyValue("--sfb-benefit-track")).toBe("repeat(4, minmax(0, 1fr))");
+    expect(grid.style.getPropertyValue("--sfb-benefit-track-m")).toBe("repeat(2, minmax(0, 1fr))");
+  });
+
+  it("keeps the row's own layout when nobody has chosen a count", () => {
+    // ⚠ ABSENT, not a computed default: the stylesheet's fallback is what draws
+    // an untouched row, on 21 live stores.
+    const { container } = renderPage([
+      section("b1", "benefits", {}, [block("a", { title: "Pure cotton" }), block("b", { title: "Fast colours" })]),
+    ]);
+    const grid = container.querySelector(".sfb-benefits") as HTMLElement;
+    expect(grid.style.getPropertyValue("--sfb-benefit-track-m")).toBe("");
   });
 
   it("draws the steps as an ordered list", () => {

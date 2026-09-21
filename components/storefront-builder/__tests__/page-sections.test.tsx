@@ -29,6 +29,50 @@ const context = { base: "/shop", currency: "BDT" };
 const renderPage = (instances: PageSectionInstance[], data = {}) =>
   render(<PageSections sections={prepareSections(instances)} context={context} data={data} />);
 
+/**
+ * X2 — six sections carry a built-in column (`rich-text` and `faq` at 780px,
+ * `selected-products` and `collections-row` at 980, `order-form` at 560,
+ * `video` at 880/420) that until 2026-09-21 silently beat the Style tab's own
+ * Width control. They keep it only where the merchant chose no width, which the
+ * section element says with `data-styled-width` and the stylesheet acts on.
+ */
+describe("a section's own column against the Style tab's Width", () => {
+  const richText = (style?: unknown): PageSectionInstance => ({
+    id: "rt1",
+    type: "rich-text",
+    v: 1,
+    enabled: true,
+    settings: { body: JSON.stringify({ type: "doc", content: [{ type: "paragraph" }] }) },
+    ...(style ? { style } : {}),
+  });
+
+  it("keeps the section's own column while no width is chosen", () => {
+    const { container } = renderPage([richText()]);
+    const section = container.querySelector(".sfb-sec") as HTMLElement;
+    // ⚠ The ABSENCE is the assertion: no attribute means the stylesheet's
+    // `.sfb-own-column` cap still applies, which is today's rendering exactly.
+    expect(section.hasAttribute("data-styled-width")).toBe(false);
+    const column = container.querySelector(".sfb-own-column") as HTMLElement;
+    expect(column.getAttribute("style")).toContain("--sfb-own-column: 780px");
+  });
+
+  it("stands aside once the merchant picks one — including an explicit Page column", () => {
+    for (const width of ["content", "wide", "full"]) {
+      const { container } = renderPage([richText({ width })]);
+      const section = container.querySelector(".sfb-sec") as HTMLElement;
+      expect(section.hasAttribute("data-styled-width")).toBe(true);
+      // The section still declares its own number; the stylesheet is what
+      // stops applying it, so nothing has to be recomputed per section.
+      expect(container.querySelector(".sfb-own-column")).not.toBeNull();
+    }
+  });
+
+  it("is not fooled by a stored width the frame refuses", () => {
+    const { container } = renderPage([richText({ width: "enormous" })]);
+    expect((container.querySelector(".sfb-sec") as HTMLElement).hasAttribute("data-styled-width")).toBe(false);
+  });
+});
+
 describe("prepareSections", () => {
   it("skips instances that cannot render, without breaking the rest", () => {
     const prepared = prepareSections([

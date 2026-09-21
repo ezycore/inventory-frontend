@@ -1,5 +1,11 @@
 // coding-standard: maintained
 import { SPACING_STEPS, type SpacingStep } from "@/lib/storefront-builder/section-style";
+import {
+  ANCHOR_PATTERN,
+  MAX_OVERLAY,
+  SECTION_ALIGNS,
+  SECTION_RADII,
+} from "@/lib/storefront-builder/style-specs";
 import type { EditorDevice, EditorSection } from "./section-instances";
 
 /**
@@ -13,15 +19,17 @@ import type { EditorDevice, EditorSection } from "./section-instances";
  */
 
 export type SectionStyleBox = Record<string, unknown>;
-export type StyleEdge = "top" | "bottom";
+export type StyleEdge = "top" | "bottom" | "inline";
 export type BackgroundKind = "none" | "color" | "image";
 
 export interface StylePadding {
   top: SpacingStep;
   bottom: SpacingStep;
+  /** The side gutter. Added after top and bottom, so a stored pair may lack it. */
+  inline?: SpacingStep;
 }
 
-type Align = "left" | "center";
+type Align = (typeof SECTION_ALIGNS)[number];
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -31,11 +39,13 @@ const isStep = (value: unknown): value is SpacingStep =>
 
 const readPadding = (value: unknown): StylePadding | undefined =>
   isPlainObject(value) && isStep(value.top) && isStep(value.bottom)
-    ? { top: value.top, bottom: value.bottom }
+    ? { top: value.top, bottom: value.bottom, ...(isStep(value.inline) ? { inline: value.inline } : {}) }
     : undefined;
 
-const readAlign = (value: unknown): Align | undefined =>
-  value === "left" || value === "center" ? value : undefined;
+const isOneOf = <T extends string>(values: readonly T[], value: unknown): T | undefined =>
+  typeof value === "string" && (values as readonly string[]).includes(value) ? (value as T) : undefined;
+
+const readAlign = (value: unknown): Align | undefined => isOneOf(SECTION_ALIGNS, value);
 
 export const styleOf = (section: EditorSection): SectionStyleBox =>
   isPlainObject(section.style) ? section.style : {};
@@ -82,14 +92,34 @@ export function withPadding(
   const base = readPadding(padding.base);
   const mobile = readPadding(padding.mobile);
 
+  // ⚠ `inline` is NOT part of that pair. Top and bottom are required together,
+  // so a first choice on either fills both; the side gutter is optional and
+  // stands alone, and clearing it must leave the pair behind rather than drop
+  // the whole padding.
+  const seeded = (from: StylePadding | undefined): StylePadding =>
+    from ?? { top: step ?? "none", bottom: step ?? "none" };
+  const setEdge = (from: StylePadding | undefined): StylePadding | undefined => {
+    if (edge !== "inline") return { ...seeded(from), [edge]: step as SpacingStep };
+    if (step === undefined) {
+      if (!from) return undefined;
+      const { inline: _dropped, ...pair } = from;
+      return pair;
+    }
+    return from ? { ...from, inline: step } : { top: "none", bottom: "none", inline: step };
+  };
+
   if (device === "mobile") {
-    if (step === undefined) return base ? { ...style, padding: { base } } : without(style, "padding");
-    const phone = { ...(mobile ?? base ?? { top: step, bottom: step }), [edge]: step };
+    if (step === undefined && edge !== "inline") {
+      return base ? { ...style, padding: { base } } : without(style, "padding");
+    }
+    const phone = setEdge(mobile ?? base);
+    if (!phone) return base ? { ...style, padding: { base } } : without(style, "padding");
     return { ...style, padding: base ? { base, mobile: phone } : { mobile: phone } };
   }
-  if (step === undefined) return without(style, "padding");
-  const next = { ...(base ?? { top: step, bottom: step }), [edge]: step };
-  return { ...style, padding: mobile && device === "desktop" ? { base: next, mobile } : { base: next } };
+  if (step === undefined && edge !== "inline") return without(style, "padding");
+  const next = setEdge(base);
+  if (!next) return mobile ? { ...style, padding: { mobile } } : without(style, "padding");
+  return { ...style, padding: mobile ? { base: next, mobile } : { base: next } };
 }
 
 /* ------------------------------ alignment ------------------------------ */
@@ -119,20 +149,84 @@ export function withAlign(style: SectionStyleBox, value: Align | undefined, devi
 /* ---------------------------- width and tone ---------------------------- */
 
 export type StyleWidth = "content" | "wide" | "full";
-export type StyleTone = "light" | "dark";
+export type StyleTone = "light" | "dark" | "custom";
+export type StyleRadius = (typeof SECTION_RADII)[number];
 
 export const widthOf = (style: SectionStyleBox): StyleWidth | undefined =>
   style.width === "content" || style.width === "wide" || style.width === "full" ? style.width : undefined;
 
 /** `auto` is the default and reads as unset, so the control shows "Default" for it. */
 export const toneOf = (style: SectionStyleBox): StyleTone | undefined =>
-  style.textTone === "light" || style.textTone === "dark" ? style.textTone : undefined;
+  style.textTone === "light" || style.textTone === "dark" || style.textTone === "custom"
+    ? style.textTone
+    : undefined;
+
+export const radiusOf = (style: SectionStyleBox): StyleRadius | undefined =>
+  isOneOf(SECTION_RADII, style.radius);
+
+export const borderOf = (style: SectionStyleBox): boolean => style.border === true;
+
+export const overlayOf = (style: SectionStyleBox): number | undefined =>
+  typeof style.overlay === "number" && Number.isInteger(style.overlay) && style.overlay >= 0 && style.overlay <= MAX_OVERLAY
+    ? style.overlay
+    : undefined;
+
+export const textColorOf = (style: SectionStyleBox): string | undefined =>
+  typeof style.textColor === "string" && HEX_COLOR.test(style.textColor) ? style.textColor : undefined;
+
+/**
+ * The link names every OTHER section on the page already carries — what the
+ * anchor field lists as suggestions, and what it warns about. Two sections
+ * sharing a name would give the page two elements with one `id`, where a link
+ * finds whichever comes first.
+ */
+export const siblingAnchors = (sections: readonly EditorSection[], exceptId: string): string[] => [
+  ...new Set(
+    sections
+      .filter((section) => section.id !== exceptId)
+      .map((section) => anchorOf(styleOf(section)))
+      .filter((anchor): anchor is string => anchor !== undefined),
+  ),
+];
+
+export const anchorOf = (style: SectionStyleBox): string | undefined =>
+  typeof style.anchor === "string" && new RegExp(ANCHOR_PATTERN).test(style.anchor) ? style.anchor : undefined;
 
 export const withWidth = (style: SectionStyleBox, width: StyleWidth | undefined): SectionStyleBox =>
   width === undefined ? without(style, "width") : { ...style, width };
 
+/**
+ * ⚠ Clearing the tone leaves `textColor` alone. Hidden is not erased: a merchant
+ * who tries `light` and comes back to `custom` finds the colour they picked.
+ * `sectionFrame` reads it only on `custom`, so the stored value draws nothing
+ * meanwhile.
+ */
 export const withTone = (style: SectionStyleBox, tone: StyleTone | undefined): SectionStyleBox =>
   tone === undefined ? without(style, "textTone") : { ...style, textTone: tone };
+
+export const withRadius = (style: SectionStyleBox, radius: StyleRadius | undefined): SectionStyleBox =>
+  radius === undefined ? without(style, "radius") : { ...style, radius };
+
+export const withBorder = (style: SectionStyleBox, border: boolean): SectionStyleBox =>
+  border ? { ...style, border: true } : without(style, "border");
+
+export const withOverlay = (style: SectionStyleBox, overlay: number | undefined): SectionStyleBox =>
+  overlay === undefined ? without(style, "overlay") : { ...style, overlay };
+
+/**
+ * Keep what is typed until it is a whole `#RRGGBB`, the same way the background
+ * colour does — the backend refuses a partial hex, so storing one as it is typed
+ * would make the section unsaveable halfway through the word.
+ */
+export const withTextColor = (style: SectionStyleBox, color: string | undefined): SectionStyleBox =>
+  color && HEX_COLOR.test(color) ? { ...style, textColor: color } : without(style, "textColor");
+
+export const withAnchor = (style: SectionStyleBox, anchor: string | undefined): SectionStyleBox => {
+  const trimmed = anchor?.trim();
+  return trimmed && new RegExp(ANCHOR_PATTERN).test(trimmed)
+    ? { ...style, anchor: trimmed }
+    : without(style, "anchor");
+};
 
 /* ------------------------------ background ------------------------------ */
 

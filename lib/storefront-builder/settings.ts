@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { SectionFieldSpec, SectionPageContext } from "./field-specs";
+import { ANCHOR_PATTERN } from "./style-specs";
 
 /**
  * Reading a section instance's settings against its spec, for the renderer.
@@ -89,11 +90,23 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** Same allowlist as the backend: http(s), `tel:`, `mailto:` and store-relative paths. */
+/** Same pattern the style box accepts as a section's `anchor`, with the `#`. */
+const ANCHOR_LINK = new RegExp(ANCHOR_PATTERN.replace("^", "^#"));
+
 export const isAllowedSectionUrl = (value: string): boolean => {
   if (value.length > MAX_URL_LENGTH || value !== value.trim()) return false;
   if (/^https?:\/\/[^\s]+$/i.test(value)) return true;
   if (/^tel:\+?[0-9 ()-]{3,20}$/i.test(value)) return true;
   if (/^mailto:[^\s@]+@[^\s@]+$/i.test(value)) return true;
+  // A jump to another section of the SAME page, by the name its Style tab gives
+  // it. ⚠ **This has to match the backend's `isAllowedSectionUrl` exactly.** The
+  // backend saved `#order-here` happily while this reader still refused it, so
+  // the section's `buttonHref` read as invalid, the required setting was missing
+  // and `prepareSections` dropped the WHOLE SECTION from the page — silently,
+  // because that is what it does with an instance it cannot draw. Found in the
+  // browser on 2026-09-21; no test caught it, because both sides were tested
+  // against themselves rather than against each other.
+  if (ANCHOR_LINK.test(value)) return true;
   return /^\/(?!\/)[^\s]*$/.test(value);
 };
 
@@ -162,7 +175,21 @@ const readScalar = (spec: SectionFieldSpec, value: unknown): unknown => {
 const readField = (spec: SectionFieldSpec, value: unknown): unknown => {
   if (value === undefined || value === null) return undefined;
   if (!spec.responsive) return readScalar(spec, value);
-  if (!isPlainObject(value)) return undefined;
+  // A value stored BEFORE the field became responsive is the desktop's answer.
+  //
+  // ⚠ This is what makes responsive-izing a setting a safe change. Without it,
+  // adding `responsive: true` to a field that live pages have already answered
+  // refuses every one of those answers — the page renders the section's default
+  // and the backend rejects the merchant's next save — and neither a `v` bump
+  // nor leaving the field alone is a way out.
+  //
+  // Only a NON-object value is read this way. A responsive `focal` or `image`
+  // stores an object as its scalar, and a bare one cannot be told apart from a
+  // malformed `{ base, mobile }`; those keep the strict rule.
+  if (!isPlainObject(value)) {
+    const base = readScalar(spec, value);
+    return base === undefined ? undefined : { base };
+  }
   const base = readScalar(spec, value.base);
   // A bad phone override falls back to the desktop value rather than dropping
   // both; a phone value with no desktop one is kept, because the desktop then

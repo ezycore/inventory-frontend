@@ -21,6 +21,7 @@ import { previewAddress } from "./preview-address";
 import { PageSettingsDialog } from "./page-settings-dialog";
 import { RevisionsDialog } from "./revisions-dialog";
 import { SectionInspector } from "./section-inspector";
+import { siblingAnchors } from "./section-style-edits";
 import { pageContextOf } from "./section-instances";
 import { SectionTree } from "./section-tree";
 import { usePageAutosave } from "./use-page-autosave";
@@ -116,6 +117,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
               onAddBlock={() => editor.addBlock(selected.id)}
               onClose={() => editor.select(null)}
               context={pageContextOf(page)}
+              siblingAnchors={siblingAnchors(editor.sections, selected.id)}
             />
           ) : (
             <SectionTree

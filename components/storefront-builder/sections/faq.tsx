@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { JsonLd } from "@/components/storefront/json-ld";
 import {
@@ -7,6 +8,7 @@ import {
   proseFaqGroup,
   proseFaqQuestionRow,
 } from "@/components/storefront/storefront-prose-styles";
+import { SectionLede } from "@/components/storefront-builder/section-lede";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["faq"]["settings"];
@@ -25,15 +27,11 @@ const PROSE_MAX_WIDTH = 780;
  */
 export function FaqSection({ settings, blocks }: SectionViewProps<Spec, BlockSpec>) {
   return (
-    <div style={{ maxWidth: PROSE_MAX_WIDTH, marginInline: "auto" }}>
-      {settings.heading ? (
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 14px", letterSpacing: "-0.02em" }}>
-          {settings.heading}
-        </h2>
-      ) : null}
+    <div className="sfb-own-column" style={{ "--sfb-own-column": `${PROSE_MAX_WIDTH}px` } as CSSProperties}>
+      <SectionLede heading={settings.heading} subheading={settings.subheading} gap={14} />
       <div style={{ ...proseFaqGroup, textAlign: "left" }}>
         {blocks.map((block) => (
-          <details key={block.id} style={proseFaqCard}>
+          <details key={block.id} style={proseFaqCard} open={settings.openFirst === true && block === blocks[0]}>
             <summary style={{ ...proseFaqQuestionRow, cursor: "pointer" }}>{block.settings.question}</summary>
             <p style={{ ...proseFaqAnswerLine(true), whiteSpace: "pre-line" }}>{block.settings.answer}</p>
           </details>

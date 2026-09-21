@@ -22,6 +22,7 @@ export function StickyOrderBarSection({ settings, data, context }: SectionViewPr
         product,
         currency: context.currency,
         buttonLabel: settings.buttonLabel,
+        screens: settings.screens,
         onProductPage: !settings.productId,
       }}
     />
