@@ -155,7 +155,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 4 (§3) | The row sections: subheading, columns per device, flow | 🟡 Built 2026-09-21; `arrows` ⛔ deferred (step 5), deploy + pixel outstanding |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | 🟡 Built 2026-09-21; deploy + pixel outstanding |
 | 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | 🟡 Built 2026-09-21; `countdown.expired` has no renderer yet; deploy + pixel outstanding |
-| 7 (§3) | Tests, docs, register review, browser QA | 🟡 Checks + docs + register done 2026-09-21; **browser QA and the pixel comparison are the owner's to run** |
+| 7 (§3) | Tests, docs, register review, browser QA | 🟡 Checks, docs, register and a **live Chrome pass** done 2026-09-21; the **pixel comparison** and X2's Width check are outstanding |
 | Deferred (§5) | S1 heading scale · S2 per-section brand colour · S3 lightbox · S4 nested columns · S5 tablet | ⬜ Not planned |
 
 **What the whole board is waiting on, in order:** the backend deploy (Phase 0 step 6 — one deploy
@@ -583,7 +583,7 @@ what the ✅ on phases 1–6 waits on.
        was *discarded*. Both passed for as long as they existed. Where a step here says "unset renders
        as today", the test asserts the property or element is **absent**, not that something looks
        right.
-3. [ ] Browser QA, **phone first**, one matrix row per phase; take the Hero plan's discipline of walking
+3. [~] Browser QA, **phone first**, one matrix row per phase; take the Hero plan's discipline of walking
        it rather than spot-checking — its Phase 5 found two defects that every automated check passed.
        **And run the pixel harness against real stores, which is the only gate that has ever caught
        this class of defect.** On 2026-09-21 a hero regression reached both live storefronts and
@@ -598,6 +598,37 @@ what the ✅ on phases 1–6 waits on.
          and 5 all make that claim.
        - Wait out the storefront's server cache first (Phase 3 step 3b), and re-run a failure before
          acting on it.
+
+       **Done 2026-09-21 — a live pass in Chrome against demo org `new3` on the dev cluster**
+       (`cluster0.fiuyj`, checked before anything was saved). What it proved, end to end — editor →
+       save → backend validation → published storefront:
+       - The Style tab draws **Sides, Corners, Outline, Link name** and the widened **Text alignment**
+         (with `Right`) and **Text colour** (with "A colour of my own"); the colour box appears only on
+         that choice, and the overlay only with a picture background.
+       - Setting align `right`, radius `md`, border, `textTone: custom` + `#C2410C` and
+         `anchor: shop-tiles` on a real section **saved through the backend and published**, and the
+         storefront rendered `id="shop-tiles"`, `border-radius: 14px`, `1px solid`,
+         `text-align: right`, `--sfb-title-justify: flex-end`, `color: rgb(194,65,12)` and
+         `scroll-margin-top: 151px`. `/shop#shop-tiles` jumped to the section.
+       - **The absence claim held on a real page**: before the change, every section carried no
+         `data-border`, no `data-overlay`, no `id`, no `data-styled-width`, and both `.sfb-title-row`s
+         computed `justify-content: space-between` — byte-identical to before this work.
+       - Every new stylesheet rule is present in the shipped CSS: `.sfb-own-column`,
+         `[data-styled-width]`, `.sfb-title-row`, `[data-overlay]`, `.sfb-video-box`, `[data-flow=`,
+         `data-mobile-first`, `data-image-fit`, `.sfb-banner-copy[data-valign…]` and the order bar's.
+       - The phone preview drew the rounded band, two-up tiles and no horizontal overflow.
+       - The demo store was **restored** to its five sections with no style keys, and verified so.
+
+       ⚠ **Not covered by that pass, and still owed:** the Width precedence (X2) was never watched to
+       move on screen — the home page carries none of the six sections that have a built-in column, and
+       a scratch Rich text section could not be scrolled to inside the preview frame. The pixel
+       comparison on UriiBaba, LunoraBaby and Noor Collection is also still outstanding, and Phase 5's
+       banner split is the change that most needs it.
+
+       Two things seen and dismissed, so nobody re-investigates them: a hydration warning on both the
+       admin and the storefront whose whole diff is Grammarly's `data-gr-*` attributes on `<body>`, and
+       a save failure that was the backend crashing on `EADDRINUSE` after nodemon restarted twice —
+       neither is this work's.
 4. [x] Docs in the same change: `SKILL.md` (the storefront reference), `inventory-backend/docs/features/
        ecommerce.md`, `ecommerce-qa.md`, `EZYCORE_MASTER_REFERENCE.md` §V.4–V.5, and the help guide.
 5. [x] **Read the design-requests register against what shipped**, as Phase 6 of the master plan did, and
