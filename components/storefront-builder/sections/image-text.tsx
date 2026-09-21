@@ -58,7 +58,7 @@ export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) 
       />
       <div>
         {settings.badge ? (
-          <span style={{ fontSize: 11.5, color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+          <span style={{ fontSize: 11.5, color: "var(--sfb-muted, var(--muted))", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
             {settings.badge}
           </span>
         ) : null}
@@ -75,7 +75,7 @@ export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) 
           {settings.heading}
         </h2>
         {settings.text ? (
-          <p style={{ fontSize: 15.5, color: "var(--muted)", lineHeight: 1.65, margin: "16px 0 0", maxWidth: 460, whiteSpace: "pre-line" }}>
+          <p style={{ fontSize: 15.5, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.65, margin: "16px 0 0", maxWidth: 460, whiteSpace: "pre-line" }}>
             {settings.text}
           </p>
         ) : null}

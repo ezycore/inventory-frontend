@@ -80,7 +80,7 @@ export function DealStripView({
             <div>
               <h2 id={headingId}>{heading}</h2>
               {subheading ? (
-                <p style={{ fontSize: 14.5, color: "var(--muted)", lineHeight: 1.6, margin: "6px 0 0", whiteSpace: "pre-line" }}>
+                <p style={{ fontSize: 14.5, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6, margin: "6px 0 0", whiteSpace: "pre-line" }}>
                   {subheading}
                 </p>
               ) : null}

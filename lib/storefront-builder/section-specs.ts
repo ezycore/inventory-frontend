@@ -813,14 +813,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
-      ...SUBHEADING,
       endsAt: { type: "date" },
-      /**
-       * What the section does once the clock reaches zero — the one state it is
-       * guaranteed to enter, and it had no answer for it.
-       */
-      expired: { type: "enum", values: ["hide", "keepZero", "message"], optional: true },
-      expiredText: { type: "string", max: 160, optional: true },
       campaignId: { type: "ref", to: "campaign", optional: true },
     },
   },

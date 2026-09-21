@@ -37,7 +37,7 @@ export function OrderFormSection({ settings, data, context }: SectionViewProps<S
         </h2>
       ) : null}
       {settings.text ? (
-        <p style={{ margin: "0 0 16px", color: "var(--muted)", lineHeight: 1.6 }}>{settings.text}</p>
+        <p style={{ margin: "0 0 16px", color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6 }}>{settings.text}</p>
       ) : null}
       <Island
         name="order-form"

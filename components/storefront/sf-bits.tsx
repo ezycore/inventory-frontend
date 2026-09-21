@@ -327,7 +327,7 @@ export function SectionTitle({
   return (
     <div style={{ marginBottom: 16 }}>
       {row}
-      <p style={{ fontSize: 14.5, color: "var(--muted)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
+      <p style={{ fontSize: 14.5, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
         {subheading}
       </p>
     </div>

@@ -23,7 +23,7 @@ export function OfferPricingSection({ settings, data, context }: SectionViewProp
     <div>
       <SectionLede heading={settings.heading} subheading={settings.subheading} gap={8} />
       {settings.text ? (
-        <p style={{ margin: "0 0 16px", color: "var(--muted)", lineHeight: 1.6 }}>{settings.text}</p>
+        <p style={{ margin: "0 0 16px", color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6 }}>{settings.text}</p>
       ) : null}
       <Island name="offer-price" props={{ product, currency: context.currency }} />
     </div>

@@ -42,7 +42,7 @@ export function HowToOrderSection({ settings, blocks }: SectionViewProps<Spec, B
             <div style={{ minWidth: 0, paddingTop: 6 }}>
               <div style={{ fontSize: 15.5, fontWeight: 700 }}>{step.title}</div>
               {step.text ? (
-                <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--muted)", whiteSpace: "pre-line" }}>
+                <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--sfb-muted, var(--muted))", whiteSpace: "pre-line" }}>
                   {step.text}
                 </p>
               ) : null}

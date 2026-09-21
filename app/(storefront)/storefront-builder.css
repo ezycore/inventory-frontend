@@ -113,6 +113,33 @@
   color: var(--sfb-text, inherit);
 }
 
+/*
+ * Secondary text follows the tone too (X13).
+ *
+ * The section's own heading and body inherit `color`, but every line of
+ * supporting copy — a subheading, a badge, a step's description — is drawn as
+ * `var(--muted)`, a grey chosen for the theme's page background. On a section
+ * set light for a dark photograph that grey stayed put and became unreadable.
+ *
+ * ⚠ **A token of its own, not an override of `--muted`.** Re-pointing `--muted`
+ * inside the section would also repaint the cards that sit on `var(--card)` and
+ * carry the theme's own colours on purpose — the benefit cards, the review
+ * cards, the sticky bar. Only text drawn directly on the section's band reads
+ * `--sfb-muted`, and it falls back to `var(--muted)` everywhere else, so a
+ * section with no tone and every classic page are unchanged.
+ */
+.sfb-sec[data-tone="light"] {
+  --sfb-muted: color-mix(in srgb, #ffffff 72%, transparent);
+}
+
+.sfb-sec[data-tone="dark"] {
+  --sfb-muted: color-mix(in srgb, #0f172a 68%, transparent);
+}
+
+.sfb-sec[data-tone="custom"] {
+  --sfb-muted: color-mix(in srgb, var(--sfb-text, currentColor) 72%, transparent);
+}
+
 .sfb-inner {
   max-width: var(--maxw);
   margin-inline: auto;
@@ -313,6 +340,26 @@
    hid the heading and the line behind the box's edge. `overflow: clip` (not
    `hidden`) is what lets it grow — a scroll container gives up its content-based
    minimum height, a clipping box keeps it. */
+/*
+ * The product rail's track, when the merchant asked for arrows.
+ *
+ * `CategoryStrip` owns the scroll container and the arrows' edge measurement;
+ * this restores the grid that makes a rail a rail — an explicit track width, so
+ * the cards overflow rather than dividing the viewport. Written with BOTH
+ * classes so it outweighs `.sf-cat-strip-track` alone whatever order the two
+ * stylesheets load in; a single class would be a coin toss.
+ *
+ * A rail without arrows never reaches this rule: `ProductRailTrack` keeps its
+ * own inline track there, which is what the classic home still draws.
+ */
+.sf-cat-strip-track.sf-rail-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(150px, calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols)));
+  scroll-snap-type: x mandatory;
+  padding: 2px 0 10px;
+}
+
 /* The video's shape. Its own class so the phone can answer differently — an
    inline `aspect-ratio` cannot carry a media query. */
 .sfb-video-box {

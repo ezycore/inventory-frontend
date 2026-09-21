@@ -200,7 +200,7 @@ wrong per section.
 | **X8** | **No subheading on any row section.** Thirteen sections offer a heading and nothing under it. | `product-grid`, `product-carousel`, `selected-products`, `gallery`, `testimonials`, `benefits`, `faq`, `campaign-offers`, `shop-by-tag`, `collections-row`, `category-tiles`, `related-products`, `promises-band` |
 | **X9** | **No anchor on a section**, so a hero button cannot scroll to the order form further down the page — the core move of a landing page. The sticky bar reaches it through a private attribute no merchant can type. | `order-form-anchor.ts`; `isAllowedSectionUrl` (backend) refuses `#order` outright |
 | **X10** | **No custom spacing or width value** — five steps, three widths, nothing between. | `SPACING_STEPS`, `WIDTHS` |
-| **X13** | **Secondary text does not follow the section's tone**, and never did. Ten call sites draw `color: var(--muted)` on text sitting directly on the section's band, so a section set to `light` for a dark photograph keeps grey secondary text meant for a white page. Widening the tone to a custom colour makes it more visible but does not cause it. ⚠ Not fixed in Phase 2 and deliberately not half-fixed: overriding `--muted` inside the section would also repaint the cards that sit on `var(--card)` and carry their own colour on purpose (`testimonials`, `benefits`, `sticky-order-bar`). Found 2026-09-21 while implementing X6 (§7). | `image-text`, `call-to-action`, `how-to-order`, `order-form`, `offer-pricing` and `offer-price` — `color: "var(--muted)"` |
+| **X13** ✅ | **FIXED 2026-09-21.** Secondary text now follows the section's tone through its own `--sfb-muted` token. **Secondary text does not follow the section's tone**, and never did. Ten call sites draw `color: var(--muted)` on text sitting directly on the section's band, so a section set to `light` for a dark photograph keeps grey secondary text meant for a white page. Widening the tone to a custom colour makes it more visible but does not cause it. ⚠ Not fixed in Phase 2 and deliberately not half-fixed: overriding `--muted` inside the section would also repaint the cards that sit on `var(--card)` and carry their own colour on purpose (`testimonials`, `benefits`, `sticky-order-bar`). Found 2026-09-21 while implementing X6 (§7). | `image-text`, `call-to-action`, `how-to-order`, `order-form`, `offer-pricing` and `offer-price` — `color: "var(--muted)"` |
 | **X11** | **`call-to-action` offers two alignment controls for one question.** `SECTIONS_ALIGNING_THEMSELVES` names `hero` and nothing else, so the CTA shows its own Alignment on the Content tab *and* the Style tab's Text alignment. `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)`, so the precedence is already right — the section's own wins where given, the Style tab's applies where not — but both being offered means a merchant moving the Style tab's on a CTA that answers for itself sees nothing move. ⚠ Corrected 2026-09-21 from "three sections": see the note below. | `section-style-fields.tsx` → `SECTIONS_ALIGNING_THEMSELVES` (`hero` alone); `call-to-action.tsx` → `responsiveVars("sfb-cta-align", settings.align)` |
 | **X12** | **`collections-row` and `category-tiles` ask a different question in the same word.** Their `align` is **not** a duplicate of the Style tab's: a grid already spans the content column, so there is no row left to move and `GRID_ALIGN` places each tile **inside its own column**, while the Style tab's alignment moves the heading above it. Both were labelled "Alignment". Naming them apart is the whole fix; hiding either would take away a control that works. | `collection-tiles.tsx` → `GRID_ALIGN` and the comment above it; `category-tiles.tsx` → `settings.align ?? "left"` |
 
@@ -490,19 +490,26 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
 4. [x] **`testimonials`**: `columns` responsive, and `flow: "wrap" | "scroll"` responsive — the phone's
        swipe row becomes the default rather than the law. Reuse `category-promo-cards`'s `flow`
        vocabulary; do not mint a second word for the same idea.
-5. [~] **`product-carousel`**: `perView` responsive — done, and it reaches the island through `--cols`,
-       which is what the rail's track already divides itself by.
-       ⛔ **`arrows` is NOT built, and the reason is worth reading before someone tries.** The arrows
-       that `category-promo-cards` has belong to `CategoryStrip`, which owns the scroll CONTAINER — and
-       the rail's scroll container is `ProductRailTrack`, with its own `grid-auto-flow: column` track
-       and snap points, shared with the **classic** home's product rail. Giving the carousel arrows
-       means moving that container into `CategoryStrip`, which changes a component two storefronts draw,
-       and that is a refactor with its own pixel gate rather than a boolean. It needs a step of its own.
+5. [x] **`product-carousel`**: `perView` responsive, reaching the island through `--cols` (what the
+       rail's track already divides itself by), and **`arrows`, built 2026-09-21**.
+       The arrows belong to `CategoryStrip`, which owns the scroll container, and the rail's container
+       is `ProductRailTrack` — shared with the CLASSIC home. So `ProductRailTrack` keeps **two
+       branches**: without arrows it renders exactly the bare track it always did, and only a carousel
+       whose merchant asked for arrows hands its track to `CategoryStrip`. The grid that makes a rail a
+       rail moves into `.sf-cat-strip-track.sf-rail-track` — both classes, so it outweighs the strip's
+       own rule whatever order the stylesheets load in.
+       ⚠ `CategoryStrip` grew an `arrowLabels` prop: its labels were "previous/next categories", which
+       is simply wrong read aloud on a row of products. Unset keeps the category wording every existing
+       caller had.
 6. [x] **`related-products`**: `columns` responsive and `...CARD_PHOTO`, so it matches every other
        product row.
 7. [x] **`campaign-offers`**: `limit` (1–12). **`shop-by-tag`**: `flow`. **`faq`**: `openFirst`.
-       **`countdown`** and **`offer-pricing`**: the subheading of step 1, which the X8 list did not
-       carry because §2.2 had no row for either until the 2026-09-21 re-read (§7).
+       **`offer-pricing`**: the subheading of step 1, which the X8 list did not carry because §2.2 had
+       no row for it until the 2026-09-21 re-read (§7).
+       ⚠ **`countdown` gets nothing.** It was given a subheading here and `expired`/`expiredText` in
+       Phase 6; all three were **removed on 2026-09-21** because the section has no renderer and is
+       `addable: false`, so every one of them was a setting no merchant could reach and nothing could
+       draw. Give it settings when it gets a renderer, not before.
 8. [x] Labels and hints for every new field in `section-catalogue.ts` — a field with no entry falls back
        to its key, which reads like a bug to a merchant.
 
@@ -558,11 +565,11 @@ Phase 0 in production.**
        nothing. The one merchant-writable thing on the page, and today it has none.
 3. [x] **`order-form.buttonLabel`** — every other buy control in the builder lets the merchant write the
        button.
-4. [x] **`countdown` answers for zero.** `expired: "hide" | "keepZero" | "message"` (with the message
-       a merchant-written string), because reaching zero is the one state the section is guaranteed to
-       enter and today it has no answer for it. Unset keeps whatever the renderer draws now — read the
-       renderer first and write down which it is, so "unset renders as today" is a checked claim and
-       not an assumption.
+4. [ ] ⛔ **`countdown` answers for zero — DROPPED 2026-09-21, and not by accident.** `expired` and
+       `expiredText` were built, then removed: the section draws nothing and is `addable: false`, so the
+       settings were stored, validated and unreachable. A control a merchant cannot open is the same
+       defect as a control that does nothing, which is what this whole plan is about. **Do this when
+       `countdown` gets a renderer** (it is waiting on Bangla words for its units, master plan §14.1).
 5. [x] Re-read §2.2's "out of scope" rows and confirm nothing has moved into range.
 
 ### Phase 7 — tests, docs, register, browser QA
@@ -703,6 +710,33 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — the four items the sweep left open, closed.** With a real desktop viewport this time:
+  the browser window could not be resized all session (zoomed and maximised, `resize_window` a no-op at
+  606 CSS px), so the desktop was reached by rendering the storefront **into a same-origin iframe sized
+  1200×900**. An iframe establishes its own viewport, so media queries inside it really are the desktop
+  branch — not re-declared rules, which is how the earlier desktop numbers had to be taken.
+  - **`product-carousel.arrows` is built.** Two branches in `ProductRailTrack`, because the classic home
+    draws the same rail: no arrows renders the bare track it always did, arrows hands the track to
+    `CategoryStrip`. Confirmed at 1200px — one rail carries `.sf-rail-track` and one arrow (the "next"
+    one; "previous" is correctly hidden at the start edge), the other carousel has neither, and the
+    arrowed rail still overflows (1932px of cards in a 1144px track) rather than squeezing them.
+  - **`countdown`'s settings are gone**, for the reason in Phase 6 step 4.
+  - **X13 is fixed with a token of its own, not an override of `--muted`.** Re-pointing `--muted` inside
+    a section would have repainted the cards that sit on `var(--card)` and carry the theme's colours on
+    purpose. Measured at 1200px: a light-toned section's supporting line is `rgba(255,255,255,0.72)`, a
+    custom-coloured one is the merchant's `#B91C1C` at 72%, and a section with no tone is still the
+    theme's `rgb(107,98,121)` exactly.
+  - **The sticky bar was seen on a real desktop viewport**: `display: flex`, fixed, 1185×68, pinned to
+    the bottom, full width.
+  - ⚠ **The reported sticky-bar / contact-button overlap did not reproduce.** At 1200px the contact
+    launcher sits at y 662–718 and the bar starts at 732; at 606px, 565–621 against 635. The launcher
+    already clears the bar because `useBuybarHeight` publishes the bar's measured height as
+    `--sf-buybar-h` (68px, confirmed live) and `.sf-contact` anchors to
+    `--sf-bottom-nav-h + --sf-ownerbar-h + --sf-buybar-h + 14px`. **The builder's bar calls that hook
+    too**, which is what makes it work. The one arrangement that would still collide is two bottom bars
+    active at once — the classic product bar and a builder `sticky-order-bar` — since both publish to
+    the same variable and the last writer wins; a builder product page does not draw the classic bar, so
+    it cannot happen today. Worth a guard if the classic renderer ever returns.
 - **2026-09-21 — the full browser sweep found two real bugs, both of them mine, and neither of them
   visible to any test.** A fixture page carrying all 18 landing-page section types with every new
   control was published to demo org `new3` and asserted against the rendered DOM.

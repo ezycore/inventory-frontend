@@ -31,7 +31,14 @@ export function ProductCarouselSection({ settings, context, data }: SectionViewP
       <div style={responsiveVars("cols", settings.perView) as CSSProperties}>
         <Island
           name="product-rail"
-          props={{ products, currency: context.currency, ...sectionCardMedia(settings) }}
+          props={{
+            products,
+            currency: context.currency,
+            // ⚠ Must reach the ISLAND, not stop here — `perView` rides `--cols`
+            // above, but `arrows` is behaviour and has to be a prop (§0.4).
+            arrows: settings.arrows === true,
+            ...sectionCardMedia(settings),
+          }}
         />
       </div>
     </>
