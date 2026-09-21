@@ -320,8 +320,18 @@ different defaults and a responsive value would inherit the desktop's and move e
 mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
 split:       { type: "number", min: 20, max: 80, int: true, responsive: true, optional: true },
 mobileImage: { type: "image", optional: true },
+imageFit:    { type: "enum", values: ["fit", "crop"], optional: true },
 // and imageRatio gains `responsive: true`
 ```
+
+⚠ **`imageFit` is the one the migration is waiting on**, and it is first in this phase rather than last.
+`.sfb-split-media` is hardcoded `object-fit: cover`, so `image-text` is the only picture section with no
+fit control while the hero, the banner and the product cards all have one. It stopped being a
+theoretical gap on 2026-09-21: the classic editorial split draws its photograph **fitted** — the whole
+picture inside the 4:5 box, blurred bands filling the rest (`bannerPhoto`'s `canvas` default) — so
+Noor Collection's converted band is the only thing on its home page that does not match what it
+replaced (master plan §17). The conversion cannot set the field until it exists **and both repos are
+deployed**, which is why the store is migrated with the difference recorded rather than held back.
 
 1. [ ] `mobileFirst` — which of the picture and the copy leads the phone's single column. Same label and
        hint as the Hero's, so the two sections ask the question in one voice.
@@ -330,6 +340,10 @@ mobileImage: { type: "image", optional: true },
        `category-promo-cards`'s own `split` range (20–80) rather than inventing a second one.
 3. [ ] `imageRatio` responsive, and `mobileImage` — `SfImage` already takes a phone picture
        (`image-banner.tsx:45`), so this is plumbing, not new machinery.
+3b. [ ] **`imageFit`**, in the store's own two words (`fit` / `crop`), unset keeping today's `cover`.
+       Then teach `storefront-home-conversion.ts` to write `imageFit: "fit"` on a converted editorial
+       split and **re-migrate Noor Collection's home** with a pixel comparison — the band is the one
+       page in that store's set that is not identical to the classic home it replaced.
 4. [ ] Visibility rules: `mobileFirst` only with a picture; `split` only past the breakpoint's control
        set — register both, and add the test that a hidden field is optional.
 5. [ ] Browser QA **phone first**: photo-first and text-first, 20 / 50 / 80 splits, a portrait phone
@@ -452,7 +466,7 @@ Answered by the product owner on 2026-09-21 unless noted. Do not re-open one wit
 | 0 | The style box is generated into the backend, `checkStyle` reads it, the backend's private `SPACING_STEPS` is gone, both repos' `verify` is green, and the backend is shipped. |
 | 1 | Text alignment visibly moves all nine headings; each of the six sections honours a set Width and is byte-identical with Width unset; the four classic `SectionTitle` callers are byte-identical; eight `how-to-order` steps wrap. |
 | 2 | Every one of the six style keys changes the page, is refused when invalid, keeps its value when hidden, and leaves a section that sets none rendering byte-identically to today. A background picture with an overlay and custom text is readable on a phone. |
-| 3 | `image-text` can lead a phone with either the picture or the copy, split 20–80 on each device, and take its own phone picture; unset renders byte-identically. |
+| 3 | `image-text` can lead a phone with either the picture or the copy, split 20–80 on each device, take its own phone picture, and fit or crop it; unset renders byte-identically. **Noor Collection's home re-migrated and pixel-identical to the classic home it replaced.** |
 | 4 | Thirteen sections take a subheading; `benefits` shows two columns on a phone; eight `how-to-order` steps sit in a chosen number of columns; the carousel's per-view and arrows reach the island and work. |
 | 5 | The gallery shapes per device; `image-banner`'s three answers are three controls and both old combinations are pixel-identical; collection tiles take a shape. |
 | 6 | The sticky bar can stand on a desktop without breaking the header or the drawer; an empty search shows the merchant's words. |
@@ -469,6 +483,12 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   box and `storefront-builder.css`. Two findings were not in any plan: the Style tab's Text alignment is
   dead on eight sections because `SectionTitle` is a flex row (X1), and six sections hardcode a column
   width that beats the Style tab's Width (X2) — the Hero's W1, six more times. Both are Phase 1.
+- **2026-09-21 — the migration found the first of these gaps before the plan did.** Moving the classic
+  editorial split onto `image-text` (master plan §17) left one visible difference on a production
+  store: the classic band **fits** its photograph inside the 4:5 box and `image-text` **crops** it,
+  because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
+  re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
+  about and expensive to discover on a live page.
 - **2026-09-21 — the style box has no gate.** `checkStyle` hand-names its allowed keys and carries its
   own `SPACING_STEPS`; the section manifest's `--check` does not cover it. Phase 0 exists because of
   this, and it is why nothing merchant-visible ships first.
