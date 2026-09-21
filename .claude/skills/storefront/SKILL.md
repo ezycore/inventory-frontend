@@ -125,14 +125,19 @@ workspace gate either; a closed or inactive store 404s through the backend's `re
 
 **Storefront Builder section specs (since 2026-09-14).** Builder sections are declared once, as plain
 data, in `lib/storefront-builder/section-specs.ts` (field types in `lib/storefront-builder/field-specs.ts`).
-The backend validates saved pages against a **generated** copy,
-`inventory-backend/src/constants/storefront-section-manifest.ts`:
+The **style box** every section shares is declared beside them in
+`lib/storefront-builder/style-specs.ts` (since 2026-09-21). The backend validates saved pages against a
+**generated** copy of all three, `inventory-backend/src/constants/storefront-section-manifest.ts`:
 
-- After changing either file run `pnpm gen:section-manifest` and commit the backend file in the
+- After changing any of them run `pnpm gen:section-manifest` and commit the backend file in the
   backend repo. `pnpm verify` runs `verify:section-manifest`, which fails while they differ (and skips
   when the backend repo is not checked out beside this one).
-- Both files must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
-  and `field-specs.ts` imports nothing, because its body is copied verbatim into the backend.
+- All three must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
+  while `field-specs.ts` and `style-specs.ts` import nothing at all, because their bodies are copied
+  verbatim into the backend.
+- `STYLE_BOX_SPEC` is the style box's whole vocabulary — `Object.keys` of it is the allowlist the
+  backend's `checkStyle` enforces, and `SPACING_STEPS` lives there too. Until 2026-09-21 the backend
+  hand-wrote both and nothing compared them; do not reintroduce a second copy on either side.
 - Bump a section's `v` for any change that would make an already-saved instance invalid.
 - A **new field type** (as `focal` was) needs a case in the backend's `checkValue`
   (`inventory-backend/src/utils/storefront-section-validation.ts`) and in `readScalar`
@@ -175,7 +180,8 @@ The backend validates saved pages against a **generated** copy,
   server view cannot know the shopper's language, and the island reads it from `useStorefrontUI`.
 - Settings are read with `lib/storefront-builder/settings.ts` (the backend's rules; an invalid
   required field → the section is skipped). Responsive values become `--x` / `--x-m` custom
-  properties (`responsive.ts`); the style box is `section-style.ts`; the CSS is
+  properties (`responsive.ts`); the style box is `section-style.ts` over the shared `style-specs.ts`
+  vocabulary; the CSS is
   `app/(storefront)/storefront-builder.css`, loaded by the storefront root layout. **Never import a
   CSS file from a component** — vitest cannot load the project's PostCSS config and the whole test
   file fails to import.

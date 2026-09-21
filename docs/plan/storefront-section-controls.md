@@ -1,7 +1,7 @@
 # Storefront Builder — every SECTION gets the shape controls the Hero just got
 
 **Written:** 2026-09-21 · **Repos:** `inventory-frontend` **and `inventory-backend`** (the spec and the
-style box both grow — see §0.5) · **Branch:** `feat/storefront-builder`
+style box both grow — see §0.5) · **Branch:** see §0.6 — **not** `feat/storefront-builder`, which merged
 
 **Progress: see §0.8. That board is the source of truth for what is done — keep it current.**
 
@@ -15,7 +15,7 @@ You do not need any prior context on this work. Read §0 in full before opening 
 
 | Document | Why |
 |---|---|
-| `inventory-frontend/docs/plan/storefront-hero-shape-controls.md` | The plan this one generalizes. The Hero got `frame`, `imageSide`, `mobileFirst` and `mobileCopy`; this plan takes the same argument to the other 32 sections. Its §0.5 deploy rule and §5 ("why not one responsive `imageSide`") are load-bearing here. |
+| `inventory-frontend/docs/plan/storefront-hero-shape-controls.md` | The plan this one generalizes. The Hero got `frame`, `imageSide`, `mobileFirst` and `mobileCopy`; this plan takes the same argument to the other 33 sections. Its §0.5 deploy rule and §5 ("why not one responsive `imageSide`") are load-bearing here. |
 | `inventory-frontend/docs/plan/storefront-builder-conditional-controls.md` | The visibility mechanism (`field-visibility.ts`) every new conditional control in this plan registers with, and its §1 principle: **a control that has no effect in the current configuration is not shown.** Its §5 rollout table is already applied — this plan does not redo it. |
 | `inventory-backend/docs/plan/storefront-builder.md` | The master plan every code comment cites ("plan §5.2 `SectionStyle`", "§8 widget library", "§17"). §7 is the responsive system this plan obeys; §15 holds the owner decisions that constrain it. |
 | `inventory-frontend/docs/plan/storefront-design-requests.md` | The register. Phase 6's exit criterion was the register read against what shipped; §7 of this plan does the same. |
@@ -29,6 +29,7 @@ You do not need any prior context on this work. Read §0 in full before opening 
 | `lib/storefront-builder/section-specs.ts` | **The vocabulary.** Every section type and the exact shape of its settings. Plain data, `import type` only (§0.5). |
 | `lib/storefront-builder/section-style.ts` | The common **style box** — background, padding, width, align, tone — resolved to CSS custom properties. |
 | `lib/storefront-builder/field-specs.ts` | The field vocabulary, shipped **verbatim** into the backend's generated manifest. Import-free. |
+| `lib/storefront-builder/style-specs.ts` | **The style box's vocabulary** — `STYLE_BOX_SPEC` and `SPACING_STEPS`. Shipped verbatim into the same manifest, and the allowlist the backend's `checkStyle` enforces. Import-free. Added by Phase 0. |
 | `lib/storefront-builder/responsive.ts`, `aspect-ratios.ts` | `responsiveVars` (the `--x` / `--x-m` pair) and the one enum→ratio map. |
 | `components/storefront-builder/sections/` | One renderer per section type. |
 | `components/storefront-builder/page-sections.tsx` | The common frame: `.sfb-sec`, `data-width`, `data-tone`, `data-hide`, `data-float`. |
@@ -77,30 +78,56 @@ sections in this plan that draw through islands: `product-grid`, `product-carous
 `pnpm verify` runs `gen:section-manifest --check`, which fails the build while the two drift. It is the
 gate, not a reminder.
 
-**(b) The style box is NOT generated — and nothing gates it.** `checkStyle`
-(`storefront-section-validation.ts:275-330`) hand-names `["background", "padding", "width", "align",
-"textTone"]` and carries its **own private copy of `SPACING_STEPS`** at line 47. The frontend's copy is
-in `section-style.ts`. Two hand-kept lists, no check, and this plan's Phase 2 adds six keys to them.
+**(b) The style box is generated too — since Phase 0.** It was not: `checkStyle` hand-named
+`["background", "padding", "width", "align", "textTone"]` and carried its **own private copy of
+`SPACING_STEPS`**, with the frontend's copy in `section-style.ts` and nothing comparing the two, because
+the manifest's `--check` covered sections and never reached the style box.
 
-**Phase 0 fixes that before anything else is added**, by generating the style box the same way sections
-are generated. Until Phase 0 ships, treat every style key as a two-repo hand edit with a backend-first
-deploy and no safety net.
+`lib/storefront-builder/style-specs.ts` now owns that vocabulary, ships into the same generated manifest
+and is what `checkStyle` reads, so **a style key follows exactly the same four steps as a section
+setting** — add it to `style-specs.ts`, regenerate, commit the backend file, ship the backend first.
+`pnpm verify` fails while the two drift.
 
 **Version bumps.** Every field this plan adds is `optional`, so a section saved before it stays valid and
 `v` stays where it is. Widening an enum (align gains `right`) is also safe. **Do not bump `v`** — the
 backend refuses any other version, so an unnecessary bump turns every saved page carrying that section
 into a failed save.
 
+**(c) How a bad deploy comes back — read this before you ship one.** The 2026-09-21 release broke both
+live storefronts' home pages and the rollback had two traps of its own (master plan §17, "The day it
+went to production"). Both apply to every deploy this plan asks for:
+
+- `docker compose up -d <service>` **does nothing** when the image line is a mutable tag such as
+  `:production`, because compose only recreates a container when the *spec* changes — and the broken
+  build has already taken that tag. A rollback has to name the old image explicitly.
+- The old image is **gone from the box**: the deploy's own `docker image prune -f` removes it the moment
+  the new `:production` replaces it. It has to be re-pulled from GHCR **by commit SHA**. Every build is
+  SHA-tagged, which is the only reason that rollback was possible.
+
+The compose file was then **pinned to a SHA**, and the pin caught a second incident — the merge of the
+fix triggered a deploy while `:production` still resolved to the broken image. **Check whether the pin
+is still in place before asking for a deploy**, because a pinned compose will ignore the new build.
+
 ### 0.6 Branch
 
-`feat/storefront-builder` in both repos. The Hero work is on it (`cbd6cedd` and before). Per the owner's
-standing rule, **do not push and do not open a PR** unless asked for that specific push.
+**`feat/storefront-builder` is merged and is no longer where work goes** — frontend PR #454, backend
+PR #384. Branch from the current development line instead. As of 2026-09-21 the frontend sits on
+`fix/hero-image-only-slides` (merged into `development` at `d3d2fdcd`) and the backend on
+`fix/migrate-carry-trust-badges`; check both before you branch rather than trusting this line.
+
+The Hero work this plan generalizes is at `cbd6cedd` and before, which is also the commit §2 was audited
+against — see §7 for what has landed since. Per the owner's standing rule, **do not push and do not open
+a PR** unless asked for that specific push.
 
 ### 0.7 What is blocked
 
-**Phases 1 is unblocked and changes no spec field** — it can go at any time.
+**Phase 1 is unblocked and changes no spec field** — it can go at any time, provided X11 is answered
+with `ownsAlign` rather than by removing a field (Phase 1 step 3).
 **Phases 2–6 need Phase 0 in production**, because each adds keys the deployed backend would refuse.
-**No phase is blocked on a decision**: D1–D7 in §4 are all answered.
+**No phase is blocked on a decision**: D1–D7 in §4 are all answered, and the 2026-09-21 re-read (§7)
+opened none.
+⚠ **Nothing here is blocked on a migration any more.** All 21 production stores are on the builder, so
+every phase ships onto live merchants' pages rather than ahead of them.
 
 ### 0.8 Recording progress — read this before you write any code
 
@@ -120,9 +147,9 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 
 | Phase | What | Status |
 |---|---|---|
-| Audit (§2) | 33 sections read against their renderers, the style box and the CSS | ✅ Done 2026-09-21 |
-| 0 (§3) | One source for the style box; backend generated and shipped | ⬜ Not started |
-| 1 (§3) | Controls that exist and do nothing — six hardcoded columns, one dead alignment | ⬜ Not started |
+| Audit (§2) | 34 sections read against their renderers, the style box and the CSS | ✅ Done 2026-09-21 · re-read against `d3d2fdcd` 2026-09-21 (§7) |
+| 0 (§3) | One source for the style box; backend generated and shipped | 🟡 Code in, both repos green — **awaiting the owner's backend deploy** (step 6) |
+| 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, three doubled ones | ⬜ Not started |
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | ⬜ Not started |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | ⬜ Not started |
 | 4 (§3) | The row sections: subheading, columns per device, flow | ⬜ Not started |
@@ -136,14 +163,16 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 ## 1. The problem in one paragraph
 
 The Hero can now be shaped: three layouts, a per-device frame, which side the picture takes, which of
-the picture and the copy leads the phone. **No other section can.** Thirty-two section types accept the
+the picture and the copy leads the phone. **No other section can.** Thirty-three section types accept the
 merchant's words and nothing else — the columns, the card, the crop, the gutter, the corner and the
 colour are all in `storefront-builder.css` or in a renderer's inline style. Worse than absent: six
 sections hardcode a column width that **silently beats the Style tab's own Width control**, and the
 Style tab's **Text alignment does nothing at all** on the eight sections that draw their heading through
-`SectionTitle`. A merchant who moves a control and sees no change learns that the preview lies — which
-is the cost the conditional-controls plan was written to stop paying, and it is being paid on the Style
-tab now.
+`SectionTitle`. Three more sections carry **their own** alignment control beside the Style tab's, so the
+merchant gets two controls for one question with no way to tell which won — the Hero's W1 again, on
+`call-to-action`, `collections-row` and `category-tiles`. A merchant who moves a control and sees no
+change, or watches the wrong thing move, learns that the preview lies — which is the cost the
+conditional-controls plan was written to stop paying, and it is being paid on the Style tab now.
 
 ## 2. Audit — what a merchant cannot control today
 
@@ -154,16 +183,17 @@ wrong per section.
 
 | # | What the merchant cannot control | Where it is nailed down |
 |---|---|---|
-| **X1** | **Style → Text alignment does nothing for eight sections' headings.** `SectionTitle` is `display:flex; justify-content:space-between`, so `text-align: center` on `.sfb-sec` cannot move a flex item. | `sf-bits.tsx:279-295` (the `justifyContent: "space-between"` at `:291`); used by `product-grid`, `product-carousel`, `gallery`, `promises-band`, `category-tiles`, `collections-row`, `shop-by-tag`, `category-promo-cards` — and `selected-products` repeats the same flex row inline |
+| **X1** | **Style → Text alignment does nothing for eight sections' headings.** `SectionTitle` is `display:flex; justify-content:space-between`, so `text-align: center` on `.sfb-sec` cannot move a flex item. | `sf-bits.tsx` → `SectionTitle`, the `justifyContent: "space-between"` on its wrapper (cite the symbol, not the line — §7 records the refs drifting); used by `product-grid`, `product-carousel`, `gallery`, `promises-band`, `category-tiles`, `collections-row`, `shop-by-tag`, `category-promo-cards` — and `selected-products` repeats the same flex row inline |
 | **X2** | **Six sections hardcode a column width that beats Style → Width.** The same two-controls-one-question defect as the Hero's W1, on six sections at once. | `rich-text.tsx:10` (780), `faq.tsx:15` (780), `selected-products.tsx:30` (980), `collections-row.tsx:36` (980), `order-form.tsx:25` (560), `video.tsx:25` (880/420) |
 | **X3** | **No side padding.** The style box is top/bottom only, so a section cannot be inset. | `section-style.ts` `readPadding` |
 | **X4** | **No corners, no border.** Store-wide Corners exist; a section cannot round or outline its own band. | `sectionFrame` emits background, padding and align only |
-| **X5** | **A background picture has no overlay.** `background-size: cover; background-position: center` fixed, no shade. Dark photo + dark text is unreadable and the only escape is Text tone. | `storefront-builder.css:12-17` |
-| **X6** | **Text colour is two hardcoded hexes** (`#ffffff`, `#0f172a`) while the background beside it takes any hex. | `storefront-builder.css:19-26` |
+| **X5** | **A background picture has no overlay.** `background-size: cover; background-position: center` fixed, no shade. Dark photo + dark text is unreadable and the only escape is Text tone. | `storefront-builder.css`, the `.sfb-sec` rule |
+| **X6** | **Text colour is two hardcoded hexes** (`#ffffff`, `#0f172a`) while the background beside it takes any hex. | `storefront-builder.css`, the `.sfb-sec[data-tone=…]` rules |
 | **X7** | **No right alignment** in the style box — though `collections-row` and `category-tiles` both offer `right` in their own settings. | `section-style-fields.tsx` `ALIGNS` |
 | **X8** | **No subheading on any row section.** Thirteen sections offer a heading and nothing under it. | `product-grid`, `product-carousel`, `selected-products`, `gallery`, `testimonials`, `benefits`, `faq`, `campaign-offers`, `shop-by-tag`, `collections-row`, `category-tiles`, `related-products`, `promises-band` |
 | **X9** | **No anchor on a section**, so a hero button cannot scroll to the order form further down the page — the core move of a landing page. The sticky bar reaches it through a private attribute no merchant can type. | `order-form-anchor.ts`; `isAllowedSectionUrl` (backend) refuses `#order` outright |
 | **X10** | **No custom spacing or width value** — five steps, three widths, nothing between. | `SPACING_STEPS`, `WIDTHS` |
+| **X11** | **Three sections carry their own alignment control *and* the Style tab's.** `SECTIONS_ALIGNING_THEMSELVES` names `hero` and nothing else, so `call-to-action` (its own responsive `align`, drawn as `--sfb-cta-align`), `collections-row` and `category-tiles` (their own `align`, which already offers `right`) each show two controls answering one question, with no way to tell which won — the Hero's W1, three more times. ⚠ Phase 2's X7 makes it worse before it makes it better: widening the style box to `right` leaves `call-to-action`'s own control offering left and centre only. | `section-style-fields.tsx` → `SECTIONS_ALIGNING_THEMSELVES` (`hero` alone); `call-to-action.tsx` → `responsiveVars("sfb-cta-align", settings.align)`; `category-tiles.tsx` → `settings.align ?? "left"` |
 
 **Already right, do not "fix" these:** per-section device visibility (`visibility.desktop/mobile` →
 `data-hide`), the `enabled` switch, `sectionFrame`'s "Section's own" default on every style control, the
@@ -180,6 +210,7 @@ Grouped by the phase that answers it. `—` means the section is correct as it s
 | **category-promo-cards** | — (responsive `shape`/`side`/`split`/`hideText`/`height`/`flow`/`perRow` + ratio, radius, arrows: the benchmark) | — |
 | **spacer** | — (responsive height and a line) | — |
 | **image-text** | **The phone always leads with the photograph**, no control — the Hero's M6, unfixed. `imageSide` applies past the breakpoint only; `imageRatio` is not responsive; the split is a fixed `1fr 1fr`; there is no phone picture. | 3 |
+| **call-to-action** | **Its own responsive `align` sits beside the Style tab's** (X11), and it is the only one of the two that moves the button — `--sfb-cta-align` against `--sfb-align`. Nothing else: no button style, no second button. | 1 (X11) |
 | **benefits** | **A phone is always one column** — `columns` is written into a `min-width: 680px` block, so the control the merchant sets is the only screen it cannot reach. | 4 |
 | **how-to-order** | **No column control, and the desktop cannot wrap**: `grid-auto-flow: column` gives eight steps eight columns. | 1 (wrap), 4 (control) |
 | **testimonials** | No columns (desktop is a fixed `auto-fill minmax(260px, 1fr)`), no choice about the phone's 85 %-wide swipe row. | 4 |
@@ -188,13 +219,16 @@ Grouped by the phase that answers it. `—` means the section is correct as it s
 | **related-products** | Heading and limit only — no columns, and no card photo shape, which every other product row has. | 4 |
 | **campaign-offers** | Heading only — no limit. | 4 |
 | **shop-by-tag** | Heading and tags only — the chips cannot wrap or scroll by choice. | 4 |
+| **countdown** | Heading, `endsAt` and an optional campaign — **and no answer for what the section does once the clock reaches zero**, which is the one state it is guaranteed to reach. No size and no unit labels either. | 4 (subheading), 6 (expired behaviour) |
+| **offer-pricing** | Heading, text and the product. No layout at all, though it draws through an island (§0.4) and sits on a landing page's conversion path. | 4 |
+| **promises-band** | Heading, up to six blocks and the store's own promises. Named in X1 and X8 and reached by both; listed here so the audit has no silent row. | 1 (X1), 4 (X8) |
 | **selected-products** | Locked to 980 px (X2); capped at six by design. | 1 |
 | **faq** | Locked to 780 px (X2); no "open the first one". | 1, 4 |
 | **rich-text** | Locked to 780 px (X2) whatever Width says. | 1 |
 | **gallery** | `frame` is **not** responsive, though `image-banner`'s is and the Hero's is. | 5 |
 | **image-banner** | **`align` decides three things at once** — left means bottom-anchored under a gradient, centre means middle-anchored under a flat 35 % wash. A merchant cannot ask for left copy in the middle of the picture, and cannot touch the scrim. | 5 |
 | **video** | Locked to 880 / 420 px (X2); `ratio` is not responsive. | 1, 5 |
-| **collections-row**, **category-tiles** | Good column, alignment and label controls; **no tile shape or height**, which is the size question the design register's row 3 declined and then answered by moving the merchant to another section. | 5 |
+| **collections-row**, **category-tiles** | Good column and label controls; their **own `align` duplicates the Style tab's** (X11) and already offers `right`, which the style box does not; **no tile shape or height**, which is the size question the design register's row 3 declined and then answered by moving the merchant to another section. | 5 |
 | **sticky-order-bar** | **Phones only, by `!important`.** A desktop merchant cannot have it at all. | 6 |
 | **order-form** | Locked to 560 px (X2); no label on its own submit button. | 1, 6 |
 | **search-results** | **No settings at all** — including no words for an empty result, which is the one thing a merchant would write. | 6 |
@@ -210,23 +244,26 @@ the sections one family at a time.**
 
 ### Phase 0 — one source for the style box
 
-**Status:** ⬜ Not started · **Blocks:** phases 2–6 reaching production.
+**Status:** 🟡 Steps 1–5 done 2026-09-21 on `feat/storefront-section-controls` (both repos); step 6 is
+the owner's deploy and is what phases 2–6 wait on. · **Blocks:** phases 2–6 reaching production.
 
 The style-box vocabulary is hand-copied into two repos with no gate (§0.5b). Phase 2 adds six keys to
 it. Generate it first, or the gate that catches section drift will keep missing style drift.
 
-1. [ ] New `lib/storefront-builder/style-specs.ts`, under `field-specs.ts`'s rules — **no imports of any
+1. [x] New `lib/storefront-builder/style-specs.ts`, under `field-specs.ts`'s rules — **no imports of any
        kind, only erasable TypeScript** — exporting `STYLE_BOX_SPEC`: the allowed keys, the spacing
        steps, the width and tone values, and which are responsive. Move `SPACING_STEPS` here and have
        `section-style.ts` import it, so the frontend has one copy too.
-2. [ ] `scripts/gen-section-manifest.mjs` emits `STYLE_BOX_SPEC` into the backend manifest beside
+2. [x] `scripts/gen-section-manifest.mjs` emits `STYLE_BOX_SPEC` into the backend manifest beside
        `SECTION_MANIFEST`. Same literal writer, same `--check` behaviour.
-3. [ ] `checkStyle` reads the emitted spec instead of its hand-written allowlist; delete the backend's
+3. [x] `checkStyle` reads the emitted spec instead of its hand-written allowlist; delete the backend's
        private `SPACING_STEPS` (line 47).
-4. [ ] A backend test that a style key absent from the spec is refused, and one that every key in the
+4. [x] A backend test that a style key absent from the spec is refused, and one that every key in the
        spec is accepted — so the two can never drift silently again.
-5. [ ] `pnpm gen:section-manifest`, commit the backend file, `pnpm verify` green in both repos.
-6. [ ] **Ship the backend.** (Owner's deploy.)
+5. [x] `pnpm gen:section-manifest`, commit the backend file, `pnpm verify` green in both repos.
+6. [ ] **Ship the backend.** (Owner's deploy.) Before asking for it, read §0.5(c): confirm whether the
+       compose file is still pinned to a SHA, and write down the SHA of the image being replaced — a
+       rollback cannot find it afterwards, because the deploy prunes it.
 
 **Nothing merchant-visible changes in this phase.** That is the point: it is the scaffolding the next
 five stand on.
@@ -234,8 +271,15 @@ five stand on.
 ### Phase 1 — the controls that already exist and do nothing
 
 **Status:** ⬜ Not started · **Changes no spec field** — can ship before Phase 0 reaches production.
+⚠ That is only true if X11 is answered the `ownsAlign` way; see step 3.
 
-Both items here are the Hero's W1 shape: a merchant moves a control and the page does not move.
+Every item here is the Hero's W1 shape: a merchant moves a control and the page does not move, or the
+wrong thing moves.
+
+⚠ **This phase now lands on 21 live storefronts, not one.** Every production store was migrated onto
+the builder on 2026-09-21 (master plan §17, "Every production store is on the builder"), so "renders
+exactly as today" is a claim about real merchants' home pages. Prove it with the pixel harness, not by
+reading the diff — see Phase 7 step 3.
 
 1. [ ] **X1 — `SectionTitle` respects the section's alignment.** Give its wrapper
        `justify-content: var(--sfb-title-justify, space-between)` and the builder frame a
@@ -253,11 +297,36 @@ Both items here are the Hero's W1 shape: a merchant moves a control and the page
        ⚠ Do **not** solve this by hiding the Width control: these sections have a legitimate answer for
        each of the three widths. Hiding is only correct where "no effect" is intended and permanent
        (conditional-controls §1, rule 2).
-3. [ ] **`how-to-order` wraps.** Replace `grid-auto-flow: column` with
+       ⚠ **Count the live sections that already carry a width before you flip the precedence.** The claim
+       "a section nobody has styled keeps its exact column" is safe for the *migration* — the converter
+       writes `style: { width: "full" }` on `category-promo-cards` alone
+       (`storefront-home-conversion.ts`, the `rowConfig?.fullWidth` branch) and never touches these six
+       — but 21 stores have been live and editable since the cutover. Query production for sections of
+       those six types with `style.width` set; each hit is a page that moves the moment this ships, and
+       it needs a pixel comparison of its own.
+3. [ ] **X11 — three sections stop offering two alignments.** `SECTIONS_ALIGNING_THEMSELVES`
+       (`section-style-fields.tsx`) names `hero` and nothing else. Add `call-to-action`,
+       `collections-row` and `category-tiles`, **and give each one's frame `ownsAlign`** — the pair is
+       what the hero comment already warns about: "a type added here without it leaves an invisible
+       alignment in force". The section's own control stays; the Style tab's goes.
+       ⚠ **Do not answer this by deleting the per-section `align` field instead.** Removing a key from
+       the manifest makes the deployed backend refuse it, so every saved page carrying that section
+       would fail its next save — the same hazard §0.5 records for a `v` bump. The `ownsAlign` route
+       touches no spec field, which is what keeps this phase shippable before Phase 0.
+       ⚠ `call-to-action`'s own control offers **left and centre only** while `collections-row` and
+       `category-tiles` offer `right`. Widen it here, so Phase 2's X7 does not leave one section unable
+       to say what its neighbours can.
+4. [ ] **`how-to-order` wraps.** Replace `grid-auto-flow: column` with
        `repeat(auto-fit, minmax(220px, 1fr))` so eight steps make two readable rows instead of eight
        slivers. The control itself is Phase 4; this is the defect underneath it.
-4. [ ] Tests: alignment reaches each of the nine headings; each of the six sections honours a set width
-       and keeps its own when unset; the classic callers are unchanged.
+5. [ ] Tests: alignment reaches each of the nine headings; each of the six sections honours a set width
+       and keeps its own when unset; the three X11 sections show one alignment control, and the stored
+       value of the one that went away no longer renders.
+       ⚠ **Assert the classic callers emit no `--sfb-title-justify` — the ABSENCE, not the appearance.**
+       The 2026-09-21 hero incident had a test for exactly its data shape which passed throughout,
+       because it asserted what was rendered and never that the empty element was gone (master plan
+       §17). A test written from the code's behaviour rather than the merchant's intent defends the
+       defect; that happened twice in one day.
 
 ### Phase 2 — the style box grows
 
@@ -283,6 +352,12 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
        `--sfb-pi` / `--sfb-pi-m` on `.sfb-inner`. ⚠ It must **compose with** the four
        `[data-width="full"] > .sfb-inner:has(…)` rules that drop the gutter today, not fight them: a
        merchant who sets side padding on a full-width banner is asking for exactly that gutter back.
+       ⚠ **`:has()` and `:not()` carry their argument's weight**, so those four rules are heavier than
+       they look and a plainer rule written later will still lose. The storefront stylesheet has now
+       produced **four** specificity traps of this exact kind (master plan §17, the 2026-09-21
+       incident): the `[data-frame-m]` desktop leak, the `:has(> .sf-hero-media)` floor ordering, the
+       pictureless-card void column, and `[data-media-side="left"]` outweighing the collapse rule it
+       had to lose to. Write the new rule where it can win on weight, not on document order.
 2. [ ] **X4 corners and border.** `--sfb-radius` and a `data-border` attribute on `.sfb-sec`. A
        full-width section keeps square corners (the banner already does this at
        `storefront-builder.css:259`); hide `radius` there through `field-visibility` rather than
@@ -298,6 +373,9 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
        follow. List the offenders in the commit; fixing them is part of this step, not a follow-up.
 5. [ ] **X7 right alignment.** Widen the enum in the spec, the editor and `readAlign`. Widening never
        invalidates a stored value, so no `v` moves.
+       ⚠ **Do this after Phase 1 step 3 (X11), not before.** Until the three duplicate alignment
+       controls are resolved, widening the style box adds a third answer to a question that already has
+       two — and `call-to-action` would be the only section on the page unable to say `right`.
 6. [ ] **X9 anchor.** `id` on the `<section>`, plus **both ends of the link path widened to accept
        `#anchor`**: `isAllowedSectionUrl` (backend, line 74) refuses it today, and `merchantLinkHref`
        would treat it as a store path. The editor's hint names the anchors already on the page.
@@ -320,8 +398,18 @@ different defaults and a responsive value would inherit the desktop's and move e
 mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
 split:       { type: "number", min: 20, max: 80, int: true, responsive: true, optional: true },
 mobileImage: { type: "image", optional: true },
+imageFit:    { type: "enum", values: ["fit", "crop"], optional: true },
 // and imageRatio gains `responsive: true`
 ```
+
+⚠ **`imageFit` is the one the migration is waiting on**, and it is first in this phase rather than last.
+`.sfb-split-media` is hardcoded `object-fit: cover`, so `image-text` is the only picture section with no
+fit control while the hero, the banner and the product cards all have one. It stopped being a
+theoretical gap on 2026-09-21: the classic editorial split draws its photograph **fitted** — the whole
+picture inside the 4:5 box, blurred bands filling the rest (`bannerPhoto`'s `canvas` default) — so
+Noor Collection's converted band is the only thing on its home page that does not match what it
+replaced (master plan §17). The conversion cannot set the field until it exists **and both repos are
+deployed**, which is why the store is migrated with the difference recorded rather than held back.
 
 1. [ ] `mobileFirst` — which of the picture and the copy leads the phone's single column. Same label and
        hint as the Hero's, so the two sections ask the question in one voice.
@@ -330,6 +418,19 @@ mobileImage: { type: "image", optional: true },
        `category-promo-cards`'s own `split` range (20–80) rather than inventing a second one.
 3. [ ] `imageRatio` responsive, and `mobileImage` — `SfImage` already takes a phone picture
        (`image-banner.tsx:45`), so this is plumbing, not new machinery.
+3b. [ ] **`imageFit`**, in the store's own two words (`fit` / `crop`), unset keeping today's `cover`.
+       Then teach `storefront-home-conversion.ts` to write `imageFit: "fit"` on a converted editorial
+       split and **re-migrate Noor Collection's home** with a pixel comparison
+       (`PIXEL_STORE=<slug> pnpm pixel:capture` before, `pnpm pixel:compare` after) — the band is the
+       one page in that store's set that is not identical to the classic home it replaced, and the
+       store is at 21 of 22 pages identical because of it (master plan §17).
+       ⚠ **Wait for the storefront's server cache before you compare.** `getStore` holds 300 s and the
+       page lookup its own 15 s / 60 s windows, so a comparison run within a few minutes of a migration
+       screenshots a half-refreshed store: ZeroDrop failed once and passed on a re-run with nothing
+       changed between, and Noor Collection's own second-button fix was invisible for the same reason.
+       Confirm any failure by re-running before you act on it.
+       ⚠ The Hero deferred a **responsive** `imageFit` (hero plan §7, S1). This one is flat on purpose —
+       the two agree, and making it responsive here is a new decision, not a tidy-up.
 4. [ ] Visibility rules: `mobileFirst` only with a picture; `split` only past the breakpoint's control
        set — register both, and add the test that a hidden field is optional.
 5. [ ] Browser QA **phone first**: photo-first and text-first, 20 / 50 / 80 splits, a portrait phone
@@ -355,6 +456,8 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
 6. [ ] **`related-products`**: `columns` responsive and `...CARD_PHOTO`, so it matches every other
        product row.
 7. [ ] **`campaign-offers`**: `limit` (1–12). **`shop-by-tag`**: `flow`. **`faq`**: `openFirst`.
+       **`countdown`** and **`offer-pricing`**: the subheading of step 1, which the X8 list did not
+       carry because §2.2 had no row for either until the 2026-09-21 re-read (§7).
 8. [ ] Labels and hints for every new field in `section-catalogue.ts` — a field with no entry falls back
        to its key, which reads like a bug to a merchant.
 
@@ -364,8 +467,11 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
 
 1. [ ] **`gallery.frame` becomes responsive** — the Hero and `image-banner` both shape per device; the
        gallery is the odd one out. Copy `image-banner`'s **attribute-plus-variable pair**
-       (`data-frame` / `data-frame-m`, `image-banner.tsx:66-72` with the stylesheet at `:209` and `:329`), because CSS cannot ask whether a custom property was set — the
-       trap the Hero plan's R2 records.
+       (`data-frame` / `data-frame-m` on `image-banner.tsx`, with the two stylesheet blocks that read
+       them), because CSS cannot ask whether a custom property was set — the trap the Hero plan's R2
+       records. That is now **one of four** specificity/attribute traps this stylesheet has produced;
+       the other three are listed in Phase 2 step 1. Before writing the desktop block, check it can win
+       on weight against the phone block it must override.
 2. [ ] **`image-banner` stops conflating three answers.** Split today's `align` into:
        `align` (left / centre / right, responsive — where the words sit across the picture),
        `verticalAlign` (top / middle / bottom), and `scrim` (0–80, the shade under the words).
@@ -386,14 +492,22 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
 **Status:** ⬜ Not started · **Needs Phase 0 in production.**
 
 1. [ ] **`sticky-order-bar.screens`**: `phones` (today) or `phones-and-computers`. The
-       `display: none !important` past the breakpoint (`storefront-builder.css:363-364`) becomes conditional
-       on the attribute. ⚠ The bar is `data-float` — it takes no room in the flow — so a desktop bar must
+       `display: none !important` in the `min-width: 680px` block becomes conditional on the attribute.
+       ⚠ **An `!important` is only beaten by another `!important` of equal-or-greater weight**, so the
+       conditional form has to carry it too — and `:not([data-screens="phones-and-computers"])` inherits
+       its argument's weight, which is the fourth trap in Phase 2 step 1. Prefer selecting the state
+       that hides over negating the state that shows. ⚠ The bar is `data-float` — it takes no room in the flow — so a desktop bar must
        be checked against a sticky header and the cart drawer, not just eyeballed on one page.
 2. [ ] **`search-results` gets words**: `emptyHeading` and `emptyText`, shown when a search finds
        nothing. The one merchant-writable thing on the page, and today it has none.
 3. [ ] **`order-form.buttonLabel`** — every other buy control in the builder lets the merchant write the
        button.
-4. [ ] Re-read §2.2's "out of scope" rows and confirm nothing has moved into range.
+4. [ ] **`countdown` answers for zero.** `expired: "hide" | "keepZero" | "message"` (with the message
+       a merchant-written string), because reaching zero is the one state the section is guaranteed to
+       enter and today it has no answer for it. Unset keeps whatever the renderer draws now — read the
+       renderer first and write down which it is, so "unset renders as today" is a checked claim and
+       not an assumption.
+5. [ ] Re-read §2.2's "out of scope" rows and confirm nothing has moved into range.
 
 ### Phase 7 — tests, docs, register, browser QA
 
@@ -403,8 +517,28 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
        checks included.
 2. [ ] A test per new visibility rule, plus the standing guarantee that **a hidden control can never make
        a section unsaveable** (conditional-controls §2.4).
+       ⚠ **Write each test from what the merchant asked for, not from what the code does.** Two defects
+       on 2026-09-21 were held in place by tests that had written the bug down as the expectation — the
+       hero's image-only slide test asserted the card rendered and never that the empty copy element was
+       absent, and the promo row's fixture set `cardPerRow: 1` on the phone and then asserted `perRow`
+       was *discarded*. Both passed for as long as they existed. Where a step here says "unset renders
+       as today", the test asserts the property or element is **absent**, not that something looks
+       right.
 3. [ ] Browser QA, **phone first**, one matrix row per phase; take the Hero plan's discipline of walking
        it rather than spot-checking — its Phase 5 found two defects that every automated check passed.
+       **And run the pixel harness against real stores, which is the only gate that has ever caught
+       this class of defect.** On 2026-09-21 a hero regression reached both live storefronts and
+       neither 2,506 frontend tests, 3,194 backend tests, typecheck, lint nor four doc gates saw it,
+       "because every one of them tests the code against itself and none renders a real merchant's
+       data" (master plan §17). 34 screenshots taken beforehand turned "something looks off" into a
+       measured +39 px shift and a 10.5-minute rollback.
+       - `PIXEL_STORE=<slug> pnpm pixel:capture` **before** the change, `pnpm pixel:compare` after.
+       - The minimum set: **UriiBaba** and **LunoraBaby** (the two live merchants), plus **Noor
+         Collection** for Phase 3 and any store the Phase 1 step 2 pre-check turned up.
+       - Every phase that claims "byte-identical" owes a comparison, not an argument. Phases 1, 2, 3
+         and 5 all make that claim.
+       - Wait out the storefront's server cache first (Phase 3 step 3b), and re-run a failure before
+         acting on it.
 4. [ ] Docs in the same change: `SKILL.md` (the storefront reference), `inventory-backend/docs/features/
        ecommerce.md`, `ecommerce-qa.md`, `EZYCORE_MASTER_REFERENCE.md` §V.4–V.5, and the help guide.
 5. [ ] **Read the design-requests register against what shipped**, as Phase 6 of the master plan did, and
@@ -447,15 +581,19 @@ Answered by the product owner on 2026-09-21 unless noted. Do not re-open one wit
 
 ## 6. Definition of done, per phase
 
+**"Byte-identical" means a pixel comparison came back clean, not that the diff looked safe.** All 21
+production stores are on the builder, so every such claim below is a claim about live merchants' pages.
+The harness and the store set are in §3 Phase 7 step 3.
+
 | Phase | Done when |
 |---|---|
 | 0 | The style box is generated into the backend, `checkStyle` reads it, the backend's private `SPACING_STEPS` is gone, both repos' `verify` is green, and the backend is shipped. |
-| 1 | Text alignment visibly moves all nine headings; each of the six sections honours a set Width and is byte-identical with Width unset; the four classic `SectionTitle` callers are byte-identical; eight `how-to-order` steps wrap. |
+| 1 | Text alignment visibly moves all nine headings; each of the six sections honours a set Width and is byte-identical with Width unset; the four classic `SectionTitle` callers emit no `--sfb-title-justify` and are byte-identical; the three X11 sections show one alignment control and no stored second alignment still renders; eight `how-to-order` steps wrap; UriiBaba and LunoraBaby compare clean. |
 | 2 | Every one of the six style keys changes the page, is refused when invalid, keeps its value when hidden, and leaves a section that sets none rendering byte-identically to today. A background picture with an overlay and custom text is readable on a phone. |
-| 3 | `image-text` can lead a phone with either the picture or the copy, split 20–80 on each device, and take its own phone picture; unset renders byte-identically. |
+| 3 | `image-text` can lead a phone with either the picture or the copy, split 20–80 on each device, take its own phone picture, and fit or crop it; unset renders byte-identically. **Noor Collection's home re-migrated and pixel-identical to the classic home it replaced — 22 of 22, up from 21.** |
 | 4 | Thirteen sections take a subheading; `benefits` shows two columns on a phone; eight `how-to-order` steps sit in a chosen number of columns; the carousel's per-view and arrows reach the island and work. |
 | 5 | The gallery shapes per device; `image-banner`'s three answers are three controls and both old combinations are pixel-identical; collection tiles take a shape. |
-| 6 | The sticky bar can stand on a desktop without breaking the header or the drawer; an empty search shows the merchant's words. |
+| 6 | The sticky bar can stand on a desktop without breaking the header or the drawer; an empty search shows the merchant's words; a countdown that has reached zero does what the merchant chose. |
 | 7 | All checks green, the browser matrix walked phone-first, every doc in §3 Phase 7 step 4 updated in the same change, and the register re-read with its stale row answered. |
 
 ---
@@ -469,6 +607,46 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   box and `storefront-builder.css`. Two findings were not in any plan: the Style tab's Text alignment is
   dead on eight sections because `SectionTitle` is a flex row (X1), and six sections hardcode a column
   width that beats the Style tab's Width (X2) — the Hero's W1, six more times. Both are Phase 1.
+- **2026-09-21 — the migration found the first of these gaps before the plan did.** Moving the classic
+  editorial split onto `image-text` (master plan §17) left one visible difference on a production
+  store: the classic band **fits** its photograph inside the 4:5 box and `image-text` **crops** it,
+  because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
+  re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
+  about and expensive to discover on a live page.
+- **2026-09-21 — Phase 0 built, and the style box is copied rather than re-serialized.** Step 2 said the
+  generator should emit `STYLE_BOX_SPEC` with the same literal writer that emits `SECTION_MANIFEST`. It
+  copies `style-specs.ts` **verbatim** instead, the way `field-specs.ts` is already copied, because that
+  file imports nothing and so its source is already valid backend TypeScript. Copying keeps the doc
+  comments — where the reasoning behind each value lives — and removes a serialization step that could
+  itself drift. `SECTION_SPECS` cannot be copied this way because its module carries an `import type`.
+  Two other things worth knowing:
+  - **`background`'s sub-keys are in the spec too** (`keys: ["kind", "color", "image"]`), not just its
+    `kinds`. Without them the backend would still hand-write one allowlist, which is the whole defect.
+  - **`checkResponsiveEnum` is gone.** Its only caller was `checkStyle`'s `align`, and the generic
+    responsive wrapper now covers it. The wording of every error is unchanged — deliberately, since
+    `padding`'s hand-rolled wrapper already said exactly what `checkField`'s says.
+  - **The tests were mutation-checked, not just run green.** Replacing the spec-derived allowlist with a
+    hand-written one fails "accepts textTone"; dropping the walk over the spec's fields fails three more.
+    A test that passes whichever way the code behaves is the trap this plan's Phase 7 step 2 names.
+- **2026-09-21 — the plan re-read against `d3d2fdcd`, after the production release.** Every finding in
+  §2 was re-checked in the code and all of X1–X10 still hold exactly as written. Five things had moved
+  underneath the plan and are now folded in:
+  - **There are 34 section types, not 33.** `call-to-action`, `countdown` and `offer-pricing` had no
+    audit row at all — `offer-pricing` was even named in §0.4's island list and then never audited.
+    §2.2 now carries them, plus `promises-band`, which X1 and X8 both reach.
+  - **X11 is new and is not a variant of X1.** X1 is alignment that does nothing; X11 is alignment that
+    does two things. `SECTIONS_ALIGNING_THEMSELVES` names `hero` alone, so `call-to-action`,
+    `collections-row` and `category-tiles` each show the Style tab's control beside their own. It moved
+    into Phase 1 because it is a live defect, and because answering it the `ownsAlign` way costs no spec
+    field; deleting the per-section field instead would make every saved page carrying one unsaveable.
+  - **The blast radius changed.** The plan was written as though Noor Collection were the only
+    production store on the builder. All 21 are (master plan §17), including two live merchants.
+  - **Unit tests are not the gate, and the record now says so.** The 2026-09-21 hero incident reached
+    both live storefronts past every automated check; the pixel harness caught it. Phase 7 step 3 names
+    the harness, the commands and the store set, and step 2 carries the lesson that a test written from
+    the code's behaviour defends the defect.
+  - **Line references drift.** Several `file.ts:NN-NN` citations in §2 were already one or two lines off
+    a week after they were written. The ones that will keep moving now cite the symbol instead.
 - **2026-09-21 — the style box has no gate.** `checkStyle` hand-names its allowed keys and carries its
   own `SPACING_STEPS`; the section manifest's `--check` does not cover it. Phase 0 exists because of
   this, and it is why nothing merchant-visible ships first.

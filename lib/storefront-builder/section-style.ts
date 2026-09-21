@@ -2,6 +2,13 @@
 import type { CSSProperties } from "react";
 import { responsiveVars } from "./responsive";
 import { readImage, type Responsive } from "./settings";
+import {
+  SECTION_ALIGNS,
+  SECTION_TONES,
+  SECTION_WIDTHS,
+  SPACING_STEPS,
+  type SpacingStep,
+} from "./style-specs";
 
 /**
  * The common style box every builder section carries (plan §5.2
@@ -13,8 +20,10 @@ import { readImage, type Responsive } from "./settings";
  * backend has already refused invalid style on save.
  */
 
-export const SPACING_STEPS = ["none", "sm", "md", "lg", "xl"] as const;
-export type SpacingStep = (typeof SPACING_STEPS)[number];
+// The vocabulary lives in `style-specs.ts`, which the backend's validator is
+// generated from; re-exported here because the editor reaches the style box
+// through this module and there must not be a second copy to keep in step.
+export { SPACING_STEPS, type SpacingStep };
 
 /** Fluid, so one step reads proportionately on a phone and a desktop. */
 const SPACING: Record<SpacingStep, string> = {
@@ -25,9 +34,9 @@ const SPACING: Record<SpacingStep, string> = {
   xl: "clamp(56px, 9vw, 96px)",
 };
 
-export type SectionWidth = "content" | "wide" | "full";
-export type SectionTone = "auto" | "light" | "dark";
-type Align = "left" | "center";
+export type SectionWidth = (typeof SECTION_WIDTHS)[number];
+export type SectionTone = (typeof SECTION_TONES)[number];
+type Align = (typeof SECTION_ALIGNS)[number];
 
 export interface SectionFrame {
   /** Custom properties for the section element. */
@@ -95,8 +104,8 @@ const readPadding = (value: unknown): { top: SpacingStep; bottom: SpacingStep } 
 
 const readAlign = (value: unknown): Responsive<Align> | undefined => {
   if (!isPlainObject(value)) return undefined;
-  const base = oneOf(["left", "center"] as const, value.base);
-  const mobile = oneOf(["left", "center"] as const, value.mobile);
+  const base = oneOf(SECTION_ALIGNS, value.base);
+  const mobile = oneOf(SECTION_ALIGNS, value.mobile);
   // A phone value with no desktop one stands on its own: the desktop keeps the
   // section's own alignment, which is what the merchant left it on.
   if (!base) return mobile ? { mobile } : undefined;
@@ -150,7 +159,7 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     // is an inverted `??` rather than an omitted variable.
     width: defaults?.ownsWidth
       ? (defaults.width ?? "content")
-      : (oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content"),
-    tone: oneOf(["auto", "light", "dark"] as const, style.textTone) ?? "auto",
+      : (oneOf(SECTION_WIDTHS, style.width) ?? defaults?.width ?? "content"),
+    tone: oneOf(SECTION_TONES, style.textTone) ?? "auto",
   };
 }
