@@ -25,6 +25,7 @@ import {
 	CommandList,
 	CommandSeparator,
 } from "@ui/components/command";
+import { useInsideScrollLock } from "@ui/lib/scroll-lock";
 import { cn } from "../lib/utils";
 
 /**
@@ -157,6 +158,14 @@ interface MultiSelectProps
 	 * Optional, defaults to false.
 	 */
 	modalPopover?: boolean;
+
+	/**
+	 * Portal the option list to `document.body`? Left unset, the component
+	 * decides for itself: portalled normally, kept in place when it sits inside
+	 * a dialog, alert-dialog or sheet (see `useInsideScrollLock`). Pass a boolean
+	 * only to override that decision.
+	 */
+	portal?: boolean;
 
 	/**
 	 * If true, renders the multi-select component as a child of another component.
@@ -316,6 +325,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 			animationConfig,
 			maxCount = 3,
 			modalPopover = false,
+			portal,
 			asChild = false,
 			className,
 			hideSelectAll = false,
@@ -397,6 +407,13 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 		}, [defaultValue, onValueChange]);
 
 		const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+		// Inside a dialog the option list has to stay in the overlay's own subtree
+		// or its scroll lock cancels every wheel and touch event over it. Read
+		// unconditionally — behind `??` the hook would be skipped whenever the
+		// caller passed `portal`.
+		const insideScrollLock = useInsideScrollLock();
+		const shouldPortal = portal ?? !insideScrollLock;
 
 		React.useImperativeHandle(
 			ref,
@@ -1163,6 +1180,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent
+						portal={shouldPortal}
 						id={listboxId}
 						role="listbox"
 						aria-multiselectable="true"
