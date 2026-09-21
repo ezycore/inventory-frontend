@@ -3,22 +3,20 @@
 
 import { useTranslations } from 'next-intl'
 import { formatInTimeZone } from 'date-fns-tz'
-import { format } from 'date-fns'
 import { AreaChart, DonutChart } from '@ui/components/charts'
 import { Card } from '@ui/components/card'
 import type { InventoryAnalytics } from '@/services/api/modules/inventory/analytics.types'
 import { useMovementReasonLabel } from '@/hooks/use-movement-reason-label'
+import { resolveTimezone } from '@/lib/org-calendar'
 
 interface InventoryChartsProps {
   analytics: InventoryAnalytics
 }
 
-/** Short axis label for an ISO timestamp balance point, in the org timezone. */
+/** Short axis label for an ISO timestamp balance point, in the org timezone (never the browser's). */
 function shortStamp(iso: string, timezone?: string): string {
   try {
-    return timezone
-      ? formatInTimeZone(new Date(iso), timezone, 'MMM d')
-      : format(new Date(iso), 'MMM d')
+    return formatInTimeZone(new Date(iso), resolveTimezone(timezone), 'MMM d')
   } catch {
     return iso
   }

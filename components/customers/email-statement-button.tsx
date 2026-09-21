@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/ui/components/popover';
 import { useEmailCustomerStatement } from '@/services/api';
+import { useCanEmailSalesDocuments } from '@/hooks/use-has-permission';
 import type { Customer } from '@/types';
 
 interface EmailStatementButtonProps {
@@ -32,8 +33,11 @@ export function EmailStatementButton({ customer, totalDue }: EmailStatementButto
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const sendStatement = useEmailCustomerStatement();
+  // Sending takes a sales write permission; a read-only role sees the ledger
+  // but gets no button that would answer 403.
+  const canSend = useCanEmailSalesDocuments();
 
-  if (totalDue === 0) return null;
+  if (totalDue === 0 || !canSend) return null;
 
   const knownEmail = customer.email;
 

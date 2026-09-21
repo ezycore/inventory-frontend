@@ -25,6 +25,18 @@ describe("HeroMedia", () => {
     );
   });
 
+  it("gives the likely LCP photo high priority on both canvas copies", () => {
+    const { container } = render(
+      <HeroMedia image={{ mediumUrl: "/hero-800.jpg", url: "/hero-1600.jpg" }} fit="canvas" eager />,
+    );
+
+    // The blurred copy comes first and shares the URL, so it decides the
+    // download's priority — measured `Low` when only the foreground asked.
+    for (const img of container.querySelectorAll("img")) {
+      expect(img).toHaveAttribute("fetchpriority", "high");
+    }
+  });
+
   it("applies the merchant focus point to a cover crop", () => {
     const { container } = render(
       <HeroMedia image="/banner.jpg" fit="cover" focal="72% 24%" />,

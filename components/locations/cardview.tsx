@@ -20,6 +20,7 @@ import {
 import { Skeleton } from "@/ui/components/skeleton";
 import { cn } from "@/ui/lib/utils";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { AppLocale } from "@/i18n/config";
 import {
   EllipsisVertical,
@@ -123,7 +124,7 @@ const LocationCardView = (
   const isActive = status === "active";
   const userCount = Array.isArray(users) ? users.length : 0;
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
 
   return (
     <div

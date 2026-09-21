@@ -86,6 +86,8 @@ export function SignupBrandPanel() {
 
       <p className="relative text-xs text-white/50">
         {t("panelCopyright", {
+          // No organization exists yet at signup, so there is no org calendar to read.
+          // eslint-disable-next-line no-restricted-syntax -- copyright year only
           year: new Date().getFullYear(),
           brand: BRAND.name,
         })}

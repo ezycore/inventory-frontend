@@ -14,6 +14,7 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -341,6 +342,14 @@ export interface StoreHeroSlide {
   buttonLabel?: string;
   link?: string;
   hideTextOnMobile?: boolean;
+  /**
+   * A second button, on a card or open slide. Builder-only — the home page's
+   * own carousel has never offered one — and per slide since 2026-09-20
+   * (decision D3): it used to be read from the first slide alone, because only
+   * the first slide was ever drawn as a card.
+   */
+  secondaryLabel?: string;
+  secondaryLink?: string;
 }
 
 /**
@@ -409,6 +418,13 @@ export interface StorefrontStore {
    * serving host. Always go through `canonicalTarget` (lib/storefront-canonical.ts).
    */
   canonicalHost?: string | null;
+  /**
+   * The landing page the merchant uses as the homepage, or null for the
+   * Customize home. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
+   * by the proxy (`storeHomePageExists`); this only tells that page's own
+   * address it is not the one to index.
+   */
+  homePageId?: string | null;
   logo?: StorefrontImage | null;
   /**
    * Tab icon, already resolved server-side (backend `getStoreInfo`) so nothing
@@ -496,6 +512,14 @@ export interface StorefrontStore {
       scale?: string;
       density?: string;
       radius?: string;
+      width?: string;
+      navHover?: string;
+      navChildHover?: string;
+      buttonShape?: string;
+      buttonStyle?: string;
+      buttonSize?: string;
+      headingWeight?: string;
+      headingCase?: string;
     };
     /**
      * Where the OPEN hero's copy sits. Unset ⇒ left, which every hero was
@@ -608,7 +632,22 @@ export interface StorefrontStore {
     showOrderNotes?: boolean;
     /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
+    /** "Pause online orders": buy buttons show `pausedMessage`; the order API refuses. */
+    ordersPaused?: boolean;
+    pausedMessage?: string;
+    /** Offer "Order on chat instead" through the store's WhatsApp contact. */
+    pausedWhatsApp?: boolean;
   };
+  /**
+   * Which optional shopper pages this store serves — the §6 page controls,
+   * resolved by the backend into three plain booleans (the account switch is
+   * stored apart from the other two, and nothing here should know that).
+   *
+   * Optional on the type for the same reason every other block is: a cached
+   * store payload fetched before this shipped carries none. Read it through
+   * `storePages()`, never field by field — absent must mean ON.
+   */
+  pages?: { search: boolean; cartPage: boolean; accounts: boolean };
   /** Social sign-in providers with credentials configured on the backend. */
   oauthProviders?: ("google" | "facebook")[];
 }
@@ -1213,6 +1252,15 @@ export interface PlaceOrderInput {
    * or an ad blocker installed still checks out, and an order must never depend on tracking.
    */
   meta?: { fbp?: string; fbc?: string; eventSourceUrl?: string };
+  /**
+   * The landing page and ad tags this visit came through (`lib/storefront-attribution.ts`).
+   * Optional for the same reason as `meta`; the server keeps the page only when it is this
+   * store's landing page, and stores it for the merchant alone.
+   */
+  source?: {
+    pageId?: string;
+    utm?: Partial<Record<"source" | "medium" | "campaign" | "content" | "term", string>>;
+  };
 }
 
 /**
@@ -1486,6 +1534,17 @@ export const storefrontApi = {
     sfFetch<ContentPageLink[]>(slug, "/pages"),
   getPage: (slug: string, pageSlug: string) =>
     sfFetch<ContentPageView>(slug, `/pages/${pageSlug}`),
+  /**
+   * Builder section products, from the browser — the editor preview re-querying
+   * a section whose products changed before the page was saved. At most
+   * `MAX_SECTION_DATA_REQUESTS` per call; the server read batches a whole page
+   * instead (`getSectionData` in `lib/storefront-server.ts`).
+   */
+  sectionData: (slug: string, requests: readonly ProductsDataRequest[]) =>
+    sfFetch<{ results: Record<string, SectionData> }>(
+      slug,
+      `/section-data${buildQuery({ r: JSON.stringify(requests) })}`,
+    ),
 
   register: (
     slug: string,

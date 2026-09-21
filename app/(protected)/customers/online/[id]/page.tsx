@@ -15,15 +15,11 @@ import { StatusBadge } from "@/ui/components/status-badge";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { orderDetailHref } from "@/components/ecommerce/orders/helpers";
-
-const fmtDate = (iso: string | null) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
-};
+import { fmtDate } from "@/components/ecommerce/customers/accounts-table";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 
 export default function CustomerDetailPage() {
+  const { timezone } = useOrgCalendar();
   const id = String(useParams().id);
   const router = useRouter();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
@@ -76,7 +72,7 @@ export default function CustomerDetailPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{customer.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Customer since {fmtDate(customer.createdAt)}
+          Customer since {fmtDate(customer.createdAt, timezone)}
         </p>
       </div>
 
@@ -101,7 +97,7 @@ export default function CustomerDetailPage() {
               label="Total spent"
               value={formatMoney(stats.totalSpent, currency)}
             />
-            <Stat label="Last order" value={fmtDate(stats.lastOrderAt)} />
+            <Stat label="Last order" value={fmtDate(stats.lastOrderAt, timezone)} />
           </Card>
         </div>
 
@@ -157,7 +153,7 @@ export default function CustomerDetailPage() {
                           </Link>
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
-                          {fmtDate(o.createdAt)}
+                          {fmtDate(o.createdAt, timezone)}
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 font-semibold tabular-nums">
                           {formatMoney(o.totalAmount, currency)}

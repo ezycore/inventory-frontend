@@ -23,6 +23,10 @@ features:
   - inventoryTracking
 ui_labels:
   - reports:landing.subtitle
+  - reports:sales.breakdown.title
+  - reports:sales.breakdown.top
+  - reports:sales.breakdown.lowest
+  - reports:sales.breakdown.rankBy
   - reports:purchases.subtitle
   - reports:cash.subtitle
   - reports:cash.cashIn
@@ -52,6 +56,23 @@ see the same list as an owner.
 
 **Sales Report** — what sold, when, and at what margin. Your best sellers and your quiet days. This
 is the one most owners open daily.
+
+Further down the same page, **Sales by category, brand and tag** answers *which group sells the most,
+and which the least*. Pick Category, Brand or Tag, and choose what to **Rank by** — sales amount,
+units sold or orders. Every group shows all three, plus its share of the period's sales.
+
+- **Top sellers** are the groups selling the most; **Lowest sellers** are the ones selling the least,
+  starting with the weakest. A group whose products sold nothing at all is listed too, so the bottom
+  of the list is the real answer to "what isn't moving".
+- Figures are **after returns**. A category that sold a lot but had most of it sent back ranks by
+  what it kept.
+- An order counts once per group: one basket with three cushions is one order for Cushions.
+- A product with **more than one tag counts under each tag**, so the tag figures add up to more than
+  your total sales. That is expected — read each tag on its own.
+- It uses each product's category, brand and tags **as they are today**. If you move a product to a
+  new category, its past sales move with it.
+- The amounts are item sales, before order-level discounts and delivery charges, so they can differ
+  from Total Sales at the top of the page.
 
 **Inventory Report** — what you hold right now, by product, category and location.
 

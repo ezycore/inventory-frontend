@@ -95,6 +95,8 @@
       "currencyPlaceholder": "Select currency",
       "timezone": "Timezone",
       "timezonePlaceholder": "Select timezone",
+      "weekStartDay": "Week starts on",
+      "weekStartDayHint": "Where \"This week\" begins in reports, the dashboard and sales summaries.",
       "addressSectionLabel": "Business Address",
       "address": "Address",
       "addressPlaceholder": "Enter organization address",
@@ -346,9 +348,7 @@
       "selectedCount": "{count} selected",
       "allLocationsTitle": "Access to all locations",
       "allLocationsDescription": "Anyone with this role can work at every location, now and in future. Without it, they only see the locations you assign them.",
-      "notOnPlan": "Not on your plan",
-      "notOnPlanTooltip": "Your current plan doesn't include this module, so these permissions wouldn't do anything yet.",
-      "grandfathered": "Kept",
+      "lockedHint": "Greyed-out permissions are ones you don't hold yourself, so you can't add them to a role.",
       "cancel": "Cancel",
       "create": "Create role",
       "save": "Save changes",
@@ -399,7 +399,16 @@
       "taxes": "VAT",
       "units": "Units",
       "sales": "Sales",
-      "variants": "Variants"
+      "variants": "Variants",
+      "tags": "Tags",
+      "discounts": "Discounts",
+      "accounts": "Cash & Bank accounts",
+      "transactions": "Transactions",
+      "purchases": "Purchases",
+      "returns": "Returns",
+      "storefront": "Online Store",
+      "roles": "Roles",
+      "costs": "Cost prices"
     }
   },
   "billing": {

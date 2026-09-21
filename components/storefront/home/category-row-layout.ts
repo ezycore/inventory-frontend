@@ -1,16 +1,19 @@
-"use client";
 // coding-standard: maintained
 
-import type { CSSProperties } from "react";
-import type {
-  StoreHomeCollections,
-  StorefrontStore,
-} from "@/lib/storefront-client";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
+import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   resolveHomeCollections,
   type ResolvedHomeCollections,
 } from "@/lib/storefront-templates";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import type { CategoryStrip } from "@/components/storefront/home/category-strip";
+
+/**
+ * Layout for the category rows — pure, with no directive and no hooks. The
+ * Storefront Builder's server views call these too, and a function exported
+ * from a `"use client"` module cannot be called on the server. The
+ * Customize-aware hook lives in `use-category-row-layout.ts`.
+ */
 
 /** How much of the visible row one arrow press moves. */
 const STRIP_PAGE = 0.8;
@@ -28,17 +31,11 @@ export interface CategoryRowLayout extends ResolvedHomeCollections {
   columnsExplicit: boolean;
 }
 
-/** The category-row setting currently visible in Customize, else the saved one. */
-export function useCategoryRowLayout(
-  store: Pick<StorefrontStore, "theme"> | null | undefined,
-  defaultLayout: ResolvedHomeCollections["layout"] = "strip",
-): CategoryRowLayout {
-  const draft = useSfPreview((s) => s.homeCollections);
-  return resolveCategoryRowLayout(
-    draft ?? store?.theme?.homeCollections,
-    defaultLayout,
-  );
-}
+/**
+ * Draws a scrolling category track: `CategoryStrip` on the home page, its island
+ * on a Storefront Builder page, whose server views may not import client code.
+ */
+export type StripRenderer = (props: ComponentProps<typeof CategoryStrip>) => ReactNode;
 
 /** Preserve each section's historical default until the merchant chooses one. */
 export function resolveCategoryRowLayout(
@@ -54,28 +51,6 @@ export function resolveCategoryRowLayout(
         : defaultLayout,
     columnsExplicit: typeof raw?.columns === "number",
   };
-}
-
-/**
- * Does this row draw its category NAMES?
- *
- * Two inputs, and the second is the one that matters: a merchant can ask for a
- * pictures-only row, but a category with no image renders as a letter tile, and
- * a letter with no name under it is not a wayfinding target — it is a mystery
- * box where a department should be. So the preference is honored only when the
- * whole row is photographed.
- *
- * ⚠ **Asked ONCE per section, never per tile.** Keeping the name on just the
- * unphotographed tiles would leave a row of mixed shapes, which is the same
- * mistake `CategoryTiles` already avoids when it asks `photographed` for the
- * whole section rather than tile by tile. One shape used consistently beats a
- * ragged row, even when the consistent one is not what was asked for.
- */
-export function categoryLabelsVisible(
-  showLabels: boolean,
-  allPhotographed: boolean,
-): boolean {
-  return showLabels || !allPhotographed;
 }
 
 /** Distance one arrow press scrolls a strip whose track is `clientWidth` wide. */

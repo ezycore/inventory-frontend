@@ -8,7 +8,9 @@ import {
   catalogSearchParams,
   isIndexableCatalogUrl,
 } from "@/lib/storefront-catalog-params";
-import View from "./view";
+import { SystemPage } from "@/components/storefront-builder/system-page";
+import { CollectionPageView } from "@/components/storefront/collection/collection-page";
+import { CollectionDataProvider } from "@/components/storefront/collection/collection-data";
 
 // Host-resolved (dynamic render); the product list is cached via the
 // fetch-level `revalidate` in lib/storefront-server.ts.
@@ -57,5 +59,15 @@ export default async function Page({
   const products = slug
     ? await getStoreProducts(slug, catalogQueryParams(sp, page))
     : null;
-  return <View initialProducts={products ?? undefined} initialPage={page} />;
+  // The route owns the fetch (it owns the URL, the cache key and the seeded
+  // page); the provider hands it to the core section when this page is on the
+  // builder, and to the view directly when it is not.
+  const data = { initialProducts: products ?? undefined, initialPage: page };
+  return (
+    <CollectionDataProvider value={data}>
+      <SystemPage path="/products">
+        <CollectionPageView {...data} />
+      </SystemPage>
+    </CollectionDataProvider>
+  );
 }

@@ -16,15 +16,22 @@
  * who trips it has already queued a flush inside the same minute. Swallowing it
  * is correct — the flush they need is the one that already went.
  */
+import type { StorefrontCacheScope } from "@/lib/storefront-cache-tags";
 
 const ENDPOINT = "/api/storefront/revalidate";
 
 /**
  * Expire the public storefront's server-rendered pages for the signed-in
  * merchant's own store. Fire-and-forget; the route derives the slug from the
- * session, so there is nothing to pass.
+ * session.
+ *
+ * `scopes` names what the save touched (`lib/storefront-cache-tags.ts`), so only
+ * that part of the store's cache is dropped. Omit it when the save could reach
+ * anything the shop renders — settings, features, the organization itself.
  */
-export const revalidateStorefront = async (): Promise<void> => {
+export const revalidateStorefront = async (
+  scopes?: readonly StorefrontCacheScope[],
+): Promise<void> => {
   if (typeof window === "undefined") return;
 
   try {
@@ -37,7 +44,11 @@ export const revalidateStorefront = async (): Promise<void> => {
 
     await fetch(ENDPOINT, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(scopes?.length ? { "Content-Type": "application/json" } : {}),
+      },
+      body: scopes?.length ? JSON.stringify({ scopes }) : undefined,
       // The merchant often navigates away right after saving; without this the
       // request is cancelled on unload and the flush is silently lost.
       keepalive: true,

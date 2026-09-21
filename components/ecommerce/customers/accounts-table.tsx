@@ -3,6 +3,8 @@
 
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { formatInTimeZone } from "date-fns-tz";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import type { OnlineCustomer } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
 import { Card } from "@/ui/components/card";
@@ -18,6 +20,7 @@ export function AccountsTable({
   currency?: string;
   isLoading?: boolean;
 }) {
+  const { timezone } = useOrgCalendar();
   const router = useRouter();
 
   return (
@@ -69,7 +72,7 @@ export function AccountsTable({
                     {formatMoney(c.totalSpent, currency)}
                   </td>
                   <td className="px-3 py-3 text-muted-foreground">
-                    {fmtDate(c.lastOrderAt)}
+                    {fmtDate(c.lastOrderAt, timezone)}
                   </td>
                   <td className="px-3 py-3 text-muted-foreground">
                     <ChevronRight className="h-4 w-4" />
@@ -84,10 +87,8 @@ export function AccountsTable({
   );
 }
 
-/** Day-first, the way a BD merchant reads a date. */
-export function fmtDate(iso: string | null | undefined): string {
+/** Day-first, the way a BD merchant reads a date — on the organization's calendar. */
+export function fmtDate(iso: string | null | undefined, timezone: string): string {
   if (!iso) return "—";
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
+  return formatInTimeZone(new Date(iso), timezone, "dd-MM-yyyy");
 }

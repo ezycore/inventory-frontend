@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { formatInTimeZone } from 'date-fns-tz'
 import { bn as bnDateLocale } from 'date-fns/locale'
 import { getGreetingKey } from './helpers'
+import { resolveTimezone } from '@/lib/org-calendar'
 import { useFormatters } from '@/hooks/use-formatters'
 import { Spinner } from '@/ui/components/spinner'
 
@@ -35,7 +36,7 @@ const LiveClock = memo(function LiveClock({ timezone }: { timezone?: string }) {
   const formatted = !time ? (
     <Spinner />
   ) : (
-    formatInTimeZone(time, timezone || 'Asia/Dhaka', 'EEEE, MMMM d, yyyy, hh:mm:ss a', {
+    formatInTimeZone(time, resolveTimezone(timezone), 'EEEE, MMMM d, yyyy, hh:mm:ss a', {
       locale: locale === 'bn' ? bnDateLocale : undefined,
     })
   )
@@ -50,7 +51,8 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ firstName, timezone }: DashboardHeaderProps) {
   const t = useTranslations('dashboard')
-  const hour = new Date().getHours()
+  // The hour on the org's clock — the same zone as the time printed beside it.
+  const hour = Number(formatInTimeZone(new Date(), resolveTimezone(timezone), 'H'))
   const greeting = t(`greeting.${getGreetingKey(hour)}`)
 
   return (

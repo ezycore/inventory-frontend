@@ -44,18 +44,29 @@ export function ProductCard({
   product,
   currency,
   variant = "full",
+  imageFit: sectionFit,
+  imageRatio: sectionRatio,
 }: {
   product: CatalogProduct;
   currency?: string;
   variant?: "full" | "compact";
+  /**
+   * A Storefront Builder section's own photo fit and frame
+   * (`sectionCardMedia`). Unset follows the store's Customize → Product cards
+   * choice, which is every card outside a section that sets one.
+   */
+  imageFit?: "cover" | "canvas";
+  imageRatio?: string;
 }) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const { data: store } = useStore(slug);
   const previewCardStyle = useSfPreview((s) => s.cardStyle);
   const previewCardActions = useSfPreview((s) => s.cardActions);
-  const imageFit = useStoreImageFit();
-  const imageRatio = useStoreImageRatio();
+  const storeFit = useStoreImageFit();
+  const storeRatio = useStoreImageRatio();
+  const imageFit = sectionFit ?? storeFit;
+  const imageRatio = sectionRatio ?? storeRatio;
 
   const templates = resolveTemplates(store);
   // Admin card density (live draft wins). "compact" forces the dense layout

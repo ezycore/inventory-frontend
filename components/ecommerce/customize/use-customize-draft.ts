@@ -4,9 +4,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useReorderCollections,
+  useSaveStorefrontSiteDraft,
   useStorefrontCollections,
   useUpdateCollection,
   useUpdateStorefrontSettings,
+  type StorefrontSite,
 } from "@/services/api";
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
@@ -39,6 +41,7 @@ import type {
   StorefrontTrustBadge,
 } from "@/types";
 import { toSettingsPatch } from "@/components/ecommerce/customize/draft-payloads";
+import { settingsWithSiteLook } from "@/components/ecommerce/customize/site-look";
 import {
   RETIRED_TEMPLATE_KEYS,
   TEMPLATE_OPTIONS,
@@ -261,24 +264,24 @@ export type PartId =
   | "header"
   | "utility"
   | "mobile"
-  | "hero"
-  | "home"
   | "cards"
-  | "collections"
-  | "product"
   | "contact"
   | "footer"
-  | "account"
   | "shell"
-  | "cart"
-  | "content"
-  | "checkout";
+  | "content";
 
 /**
  * Which slice of the draft each part owns. Dirty state is derived by comparing
  * these against the baseline rather than set by hand, so a new field in a part
  * is covered the moment it is added to the slice — there is no `setDirty()` call
  * to forget.
+ *
+ * **Only site-wide parts have a slice** (2026-09-20). The draft still CARRIES
+ * every page key it ever did — `heroSlides`, `heroBanner`, `homepageSections`,
+ * `templates.product` and the rest — because a look save replaces each block it
+ * sends wholesale, so a block dropped from the payload would be erased rather
+ * than left alone (`seedTemplates` states the same rule for template ids). They
+ * simply have no editor here any more: their pages own them.
  */
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   look: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle, d.design],
@@ -290,30 +293,12 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   // merchant — their phone header — so they share a slice. Splitting them would
   // let the save bar name a part the merchant never opened.
   mobile: (d) => [d.templates.mobile, d.mobile],
-  hero: (d) => [d.templates.hero, d.heroSlides, d.heroBanner, d.heroAlign],
-  // `homeCollections` and `categoryTiles` style two homepage SECTIONS, so they
-  // belong to this slice — they moved here from `collections` with their
-  // controls on 2026-08-18. A setting left in the wrong slice marks the wrong
-  // part dirty, which is the save bar naming a part the merchant never opened.
-  home: (d) => [
-    d.templates.home,
-    d.homepageSections,
-    d.sectionConfig,
-    d.homeCollections,
-    d.templates.categoryTiles,
-  ],
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
     d.templates.imageFit,
     d.templates.imageRatio,
   ],
-  collections: (d) => [
-    d.collections,
-    d.templates.collection,
-    d.templates.pagination,
-  ],
-  product: (d) => d.templates.product,
   contact: (d) => d.contactButton,
   footer: (d) => [
     d.templates.footer,
@@ -326,11 +311,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerPaymentMethods,
     d.footerContentPages,
   ],
-  account: (d) => d.templates.accountLayout,
   shell: (d) => d.templates.shell,
-  cart: (d) => d.templates.cartLayout,
   content: (d) => d.templates.contentLayout,
-  checkout: (d) => d.templates.checkout,
 };
 
 /**
@@ -688,6 +670,8 @@ export interface CustomizeDraftApi {
   discard: () => void;
   save: () => void;
   saving: boolean;
+  /** Save writes the Site's draft, not the live store — the store publishes its look. */
+  savesDraft: boolean;
 }
 
 /**
@@ -695,8 +679,13 @@ export interface CustomizeDraftApi {
  * one save. Replaces the three per-section drafts and their five separate save
  * buttons — a merchant now presses Save once and everything they touched ships.
  */
-export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftApi {
+export function useCustomizeDraft(
+  settings: StorefrontSettings,
+  /** Present once the store publishes its look through the Site; `settings` then already carries the Site's look. */
+  site?: StorefrontSite,
+): CustomizeDraftApi {
   const saveSettings = useUpdateStorefrontSettings();
+  const saveSiteDraft = useSaveStorefrontSiteDraft();
   const updateCollection = useUpdateCollection();
   const reorderCollections = useReorderCollections();
   const { data: fetchedCollections } = useStorefrontCollections();
@@ -848,16 +837,27 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
       // wholesale on the backend, so the builder still sends each selected
       // block completely; untouched blocks never cross the wire at all.
       const settingsPatch = toSettingsPatch(d, dirtyParts);
-      const res = Object.keys(settingsPatch).length
-        ? await saveSettings.mutateAsync(settingsPatch)
-        : { data: settings };
+      const hasPatch = Object.keys(settingsPatch).length > 0;
+      // A store that publishes its look saves into the Site's draft, and shoppers
+      // see it once the merchant publishes (`SitePublishBar`). Every other store
+      // saves straight to shoppers.
+      let saved: StorefrontSettings | undefined = settings;
+      if (hasPatch && site) {
+        const res = await saveSiteDraft.mutateAsync({
+          look: settingsPatch,
+          draftVersion: site.draftVersion,
+        });
+        saved = res.data ? settingsWithSiteLook(settings, res.data) : undefined;
+      } else if (hasPatch) {
+        saved = (await saveSettings.mutateAsync(settingsPatch)).data;
+      }
 
       // Re-seed from the saved response rather than from the draft, so the rail
       // shows what the store actually has — completely empty slides and blank
       // footer groups were dropped on the way, and pretending otherwise is how
       // the old page ended up previewing columns that never shipped.
-      if (res.data) {
-        const fresh = { ...seedDraft(res.data), collections: d.collections };
+      if (saved) {
+        const fresh = { ...seedDraft(saved), collections: d.collections };
         setDraft(fresh);
         setBaseline(fresh);
       } else {
@@ -872,7 +872,9 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     baseline.collections,
     reorderCollections,
     saveSettings,
+    saveSiteDraft,
     settings,
+    site,
     updateCollection,
     isValid,
   ]);
@@ -897,8 +899,10 @@ export function useCustomizeDraft(settings: StorefrontSettings): CustomizeDraftA
     save: () => void save(),
     saving:
       saveSettings.isPending ||
+      saveSiteDraft.isPending ||
       updateCollection.isPending ||
       reorderCollections.isPending,
+    savesDraft: !!site,
   };
 }
 

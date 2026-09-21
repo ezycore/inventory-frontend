@@ -50,6 +50,40 @@ off hides the bar everywhere, and the editor warns you when you have done that. 
 the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
 saved, and full `https://` links remain external.
 
+## Turn off a page you do not need
+
+Not every shop wants every page. Under **Shopper pages** in Store Settings you can switch off:
+
+- **Search** — hides the search box in your header and on phones, and closes the search page. Useful
+  for a small catalogue where browsing is faster than typing.
+- **Cart page** — keeps the slide-out cart and removes the separate cart page. Anyone who opens the
+  old cart link lands on checkout instead.
+- **Customer accounts** — shoppers buy as guests only. Sign-in disappears and the account pages close.
+
+All three start switched on, so nothing changes until you switch one off.
+
+**Order tracking always keeps working**, whichever pages you switch off. The tracking link you send
+after an order still opens, and **Track order** — in your header and in the phone bar at the bottom
+of the screen — always goes to the tracking lookup, where a shopper finds their order with its number
+and the phone they ordered with. It never asks them to sign in, because a shopper who bought as a
+guest has no account to sign in to. Turning a page back on restores it immediately.
+
+## Pause online orders
+
+When you cannot take orders for a while — Eid, a stock count, a trip — pause them instead of taking
+the store offline. Shoppers can still browse, and your links and ads keep working.
+
+1. In **Store Settings**, with your checkout options, turn on **Pause online orders**.
+2. Write the **Message to shoppers**. It replaces every Buy button, the cart's checkout button, the
+   order form on your landing pages and the checkout page, so say when you are back or how to order
+   meanwhile. It is shown exactly as you write it, so write it in the language your shoppers read.
+3. Turn on **Offer Order on WhatsApp** to add a chat button under the message. It uses the WhatsApp
+   number from your contact button.
+4. Save.
+
+A shopper who already had your checkout open cannot place the order either. Orders already placed carry
+on as normal, and you can still create orders yourself. Turn the switch off to take orders again.
+
 ## Your store dashboard
 
 The ecommerce **Dashboard** covers online trade only — orders, revenue and activity from the

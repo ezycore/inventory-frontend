@@ -393,7 +393,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/oauth/:provider/callback
-         * @description Defined in `src/routes/storefront.routes.ts:63`.
+         * @description Defined in `src/routes/storefront.routes.ts:68`.
          */
         get: operations["get_api_storefront_oauth_provider_callback"];
         put?: never;
@@ -413,7 +413,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug
-         * @description Defined in `src/routes/storefront.routes.ts:69`.
+         * @description Defined in `src/routes/storefront.routes.ts:74`.
          */
         get: operations["get_api_storefront_slug"];
         put?: never;
@@ -433,7 +433,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/products
-         * @description Defined in `src/routes/storefront.routes.ts:70`.
+         * @description Defined in `src/routes/storefront.routes.ts:75`.
          */
         get: operations["get_api_storefront_slug_products"];
         put?: never;
@@ -453,7 +453,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/products/:productSlug
-         * @description Defined in `src/routes/storefront.routes.ts:75`.
+         * @description Defined in `src/routes/storefront.routes.ts:80`.
          */
         get: operations["get_api_storefront_slug_products_productSlug"];
         put?: never;
@@ -473,7 +473,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/categories
-         * @description Defined in `src/routes/storefront.routes.ts:78`.
+         * @description Defined in `src/routes/storefront.routes.ts:83`.
          */
         get: operations["get_api_storefront_slug_categories"];
         put?: never;
@@ -493,7 +493,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/categories/resolve
-         * @description Defined in `src/routes/storefront.routes.ts:81`.
+         * @description Defined in `src/routes/storefront.routes.ts:86`.
          */
         get: operations["get_api_storefront_slug_categories_resolve"];
         put?: never;
@@ -513,7 +513,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/tags
-         * @description Defined in `src/routes/storefront.routes.ts:86`.
+         * @description Defined in `src/routes/storefront.routes.ts:91`.
          */
         get: operations["get_api_storefront_slug_tags"];
         put?: never;
@@ -533,7 +533,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/brands
-         * @description Defined in `src/routes/storefront.routes.ts:91`.
+         * @description Defined in `src/routes/storefront.routes.ts:96`.
          */
         get: operations["get_api_storefront_slug_brands"];
         put?: never;
@@ -553,7 +553,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/campaigns
-         * @description Defined in `src/routes/storefront.routes.ts:96`.
+         * @description Defined in `src/routes/storefront.routes.ts:101`.
          */
         get: operations["get_api_storefront_slug_campaigns"];
         put?: never;
@@ -573,7 +573,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/pages
-         * @description Defined in `src/routes/storefront.routes.ts:97`.
+         * @description Defined in `src/routes/storefront.routes.ts:102`.
          */
         get: operations["get_api_storefront_slug_pages"];
         put?: never;
@@ -593,9 +593,49 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/pages/:pageSlug
-         * @description Defined in `src/routes/storefront.routes.ts:98`.
+         * @description Defined in `src/routes/storefront.routes.ts:103`.
          */
         get: operations["get_api_storefront_slug_pages_pageSlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storefront/{slug}/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/storefront/:slug/page
+         * @description Defined in `src/routes/storefront.routes.ts:106`.
+         */
+        get: operations["get_api_storefront_slug_page"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storefront/{slug}/section-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/storefront/:slug/section-data
+         * @description Defined in `src/routes/storefront.routes.ts:111`.
+         */
+        get: operations["get_api_storefront_slug_section_data"];
         put?: never;
         post?: never;
         delete?: never;
@@ -613,7 +653,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/sitemap
-         * @description Defined in `src/routes/storefront.routes.ts:100`.
+         * @description Defined in `src/routes/storefront.routes.ts:117`.
          */
         get: operations["get_api_storefront_slug_sitemap"];
         put?: never;
@@ -635,7 +675,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/register
-         * @description Defined in `src/routes/storefront.routes.ts:103`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:125`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_register"];
         delete?: never;
@@ -655,7 +695,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/login
-         * @description Defined in `src/routes/storefront.routes.ts:109`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:131`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_login"];
         delete?: never;
@@ -675,7 +715,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/verify-email
-         * @description Defined in `src/routes/storefront.routes.ts:115`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:137`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_verify_email"];
         delete?: never;
@@ -695,7 +735,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/forgot-password
-         * @description Defined in `src/routes/storefront.routes.ts:121`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:143`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_forgot_password"];
         delete?: never;
@@ -715,7 +755,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/reset-password
-         * @description Defined in `src/routes/storefront.routes.ts:127`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:149`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_reset_password"];
         delete?: never;
@@ -735,7 +775,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/resend-verification
-         * @description Defined in `src/routes/storefront.routes.ts:133`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:155`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_resend_verification"];
         delete?: never;
@@ -753,7 +793,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/oauth/:provider/start
-         * @description Defined in `src/routes/storefront.routes.ts:140`.
+         * @description Defined in `src/routes/storefront.routes.ts:162`.
          */
         get: operations["get_api_storefront_slug_auth_oauth_provider_start"];
         put?: never;
@@ -773,7 +813,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:141`.
+         * @description Defined in `src/routes/storefront.routes.ts:163`.
          */
         get: operations["get_api_storefront_slug_auth_me"];
         put?: never;
@@ -783,7 +823,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:144`.
+         * @description Defined in `src/routes/storefront.routes.ts:166`.
          */
         patch: operations["patch_api_storefront_slug_auth_me"];
         trace?: never;
@@ -798,7 +838,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/password
-         * @description Defined in `src/routes/storefront.routes.ts:151`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:173`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         put: operations["put_api_storefront_slug_auth_me_password"];
         post?: never;
@@ -818,7 +858,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/prefs
-         * @description Defined in `src/routes/storefront.routes.ts:158`.
+         * @description Defined in `src/routes/storefront.routes.ts:180`.
          */
         put: operations["put_api_storefront_slug_auth_me_prefs"];
         post?: never;
@@ -839,7 +879,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/me/addresses
-         * @description Defined in `src/routes/storefront.routes.ts:164`.
+         * @description Defined in `src/routes/storefront.routes.ts:186`.
          */
         post: operations["post_api_storefront_slug_auth_me_addresses"];
         delete?: never;
@@ -860,14 +900,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:176`.
+         * @description Defined in `src/routes/storefront.routes.ts:198`.
          */
         delete: operations["delete_api_storefront_slug_auth_me_addresses_addressId"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:170`.
+         * @description Defined in `src/routes/storefront.routes.ts:192`.
          */
         patch: operations["patch_api_storefront_slug_auth_me_addresses_addressId"];
         trace?: never;
@@ -882,7 +922,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/cart
-         * @description Defined in `src/routes/storefront.routes.ts:189`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:211`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         put: operations["put_api_storefront_slug_cart"];
         post?: never;
@@ -903,7 +943,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/checkout-started
-         * @description Defined in `src/routes/storefront.routes.ts:195`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:217`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_checkout_started"];
         delete?: never;
@@ -923,7 +963,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/contact
-         * @description Defined in `src/routes/storefront.routes.ts:204`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:226`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_contact"];
         delete?: never;
@@ -943,7 +983,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/claim
-         * @description Defined in `src/routes/storefront.routes.ts:210`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:232`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_claim"];
         delete?: never;
@@ -963,7 +1003,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/subscribe
-         * @description Defined in `src/routes/storefront.routes.ts:221`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:243`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
          */
         post: operations["post_api_storefront_slug_subscribe"];
         delete?: never;
@@ -981,7 +1021,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/cart/restore/:token
-         * @description Defined in `src/routes/storefront.routes.ts:232`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:254`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
          */
         get: operations["get_api_storefront_slug_cart_restore_token"];
         put?: never;
@@ -1001,13 +1041,13 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:281`.
+         * @description Defined in `src/routes/storefront.routes.ts:308`.
          */
         get: operations["get_api_storefront_slug_orders"];
         put?: never;
         /**
          * POST /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:246`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:268`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
          */
         post: operations["post_api_storefront_slug_orders"];
         delete?: never;
@@ -1025,7 +1065,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/track
-         * @description Defined in `src/routes/storefront.routes.ts:266`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:288`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
          */
         get: operations["get_api_storefront_slug_orders_track"];
         put?: never;
@@ -1045,7 +1085,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/t/:token
-         * @description Defined in `src/routes/storefront.routes.ts:272`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:294`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
          */
         get: operations["get_api_storefront_slug_t_token"];
         put?: never;
@@ -1065,7 +1105,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/:orderNumber
-         * @description Defined in `src/routes/storefront.routes.ts:282`.
+         * @description Defined in `src/routes/storefront.routes.ts:314`.
          */
         get: operations["get_api_storefront_slug_orders_orderNumber"];
         put?: never;
@@ -1087,7 +1127,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/orders/:orderNumber/cancel
-         * @description Defined in `src/routes/storefront.routes.ts:289`.
+         * @description Defined in `src/routes/storefront.routes.ts:322`.
          */
         post: operations["post_api_storefront_slug_orders_orderNumber_cancel"];
         delete?: never;
@@ -1107,7 +1147,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/coupon/validate
-         * @description Defined in `src/routes/storefront.routes.ts:298`.
+         * @description Defined in `src/routes/storefront.routes.ts:332`.
          */
         post: operations["post_api_storefront_slug_coupon_validate"];
         delete?: never;
@@ -1647,7 +1687,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:277`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:282`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1663,7 +1703,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/hero-slide
-         * @description Defined in `src/routes/organization.routes.ts:289`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:295`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_hero_slide"];
         delete?: never;
@@ -1681,7 +1721,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:306`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:312`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_meta"];
         put?: never;
@@ -1691,7 +1731,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:314`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:320`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_meta"];
         trace?: never;
@@ -1707,7 +1747,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/meta/test
-         * @description Defined in `src/routes/organization.routes.ts:326`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:332`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_storefront_meta_test"];
         delete?: never;
@@ -1728,7 +1768,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/storefront/meta/token
-         * @description Defined in `src/routes/organization.routes.ts:338`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:344`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_organization_storefront_meta_token"];
         options?: never;
@@ -1746,7 +1786,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:347`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:353`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -2489,7 +2529,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_summary"];
         put?: never;
@@ -2509,13 +2549,13 @@ export interface paths {
         };
         /**
          * GET /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers"];
         put?: never;
         /**
          * POST /api/customers
-         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.create`.
          */
         post: operations["post_api_customers"];
         delete?: never;
@@ -2533,7 +2573,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:48`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_active"];
         put?: never;
@@ -2553,7 +2593,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:57`. Requires permission `customers.import`.
          */
         get: operations["get_api_customers_import_template"];
         put?: never;
@@ -2575,7 +2615,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.import`.
          */
         post: operations["post_api_customers_import"];
         delete?: never;
@@ -2593,7 +2633,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_slug_slug"];
         put?: never;
@@ -2613,18 +2653,18 @@ export interface paths {
         };
         /**
          * GET /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.view`.
          */
         get: operations["get_api_customers_id"];
         /**
          * PUT /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.edit`.
          */
         put: operations["put_api_customers_id"];
         post?: never;
         /**
          * DELETE /api/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_customers_id"];
         options?: never;
@@ -2643,7 +2683,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `customers.delete`.
          */
         post: operations["post_api_customers_bulk_delete"];
         delete?: never;
@@ -2661,7 +2701,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:120`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_dues"];
         put?: never;
@@ -2681,7 +2721,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_ledger"];
         put?: never;
@@ -2701,7 +2741,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_outstanding"];
         put?: never;
@@ -2723,7 +2763,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:143`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_customers_customerId_payments"];
         delete?: never;
@@ -2741,7 +2781,7 @@ export interface paths {
         };
         /**
          * GET /api/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
          */
         get: operations["get_api_customers_customerId_statement"];
         put?: never;
@@ -2763,7 +2803,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:161`.
          */
         post: operations["post_api_customers_customerId_email_statement"];
         delete?: never;
@@ -2781,7 +2821,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/summary
-         * @description Defined in `src/routes/customers.routes.ts:26`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:30`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_summary"];
         put?: never;
@@ -2801,13 +2841,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:36`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:40`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers"];
         put?: never;
         /**
          * POST /api/sales/customers
-         * @description Defined in `src/routes/customers.routes.ts:84`. Requires permission `customers.create`.
+         * @description Defined in `src/routes/customers.routes.ts:88`. Requires permission `customers.create`.
          */
         post: operations["post_api_sales_customers"];
         delete?: never;
@@ -2825,7 +2865,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/active
-         * @description Defined in `src/routes/customers.routes.ts:44`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:48`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_active"];
         put?: never;
@@ -2845,7 +2885,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/import/template
-         * @description Defined in `src/routes/customers.routes.ts:53`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:57`. Requires permission `customers.import`.
          */
         get: operations["get_api_sales_customers_import_template"];
         put?: never;
@@ -2867,7 +2907,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/import
-         * @description Defined in `src/routes/customers.routes.ts:60`. Requires permission `customers.import`.
+         * @description Defined in `src/routes/customers.routes.ts:64`. Requires permission `customers.import`.
          */
         post: operations["post_api_sales_customers_import"];
         delete?: never;
@@ -2885,7 +2925,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/slug/:slug
-         * @description Defined in `src/routes/customers.routes.ts:68`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:72`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_slug_slug"];
         put?: never;
@@ -2905,18 +2945,18 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:76`. Requires permission `customers.view`.
+         * @description Defined in `src/routes/customers.routes.ts:80`. Requires permission `customers.view`.
          */
         get: operations["get_api_sales_customers_id"];
         /**
          * PUT /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:92`. Requires permission `customers.edit`.
+         * @description Defined in `src/routes/customers.routes.ts:96`. Requires permission `customers.edit`.
          */
         put: operations["put_api_sales_customers_id"];
         post?: never;
         /**
          * DELETE /api/sales/customers/:id
-         * @description Defined in `src/routes/customers.routes.ts:100`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:104`. Requires permission `customers.delete`.
          */
         delete: operations["delete_api_sales_customers_id"];
         options?: never;
@@ -2935,7 +2975,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/bulk-delete
-         * @description Defined in `src/routes/customers.routes.ts:108`. Requires permission `customers.delete`.
+         * @description Defined in `src/routes/customers.routes.ts:112`. Requires permission `customers.delete`.
          */
         post: operations["post_api_sales_customers_bulk_delete"];
         delete?: never;
@@ -2953,7 +2993,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/dues
-         * @description Defined in `src/routes/customers.routes.ts:116`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:120`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_dues"];
         put?: never;
@@ -2973,7 +3013,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/ledger
-         * @description Defined in `src/routes/customers.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_ledger"];
         put?: never;
@@ -2993,7 +3033,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/outstanding
-         * @description Defined in `src/routes/customers.routes.ts:131`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:135`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_outstanding"];
         put?: never;
@@ -3015,7 +3055,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/payments
-         * @description Defined in `src/routes/customers.routes.ts:139`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/customers.routes.ts:143`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_customers_customerId_payments"];
         delete?: never;
@@ -3033,7 +3073,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/customers/:customerId/statement
-         * @description Defined in `src/routes/customers.routes.ts:148`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:152`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_customers_customerId_statement"];
         put?: never;
@@ -3055,7 +3095,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/customers/:customerId/email-statement
-         * @description Defined in `src/routes/customers.routes.ts:156`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/customers.routes.ts:161`.
          */
         post: operations["post_api_sales_customers_customerId_email_statement"];
         delete?: never;
@@ -5453,13 +5493,13 @@ export interface paths {
         };
         /**
          * GET /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:54`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:58`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales"];
         put?: never;
         /**
          * POST /api/sales
-         * @description Defined in `src/routes/sales.routes.ts:44`. Requires permission `sales.create`. Gated by organization feature `sales` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:48`. Requires permission `sales.create`. Gated by organization feature `sales` — returns 403 when disabled.
          */
         post: operations["post_api_sales"];
         delete?: never;
@@ -5477,7 +5517,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/summary
-         * @description Defined in `src/routes/sales.routes.ts:63`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:67`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_summary"];
         put?: never;
@@ -5497,7 +5537,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/customer/:customerId/pending-dues
-         * @description Defined in `src/routes/sales.routes.ts:77`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:81`. Requires permission `returns.view`. Gated by organization feature `returns`, `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_customer_customerId_pending_dues"];
         put?: never;
@@ -5517,13 +5557,13 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:105`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:109`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns"];
         put?: never;
         /**
          * POST /api/sales/returns
-         * @description Defined in `src/routes/sales.routes.ts:87`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:91`. Requires permission `returns.create`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         post: operations["post_api_sales_returns"];
         delete?: never;
@@ -5541,7 +5581,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/summary
-         * @description Defined in `src/routes/sales.routes.ts:97`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:101`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_summary"];
         put?: never;
@@ -5561,7 +5601,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/returns/:id
-         * @description Defined in `src/routes/sales.routes.ts:114`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:118`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_returns_id"];
         put?: never;
@@ -5581,21 +5621,21 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:123`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:127`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:193`. Requires permission `sales.delete`.
+         * @description Defined in `src/routes/sales.routes.ts:198`. Requires permission `sales.delete`.
          */
         delete: operations["delete_api_sales_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/sales/:id
-         * @description Defined in `src/routes/sales.routes.ts:176`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:181`. Requires permission `sales.edit`.
          */
         patch: operations["patch_api_sales_id"];
         trace?: never;
@@ -5609,7 +5649,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:saleId/returns
-         * @description Defined in `src/routes/sales.routes.ts:131`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:135`. Requires permission `returns.view`. Gated by organization feature `returns` — returns 403 when disabled.
          */
         get: operations["get_api_sales_saleId_returns"];
         put?: never;
@@ -5631,7 +5671,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/payment
-         * @description Defined in `src/routes/sales.routes.ts:140`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/sales.routes.ts:144`. Requires permission `sales.edit`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         post: operations["post_api_sales_id_payment"];
         delete?: never;
@@ -5649,7 +5689,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/payments
-         * @description Defined in `src/routes/sales.routes.ts:149`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:153`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_payments"];
         put?: never;
@@ -5671,7 +5711,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/email-receipt
-         * @description Defined in `src/routes/sales.routes.ts:157`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:162`.
          */
         post: operations["post_api_sales_id_email_receipt"];
         delete?: never;
@@ -5689,7 +5729,7 @@ export interface paths {
         };
         /**
          * GET /api/sales/:id/transactions
-         * @description Defined in `src/routes/sales.routes.ts:166`. Requires permission `sales.view`.
+         * @description Defined in `src/routes/sales.routes.ts:171`. Requires permission `sales.view`.
          */
         get: operations["get_api_sales_id_transactions"];
         put?: never;
@@ -5711,7 +5751,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/sales/:id/finalize
-         * @description Defined in `src/routes/sales.routes.ts:185`. Requires permission `sales.edit`.
+         * @description Defined in `src/routes/sales.routes.ts:190`. Requires permission `sales.edit`.
          */
         post: operations["post_api_sales_id_finalize"];
         delete?: never;
@@ -5729,7 +5769,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/inventory
-         * @description Defined in `src/routes/reports.routes.ts:16`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:20`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_inventory"];
         put?: never;
@@ -5749,9 +5789,29 @@ export interface paths {
         };
         /**
          * GET /api/reports/sales
-         * @description Defined in `src/routes/reports.routes.ts:19`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:23`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_sales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales/breakdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/sales/breakdown
+         * @description Defined in `src/routes/reports.routes.ts:28`. Requires permission `reports.view`.
+         */
+        get: operations["get_api_reports_sales_breakdown"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5769,7 +5829,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/combos
-         * @description Defined in `src/routes/reports.routes.ts:22`. Requires permission `reports.view`. Gated by organization feature `combo` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:35`. Requires permission `reports.view`. Gated by organization feature `combo` — returns 403 when disabled.
          */
         get: operations["get_api_reports_combos"];
         put?: never;
@@ -5789,7 +5849,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/purchases
-         * @description Defined in `src/routes/reports.routes.ts:29`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:42`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_purchases"];
         put?: never;
@@ -5809,7 +5869,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/cash
-         * @description Defined in `src/routes/reports.routes.ts:32`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:45`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_cash"];
         put?: never;
@@ -5829,7 +5889,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/capital
-         * @description Defined in `src/routes/reports.routes.ts:36`. Requires permission `reports.view`. Gated by organization feature `accounts` — returns 403 when disabled.
+         * @description Defined in `src/routes/reports.routes.ts:49`. Requires permission `reports.view`. Gated by organization feature `accounts` — returns 403 when disabled.
          */
         get: operations["get_api_reports_capital"];
         put?: never;
@@ -5849,7 +5909,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/profit-loss
-         * @description Defined in `src/routes/reports.routes.ts:47`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:60`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_profit_loss"];
         put?: never;
@@ -5869,7 +5929,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/position
-         * @description Defined in `src/routes/reports.routes.ts:52`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:65`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_position"];
         put?: never;
@@ -5889,7 +5949,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/valuation
-         * @description Defined in `src/routes/reports.routes.ts:56`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:69`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_valuation"];
         put?: never;
@@ -5909,7 +5969,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/employees
-         * @description Defined in `src/routes/reports.routes.ts:59`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:72`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_employees"];
         put?: never;
@@ -5929,7 +5989,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/export
-         * @description Defined in `src/routes/reports.routes.ts:62`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:75`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_export"];
         put?: never;
@@ -5949,7 +6009,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax
-         * @description Defined in `src/routes/reports.routes.ts:72`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:85`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax"];
         put?: never;
@@ -5969,7 +6029,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax/ledger
-         * @description Defined in `src/routes/reports.routes.ts:75`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:88`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax_ledger"];
         put?: never;
@@ -7139,6 +7199,326 @@ export interface paths {
          * @description Defined in `src/routes/content-pages.routes.ts:57`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_content_id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/pages
+         * @description Defined in `src/routes/storefront-pages.routes.ts:33`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_pages"];
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages
+         * @description Defined in `src/routes/storefront-pages.routes.ts:39`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         */
+        post: operations["post_api_ecommerce_pages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/images
+         * @description Defined in `src/routes/storefront-pages.routes.ts:56`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_pages_images"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/ecommerce/pages/home
+         * @description Defined in `src/routes/storefront-pages.routes.ts:66`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        put: operations["put_api_ecommerce_pages_home"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/pages/:id
+         * @description Defined in `src/routes/storefront-pages.routes.ts:72`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_pages_id"];
+        put?: never;
+        post?: never;
+        /**
+         * DELETE /api/ecommerce/pages/:id
+         * @description Defined in `src/routes/storefront-pages.routes.ts:84`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_ecommerce_pages_id"];
+        options?: never;
+        head?: never;
+        /**
+         * PATCH /api/ecommerce/pages/:id
+         * @description Defined in `src/routes/storefront-pages.routes.ts:78`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        patch: operations["patch_api_ecommerce_pages_id"];
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/ecommerce/pages/:id/draft
+         * @description Defined in `src/routes/storefront-pages.routes.ts:91`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        put: operations["put_api_ecommerce_pages_id_draft"];
+        post?: never;
+        /**
+         * DELETE /api/ecommerce/pages/:id/draft
+         * @description Defined in `src/routes/storefront-pages.routes.ts:97`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_ecommerce_pages_id_draft"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/:id/publish
+         * @description Defined in `src/routes/storefront-pages.routes.ts:103`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         */
+        post: operations["post_api_ecommerce_pages_id_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/:id/unpublish
+         * @description Defined in `src/routes/storefront-pages.routes.ts:110`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_pages_id_unpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/:id/duplicate
+         * @description Defined in `src/routes/storefront-pages.routes.ts:116`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         */
+        post: operations["post_api_ecommerce_pages_id_duplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/pages/:id/revisions
+         * @description Defined in `src/routes/storefront-pages.routes.ts:123`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_pages_id_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/pages/{id}/revisions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/pages/:id/revisions/:version/restore
+         * @description Defined in `src/routes/storefront-pages.routes.ts:129`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_pages_id_revisions_version_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/storefront/site
+         * @description Defined in `src/routes/storefront-site.routes.ts:26`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_organization_storefront_site"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * DELETE /api/organization/storefront/site/draft
+         * @description Defined in `src/routes/storefront-site.routes.ts:33`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_organization_storefront_site_draft"];
+        options?: never;
+        head?: never;
+        /**
+         * PATCH /api/organization/storefront/site/draft
+         * @description Defined in `src/routes/storefront-site.routes.ts:27`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        patch: operations["patch_api_organization_storefront_site_draft"];
+        trace?: never;
+    };
+    "/api/organization/storefront/site/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/storefront/site/publish
+         * @description Defined in `src/routes/storefront-site.routes.ts:34`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         */
+        post: operations["post_api_organization_storefront_site_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/organization/storefront/site/revisions
+         * @description Defined in `src/routes/storefront-site.routes.ts:40`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_organization_storefront_site_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/storefront/site/revisions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/organization/storefront/site/revisions/:version/restore
+         * @description Defined in `src/routes/storefront-site.routes.ts:45`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_organization_storefront_site_revisions_version_restore"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -10736,6 +11116,16 @@ export interface components {
                 /** @enum {string} */
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
                 isGuest?: boolean;
+                source?: {
+                    pageId?: string;
+                    utm?: {
+                        source?: string;
+                        medium?: string;
+                        campaign?: string;
+                        content?: string;
+                        term?: string;
+                    };
+                };
                 items: {
                     _id?: string;
                     productId: string;
@@ -10946,6 +11336,16 @@ export interface components {
             /** @enum {string} */
             channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
             isGuest?: boolean;
+            source?: {
+                pageId?: string;
+                utm?: {
+                    source?: string;
+                    medium?: string;
+                    campaign?: string;
+                    content?: string;
+                    term?: string;
+                };
+            };
             items: {
                 _id?: string;
                 productId: string;
@@ -11146,6 +11546,16 @@ export interface components {
                 /** @enum {string} */
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
                 isGuest?: boolean;
+                source?: {
+                    pageId?: string;
+                    utm?: {
+                        source?: string;
+                        medium?: string;
+                        campaign?: string;
+                        content?: string;
+                        term?: string;
+                    };
+                };
                 items: {
                     _id?: string;
                     productId: string;
@@ -11943,6 +12353,7 @@ export interface components {
             industry: string;
             country: string;
             timezone: string;
+            weekStartDay?: number;
             currency: string;
             ownerId: string;
             address?: string;
@@ -12254,6 +12665,9 @@ export interface components {
             _id: string;
             organizationId: string;
             published: boolean;
+            homePageId?: string;
+            /** Format: date-time */
+            siteCutoverAt?: string;
             displayName?: string;
             logo?: {
                 url: string;
@@ -12403,6 +12817,11 @@ export interface components {
                     width?: string;
                     navHover?: string;
                     navChildHover?: string;
+                    buttonShape?: string;
+                    buttonStyle?: string;
+                    buttonSize?: string;
+                    headingWeight?: string;
+                    headingCase?: string;
                 };
                 mobile?: {
                     left?: string[];
@@ -12600,6 +13019,9 @@ export interface components {
                         paymentMethods?: string[];
                     };
                 }[];
+                ordersPaused?: boolean;
+                pausedMessage?: string;
+                pausedWhatsApp?: boolean;
             };
             templates?: {
                 home?: string;
@@ -12624,6 +13046,10 @@ export interface components {
             };
             customersConfig?: {
                 allowAccounts?: boolean;
+            };
+            pagesConfig?: {
+                search?: boolean;
+                cartPage?: boolean;
             };
             adminStatusLabels?: {
                 pending?: string;
@@ -12917,6 +13343,7 @@ export interface components {
             slug: string;
             currency?: string;
             canonicalHost: string | null;
+            homePageId: string | null;
             tracked: boolean;
             logo?: unknown;
             favicon?: {
@@ -12989,6 +13416,11 @@ export interface components {
             trustBadges?: unknown;
             nav?: unknown;
             checkout?: unknown;
+            pages: {
+                search: boolean;
+                cartPage: boolean;
+                accounts: boolean;
+            };
             pickup?: {
                 enabled: boolean;
                 instructions?: string;
@@ -13516,6 +13948,950 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             unsubscribedAt?: string;
+        };
+        StorefrontHomePage: {
+            homePageId: string | null;
+        };
+        StorefrontPage: {
+            _id: string;
+            organizationId: string;
+            /** @enum {string} */
+            kind: "system" | "content" | "landing";
+            /** @enum {string} */
+            systemKey?: "home" | "collection" | "product" | "search" | "cart" | "checkout" | "account" | "tracking" | "not-found";
+            slug?: string;
+            previousSlugs: string[];
+            title: string;
+            /** @enum {string} */
+            status: "draft" | "published" | "disabled";
+            /** @enum {string} */
+            chrome: "full" | "minimal" | "none";
+            seo: {
+                title?: string;
+                description?: string;
+                noindex: boolean;
+            };
+            footer?: {
+                show: boolean;
+                order: number;
+            };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
+            };
+            published: {
+                sections: {
+                    id: string;
+                    type: string;
+                    v: number;
+                    enabled: boolean;
+                    visibility?: {
+                        desktop?: boolean;
+                        mobile?: boolean;
+                    };
+                    settings: {
+                        [key: string]: unknown;
+                    };
+                    style?: {
+                        [key: string]: unknown;
+                    };
+                    blocks?: {
+                        id: string;
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                }[];
+                version: number;
+                /** Format: date-time */
+                publishedAt: string;
+            } | null;
+            draft: {
+                sections: {
+                    id: string;
+                    type: string;
+                    v: number;
+                    enabled: boolean;
+                    visibility?: {
+                        desktop?: boolean;
+                        mobile?: boolean;
+                    };
+                    settings: {
+                        [key: string]: unknown;
+                    };
+                    style?: {
+                        [key: string]: unknown;
+                    };
+                    blocks?: {
+                        id: string;
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                }[];
+                /** Format: date-time */
+                updatedAt: string;
+            } | null;
+            draftVersion: number;
+            stats: {
+                sectionCount: number;
+                configBytes: number;
+            };
+            isDemoData?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StorefrontPageListItem: {
+            _id: string;
+            /** @enum {string} */
+            kind: "system" | "content" | "landing";
+            /** @enum {string} */
+            systemKey?: "home" | "collection" | "product" | "search" | "cart" | "checkout" | "account" | "tracking" | "not-found";
+            slug?: string;
+            title: string;
+            /** @enum {string} */
+            status: "draft" | "published" | "disabled";
+            /** @enum {string} */
+            chrome: "full" | "minimal" | "none";
+            footer?: {
+                show: boolean;
+                order: number;
+            };
+            schedule?: {
+                /** Format: date-time */
+                startsAt: string | null;
+                /** Format: date-time */
+                endsAt: string | null;
+                /** @enum {string} */
+                afterEnd: "not-found" | "home" | "page";
+                afterEndPageId: string | null;
+            };
+            hasDraft: boolean;
+            publishedVersion: number | null;
+            /** Format: date-time */
+            publishedAt: string | null;
+            stats: {
+                sectionCount: number;
+                configBytes: number;
+            };
+            orders: number;
+            isHome: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StorefrontPageRevision: {
+            _id: string;
+            version: number;
+            title: string;
+            sectionCount: number;
+            /** Format: date-time */
+            publishedAt: string;
+            publishedBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        StorefrontPublicPage: {
+            page: {
+                _id: string;
+                /** @enum {string} */
+                kind: "system" | "content" | "landing";
+                slug?: string;
+                title: string;
+                /** @enum {string} */
+                status: "draft" | "published" | "disabled";
+                /** @enum {string} */
+                chrome: "full" | "minimal" | "none";
+                seo: {
+                    title?: string;
+                    description?: string;
+                    noindex: boolean;
+                };
+                version: number | null;
+                sections: {
+                    id: string;
+                    type: string;
+                    v: number;
+                    enabled: boolean;
+                    visibility?: {
+                        desktop?: boolean;
+                        mobile?: boolean;
+                    };
+                    settings: {
+                        [key: string]: unknown;
+                    };
+                    style?: {
+                        [key: string]: unknown;
+                    };
+                    blocks?: {
+                        id: string;
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                    }[];
+                }[];
+                isDraft: boolean;
+                /** Format: date-time */
+                updatedAt: string;
+            } | null;
+            redirect: {
+                path: string;
+                permanent: boolean;
+            } | null;
+        };
+        StorefrontSectionData: {
+            results: {
+                [key: string]: {
+                    items: {
+                        _id: string;
+                        name: string;
+                        slug?: string;
+                        price: number | null;
+                        compareAtPrice: number | null;
+                        basePrice: number | null;
+                        images: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        }[];
+                        description: string;
+                        featured: boolean;
+                        categoryId?: string | null;
+                        tags: {
+                            _id: string;
+                            name: string;
+                            slug?: string;
+                            color: string | null;
+                        }[];
+                        subcategoryId?: string | null;
+                        productType: string;
+                        hasVariants: boolean;
+                        availableQuantity: number;
+                        tracked?: boolean;
+                        unitLabel?: string;
+                        /** @enum {string} */
+                        outOfStockBehavior?: "hide" | "show" | "backorder";
+                        seo?: {
+                            title?: string;
+                            description?: string;
+                        };
+                        variants?: {
+                            _id: string;
+                            label: string;
+                            attributes: {
+                                [key: string]: unknown;
+                            };
+                            price: number | null;
+                            compareAtPrice: number | null;
+                            images: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            }[];
+                            availableQuantity: number;
+                            tracked?: boolean;
+                        }[];
+                    }[];
+                };
+            };
+        };
+        StorefrontSectionInstance: {
+            id: string;
+            type: string;
+            v: number;
+            enabled: boolean;
+            visibility?: {
+                desktop?: boolean;
+                mobile?: boolean;
+            };
+            settings: {
+                [key: string]: unknown;
+            };
+            style?: {
+                [key: string]: unknown;
+            };
+            blocks?: {
+                id: string;
+                settings: {
+                    [key: string]: unknown;
+                };
+            }[];
+        };
+        StorefrontSite: {
+            _id: string;
+            organizationId: string;
+            published: {
+                look: {
+                    theme?: {
+                        preset: string;
+                        brandColor?: string;
+                        accentColor?: string;
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        }[];
+                        logo?: {
+                            background?: string;
+                            height?: number;
+                            padding?: number;
+                            radius?: number;
+                        };
+                        homeCollections?: {
+                            /** @enum {string} */
+                            style?: "card" | "plain";
+                            /** @enum {string} */
+                            layout?: "strip" | "grid";
+                            columns?: number;
+                            mobileColumns?: number;
+                            /** @enum {string} */
+                            align?: "left" | "center" | "right";
+                            showLabels?: boolean;
+                        };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                            width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
+                        };
+                        mobile?: {
+                            left?: string[];
+                            right?: string[];
+                            brand?: string;
+                            row?: string;
+                            searchInline?: boolean;
+                            tabs?: string[];
+                            menuStyle?: string;
+                            icons?: {
+                                [key: string]: string;
+                            };
+                            logoHeight?: number;
+                            sticky?: boolean;
+                        };
+                        appliedThemeId?: string;
+                        /** @enum {string} */
+                        heroAlign?: "left" | "center";
+                    };
+                    copy?: {
+                        footerText?: string;
+                        footerNote?: string;
+                        footerContactHeading?: string;
+                        footerNewsletter?: {
+                            heading?: string;
+                            blurb?: string;
+                            buttonLabel?: string;
+                        };
+                    };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category" | "manual";
+                        categoryId?: string;
+                        categoryIds?: string[];
+                        /** @enum {string} */
+                        cardShape?: "stacked" | "split";
+                        /** @enum {string} */
+                        cardSide?: "left" | "right" | "alternate";
+                        cardSplit?: number;
+                        cardHideText?: boolean;
+                        cardHeight?: number;
+                        /** @enum {string} */
+                        cardFlow?: "wrap" | "scroll";
+                        cardPerRow?: number;
+                        cardRadius?: number;
+                        cardArrows?: boolean;
+                        /** @enum {string} */
+                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                        fullWidth?: boolean;
+                        mobile?: {
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            cardHeight?: number;
+                        };
+                        cards?: {
+                            categoryId: string;
+                            title?: string;
+                            description?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            buttonLabel?: string;
+                            buttonHref?: string;
+                        }[];
+                        title?: string;
+                        limit?: number;
+                        tagIds?: string[];
+                        productIds?: string[];
+                        ctaLabel?: string;
+                        ctaHref?: string;
+                        showCta?: boolean;
+                    }[];
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
+                    heroBanner?: {
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        primaryLabel?: string;
+                        primaryLink?: string;
+                        secondaryLabel?: string;
+                        secondaryLink?: string;
+                        imageFit?: string;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                    };
+                    heroSlides?: {
+                        image?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                        imageFit?: string;
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        buttonLabel?: string;
+                        link?: string;
+                        hideTextOnMobile?: boolean;
+                    }[];
+                    templates?: {
+                        home?: string;
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        hero?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    nav?: {
+                        header?: {
+                            label: string;
+                            /** @enum {string} */
+                            type: "category" | "page" | "url";
+                            value?: string;
+                            children?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url";
+                                value?: string;
+                            }[];
+                        }[];
+                        footer?: {
+                            title: string;
+                            links: {
+                                label?: string;
+                                url?: string;
+                            }[];
+                        }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        footerContentPages?: {
+                            show?: boolean;
+                            title?: string;
+                        };
+                        announcement?: {
+                            enabled: boolean;
+                            useShippingRule?: boolean;
+                            text?: string;
+                            link?: string;
+                            bgColor?: string;
+                            textColor?: string;
+                            icon?: string;
+                            ctaLabel?: string;
+                            dismissible?: boolean;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            overlay?: string;
+                            overlayOpacity?: number;
+                            /** @enum {string} */
+                            bgFit?: "cover" | "tile";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        campaignStrip?: {
+                            enabled?: boolean;
+                            /** @enum {string} */
+                            showOn?: "all" | "home";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            bgColor?: string;
+                            textColor?: string;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingY?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingX?: "sm" | "md" | "lg";
+                            dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
+                        };
+                    };
+                    contactButton?: {
+                        enabled?: boolean;
+                        label?: string;
+                        greeting?: string;
+                        /** @enum {string} */
+                        position?: "right" | "left";
+                        showOn?: string[];
+                        channels?: {
+                            kind: string;
+                            value: string;
+                            label?: string;
+                            enabled?: boolean;
+                        }[];
+                        hours?: {
+                            enabled?: boolean;
+                            days?: number[];
+                            from?: string;
+                            to?: string;
+                            offlineNote?: string;
+                        };
+                        nudge?: {
+                            enabled?: boolean;
+                            delaySeconds?: number;
+                            text?: string;
+                        };
+                    };
+                };
+                version: number;
+                /** Format: date-time */
+                publishedAt: string;
+            };
+            draft: {
+                look: {
+                    theme?: {
+                        preset: string;
+                        brandColor?: string;
+                        accentColor?: string;
+                        homepageSections?: {
+                            key: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        }[];
+                        logo?: {
+                            background?: string;
+                            height?: number;
+                            padding?: number;
+                            radius?: number;
+                        };
+                        homeCollections?: {
+                            /** @enum {string} */
+                            style?: "card" | "plain";
+                            /** @enum {string} */
+                            layout?: "strip" | "grid";
+                            columns?: number;
+                            mobileColumns?: number;
+                            /** @enum {string} */
+                            align?: "left" | "center" | "right";
+                            showLabels?: boolean;
+                        };
+                        design?: {
+                            font?: string;
+                            surface?: string;
+                            scale?: string;
+                            density?: string;
+                            radius?: string;
+                            width?: string;
+                            navHover?: string;
+                            navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
+                        };
+                        mobile?: {
+                            left?: string[];
+                            right?: string[];
+                            brand?: string;
+                            row?: string;
+                            searchInline?: boolean;
+                            tabs?: string[];
+                            menuStyle?: string;
+                            icons?: {
+                                [key: string]: string;
+                            };
+                            logoHeight?: number;
+                            sticky?: boolean;
+                        };
+                        appliedThemeId?: string;
+                        /** @enum {string} */
+                        heroAlign?: "left" | "center";
+                    };
+                    copy?: {
+                        footerText?: string;
+                        footerNote?: string;
+                        footerContactHeading?: string;
+                        footerNewsletter?: {
+                            heading?: string;
+                            blurb?: string;
+                            buttonLabel?: string;
+                        };
+                    };
+                    sectionConfig?: {
+                        key: string;
+                        /** @enum {string} */
+                        source?: "featured" | "newest" | "category" | "manual";
+                        categoryId?: string;
+                        categoryIds?: string[];
+                        /** @enum {string} */
+                        cardShape?: "stacked" | "split";
+                        /** @enum {string} */
+                        cardSide?: "left" | "right" | "alternate";
+                        cardSplit?: number;
+                        cardHideText?: boolean;
+                        cardHeight?: number;
+                        /** @enum {string} */
+                        cardFlow?: "wrap" | "scroll";
+                        cardPerRow?: number;
+                        cardRadius?: number;
+                        cardArrows?: boolean;
+                        /** @enum {string} */
+                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                        fullWidth?: boolean;
+                        mobile?: {
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            cardHeight?: number;
+                        };
+                        cards?: {
+                            categoryId: string;
+                            title?: string;
+                            description?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            buttonLabel?: string;
+                            buttonHref?: string;
+                        }[];
+                        title?: string;
+                        limit?: number;
+                        tagIds?: string[];
+                        productIds?: string[];
+                        ctaLabel?: string;
+                        ctaHref?: string;
+                        showCta?: boolean;
+                    }[];
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
+                    heroBanner?: {
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        primaryLabel?: string;
+                        primaryLink?: string;
+                        secondaryLabel?: string;
+                        secondaryLink?: string;
+                        imageFit?: string;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                    };
+                    heroSlides?: {
+                        image?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        mobileImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        } | null;
+                        focal?: {
+                            x: number;
+                            y: number;
+                        };
+                        mobileFocal?: {
+                            x: number;
+                            y: number;
+                        };
+                        imageFit?: string;
+                        badge?: string;
+                        title?: string;
+                        subtitle?: string;
+                        buttonLabel?: string;
+                        link?: string;
+                        hideTextOnMobile?: boolean;
+                    }[];
+                    templates?: {
+                        home?: string;
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        hero?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        categoryTiles?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    nav?: {
+                        header?: {
+                            label: string;
+                            /** @enum {string} */
+                            type: "category" | "page" | "url";
+                            value?: string;
+                            children?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url";
+                                value?: string;
+                            }[];
+                        }[];
+                        footer?: {
+                            title: string;
+                            links: {
+                                label?: string;
+                                url?: string;
+                            }[];
+                        }[];
+                        footerPaymentMethods?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        footerContentPages?: {
+                            show?: boolean;
+                            title?: string;
+                        };
+                        announcement?: {
+                            enabled: boolean;
+                            useShippingRule?: boolean;
+                            text?: string;
+                            link?: string;
+                            bgColor?: string;
+                            textColor?: string;
+                            icon?: string;
+                            ctaLabel?: string;
+                            dismissible?: boolean;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            marquee?: boolean;
+                            /** @enum {string} */
+                            marqueeSpeed?: "slow" | "normal" | "fast";
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            overlay?: string;
+                            overlayOpacity?: number;
+                            /** @enum {string} */
+                            bgFit?: "cover" | "tile";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
+                        campaignStrip?: {
+                            enabled?: boolean;
+                            /** @enum {string} */
+                            showOn?: "all" | "home";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            bgColor?: string;
+                            textColor?: string;
+                            /** @enum {string} */
+                            size?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingY?: "sm" | "md" | "lg";
+                            /** @enum {string} */
+                            paddingX?: "sm" | "md" | "lg";
+                            dismissible?: boolean;
+                        };
+                        utilityBar?: {
+                            enabled?: boolean;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            showPhone?: boolean;
+                            showTrackOrder?: boolean;
+                            showLanguage?: boolean;
+                            showTheme?: boolean;
+                            trackOrderLabel?: string;
+                        };
+                    };
+                    contactButton?: {
+                        enabled?: boolean;
+                        label?: string;
+                        greeting?: string;
+                        /** @enum {string} */
+                        position?: "right" | "left";
+                        showOn?: string[];
+                        channels?: {
+                            kind: string;
+                            value: string;
+                            label?: string;
+                            enabled?: boolean;
+                        }[];
+                        hours?: {
+                            enabled?: boolean;
+                            days?: number[];
+                            from?: string;
+                            to?: string;
+                            offlineNote?: string;
+                        };
+                        nudge?: {
+                            enabled?: boolean;
+                            delaySeconds?: number;
+                            text?: string;
+                        };
+                    };
+                };
+                /** Format: date-time */
+                updatedAt: string;
+            } | null;
+            draftVersion: number;
+            isDemoData?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StorefrontSiteRevision: {
+            _id: string;
+            version: number;
+            /** Format: date-time */
+            publishedAt: string;
+            publishedBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         CapitalReport: {
             period: {
@@ -14048,6 +15424,38 @@ export interface components {
         ReportExport: {
             [key: string]: unknown;
         };
+        SalesBreakdownReport: {
+            /** @enum {string} */
+            dimension: "category" | "brand" | "tag";
+            period: {
+                key: string;
+                /** Format: date-time */
+                startDate: string;
+                /** Format: date-time */
+                endDate: string;
+            };
+            overlapping: boolean;
+            totals: {
+                units: number;
+                orders: number;
+                revenue: number;
+            };
+            unassigned: {
+                units: number;
+                orders: number;
+                revenue: number;
+                productCount: number;
+            };
+            rows: {
+                id: string;
+                name: string | null;
+                units: number;
+                orders: number;
+                revenue: number;
+                share: number;
+                productCount: number;
+            }[];
+        };
         SalesReport: {
             period: {
                 key: string;
@@ -14257,6 +15665,7 @@ export interface components {
                 ownerId?: string | null;
                 currency?: string;
                 timezone?: string;
+                weekStartDay?: number;
                 logo?: {
                     url: string;
                     mediumUrl: string;
@@ -14412,6 +15821,7 @@ export interface components {
                 ownerId?: string | null;
                 currency?: string;
                 timezone?: string;
+                weekStartDay?: number;
                 logo?: {
                     url: string;
                     mediumUrl: string;
@@ -14571,6 +15981,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -14727,6 +16138,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -14878,8 +16290,6 @@ export interface components {
             modules: {
                 key: string;
                 permissions: string[];
-                feature?: string;
-                available: boolean;
             }[];
             grantable: string[];
         };
@@ -14923,6 +16333,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -15102,6 +16513,7 @@ export interface components {
                     ownerId?: string | null;
                     currency?: string;
                     timezone?: string;
+                    weekStartDay?: number;
                     logo?: {
                         url: string;
                         mediumUrl: string;
@@ -16821,6 +18233,105 @@ export interface operations {
             };
         };
     };
+    get_api_storefront_slug_page: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPublicPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_storefront_slug_section_data: {
+        parameters: {
+            query: {
+                r: {
+                    key: string;
+                    /** @enum {string} */
+                    type: "products";
+                    /** @enum {string} */
+                    source: "featured" | "newest" | "category" | "tag" | "manual";
+                    categoryId?: string;
+                    tagIds?: string[];
+                    productIds?: string[];
+                    limit: number;
+                    inStock?: boolean;
+                }[];
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSectionData"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_storefront_slug_sitemap: {
         parameters: {
             query?: never;
@@ -17986,6 +19497,16 @@ export interface operations {
                         fbp?: string;
                         fbc?: string;
                         eventSourceUrl?: string;
+                    };
+                    source?: {
+                        pageId?: string;
+                        utm?: {
+                            source?: string;
+                            medium?: string;
+                            campaign?: string;
+                            content?: string;
+                            term?: string;
+                        };
                     };
                 };
             };
@@ -19743,6 +21264,11 @@ export interface operations {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            buttonShape?: string;
+                            buttonStyle?: string;
+                            buttonSize?: string;
+                            headingWeight?: string;
+                            headingCase?: string;
                         };
                         /** @enum {string} */
                         heroAlign?: "left" | "center";
@@ -19904,6 +21430,9 @@ export interface operations {
                         /** @enum {string} */
                         addressMode?: "detailed" | "flat";
                         showOrderNotes?: boolean;
+                        ordersPaused?: boolean;
+                        pausedMessage?: string;
+                        pausedWhatsApp?: boolean;
                         customFields?: {
                             key: string;
                             /** @enum {string} */
@@ -19948,6 +21477,10 @@ export interface operations {
                     };
                     customersConfig?: {
                         allowAccounts?: boolean;
+                    };
+                    pagesConfig?: {
+                        search?: boolean;
+                        cartPage?: boolean;
                     };
                     adminStatusLabels?: {
                         pending?: string;
@@ -20423,7 +21956,6 @@ export interface operations {
                     registration?: {
                         /** @enum {string} */
                         type: "standard_15" | "reduced" | "turnover_4" | "exempt" | "unregistered";
-                        /** Format: date-time */
                         effectiveFrom: string;
                     };
                 };
@@ -24117,15 +25649,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Not found */
             404: {
                 headers: {
@@ -25151,15 +26674,6 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -35576,15 +37090,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
             /** @description Not found */
             404: {
                 headers: {
@@ -35825,6 +37330,63 @@ export interface operations {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["SalesReport"];
                     };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_sales_breakdown: {
+        parameters: {
+            query?: {
+                dimension?: "category" | "brand" | "tag";
+                period?: string;
+                startDate?: string;
+                endDate?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["SalesBreakdownReport"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Missing or invalid credentials */
@@ -36692,6 +38254,7 @@ export interface operations {
                 fulfillmentType?: "delivery" | "pickup";
                 paymentStatus?: "pending" | "paid" | "refunded";
                 channel?: "website" | "messenger" | "whatsapp" | "instagram" | "comment" | "phone" | "manual";
+                pageId?: string;
                 period?: "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "last6Months" | "thisYear" | "lastYear" | "custom";
                 startDate?: string;
                 endDate?: string;
@@ -40842,6 +42405,1595 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["DeletedId"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_pages: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: "draft" | "published" | "disabled";
+                start_date?: string;
+                end_date?: string;
+                kind?: "system" | "content" | "landing";
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["StorefrontPageListItem"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    kind: "landing";
+                    title: string;
+                    slug?: string;
+                    /** @enum {string} */
+                    chrome?: "full" | "minimal" | "none";
+                    sections?: ({
+                        id: string;
+                        type: string;
+                        v: number;
+                        enabled: boolean;
+                        visibility?: {
+                            [key: string]: unknown;
+                        };
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                        style?: {
+                            [key: string]: unknown;
+                        };
+                        blocks?: ({
+                            id: string;
+                            settings: {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (60 requests / 1 hour per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages_images: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["HeroSlideImage"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_ecommerce_pages_home: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    pageId: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontHomePage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_pages_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_ecommerce_pages_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["DeletedId"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_api_ecommerce_pages_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title?: string;
+                    slug?: string;
+                    /** @enum {string} */
+                    chrome?: "full" | "minimal" | "none";
+                    seo?: {
+                        title?: string;
+                        description?: string;
+                        noindex?: boolean;
+                    };
+                    schedule?: {
+                        /** Format: date-time */
+                        startsAt: string | null;
+                        /** Format: date-time */
+                        endsAt: string | null;
+                        /** @enum {string} */
+                        afterEnd: "not-found" | "home" | "page";
+                        afterEndPageId?: string | null;
+                    } | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_ecommerce_pages_id_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    sections: ({
+                        id: string;
+                        type: string;
+                        v: number;
+                        enabled: boolean;
+                        visibility?: {
+                            [key: string]: unknown;
+                        };
+                        settings: {
+                            [key: string]: unknown;
+                        };
+                        style?: {
+                            [key: string]: unknown;
+                        };
+                        blocks?: ({
+                            id: string;
+                            settings: {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                    draftVersion: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_ecommerce_pages_id_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages_id_publish: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (60 requests / 15 minutes per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages_id_unpublish: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages_id_duplicate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (60 requests / 1 hour per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_pages_id_revisions: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPageRevision"][];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_pages_id_revisions_version_restore: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontPage"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_storefront_site: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_organization_storefront_site_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_api_organization_storefront_site_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    look: {
+                        theme?: {
+                            preset: string;
+                            brandColor?: string;
+                            accentColor?: string;
+                            homepageSections?: {
+                                key: string;
+                                type: string;
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            }[];
+                            logo?: {
+                                background?: "" | string;
+                                height?: number;
+                                padding?: number;
+                                radius?: number;
+                            };
+                            mobile?: {
+                                left?: string[];
+                                right?: string[];
+                                brand?: string;
+                                row?: string;
+                                searchInline?: boolean;
+                                tabs?: string[];
+                                menuStyle?: string;
+                                icons?: {
+                                    [key: string]: string;
+                                };
+                                logoHeight?: number;
+                                sticky?: boolean;
+                            };
+                            homeCollections?: {
+                                /** @enum {string} */
+                                style?: "card" | "plain";
+                                /** @enum {string} */
+                                layout?: "strip" | "grid";
+                                columns?: number;
+                                mobileColumns?: number;
+                                /** @enum {string} */
+                                align?: "left" | "center" | "right";
+                                showLabels?: boolean;
+                            };
+                            design?: {
+                                font?: string;
+                                surface?: string;
+                                scale?: string;
+                                density?: string;
+                                radius?: string;
+                                width?: string;
+                                navHover?: string;
+                                navChildHover?: string;
+                                buttonShape?: string;
+                                buttonStyle?: string;
+                                buttonSize?: string;
+                                headingWeight?: string;
+                                headingCase?: string;
+                            };
+                            /** @enum {string} */
+                            heroAlign?: "left" | "center";
+                            appliedThemeId?: string;
+                        };
+                        copy?: {
+                            footerText?: string;
+                            footerNote?: string;
+                            footerContactHeading?: string;
+                            footerNewsletter?: {
+                                heading?: string;
+                                blurb?: string;
+                                buttonLabel?: string;
+                            };
+                        };
+                        sectionConfig?: {
+                            key: string;
+                            /** @enum {string} */
+                            source?: "featured" | "newest" | "category" | "manual";
+                            categoryId?: string;
+                            categoryIds?: string[];
+                            /** @enum {string} */
+                            cardShape?: "stacked" | "split";
+                            /** @enum {string} */
+                            cardSide?: "left" | "right" | "alternate";
+                            cardSplit?: number;
+                            cardHideText?: boolean;
+                            mobile?: {
+                                /** @enum {string} */
+                                cardFlow?: "wrap" | "scroll";
+                                cardPerRow?: number;
+                                /** @enum {string} */
+                                cardShape?: "stacked" | "split";
+                                /** @enum {string} */
+                                cardSide?: "left" | "right" | "alternate";
+                                cardSplit?: number;
+                                cardHideText?: boolean;
+                                cardHeight?: number;
+                            };
+                            /** @enum {string} */
+                            cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
+                            cardHeight?: number;
+                            /** @enum {string} */
+                            cardFlow?: "wrap" | "scroll";
+                            cardPerRow?: number;
+                            cardRadius?: number;
+                            cardArrows?: boolean;
+                            fullWidth?: boolean;
+                            cards?: {
+                                categoryId: string;
+                                title?: string;
+                                description?: string;
+                                image?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                buttonLabel?: string;
+                                buttonHref?: string;
+                            }[];
+                            title?: string;
+                            limit?: number;
+                            tagIds?: string[];
+                            productIds?: string[];
+                            ctaLabel?: string;
+                            ctaHref?: string;
+                            showCta?: boolean;
+                        }[];
+                        trustBadges?: {
+                            text: string;
+                            icon?: string;
+                        }[];
+                        heroBanner?: {
+                            badge?: string;
+                            title?: string;
+                            subtitle?: string;
+                            primaryLabel?: string;
+                            primaryLink?: string;
+                            secondaryLabel?: string;
+                            secondaryLink?: string;
+                            imageFit?: string;
+                            mobileImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            focal?: {
+                                x: number;
+                                y: number;
+                            };
+                            mobileFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                        };
+                        heroSlides?: {
+                            image?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            mobileImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            focal?: {
+                                x: number;
+                                y: number;
+                            };
+                            mobileFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                            imageFit?: string;
+                            badge?: string;
+                            title?: string;
+                            subtitle?: string;
+                            buttonLabel?: string;
+                            link?: string;
+                            hideTextOnMobile?: boolean;
+                        }[];
+                        templates?: {
+                            home?: string;
+                            collection?: string;
+                            product?: string;
+                            checkout?: string;
+                            footer?: string;
+                            header?: string;
+                            productCard?: string;
+                            cardActions?: string;
+                            hero?: string;
+                            headerMenu?: string;
+                            pagination?: string;
+                            imageFit?: string;
+                            imageRatio?: string;
+                            categoryTiles?: string;
+                            accountLayout?: string;
+                            contentLayout?: string;
+                            cartLayout?: string;
+                            shell?: string;
+                            mobile?: string;
+                        };
+                        nav?: {
+                            header?: {
+                                label: string;
+                                /** @enum {string} */
+                                type: "category" | "page" | "url" | "collections";
+                                value: string;
+                                children?: {
+                                    label: string;
+                                    /** @enum {string} */
+                                    type: "category" | "page" | "url" | "collections";
+                                    value: string;
+                                }[];
+                            }[];
+                            footer?: {
+                                title: string;
+                                links: {
+                                    label: string;
+                                    url: string;
+                                }[];
+                            }[];
+                            footerPaymentMethods?: {
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            };
+                            footerContentPages?: {
+                                show?: boolean;
+                                title?: string;
+                            };
+                            announcement?: {
+                                enabled?: boolean;
+                                useShippingRule?: boolean;
+                                text?: string;
+                                link?: string;
+                                bgColor?: "" | string;
+                                textColor?: "" | string;
+                                icon?: string;
+                                ctaLabel?: string;
+                                dismissible?: boolean;
+                                /** @enum {string} */
+                                size?: "sm" | "md" | "lg";
+                                marquee?: boolean;
+                                /** @enum {string} */
+                                marqueeSpeed?: "slow" | "normal" | "fast";
+                                bgImage?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                overlay?: "" | string;
+                                overlayOpacity?: number;
+                                /** @enum {string} */
+                                bgFit?: "cover" | "tile";
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                            };
+                            campaignStrip?: {
+                                enabled?: boolean;
+                                /** @enum {string} */
+                                showOn?: "all" | "home";
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                                bgColor?: "" | string;
+                                textColor?: "" | string;
+                                /** @enum {string} */
+                                size?: "sm" | "md" | "lg";
+                                /** @enum {string} */
+                                paddingY?: "sm" | "md" | "lg";
+                                /** @enum {string} */
+                                paddingX?: "sm" | "md" | "lg";
+                                dismissible?: boolean;
+                            };
+                            utilityBar?: {
+                                enabled?: boolean;
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                                showPhone?: boolean;
+                                showTrackOrder?: boolean;
+                                showLanguage?: boolean;
+                                showTheme?: boolean;
+                                trackOrderLabel?: string;
+                            };
+                        };
+                        contactButton?: {
+                            enabled?: boolean;
+                            label?: string;
+                            greeting?: string;
+                            /** @enum {string} */
+                            position?: "right" | "left";
+                            showOn?: ("home" | "collection" | "product" | "cart" | "checkout" | "order" | "page" | "account")[];
+                            channels?: {
+                                /** @enum {string} */
+                                kind: "whatsapp";
+                                value: string;
+                                label?: string;
+                                enabled?: boolean;
+                            }[];
+                            hours?: {
+                                enabled?: boolean;
+                                days?: number[];
+                                from?: (unknown | string) | "";
+                                to?: (unknown | string) | "";
+                                offlineNote?: string;
+                            };
+                            nudge?: {
+                                enabled?: boolean;
+                                delaySeconds?: number;
+                                text?: string;
+                            };
+                        };
+                    };
+                    draftVersion: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_storefront_site_publish: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded (60 requests / 15 minutes per IP) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_organization_storefront_site_revisions: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSiteRevision"][];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_organization_storefront_site_revisions_version_restore: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontSite"];
                     };
                 };
             };

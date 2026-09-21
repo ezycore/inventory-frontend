@@ -205,8 +205,9 @@ export function BaseDataCard<TData extends { _id: string }>({
     );
   }, [layout, layoutConfig]);
 
-  // Render loading state
-  if (isLoading || isDeleting) {
+  // Render loading state — a delete is NOT one: the cards are already on screen and
+  // stay there under the overlay spinner below.
+  if (isLoading) {
     return (
       <div className="w-full space-y-4">
         <DataCardToolbar
@@ -292,8 +293,8 @@ export function BaseDataCard<TData extends { _id: string }>({
 
       {/* Cards Grid */}
       <div className={cn(layoutClasses, "relative")}>
-        {/* Overlay spinner for sort/filter/pagination refetches — keeps existing cards visible */}
-        {isFetching && !isLoading && (
+        {/* Overlay spinner for sort/filter/pagination refetches and deletes — keeps existing cards visible */}
+        {(isFetching || isDeleting) && !isLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60 backdrop-blur-[1px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
           </div>

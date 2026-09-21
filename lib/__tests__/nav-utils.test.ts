@@ -359,8 +359,13 @@ describe("filterNavItems", () => {
   });
 
   describe("unmetRouteFeatures", () => {
+    // Every key explicitly false except the named ones. A partial map would not
+    // mean "only these are on": a key MISSING from a map reads as ON, exactly as
+    // the backend reads it (see `resolveFeatureMap`).
     const on = (...keys: string[]) =>
-      Object.fromEntries(keys.map((k) => [k, true])) as never;
+      Object.fromEntries(
+        Object.keys(ALL_ON).map((k) => [k, keys.includes(k)]),
+      ) as never;
 
     it("names a missing all-of key", () => {
       const gate = { all: ["storefront" as const], anyOf: [] };

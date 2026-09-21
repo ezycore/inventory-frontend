@@ -1,4 +1,5 @@
 "use client"
+// coding-standard: maintained
 
 import * as React from "react"
 import {
@@ -120,8 +121,7 @@ export function DatePicker({
     setOpen(false)
   }
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleClear = () => {
     onSelect?.(undefined)
   }
 
@@ -161,55 +161,64 @@ export function DatePicker({
   }, [fromDate, toDate, dateValue])
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal gap-2",
-            !dateValue && "text-muted-foreground",
-            className
-          )}
+    // The clear button is a SIBLING of the trigger, never a child: PopoverTrigger
+    // `asChild` turns the Button into the real <button>, and a <button> inside a
+    // <button> is invalid HTML — React logs a hydration error for it. It is
+    // absolutely positioned over the trigger's reserved right padding instead.
+    // `className` lands on both: the wrapper needs the caller's width so the X
+    // sits on the trigger's edge, the trigger needs its height/text styling.
+    <div className={cn("relative w-full", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
+            variant="outline"
+            disabled={disabled}
+            className={cn(
+              "w-full justify-start text-left font-normal gap-2",
+              !dateValue && "text-muted-foreground",
+              dateValue && !disabled && "pr-9",
+              className
+            )}
+          >
+            <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="flex-1 truncate">
+              {displayLabel ?? placeholder}
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={dateValue}
+            onSelect={handleSelect}
+            today={new Date()}
+            autoFocus
+            captionLayout={captionLayout}
+            startMonth={navStart}
+            endMonth={navEnd}
+            disabled={disabledMatcher}
+            classNames={{
+              today: cn(
+                "rounded-md ring-1 ring-foreground/40",
+                "data-[selected=true]:ring-0"
+              ),
+              month_caption: "flex h-8 w-full items-center justify-center px-8",
+              day: "group/day relative aspect-square h-8 w-8 select-none p-0 text-center",
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+      {dateValue && !disabled && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear date"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
-          <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1 truncate">
-            {displayLabel ?? placeholder}
-          </span>
-          {dateValue && (
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="Clear date"
-              className="ml-auto h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={dateValue}
-          onSelect={handleSelect}
-          today={new Date()}
-          autoFocus
-          captionLayout={captionLayout}
-          startMonth={navStart}
-          endMonth={navEnd}
-          disabled={disabledMatcher}
-          classNames={{
-            today: cn(
-              "rounded-md ring-1 ring-foreground/40",
-              "data-[selected=true]:ring-0"
-            ),
-            month_caption: "flex h-8 w-full items-center justify-center px-8",
-            day: "group/day relative aspect-square h-8 w-8 select-none p-0 text-center",
-          }}
-        />
-      </PopoverContent>
-    </Popover>
+          <X className="h-3 w-3" />
+        </button>
+      )}
+    </div>
   )
 }

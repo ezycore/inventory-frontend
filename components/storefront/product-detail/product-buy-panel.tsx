@@ -5,19 +5,34 @@ import type { CSSProperties } from "react";
 import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import { AskAboutButton } from "@/components/storefront/ask-about-button";
-import type { ProductDetail } from "@/components/storefront/product-detail/use-product-detail";
+import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
- * The buy controls: variant chips, quantity stepper, and the action row.
+ * The buy controls: variant chips, quantity stepper, and the action row — on the
+ * product page and in a landing page's Single product section.
  *
  * A variable product with no purchasable variants falls back to the
  * call-to-order card instead of an empty selector — that branch lives here
  * rather than in the page because it *replaces* this whole panel, and splitting
  * the two apart is what would let a future edit render both.
  */
-export function ProductBuyPanel({ d }: { d: ProductDetail }) {
+export function ProductBuyPanel({ d }: { d: ProductBuy }) {
   const { t, store, product, variable, variants, soldOut } = d;
+  const paused = useOrdersPaused();
   if (!product) return null;
+
+  // Paused orders replace the whole panel: a variant or quantity picked for an
+  // order that cannot be placed is a choice made for nothing.
+  if (paused) {
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <OrdersPausedNotice paused={paused} />
+      </div>
+    );
+  }
 
   if (variable && variants.length === 0) {
     return (
@@ -171,28 +186,22 @@ const qtyBtn: CSSProperties = {
 };
 
 const primaryBtn: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "14px 22px", fontSize: 14.5 }),
   flex: 1,
   minWidth: 150,
-  background: "var(--primary)",
-  color: "var(--on-primary)",
   border: "none",
-  padding: "14px 22px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14.5,
   fontWeight: 700,
 };
 
 const secondaryBtn: CSSProperties = {
+  ...buttonMetrics({ radius: 9, padding: "14px 22px", fontSize: 14.5 }),
   flex: 1,
   minWidth: 130,
   background: "transparent",
   color: "var(--text)",
   border: "1px solid var(--border-strong)",
-  padding: "14px 22px",
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14.5,
   fontWeight: 600,
 };
 

@@ -3,6 +3,7 @@
 
 import type { CSSProperties } from "react";
 import { sfInput } from "@/components/storefront/field-styles";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /* Shared checkout styling — the section eyebrow, text inputs and buttons. */
 
@@ -29,47 +30,35 @@ export const label: CSSProperties = {
 export const input: CSSProperties = sfInput;
 
 export const primaryBtn: CSSProperties = {
-  background: "var(--primary)",
-  color: "var(--on-primary)",
+  ...brandButton({ radius: 9, padding: 14, fontSize: 14.5 }),
   border: "none",
-  padding: 14,
-  borderRadius: 9,
   fontFamily: "inherit",
-  fontSize: 14.5,
   fontWeight: 700,
   cursor: "pointer",
 };
 
 export const ghostBtn: CSSProperties = {
+  ...buttonMetrics({ radius: 8, padding: "12px 22px", fontSize: 14 }),
   background: "transparent",
   color: "var(--text)",
   border: "1px solid var(--border-strong)",
-  padding: "12px 22px",
-  borderRadius: 8,
   fontFamily: "inherit",
-  fontSize: 14,
   fontWeight: 600,
   cursor: "pointer",
 };
 
 export const primaryLink: CSSProperties = {
+  ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }),
   display: "inline-block",
-  background: "var(--primary)",
-  color: "var(--on-primary)",
-  padding: "12px 24px",
-  borderRadius: 9,
-  fontSize: 14,
   fontWeight: 600,
 };
 
 export const ghostLink: CSSProperties = {
+  ...buttonMetrics({ radius: 9, padding: "12px 24px", fontSize: 14 }),
   display: "inline-block",
   background: "transparent",
   color: "var(--text)",
   border: "1px solid var(--border-strong)",
-  padding: "12px 24px",
-  borderRadius: 9,
-  fontSize: 14,
   fontWeight: 600,
 };
 

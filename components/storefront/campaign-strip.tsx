@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { pageOf } from "@/lib/storefront-contact-message";
@@ -19,6 +18,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { useStoreCampaigns, useStoreCategories, useStoreTags } from "@/services/storefront/hooks";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 
@@ -57,7 +57,7 @@ export function CampaignStrip({
   initialCampaigns?: StoreCampaign[];
 }) {
   const { t } = useStorefrontUI();
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const hydrated = useHydrated();
   const { data: campaigns } = useStoreCampaigns(slug, initialCampaigns);
   // Both levels of the tree, flattened: a campaign's target may be either.
@@ -134,7 +134,10 @@ export function CampaignStrip({
               : storeHref(base, "/products");
           })()
         : storeHref(base, "/products");
-  const ends = campaignEndsLabel(campaign.endsAt, t.langCode);
+  // After hydration only: the label is printed in the SHOPPER's zone, which the
+  // server (UTC) cannot know — rendering it there would mismatch the hydrating
+  // client for every shopper outside UTC.
+  const ends = hydrated ? campaignEndsLabel(campaign.endsAt, t) : null;
 
   const dismiss = () => {
     try {
@@ -175,7 +178,7 @@ export function CampaignStrip({
         </span>
         {ends ? (
           <span style={{ opacity: 0.75 }}>
-            · {t.campaignEnds} {ends}
+            · {ends}
           </span>
         ) : null}
         <span style={{ fontWeight: 700, textDecoration: "underline" }}>

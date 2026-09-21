@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+# pixel diff baselines, results and report — per-store screenshots (tests/pixel)
+/.pixel/
 
 # next.js
 /.next/

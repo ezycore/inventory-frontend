@@ -32,7 +32,12 @@ export interface Dict {
   viewCart: string;
   /** Campaign strip: "«name» — 10% off · Ends 4 Jul". */
   campaignOff: string;
-  campaignEnds: string;
+  /**
+   * The whole "ends" phrase on a campaign strip or deal card. A template:
+   * `{date}` and `{time}` are the end instant in the shopper's own zone
+   * (`campaignEndsLabel`), so each language can word and order it naturally.
+   */
+  campaignEndsAt: string;
   campaignOffers: string;
   previousOffer: string;
   nextOffer: string;
@@ -525,7 +530,7 @@ const en: Dict = {
   chooseOption: "Choose an option",
   viewCart: "View cart",
   campaignOff: "off",
-  campaignEnds: "Ends",
+  campaignEndsAt: "Ends {date} at {time}",
   campaignOffers: "Current offers",
   previousOffer: "Previous offer",
   nextOffer: "Next offer",
@@ -943,7 +948,7 @@ const bn: Dict = {
   chooseOption: "অপশন বাছাই করুন",
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
-  campaignEnds: "শেষ",
+  campaignEndsAt: "শেষ হবে {date}, {time}",
   campaignOffers: "চলতি অফার",
   previousOffer: "আগের অফার",
   nextOffer: "পরের অফার",

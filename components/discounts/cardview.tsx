@@ -10,6 +10,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { Edit2, Hash, MoreVertical, Percent, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator } from "@/i18n/config";
 import type { AppLocale } from "@/i18n/config";
 import type { ApiDiscount } from "@/types/api";
@@ -49,7 +50,7 @@ const DiscountCardView = (
   const displayValue =
     type === "percentage" ? `${value}%` : `৳${Number(value).toLocaleString()}`;
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
 
   const applicableLabels: Record<string, string> = {
     sales: t("card.sales"),

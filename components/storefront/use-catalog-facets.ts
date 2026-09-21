@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useCallback } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useStore,
   useStoreBrands,
@@ -11,6 +11,7 @@ import {
 } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { money } from "@/components/storefront/format";
 import type { ProductFilters } from "@/components/storefront/filter-panel";
 import type { FilterChip } from "@/components/storefront/filter-toolbar";
@@ -95,7 +96,7 @@ export function useCatalogFacets({
   const { slug } = useStoreContext();
   const { t } = useStorefrontUI();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const sp = useSearchParams();
 
   const categoryId = categoryPath ? "" : (sp.get("categoryId") ?? "");

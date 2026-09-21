@@ -345,6 +345,7 @@ export const useUpdateOrganization = () => {
             slug?: string;
             currency?: string;
             timezone?: string;
+            weekStartDay?: number;
             address?: string;
             receiptSettings?: ReceiptSettings;
             logo?: { url: string; mediumUrl: string; thumbnailUrl: string; publicId: string } | null;
@@ -359,6 +360,9 @@ export const useUpdateOrganization = () => {
             ...(updated.slug !== undefined && { slug: updated.slug }),
             ...(updated.currency !== undefined && { currency: updated.currency }),
             ...(updated.timezone !== undefined && { timezone: updated.timezone }),
+            // Week start drives every "this week" figure; stale here means the
+            // period labels disagree with the numbers until the next reload.
+            ...(updated.weekStartDay !== undefined && { weekStartDay: updated.weekStartDay }),
             ...(updated.address !== undefined && { address: updated.address }),
             // Keep the printed letterhead (invoices/receipts/returns) in sync.
             ...(updated.receiptSettings !== undefined && {

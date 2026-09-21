@@ -11,6 +11,7 @@ import {
 import { Edit2, MoreVertical, Palette, Trash2 } from "lucide-react";
 import { ValuesPopover } from "@/components/shared/values-popover";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator, AppLocale } from "@/i18n/config";
 import type { ApiVariantAttribute } from "@/types/api";
 
@@ -32,8 +33,8 @@ const VariantCardView = (
 
   const allValues = Array.isArray(values) ? values : [];
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
-  const updatedDate = formatDate(variant.updatedAt, "dd MMM yyyy", locale);
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
+  const updatedDate = formatDate(variant.updatedAt, "dd MMM yyyy", locale, getOrgTimezone());
 
   return (
     <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-3">

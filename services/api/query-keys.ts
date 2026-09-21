@@ -254,6 +254,8 @@ export const queryKeys = {
     inventory: (params?: Params) => ["reports", "inventory", params ?? {}] as const,
     sales: (params?: Params) => ["reports", "sales", params ?? {}] as const,
     combos: (params?: Params) => ["reports", "combos", params ?? {}] as const,
+    salesBreakdown: (dimension: string, params?: Params) =>
+      ["reports", "sales-breakdown", dimension, params ?? {}] as const,
     purchases: (params?: Params) => ["reports", "purchases", params ?? {}] as const,
     cash: (params?: Params) => ["reports", "cash", params ?? {}] as const,
     capital: (params?: Params) => ["reports", "capital", params ?? {}] as const,
@@ -368,6 +370,19 @@ export const queryKeys = {
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
   contentPages: resourceKeys("content-pages"),
+  /** Storefront Builder pages. Revisions sit under the root, so a publish flushes them with the rest. */
+  storefrontPages: {
+    ...resourceKeys("storefront-pages"),
+    revisions: (id: string) => ["storefront-pages", "detail", id, "revisions"] as const,
+    /** The product the editor previews the shared product page around. */
+    previewProduct: (slug: string) => ["storefront-pages", "preview-product", slug] as const,
+  },
+  /** The store's look with draft and publish — one per store. Revisions sit under the root, so a publish flushes them. */
+  storefrontSite: {
+    all: () => ["storefront-site"] as const,
+    detail: () => ["storefront-site", "detail"] as const,
+    revisions: () => ["storefront-site", "revisions"] as const,
+  },
   domains: resourceKeys("domains"),
   // Read-only Mission Control access to this workspace. No mutation of ours
   // creates one — only MC can — so nothing else invalidates this root.

@@ -3,22 +3,24 @@ import { useCallback, useMemo, useState } from 'react'
 import { useProductBatches } from '@/services/api'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
 import { isBatchExpired } from '@/components/shared/batch-select'
+import { useOrgCalendar } from '@/hooks/use-org-calendar'
 import type { BatchDraw } from '@/services/stores/stock-adjustment-store'
 
 /**
  * Order lots for a write-off: expired first, then earliest-expiry (FEFO).
  * A decrease of expiry-tracked stock is nearly always clearing what has gone
- * off, so the stock the user came to remove is already selected.
+ * off, so the stock the user came to remove is already selected. "Expired" is
+ * decided on the organization's calendar (`timezone`), like the server.
  */
-export function orderForWriteOff(batches: BatchRow[]): BatchRow[] {
+export function orderForWriteOff(batches: BatchRow[], timezone: string): BatchRow[] {
   const byExpiry = [...batches].sort((a, b) => {
     const left = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity
     const right = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity
     return left - right
   })
   return [
-    ...byExpiry.filter(isBatchExpired),
-    ...byExpiry.filter((b) => !isBatchExpired(b)),
+    ...byExpiry.filter((b) => isBatchExpired(b, timezone)),
+    ...byExpiry.filter((b) => !isBatchExpired(b, timezone)),
   ]
 }
 
@@ -26,11 +28,12 @@ export function orderForWriteOff(batches: BatchRow[]): BatchRow[] {
 export function allocateDraws(
   batches: BatchRow[],
   quantity: number,
+  timezone: string,
 ): BatchDraw[] {
   const draws: BatchDraw[] = []
   let left = quantity
 
-  for (const batch of orderForWriteOff(batches)) {
+  for (const batch of orderForWriteOff(batches, timezone)) {
     if (left <= 0) break
     const take = Math.min(batch.remainingQuantity, left)
     if (take <= 0) continue
@@ -40,7 +43,7 @@ export function allocateDraws(
       quantity: take,
       expiryDate: batch.expiryDate ?? null,
       batchNumber: batch.batchNumber,
-      expired: isBatchExpired(batch),
+      expired: isBatchExpired(batch, timezone),
     })
   }
 
@@ -70,6 +73,7 @@ export function useBatchDraws({
   // Null while the rows are still the suggestion. Editing a row pins them, so
   // typing a new quantity afterwards never overwrites the user's own split.
   const [override, setOverride] = useState<BatchDraw[] | null>(null)
+  const { timezone } = useOrgCalendar()
 
   const { data } = useProductBatches(
     productId || '',
@@ -82,9 +86,9 @@ export function useBatchDraws({
   const suggested = useMemo(
     () =>
       enabled && removedQuantity > 0
-        ? allocateDraws(batches, removedQuantity)
+        ? allocateDraws(batches, removedQuantity, timezone)
         : [],
-    [enabled, removedQuantity, batches],
+    [enabled, removedQuantity, batches, timezone],
   )
 
   const draws = override ?? suggested

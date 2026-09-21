@@ -22,6 +22,7 @@
  */
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
+import type { StorefrontCacheScope } from "@/lib/storefront-cache-tags";
 import { queryKeys as k } from "./query-keys";
 
 /**
@@ -272,6 +273,38 @@ export const EFFECTS = {
    */
   "storefront.content.changed": [k.contentPages.all()],
 
+  /**
+   * A Storefront Builder page's DRAFT changed — created, duplicated, autosaved,
+   * discarded or restored from a revision. Shoppers see none of it, so it stays
+   * out of `PUBLIC_STOREFRONT_EVENTS`.
+   *
+   * Lists only, on purpose. The hooks that change a draft write the returned page
+   * into its detail cache themselves: refetching the page under an open editor on
+   * every autosave would race the merchant's next keystroke and hand the editor a
+   * `draftVersion` it did not save.
+   */
+  "storefront.page.drafted": [k.storefrontPages.lists()],
+
+  /**
+   * What shoppers see changed — a page published, unpublished, renamed, re-titled
+   * or deleted. In `PUBLIC_STOREFRONT_EVENTS`, so the shop's page HTML is flushed.
+   */
+  "storefront.page.published": [k.storefrontPages.all()],
+
+  /**
+   * The landing page the store shows at `/` changed. The page list marks the homepage and
+   * Customize's Home part reads the choice off the storefront settings. Public on two scopes: the
+   * store payload names the homepage (`site`), and the home route renders the page (`content`).
+   */
+  "storefront.home.changed": [k.storefrontPages.lists(), k.organization.storefront()],
+
+  /**
+   * A switched store published its look (theme, header, footer, home sections) through the Site.
+   * Draft saves, discards and restores write the answered Site into the cache and fire nothing —
+   * shoppers see none of them. Public on `site`: the look travels in the store payload.
+   */
+  "storefront.site.published": [k.storefrontSite.all()],
+
   /** The storefront catalog overlay changed (listing flags, collections, campaigns, coupons). */
   "storefront.catalog.changed": [
     k.storefrontCatalog.all(),
@@ -324,10 +357,14 @@ export type DomainEvent = keyof typeof EFFECTS;
 
 /**
  * Events whose data the **public storefront** renders server-side, and which therefore dirty a
- * second cache no `QueryClient` can reach: Next's Data Cache + Full Route Cache, tagged
- * `store:{slug}` by `lib/storefront-server.ts`. Those entries are shared by every shopper and live
- * in the server, so a merchant cannot clear one by reloading — before this list existed, an edit
- * took up to five minutes to appear on the shop.
+ * second cache no `QueryClient` can reach: Next's Data Cache + Full Route Cache, tagged by
+ * `lib/storefront-server.ts`. Those entries are shared by every shopper and live in the server, so a
+ * merchant cannot clear one by reloading — before this list existed, an edit took up to five minutes
+ * to appear on the shop.
+ *
+ * Each event names the cache scope it dirties (`lib/storefront-cache-tags.ts`). A product edit
+ * expires the catalogue and every page built from it, and leaves the store payload — and a landing
+ * page that shows no products — cached.
  *
  * Declared here rather than at each `onSuccess` for the reason this whole file exists: thirteen
  * mutation authors each remembering a second flush is exactly the graph nobody keeps in their head.
@@ -337,11 +374,16 @@ export type DomainEvent = keyof typeof EFFECTS;
  * routes' own 60s `revalidate` covers stock freshness; this list is for merchant-authored edits,
  * which are rare and expected to appear at once.
  */
-const PUBLIC_STOREFRONT_EVENTS = new Set<DomainEvent>([
-  "storefront.catalog.changed",
-  "storefront.content.changed",
-  "catalog.changed",
-]);
+const PUBLIC_STOREFRONT_EVENTS: Partial<
+  Record<DomainEvent, StorefrontCacheScope | readonly StorefrontCacheScope[]>
+> = {
+  "storefront.catalog.changed": "catalog",
+  "storefront.content.changed": "content",
+  "storefront.page.published": "content",
+  "storefront.home.changed": ["site", "content"],
+  "storefront.site.published": "site",
+  "catalog.changed": "catalog",
+};
 
 /**
  * Invalidate everything the given events dirty. Duplicate keys across composed events are collapsed,
@@ -360,9 +402,11 @@ export const invalidate = (qc: QueryClient, ...events: DomainEvent[]) => {
     for (const key of EFFECTS[event]) keys.set(JSON.stringify(key), key);
   }
 
-  if (events.some((event) => PUBLIC_STOREFRONT_EVENTS.has(event))) {
-    void revalidateStorefront();
+  const scopes = new Set<StorefrontCacheScope>();
+  for (const event of events) {
+    for (const scope of [PUBLIC_STOREFRONT_EVENTS[event] ?? []].flat()) scopes.add(scope);
   }
+  if (scopes.size > 0) void revalidateStorefront([...scopes]);
 
   return Promise.all(
     [...keys.values()].map((queryKey) => qc.invalidateQueries({ queryKey })),

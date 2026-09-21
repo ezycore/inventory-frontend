@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse } from "@/types";
 import type {
@@ -9,6 +10,7 @@ import type {
   EmployeeReport,
   InventoryReport,
   PurchaseReport,
+  SalesBreakdownReport,
   SalesReport,
   StockValuationReport,
   TaxLedger,
@@ -29,7 +31,6 @@ export type ReportPeriod =
 // ── Common params ──
 export interface ReportParams {
   period: ReportPeriod;
-  weekStartDay?: number;
   startDate?: string;
   endDate?: string;
 }
@@ -49,6 +50,7 @@ export type EmployeeReportData = EmployeeReport;
 export type TaxReportData = TaxReport;
 export type TaxLedgerData = TaxLedger;
 export type ComboSalesReportData = ComboSalesReport;
+export type SalesBreakdownData = SalesBreakdownReport;
 
 // Sub-rows, derived from the generated parents so they cannot drift from them.
 export type TaxRateRow = TaxReport["byRate"]["output"][number];
@@ -56,6 +58,8 @@ export type TaxChartPoint = TaxReport["chart"][number];
 export type TaxLedgerEntry = TaxLedger["items"][number];
 export type TaxLedgerKind = TaxLedgerEntry["kind"];
 export type ComboSalesRow = ComboSalesReport["combos"][number];
+export type SalesBreakdownDimension = SalesBreakdownReport["dimension"];
+export type SalesBreakdownRow = SalesBreakdownReport["rows"][number];
 
 // ── Export Types ──
 export type ExportDataType =
@@ -71,8 +75,6 @@ function buildReportParams(params?: ReportParams): string {
   if (!params) return "";
   const searchParams = new URLSearchParams();
   if (params.period) searchParams.set("period", params.period);
-  if (params.weekStartDay !== undefined)
-    searchParams.set("weekStartDay", String(params.weekStartDay));
   if (params.startDate) searchParams.set("startDate", params.startDate);
   if (params.endDate) searchParams.set("endDate", params.endDate);
   const qs = searchParams.toString();
@@ -95,6 +97,16 @@ export const reportsApi = {
     params?: ReportParams,
   ): Promise<ApiResponse<ComboSalesReportData>> =>
     apiClient.get(`/reports/combos${buildReportParams(params)}`),
+
+  getSalesBreakdown: (
+    dimension: SalesBreakdownDimension,
+    params?: ReportParams,
+  ): Promise<ApiResponse<SalesBreakdownData>> => {
+    const qs = buildReportParams(params);
+    return apiClient.get(
+      `/reports/sales/breakdown${qs}${qs ? "&" : "?"}dimension=${dimension}`,
+    );
+  },
 
   getPurchaseReport: (
     params?: ReportParams,

@@ -2,8 +2,8 @@
 // coding-standard: maintained
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 import { useStore } from "@/services/storefront/hooks";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useCartStore, cartLineKey, type CartItem } from "@/services/stores/use-cart-store";
 import {
   captureFbclid,
@@ -27,7 +27,7 @@ import {
  * *transition*, so this diffs previous against next and reports only the increase.
  */
 export function MetaPixelClient({ slug }: { slug: string }) {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const { data: store } = useStore(slug);
 
   // Held in a ref so the cart subscription — which must be created once — always sees the

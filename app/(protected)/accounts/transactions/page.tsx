@@ -67,7 +67,8 @@ function TransactionsContent() {
 
   const statsParams = useMemo<TransactionStatsParams | undefined>(() => {
     if (!isCustomValid) return undefined;
-    const params: TransactionStatsParams = { period, weekStartDay: 1 };
+    // Week boundaries are the organization's `weekStartDay`, read server-side.
+    const params: TransactionStatsParams = { period };
     if (period === "custom" && customStart && customEnd) {
       params.startDate = customStart;
       params.endDate = customEnd;

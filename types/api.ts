@@ -132,6 +132,8 @@ export type ProfitLossReport = Schemas["ProfitLossReport"];
 export type PositionReport = Schemas["PositionReport"];
 export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
+/** Sales per category / brand / tag — `GET /reports/sales/breakdown`. */
+export type SalesBreakdownReport = Schemas["SalesBreakdownReport"];
 
 // Organization & locations ---------------------------------------------------
 export type ApiOrganization = Schemas["Organization"];
@@ -190,6 +192,19 @@ export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */
 export type StorefrontPreviewToken = Schemas["StorefrontPreviewToken"];
+// Storefront Builder public reads — `GET /storefront/:slug/page` and `/section-data`.
+export type StorefrontPublicPage = Schemas["StorefrontPublicPage"];
+export type StorefrontSectionData = Schemas["StorefrontSectionData"];
+// Storefront Builder admin — `/ecommerce/pages`: the full page (draft and published side by side),
+// its list row (no section configs), and one published revision.
+export type StorefrontPage = Schemas["StorefrontPage"];
+export type StorefrontPageListItem = Schemas["StorefrontPageListItem"];
+export type StorefrontPageRevision = Schemas["StorefrontPageRevision"];
+// The landing page the store shows at `/` — `PUT /ecommerce/pages/home`.
+export type StorefrontHomePage = Schemas["StorefrontHomePage"];
+// The store's look with draft and publish — `/organization/storefront/site` (Phase 5).
+export type StorefrontSite = Schemas["StorefrontSite"];
+export type StorefrontSiteRevision = Schemas["StorefrontSiteRevision"];
 
 /**
  * Meta Pixel & Conversions API (backend `docs/plan/meta-pixel-capi.md`).

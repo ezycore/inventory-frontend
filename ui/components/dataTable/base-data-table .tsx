@@ -172,8 +172,10 @@ export function BaseDataTable<TData, TValue>({
       <DataTableBody
         table={table}
         columns={enhancedColumns}
-        isLoading={isLoading || isDeleting}
-        isFetching={isFetching}
+        // A delete is not an initial load — the rows are still on screen and must stay
+        // there, so it rides the overlay spinner instead of replacing the body.
+        isLoading={isLoading}
+        isFetching={isFetching || isDeleting}
         enableRowHover={enableRowHover}
         rowClassName={rowClassName}
         variant={variant}

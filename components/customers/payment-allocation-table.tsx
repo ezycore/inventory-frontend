@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/ui/components/checkbox";
 import { NumberField } from "@/ui/components/number-field";
@@ -69,7 +70,7 @@ export function PaymentAllocationTable({
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                {format(new Date(sale.createdAt), "dd MMM yyyy")} ·{" "}
+                {formatInTimeZone(new Date(sale.createdAt), getOrgTimezone(), "dd MMM yyyy")} ·{" "}
                 <span className={cn(sale.dueAmount > 0 && "text-red-600")}>
                   {t("dueOf", { amount: formatCurrency(sale.dueAmount) })}
                 </span>

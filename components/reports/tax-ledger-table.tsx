@@ -3,7 +3,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
+import { getOrgTimezone } from '@/hooks/use-org-calendar'
 import type { ReportParams, TaxLedgerKind } from '@/services/api'
 import { useTaxLedger } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -66,7 +67,7 @@ export function TaxLedgerTable({
               {data.items.map((e, i) => (
                 <div key={i} className="grid grid-cols-4 items-center gap-2 py-2 text-sm">
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(e.date), 'dd MMM yyyy')}
+                    {formatInTimeZone(new Date(e.date), getOrgTimezone(), 'dd MMM yyyy')}
                   </span>
                   <span className={e.direction === 'output' ? 'text-blue-600' : 'text-orange-600'}>
                     {KIND_LABEL_KEYS[e.kind] ? t(KIND_LABEL_KEYS[e.kind] as never) : e.kind}

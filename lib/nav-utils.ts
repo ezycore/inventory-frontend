@@ -2,7 +2,7 @@
 import { NavGroup, NavItem } from "@/types/layout";
 import { FeatureName, OrganizationFeatures } from "@/types";
 import { navGroups } from "@/constants/navItem";
-import { areAllFeaturesEnabled, isAnyFeatureEnabled } from "./feature-utils";
+import { areAllFeaturesEnabled, isAnyFeatureEnabled, isFeatureOn } from "./feature-utils";
 
 /**
  * Message key for a nav title/group label under `layout.nav.*` — kebab-cased
@@ -256,9 +256,9 @@ export function unmetRouteFeatures(
   features: OrganizationFeatures | undefined,
 ): FeatureName[] {
   if (!gate || !features) return [];
-  const missing = gate.all.filter((f) => features[f] !== true);
+  const missing = gate.all.filter((f) => !isFeatureOn(features, f));
   for (const group of gate.anyOf) {
-    if (!group.some((f) => features[f] === true)) missing.push(...group);
+    if (!group.some((f) => isFeatureOn(features, f))) missing.push(...group);
   }
   return [...new Set(missing)];
 }

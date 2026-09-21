@@ -3,12 +3,12 @@
 
 import Link from "next/link";
 import { ArrowRight, Palette } from "lucide-react";
-import { useGetStorefrontSettings } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { lookProgress } from "@/lib/storefront-look-progress";
 import { recommendedThemeFor } from "@/lib/storefront-themes";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
+import { useLiveStoreSettings } from "@/components/ecommerce/use-live-store-settings";
 
 /**
  * Store Overview → the one prompt to give the shop a look of its own.
@@ -30,7 +30,9 @@ import { Card } from "@/ui/components/card";
  * further on, at the top of the panel this links to.
  */
 export function StoreLookCard() {
-  const { data: settings, isLoading } = useGetStorefrontSettings();
+  // The live look, not the settings' copy: a store on the builder keeps its look
+  // on the Site, and every new store is on the builder.
+  const { data: settings, isLoading } = useLiveStoreSettings();
   const org = useAuthStore((s) => s.user?.organization);
   const progress = lookProgress({
     appliedThemeId: settings?.theme?.appliedThemeId,
@@ -43,7 +45,7 @@ export function StoreLookCard() {
   // Nothing to say while the answer is unknown, and nothing to say once it is
   // done. Rendering a skeleton for a card that usually does not appear would
   // make the dashboard flicker a row on every load.
-  if (isLoading || progress.done) return null;
+  if (isLoading || !settings || progress.done) return null;
 
   const recommended = recommendedThemeFor(org?.industry);
   const missing = [

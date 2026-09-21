@@ -13,7 +13,9 @@ import { canonicalTarget } from "@/lib/storefront-canonical";
 import { JsonLd } from "@/components/storefront/json-ld";
 import { storeHref } from "@/lib/storefront-links";
 import { fullImageUrl } from "@/lib/storefront-image";
-import View from "./view";
+import { SystemPage } from "@/components/storefront-builder/system-page";
+import { ProductPageView } from "@/components/storefront/product/product-page";
+import { ProductDataProvider } from "@/components/storefront/product/product-data";
 
 // Host-resolved (dynamic render); the product itself is cached via the
 // fetch-level `revalidate` in lib/storefront-server.ts.
@@ -117,7 +119,11 @@ export default async function Page({
   return (
     <>
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
-      <View initialProduct={product ?? undefined} />
+      <ProductDataProvider value={{ initialProduct: product ?? undefined }}>
+        <SystemPage path={`/products/${productSlug}`} product={product ?? undefined}>
+          <ProductPageView initialProduct={product ?? undefined} />
+        </SystemPage>
+      </ProductDataProvider>
     </>
   );
 }

@@ -18,6 +18,7 @@ import { describe, expect, it } from 'vitest'
 import { allocateDraws, orderForWriteOff } from './use-batch-draws'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
 
+const TZ = 'Asia/Dhaka'
 const DAY = 24 * 60 * 60 * 1000
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * DAY).toISOString()
@@ -33,7 +34,7 @@ describe('orderForWriteOff', () => {
     const fresh = lot('fresh', 10, daysFromNow(30))
     const expired = lot('expired', 10, daysFromNow(-2))
 
-    expect(orderForWriteOff([fresh, expired]).map((b) => b._id)).toEqual([
+    expect(orderForWriteOff([fresh, expired], TZ).map((b) => b._id)).toEqual([
       'expired',
       'fresh',
     ])
@@ -44,7 +45,7 @@ describe('orderForWriteOff', () => {
     const soon = lot('soon', 10, daysFromNow(5))
     const late = lot('late', 10, daysFromNow(90))
 
-    expect(orderForWriteOff([unknown, late, soon]).map((b) => b._id)).toEqual([
+    expect(orderForWriteOff([unknown, late, soon], TZ).map((b) => b._id)).toEqual([
       'soon',
       'late',
       'unknown',
@@ -55,7 +56,7 @@ describe('orderForWriteOff', () => {
     const unknown = lot('unknown', 10, null)
     const expired = lot('expired', 10, daysFromNow(-2))
 
-    expect(orderForWriteOff([unknown, expired]).map((b) => b._id)).toEqual([
+    expect(orderForWriteOff([unknown, expired], TZ).map((b) => b._id)).toEqual([
       'expired',
       'unknown',
     ])
@@ -64,7 +65,7 @@ describe('orderForWriteOff', () => {
 
 describe('allocateDraws', () => {
   it('#23 pre-selects the unknown lot when it is the only one', () => {
-    const draws = allocateDraws([lot('unknown', 150, null)], 50)
+    const draws = allocateDraws([lot('unknown', 150, null)], 50, TZ)
 
     expect(draws).toEqual([
       {
@@ -81,6 +82,7 @@ describe('allocateDraws', () => {
     const draws = allocateDraws(
       [lot('fresh', 100, daysFromNow(30)), lot('expired', 20, daysFromNow(-1))],
       35,
+      TZ,
     )
 
     expect(draws.map((d) => [d.batchId, d.quantity])).toEqual([
@@ -92,7 +94,7 @@ describe('allocateDraws', () => {
   it('allocates only what the lots hold, leaving the rest short', () => {
     // The form reads this as unbalanced and blocks submit, rather than sending
     // draws that do not add up — which the server would reject anyway.
-    const draws = allocateDraws([lot('unknown', 10, null)], 25)
+    const draws = allocateDraws([lot('unknown', 10, null)], 25, TZ)
 
     expect(draws.reduce((sum, d) => sum + d.quantity, 0)).toBe(10)
   })
@@ -101,6 +103,7 @@ describe('allocateDraws', () => {
     const draws = allocateDraws(
       [lot('empty', 0, null), lot('stocked', 10, daysFromNow(30))],
       5,
+      TZ,
     )
 
     expect(draws.map((d) => d.batchId)).toEqual(['stocked'])

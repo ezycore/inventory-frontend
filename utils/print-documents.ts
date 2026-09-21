@@ -11,6 +11,7 @@ import type {
 import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { amountToWords } from "./number-to-words";
 import { populatedRef } from "./populated-ref";
 import { escapeHtml, printHtml } from "./print";
@@ -407,8 +408,11 @@ const printDoc = (
   return printHtml(body, { title, styles, locale });
 };
 
+/** A document date on the ORGANIZATION's calendar, whatever zone the printing device is in. */
 const dateStr = (value?: string | Date, locale: AppLocale = "en"): string =>
-  value ? formatDateTime(value, locale) : "";
+  value
+    ? formatDateTime(value, locale, getOrgTimezone())
+    : "";
 
 type Currency = (n: number) => string;
 

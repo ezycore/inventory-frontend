@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/ui/components/popover';
 import { useEmailSaleReceipt } from '@/services/api';
+import { useCanEmailSalesDocuments } from '@/hooks/use-has-permission';
 import type { Sale } from '@/types';
 import { populatedRef } from '@/utils/populated-ref';
 
@@ -34,6 +35,9 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
   const [email, setEmail] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const sendReceipt = useEmailSaleReceipt();
+  // Sending takes a sales write permission; a read-only role gets no button
+  // that would answer 403.
+  const canSend = useCanEmailSalesDocuments();
 
   // On open, Radix auto-focuses the input and selects its text. We prefer the
   // caret parked at the end so the prefilled email isn't wiped by the first
@@ -49,7 +53,7 @@ export function EmailReceiptButton({ sale }: EmailReceiptButtonProps) {
     el.value = value;
   };
 
-  if (sale.status === 'draft' || sale.status === 'cancelled') return null;
+  if (sale.status === 'draft' || sale.status === 'cancelled' || !canSend) return null;
 
   const knownEmail = populatedRef(sale.customerId)?.email;
 

@@ -7,6 +7,9 @@ import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import type { CatalogCategory, StoreMenuItem } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { chromeHas, type MobileChrome } from "@/lib/storefront-mobile";
+import { storePages } from "@/lib/storefront-page-controls";
+import { useStore } from "@/services/storefront/hooks";
+import { useStoreContext } from "@/services/storefront/store-context";
 import { menuHref } from "@/components/storefront/header-nav";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SideDrawer } from "@/components/storefront/side-drawer";
@@ -192,7 +195,16 @@ function MenuBody({
      could not reach their orders, switch language or leave the dark theme at
      all — a whole template's worth of dead ends. Asked per-item rather than
      per-template because a merchant rearranges the slots freely. */
-  const needsAccount = !chromeHas(chrome, "account");
+  /* Read from the STORE, not from the chrome. The chrome has already had
+     `account` filtered out when the merchant switched the account area off
+     (§6 page controls), and this row asks the inverse question — "does the
+     bar lack one, so the panel owes the shopper it?" — which would answer
+     YES for a shop that has no account area at all, adding the one link
+     that must disappear back on the surface of last resort. */
+  const { slug } = useStoreContext();
+  const { data: accountStore } = useStore(slug);
+  const needsAccount =
+    storePages(accountStore).accounts && !chromeHas(chrome, "account");
   /* Two owners to rule out for these, not one: the bar's own slots AND the
      utility bar above it, which carries the same pair and is the reason a
      drawer row could otherwise be the shopper's THIRD language switch. */

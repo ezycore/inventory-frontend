@@ -163,6 +163,21 @@ describe("marqueeDurationSeconds", () => {
     );
   });
 
+  /* The regression this test exists for: every case above uses a 200-character
+     message, and the speed control was inert for everything shorter than 48 —
+     a single shared floor swallowed all three paces, so "Slow" and "Fast" ran a
+     typical one-line notice at exactly the same speed. A real announcement is
+     this length, not 200 characters. */
+  it("keeps the three paces apart on a short, ordinary notice", () => {
+    const short = "Free delivery in Dhaka";
+    expect(marqueeDurationSeconds(short, "slow")).toBeGreaterThan(
+      marqueeDurationSeconds(short, "normal"),
+    );
+    expect(marqueeDurationSeconds(short, "normal")).toBeGreaterThan(
+      marqueeDurationSeconds(short, "fast"),
+    );
+  });
+
   it("treats an unset speed as normal", () => {
     expect(marqueeDurationSeconds(long, undefined)).toBe(
       marqueeDurationSeconds(long, "normal"),
@@ -170,12 +185,14 @@ describe("marqueeDurationSeconds", () => {
   });
 
   /* Below the floor the sum stops describing the distance travelled: a short
-     message is held to the width of the BAR, not the width of its words (the
-     `min-width` on `.sf-marquee-item`), so an honest chars-per-second would
-     strobe a three-word notice across the screen. */
+     message travels the width of the BAR, not the width of its words (the
+     `min-width` on `.sf-marquee-track`), so an honest chars-per-second would
+     strobe a three-word notice across the screen. The floor is per speed —
+     see the short-notice case above — so the fastest one is the bound here. */
   it("holds a floor so a short notice does not strobe", () => {
-    expect(marqueeDurationSeconds("Sale!", "fast")).toBeGreaterThanOrEqual(8);
-    expect(marqueeDurationSeconds("", "fast")).toBeGreaterThanOrEqual(8);
+    expect(marqueeDurationSeconds("Sale!", "fast")).toBeGreaterThanOrEqual(6);
+    expect(marqueeDurationSeconds("", "fast")).toBeGreaterThanOrEqual(6);
+    expect(marqueeDurationSeconds("Sale!", "slow")).toBeGreaterThanOrEqual(16);
   });
 
   it("holds a ceiling at the longest message the field accepts", () => {

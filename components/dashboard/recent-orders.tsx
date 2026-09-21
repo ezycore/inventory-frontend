@@ -11,6 +11,7 @@ import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { ORDER_STATUS_BADGE } from "@/lib/order-status";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 /**
  * The last few storefront orders, with their status.
@@ -39,6 +40,7 @@ export function RecentOrders() {
     new Date(iso).toLocaleDateString(undefined, {
       day: "numeric",
       month: "short",
+      timeZone: getOrgTimezone(),
     });
 
   return (

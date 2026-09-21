@@ -40,7 +40,38 @@
     "colUnitsSold": "Units sold",
     "colSales": "Sales",
     "colRevenue": "Revenue",
-    "afterReturns": "after {amount} returned"
+    "afterReturns": "after {amount} returned",
+    "breakdown": {
+      "title": "Sales by category, brand and tag",
+      "subtitle": "See which groups sell the most and the least in this period.",
+      "groupBy": "Group by",
+      "dimensions": {
+        "category": "Category",
+        "brand": "Brand",
+        "tag": "Tag"
+      },
+      "rankBy": "Rank by",
+      "metrics": {
+        "revenue": "Sales amount",
+        "units": "Units sold",
+        "orders": "Orders"
+      },
+      "top": "Top sellers",
+      "lowest": "Lowest sellers",
+      "units": "{count, plural, one {# unit} other {# units}}",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "share": "{value}% of sales",
+      "deleted": "Deleted",
+      "colShare": "Share",
+      "showAll": "Show all {count}",
+      "showLess": "Show top and lowest",
+      "emptyTitle": "No sales in this period",
+      "emptyDescription": "Your categories, brands and tags are ranked here once something sells.",
+      "noGroups": "{dimension, select, category {None of your products have a category yet.} brand {None of your products have a brand yet.} other {None of your products have a tag yet.}}",
+      "unassigned": "{dimension, select, category {Products with no category} brand {Products with no brand} other {Products with no tag}}: {amount} from {units, plural, one {# unit} other {# units}}.",
+      "overlapNote": "A product with more than one tag counts under each of its tags, so these figures add up to more than your total sales.",
+      "basisNote": "Item sales after returns. Order discounts and delivery charges are not split by item, so this can differ from Total Sales above."
+    }
   },
   "purchases": {
     "title": "Purchase Report",
