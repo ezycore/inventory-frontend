@@ -159,40 +159,11 @@ export function partSummary(
       ].filter(Boolean).length;
       return [`On · ${count(items, "item")}`, where].filter(Boolean).join(" · ");
     }
-    case "hero": {
-      if (draft.templates.home === "minimal") return "Not shown on the Minimal home layout";
-      if (draft.templates.hero === "banner") {
-        return settings.banner ? "Static banner image" : "Static banner — no image yet";
-      }
-      const saveable = draft.heroSlides.filter(hasHeroSlideContent).length;
-      return saveable === 0
-        ? "Slides carousel — no slides yet"
-        : `Slides carousel · ${count(saveable, "slide")}`;
-    }
-    case "home": {
-      const option = TEMPLATE_OPTIONS.home.find((o) => o.value === draft.templates.home);
-      const label = option?.label ?? draft.templates.home;
-      // Once a theme or the merchant has composed the page, the section count is
-      // the honest summary — the starting layout is only where it began.
-      if (draft.homepageSections.length) {
-        return `${label} · ${count(draft.homepageSections.length, "section")}`;
-      }
-      return option ? `${label} — ${option.description}` : label;
-    }
     case "cards":
       return `${labelOf("productCard", draft.templates.productCard)} · ${labelOf(
         "cardActions",
         draft.templates.cardActions,
       )}`;
-    case "collections":
-      return draft.collections.length === 0
-        ? "No categories yet"
-        : `${listed} of ${draft.collections.length} listed · ${labelOf(
-            "collection",
-            draft.templates.collection,
-          )}`;
-    case "product":
-      return labelOf("product", draft.templates.product);
     case "contact": {
       const c = draft.contactButton;
       if (!c.enabled) return "Off";
@@ -211,19 +182,15 @@ export function partSummary(
       const links = groups === 0 ? "no link groups" : count(groups, "link group");
       return `${labelOf("footer", draft.templates.footer)} · ${links}`;
     }
-    case "checkout":
-      return labelOf("checkout", draft.templates.checkout);
-    /* The four whole-page layouts. They shipped after this switch was written
-       and were never added to it, so each rendered a BLANK line in the rail —
-       which quietly broke the promise in this file's own docstring, that all
-       parts collapsed read as an audit of the shop. `shell` is the one worth
-       having most: it is the axis that decides what kind of site this is. */
-    case "account":
-      return labelOf("accountLayout", draft.templates.accountLayout);
-    case "cart":
-      return labelOf("cartLayout", draft.templates.cartLayout);
+    /* The whole-page layouts. They shipped after this switch was written and
+       were never added to it, so each rendered a BLANK line in the rail — which
+       quietly broke the promise in this file's own docstring, that all parts
+       collapsed read as an audit of the shop. `shell` is the one worth having
+       most: it is the axis that decides what kind of site this is. The four
+       that named ONE page (product, collection, cart, checkout, account) left
+       with their rows on 2026-09-20. */
     case "content":
-      return labelOf("contentLayout", draft.templates.contentLayout);
+      return `${labelOf("contentLayout", draft.templates.contentLayout)} · content + tracking`;
     case "shell":
       return labelOf("shell", draft.templates.shell);
     case "mobile": {

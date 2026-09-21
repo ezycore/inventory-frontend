@@ -18,7 +18,6 @@ export type DashboardPeriod =
 // ── Overview query params ──
 export interface DashboardOverviewParams {
   period: DashboardPeriod;
-  weekStartDay?: number;
   startDate?: string; // YYYY-MM-DD
   endDate?: string;   // YYYY-MM-DD
 }
@@ -40,7 +39,6 @@ export const dashboardApi = {
   getOverview: (params?: DashboardOverviewParams): Promise<ApiResponse<DashboardOverview>> => {
     const searchParams = new URLSearchParams();
     if (params?.period) searchParams.set("period", params.period);
-    if (params?.weekStartDay !== undefined) searchParams.set("weekStartDay", String(params.weekStartDay));
     if (params?.startDate) searchParams.set("startDate", params.startDate);
     if (params?.endDate) searchParams.set("endDate", params.endDate);
     const qs = searchParams.toString();

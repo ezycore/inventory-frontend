@@ -45,7 +45,6 @@ export const transactionsApi = {
   getStats: (
     params: {
       period?: string;
-      weekStartDay?: number;
       startDate?: string;
       endDate?: string;
     } = {}

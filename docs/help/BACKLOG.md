@@ -9,10 +9,12 @@ decides, at the moment it is cheapest to decide, whether it needs documenting.
 
 Tick a box and delete the line when the page lands.
 
-## Nothing deferred
+## Deferred
 
-Every route in `constants/navItem.ts` is covered by a page in `en/`. Adding a screen to the sidebar
-will fail `pnpm help:verify` until it is either documented or listed here with a reason.
+Every other route in `constants/navItem.ts` is covered by a page in `en/`. Adding a screen to the
+sidebar will fail `pnpm help:verify` until it is either documented or listed here with a reason.
+
+Nothing is deferred right now.
 
 ## Known gaps that are not routes
 

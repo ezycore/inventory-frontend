@@ -14,6 +14,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StorefrontStore } from "@/lib/storefront-client";
+import { spyOnStorage } from "@/tests/storage-spy";
 import {
   metaContentId,
   metaPurchaseEventId,
@@ -203,13 +204,13 @@ describe("trackMetaPurchase", () => {
     it("does not fire when storage is unavailable and the tab is reused", () => {
       // Safari private mode: `sessionStorage` throws. The in-memory guard still has to hold for
       // the life of the tab, which is where a double-render would happen.
-      const getItem = vi
-        .spyOn(Storage.prototype, "getItem")
+      // `spyOnStorage`, not a `Storage.prototype` spy — see that helper for
+      // why the prototype one simulates nothing.
+      const getItem = spyOnStorage(window.sessionStorage, "getItem")
         .mockImplementation(() => {
           throw new Error("storage disabled");
         });
-      const setItem = vi
-        .spyOn(Storage.prototype, "setItem")
+      const setItem = spyOnStorage(window.sessionStorage, "setItem")
         .mockImplementation(() => {
           throw new Error("storage disabled");
         });

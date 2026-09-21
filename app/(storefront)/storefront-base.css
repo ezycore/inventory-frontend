@@ -1,0 +1,33 @@
+/*
+ * The storefront's own Tailwind build: preflight plus only the utilities that
+ * storefront sources actually use.
+ *
+ * Until 2026-09-14 every shop page was wrapped by the admin root layout and so
+ * received the admin sheet (`ui/styles/globals.css`, 312 KB) as a render-blocking
+ * stylesheet — ~920 ms of a phone's first paint, for a design system the shop
+ * does not use. The storefront styles itself through `storefront.css`; what it
+ * did take from the admin sheet was Tailwind's preflight reset, a few dozen
+ * utility classes (the owner admin bar, the bare "store unavailable" wrappers)
+ * and the two base rules below. This file provides exactly that and nothing else.
+ *
+ * `source(none)` switches off Tailwind's automatic scan of the whole repo, so an
+ * admin-only class can never leak back in. A storefront component that starts
+ * using Tailwind outside the two paths below gets no CSS for it — add the path.
+ */
+@import "tailwindcss" source(none);
+@source "../../components/storefront";
+@source ".";
+
+@layer base {
+  /* Both copied from the admin sheet's base layer, which every shop rendered
+     under. Inside `.sf-root`, `--border` is the storefront's own token, so the
+     border colour resolves exactly as it did before the split. */
+  * {
+    border-color: var(--border, currentColor);
+  }
+  /* Tailwind v4's preflight leaves <button> on the UA arrow cursor. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}

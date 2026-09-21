@@ -1,11 +1,12 @@
+// coding-standard: maintained
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/services/api/query-keys";
 import {
   reportsApi,
   type ReportParams,
   type ExportDataType,
+  type SalesBreakdownDimension,
 } from "./api";
-
 
 /** Hook for fetching inventory report */
 export const useInventoryReport = (params?: ReportParams) => {
@@ -36,6 +37,23 @@ export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
     queryFn: () => reportsApi.getComboSalesReport(params),
     select: (data) => data.data,
     enabled: !!params && enabled,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Sales per category / brand / tag. Its own query rather than a field on the sales report, so
+ * switching the dimension refetches one small aggregate, not the whole page.
+ */
+export const useSalesBreakdown = (
+  dimension: SalesBreakdownDimension,
+  params?: ReportParams,
+) => {
+  return useQuery({
+    queryKey: queryKeys.reports.salesBreakdown(dimension, params),
+    queryFn: () => reportsApi.getSalesBreakdown(dimension, params),
+    select: (data) => data.data,
+    enabled: !!params,
     staleTime: 2 * 60 * 1000,
   });
 };

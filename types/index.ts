@@ -683,6 +683,12 @@ export interface StorefrontCheckout {
   showOrderNotes?: boolean;
   /** Merchant-defined notices + inputs, in render order within each slot. Max 5. */
   customFields?: CheckoutField[];
+  /** "Pause online orders" — shoppers browse, the order API refuses. */
+  ordersPaused?: boolean;
+  /** Shown where the buy buttons were. Required to pause. */
+  pausedMessage?: string;
+  /** Also offer "Order on chat instead" through the store's WhatsApp contact. */
+  pausedWhatsApp?: boolean;
 }
 
 export interface StorefrontNotifEvent {
@@ -742,10 +748,25 @@ export interface StorefrontCustomersConfig {
   allowAccounts?: boolean;
 }
 
+/**
+ * The optional shopper pages a store serves (the §6 page controls). The admin
+ * form reads these raw, where **unset means ON** — the shopper side reads the
+ * resolved `store.pages` block instead. The account area is the third control
+ * and stays on `StorefrontCustomersConfig` above, where it has always lived.
+ */
+export interface StorefrontPagesConfig {
+  search?: boolean;
+  cartPage?: boolean;
+}
+
 export interface StorefrontSettings {
   _id?: string;
   organizationId?: string;
   published: boolean;
+  /** The landing page shown at the store's `/`; unset ⇒ the Customize home. Set on Pages, never by the settings save. */
+  homePageId?: string;
+  /** Set once the store publishes its look through `/organization/storefront/site`; Customize then saves drafts. */
+  siteCutoverAt?: string;
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;
@@ -808,6 +829,7 @@ export interface StorefrontSettings {
   notifications?: StorefrontNotifications;
   templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
+  pagesConfig?: StorefrontPagesConfig;
   /** Admin-panel-only wording for the order pipeline steps; unset → built-ins. */
   adminStatusLabels?: AdminOrderStatusLabels;
   trustBadges?: StorefrontTrustBadge[];

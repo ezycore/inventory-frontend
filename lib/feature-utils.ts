@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ORGANIZATION_FEATURES,
   FeatureName,
   OrganizationFeatures,
   VatRegistrationEntry,
@@ -7,14 +8,56 @@ import {
 import type { Translator } from "@/i18n/config";
 
 /**
+ * A feature is OFF only when its key is explicitly `false` — the backend's rule,
+ * and the only one this side may use.
+ *
+ * The backend gets there two ways that agree: every key on the organization's
+ * `features` and `planFeatures` schemas is `default: true`, so a key missing from
+ * a stored document hydrates as ON; and `requireFeature` blocks only on an
+ * explicit `false`. Keys go missing for real — `purchases` and
+ * `inventoryTracking` were added after most organizations were written, and
+ * Mission Control's entitlement sync skips a key its payload does not carry — so
+ * a lean read hands this side a map without them. Reading that with `=== true`
+ * hid Purchases, Suppliers and the whole Stock group from merchants whose API
+ * served all of it, and told Customize workspace the plan excluded them.
+ *
+ * `undefined` (not loaded yet) stays "no map": the helpers below answer `false`
+ * for it, as they always have, so nothing flashes on before `/auth/me` lands.
+ */
+export function isFeatureOn(
+  features: Partial<OrganizationFeatures> | null | undefined,
+  feature: FeatureName,
+): boolean {
+  if (!features) return false;
+  return features[feature] !== false;
+}
+
+/**
+ * A feature map with every known key filled in by the backend's rule, so direct
+ * reads (`features?.purchases`, `features[key] === true`) cannot disagree with
+ * it. Applied where maps ENTER the app — the auth store and the features API —
+ * which is why the dozens of direct reads need no change. Unknown keys pass
+ * through untouched.
+ */
+export function resolveFeatureMap(
+  features: Partial<OrganizationFeatures> | null | undefined,
+): OrganizationFeatures | undefined {
+  if (!features) return undefined;
+  const resolved = { ...features } as OrganizationFeatures;
+  for (const key of Object.keys(DEFAULT_ORGANIZATION_FEATURES) as FeatureName[]) {
+    resolved[key] = features[key] !== false;
+  }
+  return resolved;
+}
+
+/**
  * Check if a specific feature is enabled
  */
 export function isFeatureEnabled(
   features: OrganizationFeatures | undefined,
   feature: FeatureName
 ): boolean {
-  if (!features) return false;
-  return features[feature] === true;
+  return isFeatureOn(features, feature);
 }
 
 type VatOrg = {
@@ -93,7 +136,7 @@ export function areAllFeaturesEnabled(
   requiredFeatures: FeatureName[],
 ): boolean {
   if (!features) return false;
-  return requiredFeatures.every((feature) => features[feature] === true);
+  return requiredFeatures.every((feature) => isFeatureOn(features, feature));
 }
 
 /**
@@ -104,7 +147,7 @@ export function isAnyFeatureEnabled(
   allowedFeatures: FeatureName[],
 ): boolean {
   if (!features) return false;
-  return allowedFeatures.some((feature) => features[feature] === true);
+  return allowedFeatures.some((feature) => isFeatureOn(features, feature));
 }
 
 /**
@@ -113,9 +156,10 @@ export function isAnyFeatureEnabled(
 export function getEnabledFeatures(
   features: OrganizationFeatures | undefined,
 ): FeatureName[] {
-  if (!features) return [];
-  return (Object.keys(features) as FeatureName[]).filter(
-    (key) => features[key] === true,
+  const resolved = resolveFeatureMap(features);
+  if (!resolved) return [];
+  return (Object.keys(resolved) as FeatureName[]).filter(
+    (key) => resolved[key] === true,
   );
 }
 

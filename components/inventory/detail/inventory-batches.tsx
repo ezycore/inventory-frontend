@@ -16,7 +16,7 @@ import {
 import { ExpiryBadge } from '@/components/shared/expiry/expiry-badge'
 import { AssignExpiryDialog } from './assign-expiry-dialog'
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
-import { formatDate } from '@/components/products/detail/utils'
+import { formatDateOnly } from '@/lib/format'
 
 interface InventoryBatchesProps {
   batches: BatchRow[]
@@ -70,7 +70,8 @@ export function InventoryBatches({ batches, formatCurrency }: InventoryBatchesPr
       key: 'expiry',
       header: t('colExpiry'),
       cellClassName: 'text-muted-foreground',
-      cell: (b) => expiryLabel(b, tBatch, (d) => formatDate(d) || d),
+      // Expiry is a date-only value: read in UTC so it names the picked day in every zone.
+      cell: (b) => expiryLabel(b, tBatch, (d) => formatDateOnly(d, 'yyyy-MM-dd') || d),
     },
     {
       key: 'status',

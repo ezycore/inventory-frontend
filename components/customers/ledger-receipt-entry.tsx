@@ -1,7 +1,8 @@
 "use client";
 // coding-standard: maintained
 
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, CreditCard } from "lucide-react";
@@ -39,7 +40,7 @@ export function LedgerReceiptEntry({
             {tBulk("receiptNumber", { number: data.receiptNumber })}
           </span>
         </div>
-        <span className="text-sm text-muted-foreground">{format(date, "dd MMM yyyy")}</span>
+        <span className="text-sm text-muted-foreground">{formatInTimeZone(date, getOrgTimezone(), "dd MMM yyyy")}</span>
       </div>
 
       <div className="text-sm space-y-1">

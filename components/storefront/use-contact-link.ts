@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import { usePathname } from "next/navigation";
 import type { StorefrontStore } from "@/lib/storefront-client";
 import {
   resolveChannels,
@@ -14,6 +13,7 @@ import {
 } from "@/lib/storefront-contact-message";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useSfContact } from "@/services/stores/use-sf-contact-store";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
@@ -55,7 +55,7 @@ export interface ContactLink {
  * excluded, a suppressed route, or nothing resolving to a usable channel.
  */
 export function useContactLink(store?: StorefrontStore, base = ""): ContactLink | null {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const { t } = useStorefrontUI();
   // The Customize editor streams its unsaved draft so the merchant sees the
   // button appear the instant they flip the switch. `undefined` means "nothing

@@ -124,7 +124,7 @@ export function DataTableBody<TData, TValue>({
 
   return (
     <div className={cn(wrapperClasses, "relative")}>
-      {/* Overlay spinner for sort/filter/pagination refetches — keeps existing rows visible */}
+      {/* Overlay spinner for sort/filter/pagination refetches and deletes — keeps existing rows visible */}
       {isFetching && !isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60 backdrop-blur-[1px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
@@ -8,12 +9,9 @@ import {
   getStoreTags,
 } from "@/lib/storefront-server";
 import { getStoreContext } from "@/lib/storefront-host";
-import { storeJsonLd } from "@/lib/storefront-jsonld";
-import { canonicalTarget } from "@/lib/storefront-canonical";
-import { JsonLd } from "@/components/storefront/json-ld";
-import { storeHref } from "@/lib/storefront-links";
-import { fullImageUrl } from "@/lib/storefront-image";
+import { buildStoreHomeMetadata } from "@/lib/storefront-metadata";
 import { StoreHome } from "@/components/storefront/store-home";
+import { StoreHomeJsonLd } from "@/components/storefront/store-home-json-ld";
 import { resolveSections } from "@/lib/storefront-templates";
 import {
   DEFAULT_SECTION_LIMIT,
@@ -40,43 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
   if (!slug) return UNAVAILABLE;
   const store = await getStore(slug);
   if (!store) return UNAVAILABLE;
-  const title = store.seo?.title || store.name;
-  const description =
-    store.seo?.description || `Shop ${store.name} online — order with delivery.`;
-  // Already chained server-side (socialImage → banner → logo) — see StorefrontStore.
-  const image = fullImageUrl(store.socialImage);
-  const images = image ? [{ url: image }] : undefined;
-  // Custom domain wins over the serving host — see lib/storefront-canonical.ts.
-  const target = canonicalTarget(store, { origin, base });
-  const canonical = target.origin
-    ? `${target.origin}${target.base || "/"}`
-    : undefined;
-
-  // Built here rather than through `storePageMetadata` because the home page is
-  // the one page with no " · Store" suffix — its title IS the store. Everything
-  // else about the shape must match that helper; if you add a field there, add it
-  // here too or the highest-authority URL on the site is the one missing it.
-  return {
-    title,
-    description,
-    metadataBase: target.origin ? new URL(target.origin) : undefined,
-    alternates: canonical ? { canonical } : undefined,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      siteName: store.name,
-      locale: "en_US",
-      url: canonical,
-      images,
-    },
-    twitter: {
-      card: images ? "summary_large_image" : "summary",
-      title,
-      description,
-      images,
-    },
-  };
+  // Shared with a landing page used as the homepage — see `buildStoreHomeMetadata`.
+  return buildStoreHomeMetadata(store, { origin, base });
 }
 
 export default async function StoreHomePage() {
@@ -161,21 +124,9 @@ export default async function StoreHomePage() {
     })),
   );
 
-  // JSON-LD `url` must agree with the canonical, or the Organization node claims
-  // a different home page than the <link rel="canonical"> on the same document.
-  const home = canonicalTarget(store, { origin, base });
-  const canonicalHome = home.origin
-    ? `${home.origin}${storeHref(home.base)}`
-    : "";
-
   return (
     <>
-      {/* Ties the shop to its logo, contact details and social profiles — the
-          basis of a brand/knowledge-panel result. Emitted on the home page only:
-          one Organization node per site, not per page. */}
-      {canonicalHome ? (
-        <JsonLd data={storeJsonLd({ store, url: canonicalHome })} />
-      ) : null}
+      <StoreHomeJsonLd store={store} origin={origin} base={base} />
       <StoreHome
         base={base}
         store={store}

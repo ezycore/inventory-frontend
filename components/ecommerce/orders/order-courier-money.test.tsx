@@ -21,10 +21,12 @@ import type { AdminStorefrontOrder } from "@/services/api";
  *   the row is dropped rather than printed as 0.
  * - **`not_collected` says nothing.** The payment panel already covers an uncollected order.
  */
-vi.mock("@/services/stores/use-auth-store", () => ({
-  useAuthStore: (selector: (s: unknown) => unknown) =>
-    selector({ user: { organization: { currency: "BDT" } } }),
-}));
+vi.mock("@/services/stores/use-auth-store", () => {
+  const state = { user: { organization: { currency: "BDT", timezone: "Asia/Dhaka" } } };
+  // A selector hook that also answers `getState()`, which `getOrgTimezone` reads.
+  const useAuthStore = (selector: (s: unknown) => unknown) => selector(state);
+  return { useAuthStore: Object.assign(useAuthStore, { getState: () => state }) };
+});
 
 vi.mock("@/hooks/use-has-permission", () => ({
   useHasPermission: () => true,

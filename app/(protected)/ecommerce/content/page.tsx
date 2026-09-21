@@ -3,7 +3,8 @@
 import { queryKeys } from "@/services/api/query-keys";
 import { DataTable } from "@/ui/components/dataTable";
 import PageHeader from "@/ui/components/header";
-import { contentPagesApi, useCreateContentPage, useDeleteContentPage, useUpdateContentPage, type ContentPage } from "@/services/api";
+import Link from "next/link";
+import { contentPagesApi, useCreateContentPage, useDeleteContentPage, useStorefrontPages, useUpdateContentPage, type ContentPage } from "@/services/api";
 import { buildContentColumns, cleanContentPage, contentDefaultValues, contentFilterConfig, contentFormConfig, contentPageToForm } from "@/components/ecommerce/content";
 import { useStorefrontPreviewToken } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
@@ -16,9 +17,19 @@ export default function ContentPage() {
   // Shared react-query cache, so this is the same single request the Customize
   // editor makes.
   const { data: preview } = useStorefrontPreviewToken();
+  // Pages that have moved onto the builder: the storefront serves those from
+  // there, so this screen marks them and sends edits to the page editor.
+  const { data: builderPages } = useStorefrontPages({ kind: "content", limit: 100 });
+  const movedPages = useMemo(
+    () =>
+      new Map(
+        (builderPages?.items ?? []).flatMap((page) => (page.slug ? [[page.slug, page._id] as const] : [])),
+      ),
+    [builderPages],
+  );
   const columns = useMemo(
-    () => buildContentColumns({ storeSlug, previewToken: preview?.token }),
-    [storeSlug, preview?.token],
+    () => buildContentColumns({ storeSlug, previewToken: preview?.token, movedPages }),
+    [storeSlug, preview?.token, movedPages],
   );
 
   return (
@@ -27,6 +38,17 @@ export default function ContentPage() {
         title="Content"
         subTitle="Storefront pages (About, FAQ, policies). Published pages can appear in the footer."
       />
+
+      {movedPages.size > 0 ? (
+        <p className="rounded-md border bg-muted/50 p-3 text-xs leading-snug text-muted-foreground">
+          {movedPages.size === 1 ? "One page is" : `${movedPages.size} pages are`} built from sections now.
+          Shoppers see the version in{" "}
+          <Link href="/ecommerce/pages" className="font-medium text-primary hover:underline">
+            Pages
+          </Link>
+          , so edit {movedPages.size === 1 ? "it" : "them"} there — changes here no longer reach the shop.
+        </p>
+      ) : null}
 
       <DataTable<ContentPage>
         cardTitle={(n) => `All Pages (${n})`}

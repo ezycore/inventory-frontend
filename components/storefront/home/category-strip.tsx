@@ -130,8 +130,8 @@ export function CategoryStrip({
     if (!el) return;
     el.scrollBy({
       left: direction * stripStep(el.clientWidth),
-      // Read per press rather than held in state, matching `HeroCarousel`: the
-      // preference can change mid-session and this costs nothing to re-ask.
+      // Read per press rather than held in state, as the rotating heroes do:
+      // the preference can change mid-session and this costs nothing to re-ask.
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "auto"
         : "smooth",

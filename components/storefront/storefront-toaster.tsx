@@ -8,7 +8,8 @@ import { TOASTER_ID } from "@/lib/storefront-toast";
 /**
  * The storefront's own toast host.
  *
- * **Why it is not the admin's `<Toaster>` in `app/layout.tsx`.** That one reads
+ * **Why it is not the admin's `<Toaster>`** (`components/layout/admin-root-layout.tsx`,
+ * which since 2026-09-14 is not mounted on shop pages at all). That one reads
  * `next-themes`, and the storefront does not use next-themes: its light/dark is
  * `.sf-root[data-theme]`, driven by `ezy-sf-theme` in localStorage through
  * `StorefrontUIProvider`. The admin toaster also portals to `document.body`,

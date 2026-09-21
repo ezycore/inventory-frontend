@@ -1,8 +1,8 @@
 // coding-standard: maintained
 
 import { describe, expect, it } from "vitest";
+import { categoryLabelsVisible } from "@/lib/storefront-templates";
 import {
-  categoryLabelsVisible,
   categoryTileRowLayout,
   resolveCategoryRowLayout,
   stripEdges,

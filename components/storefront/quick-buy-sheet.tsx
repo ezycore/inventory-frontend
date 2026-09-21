@@ -9,16 +9,15 @@ import { useOverlayTransition } from "@/hooks/use-overlay-transition";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
-import { cartLineCap } from "@/lib/storefront-cart-qty";
 import { money } from "@/components/storefront/format";
-import { Icon } from "@/components/storefront/sf-icons";
+import { QtyStepper } from "@/components/storefront/qty-stepper";
 import { Media } from "@/components/storefront/sf-bits";
-import {
-  VariantSelector,
-  defaultSelection,
-  matchVariant,
-} from "@/components/storefront/variant-selector";
+import { VariantSelector } from "@/components/storefront/variant-selector";
+import { choiceLine, resolveProductChoice } from "@/components/storefront/product-choice";
 import type { QuickBuyLine } from "@/components/storefront/quick-buy-types";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /** Must cover the .sf-qb-panel CSS transition (0.24s) so the exit finishes. */
 const EXIT_MS = 260;
@@ -55,6 +54,7 @@ export function QuickBuySheet({
   onBuy: (line: QuickBuyLine) => void;
 }) {
   const { t } = useStorefrontUI();
+  const paused = useOrdersPaused();
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [openedFor, setOpenedFor] = useState<string | null>(null);
@@ -84,59 +84,32 @@ export function QuickBuySheet({
 
   if (!mounted) return null;
 
-  const variants = product.variants ?? [];
-  const variable = product.productType === "variable";
-  // Ahead of `selection` because the default highlight branches on it, same as
-  // the chips do — a backorder product's options are all buyable.
-  const canBackorder = product.outOfStockBehavior === "backorder";
-  const selection = Object.keys(picked).length
-    ? picked
-    : defaultSelection(variants, canBackorder);
-  const selected = variable ? matchVariant(variants, selection) : undefined;
-
-  // Same resolution order as the PDP: a variable product prices, stocks and
-  // illustrates itself from the chosen variant, falling back to the parent.
-  const price = (variable ? selected?.price : product.price) ?? 0;
-  const compareAt = variable
-    ? selected?.compareAtPrice
-    : product.compareAtPrice;
-  const hasOld = !!compareAt && compareAt > price;
-  const availableQty = variable
-    ? (selected?.availableQuantity ?? 0)
-    : product.availableQuantity;
-  const outOfStock = availableQty <= 0;
-  const soldOut = outOfStock && !canBackorder;
-  const image =
-    (variable && selected?.images?.length
-      ? selected.images[0]
-      : product.images?.[0]) ?? undefined;
-
+  // The same answer as the product page gives (`resolveProductChoice`): a
+  // variable product prices, stocks and illustrates itself from the chosen
+  // variant, falling back to the parent.
+  const choice = resolveProductChoice(product, picked);
+  const {
+    variable,
+    variants,
+    canBackorder,
+    selection,
+    price,
+    compareAt,
+    hasOld,
+    availableQty,
+    soldOut,
+    incomplete,
+  } = choice;
+  const image = choice.images[0];
   // A variable product with nothing matched yet cannot be added: we would not
   // know which variant to put in the cart.
-  const incomplete = variable && !selected;
   const blocked = incomplete || soldOut;
 
-  const line = (): QuickBuyLine => ({
-    productId: product._id,
-    variantId: selected?._id,
-    variantLabel: selected?.label,
-    slug: product.slug,
-    name: product.name,
-    price,
-    image: thumbImageUrl(image),
-    maxQty: cartLineCap(availableQty, canBackorder),
-    qty,
-  });
+  const line = (): QuickBuyLine => {
+    const { quantity, ...item } = choiceLine(product, choice, qty);
+    return { ...item, qty: quantity };
+  };
 
-  const stepQty = (delta: number) =>
-    setQty((q) =>
-      Math.max(
-        1,
-        !canBackorder && availableQty > 0
-          ? Math.min(availableQty, q + delta)
-          : q + delta,
-      ),
-    );
 
   return (
     <div
@@ -211,39 +184,38 @@ export function QuickBuySheet({
           </div>
         ) : null}
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>{t.quantity}</span>
-          <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
-            <button type="button" onClick={() => stepQty(-1)} aria-label="-" style={qtyBtn}>
-              <Icon name="minus" size={15} />
-            </button>
-            <span className="sf-mono" style={{ fontSize: 14, fontWeight: 700, minWidth: 36, textAlign: "center" }}>
-              {qty}
-            </span>
-            <button type="button" onClick={() => stepQty(1)} aria-label="+" style={qtyBtn}>
-              <Icon name="plus" size={15} />
-            </button>
-          </div>
-        </div>
+        {paused ? (
+          <OrdersPausedNotice paused={paused} />
+        ) : (
+          <>
+            <QtyStepper
+              label={t.quantity}
+              qty={qty}
+              setQty={setQty}
+              availableQty={availableQty}
+              canBackorder={canBackorder}
+            />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
-          <button
-            type="button"
-            disabled={blocked}
-            onClick={() => onAdd(line())}
-            style={sheetBtn(false, blocked)}
-          >
-            {soldOut ? t.outOfStock : t.addToCartFull}
-          </button>
-          <button
-            type="button"
-            disabled={blocked}
-            onClick={() => onBuy(line())}
-            style={sheetBtn(true, blocked)}
-          >
-            {t.buyNow}
-          </button>
-        </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => onAdd(line())}
+                style={sheetBtn(false, blocked)}
+              >
+                {soldOut ? t.outOfStock : t.addToCartFull}
+              </button>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => onBuy(line())}
+                style={sheetBtn(true, blocked)}
+              >
+                {t.buyNow}
+              </button>
+            </div>
+          </>
+        )}
 
         {/* The escape hatch: quick buy is a shortcut, never a replacement for
             the description, gallery and specs the PDP carries. */}
@@ -267,31 +239,16 @@ export function QuickBuySheet({
   );
 }
 
-const qtyBtn = {
-  fontFamily: "inherit",
-  width: 42,
-  height: 42,
-  background: "var(--card)",
-  border: "none",
-  color: "var(--text)",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-} as const;
-
 function sheetBtn(primary: boolean, disabled: boolean) {
+  const metrics = { radius: 9, padding: "14px 10px", fontSize: 14, minHeight: 48 };
   return {
+    ...(primary
+      ? brandButton(metrics)
+      : { background: "transparent", color: "var(--text)", ...buttonMetrics(metrics) }),
     fontFamily: "inherit",
-    fontSize: 14,
     fontWeight: primary ? 700 : 600,
-    padding: "14px 10px",
-    minHeight: 48,
-    borderRadius: 9,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.55 : 1,
-    background: primary ? "var(--primary)" : "transparent",
-    color: primary ? "var(--on-primary)" : "var(--text)",
     border: primary ? "none" : "1px solid var(--border-strong)",
   } as const;
 }

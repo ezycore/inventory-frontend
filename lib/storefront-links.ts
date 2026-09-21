@@ -1,3 +1,4 @@
+// coding-standard: maintained
 /**
  * Build a storefront link relative to the active store's public base path.
  *
@@ -64,4 +65,22 @@ export function collectionHref(
   const path = category?.slugPath;
   if (!path) return storeHref(base, "/products");
   return storeHref(base, `/${path.split("/").map(encodeURIComponent).join("/")}`);
+}
+
+/** A phone or mail link, which the device opens as typed. */
+const CONTACT_LINK = /^(tel:|mailto:)/i;
+
+/**
+ * A link a merchant typed into a hero slide or a builder section: like
+ * `storeLinkHref`, except that a `tel:` or `mailto:` link is kept as typed.
+ * `storeLinkHref` refuses every non-http scheme, which turned "call us" into a
+ * link to the catalogue.
+ */
+export function merchantLinkHref(
+  base: string,
+  input?: string,
+  fallback = "/products",
+): string {
+  const raw = input?.trim();
+  return raw && CONTACT_LINK.test(raw) ? raw : storeLinkHref(base, input, fallback);
 }

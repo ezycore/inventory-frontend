@@ -16,7 +16,7 @@ import {
   SOCIAL_PROFILES,
   socialProfileError,
 } from "@/lib/storefront-social";
-import { Field, SaveBar, useStoreSettingsSave } from "./settings-form-shared";
+import { Field, SaveBar, ToggleRow, useStoreSettingsSave } from "./settings-form-shared";
 import { useStockTracked } from "@/hooks/use-stock-tracked";
 
 /** Store-wide sold-out policy. A product can override it in Catalog → Products. */
@@ -48,6 +48,13 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
   const stockTracked = useStockTracked();
   const [outOfStock, setOutOfStock] = useState<OutOfStockBehavior>(
     settings.defaultOutOfStockBehavior ?? "show",
+  );
+  // The optional shopper pages. Unset means ON for all three, which is what
+  // every store configured before these switches existed carries.
+  const [searchPage, setSearchPage] = useState(settings.pagesConfig?.search !== false);
+  const [cartPage, setCartPage] = useState(settings.pagesConfig?.cartPage !== false);
+  const [accounts, setAccounts] = useState(
+    settings.customersConfig?.allowAccounts !== false,
   );
   const { data } = useQuery({
     queryKey: queryKeys.locations.storefrontOptions(),
@@ -131,6 +138,32 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
         </p>
       </Card>
       )}
+      <Card className="space-y-4 p-5 shadow-none">
+        <div>
+          <h3 className="text-sm font-semibold">Shopper pages</h3>
+          <p className="text-xs text-muted-foreground">
+            Turn off a page your shop does not need. Order tracking links keep working either way.
+          </p>
+        </div>
+        <ToggleRow
+          label="Search"
+          desc="The search box in your header and the search page. Off hides both."
+          checked={searchPage}
+          onChange={setSearchPage}
+        />
+        <ToggleRow
+          label="Cart page"
+          desc="The full cart page. Off keeps the slide-out cart and sends /cart to checkout."
+          checked={cartPage}
+          onChange={setCartPage}
+        />
+        <ToggleRow
+          label="Customer accounts"
+          desc="Sign-in and the account area. Off means guest checkout only — shoppers still track orders from the link you send them."
+          checked={accounts}
+          onChange={setAccounts}
+        />
+      </Card>
       <SaveBar pending={pending} onSave={() => {
         const errors = Object.fromEntries(
           SOCIAL_PROFILES.map(({ key }) => [key, socialProfileError(profiles[key] ?? "") ?? ""]),
@@ -155,6 +188,10 @@ export function GeneralSettingsTab({ settings }: { settings: StorefrontSettings 
             whatsapp: whatsapp.trim() || undefined,
             profiles: normalizedProfiles,
           },
+          // Two blocks, because the account switch predates the other two and
+          // moving it would be a migration on live stores for a tidier shape.
+          pagesConfig: { search: searchPage, cartPage },
+          customersConfig: { allowAccounts: accounts },
         });
       }} />
     </div>

@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { useLocale, useTranslations } from "next-intl";
 import type { AppLocale } from "@/i18n/config";
 import {
@@ -576,7 +577,7 @@ export function SupplierLedgerSheet({
                                 </Badge>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="grid grid-cols-3 gap-2 text-sm">
@@ -644,7 +645,7 @@ export function SupplierLedgerSheet({
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="text-sm space-y-1">
@@ -701,7 +702,7 @@ export function SupplierLedgerSheet({
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="text-sm space-y-1">
@@ -789,7 +790,7 @@ export function SupplierLedgerSheet({
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="text-sm space-y-1">
@@ -832,7 +833,7 @@ export function SupplierLedgerSheet({
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="text-sm space-y-1">
@@ -875,7 +876,7 @@ export function SupplierLedgerSheet({
                                 </span>
                               </div>
                               <span className="text-sm text-muted-foreground">
-                                {format(entry.date, "dd MMM yyyy")}
+                                {formatInTimeZone(entry.date, getOrgTimezone(), "dd MMM yyyy")}
                               </span>
                             </div>
                             <div className="text-sm space-y-1">

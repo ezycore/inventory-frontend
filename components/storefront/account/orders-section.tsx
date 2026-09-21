@@ -14,6 +14,7 @@ import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { StatusPill } from "@/components/storefront/sf-bits";
 import { storefrontPaymentMethodLabel } from "@/lib/storefront-payment-methods";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * Orders section — order history rows; "View details" opens the in-page
@@ -75,7 +76,7 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
             <button
               type="button"
               onClick={() => onTrack(o.orderNumber)}
-              style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "9px 16px", borderRadius: 8, fontFamily: "inherit", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}
+              style={{ ...brandButton({ radius: 8, padding: "9px 16px", fontSize: 12.5 }), border: "none", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
             >
               {t.viewDetails}
             </button>

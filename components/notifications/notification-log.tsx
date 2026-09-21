@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Mail, MessageSquare, RotateCw } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import {
   useNotificationLog,
   useNotificationSettings,
@@ -66,6 +67,7 @@ const STATUS_VARIANT: Record<
 export function NotificationLog() {
   const t = useTranslations("settings.notifications");
   const locale = useLocale() as AppLocale;
+  const { timezone } = useOrgCalendar();
   const { data: settings } = useNotificationSettings();
 
   const [page, setPage] = useState(1);
@@ -125,7 +127,7 @@ export function NotificationLog() {
       headClassName: "w-44",
       cell: (row) => (
         <span className="whitespace-nowrap text-sm text-muted-foreground">
-          {formatDateTime(row.createdAt, locale)}
+          {formatDateTime(row.createdAt, locale, timezone)}
         </span>
       ),
     },

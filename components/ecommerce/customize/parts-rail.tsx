@@ -30,12 +30,9 @@ import { partSummary } from "@/components/ecommerce/customize/part-summaries";
 import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announcement-part";
 import { CampaignStripPart } from "@/components/ecommerce/customize/parts/campaign-strip-part";
 import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
-import { CollectionsPart } from "@/components/ecommerce/customize/parts/collections-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
-import { HeroPart } from "@/components/ecommerce/customize/parts/hero-part";
-import { HomePart } from "@/components/ecommerce/customize/parts/home-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
 import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
@@ -72,38 +69,21 @@ interface RailPart {
 export const LOOK: RailPart = { id: "look", title: "Look" };
 
 /**
- * The four groups. `look` is deliberately NOT one of them: it is the only part
+ * The two groups. `look` is deliberately NOT one of them: it is the only part
  * that changes every other one, so it sits above the groups rather than inside a
  * group of its own — which would also have put a heading called Look directly
  * over a row called Look.
+ *
+ * **Every row here is site-wide** (2026-09-20). The four groups this replaced
+ * were Home page · Shop pages · Buying · Site frame, and three of them held one
+ * page's settings each — which is §1's "global and page settings are mixed",
+ * the reason a merchant could edit a Hero on a home page that composes none and
+ * watch nothing happen. Those rows are the pages' own now, in the page editor
+ * (`/ecommerce/pages`), beside the sections they belong to and under a preview
+ * of the page they change. Site frame leads because a merchant arriving here is
+ * far more often after their header or footer than the announcement bar.
  */
 export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
-  {
-    title: "Home page",
-    parts: [
-      { id: "announcement", title: "Announcement bar", icon: Megaphone },
-      { id: "campaign", title: "Campaign strip", icon: Percent },
-      { id: "hero", title: "Hero", icon: GalleryHorizontalEnd },
-      { id: "home", title: "Home page", icon: Home },
-    ],
-  },
-  {
-    title: "Shop pages",
-    parts: [
-      { id: "cards", title: "Product cards", icon: LayoutGrid },
-      { id: "collections", title: "Collections", icon: Library },
-      { id: "product", title: "Product page", icon: Package },
-      { id: "content", title: "Content pages", icon: FileText },
-    ],
-  },
-  {
-    title: "Buying",
-    parts: [
-      { id: "cart", title: "Cart", icon: ShoppingCart },
-      { id: "checkout", title: "Checkout", icon: CreditCard },
-      { id: "account", title: "Account area", icon: UserRound },
-    ],
-  },
   {
     title: "Site frame",
     parts: [
@@ -118,6 +98,20 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
       { id: "contact", title: "WhatsApp button", icon: MessageCircle },
     ],
   },
+  {
+    title: "Across the site",
+    parts: [
+      { id: "announcement", title: "Announcement bar", icon: Megaphone },
+      { id: "campaign", title: "Campaign strip", icon: Percent },
+      { id: "cards", title: "Product cards", icon: LayoutGrid },
+      /* NOT "Content pages": the frame it picks also wraps the ORDER TRACKING
+         page, which has no builder page of its own — so this is genuinely
+         site-wide, and the old name hid the half a merchant cannot reach any
+         other way. A content page on the builder overrides it per page
+         (`content-body.layout`). */
+      { id: "content", title: "Content & tracking", icon: FileText },
+    ],
+  },
 ];
 
 const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)];
@@ -125,14 +119,14 @@ const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)]
 /** Opening a part points the preview at a page that actually shows it. */
 const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
-  collections: "collection",
-  product: "product",
+  /* The tracking page is the one page this part's frame wraps that a merchant
+     can reach nowhere else — a content page on the builder previews its own
+     frame, the home page shows none of the four. */
+  content: "track",
 };
 
 /** Parts whose `templates.*` key is not simply their own id. */
 const PART_TEMPLATE_KEY: Partial<Record<PartId, string>> = {
-  account: "accountLayout",
-  cart: "cartLayout",
   content: "contentLayout",
 };
 
@@ -159,6 +153,25 @@ const RETIRED_PART_IDS: Record<string, PartId> = {
   design: "look",
 };
 
+/**
+ * Rows that became a PAGE rather than another row (2026-09-20). A link written
+ * before the split cannot resolve to anything here — the settings moved to the
+ * page editor — so `MOVED_TO_PAGES` sends it there instead of silently
+ * collapsing the rail, which would read as a dead link.
+ *
+ * `home` and `hero` share a destination: a hero is a section OF the home page,
+ * and the Pages screen is where its own page is opened.
+ */
+export const MOVED_TO_PAGES: Record<string, string> = {
+  hero: "home",
+  home: "home",
+  product: "product",
+  collection: "collection",
+  cart: "cart",
+  checkout: "checkout",
+  account: "account",
+};
+
 /** Narrows a `?part=` query value; anything else leaves the rail collapsed. */
 export const asPartId = (value: string | null): PartId | null => {
   if (PARTS.some((p) => p.id === value)) return value as PartId;
@@ -171,21 +184,24 @@ export function PartsRail({
   open,
   onToggle,
   onManageCollections,
-  onEditSlide,
 }: {
   settings: StorefrontSettings;
   api: CustomizeDraftApi;
   /** Owned by the workspace so it survives a panel taking the rail over. */
   open: PartId | null;
   onToggle: (id: PartId) => void;
-  onManageCollections: () => void;
-  onEditSlide: (index: number) => void;
+  /**
+   * Opens the collections panel, for the Header part's collections menu.
+   * Omitted without `storefront.manage`: renaming, listing and reordering
+   * collections are catalog writes, not look, so a `storefront.design`-only
+   * role would get a 403 on Save.
+   */
+  onManageCollections?: () => void;
 }) {
   const {
     draft,
     patch,
     patchTemplate,
-    patchHomeTemplate,
     dirtyParts,
     isDirty,
     validationErrors,
@@ -193,6 +209,7 @@ export function PartsRail({
     discard,
     save,
     saving,
+    savesDraft,
   } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
@@ -298,20 +315,6 @@ export function PartsRail({
           patchTemplate={patchTemplate}
           onManageCollections={onManageCollections}
         />
-      ) : part.id === "hero" ? (
-        <HeroPart
-          settings={settings}
-          draft={draft}
-          patch={patch}
-          patchTemplate={patchTemplate}
-          onEditSlide={onEditSlide}
-        />
-      ) : part.id === "collections" ? (
-        <CollectionsPart
-          draft={draft}
-          patchTemplate={patchTemplate}
-          onManageCollections={onManageCollections}
-        />
       ) : part.id === "contact" ? (
         <ContactPart
           settings={settings}
@@ -327,24 +330,16 @@ export function PartsRail({
         />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
-      ) : part.id === "home" ? (
-        <HomePart
-          draft={draft}
-          patch={patch}
-          patchTemplate={patchTemplate}
-          patchHomeTemplate={patchHomeTemplate}
-        />
       ) : (
-        // product / account / checkout are a single layout choice each, so
-        // the part IS its picker. Its id is usually the template key too —
-        // `account` is the one that is not, because the key it writes
-        // (`accountLayout`) selects a whole page component rather than a
-        // variation, and naming it plainly is worth one map entry.
+        // Content pages are a single layout choice, so the part IS its picker.
+        // Its id is not the template key it writes (`contentLayout`), which is
+        // worth one map entry. Product, collection, cart, checkout and account
+        // were the other four; each is its page's core-section setting now.
         <TemplatePicker
           templateKey={PART_TEMPLATE_KEY[part.id] ?? part.id}
           value={draft.templates[PART_TEMPLATE_KEY[part.id] ?? part.id]}
           onChange={(v) => patchTemplate(PART_TEMPLATE_KEY[part.id] ?? part.id, v)}
-          columns={part.id === "product" ? 3 : 2}
+          columns={2}
         />
       )}
     </PartGroup>
@@ -383,7 +378,9 @@ export function PartsRail({
             <span className="truncate">{dirtyNames.join(", ")} changed</span>
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">All changes saved</span>
+          <span className="text-xs text-muted-foreground">
+            {savesDraft ? "Draft saved" : "All changes saved"}
+          </span>
         )}
         <span className="ml-auto flex flex-none gap-2">
           <Button
@@ -395,7 +392,7 @@ export function PartsRail({
             Discard
           </Button>
           <Button size="sm" onClick={save} disabled={!isDirty || !isValid || saving}>
-            {saving ? "Saving…" : "Save changes"}
+            {saving ? "Saving…" : savesDraft ? "Save draft" : "Save changes"}
           </Button>
         </span>
       </div>

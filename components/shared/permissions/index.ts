@@ -7,3 +7,8 @@ export {
   type CategoryConfig,
 } from "./permission-display";
 export { PermissionGroupCard } from "./permission-group-card";
+export {
+  isPermissionVisible,
+  useVisiblePermissions,
+  visiblePermissions,
+} from "./permission-features";

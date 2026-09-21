@@ -1,6 +1,6 @@
 // coding-standard: maintained
-import { format } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
+import { resolveTimezone } from '@/lib/org-calendar'
 
 /** One inventory row for a product at a single location. */
 export interface InventoryItem {
@@ -15,19 +15,9 @@ export interface InventoryItem {
   shelf?: string
 }
 
-/** Format an ISO date to `yyyy-MM-dd`, falling back to the raw string. */
-export function formatDate(dateStr?: string): string {
-  if (!dateStr) return '—'
-  try {
-    return format(new Date(dateStr), 'yyyy-MM-dd')
-  } catch {
-    return dateStr
-  }
-}
-
 /**
  * Format an ISO instant in the org's IANA timezone (so the displayed day matches
- * the dashboard). Falls back to browser-local when no tz is supplied.
+ * the dashboard). A missing tz resolves to the default org zone, never the browser's.
  */
 export function formatDateTz(
   dateStr: string | undefined,
@@ -36,9 +26,7 @@ export function formatDateTz(
 ): string {
   if (!dateStr) return '—'
   try {
-    return timezone
-      ? formatInTimeZone(new Date(dateStr), timezone, fmt)
-      : format(new Date(dateStr), fmt)
+    return formatInTimeZone(new Date(dateStr), resolveTimezone(timezone), fmt)
   } catch {
     return dateStr
   }

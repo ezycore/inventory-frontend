@@ -2,6 +2,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { ORDER_STATUS, type Lang } from "@/lib/storefront-i18n";
 import { money, discountPct } from "@/components/storefront/format";
+import { SfImage } from "@/components/storefront/sf-image";
+import type { StorefrontImage } from "@/lib/storefront-client";
 
 /**
  * Striped placeholder used wherever a real image is missing — mirrors the
@@ -75,10 +77,20 @@ export function Media({
   mobileFocal,
   className,
   style,
+  priority = false,
+  loading,
+  sizes = "100vw",
 }: {
-  src?: string | null;
+  /**
+   * The stored image, or a single URL. Pass the image when the slot is wide enough
+   * that a phone should get the 800px medium rather than the original: only the
+   * object carries the variants `srcset` is built from.
+   */
+  src?: StorefrontImage | string | null;
   /** Optional phone source; unset keeps using `src`. */
-  mobileSrc?: string | null;
+  mobileSrc?: StorefrontImage | string | null;
+  /** The slot's rendered width per breakpoint, for `srcset`. See `SfImage`. */
+  sizes?: string;
   alt?: string;
   label?: string;
   ratio?: string;
@@ -96,6 +108,13 @@ export function Media({
   mobileFocal?: string;
   className?: string;
   style?: CSSProperties;
+  /**
+   * The likely LCP image of the page (a hero banner, the product page's main
+   * photo): preloaded with high priority. See `SfImage`.
+   */
+  priority?: boolean;
+  /** Eager by default — lazy only where the caller knows the slot is below the fold. */
+  loading?: "lazy" | "eager";
 }) {
   if (src) {
     const focusStyle = {
@@ -108,16 +127,23 @@ export function Media({
       imageAlt: string,
       hidden = false,
     ) => (
-      <picture style={{ display: "contents" }}>
-        {mobileSrc ? <source media="(max-width: 640px)" srcSet={mobileSrc} /> : null}
-        <img
-          src={src}
-          alt={imageAlt}
-          aria-hidden={hidden || undefined}
-          className={imageClassName}
-          style={{ ...focusStyle, ...imageStyle }}
-        />
-      </picture>
+      <SfImage
+        image={src}
+        mobileImage={mobileSrc}
+        mobileMedia="(max-width: 640px)"
+        sizes={sizes}
+        alt={imageAlt}
+        decorative={hidden}
+        /* The blurred copy gets the priority too. It is first in the DOM and
+           shares the photo's URL, so the browser starts the one download at its
+           priority — measured `Low` when only the foreground asked, and the
+           copy is also what Lighthouse times as the LCP element. `preload()`
+           dedupes the shared URL. */
+        priority={priority}
+        loading={loading ?? "eager"}
+        className={imageClassName}
+        style={{ ...focusStyle, ...imageStyle }}
+      />
     );
     if (fit === "canvas") {
       return (

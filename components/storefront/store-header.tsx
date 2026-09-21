@@ -29,6 +29,7 @@ import {
   SearchFirstDesktop,
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
+import { storePages } from "@/lib/storefront-page-controls";
 import { headerNeeds, showsOn } from "@/lib/storefront-utility-bar";
 import {
   useHeaderVariant,
@@ -95,6 +96,11 @@ export function StoreHeader({
 
   const variant = useHeaderVariant(store);
   const utilityBar = useResolvedUtilityBar(store);
+  // Which optional pages this shop serves. Resolved once here and carried on
+  // `ctx`, so a variant asks a boolean rather than reaching for the store —
+  // six anatomies reading the payload themselves is six chances to read it
+  // differently, and the default (absent ⇒ ON) is the part that must not vary.
+  const pages = storePages(store);
 
   /* Who owes the shopper a theme / language control on DESKTOP. Resolved here
      because this is the only place that knows both halves — which bar is
@@ -122,6 +128,8 @@ export function StoreHeader({
     menuSource,
     cats: categories ?? [],
     hideCategoryRow,
+    showSearch: pages.search,
+    showAccount: pages.accounts,
     needsTheme,
     needsLang,
     // "Delivery inside Dhaka in 24h" and the like. There is no dedicated

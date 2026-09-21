@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { formatMoney } from "@/components/storefront/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { CourierPayout } from "@/services/api";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { cn } from "@/ui/lib/utils";
@@ -11,6 +12,7 @@ const shortDate = (value?: string | null) =>
         day: "numeric",
         month: "short",
         year: "numeric",
+        timeZone: getOrgTimezone(),
       })
     : "—";
 

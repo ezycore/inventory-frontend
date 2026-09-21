@@ -19,11 +19,21 @@ correctly. The real enforcement is server-side. Never treat an FE permission che
 
 - **`useHasPermission(permission)`** ([`hooks/use-has-permission.ts`](../../../hooks/use-has-permission.ts))
   reads `user.permissions` from the auth store and returns a boolean. The `PERMISSIONS` const there
-  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`, **85** strings).
+  mirrors the backend catalog (`inventory-backend/src/constants/permissions.ts`, **87** strings).
   The five declared today: `costs.view` (COGS/unit-cost figures), `stock.manage`, `users.manage`
   (user admin), `roles.view` / `roles.manage` (reading vs authoring roles — see §5), and
   `organization.edit`. **Never hardcode a permission string** in a component — add it to
   `PERMISSIONS`.
+- **Emailing a receipt or dues statement** takes `sales.create` or `sales.edit`
+  (`SALES_DOCUMENT_EMAIL_PERMISSIONS` / `useCanEmailSalesDocuments`), never `sales.view` alone — the
+  backend refuses it for a read-only role since 2026-09-17, so the buttons hide.
+- **Sidebar gates are also route guards.** `RouteAccessGuard` reads `constants/navItem.ts`, so a wrong
+  `permissions` entry denies the page, not just the row. Roles takes `roles.view` or `users.manage`;
+  Customize and Themes take `storefront.design` (the Site API), not `storefront.manage`.
+- **Switched-off features hide their permissions** in every permission list. The builder gets them
+  already filtered from `GET /roles/catalog`; the read-only lists (role details, roles table count,
+  profile tab) use `useVisiblePermissions` from `components/shared/permissions/permission-features.ts`,
+  a mirror of the backend's `MODULE_FEATURES` — change both together.
 - Permission strings are `resource.action`. Display helpers (grouping, action icons, category colors)
   and the `PermissionGroupCard` category card live in
   [`components/shared/permissions/`](../../../components/shared/permissions) — reuse them; don't
@@ -46,6 +56,24 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 > otherwise you flash the signed-out state at signed-in users, or trigger redirect races. Never hand-roll
 > `typeof window` / `useSyncExternalStore`.
 
+**A session is `user` + `token`, and a writer may never set one without the other.** `setUser` and
+`setToken` ignore a falsy token rather than storing it: with `user` and `isAuthenticated: true` but
+no bearer, every screen renders as signed in while `api-client` sends no `Authorization` header, so
+the next request 401s and the 401 branch bounces to `/login` — and the persisted store keeps that
+state across reloads, so each fresh login walks straight back into it. Found in production on
+2026-09-19, where it 401'd the setup wizard's first answer (`POST /api/organization/onboarding`,
+backend `UNAUTHORIZED` = *no header*, not a bad token).
+
+Two rules follow, and `tsconfig.json` has `strict: false`, so neither is a compile error:
+
+- **`/auth/me` returns no token.** A caller refreshing the user (`useMe`) reads the current one with
+  `useAuthStore.getState().token` **at resolve time** — never a value destructured during render.
+  The closure version wrote back whatever the token was when the hook last rendered, so a
+  `clearAuth` landing while the request was in flight resurrected a token-less session.
+- **Only `clearAuth` ends a session**, and it clears the whole of it. Anything that nulls the token
+  alone is the bug above. Regression tests:
+  [`services/stores/__tests__/use-auth-store-token.test.ts`](../../../services/stores/__tests__/use-auth-store-token.test.ts).
+
 ---
 
 ## 3. Feature gates (plan features)
@@ -53,6 +81,13 @@ every request via the `X-Active-Location` header in `lib/api-client.ts`.
 [`lib/feature-utils.ts`](../../../lib/feature-utils.ts) reads `user.organization.features`:
 
 - `isFeatureEnabled(org, key)` / `areAllFeaturesEnabled` / `isAnyFeatureEnabled` — gate a module/nav item.
+- **A feature is OFF only on an explicit `false`; a MISSING key is ON** — the backend's rule
+  (schema `default: true` on every key, `requireFeature` blocks only `false`). Organizations written
+  before `purchases` / `inventoryTracking` existed arrive without those keys. `resolveFeatureMap`
+  fills them in where maps enter the app — the auth store (`setUser`, `updateUser`, `updateFeatures`,
+  rehydration) and the features / onboarding API responses — so direct reads like
+  `features?.purchases` are safe. A map that has not loaded (`undefined`) still reads as off. Never
+  write `features[key] === true` against a map you built yourself; use `isFeatureOn`.
 - `isVatActive(org)` — every VAT surface. **No area argument**: VAT registration belongs to the
   organization, so sales and purchases share one answer. Replaced `isTaxActive(org, area)`.
   `claimsInputRebate(org)` is the separate "may it reclaim input VAT?" question — see the
@@ -92,8 +127,8 @@ or the fixture silently becomes a partial grant the next time an entry is gated.
 `entitlementAccess` 3-tier classifier — **keep the two in sync**:
 
 - `classifyEntitlementAccess()` → `active | read_only | blocked`.
-- `shouldBlockWorkspaceAccess()` — the protected layout
-  ([`app/(protected)/layout.tsx`](../../../app/(protected)/layout.tsx)) force-logs-out only `blocked`
+- `shouldBlockWorkspaceAccess()` — the protected shell
+  ([`components/layout/protected-shell.tsx`](../../../components/layout/protected-shell.tsx)) force-logs-out only `blocked`
   orgs (to `/login?subscription=inactive`). `read_only` (past-due) is **let through** so the user can
   reach billing and pay.
 - `isPaymentOverdue()` — drives the overdue banner + "Pay now".
@@ -120,13 +155,16 @@ Four things the UI has to get right, each with a reason in the backend:
 - **Only `source: "custom"` rows are editable.** `system` is defined in backend code; `mc` is owned
   by Mission Control and the next push overwrites local edits. The table shows edit/delete only for
   `custom`.
-- **The permission picker renders `GET /roles/catalog`, not `ALL_PERMISSIONS`.** The catalog is
-  filtered by the org's plan and marks unavailable modules `available: false` — render those
-  disabled with a reason rather than hiding them, or a merchant reads a missing module as a bug.
+- **The permission picker renders `GET /roles/catalog`, not `ALL_PERMISSIONS`.** Since 2026-09-17
+  the catalog leaves out every module whose feature is switched off — hidden, not greyed.
   `grantable` is the set a role may actually be composed from.
-- **A permission the role already holds stays checked even when off-plan.** The backend grandfathers
-  it (so a downgraded org can still rename the role); disabling that checkbox would strand the
-  merchant with no way to remove it.
+- **Hidden permissions ride along untouched.** The form's `selected` holds the role's whole array;
+  the picker only renders catalog permissions, so hidden ones are submitted back as they came — and
+  the backend carries them over even if a request leaves them out.
+- **Keeping is not granting.** A checkbox is lockable only for ADDING: `canTickPermission`
+  (`components/settings/roles/grant-rule.ts`) allows what the editor holds or what the role already
+  held when the form opened. Unticking is never locked. This mirrors the backend clamp, which applies
+  to additions only — a delegated author can rename a role holding permissions they lack.
 - **Delete requires reassignment.** Deleting a role someone holds is a *lockout*, not a downgrade —
   the backend refuses with `ROLE_IN_USE`. Read `GET /roles/:slug/usage` first and make the merchant
   pick a target; surface the API error verbatim, because `REASSIGN_WOULD_STRAND_USERS` names a case
@@ -153,7 +191,8 @@ by hand.
 | Costs/COGS columns hidden | `costs.view` not granted | expected — gate is `useHasPermission(PERMISSIONS.costsView)` |
 | Roles page loads but "New role" is missing | has `roles.view`, not `roles.manage` | expected — reading and authoring are separate grants |
 | Edit/delete missing on a role row | it is `system` or `mc` | expected — only `source: "custom"` is editable here |
-| A permission is absent from the builder | the org's plan excludes that module | expected — it renders disabled, not hidden; check `available` on the catalog module |
+| A permission is absent from the builder | its feature is off (plan or Customize workspace) | expected — hidden; the role keeps it and it returns when the feature does |
+| A checkbox is greyed in the builder | the editor does not hold it and the role never did | expected — nobody may grant what they lack; see `grant-rule.ts` |
 | Delete says the role is in use after you moved everyone | the count is read live from `/usage` | refetch; someone was assigned between the read and the delete |
 
 ---

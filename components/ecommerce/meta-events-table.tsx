@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/currency";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { SimpleTable } from "@/ui/components/simple-table";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 /**
  * One row per event EzyCore queued for Meta — including the ones it deliberately did not send.
@@ -55,7 +56,7 @@ export function MetaEventsTable({ rows }: { rows: MetaEventRow[] }) {
           header: "When it counted",
           cell: (row) => (
             <span className="text-xs text-muted-foreground">
-              {new Date(row.eventTime).toLocaleString()}
+              {new Date(row.eventTime).toLocaleString(undefined, { timeZone: getOrgTimezone() })}
               <span className="block">
                 {/* The merchant's own wording for the trigger they chose. */}
                 {row.trigger === "pending"

@@ -6,6 +6,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   groupPermissions,
   PermissionGroupCard,
+  useVisiblePermissions,
 } from "@/components/shared/permissions";
 import { Eye, Layers, Lock, Pencil, Plus, Shield, Trash2 } from "lucide-react";
 
@@ -13,7 +14,8 @@ import { Eye, Layers, Lock, Pencil, Plus, Shield, Trash2 } from "lucide-react";
 export function PermissionsTab() {
   const t = useTranslations("settings.profile.permissionsTab");
   const { user } = useAuthStore();
-  const permissions = user?.permissions || [];
+  // Modules this workspace has switched off are left out, as in the role builder.
+  const permissions = useVisiblePermissions(user?.permissions || []);
   const groupedPermissions = groupPermissions(permissions);
 
   const totalPermissions = permissions.length;

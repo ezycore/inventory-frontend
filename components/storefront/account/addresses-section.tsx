@@ -10,6 +10,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { GeoPicker } from "@/components/storefront/checkout/geo-picker";
 import { sfInput as input } from "@/components/storefront/field-styles";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 type Draft = {
   label: string;
@@ -130,14 +131,14 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
           type="button"
           onClick={submit}
           disabled={pending}
-          style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "10px 20px", borderRadius: 8, fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
+          style={{ ...brandButton({ radius: 8, padding: "10px 20px", fontSize: 13.5 }), border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
         >
           {t.saveChanges}
         </button>
         <button
           type="button"
           onClick={() => setEditing(null)}
-          style={{ background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "10px 20px", borderRadius: 8, fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}
+          style={{ ...buttonMetrics({ radius: 8, padding: "10px 20px", fontSize: 13.5 }), background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
         >
           {t.cancelEdit}
         </button>

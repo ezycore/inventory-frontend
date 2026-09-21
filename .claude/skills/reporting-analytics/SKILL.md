@@ -25,8 +25,26 @@ Each renders a component in [`components/reports/`](../../../components/reports)
 `inventory-report.tsx`, `sales-report.tsx`, `purchase-report.tsx`, `cash-report.tsx` (+ its
 `cash/` parts),
 `employee-report.tsx`, `valuation-report.tsx`, `expiry-report.tsx`, `tax-report.tsx` (+
-`tax-rate-table.tsx`, `tax-ledger-table.tsx`, `tax-trend-chart.tsx`), `top-combos-card.tsx`, and
-`export-data.tsx`.
+`tax-rate-table.tsx`, `tax-ledger-table.tsx`, `tax-trend-chart.tsx`), `top-combos-card.tsx`,
+`sales-breakdown-card.tsx` (+ `sales-breakdown-list.tsx`), and `export-data.tsx`.
+
+### Sales by category / brand / tag (on the Sales Report page)
+
+`sales-breakdown-card.tsx` reads `GET /reports/sales/breakdown` through `useSalesBreakdown(dimension,
+params)` — its own query, keyed per dimension, so switching Category / Brand / Tag refetches one small
+aggregate rather than the whole sales report. The server nets returns, ranks by revenue and lists groups
+that sold **nothing** (so the lowest sellers are real); the card only re-sorts for "Rank by" and splits
+the one list with `splitBreakdown()` (`utils/sales-breakdown.ts`, tested) — top takes at most half, so
+a short list never shows a group in both halves.
+
+Rules that come from the backend contract, not taste:
+
+- **`overlapping: true` (tags) must print the overlap note.** A product with two tags counts in both
+  rows; never draw tag rows as a pie, a stacked bar, or anything that reads as a split of the total.
+- **`unassigned` is a footnote, never a row** — otherwise "No brand" ranks as a top brand.
+- **Revenue is line value after returns**, so it will not equal the Total Sales tile; the card says so
+  (`basisNote`). Don't reconcile it client-side.
+- `name: null` is a deleted group; render `deleted`, don't drop the row.
 
 ---
 
@@ -58,7 +76,8 @@ tightened backend-side), so the period header type-checks against the report res
 - [`services/api/modules/reports`](../../../services/api/modules/reports) — one method per report,
   each typed off the generated report DTOs via `@/types/api` (`InventoryReport`, `SalesReport`,
   `PurchaseReport`, `CashReport`, `StockValuationReport`, `EmployeeReport`, `TaxReport`, `TaxLedger`,
-  `ComboSalesReport`). Sub-rows (`TaxRateRow`, `TaxChartPoint`, `TaxLedgerEntry`, `ComboSalesRow`) are
+  `ComboSalesReport`, `SalesBreakdownReport`). Sub-rows (`TaxRateRow`, `TaxChartPoint`, `TaxLedgerEntry`,
+  `ComboSalesRow`, `SalesBreakdownRow`, `SalesBreakdownDimension`) are
   **derived** from those generated parents, not hand-written.
 - [`services/api/modules/dashboard`](../../../services/api/modules/dashboard) — `DashboardOverview` /
   `DashboardStats` (generated); the FE keeps only `DashboardPeriod` for params.

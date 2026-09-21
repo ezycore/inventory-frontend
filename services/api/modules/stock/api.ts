@@ -24,7 +24,6 @@ interface StockMovementFilters {
   reason?: string;
   movementType?: string;
   period?: StockMovementPeriod;
-  weekStartDay?: number;
   startDate?: string;  // YYYY-MM-DD (only for period="custom")
   endDate?: string;    // YYYY-MM-DD (only for period="custom")
   page?: number;

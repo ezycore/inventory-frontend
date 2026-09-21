@@ -59,10 +59,8 @@ export default function DashboardPage() {
 
   const overviewParams = useMemo<DashboardOverviewParams | undefined>(() => {
     if (!isCustomValid) return undefined
-    const params: DashboardOverviewParams = {
-      period,
-      weekStartDay: 1, // Monday default
-    }
+    // Week boundaries are the organization's `weekStartDay`, read server-side.
+    const params: DashboardOverviewParams = { period }
     if (period === 'custom' && customStart && customEnd) {
       params.startDate = customStart
       params.endDate = customEnd

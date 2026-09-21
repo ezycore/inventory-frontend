@@ -8,6 +8,10 @@ import {
   resolveMobileChrome,
   type MobileChrome,
 } from "@/lib/storefront-mobile";
+import {
+  chromeWithPageControls,
+  storePages,
+} from "@/lib/storefront-page-controls";
 import { useSfPreview, useSfPreviewImage } from "@/services/stores/use-sf-preview-store";
 
 /**
@@ -29,14 +33,18 @@ export function useMobileChrome(store?: StorefrontStore): MobileChrome & { templ
   const draftChrome = useSfPreview((s) => s.mobileChrome);
   const savedTemplate = store?.templates?.mobile;
   const savedChrome = store?.theme?.mobile;
+  const { search, accounts } = storePages(store);
 
   return useMemo(
     () =>
-      resolveMobileChrome(
-        { mobile: draftTemplate ?? savedTemplate },
-        draftChrome ?? savedChrome,
+      chromeWithPageControls(
+        resolveMobileChrome(
+          { mobile: draftTemplate ?? savedTemplate },
+          draftChrome ?? savedChrome,
+        ),
+        { search, accounts },
       ),
-    [draftTemplate, savedTemplate, draftChrome, savedChrome],
+    [draftTemplate, savedTemplate, draftChrome, savedChrome, search, accounts],
   );
 }
 

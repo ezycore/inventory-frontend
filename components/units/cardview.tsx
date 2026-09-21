@@ -10,6 +10,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { Edit2, MoreVertical, Ruler, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator, AppLocale } from "@/i18n/config";
 import type { ApiUnit } from "@/types/api";
 
@@ -29,8 +30,8 @@ const UnitCardView = (
   const { t, locale } = options;
   const { name, shortName, status, category, isDefault, createdAt, updatedAt } = unit;
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
-  const updatedDate = updatedAt ? formatDate(updatedAt, "dd MMM yyyy", locale) : null;
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
+  const updatedDate = updatedAt ? formatDate(updatedAt, "dd MMM yyyy", locale, getOrgTimezone()) : null;
 
   return (
     <Card className="group relative overflow-hidden py-0 gap-0 hover:shadow-lg transition-all duration-300 border-border/60">

@@ -19,6 +19,42 @@ const props = {
   store: { name: "My Store", trustBadges: [] },
 } as SectionProps;
 
+/**
+ * ⚠ **The classic home is what LIVE shops render**, and it shares every hero
+ * renderer with the Storefront Builder (plan §0.3 of
+ * `storefront-hero-shape-controls.md`). The builder's shape and placement
+ * settings reach those views as props these callers do not pass, and every one
+ * of them is inert when unset — the stylesheet's rules are all gated on a
+ * `data-` attribute the builder alone emits.
+ *
+ * This asserts the ABSENCE, because absence is the whole promise: an attribute
+ * that leaked here would hand a live shop a shape, a placement or a phone-copy
+ * rule its owner never chose, and no other test in this file would notice.
+ */
+describe("the classic home stays untouched by the builder's hero settings", () => {
+  const BUILDER_ONLY = [
+    "data-frame",
+    "data-frame-m",
+    "data-media-side",
+    "data-mobile-first",
+    "data-mobile-copy",
+  ];
+
+  it.each([
+    ["HeroCard", HeroCard],
+    ["HeroOpen", HeroOpen],
+    ["HeroFullBleed", HeroFullBleed],
+  ])("%s emits no builder-only attribute and no shape variable", (_name, Hero) => {
+    const { container } = render(<Hero {...props} />);
+    for (const attr of BUILDER_ONLY) {
+      expect(container.querySelector(`[${attr}]`)).toBeNull();
+    }
+    // The variables travel with the attributes; neither may appear here.
+    expect(container.innerHTML).not.toContain("--sfb-hero-frame");
+    expect(container.innerHTML).not.toContain("--sfb-hero-pad");
+  });
+});
+
 describe("HeroCard", () => {
   it("uses merchant identity without inventing a sale or promise", () => {
     render(<HeroCard {...props} />);
@@ -38,7 +74,7 @@ describe("HeroCard", () => {
     expect(screen.getByText("Pickup available")).toBeInTheDocument();
   });
 
-  it("renders an image-only slide without an invented copy overlay", () => {
+  it("renders an image-only slide as a card, without an invented copy overlay", () => {
     const { container } = render(
       <HeroCard
         {...props}
@@ -46,12 +82,37 @@ describe("HeroCard", () => {
       />,
     );
 
-    expect(container.querySelector(".sf-hero-media")).toBeInTheDocument();
-    expect(container.querySelector(".sf-hero-copy")).not.toBeInTheDocument();
+    /* Decision D1: a shop that chose the framed card keeps it once slides
+       exist. This used to render `HeroCarousel` — `.sf-hero-media` over a dark
+       scrim, edge to edge — which is a different section from the one the
+       merchant picked. */
+    expect(container.querySelector(".sf-herocard")).toBeInTheDocument();
+    expect(container.querySelector(".sf-hero-media")).not.toBeInTheDocument();
     expect(container.querySelector(".sf-hero-scrim")).not.toBeInTheDocument();
+    expect(container.querySelector("img")?.getAttribute("src")).toContain("artwork.jpg");
     expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
       "sf-visually-hidden",
     );
+  });
+
+  it("keeps the open hero open, and the store's promises under the card, once slides exist", () => {
+    const slides = [{ title: "First" }, { title: "Second" }];
+    const card = render(
+      <HeroCard
+        {...props}
+        store={{ ...props.store, trustBadges: [{ text: "Pickup available" }] }}
+        heroSlides={slides}
+      />,
+    );
+    expect(card.container.querySelector(".sf-herocard-trust")?.textContent).toContain(
+      "Pickup available",
+    );
+    // Two slides rotate: one dot each, under the card rather than on it.
+    expect(card.container.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(2);
+
+    const open = render(<HeroOpen {...props} heroSlides={slides} />);
+    expect(open.container.querySelector(".sf-heroopen")).toBeInTheDocument();
+    expect(open.container.querySelector(".sf-herocard")).toBeNull();
   });
 
   it("uses mobile artwork when no desktop banner exists", () => {

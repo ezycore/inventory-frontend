@@ -2,11 +2,11 @@
 // coding-standard: maintained
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 import { storefrontApi } from "@/lib/storefront-client";
 import { toast } from "@/lib/storefront-toast";
 import { cartAnonymousId, isSfPreview } from "@/services/storefront/cart-identity";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useCartStore, type CartItem } from "@/services/stores/use-cart-store";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
 
@@ -37,7 +37,7 @@ const claimed = new Set<string>();
  * from a feature that exists for the merchant.
  */
 export function CartSync({ slug }: { slug: string }) {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   // Zustand actions are stable references, so this adds no render churn.
   const restore = useCartStore((s) => s.restore);
   // Held in a ref so a locale change can't re-run the claim effect — its deps

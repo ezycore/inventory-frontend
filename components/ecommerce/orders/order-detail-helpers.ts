@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 /** The forward delivery pipeline (terminal Cancelled/Rejected sit outside it). */
 export const DELIVERY_STEPS = [
@@ -45,6 +46,7 @@ export const longDate = (iso: string) =>
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: getOrgTimezone(),
   });
 
 export const actorLabel = (by?: string) =>

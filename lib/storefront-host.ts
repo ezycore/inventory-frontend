@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import { headers } from "next/headers";
-import { PREVIEW_REQUEST_HEADER } from "@/lib/storefront-preview";
+import { PREVIEW_BUILDER_HEADER, PREVIEW_REQUEST_HEADER } from "@/lib/storefront-preview";
 
 /**
  * The active store for the current request, as resolved by `proxy.ts` from the
@@ -47,5 +47,20 @@ export async function getStorePreviewToken(): Promise<string | null> {
     return (await headers()).get(PREVIEW_REQUEST_HEADER);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Is this request the page editor's preview frame (`?builder=1` under owner
+ * preview)? Then a system route draws its builder page's draft live, redrawn as
+ * the merchant edits, rather than as last saved. `proxy.ts` sets the header only
+ * beside a preview token, and both are checked so neither alone can switch it on.
+ */
+export async function isBuilderPreviewFrame(): Promise<boolean> {
+  try {
+    const h = await headers();
+    return h.get(PREVIEW_BUILDER_HEADER) === "1" && Boolean(h.get(PREVIEW_REQUEST_HEADER));
+  } catch {
+    return false;
   }
 }

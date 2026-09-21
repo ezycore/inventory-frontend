@@ -10,6 +10,7 @@ import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { LoadingState, initialLoadingState } from "./store-utils";
+import { resolveFeatureMap } from "@/lib/feature-utils";
 
 // User data interface
 export interface User {
@@ -35,7 +36,10 @@ export interface User {
     slug: string;
     ownerId?: string;
     currency?: string;
+    /** IANA zone every merchant-facing day is cut in — read via `useOrgCalendar`. */
     timezone?: string;
+    /** 0=Sun … 6=Sat; absent on older orgs, which read as Sunday. */
+    weekStartDay?: number;
     logo?: Image;
     /**
      * Browser-tab icon, and the only source of one — never derived from `logo`.
@@ -156,6 +160,28 @@ const initialState: AuthState = {
   supportSessionId: null,
 };
 
+/**
+ * The user with both organization feature maps resolved by the backend's rule —
+ * a missing key is ON (`resolveFeatureMap`). Every path that writes `user` goes
+ * through this, so no screen ever reads a raw map from the API or from storage.
+ */
+function withResolvedFeatures(user: User): User {
+  const organization = user.organization;
+  if (!organization) return user;
+  return {
+    ...user,
+    organization: {
+      ...organization,
+      ...(organization.features && {
+        features: resolveFeatureMap(organization.features),
+      }),
+      ...(organization.planFeatures && {
+        planFeatures: resolveFeatureMap(organization.planFeatures),
+      }),
+    },
+  };
+}
+
 // Create the auth store with persistence
 export const useAuthStore = create<AuthStore>()(
   devtools(
@@ -163,15 +189,28 @@ export const useAuthStore = create<AuthStore>()(
       (set, get) => ({
         ...initialState,
 
-        setUser: (user: User, token: string) => {
+        setUser: (incoming: User, token: string) => {
+          // A session without a bearer is worse than no session: `user` and
+          // `isAuthenticated` make every screen render as signed in, while
+          // `api-client` sends no `Authorization` header — so the first request
+          // 401s and the app bounces to /login, over and over. `tsconfig` has
+          // `strict: false`, so a `string | null` reaching this `string`
+          // parameter is not a compile error; this is the only guard there is.
+          // Keep whatever token the session already holds (a caller refreshing
+          // the user from `/auth/me`, which returns no token), and refuse to
+          // mint a signed-in state that has none at all.
+          const nextToken = token || get().token;
+          if (!nextToken) return;
+
+          const user = withResolvedFeatures(incoming);
           // Determine active location: user's default or organization's default
           const activeLocationId = user.defaultLocationId || null;
 
           // Store in Zustand
-          set({ user, token, isAuthenticated: true, activeLocationId });
+          set({ user, token: nextToken, isAuthenticated: true, activeLocationId });
 
           // Store token in cookie for middleware access
-          setCookie("auth-token", token, {
+          setCookie("auth-token", nextToken, {
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: "/",
             sameSite: "lax",
@@ -200,6 +239,10 @@ export const useAuthStore = create<AuthStore>()(
         // `activeLocationId` from the user's default and would silently throw away
         // whichever location they had switched to.
         setToken: (token: string) => {
+          // Same reason as `setUser`: dropping the bearer while the rest of the
+          // session stands leaves a signed-in-looking store that cannot make a
+          // single authenticated request.
+          if (!token) return;
           set({ token });
 
           setCookie("auth-token", token, {
@@ -213,7 +256,7 @@ export const useAuthStore = create<AuthStore>()(
         updateUser: (updates: Partial<User>) => {
           const currentUser = get().user;
           if (currentUser) {
-            const updatedUser = { ...currentUser, ...updates };
+            const updatedUser = withResolvedFeatures({ ...currentUser, ...updates });
             set({ user: updatedUser });
 
             // Update active location if default changed
@@ -247,8 +290,8 @@ export const useAuthStore = create<AuthStore>()(
           if (currentUser) {
             const updatedOrganization = {
               ...currentUser.organization,
-              features,
-              ...(planFeatures ? { planFeatures } : {}),
+              features: resolveFeatureMap(features),
+              ...(planFeatures ? { planFeatures: resolveFeatureMap(planFeatures) } : {}),
             };
             const updatedUser = {
               ...currentUser,
@@ -351,6 +394,17 @@ export const useAuthStore = create<AuthStore>()(
       }),
       {
         name: "easystock-auth",
+        // A session persisted before the feature maps were resolved on the way
+        // in still holds the raw ones; resolve on rehydration too, or a reload
+        // brings the hidden modules back until the next `/auth/me`.
+        merge: (persisted, current) => {
+          const state = persisted as Partial<AuthStore> | undefined;
+          return {
+            ...current,
+            ...state,
+            user: state?.user ? withResolvedFeatures(state.user) : current.user,
+          };
+        },
         partialize: (state) => ({
           user: state.user,
           token: state.token,

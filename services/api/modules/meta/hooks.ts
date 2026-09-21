@@ -29,7 +29,8 @@ export const useGetMetaSettings = () =>
  *
  * Revalidates the storefront on success because the pixel id and the four browser-event
  * switches are rendered into the shop's own SSR HTML — without it a merchant who turns the
- * pixel on sees nothing happen until the page's cache expires.
+ * pixel on sees nothing happen until the page's cache expires. Only the `site` scope: the pixel
+ * lives in the store payload, and no catalogue or page entry carries it.
  */
 export const useUpdateMetaSettings = () => {
   const queryClient = useQueryClient();
@@ -38,7 +39,7 @@ export const useUpdateMetaSettings = () => {
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Meta settings saved");
       queryClient.setQueryData(queryKeys.organization.storefrontMeta(), result);
-      void revalidateStorefront();
+      void revalidateStorefront(["site"]);
     },
     onError: handleMutationError,
   });

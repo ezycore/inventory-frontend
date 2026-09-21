@@ -5,8 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { StoreTemplates } from "@/lib/storefront-client";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
-import { resolveTemplates } from "@/lib/storefront-templates";
+import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 
 /**
  * The frame around a titled body — used by the CMS content pages and the
@@ -26,6 +25,7 @@ export function ContentFrame({
   meta,
   children,
   align,
+  layout: chosen,
 }: {
   title: ReactNode;
   /** Small line under the title (a date, a status). Optional. */
@@ -33,13 +33,16 @@ export function ContentFrame({
   children: ReactNode;
   /** Centres the body — the tracking page's empty state wants it, prose does not. */
   align?: "center";
+  /**
+   * The `content-body` core section's own choice, for a content page on the
+   * builder — a raw `templates.contentLayout` id. The tracking page never
+   * passes one: it has no builder page, so it always follows the store.
+   */
+  layout?: string;
 }) {
   const { slug } = useStoreContext();
   const { data: store } = useStore(slug);
-  const draft = useSfPreview((s) => s.contentLayout);
-  const layout = isContentLayout(draft)
-    ? draft
-    : resolveTemplates(store).contentLayout;
+  const layout = useStoreTemplate(store, "contentLayout", chosen);
   const Frame = CONTENT_FRAMES[layout] ?? CenteredFrame;
   return (
     <Frame title={title} meta={meta} align={align}>
@@ -191,6 +194,3 @@ const CONTENT_FRAMES: Record<
   editorial: EditorialFrame,
 };
 
-function isContentLayout(v: unknown): v is StoreTemplates["contentLayout"] {
-  return v === "centered" || v === "banner" || v === "panel" || v === "editorial";
-}

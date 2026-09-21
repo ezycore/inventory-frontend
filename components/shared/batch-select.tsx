@@ -15,7 +15,8 @@ import { isExpired } from '@/components/shared/expiry/expiry-badge'
  * Delegates to the shared `isExpired` so the picker and the ExpiryBadge cannot
  * drift to two thresholds — this is only the `BatchRow`-shaped wrapper.
  */
-export const isBatchExpired = (batch: BatchRow): boolean => isExpired(batch.expiryDate)
+export const isBatchExpired = (batch: BatchRow, timezone: string): boolean =>
+  isExpired(batch.expiryDate, timezone)
 
 /**
  * A lot with `expiryDate: null` is the **unknown-expiry lot** — stock that
@@ -88,7 +89,7 @@ export function BatchSelect({
   className = 'h-11 w-full',
 }: BatchSelectProps) {
   const t = useTranslations('inventory.batch')
-  const { formatDate } = useFormatters()
+  const { formatDateOnly, timezone } = useFormatters()
   const { data, isLoading } = useProductBatches(
     productId,
     { ...(variantId ? { variantId } : {}) },
@@ -114,15 +115,15 @@ export function BatchSelect({
         : t('optionUnknown', { left: batch.remainingQuantity })
       : batch.batchNumber
         ? t('optionWithLot', {
-            expiry: formatDate(batch.expiryDate as string, 'dd MMM yyyy'),
+            expiry: formatDateOnly(batch.expiryDate as string, 'dd MMM yyyy'),
             lot: batch.batchNumber,
             left: batch.remainingQuantity,
           })
         : t('option', {
-            expiry: formatDate(batch.expiryDate as string, 'dd MMM yyyy'),
+            expiry: formatDateOnly(batch.expiryDate as string, 'dd MMM yyyy'),
             left: batch.remainingQuantity,
           })
-    return isBatchExpired(batch) ? t('expiredPrefix', { label: base }) : base
+    return isBatchExpired(batch, timezone) ? t('expiredPrefix', { label: base }) : base
   }
 
   const options: SimpleSelectOption[] = [

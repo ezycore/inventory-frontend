@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useEndSupportSession, useSupportSessions } from "@/services/api";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 /**
  * The workspace's support-access history, newest first.
@@ -17,7 +18,7 @@ import { Button } from "@/ui/components/button";
  */
 
 const formatWhen = (value?: string): string =>
-  value ? new Date(value).toLocaleString() : "—";
+  value ? new Date(value).toLocaleString(undefined, { timeZone: getOrgTimezone() }) : "—";
 
 /** How long they were in, in whole minutes — the number a merchant asks about. */
 const formatDuration = (from?: string, to?: string): string | null => {

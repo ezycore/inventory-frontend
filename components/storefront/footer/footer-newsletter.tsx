@@ -5,6 +5,7 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 import { storefrontApi } from "@/lib/storefront-client";
 import { isSfPreview } from "@/services/storefront/cart-identity";
 import type { FooterT } from "@/components/storefront/footer/footer-pieces";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * The footer sign-up block — the identity side of the `newsletter` layout.
@@ -151,14 +152,10 @@ const inputStyle: CSSProperties = {
   padding: "9px 11px",
 };
 const buttonStyle: CSSProperties = {
-  background: "var(--primary)",
-  color: "var(--on-primary)",
+  ...brandButton({ radius: 8, padding: "9px 15px", fontSize: 12.5 }),
   border: "none",
-  borderRadius: 8,
-  fontSize: 12.5,
   fontWeight: 600,
   fontFamily: "inherit",
-  padding: "9px 15px",
   cursor: "pointer",
   whiteSpace: "nowrap",
 };

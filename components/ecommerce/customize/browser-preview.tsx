@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink, Monitor, RotateCw, Smartphone } from "lucide-react";
+import { ExternalLink, RotateCw } from "lucide-react";
 import { useStoreProducts } from "@/services/storefront/hooks";
 import { useStorefrontPreviewToken } from "@/services/api";
 import { storefrontUrl } from "@/lib/storefront-url";
@@ -15,19 +15,30 @@ import type { Image } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { toPreviewPayload } from "@/components/ecommerce/customize/draft-payloads";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
-import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import {
-  DESKTOP_PREVIEW_WIDTH,
-  usePreviewScale,
-} from "@/components/ecommerce/customize/use-preview-scale";
+  PreviewDeviceToggle,
+  PreviewStage,
+  PreviewThemeToggle,
+  previewFrameSize,
+  previewToolbarButton,
+} from "@/components/ecommerce/customize/preview-stage";
+import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
+import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
+import { usePreviewWatchdog } from "@/components/ecommerce/customize/use-preview-watchdog";
 
 /** Which storefront page the preview is pointed at. */
-export type PreviewPage = "home" | "collection" | "product";
+export type PreviewPage = "home" | "collection" | "product" | "track";
 
 const PAGES: { id: PreviewPage; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "collection", label: "Collection" },
   { id: "product", label: "Product" },
+  /* The order-tracking page. It is the ONLY page the content frame wraps that
+     has no page of its own in the builder, so without a tab here the Content &
+     tracking part had nothing to point at and opened the home page — a panel of
+     four layouts over a preview that shows none of them. */
+  { id: "track", label: "Track order" },
 ];
 
 /**
@@ -136,6 +147,7 @@ export function BrowserPreview({
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(
     device === "desktop",
   );
+  const { theme, setTheme, postTheme } = usePreviewTheme(ref);
   const [reloadKey, setReloadKey] = useState(0);
 
   /* ── Owner preview ───────────────────────────────────────────────────────
@@ -183,9 +195,11 @@ export function BrowserPreview({
   const path =
     page === "collection"
       ? "/products"
-      : page === "product" && productSlug
-        ? `/products/${productSlug}`
-        : "";
+      : page === "track"
+        ? "/orders/track"
+        : page === "product" && productSlug
+          ? `/products/${productSlug}`
+          : "";
   // `preview=1` turns on the draft bridge inside the frame; the token is what
   // gets the frame served at all before the shop is published. The token also
   // makes the "open in a new tab" link beside it work pre-launch, which is the
@@ -227,18 +241,6 @@ export function BrowserPreview({
     ],
   );
 
-  const post = useCallback(() => {
-    ref.current?.contentWindow?.postMessage(
-      { type: "ezycore-preview", payload: { ...payload, previewDevice: device } },
-      "*",
-    );
-  }, [payload, device]);
-
-  // Push the draft whenever it changes…
-  useEffect(() => {
-    post();
-  }, [post]);
-
   /* **The frame stays hidden until the draft has actually landed in it.**
      It server-renders the merchant's SAVED store, paints that, and only then
      runs ready → post → apply — so previewing a theme flashed the
@@ -253,15 +255,65 @@ export function BrowserPreview({
   const [paintedKey, setPaintedKey] = useState<string | null>(null);
   const painted = paintedKey === frameKey;
 
+  /* Reload a frame that has stopped acknowledging the drafts we post it — see
+     the hook for what that state looks like on screen and why it is armed only
+     after the first apply. `payload` is the signal because it is exactly "an
+     edit happened": it is memoised above and re-made only on a real change. */
+  const { markPosted, markAcked } = usePreviewWatchdog({
+    armed: painted,
+    signal: payload,
+    onStale: useCallback(() => setReloadKey((k) => k + 1), []),
+  });
+
+  const post = useCallback(() => {
+    markPosted();
+    ref.current?.contentWindow?.postMessage(
+      { type: "ezycore-preview", payload: { ...payload, previewDevice: device } },
+      "*",
+    );
+  }, [payload, device, markPosted]);
+
+  /* Re-arm the cover on the frame's OWN load event, not just on the reloads the
+     editor asks for.
+     `frameKey` only moves when the editor changes the page or bumps
+     `reloadKey`, so it covers exactly the reloads the editor causes. A frame can
+     also reload without being asked — a link followed inside it, the shop's own
+     redirect, a dev Fast Refresh — and every one of those keeps the same `url`
+     and `reloadKey`. `paintedKey` then still matches, the cover stays lifted,
+     and the merchant watches the SAVED store paint before the draft lands on
+     top of it: a setting they just switched off appears, then vanishes.
+     The `load` event is the one signal that fires for all of them. Clearing on
+     the first load is a no-op (nothing is painted yet), and clearing hands the
+     1.5s safety net and the watchdog back their un-painted state, so a frame
+     that never acks is still revealed rather than stranded blank. */
+  const onFrameLoad = useCallback(() => {
+    setPaintedKey(null);
+    post();
+  }, [post]);
+
+  // Push the draft whenever it changes…
+  useEffect(() => {
+    post();
+  }, [post]);
+
   // …and whenever the storefront (re)loads and announces it's ready.
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
-      if (e.data?.type === "ezycore-preview-ready") post();
-      if (e.data?.type === "ezycore-preview-applied") setPaintedKey(frameKey);
+      if (e.data?.type === "ezycore-preview-ready") {
+        post();
+        // The theme override does not survive the frame's (re)load — switching
+        // preview page reloads it, and without this the frame comes back in the
+        // merchant's own theme while the toggle still says the other one.
+        postTheme();
+      }
+      if (e.data?.type === "ezycore-preview-applied") {
+        markAcked();
+        setPaintedKey(frameKey);
+      }
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [post, frameKey]);
+  }, [post, postTheme, frameKey, markAcked]);
 
   /* Safety net. If the ack never arrives — an older storefront build, a frame
      that failed to boot, `preview=1` stripped by a redirect — the preview must
@@ -275,6 +327,7 @@ export function BrowserPreview({
     const t = setTimeout(() => setPaintedKey(frameKey), 1500);
     return () => clearTimeout(t);
   }, [painted, frameKey, previewReady]);
+
 
   if (!slug) {
     return (
@@ -324,41 +377,13 @@ export function BrowserPreview({
         </div>
 
         <div className="ml-auto flex flex-none items-center gap-1">
-          <div className="flex rounded-md border p-0.5">
-            <button
-              type="button"
-              onClick={() => setDevice("desktop")}
-              aria-label="Desktop view"
-              aria-pressed={device === "desktop"}
-              className={cn(
-                "rounded p-1.5 transition-colors",
-                device === "desktop"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Monitor className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setDevice("mobile")}
-              aria-label="Mobile view"
-              aria-pressed={device === "mobile"}
-              className={cn(
-                "rounded p-1.5 transition-colors",
-                device === "mobile"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
-          </div>
+          <PreviewDeviceToggle device={device} onChange={setDevice} />
+          <PreviewThemeToggle theme={theme} onChange={setTheme} />
           <button
             type="button"
             onClick={() => setReloadKey((k) => k + 1)}
             aria-label="Reload preview"
-            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className={previewToolbarButton}
           >
             <RotateCw className="h-4 w-4" />
           </button>
@@ -367,7 +392,7 @@ export function BrowserPreview({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open this page in a new tab"
-            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className={previewToolbarButton}
           >
             <ExternalLink className="h-4 w-4" />
           </a>
@@ -375,72 +400,41 @@ export function BrowserPreview({
       </div>
 
       {/* Viewport — switching device only resizes the same iframe (no reload) */}
-      <div
-        className="relative flex justify-center overflow-auto bg-muted/20"
-        style={{ height: viewportHeight, minHeight: 560 }}
+      <PreviewStage
+        device={device}
+        hostRef={hostRef}
+        height={viewportHeight}
+        overlay={
+          !painted ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
+              Loading preview…
+            </div>
+          ) : null
+        }
       >
-        <div
-          ref={device === "desktop" ? hostRef : undefined}
-          className={cn(
-            "flex-none overflow-hidden bg-white",
-            device === "mobile"
-              ? // `max-w-`, not a hard `w-`: 390px plus the 10px bezels is wider
-                // than the phone a merchant may be standing on.
-                "my-5 h-[calc(100%-2.5rem)] w-full max-w-[390px] rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
-              : "h-full w-full",
-          )}
-        >
-          {/* `visibility`, not conditional mounting: the frame has to load and
-              run to send the ack that reveals it. Opacity alone would still let
-              the saved theme paint through the transition.
-
-              On desktop the frame is laid out at a real desktop width and scaled
-              down to fit, rather than laid out at the panel's own width — see
-              `usePreviewScale` for why a rail theme was previewing with no rail. */}
-          {/* `previewReady` as well as `ready`: mounting before the owner-preview
-              token is in hand would load the shop's own "not published yet" 404
-              and then reload it a moment later — a wasted render of the wrong
-              page, and one the 1.5s reveal could catch mid-flight. */}
-          {ready && previewReady ? (
-            <iframe
-              key={reloadKey}
-              ref={ref}
-              src={url}
-              title="Storefront preview"
-              onLoad={post}
-              className="border-0 bg-white"
-              style={{
-                visibility: painted ? "visible" : "hidden",
-                ...(device === "desktop"
-                  ? {
-                      /* `zoom`, NOT `transform: scale()`. The storefront is on
-                         its own subdomain, so this frame is an OOPIF, and a
-                         transformed OOPIF does not repaint — Chrome keeps showing
-                         a stale blank layer while the DOM inside is fully built.
-                         Proven directly in the browser: setting `transform: none`
-                         on the live element made it paint instantly. Neither
-                         `will-change` nor deferring the mount until the host was
-                         measured fixed it, because both leave it a compositing
-                         problem. `zoom` scales through LAYOUT, so the frame is
-                         laid out at its final size and paints like any other. */
-                      zoom: scale,
-                      width: DESKTOP_PREVIEW_WIDTH,
-                      // In the frame's own unzoomed coordinates — height × zoom
-                      // lands on the host exactly. A percentage resolves in the
-                      // zoomed space and comes up short.
-                      height: frameHeight || "100%",
-                    }
-                  : { width: "100%", height: "100%" }),
-              }}
-            />
-          ) : null}
-        </div>
-        {!painted ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
-            Loading preview…
-          </div>
+        {/* `visibility`, not conditional mounting: the frame has to load and
+            run to send the ack that reveals it. Opacity alone would still let
+            the saved theme paint through the transition. Its size per device —
+            and why desktop uses `zoom` — is `previewFrameSize`. */}
+        {/* `previewReady` as well as `ready`: mounting before the owner-preview
+            token is in hand would load the shop's own "not published yet" 404
+            and then reload it a moment later — a wasted render of the wrong
+            page, and one the 1.5s reveal could catch mid-flight. */}
+        {ready && previewReady ? (
+          <iframe
+            key={reloadKey}
+            ref={ref}
+            src={url}
+            title="Storefront preview"
+            onLoad={onFrameLoad}
+            className="border-0 bg-white"
+            style={{
+              visibility: painted ? "visible" : "hidden",
+              ...previewFrameSize(device, scale, frameHeight),
+            }}
+          />
         ) : null}
-      </div>
+      </PreviewStage>
     </div>
   );
 }

@@ -194,13 +194,21 @@ export function useResetPassword() {
 
 //verify me
 export function useMe() {
-  const { setUser, token } = useAuthStore();
+  const setUser = useAuthStore((state) => state.setUser);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => authApi.me(),
     onSuccess: (result) => {
-      // Store user data in auth store
-      if (result.data?.user) {
+      // `/auth/me` returns the user and NO token, so the session keeps the one
+      // it already holds — read from the store at resolve time, never captured
+      // in a render closure. The closure version wrote back whatever `token`
+      // was when this hook last rendered, so a `clearAuth` landing between the
+      // request going out and coming back (any other call 401ing) resurrected
+      // the session with a null token: signed in on screen, no `Authorization`
+      // header on the wire, every subsequent request 401 → /login. `setUser`
+      // now refuses a falsy token as well, so this is belt and braces.
+      const token = useAuthStore.getState().token;
+      if (result.data?.user && token) {
         setUser(result.data.user, token);
       }
     },

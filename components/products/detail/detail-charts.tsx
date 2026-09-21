@@ -2,7 +2,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 import { AreaChart, BarChart, DonutChart } from '@ui/components/charts'
 import { Card } from '@ui/components/card'
 import type { ProductAnalytics } from '@/services/api/modules/inventory/analytics.types'
@@ -17,12 +17,12 @@ interface DetailChartsProps {
 
 /**
  * Short axis label for a `yyyy-MM-dd` trend point. The server already buckets
- * dates in the org timezone, so parse the parts as a local date — never via
- * `new Date(iso)`, which treats the string as UTC and can shift the label a day.
+ * dates in the org timezone, so the key already names the day: print it as a UTC
+ * calendar date, which no zone can shift.
  */
 function shortDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
-  if (y && m && d) return format(new Date(y, m - 1, d), 'MMM d')
+  if (y && m && d) return formatInTimeZone(new Date(Date.UTC(y, m - 1, d)), 'UTC', 'MMM d')
   return iso
 }
 

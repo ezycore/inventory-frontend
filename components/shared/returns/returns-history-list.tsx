@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from 'next-intl';
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/ui/components/badge";
@@ -186,7 +187,7 @@ export function ReturnsHistoryList({
                   <div>
                     <div className="font-medium text-sm">{ret.returnNumber}</div>
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(ret.createdAt), "dd MMM yyyy hh:mm aa")}
+                      {formatInTimeZone(new Date(ret.createdAt), getOrgTimezone(), "dd MMM yyyy hh:mm aa")}
                     </div>
                   </div>
                   <Badge

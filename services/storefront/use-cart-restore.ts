@@ -2,10 +2,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { storefrontApi } from "@/lib/storefront-client";
 import { toast } from "@/lib/storefront-toast";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useCartStore } from "@/services/stores/use-cart-store";
 
 /**
@@ -29,7 +30,7 @@ import { useCartStore } from "@/services/stores/use-cart-store";
  */
 export function useCartRestore(slug: string) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   const params = useSearchParams();
   const { t } = useStorefrontUI();
   const restore = useCartStore((s) => s.restore);

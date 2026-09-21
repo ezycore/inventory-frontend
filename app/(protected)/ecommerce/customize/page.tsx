@@ -3,11 +3,15 @@
 
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { useGetStorefrontSettings } from "@/services/api";
+import { useGetStorefrontSettings, useStorefrontSite } from "@/services/api";
 import { CustomizeWorkspace } from "@/components/ecommerce/customize/customize-workspace";
 
 export default function CustomizePage() {
   const { data: settings, isLoading } = useGetStorefrontSettings();
+  // A store that publishes its look edits the Site's draft, so Customize waits
+  // for it rather than seeding from the settings' stale copy of the look.
+  const switched = !!settings?.siteCutoverAt;
+  const { data: site, isError: siteFailed } = useStorefrontSite(switched);
 
   return (
     <div className="space-y-5">
@@ -18,12 +22,16 @@ export default function CustomizePage() {
           preview and one Save.
         </p>
       </div>
-      {isLoading || !settings ? (
+      {switched && siteFailed ? (
+        <p className="text-sm text-destructive">
+          Your store&apos;s look could not be loaded. Reload the page to try again.
+        </p>
+      ) : isLoading || !settings || (switched && !site) ? (
         <PageLoader />
       ) : (
         // useSearchParams (the ?part= deep link) needs a boundary to render.
         <Suspense fallback={<PageLoader />}>
-          <CustomizeWorkspace settings={settings} />
+          <CustomizeWorkspace settings={settings} site={switched ? site : undefined} />
         </Suspense>
       )}
     </div>

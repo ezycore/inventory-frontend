@@ -56,6 +56,16 @@ export interface HeaderCtx {
   /** The `rail` shell lists departments itself; suppress the header row. */
   hideCategoryRow?: boolean;
   /**
+   * The §6 page controls, resolved once by `StoreHeader` (`storePages`).
+   *
+   * Required, not optional: an anatomy that forgot to read one would draw a
+   * control for a page this shop does not serve, and `boolean | undefined`
+   * would let it compile. The pieces below gate themselves on these, so a
+   * variant only handles the case where a hole in the bar needs closing up.
+   */
+  showSearch: boolean;
+  showAccount: boolean;
+  /**
    * Does this anatomy still owe the shopper a theme / language control?
    *
    * False only while the utility bar is on THIS breakpoint and carrying that
@@ -149,8 +159,22 @@ export function UtilityBar({
         ) : null}
       </span>
       <span style={{ display: "flex", gap: 16, alignItems: "center", marginInlineStart: "auto" }}>
+        {/* Always the standalone lookup, never the account area.
+            It used to go to `/account` whenever the merchant had accounts on,
+            on the reasoning that a signed-in shopper's orders live there. That
+            reversed the intent: accounts-on is precisely the case where the one
+            link named "Track order" stopped reaching tracking, so a guest who
+            lost their SMS link met a sign-in wall — on a store that takes guest
+            orders, from a page `/orders/track` that is unauthenticated on
+            purpose and was reachable from nowhere else on the site (QA, live on
+            uriibaba.com). Signing in is `AccountLink`'s job, and it sits in the
+            same header. The lookup serves members too: order number plus phone
+            is data they already have. */}
         {config.showTrackOrder ? (
-          <Link href={storeHref(base, "/account")} style={{ color: "inherit" }}>
+          <Link
+            href={storeHref(base, "/orders/track")}
+            style={{ color: "inherit" }}
+          >
             {config.trackOrderLabel || t.trackOrder}
           </Link>
         ) : null}
@@ -206,6 +230,11 @@ export function ThemeBtn({ ctx, compact }: { ctx: HeaderCtx; compact?: boolean }
 
 export function AccountLink({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boolean }) {
   const { base, shopperName, sessionKnown, t } = ctx;
+  // Gated here rather than at six call sites: with accounts off there is no
+  // account area to link to, and a seventh anatomy must not be able to forget
+  // it. Each variant lays this out as a plain flex child, so its absence closes
+  // up on its own — only the search wrappers needed a gate of their own.
+  if (!ctx.showAccount) return null;
   // Until the persisted session hydrates we don't know guest vs member — show a
   // shimmer chip instead of flashing "Sign in" at signed-in shoppers on reload.
   const label = !sessionKnown ? (

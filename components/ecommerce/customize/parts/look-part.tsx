@@ -7,8 +7,13 @@ import { useUpdateStorefrontMedia } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import type { StorefrontSettings } from "@/types";
 import {
+  DESIGN_BUTTON_SHAPES,
+  DESIGN_BUTTON_SIZES,
+  DESIGN_BUTTON_STYLES,
   DESIGN_DENSITIES,
   DESIGN_FONTS,
+  DESIGN_HEADING_CASES,
+  DESIGN_HEADING_WEIGHTS,
   DEFAULT_DESIGN,
   DESIGN_RADII,
   DESIGN_SCALES,
@@ -79,6 +84,8 @@ export function LookPart({
   // uploaded (the public payload falls back server-side the same way).
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   const logoInput = useRef<HTMLInputElement>(null);
+  const bannerInput = useRef<HTMLInputElement>(null);
+  const bannerUrl = settings.banner?.mediumUrl || settings.banner?.url;
   /* The mark actually on the shop right now — the store's own, else the
      organization's, matching what the public payload resolves to.
      Through `logoImageUrl`, which is what the shop header uses: this read the
@@ -103,6 +110,17 @@ export function LookPart({
   const removeLogo = () => {
     const fd = new FormData();
     fd.append("removeLogo", "true");
+    media.mutate(fd);
+  };
+
+  const uploadBanner = (file: File) => {
+    const fd = new FormData();
+    fd.append("banner", file);
+    media.mutate(fd);
+  };
+  const removeBanner = () => {
+    const fd = new FormData();
+    fd.append("removeBanner", "true");
     media.mutate(fd);
   };
 
@@ -138,6 +156,31 @@ export function LookPart({
             : orgLogo
               ? "Currently showing your organization logo. Uploading here overrides it for the store only, and saves immediately."
               : "Uploads save immediately. Set an organization logo instead to use one mark everywhere."}
+        </PartHint>
+      </PartBlock>
+
+      {/* The store's own photograph, and it is SITE media rather than a page's:
+          a Hero section draws it when its "Use the store banner" is on, and it
+          is the picture that stands in when someone shares a link to the shop
+          and no social image is set. It sat in the Hero part until 2026-09-20,
+          which is why it left with it — a page's panel is the wrong owner for
+          something three pages and a share card read. Where each Hero SLIDE's
+          own picture, crop and phone version live is that section, on Pages. */}
+      <PartBlock label="Store banner">
+        <MediaField
+          label="Store banner"
+          url={bannerUrl}
+          inputRef={bannerInput}
+          disabled={media.isPending}
+          busy={media.isPending}
+          onPick={uploadBanner}
+          onRemove={settings.banner ? removeBanner : undefined}
+          hint="1200 × 900 px (4:3) works best. Sections adapt it to their own frame."
+        />
+        <PartHint>
+          Uploads save immediately. Shown by any Hero set to use the store
+          banner, and used as the shared-link picture when you have set no
+          social image.
         </PartHint>
       </PartBlock>
 
@@ -222,6 +265,27 @@ export function LookPart({
             />
           </PartField>
 
+          <PartField label="Heading weight">
+            <SegmentedField
+              label="Heading weight"
+              value={draft.design.headingWeight}
+              onChange={(headingWeight) => set({ headingWeight })}
+              options={DESIGN_HEADING_WEIGHTS.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField
+            label="Heading letters"
+            hint="Capitals apply to English headings; Bangla has none."
+          >
+            <SegmentedField
+              label="Heading letters"
+              value={draft.design.headingCase}
+              onChange={(headingCase) => set({ headingCase })}
+              options={DESIGN_HEADING_CASES.map(toSegmentedOption)}
+            />
+          </PartField>
+
           <PartField
             label="Spacing"
             hint="Also sets how many products sit side by side on a wide screen."
@@ -283,6 +347,46 @@ export function LookPart({
               </PartField>
             </>
           ) : null}
+        </div>
+      </PartBlock>
+
+      {/* One block for the three button questions. Default on each keeps every
+          button exactly as it is drawn today — the shop's buttons were never one
+          size or shape, so Default is "as they are", not a fourth style. */}
+      <PartBlock
+        label="Buttons"
+        hint="Applies to the buy, checkout and other main buttons across the shop. Default keeps them as they are."
+      >
+        <div className="space-y-3.5">
+          <PartField label="Shape">
+            <SegmentedField
+              label="Button shape"
+              value={draft.design.buttonShape}
+              onChange={(buttonShape) => set({ buttonShape })}
+              options={DESIGN_BUTTON_SHAPES.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField
+            label="Style"
+            hint="Buttons on a hero or banner picture stay filled, so they can always be seen."
+          >
+            <SegmentedField
+              label="Button style"
+              value={draft.design.buttonStyle}
+              onChange={(buttonStyle) => set({ buttonStyle })}
+              options={DESIGN_BUTTON_STYLES.map(toSegmentedOption)}
+            />
+          </PartField>
+
+          <PartField label="Size">
+            <SegmentedField
+              label="Button size"
+              value={draft.design.buttonSize}
+              onChange={(buttonSize) => set({ buttonSize })}
+              options={DESIGN_BUTTON_SIZES.map(toSegmentedOption)}
+            />
+          </PartField>
         </div>
       </PartBlock>
     </>

@@ -1,6 +1,6 @@
 import { parseISO } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
-import { useAuthStore } from "@/services/stores";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 export interface DateCellProps {
   value: string | Date;
@@ -19,8 +19,8 @@ export function DateCell({
   dateFormat = "dd-MM-yyyy",
   timeFormat = "hh:mm a",
 }: DateCellProps) {
-  const timezone =
-    useAuthStore.getState().user?.organization?.timezone || "UTC";
+  // The org's zone; a missing one falls back to the explicit default, not UTC.
+  const timezone = getOrgTimezone();
   const date =
     value && parseISO(typeof value === "string" ? value : value.toISOString());
 

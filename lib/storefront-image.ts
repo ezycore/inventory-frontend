@@ -17,6 +17,33 @@
  */
 import type { StorefrontImage } from "@/lib/storefront-client";
 
+/** The two widths the backend promises (`imageUpload.ts`): medium and the capped original. */
+const MEDIUM_WIDTH = 800;
+const ORIGINAL_MAX_WIDTH = 1600;
+
+/**
+ * `src` plus a `srcset` over the variants that keep the aspect ratio — the
+ * medium (800w) and the capped original (1600w). The 200×200 thumbnail is never
+ * a candidate: it is a square crop, not a smaller copy.
+ *
+ * No `srcSet` when there is nothing to choose between, which is the case for an
+ * image imported by URL (all three fields hold the same URL) and for a bare
+ * string. The original may be narrower than 1600px (`withoutEnlargement`); the
+ * browser then picks it a little early, which costs bytes, never sharpness.
+ */
+export function responsiveImageSources(
+  img?: StorefrontImage | string | null,
+): { src: string | undefined; srcSet: string | undefined } {
+  if (!img) return { src: undefined, srcSet: undefined };
+  if (typeof img === "string") return { src: img || undefined, srcSet: undefined };
+  const src = img.url || img.mediumUrl || img.thumbnailUrl || undefined;
+  const candidates = [
+    img.mediumUrl && img.mediumUrl !== img.url ? `${img.mediumUrl} ${MEDIUM_WIDTH}w` : null,
+    img.url && img.mediumUrl && img.mediumUrl !== img.url ? `${img.url} ${ORIGINAL_MAX_WIDTH}w` : null,
+  ].filter(Boolean);
+  return { src, srcSet: candidates.length > 1 ? candidates.join(", ") : undefined };
+}
+
 /** Card / grid tile / hero — anything rendered wider than ~100px. */
 export function cardImageUrl(img?: StorefrontImage | null): string | undefined {
   return img?.mediumUrl || img?.thumbnailUrl || img?.url;

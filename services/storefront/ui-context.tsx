@@ -45,8 +45,35 @@ function write(key: string, value: string) {
   emit();
 }
 
-const getTheme = (): Theme => (read(THEME_KEY) === "dark" ? "dark" : "light");
+/**
+ * The theme an admin preview frame was told to draw in, or `null` for an
+ * ordinary visit. Deliberately NOT persisted — see `PREVIEW_THEME_MESSAGE`.
+ */
+let previewTheme: Theme | null = null;
+
+/**
+ * Point a preview frame at a theme (`PreviewThemeBridge`). It outranks the
+ * stored preference, so the frame shows what the editor's toggle says whatever
+ * the merchant's own browser last chose on this origin.
+ *
+ * A toggle INSIDE the frame takes it back (see `pickTheme`): the shopper
+ * controls in the Customize preview stay live rather than reading as broken.
+ */
+export function setPreviewTheme(theme: Theme | null): void {
+  if (previewTheme === theme) return;
+  previewTheme = theme;
+  emit();
+}
+
+const storedTheme = (): Theme => (read(THEME_KEY) === "dark" ? "dark" : "light");
+const getTheme = (): Theme => previewTheme ?? storedTheme();
 const getLang = (): Lang => (read(LANG_KEY) === "bn" ? "bn" : "en");
+
+/** A theme chosen in the page itself: the shopper's, so it drops any override. */
+function pickTheme(next: Theme) {
+  previewTheme = null;
+  write(THEME_KEY, next);
+}
 
 interface StorefrontUI {
   theme: Theme;
@@ -74,6 +101,9 @@ const Ctx = createContext<StorefrontUI>({
  * anonymous, SEO-facing first paint — then the stored preference hydrates in. A
  * tiny inline script in the storefront layout flips `data-theme` before paint so
  * dark-mode users don't see a light flash.
+ *
+ * Inside an admin preview frame the theme comes from the editor's toggle
+ * instead (`setPreviewTheme`), which is an override and is never stored.
  */
 export function StorefrontUIProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(subscribe, getTheme, () => "light" as Theme);
@@ -93,9 +123,9 @@ export function StorefrontUIProvider({ children }: { children: ReactNode }) {
     theme,
     lang,
     t: I18N[lang],
-    toggleTheme: () => write(THEME_KEY, theme === "dark" ? "light" : "dark"),
+    toggleTheme: () => pickTheme(theme === "dark" ? "light" : "dark"),
     toggleLang: () => write(LANG_KEY, lang === "en" ? "bn" : "en"),
-    setTheme: (v) => write(THEME_KEY, v),
+    setTheme: pickTheme,
     setLang: (v) => write(LANG_KEY, v),
   };
 

@@ -2,10 +2,11 @@
 // coding-standard: maintained
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import type { CatalogCategory, CatalogProduct } from "@/lib/storefront-client";
 
 const RESULT_LIMIT = 6;
@@ -55,7 +56,7 @@ export function useHeaderSearch(
 ) {
   const { slug, base } = useStoreContext();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useStorePathname();
 
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");

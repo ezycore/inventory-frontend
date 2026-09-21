@@ -9,6 +9,7 @@ import {
   CircleAlert,
   Wallet,
 } from "lucide-react";
+import { formatInTimeZone } from "date-fns-tz";
 import type { StatData } from "@/ui/components/StatsCard";
 import type { AdminStorefrontOrder, OrderStats } from "@/services/api";
 import { formatMoney } from "@/components/storefront/format";
@@ -61,7 +62,7 @@ export const buyerHistoryIsWarning = (h?: {
  *
  * `now` is injectable so the tests are not tied to the wall clock.
  */
-export const orderAge = (iso: string, now: Date = new Date()): string => {
+export const orderAge = (iso: string, now: Date, timezone: string): string => {
   const then = new Date(iso);
   const mins = Math.floor((now.getTime() - then.getTime()) / 60000);
   // A clock skew between server and browser must not print "-3m".
@@ -71,13 +72,13 @@ export const orderAge = (iso: string, now: Date = new Date()): string => {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 28) return `${days}d`;
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(then.getDate())}-${p(then.getMonth() + 1)}-${then.getFullYear()}`;
+  // The date on the ORGANIZATION's calendar, not the browser's.
+  return formatInTimeZone(then, timezone, "dd-MM-yyyy");
 };
 
 /** The full timestamp, for the row's `title` — the age never hides the date. */
-export const orderPlacedAt = (iso: string): string =>
-  new Date(iso).toLocaleString();
+export const orderPlacedAt = (iso: string, timezone: string): string =>
+  formatInTimeZone(new Date(iso), timezone, "dd MMM yyyy, hh:mm a");
 
 /** Total units on the order, which the row shows so a merchant need not open it. */
 export const orderItemCount = (items: { quantity: number }[]): number =>

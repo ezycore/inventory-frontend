@@ -11,7 +11,12 @@ import { shouldUseSearchableSelect } from '@ui/components/select-strategy';
 import { Checkbox } from '@ui/components/checkbox';
 import { DatePicker } from '@ui/components/date-picker';
 import { DateRangePicker } from '@ui/components/date-range-picker';
+import { format, parseISO } from 'date-fns';
 import { cn } from '@ui/lib/utils';
+
+/** A range bound for the calendar: `YYYY-MM-DD` as that local day; a Date as is. */
+const toCalendarDay = (value: string | Date): Date =>
+  typeof value === 'string' ? parseISO(value) : value;
 
 interface FilterFieldRendererProps {
   field: FilterField;
@@ -186,8 +191,11 @@ export function FilterFieldRenderer({
       case 'date':
         return (
           <DatePicker
-            date={value ? new Date(value) : null}
-            onSelect={(date) => onChange(date ? new Date(date).toLocaleDateString('en-CA') : undefined)}
+            // `YYYY-MM-DD` in, `YYYY-MM-DD` out. Round-tripping through
+            // `new Date("YYYY-MM-DD")` (UTC midnight) shifted the day back one
+            // in any browser west of UTC.
+            date={value || undefined}
+            onSelect={(date) => onChange(date || undefined)}
             placeholder={field.placeholder || 'Select date'}
           />
         );
@@ -198,8 +206,10 @@ export function FilterFieldRenderer({
             value={
               value?.from || value?.to
                 ? {
-                    from: value.from ? new Date(value.from) : undefined,
-                    to: value.to ? new Date(value.to) : undefined,
+                    // `parseISO` reads a bare `YYYY-MM-DD` as that LOCAL day, which
+                    // is what the calendar shows; `new Date()` would read UTC.
+                    from: value.from ? toCalendarDay(value.from) : undefined,
+                    to: value.to ? toCalendarDay(value.to) : undefined,
                   }
                 : undefined
             }
@@ -207,8 +217,8 @@ export function FilterFieldRenderer({
               onChange(
                 range?.from || range?.to
                   ? {
-                      from: range.from?.toLocaleDateString('en-CA'),
-                      to: range.to?.toLocaleDateString('en-CA'),
+                      from: range.from ? format(range.from, 'yyyy-MM-dd') : undefined,
+                      to: range.to ? format(range.to, 'yyyy-MM-dd') : undefined,
                     }
                   : undefined
               )

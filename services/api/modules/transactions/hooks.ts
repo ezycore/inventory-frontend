@@ -51,7 +51,6 @@ export function useTransactionSummary(
 export function useTransactionStats(
   params: {
     period?: string;
-    weekStartDay?: number;
     startDate?: string;
     endDate?: string;
   } = {}

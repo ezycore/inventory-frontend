@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useEffect } from "react";
+import { isPreviewSession } from "@/lib/storefront-preview";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 
 /**
@@ -16,9 +17,9 @@ export function StorePreviewBridge() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const isPreview =
-      new URLSearchParams(window.location.search).get("preview") === "1";
-    if (!isPreview) return;
+    // Sticky for the tab, not read off the URL: one click inside the frame
+    // drops the param, and the next reload would mount no listener at all.
+    if (!isPreviewSession()) return;
 
     activate();
     const onMsg = (e: MessageEvent) => {

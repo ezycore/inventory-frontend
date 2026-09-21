@@ -1,6 +1,7 @@
 // coding-standard: maintained
 
 import { render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
 import { CampaignStrip } from "@/components/storefront/campaign-strip";
@@ -189,5 +190,22 @@ describe("CampaignStrip presentation", () => {
     state.campaigns = [{ ...live, endsAt: `${thisYear}-12-15T12:00:00.000Z` }];
     renderStrip();
     expect(strip()).not.toHaveTextContent(String(thisYear));
+  });
+
+  /* The label is the end instant on the SHOPPER's clock, which the server (UTC)
+     cannot know. Rendered there, it would disagree with the hydrating browser on
+     every page view outside UTC — so the server HTML carries the campaign but no
+     label, and the browser adds it after hydration. */
+  it("prints the end date and time on the client, joined as one phrase", () => {
+    state.campaigns = [{ ...live, endsAt: "2026-12-15T12:00:00.000Z" }];
+    renderStrip();
+    expect(strip()).toHaveTextContent(/Ends (Dec 15|15 Dec)(, \d{4})? at \d{1,2}:\d{2}\s(AM|PM)/);
+  });
+
+  it("leaves the label out of the server-rendered HTML", () => {
+    state.campaigns = [{ ...live, endsAt: "2026-12-15T12:00:00.000Z" }];
+    const html = renderToString(<CampaignStrip slug="rmc" base="/shop" />);
+    expect(html).toContain("Mega Sale");
+    expect(html).not.toContain("Ends");
   });
 });

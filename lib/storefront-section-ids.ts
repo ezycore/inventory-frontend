@@ -137,6 +137,11 @@ export type HomePresetEntry =
  * never opened Themes renders as it always did. `templates.home` therefore
  * survives as "which default composition", not as a component switch — and a
  * merchant who reorders sections simply stops using the default.
+ *
+ * ⚠ **A cross-repo contract.** The backend's `convertClassicHome`
+ * (`src/services/storefront-home-conversion.ts`) copies these presets, the id
+ * list above and the rules each section falls back on, to move a store's home
+ * onto the Storefront Builder unchanged. Change one side, change the other.
  */
 export const HOME_PRESET_SECTIONS: Record<string, readonly HomePresetEntry[]> = {
   /* The fourth entry IS the retired `latest-grid`, expressed as what it always

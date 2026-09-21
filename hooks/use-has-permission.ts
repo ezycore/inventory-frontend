@@ -29,12 +29,30 @@ export const PERMISSIONS = {
    * able to erase one. Admin and super_admin only.
    */
   storefrontOrdersDelete: 'storefront.orders.delete',
+  /** Customize's collection writes (rename, list, reorder) — not part of `storefrontDesign`. */
+  storefrontManage: 'storefront.manage',
+  /** The store's look: the Site draft/publish that Customize and Themes work on. */
+  storefrontDesign: 'storefront.design',
 } as const;
+
+/**
+ * Who may email a receipt or a dues statement to a customer. Mirrors the
+ * backend's `SALES_DOCUMENT_EMAIL_PERMISSIONS`: sending is mail on the shop's
+ * behalf, so it takes a sales WRITE permission — the counter (`sales.create`)
+ * or collections (`sales.edit`) — never `sales.view` alone.
+ */
+export const SALES_DOCUMENT_EMAIL_PERMISSIONS = ['sales.create', 'sales.edit'] as const;
 
 /** Whether the signed-in user's role grants the given permission. */
 export function useHasPermission(permission: string): boolean {
   const { user } = useAuthStore();
   return user?.permissions?.includes(permission) ?? false;
+}
+
+/** Whether the signed-in user may email a sales document (see `SALES_DOCUMENT_EMAIL_PERMISSIONS`). */
+export function useCanEmailSalesDocuments(): boolean {
+  const permissions = useAuthStore((state) => state.user?.permissions);
+  return SALES_DOCUMENT_EMAIL_PERMISSIONS.some((p) => permissions?.includes(p) ?? false);
 }
 
 /**

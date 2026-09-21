@@ -486,8 +486,8 @@ export interface ResolvedHomeCollections {
   /**
    * The merchant's PREFERENCE, not the answer. Whether the names actually come
    * off also depends on the catalogue having a picture for every listed
-   * category — `categoryLabelsVisible` in `home/category-row-layout.ts` is
-   * where the two meet, and the only thing a row should ask.
+   * category — `categoryLabelsVisible` below is where the two meet, and the
+   * only thing a row should ask.
    */
   showLabels: boolean;
 }
@@ -520,4 +520,30 @@ export function resolveHomeCollections(
     // asked, and that shop shows its category names.
     showLabels: raw?.showLabels !== false,
   };
+}
+
+/**
+ * Does this row draw its category NAMES?
+ *
+ * Two inputs, and the second is the one that matters: a merchant can ask for a
+ * pictures-only row, but a category with no image renders as a letter tile, and
+ * a letter with no name under it is not a wayfinding target — it is a mystery
+ * box where a department should be. So the preference is honored only when the
+ * whole row is photographed.
+ *
+ * ⚠ **Asked ONCE per section, never per tile.** Keeping the name on just the
+ * unphotographed tiles would leave a row of mixed shapes, which is the same
+ * mistake `CategoryTiles` already avoids when it asks `photographed` for the
+ * whole section rather than tile by tile. One shape used consistently beats a
+ * ragged row, even when the consistent one is not what was asked for.
+ *
+ * Lives here rather than beside `useCategoryRowLayout` because that module is
+ * `"use client"`, and the Storefront Builder's server views ask this too — a
+ * server component cannot call a function exported from a client module.
+ */
+export function categoryLabelsVisible(
+  showLabels: boolean,
+  allPhotographed: boolean,
+): boolean {
+  return showLabels || !allPhotographed;
 }
