@@ -18291,6 +18291,8 @@ export interface operations {
                     productIds?: string[];
                     limit: number;
                     inStock?: boolean;
+                    /** @enum {string} */
+                    sort?: "newest" | "price-low" | "price-high";
                 }[];
             };
             header?: never;
