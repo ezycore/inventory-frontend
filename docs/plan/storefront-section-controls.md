@@ -155,8 +155,15 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 4 (§3) | The row sections: subheading, columns per device, flow | 🟡 Built 2026-09-21; `arrows` ⛔ deferred (step 5), deploy + pixel outstanding |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | 🟡 Built 2026-09-21; deploy + pixel outstanding |
 | 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | 🟡 Built 2026-09-21; `countdown.expired` has no renderer yet; deploy + pixel outstanding |
-| 7 (§3) | Tests, docs, register review, browser QA | ⬜ Not started |
+| 7 (§3) | Tests, docs, register review, browser QA | 🟡 Checks + docs + register done 2026-09-21; **browser QA and the pixel comparison are the owner's to run** |
 | Deferred (§5) | S1 heading scale · S2 per-section brand colour · S3 lightbox · S4 nested columns · S5 tablet | ⬜ Not planned |
+
+**What the whole board is waiting on, in order:** the backend deploy (Phase 0 step 6 — one deploy
+covers every spec change on this branch), then the pixel comparison on UriiBaba, LunoraBaby and Noor
+Collection, then the browser matrix. Three things are carried forward rather than done:
+`product-carousel.arrows` (Phase 4 step 5), the conversion half of `imageFit` (Phase 3, blocked on an
+unmerged backend branch), and `countdown.expired`'s renderer (Phase 6). **Nothing is pushed and no PR
+is open**, per §0.6.
 
 ---
 
@@ -560,11 +567,14 @@ Phase 0 in production.**
 
 ### Phase 7 — tests, docs, register, browser QA
 
-**Status:** ⬜ Not started.
+**Status:** 🟡 Checks, tests and docs done 2026-09-21. **⛔ Left: step 3's browser QA and pixel
+comparison**, which need the app running against the live stores — that is the owner's to run, and it is
+what the ✅ on phases 1–6 waits on.
 
-1. [ ] `pnpm test`, `pnpm lint`, `pnpm verify` green in both repos; the section-manifest and style-box
-       checks included.
-2. [ ] A test per new visibility rule, plus the standing guarantee that **a hidden control can never make
+1. [x] `pnpm test`, `pnpm lint`, `pnpm verify` green in both repos; the section-manifest and style-box
+       checks included. **2026-09-21: backend 3,213 tests / 268 files; frontend 2,549 tests / 239 files;
+       `pnpm verify` clean; `pnpm lint` 0 errors (4 pre-existing warnings, none from this work).**
+2. [x] A test per new visibility rule, plus the standing guarantee that **a hidden control can never make
        a section unsaveable** (conditional-controls §2.4).
        ⚠ **Write each test from what the merchant asked for, not from what the code does.** Two defects
        on 2026-09-21 were held in place by tests that had written the bug down as the expectation — the
@@ -588,12 +598,12 @@ Phase 0 in production.**
          and 5 all make that claim.
        - Wait out the storefront's server cache first (Phase 3 step 3b), and re-run a failure before
          acting on it.
-4. [ ] Docs in the same change: `SKILL.md` (the storefront reference), `inventory-backend/docs/features/
+4. [x] Docs in the same change: `SKILL.md` (the storefront reference), `inventory-backend/docs/features/
        ecommerce.md`, `ecommerce-qa.md`, `EZYCORE_MASTER_REFERENCE.md` §V.4–V.5, and the help guide.
-5. [ ] **Read the design-requests register against what shipped**, as Phase 6 of the master plan did, and
+5. [x] **Read the design-requests register against what shipped**, as Phase 6 of the master plan did, and
        update the rows this plan answers — in particular the 2026-09-07 `declined` tile-size row (Phase 5
        step 4).
-6. [ ] Update the master plan's §8 "Built" column and §17 with what changed and why.
+6. [x] Update the master plan's §8 "Built" column and §17 with what changed and why.
 
 ---
 
