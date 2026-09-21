@@ -720,6 +720,12 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
     `buttonHref` read as invalid, and `prepareSections` dropped the whole section without a trace,
     which is what it is supposed to do with an instance it cannot draw. **Two allowlists, one widened.**
     Both now carry the anchor pattern and both have a test naming the other.
+  - **`related-products` offered a card photo it never passed on.** `...CARD_PHOTO` went into the
+    spec — so the editor drew Card photo shape and fit — and was never spread into the island's props,
+    so a merchant could set both and the cards ignored them. **The plan's own §0.4 names this exact
+    miss**, and it was made in the same change that added the setting. Found by comparing the rendered
+    card against the core section's row beside it: 1 image at the store's `1/1` where it should have
+    been 2 (a blurred `cover` backdrop under a `contain` photo) at `3/4`.
   - The general lesson, and it is the third time this plan has paid it: **a change was tested on each
     side against itself.** The backend test proved the backend accepts an anchor; the frontend test
     proved `merchantLinkHref` keeps one. Nothing tested the two together, and the section disappeared.
