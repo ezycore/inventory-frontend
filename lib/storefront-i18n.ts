@@ -44,6 +44,14 @@ export interface Dict {
   /** Category-strip arrows — they replace the scrollbar on pointer devices. */
   previousCategories: string;
   nextCategories: string;
+  /**
+   * Rotating-hero arrows, for a merchant who chose them over the dots. Unlike
+   * the category strip's, these are drawn on phones too: a shopper there can
+   * swipe, but a control the merchant switched on has to be visible on the
+   * device most of them are using.
+   */
+  previousSlide: string;
+  nextSlide: string;
   /* --- account area (sidebar + sections, Rashid's Mart design) --- */
   tabWishlist: string;
   tabAddresses: string;
@@ -536,6 +544,8 @@ const en: Dict = {
   nextOffer: "Next offer",
   previousCategories: "Previous categories",
   nextCategories: "Next categories",
+  previousSlide: "Previous slide",
+  nextSlide: "Next slide",
   tabWishlist: "Wishlist",
   tabAddresses: "Addresses",
   tabPrefs: "Notifications",
@@ -954,6 +964,8 @@ const bn: Dict = {
   nextOffer: "পরের অফার",
   previousCategories: "আগের ক্যাটাগরি",
   nextCategories: "পরের ক্যাটাগরি",
+  previousSlide: "আগের স্লাইড",
+  nextSlide: "পরের স্লাইড",
   tabWishlist: "উইশলিস্ট",
   tabAddresses: "ঠিকানা",
   tabPrefs: "নোটিফিকেশন",

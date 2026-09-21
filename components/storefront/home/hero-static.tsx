@@ -184,6 +184,18 @@ interface HeroCopy {
    * their presses outright.
    */
   slideLink?: ReactNode;
+  /**
+   * Something drawn INSIDE the picture's box, over the photograph — today the
+   * rotating hero's dots under `dots: "over"` (`HeroSlidesView`).
+   *
+   * It goes in the media wrapper rather than beside the photo because that
+   * wrapper is the only element whose box IS the picture: the card's is a grid
+   * area on a desktop and a full-width row on a phone, and the open hero's is a
+   * padded panel, so nothing outside it can know where the picture's bottom
+   * edge fell. Dropped with the photograph, which is why a caller may only ask
+   * for it on a hero that has one.
+   */
+  mediaOverlay?: ReactNode;
 }
 
 /**
@@ -238,6 +250,7 @@ export function HeroCardView({
   frame,
   placement,
   promises = [],
+  mediaOverlay,
 }: HeroCopy & {
   align?: "left" | "center";
   frame?: HeroFrame;
@@ -305,6 +318,7 @@ export function HeroCardView({
                for the slides behind the first one — see `priority`. */
             priority={priority}
           />
+          {mediaOverlay}
         </div>
       ) : null}
       {promises.length ? (
@@ -347,6 +361,7 @@ export function HeroOpenView({
   align = "left",
   frame,
   placement,
+  mediaOverlay,
 }: HeroCopy & { align?: "left" | "center"; frame?: HeroFrame; placement?: HeroPlacement }) {
   const centred = align === "center";
   return (
@@ -462,7 +477,14 @@ export function HeroOpenView({
             borderRadius: "var(--radius-lg)",
             overflow: "hidden",
             padding: "clamp(14px,2vw,26px)",
-          }}
+            /* Containing block for `mediaOverlay`, and the inset it sits at:
+               this hero's picture is inset in a tinted panel, so `bottom: 0`
+               would drop the dots onto the panel below the photograph rather
+               than on it. The card's media has no padding and takes the `0px`
+               fallback. */
+            position: "relative",
+            "--sf-hero-dots-inset": "clamp(14px,2vw,26px)",
+          } as CSSProperties}
         >
           <Media
             {...photo}
@@ -477,6 +499,7 @@ export function HeroOpenView({
             // The likely LCP image — see HeroCardView.
             priority={priority}
           />
+          {mediaOverlay}
         </div>
       ) : null}
       {/* Last child so it covers both columns — see HeroCardView. */}

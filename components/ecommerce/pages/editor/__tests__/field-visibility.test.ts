@@ -112,6 +112,42 @@ describe("field visibility", () => {
     expect(shown("mobileCopy", { layout: "open" })).toBe(false);
   });
 
+  it("offers the dots' place only to a rotating hero whose every slide has a picture", () => {
+    const two = [{ image: { url: "/a.jpg" } }, { image: { url: "/b.jpg" } }];
+    expect(shown("dots", { layout: "card" }, two)).toBe(true);
+    expect(shown("dots", { layout: "open" }, two)).toBe(true);
+
+    // One slide draws no dots at all, so there is nothing to place.
+    expect(shown("dots", { layout: "card" }, [two[0]])).toBe(false);
+    // The full-bleed hero draws its own, on the photograph, with nowhere else.
+    expect(shown("dots", { layout: "full-bleed" }, two)).toBe(false);
+
+    /* "On the picture" rides inside the active slide's media box, so ONE slide
+       without a picture is enough for `HeroSlidesView` to fall back to the row
+       under the hero for the whole stack. Offering the choice there would be
+       offering a control that changes nothing. */
+    expect(shown("dots", { layout: "card" }, [two[0], { title: "Eid" }])).toBe(false);
+    // …unless the store banner is standing in, which fills every one of them.
+    expect(shown("dots", { layout: "card", storeBanner: true }, [two[0], { title: "Eid" }])).toBe(true);
+    // A phone picture is still a picture.
+    expect(shown("dots", { layout: "card" }, [two[0], { mobileImage: { url: "/c.jpg" } }])).toBe(true);
+
+    // Arrows instead of dots means there are no dots to place.
+    expect(shown("dots", { layout: "card", nav: "arrows" }, two)).toBe(false);
+    expect(shown("dots", { layout: "card", nav: "both" }, two)).toBe(true);
+  });
+
+  it("offers the slide controls and the beat only once there is a second slide", () => {
+    const two = [{ image: { url: "/a.jpg" } }, { image: { url: "/b.jpg" } }];
+    for (const field of ["nav", "interval"]) {
+      expect(shown(field, { layout: "card" }, two)).toBe(true);
+      // Every layout rotates, so the full-bleed hero keeps both.
+      expect(shown(field, { layout: "full-bleed" }, two)).toBe(true);
+      // One slide moves to nothing and holds forever.
+      expect(shown(field, { layout: "card" }, [two[0]])).toBe(false);
+    }
+  });
+
   it("offers a focus point only where the picture is actually cropped", () => {
     // Unset fit IS canvas, which shows the whole picture and ignores the anchor.
     expect(shown("focal", { layout: "card" }, [{ imageFit: "crop" }], 0)).toBe(true);
@@ -543,10 +579,13 @@ describe("field visibility", () => {
         "image-banner.align",
         "image-banner.focal",
         "hero.campaignBadge",
+        "hero.dots",
         "hero.focal",
+        "hero.interval",
         "hero.imageSide",
         "hero.mobileCopy",
         "hero.mobileFirst",
+        "hero.nav",
         "hero.promises",
         "hero.secondaryLabel",
         "hero.secondaryLink",

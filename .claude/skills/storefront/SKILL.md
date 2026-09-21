@@ -2081,6 +2081,43 @@ share these renderers untouched.
 | `mobileFirst` | Picture or text first in the phone's column | full-bleed, no picture, or every slide hiding its text |
 | `mobileCopy` | Whether a phone shows the badge and subtitle | everything but full-bleed |
 
+### The rotating hero's CONTROLS are the merchant's too (2026-09-21)
+
+Three more settings, on the same terms — unset renders what every hero rendered
+before, so the classic home is untouched. All three are dead on a hero with one
+slide, which rotates to nothing.
+
+| Setting | What it does | Where it is dead |
+|---|---|---|
+| `nav` | Dots (unset), arrows, or both | one slide |
+| `interval` | Seconds each slide holds; unset is 5 | one slide |
+| `dots` | Dots under the hero (unset) or on the picture | one slide, `nav: arrows`, full-bleed, or any slide without a picture |
+
+⚠ **`interval` drives the dots' progress sweep as well as the timer.** The timer
+takes a number and the sweep is a CSS animation, so `heroBeatVars` writes
+`--sf-hero-beat` on the hero and `.sf-hero-fill` reads it. Set one without the
+other and the sweep finishes early and then waits, which is the clearest way to
+make a slideshow look broken.
+
+⚠ **"On the picture" moves the dots INTO the active slide's media box**
+(`mediaOverlay` on `HeroCardView` / `HeroOpenView`) — the only element whose box
+IS the photograph, since the card's is a grid area on a desktop and a full-width
+row on a phone. Two consequences:
+
+- A slide with no picture has nowhere to put them, so `HeroSlidesView` falls back
+  to the row under the hero for the **whole stack** rather than letting the dots
+  appear and disappear as it rotates. `field-visibility.ts` hides the control in
+  the same case, so the merchant sees the fallback rather than meeting it.
+- The row unmounts on every move, so a press would drop a keyboard shopper's
+  focus to the document. `HeroSlidesView` puts it back on the dot they landed on,
+  guarded on `activeElement` so a row that never moved is left alone.
+
+**Arrows hang off the STACK, not the slide** (`.sf-heroslides` / the full-bleed
+`<section>`), which is why they need none of that: nothing about them unmounts
+mid-rotation. They are drawn on phones too, unlike `.sf-cat-strip-arrow` — the
+merchant switched them on, and a control that appears only on a desktop is the
+phone defect this repo keeps finding. Both heroes draw the same `HeroNav`.
+
 **`frame` carries an ATTRIBUTE as well as a variable**, like `image-banner` and
 `gallery`: `data-frame` / `data-frame-m` beside `--sfb-hero-frame` / `-m`. CSS cannot
 ask whether a custom property was set, and two rules turn on exactly that question.

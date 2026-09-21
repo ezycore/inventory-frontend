@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
@@ -23,7 +23,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export const HERO_INTERVAL_MS = 5000;
 
-export function useHeroRotation(count: number) {
+/**
+ * A beat shorter than this is not a slideshow, it is a flicker — and since the
+ * value arrives from a merchant's saved settings rather than from code, the
+ * floor is enforced here rather than trusted. The editor's own control stops at
+ * 2 seconds; this is what holds if a stored value ever gets past it.
+ */
+const MIN_INTERVAL_MS = 1500;
+
+/**
+ * @param intervalMs How long each slide holds, in milliseconds — the hero's
+ *   "Seconds per slide" setting. Defaults to the 5s beat every hero used before
+ *   the setting existed, so a caller that passes nothing is unchanged.
+ */
+/**
+ * The same beat as a style, for the dots' progress sweep — which is a CSS
+ * animation and so cannot read the timer's number.
+ *
+ * Returns nothing at all for a hero on the default beat, so a hero nobody has
+ * retimed sets no custom property and the stylesheet's own 5s stands. That is
+ * the builder's rule everywhere: unset means the markup is what it always was.
+ */
+export const heroBeatVars = (seconds?: number): CSSProperties | undefined =>
+  seconds ? ({ "--sf-hero-beat": `${seconds}s` } as CSSProperties) : undefined;
+
+export function useHeroRotation(count: number, intervalMs: number = HERO_INTERVAL_MS) {
   const [storedCurrent, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [cycle, setCycle] = useState(0);
@@ -54,10 +78,10 @@ export function useHeroRotation(count: number) {
     ) return;
     const timer = setInterval(
       () => setCurrent((c) => (c + 1) % count),
-      HERO_INTERVAL_MS,
+      Math.max(MIN_INTERVAL_MS, intervalMs),
     );
     return () => clearInterval(timer);
-  }, [paused, count, cycle]);
+  }, [paused, count, cycle, intervalMs]);
 
   const pause = useCallback(() => setPaused(true), []);
   const resume = useCallback(() => {

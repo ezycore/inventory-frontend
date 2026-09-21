@@ -173,6 +173,11 @@ export function HeroSection({
      `field-visibility.ts` hides both controls there. Undefined rather than a
      resolved default, so a hero nobody placed sets no attribute at all and the
      stylesheet keeps drawing what it always drew. */
+  /* Every rotating hero's, whatever its layout: what the shopper moves the
+     slides with, and how long each one holds. Passed as the merchant's value or
+     not at all, so a hero nobody has touched runs the 5s beat with dots. */
+  const nav = settings.nav;
+  const interval = settings.interval;
   const placement: HeroPlacement | undefined =
     settings.imageSide || settings.mobileFirst
       ? { side: settings.imageSide, mobileFirst: settings.mobileFirst }
@@ -183,7 +188,7 @@ export function HeroSection({
       return (
         <Island
           name="hero-fullbleed"
-          props={{ base: context.base, slides, storeName, align, mobileCopy, frame }}
+          props={{ base: context.base, slides, storeName, align, mobileCopy, frame, nav, interval }}
         />
       );
     }
@@ -197,6 +202,8 @@ export function HeroSection({
           align,
           mobileCopy,
           frame,
+          nav,
+          interval,
           slides,
           /* The store banner, and nothing else. The view reaches for it only
              where a slide has no artwork of its own, which is what "Use the
@@ -250,6 +257,12 @@ export function HeroSection({
             settings.layout === "card" && settings.promises
               ? (context.trustBadges ?? []).map((badge) => badge.text.trim())
               : [],
+          /* Where the rotation dots sit. Card and open only — the full-bleed
+             hero above draws its own on the photograph and has nowhere else to
+             put them, and `field-visibility.ts` hides the control there. */
+          dots: settings.dots,
+          nav,
+          interval,
         }}
       />
     );

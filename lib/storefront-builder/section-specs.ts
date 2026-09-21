@@ -142,6 +142,52 @@ export const SECTION_SPECS = {
        * the badge and the subtitle back, sized for a phone.
        */
       mobileCopy: { type: "enum", values: ["full", "title-only"], optional: true },
+      /**
+       * What a shopper moves the slides WITH, on a hero with more than one.
+       *
+       * Unset is `dots`, which is what every rotating hero here has drawn since
+       * the dark carousel's arrows were dropped with it (decision D4) — those
+       * were white chevrons on a translucent dark pill, built for a photograph
+       * and wrong on a light card. `arrows` brings them back in the store's own
+       * surface and border instead, so they read as part of the shop; `both`
+       * draws the pair. Swipe works under all three and is never a setting.
+       */
+      nav: { type: "enum", values: ["dots", "arrows", "both"], optional: true },
+      /**
+       * How long each slide holds, in seconds. Unset is the 5-second beat every
+       * hero has always run at.
+       *
+       * ⚠ It is also what the dots' progress sweep is timed to, so the two are
+       * driven from one value (`--sf-hero-beat`) rather than set twice — a
+       * sweep that finishes early and then waits is the clearest way to make a
+       * slideshow look broken.
+       *
+       * The floor is 2 seconds because below that a hero reads as a flicker
+       * rather than a rotation, and nothing a shopper can act on stays on
+       * screen long enough to act on. The ceiling is 30 because past it a
+       * merchant wants a still picture, which is what one slide already is.
+       */
+      interval: { type: "number", min: 2, max: 30, int: true, optional: true },
+      /**
+       * Where the rotation dots sit, on a hero with more than one slide.
+       *
+       * Unset is `under` — the row beneath the hero this file has always drawn,
+       * because a bordered card has no surface to lay dots on and dots inside
+       * one read as part of the merchant's own content. `over` puts them on the
+       * bottom of the PICTURE instead, the way the full-width hero has always
+       * drawn its own.
+       *
+       * ⚠ **`over` needs a picture on EVERY slide.** The dots ride inside the
+       * active slide's media box, so a slide with no photograph has nowhere to
+       * put them and the hero would drop its dots mid-rotation; `HeroSlidesView`
+       * falls back to the row for the whole stack instead of letting them move.
+       * `field-visibility.ts` hides the control in the same case, so the
+       * fallback is what a merchant sees rather than what surprises them.
+       *
+       * Full-bleed sets nothing here: that hero draws its own dots on the
+       * photograph already, and has no second place to put them.
+       */
+      dots: { type: "enum", values: ["under", "over"], optional: true },
       /*
        * The classic home hero, for a hero moved from it (plan §17, Phase 5 step 5);
        * all unset on a new hero. `slideshow` rotates even one slide, as the home

@@ -122,6 +122,118 @@ describe("HeroSlidesView", () => {
     expect(container.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(3);
   });
 
+  describe('"Slide dots" — where the row sits', () => {
+    // Every slide pictured, which is the condition "On the picture" needs.
+    const pictured = [
+      { title: "First", image: { url: "/first.jpg" } },
+      { title: "Second", image: { url: "/second.jpg" } },
+    ];
+
+    it("keeps the row under the hero by default, outside every slide", () => {
+      const { container } = draw({ slides: pictured });
+      const row = container.querySelector(".sf-heroslides-dots")!;
+      // A direct child of the stack, so its own grid row takes real space —
+      // which is what an absolutely positioned row over the picture does not.
+      expect(row.parentElement?.className).toBe("sf-heroslides");
+      expect(row.getAttribute("data-over")).toBeNull();
+    });
+
+    it("moves the row into the ACTIVE slide's picture, and only there", () => {
+      const { container } = draw({ slides: pictured, dots: "over" });
+      const rows = container.querySelectorAll(".sf-heroslides-dots");
+      /* One row, not one per slide: the inactive slides are `inert` but still in
+         the DOM, so a copy in each would leave four buttons all called "Go to
+         slide 1" for anything reading the page. */
+      expect(rows).toHaveLength(1);
+      expect(rows[0].getAttribute("data-over")).toBe("true");
+      // Inside the media box — the only element whose box IS the photograph.
+      expect(rows[0].parentElement?.className).toBe("sf-herocard-media");
+      const slides_ = [...container.querySelectorAll(".sf-heroslides-slide")];
+      expect(slides_[0].contains(rows[0])).toBe(true);
+
+      // It travels with the rotation rather than staying on slide one.
+      fireEvent.click(container.querySelectorAll<HTMLElement>(".sf-heroslides-dots button")[1]);
+      const moved = container.querySelector(".sf-heroslides-dots")!;
+      expect([...container.querySelectorAll(".sf-heroslides-slide")][1].contains(moved)).toBe(true);
+    });
+
+    it("puts the open hero's row inside its picture panel too", () => {
+      const { container } = draw({ slides: pictured, dots: "over", layout: "open" });
+      expect(container.querySelector(".sf-heroslides-dots")?.parentElement?.className).toBe(
+        "sf-heroopen-media",
+      );
+    });
+
+    /* ⚠ The fallback, and the reason `field-visibility.ts` hides the control in
+       the same case. The row rides inside the active slide's media, so a slide
+       with no picture has nowhere to put it — and dots that disappear for one
+       slide and come back for the next are worse than dots that never moved. */
+    it("falls back to the row for the whole stack when one slide has no picture", () => {
+      const { container } = draw({ dots: "over" }); // the default fixture's third slide is text
+      const row = container.querySelector(".sf-heroslides-dots")!;
+      expect(row.parentElement?.className).toBe("sf-heroslides");
+      expect(row.getAttribute("data-over")).toBeNull();
+    });
+
+    it("counts the store's banner as every slide's picture", () => {
+      // `heroSlidePhoto` falls back to it, so an artwork-less slide still draws
+      // a photograph — and "On the picture" still has one to sit on.
+      const { container } = draw({
+        slides: [{ title: "First" }, { title: "Second" }],
+        banner: { url: "/banner.jpg" },
+        dots: "over",
+      });
+      expect(container.querySelector(".sf-heroslides-dots")?.getAttribute("data-over")).toBe("true");
+    });
+  });
+
+  describe('"Slide controls" and the beat', () => {
+    it("draws dots and no arrows until the merchant asks otherwise", () => {
+      const { container } = draw();
+      expect(container.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(3);
+      // Decision D4: the dark carousel's arrows were dropped, not ported.
+      expect(container.querySelector(".sf-hero-arrow")).toBeNull();
+    });
+
+    it("swaps the dots for arrows, and draws both on request", () => {
+      const arrows = draw({ nav: "arrows" }).container;
+      expect(arrows.querySelector(".sf-heroslides-dots")).toBeNull();
+      expect(arrows.querySelectorAll(".sf-hero-arrow")).toHaveLength(2);
+
+      const both = draw({ nav: "both" }).container;
+      expect(both.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(3);
+      expect(both.querySelectorAll(".sf-hero-arrow")).toHaveLength(2);
+    });
+
+    it("hangs the arrows off the STACK, so a press does not unmount them", () => {
+      const { container } = draw({ nav: "arrows" });
+      const [previous, next] = [...container.querySelectorAll<HTMLElement>(".sf-hero-arrow")];
+      /* Outside every slide — which is what lets a shopper press next twice
+         without the button vanishing under them between the two presses. */
+      expect(previous.parentElement?.className).toBe("sf-heroslides");
+
+      fireEvent.click(next);
+      const slides_ = () => [...container.querySelectorAll<HTMLElement>(".sf-heroslides-slide")];
+      expect(slides_()[1].dataset.active).toBe("true");
+      // The rotation wraps, so neither arrow is ever a dead end.
+      fireEvent.click(previous);
+      expect(slides_()[0].dataset.active).toBe("true");
+      fireEvent.click(previous);
+      expect(slides_()[2].dataset.active).toBe("true");
+    });
+
+    it("times the dots' sweep to the merchant's beat, and sets nothing without one", () => {
+      /* The timer takes a number and the sweep is a CSS animation, so the two
+         are driven from ONE value. A sweep that finishes early and then waits
+         is the clearest way to make a slideshow look broken. */
+      const hero = (props: Record<string, unknown>) =>
+        draw(props).container.querySelector<HTMLElement>(".sf-heroslides")!;
+      expect(hero({ interval: 8 }).style.getPropertyValue("--sf-hero-beat")).toBe("8s");
+      // Unset writes no property at all, so the stylesheet's own 5s stands.
+      expect(hero({}).getAttribute("style")).toBeNull();
+    });
+  });
+
   it("draws the open hero open", () => {
     const { container } = draw({ layout: "open" });
     expect(container.querySelectorAll(".sf-heroopen")).toHaveLength(3);

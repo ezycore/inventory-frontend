@@ -299,6 +299,9 @@ const FIELD_LABELS: Record<string, string> = {
   description: "Description",
   flow: "Layout",
   focal: "Focus point",
+  dots: "Slide dots",
+  nav: "Slide controls",
+  interval: "Seconds per slide",
   frame: "Picture shape",
   "hero.frame": "Hero shape",
   galleryLayout: "Photo layout",
@@ -439,6 +442,9 @@ const HINTS: Record<string, string> = {
   storeHeading: "Shown in the shopper's language when Heading is empty.",
   secondaryLink: "A page on your store like /products, a full web address, or tel: / mailto:.",
   slideshow: "Rotates the slides with dots, even when there is only one.",
+  nav: "What a shopper moves the slides with. Swipe works on a phone whichever you choose.",
+  interval: "How long each slide stays before the next one. Empty runs the usual 5 seconds.",
+  dots: "Where the little dots that count the slides sit. On the picture gives the hero back the strip of page the row underneath takes, and needs a picture on every slide.",
   space: "The room between the sections above and below.",
   storeBanner: "Shows the banner from Customize → Look when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
@@ -472,6 +478,15 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
   mobileCopy: {
     full: "Everything",
     "title-only": "Headline only",
+  },
+  dots: {
+    under: "Under the hero",
+    over: "On the picture",
+  },
+  nav: {
+    dots: "Dots",
+    arrows: "Arrows",
+    both: "Both",
   },
   storeHeading: {
     featured: "“Featured products”",

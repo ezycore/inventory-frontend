@@ -76,6 +76,18 @@ const anyPicture = ({ settings, blocks }: FieldScope) =>
   !!settings.storeBanner || blocks.some((block) => !!block.image || !!block.mobileImage);
 
 /**
+ * True where EVERY slide has a picture — the condition "On the picture" dots
+ * need, since they ride inside the active slide's media box and a slide without
+ * one would drop them for its turn (`HeroSlidesView`'s `overDots`).
+ *
+ * "Use the store banner" fills every artwork-less slide at once, so it answers
+ * for all of them — the same over-showing `anyPicture` explains, and the same
+ * reason it is the right side to err on.
+ */
+const everyPicture = ({ settings, blocks }: FieldScope) =>
+  !!settings.storeBanner || blocks.every((block) => !!block.image || !!block.mobileImage);
+
+/**
  * True where a collections row draws TILES rather than plain text links.
  *
  * Unset is `card` — `fieldEmptyChoice` says so and `collections-row.tsx` reads
@@ -284,6 +296,23 @@ const RULES: Record<string, VisibilityRule> = {
      always shown the headline alone on a phone; the card and open heroes draw
      every word on every device, so there is nothing for this to decide. */
   "hero.mobileCopy": (scope) => layoutOf(scope) === "full-bleed",
+
+  /* Nothing to drive, and nothing to time, until there is a second slide. */
+  "hero.nav": (scope) => scope.blocks.length > 1,
+  "hero.interval": (scope) => scope.blocks.length > 1,
+
+  /* Four conditions, and the control is dead without any one of them.
+     A hero with one slide draws no dots at all, so there is nothing to place.
+     A hero whose "Slide controls" are the arrows draws none either. The
+     full-bleed hero draws its own on the photograph and has no second place to
+     put them. And "On the picture" needs a picture on every slide — the
+     renderer falls back to the row under the hero where one is missing, so
+     offering the choice there would be offering a setting that does nothing. */
+  "hero.dots": (scope) =>
+    scope.blocks.length > 1 &&
+    str(scope.settings.nav) !== "arrows" &&
+    layoutOf(scope) !== "full-bleed" &&
+    everyPicture(scope),
 
   /* A focus point aims a CROP. `canvas` fit shows the whole picture and ignores
      it — and an unset fit *is* canvas, so the control is dead until the
