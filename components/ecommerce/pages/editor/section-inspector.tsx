@@ -65,11 +65,14 @@ export function SectionInspector({
   onAddBlock,
   onClose,
   context,
+  siblingAnchors = [],
 }: {
   section: EditorSection;
   device: EditorDevice;
   /** The page being edited, for the settings that page supplies itself. */
   context?: SectionPageContext;
+  /** Link names the other sections on this page already use, to list and to warn on. */
+  siblingAnchors?: string[];
   onChange: (section: EditorSection) => void;
   onAddBlock: () => void;
   onClose: () => void;
@@ -252,7 +255,12 @@ export function SectionInspector({
               This section is pinned to the screen rather than placed on the page, so it has no box to style.
             </p>
           ) : (
-            <SectionStyleFields section={section} device={device} onChange={onChange} />
+            <SectionStyleFields
+              section={section}
+              device={device}
+              onChange={onChange}
+              siblingAnchors={siblingAnchors}
+            />
           )}
         </TabsContent>
       </Tabs>

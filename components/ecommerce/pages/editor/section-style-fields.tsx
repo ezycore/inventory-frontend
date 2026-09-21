@@ -3,9 +3,13 @@
 
 import { useState, type ReactNode } from "react";
 import type { SpacingStep } from "@/lib/storefront-builder/section-style";
+import { MAX_OVERLAY } from "@/lib/storefront-builder/style-specs";
 import { ColorField, isHexColor } from "@/ui/components/color-field";
+import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
+import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { Switch } from "@/ui/components/switch";
 import { isFieldVisible } from "./field-visibility";
 import { ImageField } from "./image-field";
 import { PhoneNote, ResetToDesktop } from "./responsive-note";
@@ -13,20 +17,31 @@ import { isCoreSection } from "./section-catalogue";
 import type { EditorDevice, EditorSection } from "./section-instances";
 import {
   alignFor,
+  anchorOf,
   backgroundOf,
+  borderOf,
+  overlayOf,
   paddingFor,
+  radiusOf,
   styleOf,
+  textColorOf,
   toneOf,
   widthOf,
   withAlign,
+  withAnchor,
   withBackground,
+  withBorder,
+  withOverlay,
   withPadding,
+  withRadius,
   withStyle,
+  withTextColor,
   withTone,
   withWidth,
   type BackgroundKind,
   type SectionStyleBox,
   type StyleEdge,
+  type StyleRadius,
   type StyleTone,
   type StyleWidth,
 } from "./section-style-edits";
@@ -77,11 +92,20 @@ const SECTIONS_ALIGNING_THEMSELVES = new Set<string>(["hero"]);
 const ALIGNS = withSectionOwn([
   { value: "left", label: "Left" },
   { value: "center", label: "Centre" },
+  { value: "right", label: "Right" },
 ]);
 
 const TONES = withSectionOwn([
   { value: "light", label: "Light, for a dark background" },
   { value: "dark", label: "Dark, for a light background" },
+  { value: "custom", label: "A colour of my own" },
+]);
+
+const RADII = withSectionOwn([
+  { value: "none", label: "Square" },
+  { value: "sm", label: "Slightly rounded" },
+  { value: "md", label: "Rounded" },
+  { value: "lg", label: "Very rounded" },
 ]);
 
 const chosen = <T extends string>(value: string): T | undefined => (value === DEFAULT ? undefined : (value as T));
@@ -137,6 +161,70 @@ function BackgroundColour({ color, onChange }: { color?: string; onChange: (colo
 }
 
 /**
+ * The merchant's own text colour, kept as typed until it is a whole `#RRGGBB`
+ * — the same behaviour, and the same reason, as `BackgroundColour` above: the
+ * backend refuses a partial hex, so writing one as it is typed would make the
+ * section unsaveable halfway through the word.
+ */
+function TextColour({ color, onChange }: { color?: string; onChange: (color: string | undefined) => void }) {
+  const [typed, setTyped] = useState(color ?? "");
+  const shown = typed === "" || isHexColor(typed) ? (color ?? "") : typed;
+  return (
+    <ColorField
+      label="Its colour"
+      value={shown}
+      onChange={(next) => {
+        setTyped(next);
+        if (next.trim() === "") onChange(undefined);
+        else if (isHexColor(next)) onChange(next.trim());
+      }}
+    />
+  );
+}
+
+/**
+ * The section's own name on the page, so a button elsewhere can link to it with
+ * `#name`. Kept as typed while it is being written — a name is invalid for as
+ * long as it is half-finished — and stored only once it is a name the backend
+ * will take.
+ */
+function AnchorField({
+  id,
+  anchor,
+  others,
+  onChange,
+}: {
+  id: string;
+  anchor?: string;
+  others: string[];
+  onChange: (anchor: string | undefined) => void;
+}) {
+  const [typed, setTyped] = useState(anchor ?? "");
+  const taken = typed.trim() !== "" && others.includes(typed.trim());
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>Link name</Label>
+      <Input
+        id={id}
+        value={typed}
+        placeholder="order-form"
+        onChange={(event) => {
+          setTyped(event.target.value);
+          onChange(event.target.value);
+        }}
+      />
+      <p className="text-xs text-muted-foreground">
+        {taken
+          ? "Another section on this page already uses that name."
+          : others.length > 0
+            ? `Link a button to #${anchor || "this-section"}. Already on this page: ${others.map((name) => `#${name}`).join(", ")}.`
+            : "Give the section a name and a button anywhere on the page can link to it with # in front."}
+      </p>
+    </div>
+  );
+}
+
+/**
  * The inspector's Style tab: the box every section sits in (plan §5.2
  * `SectionStyle`). "Section's own" everywhere leaves the section's
  * own frame alone, so a section nobody styled looks exactly as it did. Spacing and alignment follow
@@ -146,10 +234,13 @@ export function SectionStyleFields({
   section,
   device,
   onChange,
+  siblingAnchors = [],
 }: {
   section: EditorSection;
   device: EditorDevice;
   onChange: (section: EditorSection) => void;
+  /** Link names the rest of the page already uses — suggestions, and a clash warning. */
+  siblingAnchors?: string[];
 }) {
   const style = styleOf(section);
   const set = (next: SectionStyleBox) => onChange(withStyle(section, next));
@@ -179,12 +270,32 @@ export function SectionStyleFields({
         />
       ) : null}
       {background.kind === "image" ? (
-        <ImageField
-          label="Background picture"
-          value={background.image}
-          onChange={(image) => set(withBackground(style, "image", { image }))}
-          hint="Covers the whole section. On a dark picture, set Text colour to Light."
-        />
+        <>
+          <ImageField
+            label="Background picture"
+            value={background.image}
+            onChange={(image) => set(withBackground(style, "image", { image }))}
+            hint="Covers the whole section. On a dark picture, set Text colour to Light."
+          />
+          {/* A colour background has nothing to shade, and shading it would
+              darken a colour the merchant chose — so this is drawn for a
+              picture only, and `sectionFrame` refuses it for anything else. */}
+          <div className="space-y-1.5">
+            <Label htmlFor={id("overlay")}>Shade over the picture</Label>
+            <NumberField
+              id={id("overlay")}
+              value={overlayOf(style) ?? null}
+              min={0}
+              max={MAX_OVERLAY}
+              precision={0}
+              onChange={(value) => set(withOverlay(style, value ?? undefined))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Darkens the picture behind the words, so the text stays readable. 0 to {MAX_OVERLAY} percent;
+              empty leaves the picture as it is.
+            </p>
+          </div>
+        </>
       ) : null}
 
       <div className="space-y-3">
@@ -202,6 +313,14 @@ export function SectionStyleFields({
             onChange={setEdge("bottom")}
           />
         </div>
+        <StyleSelect
+          id={id("inline")}
+          label="Sides"
+          value={padding.value?.inline}
+          options={STEPS}
+          onChange={setEdge("inline")}
+          hint="Insets the section from the page's edges. Section's own keeps the page's usual gutter — and on a full-width section, no gutter at all."
+        />
         <p className="text-xs text-muted-foreground">
           The room above and below the section. Section&apos;s own, chosen on the desktop, goes back to the
           section&apos;s own spacing on every screen.
@@ -252,7 +371,7 @@ export function SectionStyleFields({
             label="Text alignment"
             value={align.value}
             options={ALIGNS}
-            onChange={(value) => set(withAlign(style, chosen<"left" | "center">(value), device))}
+            onChange={(value) => set(withAlign(style, chosen<"left" | "center" | "right">(value), device))}
             note={<PhoneNote device={device} own={align.own} />}
           />
           <ResetToDesktop device={device} own={align.own} onReset={() => set(withAlign(style, undefined, device))} />
@@ -265,6 +384,54 @@ export function SectionStyleFields({
         value={toneOf(style)}
         options={TONES}
         onChange={(value) => set(withTone(style, chosen<StyleTone>(value)))}
+      />
+      {/* Only the merchant's own colour needs a colour box. Switching away keeps
+          what they picked (`withTone` leaves `textColor` alone), so coming back
+          finds it again. */}
+      {toneOf(style) === "custom" ? (
+        <TextColour
+          key={section.id}
+          color={textColorOf(style)}
+          onChange={(color) => set(withTextColor(style, color))}
+        />
+      ) : null}
+
+      {/* Corners and a line around the section's own band.
+
+          ⚠ Not for a full-width section: a band running to the window edge has
+          no corner to round, and the stylesheet really does ignore a stored
+          radius there (`.sfb-sec[data-width="full"]`). Hiding a control whose
+          renderer still drew something would be the lie that rule exists to
+          stop. The line stays, because an edge-to-edge band can still carry one
+          above and below. */}
+      {widthOf(style) === "full" ? null : (
+        <StyleSelect
+          id={id("radius")}
+          label="Corners"
+          value={radiusOf(style)}
+          options={RADII}
+          onChange={(value) => set(withRadius(style, chosen<StyleRadius>(value)))}
+          hint="Rounds the section's own band. A full-width section stays square."
+        />
+      )}
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <Label htmlFor={id("border")}>Outline</Label>
+          <p className="text-xs text-muted-foreground">A thin line around the section, in the theme&apos;s colour.</p>
+        </div>
+        <Switch
+          id={id("border")}
+          checked={borderOf(style)}
+          onCheckedChange={(checked) => set(withBorder(style, checked))}
+        />
+      </div>
+
+      <AnchorField
+        id={id("anchor")}
+        anchor={anchorOf(style)}
+        others={siblingAnchors}
+        onChange={(anchor) => set(withAnchor(style, anchor))}
       />
     </div>
   );

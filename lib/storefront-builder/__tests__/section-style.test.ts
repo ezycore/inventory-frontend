@@ -94,6 +94,120 @@ describe("sectionFrame", () => {
     expect(sectionFrame({ background: { kind: "none" } }, home).style).toMatchObject({ "--sfb-bg": "transparent" });
   });
 
+  /* X1 — the Style tab's Text alignment did nothing to eight sections' headings,
+     because `SectionTitle` is a flex row and `text-align` cannot move a flex
+     item. The frame now emits the matching `justify-content` beside it. */
+  it("emits a heading justification beside every alignment", () => {
+    expect(sectionFrame({ align: { base: "left" } }).style).toMatchObject({
+      "--sfb-align": "left",
+      "--sfb-title-justify": "flex-start",
+    });
+    expect(sectionFrame({ align: { base: "center" } }).style).toMatchObject({
+      "--sfb-align": "center",
+      "--sfb-title-justify": "center",
+    });
+    expect(sectionFrame({ align: { base: "left", mobile: "center" } }).style).toMatchObject({
+      "--sfb-title-justify": "flex-start",
+      "--sfb-title-justify-m": "center",
+    });
+    // A phone-only alignment leaves the desktop's unset, so the stylesheet's own
+    // `space-between` keeps drawing the desktop — the same rule the rest of the
+    // responsive pairs follow.
+    expect(sectionFrame({ align: { mobile: "center" } }).style).toEqual({
+      "--sfb-pt": "clamp(24px, 4vw, 40px)",
+      "--sfb-pb": "clamp(24px, 4vw, 40px)",
+      "--sfb-align-m": "center",
+      "--sfb-title-justify-m": "center",
+    });
+  });
+
+  it("emits no heading justification for a section with no alignment, or one that owns it", () => {
+    // ⚠ The ABSENCE is the point, twice over. An unstyled section must emit
+    // nothing, so every classic caller of `SectionTitle` and every section
+    // nobody has aligned keeps `space-between`; and a section that aligns its
+    // own text must not emit a second answer.
+    expect(sectionFrame(undefined).style).not.toHaveProperty("--sfb-title-justify");
+    expect(sectionFrame({ align: { base: "center" } }, { top: "0px", bottom: "0px", ownsAlign: true }).style)
+      .not.toHaveProperty("--sfb-title-justify");
+  });
+
+  /* X2 — six sections carry a built-in column that silently beat this control.
+     They now keep it only while the merchant has chosen no width. */
+  it("reports whether the merchant chose a width, which is not the same as the width", () => {
+    // An unset box and an explicit Page column both resolve to "content"; only
+    // one of them is the merchant answering.
+    expect(sectionFrame(undefined).styledWidth).toBe(false);
+    expect(sectionFrame({}).styledWidth).toBe(false);
+    expect(sectionFrame({ width: "content" }).styledWidth).toBe(true);
+    expect(sectionFrame({ width: "wide" }).styledWidth).toBe(true);
+    expect(sectionFrame({ width: "full" }).styledWidth).toBe(true);
+    // An invalid stored value is no answer at all, the same way `width` falls back.
+    expect(sectionFrame({ width: "huge" }).styledWidth).toBe(false);
+    // A section that owns its width has no Width control to obey in the first place.
+    expect(sectionFrame({ width: "wide" }, { top: "0px", bottom: "0px", ownsWidth: true }).styledWidth).toBe(false);
+  });
+
+  /* ---- Phase 2: the style box grows ---- */
+
+  it("insets the section from the sides, on each device, without touching the pair", () => {
+    expect(sectionFrame({ padding: { base: { top: "sm", bottom: "sm", inline: "lg" } } }).style).toMatchObject({
+      "--sfb-pi": "clamp(40px, 6vw, 64px)",
+    });
+    expect(
+      sectionFrame({ padding: { base: { top: "sm", bottom: "sm" }, mobile: { top: "sm", bottom: "sm", inline: "md" } } })
+        .style,
+    ).toMatchObject({ "--sfb-pi-m": "clamp(24px, 4vw, 40px)" });
+    // ⚠ ABSENT where unset: `.sfb-inner` falls back to the page's own gutter,
+    // and the four full-width rules fall back to no gutter at all. A value here
+    // would replace both.
+    expect(sectionFrame({ padding: { base: { top: "sm", bottom: "sm" } } }).style).not.toHaveProperty("--sfb-pi");
+  });
+
+  it("rounds, outlines and names a section", () => {
+    expect(sectionFrame({ radius: "md" }).style).toMatchObject({ "--sfb-radius": "14px" });
+    expect(sectionFrame({ radius: "wavy" }).style).not.toHaveProperty("--sfb-radius");
+    expect(sectionFrame({ border: true }).border).toBe(true);
+    expect(sectionFrame({ border: "yes" }).border).toBe(false);
+    expect(sectionFrame(undefined).border).toBe(false);
+    expect(sectionFrame({ anchor: "order-form" }).anchor).toBe("order-form");
+    expect(sectionFrame({ anchor: "Order Form" }).anchor).toBeUndefined();
+    expect(sectionFrame({ anchor: "-leading" }).anchor).toBeUndefined();
+  });
+
+  it("shades a background PICTURE and nothing else", () => {
+    const picture = { kind: "image", image: { url: "https://cdn.example.com/bg.webp" } };
+    expect(sectionFrame({ background: picture, overlay: 40 }).style).toMatchObject({ "--sfb-overlay": "40%" });
+    expect(sectionFrame({ background: picture, overlay: 40 }).overlay).toBe(40);
+    // ⚠ A colour background has nothing to shade, and shading it would darken a
+    // colour the merchant chose. The value stays stored; it just draws nothing.
+    expect(sectionFrame({ background: { kind: "color", color: "#101828" }, overlay: 40 }).style).not.toHaveProperty(
+      "--sfb-overlay",
+    );
+    expect(sectionFrame({ overlay: 40 }).overlay).toBeUndefined();
+    // 0 is "no shade", so it draws nothing rather than an invisible layer.
+    expect(sectionFrame({ background: picture, overlay: 0 }).overlay).toBeUndefined();
+    expect(sectionFrame({ background: picture, overlay: 120 }).overlay).toBeUndefined();
+    expect(sectionFrame({ background: picture, overlay: 12.5 }).overlay).toBeUndefined();
+  });
+
+  it("takes the merchant's own text colour, and only on the custom tone", () => {
+    expect(sectionFrame({ textTone: "custom", textColor: "#1A2B3C" })).toMatchObject({
+      tone: "custom",
+      style: { "--sfb-text": "#1A2B3C" },
+    });
+    // Stored and kept, but not drawn: switching tone away and back must not lose
+    // the colour the merchant picked.
+    expect(sectionFrame({ textTone: "light", textColor: "#1A2B3C" }).style).not.toHaveProperty("--sfb-text");
+    expect(sectionFrame({ textTone: "custom", textColor: "#12" }).style).not.toHaveProperty("--sfb-text");
+  });
+
+  it("aligns right, on both the text and the heading row", () => {
+    expect(sectionFrame({ align: { base: "right" } }).style).toMatchObject({
+      "--sfb-align": "right",
+      "--sfb-title-justify": "flex-end",
+    });
+  });
+
   it("falls back to defaults for invalid values", () => {
     const frame = sectionFrame({ width: "huge", textTone: "neon", padding: { base: { top: "xxl" } } });
     expect(frame.width).toBe("content");

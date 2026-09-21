@@ -119,3 +119,70 @@ describe("sticky-order-bar", () => {
     expect(container.querySelector("[data-sf-order-form]")).not.toBeNull();
   });
 });
+
+/* ---- Phases 5 and 6 ---- */
+
+describe("the media and conversion sections' new controls", () => {
+  const banner = { url: "https://cdn.example.com/b.jpg" };
+
+  it("splits the banner's one alignment into three, and unset draws the old pair", () => {
+    const { container } = renderPage([
+      section("b1", "image-banner", { image: banner, heading: "Eid sale" }),
+      section("b2", "image-banner", {
+        image: banner,
+        heading: "Eid sale",
+        align: { base: "right" },
+        verticalAlign: { base: "middle" },
+        scrim: 50,
+      }),
+    ], {});
+    const [plain, shaped] = [...container.querySelectorAll(".sfb-banner-copy")] as HTMLElement[];
+    // ⚠ Unset: one attribute with its old value and NOTHING else, so the two
+    // stylesheet blocks that drew left-bottom-gradient and centre-middle-wash
+    // still decide. The absence is what keeps a live banner where it was.
+    expect(plain.dataset.align).toBe("left");
+    expect(plain.dataset.valign).toBeUndefined();
+    expect(plain.hasAttribute("data-scrim")).toBe(false);
+
+    expect(shaped.dataset.align).toBe("right");
+    expect(shaped.dataset.valign).toBe("middle");
+    expect(shaped.hasAttribute("data-scrim")).toBe(true);
+    expect((shaped.closest(".sfb-banner") as HTMLElement).style.getPropertyValue("--sfb-banner-scrim")).toBe("50%");
+  });
+
+  it("lets the sticky bar stand on a desktop, and says nothing when it does not", () => {
+    const { container } = renderPage(
+      [
+        section("s1", "sticky-order-bar", { productId: PRODUCT_ID }),
+        section("s2", "sticky-order-bar", { productId: PRODUCT_ID, screens: "phones-and-computers" }),
+      ],
+      { s1: { items: [product] }, s2: { items: [product] } },
+    );
+    const props = [...container.querySelectorAll("[data-island]")].map((el) =>
+      JSON.parse((el as HTMLElement).dataset.props ?? "{}"),
+    );
+    expect(props[0].screens).toBeUndefined();
+    expect(props[1].screens).toBe("phones-and-computers");
+  });
+
+  it("gives the order form's button the merchant's words", () => {
+    const { container } = renderPage(
+      [section("o1", "order-form", { productId: PRODUCT_ID, buttonLabel: "Order now" })],
+      { o1: { items: [product] } },
+    );
+    const props = JSON.parse((container.querySelector("[data-island]") as HTMLElement).dataset.props ?? "{}");
+    expect(props.buttonLabel).toBe("Order now");
+  });
+
+  it("asks the catalogue for the merchant's order — but never on a hand-picked row", () => {
+    const requests = sectionDataRequests(
+      prepareSections([
+        section("g1", "product-grid", { source: "newest", limit: 8, sort: "price-low" }),
+        // ⚠ `manual` IS an order: the one the merchant dragged the products into.
+        section("g2", "product-grid", { source: "manual", limit: 8, productIds: [PRODUCT_ID], sort: "price-low" }),
+      ]),
+    );
+    expect(requests[0].sort).toBe("price-low");
+    expect(requests[1].sort).toBeUndefined();
+  });
+});

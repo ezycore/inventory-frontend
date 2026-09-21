@@ -107,10 +107,18 @@ export function PageSections({
         return (
           <section
             key={id}
+            // The merchant's own name for the section, so a button further up
+            // the page can link to `#it`. Absent unless they typed one — an id
+            // generated from the instance id would be unreadable in a link
+            // field and would change when a section is duplicated (D6).
+            id={frame.anchor}
             className="sfb-sec"
             data-width={frame.width}
             data-tone={frame.tone}
             data-hide={hide}
+            data-border={frame.border ? "" : undefined}
+            data-overlay={frame.overlay !== undefined ? "" : undefined}
+            data-styled-width={frame.styledWidth ? "" : undefined}
             data-float={section.floating ? "" : undefined}
             data-section-id={annotate ? id : undefined}
             style={frame.style}

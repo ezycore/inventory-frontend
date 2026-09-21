@@ -14,7 +14,7 @@ export function CallToActionSection({ settings, context }: SectionViewProps<Spec
         {settings.heading}
       </h2>
       {settings.text ? (
-        <p style={{ margin: "10px 0 0", color: "var(--muted)", lineHeight: 1.6 }}>{settings.text}</p>
+        <p style={{ margin: "10px 0 0", color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6 }}>{settings.text}</p>
       ) : null}
       <SectionLink base={context.base} href={settings.buttonHref} className="sfb-button">
         {settings.buttonLabel}

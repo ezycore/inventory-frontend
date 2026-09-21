@@ -1,8 +1,11 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
+import { TRACK } from "@/lib/storefront-builder/grid-track";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SfImage } from "@/components/storefront/sf-image";
+import { SectionLede } from "@/components/storefront-builder/section-lede";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["testimonials"]["settings"];
@@ -25,12 +28,13 @@ export function TestimonialsSection({ settings, blocks }: SectionViewProps<Spec,
   const reviews = shownTestimonials(blocks);
   return (
     <>
-      {settings.heading ? (
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 16px", letterSpacing: "-0.02em" }}>
-          {settings.heading}
-        </h2>
-      ) : null}
-      <div className="sfb-cards">
+      <SectionLede heading={settings.heading} subheading={settings.subheading} gap={16} />
+      <div
+        className="sfb-cards"
+        data-flow={settings.flow?.base}
+        data-flow-m={settings.flow?.mobile}
+        style={responsiveVars("sfb-review-track", settings.columns, TRACK) as CSSProperties}
+      >
         {reviews.map(({ id, settings: review }) => (
           <figure key={id} style={card}>
             {review.rating ? (

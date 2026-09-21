@@ -112,6 +112,42 @@ describe("field visibility", () => {
     expect(shown("mobileCopy", { layout: "open" })).toBe(false);
   });
 
+  it("offers the dots' place only to a rotating hero whose every slide has a picture", () => {
+    const two = [{ image: { url: "/a.jpg" } }, { image: { url: "/b.jpg" } }];
+    expect(shown("dots", { layout: "card" }, two)).toBe(true);
+    expect(shown("dots", { layout: "open" }, two)).toBe(true);
+
+    // One slide draws no dots at all, so there is nothing to place.
+    expect(shown("dots", { layout: "card" }, [two[0]])).toBe(false);
+    // The full-bleed hero draws its own, on the photograph, with nowhere else.
+    expect(shown("dots", { layout: "full-bleed" }, two)).toBe(false);
+
+    /* "On the picture" rides inside the active slide's media box, so ONE slide
+       without a picture is enough for `HeroSlidesView` to fall back to the row
+       under the hero for the whole stack. Offering the choice there would be
+       offering a control that changes nothing. */
+    expect(shown("dots", { layout: "card" }, [two[0], { title: "Eid" }])).toBe(false);
+    // …unless the store banner is standing in, which fills every one of them.
+    expect(shown("dots", { layout: "card", storeBanner: true }, [two[0], { title: "Eid" }])).toBe(true);
+    // A phone picture is still a picture.
+    expect(shown("dots", { layout: "card" }, [two[0], { mobileImage: { url: "/c.jpg" } }])).toBe(true);
+
+    // Arrows instead of dots means there are no dots to place.
+    expect(shown("dots", { layout: "card", nav: "arrows" }, two)).toBe(false);
+    expect(shown("dots", { layout: "card", nav: "both" }, two)).toBe(true);
+  });
+
+  it("offers the slide controls and the beat only once there is a second slide", () => {
+    const two = [{ image: { url: "/a.jpg" } }, { image: { url: "/b.jpg" } }];
+    for (const field of ["nav", "interval"]) {
+      expect(shown(field, { layout: "card" }, two)).toBe(true);
+      // Every layout rotates, so the full-bleed hero keeps both.
+      expect(shown(field, { layout: "full-bleed" }, two)).toBe(true);
+      // One slide moves to nothing and holds forever.
+      expect(shown(field, { layout: "card" }, [two[0]])).toBe(false);
+    }
+  });
+
   it("offers a focus point only where the picture is actually cropped", () => {
     // Unset fit IS canvas, which shows the whole picture and ignores the anchor.
     expect(shown("focal", { layout: "card" }, [{ imageFit: "crop" }], 0)).toBe(true);
@@ -543,15 +579,19 @@ describe("field visibility", () => {
         "image-banner.align",
         "image-banner.focal",
         "hero.campaignBadge",
+        "hero.dots",
         "hero.focal",
+        "hero.interval",
         "hero.imageSide",
         "hero.mobileCopy",
         "hero.mobileFirst",
+        "hero.nav",
         "hero.promises",
         "hero.secondaryLabel",
         "hero.secondaryLink",
         "hero.slideshow",
         "hero.storeWords",
+        "call-to-action.style.align",
         "hero.style.width",
         "product-carousel.categoryId",
         "product-carousel.productIds",
@@ -566,5 +606,40 @@ describe("field visibility", () => {
         "selected-products.tagIds",
       ].sort(),
     );
+  });
+
+  /* X11 — `call-to-action` answers its own alignment on the Content tab, and
+     `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)`. So the
+     section's own answer wins where it is given and the Style tab's applies
+     where it is not; offering both at once is what left a merchant moving a
+     control that could not move anything. */
+  const ctaAlign = (settings: Record<string, unknown>) =>
+    isFieldVisible("style.align", "call-to-action", scope(settings));
+
+  it("hides the Style tab's alignment on a CTA that answers for itself", () => {
+    expect(ctaAlign({})).toBe(true);
+    expect(ctaAlign({ align: { base: "center" } })).toBe(false);
+    expect(ctaAlign({ align: { base: "left", mobile: "center" } })).toBe(false);
+  });
+
+  it("keeps it for a CTA that answers only for the phone", () => {
+    // ⚠ `base` alone, not `responsiveSet`'s "either screen". The phone's
+    // variable falls back to the desktop's, so a phone-only answer leaves the
+    // desktop still following the Style tab — and taking the control away there
+    // would remove the merchant's only way to move it.
+    expect(ctaAlign({ align: { mobile: "center" } })).toBe(true);
+    expect(ctaAlign({ align: {} })).toBe(true);
+    expect(ctaAlign({ align: "center" })).toBe(true);
+  });
+
+  it("leaves every other section's Style alignment alone", () => {
+    // ⚠ `collections-row` and `category-tiles` have an `align` of their own and
+    // are NOT this case: theirs places each tile inside its column
+    // (`GRID_ALIGN` in `collection-tiles.tsx`) while the Style tab's moves the
+    // heading. Two questions asked in one word, answered by naming them apart
+    // in the catalogue — not by hiding either.
+    for (const type of ["collections-row", "category-tiles"]) {
+      expect(isFieldVisible("style.align", type, scope({ align: { base: "right" } }))).toBe(true);
+    }
   });
 });

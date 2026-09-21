@@ -81,11 +81,17 @@ export function heroSlides(blocks: readonly SlideBlock[], keepEmpty = false): St
  * `image-banner` and `gallery` carry the same pair for the same reason. Plain
  * data throughout, so it crosses an island boundary unchanged.
  */
-function heroFrame(settings: Pick<Settings, "frame">): HeroFrame | undefined {
+function heroFrame(settings: Pick<Settings, "frame" | "height">): HeroFrame | undefined {
   const frame = settings.frame;
-  if (!frame?.base && !frame?.mobile) return undefined;
+  const height = settings.height;
+  // Either answers the hero's box, so either is enough to build the object —
+  // a height with no shape still needs its variables and attributes through.
+  if (!frame?.base && !frame?.mobile && height?.base === undefined && height?.mobile === undefined) {
+    return undefined;
+  }
   return {
     vars: {
+      ...responsiveVars("sfb-hero-h", height, (px) => `${px}px`),
       ...responsiveVars("sfb-hero-frame", frame, (ratio) => ASPECT_RATIOS[ratio]),
       /* The same shape as a percentage, for the ONE layout that cannot use
          `aspect-ratio`: a full-width hero's words sit on the photograph, so its
@@ -93,8 +99,10 @@ function heroFrame(settings: Pick<Settings, "frame">): HeroFrame | undefined {
          `ASPECT_RATIO_PADDING`. */
       ...responsiveVars("sfb-hero-pad", frame, (ratio) => ASPECT_RATIO_PADDING[ratio]),
     },
-    base: !!frame.base,
-    mobile: !!frame.mobile,
+    base: !!frame?.base,
+    mobile: !!frame?.mobile,
+    heightBase: height?.base !== undefined,
+    heightMobile: height?.mobile !== undefined,
   };
 }
 
@@ -165,6 +173,11 @@ export function HeroSection({
      `field-visibility.ts` hides both controls there. Undefined rather than a
      resolved default, so a hero nobody placed sets no attribute at all and the
      stylesheet keeps drawing what it always drew. */
+  /* Every rotating hero's, whatever its layout: what the shopper moves the
+     slides with, and how long each one holds. Passed as the merchant's value or
+     not at all, so a hero nobody has touched runs the 5s beat with dots. */
+  const nav = settings.nav;
+  const interval = settings.interval;
   const placement: HeroPlacement | undefined =
     settings.imageSide || settings.mobileFirst
       ? { side: settings.imageSide, mobileFirst: settings.mobileFirst }
@@ -175,7 +188,7 @@ export function HeroSection({
       return (
         <Island
           name="hero-fullbleed"
-          props={{ base: context.base, slides, storeName, align, mobileCopy, frame }}
+          props={{ base: context.base, slides, storeName, align, mobileCopy, frame, nav, interval }}
         />
       );
     }
@@ -189,6 +202,8 @@ export function HeroSection({
           align,
           mobileCopy,
           frame,
+          nav,
+          interval,
           slides,
           /* The store banner, and nothing else. The view reaches for it only
              where a slide has no artwork of its own, which is what "Use the
@@ -242,6 +257,12 @@ export function HeroSection({
             settings.layout === "card" && settings.promises
               ? (context.trustBadges ?? []).map((badge) => badge.text.trim())
               : [],
+          /* Where the rotation dots sit. Card and open only — the full-bleed
+             hero above draws its own on the photograph and has nowhere else to
+             put them, and `field-visibility.ts` hides the control there. */
+          dots: settings.dots,
+          nav,
+          interval,
         }}
       />
     );

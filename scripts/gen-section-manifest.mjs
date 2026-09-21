@@ -16,9 +16,19 @@
  * frontend is the source, the backend the generated side.
  *
  * The output is the backend file `src/constants/storefront-section-manifest.ts`:
- * the body of `lib/storefront-builder/field-specs.ts` copied verbatim (one set of
- * types for both repos) followed by the manifest literal. A `.ts` module rather
- * than JSON because the backend's `tsc` does not copy `.json` into `dist/`.
+ * the bodies of `lib/storefront-builder/field-specs.ts` and
+ * `lib/storefront-builder/style-specs.ts` copied verbatim (one set of types, and
+ * one style-box vocabulary, for both repos) followed by the manifest literal. A
+ * `.ts` module rather than JSON because the backend's `tsc` does not copy
+ * `.json` into `dist/`.
+ *
+ * ⚠ **The style box is copied, not re-serialized.** `STYLE_BOX_SPEC` could be
+ * written out with the literal writer below like `SECTION_MANIFEST` is, but it
+ * does not have to be: `style-specs.ts` imports nothing, so its source is
+ * already valid backend TypeScript. Copying it keeps the doc comments — which
+ * are where the reasoning behind each value lives — and removes a serialization
+ * step that could itself drift. `SECTION_SPECS` cannot be copied this way
+ * because its module has an `import type`.
  *
  * Like `verify-api-types.mjs`, `--check` skips rather than fails when the
  * backend repo is not checked out beside this one.
@@ -30,6 +40,7 @@ import { fileURLToPath } from "node:url";
 const TARGET = "../inventory-backend/src/constants/storefront-section-manifest.ts";
 const SPECS_PATH = "lib/storefront-builder/section-specs.ts";
 const FIELD_SPECS_PATH = "lib/storefront-builder/field-specs.ts";
+const STYLE_SPECS_PATH = "lib/storefront-builder/style-specs.ts";
 const REGEN_CMD = "pnpm gen:section-manifest";
 const MARKER = "// coding-standard: maintained";
 
@@ -91,10 +102,15 @@ const literal = (value, depth) => {
   return JSON.stringify(value);
 };
 
-const fieldSpecsBody = readFileSync(FIELD_SPECS_PATH, "utf8")
-  .replace(/\r\n/g, "\n")
-  .replace(`${MARKER}\n`, "")
-  .trimEnd();
+/** A spec module's source, ready to sit inside the generated file. */
+const verbatim = (path) =>
+  readFileSync(path, "utf8")
+    .replace(/\r\n/g, "\n")
+    .replace(`${MARKER}\n`, "")
+    .trimEnd();
+
+const fieldSpecsBody = verbatim(FIELD_SPECS_PATH);
+const styleSpecsBody = verbatim(STYLE_SPECS_PATH);
 
 const manifest = {
   version: SECTION_MANIFEST_VERSION,
@@ -113,9 +129,14 @@ const output = `${MARKER}
  * manifest does not describe, because a page config is merchant-written JSON
  * that ends up in every shopper's HTML. Read by
  * \`src/utils/storefront-section-validation.ts\`.
+ *
+ * It carries the STYLE BOX too (\`STYLE_BOX_SPEC\`), which every section shares
+ * and which the validator reads for the same reason.
  */
 
 ${fieldSpecsBody}
+
+${styleSpecsBody}
 
 export const SECTION_MANIFEST: SectionManifest = ${literal(manifest, 0)};
 `;
@@ -126,15 +147,15 @@ const current = existsSync(TARGET) ? readFileSync(TARGET, "utf8") : "";
 if (check) {
   if (normalize(current) !== output) {
     console.error(
-      `✖ ${TARGET} is out of date with ${SPECS_PATH}.\n` +
-        "  The frontend's section vocabulary changed but the backend manifest was not regenerated,\n" +
-        "  so the backend would validate saved pages against stale section settings.\n" +
+      `✖ ${TARGET} is out of date with ${SPECS_PATH} or ${STYLE_SPECS_PATH}.\n` +
+        "  The frontend's section or style-box vocabulary changed but the backend manifest was not\n" +
+        "  regenerated, so the backend would validate saved pages against a stale allowlist.\n" +
         `  Fix:  ${REGEN_CMD}   then commit the backend file.`,
     );
     process.exit(1);
   }
-  console.log("✓ Backend section manifest matches the frontend section specs.");
+  console.log("✓ Backend section manifest matches the frontend section and style specs.");
 } else {
   writeFileSync(TARGET, output);
-  console.log(`✓ Wrote ${TARGET} (${Object.keys(SECTION_SPECS).length} sections).`);
+  console.log(`✓ Wrote ${TARGET} (${Object.keys(SECTION_SPECS).length} sections + the style box).`);
 }

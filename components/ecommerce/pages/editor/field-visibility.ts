@@ -76,6 +76,18 @@ const anyPicture = ({ settings, blocks }: FieldScope) =>
   !!settings.storeBanner || blocks.some((block) => !!block.image || !!block.mobileImage);
 
 /**
+ * True where EVERY slide has a picture — the condition "On the picture" dots
+ * need, since they ride inside the active slide's media box and a slide without
+ * one would drop them for its turn (`HeroSlidesView`'s `overDots`).
+ *
+ * "Use the store banner" fills every artwork-less slide at once, so it answers
+ * for all of them — the same over-showing `anyPicture` explains, and the same
+ * reason it is the right side to err on.
+ */
+const everyPicture = ({ settings, blocks }: FieldScope) =>
+  !!settings.storeBanner || blocks.every((block) => !!block.image || !!block.mobileImage);
+
+/**
  * True where a collections row draws TILES rather than plain text links.
  *
  * Unset is `card` — `fieldEmptyChoice` says so and `collections-row.tsx` reads
@@ -124,6 +136,22 @@ const responsiveSet = (field: string) => ({ settings }: FieldScope) => {
   if (typeof responsive !== "object" || responsive === null) return false;
   const { base, mobile } = responsive as { base?: unknown; mobile?: unknown };
   return base !== undefined || mobile !== undefined;
+};
+
+/**
+ * Does a RESPONSIVE setting answer for the DESKTOP?
+ *
+ * ⚠ The one place `base` alone is the question, rather than `responsiveSet`'s
+ * "either screen". A section whose own setting overrides a style-box key
+ * overrides it on the phone too, because the phone's variable falls back to the
+ * desktop's (`var(--x-m, var(--x, …))`). So a `base` value takes the style-box
+ * key out of play on both screens, while a phone-only value leaves the desktop
+ * still answering to it — and the control has to stay.
+ */
+const responsiveBaseSet = (field: string) => ({ settings }: FieldScope) => {
+  const responsive = settings[field];
+  if (typeof responsive !== "object" || responsive === null) return false;
+  return (responsive as { base?: unknown }).base !== undefined;
 };
 
 /** The block a block-field belongs to. Empty for a section-level field. */
@@ -247,10 +275,44 @@ const RULES: Record<string, VisibilityRule> = {
      nothing. */
   "hero.style.width": (scope) => layoutOf(scope) !== "full-bleed",
 
+  /* The second STYLE-BOX key here, and a different shape of collision from the
+     hero's. `call-to-action` has its own Alignment on the Content tab, and
+     `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)` — so the
+     section's own answer WINS where it is given and the Style tab's applies
+     where it is not. The precedence is already right; what was wrong is that
+     both controls were offered at once, so a merchant moving the Style tab's
+     alignment on a CTA that answers for itself saw nothing move.
+
+     ⚠ **No `ownsAlign` here, and that is deliberate** — unlike the hero. The
+     hero ignores the style box's alignment entirely, so its stored value had to
+     stop applying. A CTA *uses* it whenever its own is unset, and 21 live
+     stores are on the builder: emitting nothing would move every CTA that is
+     centred through the Style tab today. Rule 1 covers the rest — hidden is not
+     erased, so restoring the CTA's own Alignment to "Section's own" brings the
+     control, and the merchant's earlier choice, straight back. */
+  "call-to-action.style.align": (scope) => !responsiveBaseSet("align")(scope),
+
   /* Full-bleed only. That layout lays its type over the photograph and has
      always shown the headline alone on a phone; the card and open heroes draw
      every word on every device, so there is nothing for this to decide. */
   "hero.mobileCopy": (scope) => layoutOf(scope) === "full-bleed",
+
+  /* Nothing to drive, and nothing to time, until there is a second slide. */
+  "hero.nav": (scope) => scope.blocks.length > 1,
+  "hero.interval": (scope) => scope.blocks.length > 1,
+
+  /* Four conditions, and the control is dead without any one of them.
+     A hero with one slide draws no dots at all, so there is nothing to place.
+     A hero whose "Slide controls" are the arrows draws none either. The
+     full-bleed hero draws its own on the photograph and has no second place to
+     put them. And "On the picture" needs a picture on every slide — the
+     renderer falls back to the row under the hero where one is missing, so
+     offering the choice there would be offering a setting that does nothing. */
+  "hero.dots": (scope) =>
+    scope.blocks.length > 1 &&
+    str(scope.settings.nav) !== "arrows" &&
+    layoutOf(scope) !== "full-bleed" &&
+    everyPicture(scope),
 
   /* A focus point aims a CROP. `canvas` fit shows the whole picture and ignores
      it — and an unset fit *is* canvas, so the control is dead until the

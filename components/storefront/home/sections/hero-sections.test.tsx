@@ -102,6 +102,16 @@ describe("HeroCard", () => {
        empty" is not the same promise and is the one that shipped. */
     expect(container.querySelector(".sf-herocard-copy")).toBeNull();
     expect(container.querySelector(".sf-herocard-media")).toBeInTheDocument();
+
+    /* ⚠ And the TRUST child's absence, for the same reason and a second rule.
+       Collapsing the copy took the column back but left the card's two rows and
+       the 24px `row-gap` between them, so an image-only card rendered 25px
+       taller than its picture and the extra showed as a white strip under the
+       photograph. The gap rule keys off BOTH children being absent; asserting
+       only the copy is the same half-promise that let the first one ship.
+       Found on the UriiBaba clone at desktop width — jsdom does no layout, so
+       no test can see the strip itself, only the DOM the selector reads. */
+    expect(container.querySelector(".sf-herocard-trust")).toBeNull();
   });
 
   it("keeps the open hero open, and the store's promises under the card, once slides exist", () => {

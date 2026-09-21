@@ -2697,6 +2697,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   /* The photo is the third child so that the desktop grid can place copy and
      trust badges in one column; `order` is what moves it to the top here. */
   order: -1;
+  /* Containing block for the rotating hero's dots under "On the picture"
+     (`.sf-heroslides-dots[data-over]`). The card itself is already positioned —
+     but it is the whole card, and dots pinned to ITS bottom would land under
+     the copy on a phone and on the trust strip on a desktop. */
+  position: relative;
 }
 
 /* ---- "Picture shape" (`frame`), on all three heroes ----
@@ -2733,6 +2738,36 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 
 .sf-herocard[data-frame-m] { --herocard-ratio: var(--sfb-hero-frame-m); }
 .sf-herocard[data-frame]:not([data-frame-m]) { --herocard-ratio: var(--sfb-hero-frame); }
+
+/* ---- "Height" (`height`), on all three heroes ----
+   The merchant's own height in pixels, per device, written in the same
+   mobile-first pair as the shape above: the phone's answer resolves here and
+   the 680px block hands the desktop back to `--sfb-hero-h`.
+
+   ⚠ **A height REPLACES the shape on the screen it applies to**, which is why
+   every rule below also sets `--*-ratio: auto`. With both in force the media's
+   inline `aspect-ratio` would compute a WIDTH from the height and the picture
+   would collapse to a column — the same collision the promo card row records as
+   "a height REPLACES the shape rather than joining it". Setting the ratio
+   variable to `auto` is enough: the inline `aspect-ratio: var(--herocard-ratio)`
+   then resolves to `auto`, i.e. no ratio at all, and the explicit height below
+   is the only thing sizing the box.
+
+   Unset touches nothing — every rule is gated on `data-h` / `data-h-m`, which
+   the builder adds only when a height exists, so the classic home and every
+   hero nobody has resized are byte-identical. */
+.sf-herocard[data-h-m] {
+  --herocard-ratio: auto;
+  --herocard-h: var(--sfb-hero-h-m);
+}
+.sf-herocard[data-h]:not([data-h-m]) {
+  --herocard-ratio: auto;
+  --herocard-h: var(--sfb-hero-h);
+}
+.sf-herocard[data-h] .sf-herocard-media,
+.sf-herocard[data-h-m] .sf-herocard-media {
+  height: var(--herocard-h);
+}
 .sf-herocard-copy {
   display: flex;
   flex-direction: column;
@@ -2858,6 +2893,19 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      needed, and `:not()` is what keeps them apart. */
   .sf-herocard[data-frame] { --herocard-ratio: var(--sfb-hero-frame); }
   .sf-herocard[data-frame-m]:not([data-frame]) { --herocard-ratio: 4 / 3; }
+  /* A phone-only height must not follow the merchant onto the desktop, so the
+     desktop is handed back its own value — or, with no desktop height, back to
+     the shape it would otherwise have drawn. `:not()` keeps the two apart, as
+     it does for the shape above. */
+  .sf-herocard[data-h] {
+    --herocard-ratio: auto;
+    --herocard-h: var(--sfb-hero-h);
+  }
+  .sf-herocard[data-h-m]:not([data-h]) {
+    --herocard-ratio: 4 / 3;
+    --herocard-h: auto;
+  }
+  .sf-herocard[data-h-m]:not([data-h]) .sf-herocard-media { height: auto; }
   .sf-herocard {
     --herocard-ratio: 4 / 3;
     grid-template-columns: var(--herocols);
@@ -2908,6 +2956,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
       "trust";
     padding: 0;
     max-height: 70svh;
+  }
+  /* ⚠ **A collapsed row is not a collapsed GAP.** The rule above redeclares two
+     rows, `media` and `trust`, and a slide with neither copy NOR trust badges
+     leaves the second one 0px — but `row-gap: 24px` is still painted between
+     them, so the card renders 25px taller than its picture and the extra shows
+     as a white strip under the photograph, inside the border.
+
+     That is the tail of the 2026-09-21 image-only-slide incident: collapsing the
+     copy took the column back but left the gap, and both live merchants' heroes
+     are exactly this shape — an image and no text at all. Found on the UriiBaba
+     clone, at desktop width only; the phone never had it, because the phone card
+     is a single row with no row-gap.
+
+     Written with BOTH `:not(:has(…))` so it outweighs the rule above — each one
+     carries its argument's weight, which is the specificity trap this stylesheet
+     has now produced five times. A slide that regains trust badges stops matching
+     and falls straight back to the two-row rule. */
+  .sf-herocard:not(:has(> .sf-herocard-copy)):not(:has(> .sf-herocard-trust)) {
+    grid-template-areas: "media";
+    row-gap: 0;
   }
   /* Picture on the left. Redeclaring the AREAS is what moves it — reordering
      the children would break the `:has()` collapse above, which needs the media
@@ -3004,6 +3072,20 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 
 .sf-heroopen[data-frame-m] { --heroopen-ratio: var(--sfb-hero-frame-m); }
 .sf-heroopen[data-frame]:not([data-frame-m]) { --heroopen-ratio: var(--sfb-hero-frame); }
+
+/* The open hero's height — same pair, same "a height replaces the shape" rule. */
+.sf-heroopen[data-h-m] {
+  --heroopen-ratio: auto;
+  --heroopen-h: var(--sfb-hero-h-m);
+}
+.sf-heroopen[data-h]:not([data-h-m]) {
+  --heroopen-ratio: auto;
+  --heroopen-h: var(--sfb-hero-h);
+}
+.sf-heroopen[data-h] > .sf-heroopen-media,
+.sf-heroopen[data-h-m] > .sf-heroopen-media {
+  height: var(--heroopen-h);
+}
 .sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
   display: none;
 }
@@ -3028,6 +3110,15 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-heroopen:not([data-media-side="left"]) > .sf-heroopen-media { order: 0; }
   /* Same pair as the card above, and the same reason for the `:not()`. */
   .sf-heroopen[data-frame] { --heroopen-ratio: var(--sfb-hero-frame); }
+  .sf-heroopen[data-h] {
+    --heroopen-ratio: auto;
+    --heroopen-h: var(--sfb-hero-h);
+  }
+  .sf-heroopen[data-h-m]:not([data-h]) {
+    --heroopen-ratio: 4 / 3;
+    --heroopen-h: auto;
+  }
+  .sf-heroopen[data-h-m]:not([data-h]) > .sf-heroopen-media { height: auto; }
   .sf-heroopen[data-frame-m]:not([data-frame]) { --heroopen-ratio: 4 / 3; }
 }
 
@@ -3044,6 +3135,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    the stack swallows every press meant for the one being shown. */
 .sf-heroslides {
   display: grid;
+  /* Containing block for the arrows (`.sf-hero-arrow`), which sit against the
+     stack rather than inside a slide. */
+  position: relative;
 }
 .sf-heroslides-slide {
   grid-area: 1 / 1;
@@ -3069,9 +3163,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-heroslides-slide:not([data-active="true"]) {
   pointer-events: none;
 }
-/* Under the rotating area, not over it. The full-bleed hero can lay its dots on
-   the photograph; a bordered card has no such surface, and dots inside the card
-   would read as part of the merchant's own content. */
+/* Under the rotating area by default, not over it. The full-bleed hero can lay
+   its dots on the photograph; a bordered card has no such surface, and dots
+   inside the card would read as part of the merchant's own content — so the
+   merchant is the one who decides, through the hero's "Slide dots" setting.
+   `[data-over]` below is that setting's other half. */
 .sf-heroslides-dots {
   grid-area: 2 / 1;
   display: flex;
@@ -3080,15 +3176,96 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   /* The dots carry their own tap padding — see `.sf-hero-dot`. */
   gap: 0;
 }
-/* The shared dot is white, for type over a photograph. These sit on the page's
-   own surface, so they take the store's borders and its brand colour instead. */
-.sf-heroslides-dots .sf-hero-dot::before {
+/* ---- "Slide dots" = On the picture (`hero.dots: over`) ----
+   The same row, rendered inside the active slide's media box instead of beside
+   the stack (`mediaOverlay` in hero-static.tsx) — so it is the PHOTOGRAPH this
+   positions against, which is the one box that knows where the picture's bottom
+   edge fell. Nothing here reserves space: an absolutely positioned row is why
+   choosing this gives the hero its strip of page back.
+
+   The inset is the open hero's panel padding and `0px` everywhere else — see
+   `--sf-hero-dots-inset` where that panel is styled. */
+.sf-heroslides-dots[data-over] {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--sf-hero-dots-inset, 0px);
+  z-index: 2;
+  grid-area: auto;
+}
+/* A pale photograph swallows white dots, so they get the same treatment the
+   full-bleed hero gives its own: a short scrim, painted before the buttons
+   because it comes first in tree order and both are positioned at `z-index:
+   auto`. `pointer-events` off so it cannot eat a tap meant for a dot. */
+.sf-heroslides-dots[data-over]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+/* ---- "Slide controls" = Arrows (`hero.nav`) ----
+   The dark carousel's arrows were white chevrons on a translucent pill, drawn
+   for a photograph — which is why decision D4 left them out rather than porting
+   them onto a light card. These are the store's own surface, border and text
+   colour instead, so they read as part of the shop on a card, on the page and
+   over a photograph alike.
+
+   Shared by both rotating heroes (`hero-nav.tsx`), and **drawn on phones too**,
+   unlike `.sf-cat-strip-arrow`: the merchant switched them on, and a control
+   that appears only on a desktop is the phone defect this file keeps finding.
+   They are inset rather than hung off the edge for the same reason — at 390px
+   an arrow outside the card would be off the screen. */
+.sf-hero-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  transform: translateY(-50%);
+  /* A circle, so 999px rather than a corner token — see the radius rule. */
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.14);
+  cursor: pointer;
+}
+.sf-hero-arrow:hover {
+  border-color: var(--border-strong);
+}
+.sf-hero-arrow[data-edge="start"] {
+  left: 10px;
+}
+.sf-hero-arrow[data-edge="end"] {
+  right: 10px;
+}
+/* The full-bleed hero's own pair. Its copy runs to the bottom-left and its dots
+   to the bottom-right, so arrows on the vertical middle clear both — but the
+   hero is edge to edge, so they take the page's own gutter rather than a 10px
+   inset that would sit them against the screen edge. */
+.sf-hero-fullbleed > .sf-hero-arrow[data-edge="start"] {
+  left: var(--pad);
+}
+.sf-hero-fullbleed > .sf-hero-arrow[data-edge="end"] {
+  right: var(--pad);
+}
+/* The shared dot is white, for type over a photograph. The row UNDER the hero
+   sits on the page's own surface instead, so it takes the store's borders and
+   its brand colour — and only that row, which is what `:not([data-over])` says.
+   ⚠ `:not()` carries its argument's specificity, so these are (0,2,0) rather
+   than (0,1,0); they still outweigh `.sf-hero-dot::before` below, which is what
+   they have to beat. */
+.sf-heroslides-dots:not([data-over]) .sf-hero-dot::before {
   background: var(--border-strong);
 }
-.sf-heroslides-dots .sf-hero-dot-active::before {
+.sf-heroslides-dots:not([data-over]) .sf-hero-dot-active::before {
   background: var(--border);
 }
-.sf-heroslides-dots .sf-hero-fill {
+.sf-heroslides-dots:not([data-over]) .sf-hero-fill {
   background: var(--primary);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3251,7 +3428,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   background: #fff;
   transform-origin: left;
   transform: scaleX(0);
-  animation: sfHeroFill 5s linear forwards;
+  /* The merchant's "Seconds per slide", where they set one — `heroBeatVars`
+     writes it on the hero. The sweep and the timer must agree: a fill that
+     finishes early and then waits is the clearest way to make a slideshow look
+     broken. */
+  animation: sfHeroFill var(--sf-hero-beat, 5s) linear forwards;
 }
 .sf-hero-paused .sf-hero-fill {
   animation-play-state: paused;
@@ -3321,6 +3502,32 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   width: 0;
   padding-top: var(--sfb-hero-pad);
 }
+
+/* "Height" on the full-width hero — a `min-height`, i.e. the SAME KIND of thing
+   this layout's default already is, not a fixed box.
+
+   ⚠ A fixed height here would slice the copy exactly as a fixed `aspect-ratio`
+   does: the words sit on the photograph under `overflow: hidden` with
+   `align-items: flex-end`, so a box shorter than them cuts their tops off. That
+   is the whole reason the shape arrives as a padding spacer rather than
+   `aspect-ratio` (see the block above). A floor cannot do that — the hero ends
+   up as tall as the merchant's height or as tall as its copy, whichever is more.
+
+   ⚠ And the height REPLACES the shape, so the spacer goes wherever a height
+   applies. Leaving both would stack a floor under a spacer and the hero would be
+   the sum of the two, which is neither answer.
+
+   ⚠ And unlike the card and the open hero, this layout is written DESKTOP-first
+   with its phone answers in a `max-width: 640px` block — its own breakpoint, not
+   the 680 the rest of the file uses (hero plan §7, S4). So the desktop value
+   belongs here, unwrapped, and the phone's goes in that block. Writing this pair
+   mobile-first, as the other two layouts are, would have applied the PHONE height
+   at every width. */
+.sf-hero-fullbleed[data-h] { min-height: var(--sfb-hero-h); }
+.sf-hero-fullbleed[data-h]::before,
+.sf-hero-fullbleed[data-h-m]::before {
+  padding-top: 0;
+}
 .sf-hero-fullbleed-image { background: var(--surface-2); }
 .sf-hero-fullbleed-scrim {
   position: absolute;
@@ -3363,6 +3570,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding-top: var(--sfb-hero-pad-m);
   }
   .sf-hero-fullbleed[data-frame]:not([data-frame-m]) { min-height: 0; }
+  /* The phone's own height. A desktop-only height needs no rule — it is already
+     in force from the unwrapped block above and reaches the phone on purpose,
+     which is the builder's responsive model everywhere else in this file. */
+  .sf-hero-fullbleed[data-h-m] { min-height: var(--sfb-hero-h-m); }
   .sf-hero-fullbleed-scrim {
     background: linear-gradient(
       180deg,

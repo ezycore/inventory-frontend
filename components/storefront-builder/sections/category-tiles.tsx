@@ -1,5 +1,8 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { sectionCategories } from "@/lib/storefront-builder/store-lists";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { CategoryTileRow } from "@/components/storefront/home/category-tile-row";
@@ -21,8 +24,15 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
   const categories = sectionCategories(context.categories ?? [], settings.categoryIds);
   if (categories.length === 0) return null;
   return (
-    <>
-      {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
+    /* The tile's shape as a variable with `1 / 1` behind it, because
+       `collection-tiles.tsx` is drawn by the CLASSIC home too and that page sets
+       nothing — so it keeps the square it has always drawn. This is the size
+       question the design register declined on 2026-09-07 and the owner's
+       2026-09-14 direction reopened. */
+    <div style={responsiveVars("sfb-tile-ratio", settings.tileRatio, (r) => ASPECT_RATIOS[r]) as CSSProperties}>
+      {settings.heading ? (
+        <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
+      ) : null}
       <CategoryTileRow
         base={context.base}
         categories={categories}
@@ -39,6 +49,6 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
         imageFit={context.imageFit ?? "cover"}
         renderStrip={(strip) => <Island name="category-strip" props={strip} />}
       />
-    </>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { Island } from "@/components/storefront-builder/islands/island-map";
+import { SectionLede } from "@/components/storefront-builder/section-lede";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 import { sectionProduct } from "@/components/storefront-builder/section-product";
 
@@ -20,13 +21,9 @@ export function OfferPricingSection({ settings, data, context }: SectionViewProp
   if (!product) return null;
   return (
     <div>
-      {settings.heading ? (
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 8px", letterSpacing: "-0.02em" }}>
-          {settings.heading}
-        </h2>
-      ) : null}
+      <SectionLede heading={settings.heading} subheading={settings.subheading} gap={8} />
       {settings.text ? (
-        <p style={{ margin: "0 0 16px", color: "var(--muted)", lineHeight: 1.6 }}>{settings.text}</p>
+        <p style={{ margin: "0 0 16px", color: "var(--sfb-muted, var(--muted))", lineHeight: 1.6 }}>{settings.text}</p>
       ) : null}
       <Island name="offer-price" props={{ product, currency: context.currency }} />
     </div>

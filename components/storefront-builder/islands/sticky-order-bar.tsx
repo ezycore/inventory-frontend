@@ -42,11 +42,14 @@ export function StickyOrderBarIsland({
   product,
   currency,
   buttonLabel,
+  screens,
   onProductPage = false,
 }: {
   product: CatalogProduct;
   currency?: string;
   buttonLabel?: string;
+  /** Unset is `phones`, which is the only screen this bar ever stood on. */
+  screens?: "phones" | "phones-and-computers";
   /** Drawn on the product page itself, for the page's own product. */
   onProductPage?: boolean;
 }) {
@@ -102,7 +105,7 @@ export function StickyOrderBarIsland({
   };
 
   return (
-    <div ref={ref} className="sfb-orderbar" style={bar}>
+    <div ref={ref} className="sfb-orderbar" data-screens={screens} style={bar}>
       <div style={{ minWidth: 0 }}>
         <div style={title}>{product.name}</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>

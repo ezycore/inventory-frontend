@@ -125,14 +125,29 @@ workspace gate either; a closed or inactive store 404s through the backend's `re
 
 **Storefront Builder section specs (since 2026-09-14).** Builder sections are declared once, as plain
 data, in `lib/storefront-builder/section-specs.ts` (field types in `lib/storefront-builder/field-specs.ts`).
-The backend validates saved pages against a **generated** copy,
-`inventory-backend/src/constants/storefront-section-manifest.ts`:
+The **style box** every section shares is declared beside them in
+`lib/storefront-builder/style-specs.ts` (since 2026-09-21). The backend validates saved pages against a
+**generated** copy of all three, `inventory-backend/src/constants/storefront-section-manifest.ts`:
 
-- After changing either file run `pnpm gen:section-manifest` and commit the backend file in the
+- After changing any of them run `pnpm gen:section-manifest` and commit the backend file in the
   backend repo. `pnpm verify` runs `verify:section-manifest`, which fails while they differ (and skips
   when the backend repo is not checked out beside this one).
-- Both files must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
-  and `field-specs.ts` imports nothing, because its body is copied verbatim into the backend.
+- All three must stay loadable by Node's type stripping: `section-specs.ts` may only `import type`,
+  while `field-specs.ts` and `style-specs.ts` import nothing at all, because their bodies are copied
+  verbatim into the backend.
+- `STYLE_BOX_SPEC` is the style box's whole vocabulary — `Object.keys` of it is the allowlist the
+  backend's `checkStyle` enforces, and `SPACING_STEPS` lives there too. Until 2026-09-21 the backend
+  hand-wrote both and nothing compared them; do not reintroduce a second copy on either side. The box
+  is background, padding (top, bottom and an optional side gutter), width, alignment, text tone and
+  colour, corner radius, an outline, an overlay over a background picture, and an anchor — the
+  section's own name on the page, which a link reaches as `#name`.
+- **Making a setting responsive is safe.** A value saved before the field grew a phone answer is read
+  as the base, in `readField` here and `checkField` in the backend — but only a NON-object value, since
+  a responsive `focal` or `image` stores an object and a bare one cannot be told apart from a malformed
+  `{ base, mobile }`.
+- **A column count travels as a whole CSS track list, not a number** (`grid-track.ts`). Selecting on
+  `[style*="--cols"]` to detect "the merchant answered" also matches `--cols-m`, so a phone-only answer
+  would break the desktop.
 - Bump a section's `v` for any change that would make an already-saved instance invalid.
 - A **new field type** (as `focal` was) needs a case in the backend's `checkValue`
   (`inventory-backend/src/utils/storefront-section-validation.ts`) and in `readScalar`
@@ -175,7 +190,8 @@ The backend validates saved pages against a **generated** copy,
   server view cannot know the shopper's language, and the island reads it from `useStorefrontUI`.
 - Settings are read with `lib/storefront-builder/settings.ts` (the backend's rules; an invalid
   required field → the section is skipped). Responsive values become `--x` / `--x-m` custom
-  properties (`responsive.ts`); the style box is `section-style.ts`; the CSS is
+  properties (`responsive.ts`); the style box is `section-style.ts` over the shared `style-specs.ts`
+  vocabulary; the CSS is
   `app/(storefront)/storefront-builder.css`, loaded by the storefront root layout. **Never import a
   CSS file from a component** — vitest cannot load the project's PostCSS config and the whole test
   file fails to import.
@@ -2064,6 +2080,43 @@ share these renderers untouched.
 | `imageSide` | Picture left or right past the breakpoint | full-bleed, and with no picture |
 | `mobileFirst` | Picture or text first in the phone's column | full-bleed, no picture, or every slide hiding its text |
 | `mobileCopy` | Whether a phone shows the badge and subtitle | everything but full-bleed |
+
+### The rotating hero's CONTROLS are the merchant's too (2026-09-21)
+
+Three more settings, on the same terms — unset renders what every hero rendered
+before, so the classic home is untouched. All three are dead on a hero with one
+slide, which rotates to nothing.
+
+| Setting | What it does | Where it is dead |
+|---|---|---|
+| `nav` | Dots (unset), arrows, or both | one slide |
+| `interval` | Seconds each slide holds; unset is 5 | one slide |
+| `dots` | Dots under the hero (unset) or on the picture | one slide, `nav: arrows`, full-bleed, or any slide without a picture |
+
+⚠ **`interval` drives the dots' progress sweep as well as the timer.** The timer
+takes a number and the sweep is a CSS animation, so `heroBeatVars` writes
+`--sf-hero-beat` on the hero and `.sf-hero-fill` reads it. Set one without the
+other and the sweep finishes early and then waits, which is the clearest way to
+make a slideshow look broken.
+
+⚠ **"On the picture" moves the dots INTO the active slide's media box**
+(`mediaOverlay` on `HeroCardView` / `HeroOpenView`) — the only element whose box
+IS the photograph, since the card's is a grid area on a desktop and a full-width
+row on a phone. Two consequences:
+
+- A slide with no picture has nowhere to put them, so `HeroSlidesView` falls back
+  to the row under the hero for the **whole stack** rather than letting the dots
+  appear and disappear as it rotates. `field-visibility.ts` hides the control in
+  the same case, so the merchant sees the fallback rather than meeting it.
+- The row unmounts on every move, so a press would drop a keyboard shopper's
+  focus to the document. `HeroSlidesView` puts it back on the dot they landed on,
+  guarded on `activeElement` so a row that never moved is left alone.
+
+**Arrows hang off the STACK, not the slide** (`.sf-heroslides` / the full-bleed
+`<section>`), which is why they need none of that: nothing about them unmounts
+mid-rotation. They are drawn on phones too, unlike `.sf-cat-strip-arrow` — the
+merchant switched them on, and a control that appears only on a desktop is the
+phone defect this repo keeps finding. Both heroes draw the same `HeroNav`.
 
 **`frame` carries an ATTRIBUTE as well as a variable**, like `image-banner` and
 `gallery`: `data-frame` / `data-frame-m` beside `--sfb-hero-frame` / `-m`. CSS cannot

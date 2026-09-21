@@ -118,6 +118,35 @@ describe("related products on the product page", () => {
     });
   });
 
+  it("hands the island its line, its columns AND its card photo", () => {
+    // ⚠ The regression this exists for: `...CARD_PHOTO` was added to the SPEC —
+    // so the editor offered Card photo shape and fit — and never spread into the
+    // island's props, so a merchant set both and the cards ignored them. That is
+    // the miss §0.4 of the plan names, made in the same change that added the
+    // setting, and found only by comparing the rendered card against the core
+    // section's beside it in a browser.
+    const { container } = renderProductPage([
+      section("rel", "related-products", {
+        heading: "Pairs well with",
+        subheading: "Chosen by hand.",
+        limit: 6,
+        columns: { base: 5, mobile: 2 },
+        cardImageRatio: "portrait",
+        cardImageFit: "fit",
+      }),
+    ]);
+    expect(islandProps(container, "related-products")).toEqual({
+      product: { slug: "nakshi-kantha", categoryId: "0000000000000000000000cc" },
+      heading: "Pairs well with",
+      subheading: "Chosen by hand.",
+      limit: 6,
+      columns: { base: 5, mobile: 2 },
+      currency: "BDT",
+      imageRatio: "3 / 4",
+      imageFit: "canvas",
+    });
+  });
+
   it("draws nothing without the page's product", () => {
     const { container } = renderProductPage(
       [section("rel", "related-products", {})],

@@ -35,6 +35,8 @@ export function HeroFullBleedStoreIsland({
   storeWords,
   align,
   mobileCopy,
+  nav,
+  interval,
   frame,
   slides,
   fallback,
@@ -44,6 +46,9 @@ export function HeroFullBleedStoreIsland({
   storeWords: boolean;
   align?: "left" | "center";
   mobileCopy?: "full" | "title-only";
+  /** The rotating hero's own controls — see `HeroFullBleedView`. */
+  nav?: "dots" | "arrows" | "both";
+  interval?: number;
   frame?: HeroFrame;
   slides: StoreHeroSlide[];
   /** The store banner and how to crop it — no copy; the slides carry that. */
@@ -66,6 +71,8 @@ export function HeroFullBleedStoreIsland({
       fallback={fallback}
       align={align}
       mobileCopy={mobileCopy}
+      nav={nav}
+      interval={interval}
       frame={frame}
     />
   );

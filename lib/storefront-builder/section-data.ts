@@ -27,6 +27,8 @@ export interface ProductsDataRequest {
   productIds?: string[];
   limit: number;
   inStock?: boolean;
+  /** The merchant's own order, over whatever the source gives. */
+  sort?: "newest" | "price-low" | "price-high";
 }
 
 /** What one section receives back. */
@@ -48,6 +50,7 @@ export interface ProductSourceSettings {
   tagIds?: string[];
   productIds?: string[];
   limit: number;
+  sort?: "newest" | "price-low" | "price-high";
 }
 
 /**
@@ -85,6 +88,9 @@ export function productSectionRequest(
       break;
   }
   if (settings.source !== "manual") request.inStock = true;
+  // ⚠ Never on a hand-picked section: `manual` IS an order — the one the
+  // merchant dragged the products into — and sorting it would throw that away.
+  if (settings.sort && settings.source !== "manual") request.sort = settings.sort;
   return request;
 }
 

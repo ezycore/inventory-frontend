@@ -33,8 +33,12 @@ export function ShopByTagSection({ settings, context }: SectionViewProps<Spec>) 
   }
   return (
     <>
-      {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
-      <TagChipLinks base={context.base} tags={tags} />
+      {settings.heading ? (
+        <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
+      ) : null}
+      <div data-flow={settings.flow?.base} data-flow-m={settings.flow?.mobile}>
+        <TagChipLinks base={context.base} tags={tags} />
+      </div>
     </>
   );
 }

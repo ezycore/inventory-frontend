@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
 import { RichDocView } from "@/components/storefront/rich-doc-view";
@@ -18,7 +19,7 @@ export function RichTextSection({ settings }: SectionViewProps<Spec>) {
   const doc = parseRichDoc(settings.body);
   if (!doc) return null;
   return (
-    <div style={{ maxWidth: PROSE_MAX_WIDTH, marginInline: "auto" }}>
+    <div className="sfb-own-column" style={{ "--sfb-own-column": `${PROSE_MAX_WIDTH}px` } as CSSProperties}>
       <RichDocView doc={doc} />
     </div>
   );

@@ -3,14 +3,25 @@ import { describe, expect, it } from "vitest";
 import { sectionFrame } from "@/lib/storefront-builder/section-style";
 import {
   alignFor,
+  anchorOf,
   backgroundOf,
+  borderOf,
+  overlayOf,
   paddingFor,
+  radiusOf,
+  siblingAnchors,
   styleOf,
+  textColorOf,
   toneOf,
   withAlign,
+  withAnchor,
   withBackground,
+  withBorder,
+  withOverlay,
   withPadding,
+  withRadius,
   withStyle,
+  withTextColor,
   withTone,
   withWidth,
 } from "../section-style-edits";
@@ -128,5 +139,90 @@ describe("what the renderer makes of it", () => {
       "--sfb-bg": "#0F172A",
       "--sfb-align": "center",
     });
+  });
+});
+
+/* ---- Phase 2: the six keys the style box grew ---- */
+
+describe("side padding", () => {
+  it("stands alone: it neither fills the pair nor is dropped with it", () => {
+    // ⚠ Top and bottom are stored as a pair the backend requires together; the
+    // side gutter is optional and arrived later, on pages that had already saved
+    // the pair. So a first choice on a side must not invent a pair the merchant
+    // did not ask for, and clearing it must leave the pair standing.
+    const sides = withPadding({}, "inline", "lg", "desktop");
+    expect(sides).toEqual({ padding: { base: { top: "none", bottom: "none", inline: "lg" } } });
+
+    const both = withPadding(withPadding({}, "top", "md", "desktop"), "inline", "sm", "desktop");
+    expect(both).toEqual({ padding: { base: { top: "md", bottom: "md", inline: "sm" } } });
+
+    expect(withPadding(both, "inline", undefined, "desktop")).toEqual({
+      padding: { base: { top: "md", bottom: "md" } },
+    });
+  });
+
+  it("answers for the phone alone, like every other responsive value", () => {
+    const phone = withPadding({}, "inline", "sm", "mobile");
+    expect(phone).toEqual({ padding: { mobile: { top: "none", bottom: "none", inline: "sm" } } });
+    expect(paddingFor(phone, "mobile").value?.inline).toBe("sm");
+    expect(paddingFor(phone, "desktop").value).toBeUndefined();
+  });
+
+  it("round-trips through the frame the storefront reads", () => {
+    const style = withPadding(withPadding({}, "top", "md", "desktop"), "inline", "lg", "desktop");
+    expect(sectionFrame(style).style).toMatchObject({ "--sfb-pi": "clamp(40px, 6vw, 64px)" });
+  });
+});
+
+describe("corners, outline, shade, colour and name", () => {
+  it("stores each one only when it is a value the backend will take", () => {
+    expect(radiusOf(withRadius({}, "md"))).toBe("md");
+    expect(withRadius(withRadius({}, "md"), undefined)).toEqual({});
+
+    expect(borderOf(withBorder({}, true))).toBe(true);
+    // Off is no key at all, not `false` — "Section's own" means an empty box.
+    expect(withBorder(withBorder({}, true), false)).toEqual({});
+
+    expect(overlayOf(withOverlay({}, 40))).toBe(40);
+    expect(withOverlay(withOverlay({}, 40), undefined)).toEqual({});
+
+    expect(textColorOf(withTextColor({}, "#1A2B3C"))).toBe("#1A2B3C");
+    // ⚠ A half-typed colour is not stored: the backend refuses it, so writing it
+    // as typed would make the section unsaveable halfway through the word.
+    expect(withTextColor({}, "#1A2")).toEqual({});
+
+    expect(anchorOf(withAnchor({}, "  order-form  "))).toBe("order-form");
+    expect(withAnchor({}, "Order Form")).toEqual({});
+  });
+
+  it("keeps the merchant's colour when the tone moves away from it", () => {
+    const custom = withTextColor(withTone({}, "custom"), "#1A2B3C");
+    const light = withTone(custom, "light");
+    expect(light.textColor).toBe("#1A2B3C");
+    // Stored, and deliberately not drawn.
+    expect(sectionFrame(light).style).not.toHaveProperty("--sfb-text");
+    expect(sectionFrame(withTone(light, "custom")).style).toMatchObject({ "--sfb-text": "#1A2B3C" });
+  });
+
+  it("lists the link names the rest of the page already uses, once each", () => {
+    const named = (id: string, anchor?: string): EditorSection => ({
+      id,
+      type: "call-to-action",
+      v: 1,
+      enabled: true,
+      settings: {},
+      ...(anchor ? { style: { anchor } } : {}),
+    });
+    const sections = [named("a", "order-form"), named("b", "order-form"), named("c"), named("d", "reviews")];
+    expect(siblingAnchors(sections, "c")).toEqual(["order-form", "reviews"]);
+    // Its own name is not a clash with itself.
+    expect(siblingAnchors(sections, "a")).toEqual(["order-form", "reviews"]);
+  });
+});
+
+describe("alignment and tone, widened", () => {
+  it("takes right, and the custom tone", () => {
+    expect(alignFor(withAlign({}, "right", "desktop"), "desktop").value).toBe("right");
+    expect(toneOf(withTone({}, "custom"))).toBe("custom");
   });
 });

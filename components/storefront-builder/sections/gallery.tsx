@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
 import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { SfImage } from "@/components/storefront/sf-image";
 import { SectionHeading } from "@/components/storefront-builder/section-heading";
 import { SectionLink } from "@/components/storefront-builder/section-link";
@@ -25,7 +26,7 @@ export function galleryVars(settings: Pick<Settings, "columns" | "frame">): CSSP
   return {
     "--sfb-gallery-cols": String(desktop),
     "--sfb-gallery-cols-m": String(phone),
-    ...(settings.frame ? { "--sfb-gallery-frame": ASPECT_RATIOS[settings.frame] } : {}),
+    ...responsiveVars("sfb-gallery-frame", settings.frame, (ratio) => ASPECT_RATIOS[ratio]),
   } as CSSProperties;
 }
 
@@ -41,8 +42,17 @@ export function GallerySection({
   const desktop = settings.columns?.base ?? DESKTOP_COLUMNS;
   return (
     <div>
-      <SectionHeading base={context.base} heading={settings.heading} />
-      <ul className="sfb-gallery" data-frame={settings.frame ? "" : undefined} style={galleryVars(settings)}>
+      <SectionHeading base={context.base} heading={settings.heading} subheading={settings.subheading} />
+      {/* ⚠ Two attributes beside the variables, the pair `image-banner` uses:
+          CSS cannot ask whether a custom property was set, and a shape chosen on
+          the PHONE alone must not crop the desktop, which keeps drawing each
+          picture whole. */}
+      <ul
+        className="sfb-gallery"
+        data-frame={settings.frame?.base ? "" : undefined}
+        data-frame-m={settings.frame?.mobile ? "" : undefined}
+        style={galleryVars(settings)}
+      >
         {blocks.map(({ id, settings: tile }) => {
           const caption = tile.caption?.trim();
           const content = (

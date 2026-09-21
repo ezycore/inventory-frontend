@@ -16,18 +16,27 @@ export function VideoIsland({
   label,
   poster,
   ratio,
+  mobileRatio,
 }: {
   embed: VideoEmbed;
   label: string;
   poster?: string;
   ratio: string;
+  /** The phone's own shape, when the section gave it one. */
+  mobileRatio?: string;
 }) {
   const [playing, setPlaying] = useState(false);
-  const box: CSSProperties = { ...frame, aspectRatio: ratio };
+  // The phone's shape rides a custom property so one CSS rule can choose,
+  // rather than a JavaScript branch that cannot know the viewport on the server.
+  const box: CSSProperties = {
+    ...frame,
+    ...({ "--sfb-video-ratio": ratio } as CSSProperties),
+    ...(mobileRatio ? ({ "--sfb-video-ratio-m": mobileRatio } as CSSProperties) : {}),
+  };
 
   if (playing) {
     return (
-      <div style={box}>
+      <div className="sfb-video-box" style={box}>
         <iframe
           src={videoPlayerUrl(embed)}
           title={label}
@@ -40,7 +49,13 @@ export function VideoIsland({
   }
 
   return (
-    <button type="button" aria-label={label} onClick={() => setPlaying(true)} style={{ ...box, padding: 0, border: 0, cursor: "pointer" }}>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={() => setPlaying(true)}
+      className="sfb-video-box"
+      style={{ ...box, padding: 0, border: 0, cursor: "pointer" }}
+    >
       {poster ? (
         // A provider cover or the merchant's picture at one fixed size — nothing for `SfImage` to choose between.
         // eslint-disable-next-line @next/next/no-img-element

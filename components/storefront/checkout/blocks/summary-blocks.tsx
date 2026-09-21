@@ -98,10 +98,17 @@ export function PlaceOrderButton({
   api,
   withTotal = true,
   style,
+  label,
 }: {
   api: CheckoutApi;
   withTotal?: boolean;
   style?: React.CSSProperties;
+  /**
+   * The merchant's own words for the button, from a builder order form. Unset
+   * keeps the storefront's "Place order" in the shopper's language — which is
+   * what the checkout page and the classic pages pass.
+   */
+  label?: string;
 }) {
   const { t, currency, total, placing, submit, errors, errorsRevealed } = api;
   const showAlert = errorsRevealed && Object.keys(errors).length > 0;
@@ -114,7 +121,7 @@ export function PlaceOrderButton({
         disabled={placing}
         style={{ ...primaryBtn, width: "100%", opacity: placing ? 0.6 : 1, ...style }}
       >
-        {placing ? "…" : withTotal ? `${t.placeOrder} · ${money(total, currency)}` : t.placeOrder}
+        {placing ? "…" : withTotal ? `${label || t.placeOrder} · ${money(total, currency)}` : label || t.placeOrder}
       </button>
     </>
   );

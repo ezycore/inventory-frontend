@@ -105,6 +105,10 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   "hero.imageFit": { kind: "value", value: "fit" },
   // The phone has drawn the headline alone since long before the control existed.
   "hero.mobileCopy": { kind: "value", value: "title-only" },
+  // The row under the hero is what every rotating hero has always drawn.
+  "hero.dots": { kind: "value", value: "under" },
+  // Dots and no arrows, since the dark carousel's went with it (decision D4).
+  "hero.nav": { kind: "value", value: "dots" },
   "call-to-action.align": { kind: "value", value: "left" }, // text-align: inherit → the page's left
   "image-banner.align": { kind: "value", value: "left" },
   "image-text.imageSide": { kind: "value", value: "left" },
