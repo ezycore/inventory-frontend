@@ -173,6 +173,34 @@ interface HeroCopy {
 }
 
 /**
+ * Whether a hero has anything to SAY, as opposed to anything to show.
+ *
+ * ⚠ **An image-only slide is the common case on a real shop, not an edge case.**
+ * Both live merchants build hero banners with the words baked into the artwork
+ * and fill in no text fields at all — so `title` is the store's name standing in
+ * for one (`hideTitle`), and badge, subtitle and buttons are empty. Rendering the
+ * copy element anyway hands a two-column grid a column with nothing in it and
+ * squeezes the photograph into the other half, letterboxed on a blurred canvas.
+ *
+ * The carousel these views replaced carried the same guard and the port dropped
+ * it (`hero-carousel.tsx`, deleted in 74b98613 — it read
+ * `hasCopy = !!(title || badge || subtitle || buttonLabel)`). It reached
+ * production on 2026-09-21 and broke both live shops' home pages; the rollback
+ * and the diagnosis are in `docs/plan/storefront-builder.md` §17.
+ *
+ * `title` alone is NOT copy: it is always set, falling back to the store's name,
+ * and `hideTitle` is how the views say it is a stand-in rather than a headline.
+ */
+export const heroHasCopy = ({
+  badge,
+  title,
+  hideTitle,
+  subtitle,
+  actions,
+}: Pick<HeroCopy, "badge" | "title" | "hideTitle" | "subtitle" | "actions">): boolean =>
+  !!(badge || (title && !hideTitle) || subtitle || actions);
+
+/**
  * Classic — bordered hero card, copy left and photo right on a desktop; on a
  * phone the photo leads and the trust badges become the card's footer.
  *
@@ -217,18 +245,25 @@ export function HeroCardView({
       {...heroPlacementAttrs(placement)}
       style={frame?.vars}
     >
-      <div className="sf-herocard-copy">
-        {/* The ACCENT, not the brand. A hero badge is the storefront's most
-            purely informational chip — "Week 33 · harvest in", a campaign
-            name — sitting directly above the buttons that are the brand
-            colour. Painting both in `--primary` was the loudest reason a shop
-            read as one hue rather than a palette. Falls back to the brand pair
-            when the merchant has set no accent, so nothing changes for them. */}
-        {badge ? <span className="sf-herocard-badge">{badge}</span> : null}
-        <h1 className={hideTitle ? "sf-visually-hidden" : "sf-herocard-title"}>{title}</h1>
-        {subtitle ? <p className="sf-herocard-sub">{subtitle}</p> : null}
-        {actions}
-      </div>
+      {heroHasCopy({ badge, title, hideTitle, subtitle, actions }) ? (
+        <div className="sf-herocard-copy">
+          {/* The ACCENT, not the brand. A hero badge is the storefront's most
+              purely informational chip — "Week 33 · harvest in", a campaign
+              name — sitting directly above the buttons that are the brand
+              colour. Painting both in `--primary` was the loudest reason a shop
+              read as one hue rather than a palette. Falls back to the brand pair
+              when the merchant has set no accent, so nothing changes for them. */}
+          {badge ? <span className="sf-herocard-badge">{badge}</span> : null}
+          <h1 className={hideTitle ? "sf-visually-hidden" : "sf-herocard-title"}>{title}</h1>
+          {subtitle ? <p className="sf-herocard-sub">{subtitle}</p> : null}
+          {actions}
+        </div>
+      ) : (
+        /* The page still needs its heading. Absolutely positioned, so unlike the
+           copy column it takes no grid track — which is what lets the collapse
+           rule beside `.sf-herocard` give the whole card to the photograph. */
+        <h1 className="sf-visually-hidden">{title}</h1>
+      )}
       {/* Only when there IS one. The striped `Placeholder` exists so missing
           PRODUCT art stays honest rather than faked — but above the fold, on a
           shop that has simply not uploaded a banner yet (which is every shop on
@@ -317,7 +352,14 @@ export function HeroOpenView({
            picture moves left — an inline value is otherwise unreachable from
            CSS. Unset it falls back to `--herocols`, which is `1fr` on a phone
            and `1.1fr 1fr` above, exactly as before. */
-        gridTemplateColumns: photo ? "var(--heroopen-cols, var(--herocols))" : "1fr",
+        /* Either side missing collapses it. The photo half was always here; the
+           copy half is the image-only slide (`heroHasCopy`) — the same void
+           column the card grew, and it has to be answered inline because an
+           inline `grid-template-columns` is unreachable from the stylesheet. */
+        gridTemplateColumns:
+          photo && heroHasCopy({ badge, title, hideTitle, subtitle, actions })
+            ? "var(--heroopen-cols, var(--herocols))"
+            : "1fr",
         gap: "clamp(24px,4vw,48px)",
         alignItems: "center",
       }}
@@ -330,6 +372,12 @@ export function HeroOpenView({
           The subtitle's `maxWidth` has to be centred too — a 46ch column
           pinned to the left under a centred headline is the giveaway that a
           page was centred by half-measures. */}
+      {!heroHasCopy({ badge, title, hideTitle, subtitle, actions }) ? (
+        /* Image-only slide — see `heroHasCopy`. The heading still renders, out
+           of the flow, so the picture gets the full width instead of sitting
+           beside a void. */
+        <h1 className="sf-visually-hidden">{title}</h1>
+      ) : (
       <div className="sf-heroopen-copy" style={centred ? { textAlign: "center" } : undefined}>
         {/* The accent, like every other informational chip — see the note on
             `HeroCardView`'s badge. */}
@@ -383,6 +431,7 @@ export function HeroOpenView({
         ) : null}
         {actions}
       </div>
+      )}
       {/* A tinted panel rather than a bare photo: the picture needs an edge to
           sit against once there is no card providing one, and `--accent-soft`
           gives it one without introducing a second near-white surface beside
