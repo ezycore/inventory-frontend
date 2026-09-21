@@ -126,6 +126,22 @@ const responsiveSet = (field: string) => ({ settings }: FieldScope) => {
   return base !== undefined || mobile !== undefined;
 };
 
+/**
+ * Does a RESPONSIVE setting answer for the DESKTOP?
+ *
+ * ⚠ The one place `base` alone is the question, rather than `responsiveSet`'s
+ * "either screen". A section whose own setting overrides a style-box key
+ * overrides it on the phone too, because the phone's variable falls back to the
+ * desktop's (`var(--x-m, var(--x, …))`). So a `base` value takes the style-box
+ * key out of play on both screens, while a phone-only value leaves the desktop
+ * still answering to it — and the control has to stay.
+ */
+const responsiveBaseSet = (field: string) => ({ settings }: FieldScope) => {
+  const responsive = settings[field];
+  if (typeof responsive !== "object" || responsive === null) return false;
+  return (responsive as { base?: unknown }).base !== undefined;
+};
+
 /** The block a block-field belongs to. Empty for a section-level field. */
 const blockOf = (scope: FieldScope): Record<string, unknown> =>
   (scope.blockIndex === undefined ? undefined : scope.blocks[scope.blockIndex]) ?? {};
@@ -246,6 +262,23 @@ const RULES: Record<string, VisibilityRule> = {
      it without hiding the control and the merchant changes a setting that does
      nothing. */
   "hero.style.width": (scope) => layoutOf(scope) !== "full-bleed",
+
+  /* The second STYLE-BOX key here, and a different shape of collision from the
+     hero's. `call-to-action` has its own Alignment on the Content tab, and
+     `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)` — so the
+     section's own answer WINS where it is given and the Style tab's applies
+     where it is not. The precedence is already right; what was wrong is that
+     both controls were offered at once, so a merchant moving the Style tab's
+     alignment on a CTA that answers for itself saw nothing move.
+
+     ⚠ **No `ownsAlign` here, and that is deliberate** — unlike the hero. The
+     hero ignores the style box's alignment entirely, so its stored value had to
+     stop applying. A CTA *uses* it whenever its own is unset, and 21 live
+     stores are on the builder: emitting nothing would move every CTA that is
+     centred through the Style tab today. Rule 1 covers the rest — hidden is not
+     erased, so restoring the CTA's own Alignment to "Section's own" brings the
+     control, and the merchant's earlier choice, straight back. */
+  "call-to-action.style.align": (scope) => !responsiveBaseSet("align")(scope),
 
   /* Full-bleed only. That layout lays its type over the photograph and has
      always shown the headline alone on a phone; the card and open heroes draw

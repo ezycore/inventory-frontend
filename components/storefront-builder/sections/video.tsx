@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { parseVideoEmbed, videoPosterUrl } from "@/lib/storefront-builder/video-embed";
@@ -22,7 +23,10 @@ export function VideoSection({ settings }: SectionViewProps<Spec>) {
   if (!embed) return null;
   const ratio = settings.ratio ?? "16:9";
   return (
-    <div style={{ maxWidth: ratio === "9:16" ? 420 : 880, marginInline: "auto" }}>
+    <div
+      className="sfb-own-column"
+      style={{ "--sfb-own-column": ratio === "9:16" ? "420px" : "880px" } as CSSProperties}
+    >
       {settings.heading ? (
         <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 16px", letterSpacing: "-0.02em" }}>
           {settings.heading}

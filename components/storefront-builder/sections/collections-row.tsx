@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { collectionHref } from "@/lib/storefront-links";
 import { sectionCategories } from "@/lib/storefront-builder/store-lists";
@@ -33,7 +34,7 @@ export function CollectionsRowSection({ settings, context }: SectionViewProps<Sp
   if (settings.style === "plain") {
     return (
       // The home page's 980px column for plain links, measured with its padding inside.
-      <div style={{ maxWidth: "calc(980px - 2 * var(--pad))", margin: "0 auto" }}>
+      <div className="sfb-own-column" style={{ "--sfb-own-column": "calc(980px - 2 * var(--pad))" } as CSSProperties}>
         {heading}
         <CollectionLinks base={context.base} categories={categories} />
       </div>

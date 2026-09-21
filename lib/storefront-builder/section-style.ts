@@ -43,6 +43,20 @@ export interface SectionFrame {
   style: CSSProperties;
   width: SectionWidth;
   tone: SectionTone;
+  /**
+   * The merchant chose a width on the Style tab, rather than leaving the
+   * section its own.
+   *
+   * ⚠ **Not the same question as `width`**, which answers "content" for both an
+   * unset box and an explicit Page column. Six sections carry a built-in column
+   * of their own — `rich-text` and `faq` at 780px, `selected-products` and
+   * `collections-row` at 980, `order-form` at 560, `video` at 880/420 — and
+   * until 2026-09-21 that column silently beat the Width control, the Hero's W1
+   * six times over. They now keep it only while this is false, which is the
+   * same inverted precedence `ownsWidth` uses and for the same reason: a section
+   * nobody has styled must not move.
+   */
+  styledWidth: boolean;
 }
 
 /**
@@ -85,6 +99,21 @@ export interface FrameDefaults {
    */
   ownsWidth?: boolean;
 }
+
+/**
+ * A heading row is a flex row, and `text-align` cannot move a flex item — which
+ * is why the Style tab's alignment did nothing to eight sections' headings until
+ * 2026-09-21. The frame emits the matching `justify-content` beside `--sfb-align`
+ * and `.sfb-title-row` reads it; a classic page sets neither, so its rows keep
+ * `space-between`.
+ *
+ * Typed as a total `Record`, so widening `SECTION_ALIGNS` (Phase 2 adds `right`)
+ * fails to compile until this maps the new value too.
+ */
+const TITLE_JUSTIFY: Record<Align, string> = {
+  left: "flex-start",
+  center: "center",
+};
 
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -149,11 +178,18 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     vars["--sfb-bg"] = background.kind === "none" ? "transparent" : `var(--${defaults.band})`;
   }
 
+  const align = readAlign(style.align);
+
   return {
     style: {
       ...(vars as CSSProperties),
       // Omitted entirely for a section that aligns its own text — see `ownsAlign`.
-      ...(defaults?.ownsAlign ? {} : responsiveVars("sfb-align", readAlign(style.align))),
+      ...(defaults?.ownsAlign
+        ? {}
+        : {
+            ...responsiveVars("sfb-align", align),
+            ...responsiveVars("sfb-title-justify", align, (value) => TITLE_JUSTIFY[value]),
+          }),
     },
     // The frame first where it owns the width — see `ownsWidth`, and note this
     // is an inverted `??` rather than an omitted variable.
@@ -161,5 +197,7 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
       ? (defaults.width ?? "content")
       : (oneOf(SECTION_WIDTHS, style.width) ?? defaults?.width ?? "content"),
     tone: oneOf(SECTION_TONES, style.textTone) ?? "auto",
+    // A section that owns its width has no Width control to obey.
+    styledWidth: !defaults?.ownsWidth && oneOf(SECTION_WIDTHS, style.width) !== undefined,
   };
 }

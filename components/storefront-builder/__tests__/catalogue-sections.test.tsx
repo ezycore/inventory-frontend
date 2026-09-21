@@ -157,9 +157,12 @@ describe("product rows moved from the classic home", () => {
       { s1: { items } },
     );
     expect(container.querySelector('h2 [data-word="selected"]')).not.toBeNull();
-    expect((container.querySelector(".sfb-inner > div") as HTMLElement).style.maxWidth).toBe(
-      "calc(980px - 2 * var(--pad))",
-    );
+    // The column is declared as a variable rather than an inline `max-width`
+    // since 2026-09-21, so `.sfb-own-column` can stand aside for a merchant who
+    // picks a width on the Style tab. The number itself is unchanged.
+    const column = container.querySelector(".sfb-inner > div") as HTMLElement;
+    expect(column.className).toBe("sfb-own-column");
+    expect(column.getAttribute("style")).toContain("--sfb-own-column: calc(980px - 2 * var(--pad))");
   });
 });
 

@@ -260,6 +260,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 /** Setting labels, by setting key. Shared across sections — the same key means the same thing. */
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
+  /* A different question from the Style tab's Text alignment, and it was asked
+     in the same words. A grid already spans the content column, so there is no
+     row left to move: this places each tile INSIDE its own column (`GRID_ALIGN`
+     in `collection-tiles.tsx`), while the heading above it follows Style → Text
+     alignment. Naming them apart is the fix; they are not duplicates. */
+  "collections-row.align": "Tile position",
+  "category-tiles.align": "Tile position",
   alt: "Picture description",
   answer: "Answer",
   arrows: "Show arrows",
@@ -350,6 +357,8 @@ const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every 
 
 const HINTS: Record<string, string> = {
   hideRelated: "Add a Related products section to show them somewhere else on the page.",
+  "collections-row.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
+  "category-tiles.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
   alt: "Say what the picture shows. Screen readers read it aloud.",
   frame: "Default shows each picture whole. A shape crops it to fit.",
   /* NOT the bare `frame` hint above. A hero always has a box — it has never

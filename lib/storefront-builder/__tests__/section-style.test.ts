@@ -94,6 +94,59 @@ describe("sectionFrame", () => {
     expect(sectionFrame({ background: { kind: "none" } }, home).style).toMatchObject({ "--sfb-bg": "transparent" });
   });
 
+  /* X1 — the Style tab's Text alignment did nothing to eight sections' headings,
+     because `SectionTitle` is a flex row and `text-align` cannot move a flex
+     item. The frame now emits the matching `justify-content` beside it. */
+  it("emits a heading justification beside every alignment", () => {
+    expect(sectionFrame({ align: { base: "left" } }).style).toMatchObject({
+      "--sfb-align": "left",
+      "--sfb-title-justify": "flex-start",
+    });
+    expect(sectionFrame({ align: { base: "center" } }).style).toMatchObject({
+      "--sfb-align": "center",
+      "--sfb-title-justify": "center",
+    });
+    expect(sectionFrame({ align: { base: "left", mobile: "center" } }).style).toMatchObject({
+      "--sfb-title-justify": "flex-start",
+      "--sfb-title-justify-m": "center",
+    });
+    // A phone-only alignment leaves the desktop's unset, so the stylesheet's own
+    // `space-between` keeps drawing the desktop — the same rule the rest of the
+    // responsive pairs follow.
+    expect(sectionFrame({ align: { mobile: "center" } }).style).toEqual({
+      "--sfb-pt": "clamp(24px, 4vw, 40px)",
+      "--sfb-pb": "clamp(24px, 4vw, 40px)",
+      "--sfb-align-m": "center",
+      "--sfb-title-justify-m": "center",
+    });
+  });
+
+  it("emits no heading justification for a section with no alignment, or one that owns it", () => {
+    // ⚠ The ABSENCE is the point, twice over. An unstyled section must emit
+    // nothing, so every classic caller of `SectionTitle` and every section
+    // nobody has aligned keeps `space-between`; and a section that aligns its
+    // own text must not emit a second answer.
+    expect(sectionFrame(undefined).style).not.toHaveProperty("--sfb-title-justify");
+    expect(sectionFrame({ align: { base: "center" } }, { top: "0px", bottom: "0px", ownsAlign: true }).style)
+      .not.toHaveProperty("--sfb-title-justify");
+  });
+
+  /* X2 — six sections carry a built-in column that silently beat this control.
+     They now keep it only while the merchant has chosen no width. */
+  it("reports whether the merchant chose a width, which is not the same as the width", () => {
+    // An unset box and an explicit Page column both resolve to "content"; only
+    // one of them is the merchant answering.
+    expect(sectionFrame(undefined).styledWidth).toBe(false);
+    expect(sectionFrame({}).styledWidth).toBe(false);
+    expect(sectionFrame({ width: "content" }).styledWidth).toBe(true);
+    expect(sectionFrame({ width: "wide" }).styledWidth).toBe(true);
+    expect(sectionFrame({ width: "full" }).styledWidth).toBe(true);
+    // An invalid stored value is no answer at all, the same way `width` falls back.
+    expect(sectionFrame({ width: "huge" }).styledWidth).toBe(false);
+    // A section that owns its width has no Width control to obey in the first place.
+    expect(sectionFrame({ width: "wide" }, { top: "0px", bottom: "0px", ownsWidth: true }).styledWidth).toBe(false);
+  });
+
   it("falls back to defaults for invalid values", () => {
     const frame = sectionFrame({ width: "huge", textTone: "neon", padding: { base: { top: "xxl" } } });
     expect(frame.width).toBe("content");

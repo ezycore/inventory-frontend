@@ -275,7 +275,16 @@ export function StatusPill({
   );
 }
 
-/** Section heading used across storefront pages. */
+/**
+ * Section heading used across storefront pages.
+ *
+ * The row follows the section's Text alignment through `.sfb-title-row`, which
+ * reads `--sfb-title-justify` from the builder's section frame. **A classic page
+ * emits no such variable**, so the rule's own `space-between` keeps those four
+ * callers (`product-sections`, `category-banners`, `product-page`,
+ * `product-overview`) rendering exactly as before — asserted in
+ * `sf-bits.test.tsx`, not left to care.
+ */
 export function SectionTitle({
   children,
   action,
@@ -285,10 +294,10 @@ export function SectionTitle({
 }) {
   return (
     <div
+      className="sfb-title-row"
       style={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
         marginBottom: 16,
         gap: 12,
       }}

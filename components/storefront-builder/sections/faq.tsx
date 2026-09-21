@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { JsonLd } from "@/components/storefront/json-ld";
 import {
@@ -25,7 +26,7 @@ const PROSE_MAX_WIDTH = 780;
  */
 export function FaqSection({ settings, blocks }: SectionViewProps<Spec, BlockSpec>) {
   return (
-    <div style={{ maxWidth: PROSE_MAX_WIDTH, marginInline: "auto" }}>
+    <div className="sfb-own-column" style={{ "--sfb-own-column": `${PROSE_MAX_WIDTH}px` } as CSSProperties}>
       {settings.heading ? (
         <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 14px", letterSpacing: "-0.02em" }}>
           {settings.heading}

@@ -16,6 +16,43 @@
   text-align: var(--sfb-align, left);
 }
 
+/*
+ * A section's heading row. `text-align` cannot move a flex item, so the Style
+ * tab's alignment reaches a heading through this instead — the frame emits
+ * `--sfb-title-justify` beside `--sfb-align`.
+ *
+ * ⚠ `SectionTitle` is shared with the CLASSIC home, product and category pages,
+ * which load this stylesheet but sit in no `.sfb-sec` and so set no variable.
+ * The fallback below is what keeps those four callers byte-identical; do not
+ * replace it with a value of its own.
+ */
+.sfb-title-row {
+  justify-content: var(--sfb-title-justify, space-between);
+}
+
+/*
+ * A section type's OWN column — the width its classic twin was drawn at, which
+ * six sections carry: prose at 780px, the picks and collection rows at 980, the
+ * order form at 560, a video at 880 or 420 by its shape. Each passes its number
+ * as `--sfb-own-column`, so one rule serves all six and a per-instance value
+ * (the video's) works the same as a constant.
+ *
+ * It applies only while the merchant has chosen no width. Until 2026-09-21 it
+ * applied always and silently beat the Style tab's Width control — two controls
+ * for one question, with the invisible one winning. A section nobody has styled
+ * is unaffected, which is the point: `data-styled-width` is stamped only when
+ * the style box really set a width, never for an unset box that merely resolves
+ * to the page column.
+ */
+.sfb-own-column {
+  max-width: var(--sfb-own-column);
+  margin-inline: auto;
+}
+
+.sfb-sec[data-styled-width] .sfb-own-column {
+  max-width: none;
+}
+
 .sfb-sec[data-tone="light"] {
   color: #ffffff;
 }
@@ -311,6 +348,9 @@
 }
 
 @media (max-width: 679px) {
+  .sfb-title-row {
+    justify-content: var(--sfb-title-justify-m, var(--sfb-title-justify, space-between));
+  }
   .sfb-cta {
     text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
   }
@@ -366,9 +406,14 @@
   .sfb-benefits {
     grid-template-columns: repeat(var(--sfb-benefit-cols, 3), minmax(0, 1fr));
   }
+  /* Steps WRAP. `grid-auto-flow: column` gave eight steps eight columns —
+     unreadable slivers, and no control to fix it with. `auto-fit` keeps the
+     old rendering wherever the steps still fit (it collapses the empty tracks,
+     so four steps are four columns), and folds them into a second row where
+     they no longer do. The column count itself becomes a merchant control in
+     this plan's Phase 4; this is the defect underneath it. */
   .sfb-steps {
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
   .sfb-split {
     grid-template-columns: 1fr 1fr;

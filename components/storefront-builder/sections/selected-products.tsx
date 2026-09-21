@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { PickGrid } from "@/components/storefront/home/pick-grid";
@@ -27,9 +28,12 @@ export function SelectedProductsSection({ settings, context, data }: SectionView
     ) : null;
   return (
     // The home page's 980px column, measured the way its own box was: padding inside it.
-    <div style={{ maxWidth: "calc(980px - 2 * var(--pad))", margin: "0 auto" }}>
+    <div className="sfb-own-column" style={{ "--sfb-own-column": "calc(980px - 2 * var(--pad))" } as CSSProperties}>
       {heading || link ? (
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 28 }}>
+        // Its own baseline and 28px gap are the classic picks row's, kept so a
+        // migrated home is unchanged; only the alignment is shared with
+        // `SectionTitle`, through `.sfb-title-row`.
+        <div className="sfb-title-row" style={{ display: "flex", alignItems: "baseline", marginBottom: 28 }}>
           {heading ? (
             <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>{heading}</h2>
           ) : (

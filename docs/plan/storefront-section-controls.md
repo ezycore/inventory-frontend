@@ -149,7 +149,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 |---|---|---|
 | Audit (§2) | 34 sections read against their renderers, the style box and the CSS | ✅ Done 2026-09-21 · re-read against `d3d2fdcd` 2026-09-21 (§7) |
 | 0 (§3) | One source for the style box; backend generated and shipped | 🟡 Code in, both repos green — **awaiting the owner's backend deploy** (step 6) |
-| 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, three doubled ones | ⬜ Not started |
+| 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, one doubled, two misnamed | 🟡 Built 2026-09-21; pixel comparison outstanding |
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | ⬜ Not started |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | ⬜ Not started |
 | 4 (§3) | The row sections: subheading, columns per device, flow | ⬜ Not started |
@@ -193,7 +193,14 @@ wrong per section.
 | **X8** | **No subheading on any row section.** Thirteen sections offer a heading and nothing under it. | `product-grid`, `product-carousel`, `selected-products`, `gallery`, `testimonials`, `benefits`, `faq`, `campaign-offers`, `shop-by-tag`, `collections-row`, `category-tiles`, `related-products`, `promises-band` |
 | **X9** | **No anchor on a section**, so a hero button cannot scroll to the order form further down the page — the core move of a landing page. The sticky bar reaches it through a private attribute no merchant can type. | `order-form-anchor.ts`; `isAllowedSectionUrl` (backend) refuses `#order` outright |
 | **X10** | **No custom spacing or width value** — five steps, three widths, nothing between. | `SPACING_STEPS`, `WIDTHS` |
-| **X11** | **Three sections carry their own alignment control *and* the Style tab's.** `SECTIONS_ALIGNING_THEMSELVES` names `hero` and nothing else, so `call-to-action` (its own responsive `align`, drawn as `--sfb-cta-align`), `collections-row` and `category-tiles` (their own `align`, which already offers `right`) each show two controls answering one question, with no way to tell which won — the Hero's W1, three more times. ⚠ Phase 2's X7 makes it worse before it makes it better: widening the style box to `right` leaves `call-to-action`'s own control offering left and centre only. | `section-style-fields.tsx` → `SECTIONS_ALIGNING_THEMSELVES` (`hero` alone); `call-to-action.tsx` → `responsiveVars("sfb-cta-align", settings.align)`; `category-tiles.tsx` → `settings.align ?? "left"` |
+| **X11** | **`call-to-action` offers two alignment controls for one question.** `SECTIONS_ALIGNING_THEMSELVES` names `hero` and nothing else, so the CTA shows its own Alignment on the Content tab *and* the Style tab's Text alignment. `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)`, so the precedence is already right — the section's own wins where given, the Style tab's applies where not — but both being offered means a merchant moving the Style tab's on a CTA that answers for itself sees nothing move. ⚠ Corrected 2026-09-21 from "three sections": see the note below. | `section-style-fields.tsx` → `SECTIONS_ALIGNING_THEMSELVES` (`hero` alone); `call-to-action.tsx` → `responsiveVars("sfb-cta-align", settings.align)` |
+| **X12** | **`collections-row` and `category-tiles` ask a different question in the same word.** Their `align` is **not** a duplicate of the Style tab's: a grid already spans the content column, so there is no row left to move and `GRID_ALIGN` places each tile **inside its own column**, while the Style tab's alignment moves the heading above it. Both were labelled "Alignment". Naming them apart is the whole fix; hiding either would take away a control that works. | `collection-tiles.tsx` → `GRID_ALIGN` and the comment above it; `category-tiles.tsx` → `settings.align ?? "left"` |
+
+⚠ **X11 and X12 were one finding until the code was read** (2026-09-21, §7). The audit recorded three
+sections offering "two controls for one question". Only one does. The other two ask a genuinely
+different question badly named — and treating them as duplicates would have removed the only control
+that moves their heading. The lesson is in §7; the general form of it is that two controls sharing a
+word are not thereby the same control.
 
 **Already right, do not "fix" these:** per-section device visibility (`visibility.desktop/mobile` →
 `data-hide`), the `enabled` switch, `sectionFrame`'s "Section's own" default on every style control, the
@@ -210,7 +217,7 @@ Grouped by the phase that answers it. `—` means the section is correct as it s
 | **category-promo-cards** | — (responsive `shape`/`side`/`split`/`hideText`/`height`/`flow`/`perRow` + ratio, radius, arrows: the benchmark) | — |
 | **spacer** | — (responsive height and a line) | — |
 | **image-text** | **The phone always leads with the photograph**, no control — the Hero's M6, unfixed. `imageSide` applies past the breakpoint only; `imageRatio` is not responsive; the split is a fixed `1fr 1fr`; there is no phone picture. | 3 |
-| **call-to-action** | **Its own responsive `align` sits beside the Style tab's** (X11), and it is the only one of the two that moves the button — `--sfb-cta-align` against `--sfb-align`. Nothing else: no button style, no second button. | 1 (X11) |
+| **call-to-action** | **Its own responsive `align` sits beside the Style tab's** (X11) and quietly wins wherever it is set. Nothing else: no button style, no second button. | 1 (X11) |
 | **benefits** | **A phone is always one column** — `columns` is written into a `min-width: 680px` block, so the control the merchant sets is the only screen it cannot reach. | 4 |
 | **how-to-order** | **No column control, and the desktop cannot wrap**: `grid-auto-flow: column` gives eight steps eight columns. | 1 (wrap), 4 (control) |
 | **testimonials** | No columns (desktop is a fixed `auto-fill minmax(260px, 1fr)`), no choice about the phone's 85 %-wide swipe row. | 4 |
@@ -228,7 +235,7 @@ Grouped by the phase that answers it. `—` means the section is correct as it s
 | **gallery** | `frame` is **not** responsive, though `image-banner`'s is and the Hero's is. | 5 |
 | **image-banner** | **`align` decides three things at once** — left means bottom-anchored under a gradient, centre means middle-anchored under a flat 35 % wash. A merchant cannot ask for left copy in the middle of the picture, and cannot touch the scrim. | 5 |
 | **video** | Locked to 880 / 420 px (X2); `ratio` is not responsive. | 1, 5 |
-| **collections-row**, **category-tiles** | Good column and label controls; their **own `align` duplicates the Style tab's** (X11) and already offers `right`, which the style box does not; **no tile shape or height**, which is the size question the design register's row 3 declined and then answered by moving the merchant to another section. | 5 |
+| **collections-row**, **category-tiles** | Good column and label controls; their own `align` places each tile inside its column and was labelled like the Style tab's (X12); **no tile shape or height**, which is the size question the design register's row 3 declined and then answered by moving the merchant to another section. | 5 |
 | **sticky-order-bar** | **Phones only, by `!important`.** A desktop merchant cannot have it at all. | 6 |
 | **order-form** | Locked to 560 px (X2); no label on its own submit button. | 1, 6 |
 | **search-results** | **No settings at all** — including no words for an empty result, which is the one thing a merchant would write. | 6 |
@@ -270,8 +277,10 @@ five stand on.
 
 ### Phase 1 — the controls that already exist and do nothing
 
-**Status:** ⬜ Not started · **Changes no spec field** — can ship before Phase 0 reaches production.
-⚠ That is only true if X11 is answered the `ownsAlign` way; see step 3.
+**Status:** 🟡 Built 2026-09-21 on `feat/storefront-section-controls`; typecheck and the touched suites
+green, every new test mutation-checked. **Left: the pixel comparison** on the live stores (§6). ·
+**Changes no spec field** — it can ship before Phase 0 reaches production, and step 3's answer keeps it
+that way.
 
 Every item here is the Hero's W1 shape: a merchant moves a control and the page does not move, or the
 wrong thing moves.
@@ -281,7 +290,7 @@ the builder on 2026-09-21 (master plan §17, "Every production store is on the b
 exactly as today" is a claim about real merchants' home pages. Prove it with the pixel harness, not by
 reading the diff — see Phase 7 step 3.
 
-1. [ ] **X1 — `SectionTitle` respects the section's alignment.** Give its wrapper
+1. [x] **X1 — `SectionTitle` respects the section's alignment.** Give its wrapper
        `justify-content: var(--sfb-title-justify, space-between)` and the builder frame a
        `--sfb-title-justify` derived from the resolved align (`left`→`flex-start`,
        `center`→`center`, `right`→`flex-end`). **The four classic callers emit no such variable and are
@@ -289,7 +298,7 @@ reading the diff — see Phase 7 step 3.
        - With a heading and no action link, drop the flex row entirely and let `text-align` do the work.
        - `selected-products` repeats the same row inline (`selected-products.tsx:32`); fix it the same
          way rather than leaving a ninth copy.
-2. [ ] **X2 — the six hardcoded columns stop beating Style → Width.** In each of `rich-text`, `faq`,
+2. [x] **X2 — the six hardcoded columns stop beating Style → Width.** In each of `rich-text`, `faq`,
        `selected-products`, `collections-row` (plain), `order-form` and `video`, apply the built-in
        column **only where the style box set no width** — the same inverted `??` precedence `ownsWidth`
        uses, and for the same reason. A section nobody has styled keeps its exact column; a merchant who
@@ -304,22 +313,31 @@ reading the diff — see Phase 7 step 3.
        — but 21 stores have been live and editable since the cutover. Query production for sections of
        those six types with `style.width` set; each hit is a page that moves the moment this ships, and
        it needs a pixel comparison of its own.
-3. [ ] **X11 — three sections stop offering two alignments.** `SECTIONS_ALIGNING_THEMSELVES`
-       (`section-style-fields.tsx`) names `hero` and nothing else. Add `call-to-action`,
-       `collections-row` and `category-tiles`, **and give each one's frame `ownsAlign`** — the pair is
-       what the hero comment already warns about: "a type added here without it leaves an invisible
-       alignment in force". The section's own control stays; the Style tab's goes.
-       ⚠ **Do not answer this by deleting the per-section `align` field instead.** Removing a key from
-       the manifest makes the deployed backend refuse it, so every saved page carrying that section
-       would fail its next save — the same hazard §0.5 records for a `v` bump. The `ownsAlign` route
-       touches no spec field, which is what keeps this phase shippable before Phase 0.
-       ⚠ `call-to-action`'s own control offers **left and centre only** while `collections-row` and
-       `category-tiles` offer `right`. Widen it here, so Phase 2's X7 does not leave one section unable
-       to say what its neighbours can.
-4. [ ] **`how-to-order` wraps.** Replace `grid-auto-flow: column` with
+3. [x] **X11 — `call-to-action` stops offering two alignments**, and **X12 — the tile rows' own
+       alignment is named apart.** Two different answers, because they are two different problems:
+       - **X11:** a `field-visibility` rule hides the Style tab's Text alignment on a CTA whose own
+         `align` has a **base** value, which is the case where it can have no effect. Nothing else.
+       - ⚠ **No `ownsAlign`, and no adding the CTA to `SECTIONS_ALIGNING_THEMSELVES`** — the opposite
+         of the hero. The hero ignores the style box's alignment outright, so its stored value had to
+         stop applying. `.sfb-cta` *reads* it (`text-align: var(--sfb-cta-align, inherit)`) whenever
+         the CTA's own is unset, so emitting nothing would move every CTA centred through the Style
+         tab today, on 21 live stores. Hidden is not erased; the value keeps working.
+       - ⚠ **Base, not "either screen".** A phone-only `align` leaves the desktop still following the
+         Style tab, so the control has to stay. `responsiveBaseSet` exists for exactly this and is the
+         one rule in that file that asks about `base` alone.
+       - **X12:** `collections-row.align` and `category-tiles.align` become **"Tile position"**, with a
+         hint saying the heading follows Style → Text alignment. No visibility rule and no `ownsAlign`:
+         hiding either would take away a control that works.
+       - ⚠ **Do not answer any of this by deleting a per-section `align` field.** Removing a key from
+         the manifest makes the deployed backend refuse it, so every saved page carrying that section
+         would fail its next save — the same hazard §0.5 records for a `v` bump.
+       - The CTA's own control still offers left and centre only; **widening it to `right` moves to
+         Phase 2 step 5**, where the style box gains `right` and the two can widen together. Nothing is
+         lost meanwhile, because the style box has no `right` to be inconsistent with yet.
+4. [x] **`how-to-order` wraps.** Replace `grid-auto-flow: column` with
        `repeat(auto-fit, minmax(220px, 1fr))` so eight steps make two readable rows instead of eight
        slivers. The control itself is Phase 4; this is the defect underneath it.
-5. [ ] Tests: alignment reaches each of the nine headings; each of the six sections honours a set width
+5. [x] Tests: alignment reaches each of the nine headings; each of the six sections honours a set width
        and keeps its own when unset; the three X11 sections show one alignment control, and the stored
        value of the one that went away no longer renders.
        ⚠ **Assert the classic callers emit no `--sfb-title-justify` — the ABSENCE, not the appearance.**
@@ -371,11 +389,13 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
        ⚠ **Sections that draw through an island do not inherit it** (`campaign-offers`, `content-frame`,
        `product-cards`…): CSS `color` inherits, so a section whose island sets its own colour will not
        follow. List the offenders in the commit; fixing them is part of this step, not a follow-up.
-5. [ ] **X7 right alignment.** Widen the enum in the spec, the editor and `readAlign`. Widening never
-       invalidates a stored value, so no `v` moves.
-       ⚠ **Do this after Phase 1 step 3 (X11), not before.** Until the three duplicate alignment
-       controls are resolved, widening the style box adds a third answer to a question that already has
-       two — and `call-to-action` would be the only section on the page unable to say `right`.
+5. [ ] **X7 right alignment.** Widen the enum in `style-specs.ts`, the editor and `readAlign`, and
+       **widen `call-to-action.align` to match in the same change** (Phase 1 deferred it here). Widening
+       never invalidates a stored value, so no `v` moves — but it is a spec change in both files, so it
+       regenerates the manifest and ships backend-first like any other.
+       ⚠ `TITLE_JUSTIFY` in `section-style.ts` is a total `Record<Align, string>` on purpose: adding
+       `right` to `SECTION_ALIGNS` fails to compile until it maps to `flex-end`. That is the gate, not a
+       reminder.
 6. [ ] **X9 anchor.** `id` on the `<section>`, plus **both ends of the link path widened to accept
        `#anchor`**: `isAllowedSectionUrl` (backend, line 74) refuses it today, and `merchantLinkHref`
        would treat it as a store path. The editor's hint names the anchors already on the page.
@@ -588,7 +608,7 @@ The harness and the store set are in §3 Phase 7 step 3.
 | Phase | Done when |
 |---|---|
 | 0 | The style box is generated into the backend, `checkStyle` reads it, the backend's private `SPACING_STEPS` is gone, both repos' `verify` is green, and the backend is shipped. |
-| 1 | Text alignment visibly moves all nine headings; each of the six sections honours a set Width and is byte-identical with Width unset; the four classic `SectionTitle` callers emit no `--sfb-title-justify` and are byte-identical; the three X11 sections show one alignment control and no stored second alignment still renders; eight `how-to-order` steps wrap; UriiBaba and LunoraBaby compare clean. |
+| 1 | Text alignment visibly moves all nine headings; each of the six sections honours a set Width and is byte-identical with Width unset; the four classic `SectionTitle` callers emit no `--sfb-title-justify` and are byte-identical; a CTA that answers its own alignment shows one control, and a CTA that does not keeps the Style tab's working; the two tile rows keep both controls under names that tell them apart; eight `how-to-order` steps wrap; UriiBaba and LunoraBaby compare clean. |
 | 2 | Every one of the six style keys changes the page, is refused when invalid, keeps its value when hidden, and leaves a section that sets none rendering byte-identically to today. A background picture with an overlay and custom text is readable on a phone. |
 | 3 | `image-text` can lead a phone with either the picture or the copy, split 20–80 on each device, take its own phone picture, and fit or crop it; unset renders byte-identically. **Noor Collection's home re-migrated and pixel-identical to the classic home it replaced — 22 of 22, up from 21.** |
 | 4 | Thirteen sections take a subheading; `benefits` shows two columns on a phone; eight `how-to-order` steps sit in a chosen number of columns; the carousel's per-view and arrows reach the island and work. |
@@ -613,6 +633,31 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — Phase 1 built, and X11 was two findings, not one.** The audit said three sections
+  offered "two controls for one question". Reading the renderers says otherwise, and the difference
+  matters enough to record:
+  - **`call-to-action` really is one question twice.** `.sfb-cta` is
+    `text-align: var(--sfb-cta-align, inherit)`, so the section's own answer wins where it is given and
+    the Style tab's applies where it is not. The precedence was never wrong; offering both at once was.
+    Hidden, not disabled — **`ownsAlign` would have been a live regression**, because a CTA centred
+    through the Style tab today would have jumped left on 21 production stores.
+  - **`collections-row` and `category-tiles` are a different question wearing the same word.** A grid
+    already spans the content column, so `align` there places each tile *inside its own column*
+    (`GRID_ALIGN`), while the Style tab's moves the heading. Had the plan been implemented as written,
+    those two would have lost the only control that moves their heading. Recorded as X12, fixed by
+    naming: "Tile position", with a hint pointing at the other control.
+  - The general lesson, worth carrying into the remaining phases: **two controls sharing a label are
+    not thereby the same control** — and an audit row that names a defect in the editor has to be
+    confirmed in the renderer before it is acted on.
+- **2026-09-21 — X2 is one mechanism, not six.** Each of the six sections passes its own column as
+  `--sfb-own-column` and wears `.sfb-own-column`; one stylesheet rule applies it, and one more
+  (`.sfb-sec[data-styled-width] .sfb-own-column`) takes it away. That suits `video`, whose column is
+  880 or 420 by its shape, and `selected-products`/`collections-row`, whose column is a `calc()` — none
+  of which fits a per-type constant in the section registry.
+  - ⚠ **`data-styled-width` is not `data-width`.** An unset style box and an explicit "Page column"
+    both resolve to `width: "content"`, so the attribute is stamped from whether `style.width` really
+    held a valid value — a new `styledWidth` on `SectionFrame`, deliberately separate from `width`. An
+    invalid stored width is no answer, the same way `width` itself falls back.
 - **2026-09-21 — Phase 0 built, and the style box is copied rather than re-serialized.** Step 2 said the
   generator should emit `STYLE_BOX_SPEC` with the same literal writer that emits `SECTION_MANIFEST`. It
   copies `style-specs.ts` **verbatim** instead, the way `field-specs.ts` is already copied, because that

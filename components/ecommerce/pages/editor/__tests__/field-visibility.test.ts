@@ -552,6 +552,7 @@ describe("field visibility", () => {
         "hero.secondaryLink",
         "hero.slideshow",
         "hero.storeWords",
+        "call-to-action.style.align",
         "hero.style.width",
         "product-carousel.categoryId",
         "product-carousel.productIds",
@@ -566,5 +567,40 @@ describe("field visibility", () => {
         "selected-products.tagIds",
       ].sort(),
     );
+  });
+
+  /* X11 — `call-to-action` answers its own alignment on the Content tab, and
+     `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)`. So the
+     section's own answer wins where it is given and the Style tab's applies
+     where it is not; offering both at once is what left a merchant moving a
+     control that could not move anything. */
+  const ctaAlign = (settings: Record<string, unknown>) =>
+    isFieldVisible("style.align", "call-to-action", scope(settings));
+
+  it("hides the Style tab's alignment on a CTA that answers for itself", () => {
+    expect(ctaAlign({})).toBe(true);
+    expect(ctaAlign({ align: { base: "center" } })).toBe(false);
+    expect(ctaAlign({ align: { base: "left", mobile: "center" } })).toBe(false);
+  });
+
+  it("keeps it for a CTA that answers only for the phone", () => {
+    // ⚠ `base` alone, not `responsiveSet`'s "either screen". The phone's
+    // variable falls back to the desktop's, so a phone-only answer leaves the
+    // desktop still following the Style tab — and taking the control away there
+    // would remove the merchant's only way to move it.
+    expect(ctaAlign({ align: { mobile: "center" } })).toBe(true);
+    expect(ctaAlign({ align: {} })).toBe(true);
+    expect(ctaAlign({ align: "center" })).toBe(true);
+  });
+
+  it("leaves every other section's Style alignment alone", () => {
+    // ⚠ `collections-row` and `category-tiles` have an `align` of their own and
+    // are NOT this case: theirs places each tile inside its column
+    // (`GRID_ALIGN` in `collection-tiles.tsx`) while the Style tab's moves the
+    // heading. Two questions asked in one word, answered by naming them apart
+    // in the catalogue — not by hiding either.
+    for (const type of ["collections-row", "category-tiles"]) {
+      expect(isFieldVisible("style.align", type, scope({ align: { base: "right" } }))).toBe(true);
+    }
   });
 });
