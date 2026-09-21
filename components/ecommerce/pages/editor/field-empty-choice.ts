@@ -76,20 +76,42 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   // Empty is its own answer, and no listed value says it.
   storeHeading: { kind: "meaning", label: "My own heading" },
   "image-banner.frame": WHOLE_PICTURE,
+  /* NOT `WHOLE_PICTURE`, which is what an unset `frame` means on `image-banner`
+     and `gallery`. A hero always has a box; unset means each layout keeps the
+     one it has always drawn, and on a card that is two different ratios at two
+     breakpoints — which no listed value says. */
+  "hero.frame": { kind: "meaning", label: "The layout decides" },
+  /* Same answer, a different question: unset means "picture" on a card, whose
+     media carries `order: -1`, and "text" on an open hero, whose copy is simply
+     its first child. Two values, so neither can be named — `value` would have to
+     lie about one of the two layouts. */
+  "hero.mobileFirst": { kind: "meaning", label: "The layout decides" },
   "gallery.frame": WHOLE_PICTURE,
-  /* It followed nothing. No hero calls `useStoreImageFit()` — the carousel says
-     so in as many words, having been changed away from it deliberately — and
-     every hero branch falls back to showing the whole picture, so the control
-     named a source it did not have and hid the answer it did. */
-  "hero.imageFit": WHOLE_PICTURE,
   // A stacked card runs 16:9 and a split card 4:3 — see resolveCardRatio.
   "category-promo-cards.ratio": { kind: "meaning", label: "The card decides" },
 
   // Built-in fallbacks: the control shows the value the section already draws.
   "hero.align": { kind: "value", value: "left" },
+  /* Corrected 2026-09-21, and it was `WHOLE_PICTURE` before that.
+     "It follows nothing" was right — no hero calls `useStoreImageFit()` — but
+     `meaning` was the wrong conclusion. `fit` IS a listed value and it renders
+     exactly what unset renders: `heroSlidePhoto` maps both to `canvas`. So the
+     control offered "Whole picture" and "Show the whole picture" as separate
+     choices that draw the same hero, which is the third question a control must
+     never raise — *are these two the same?* — on top of the two at the top of
+     this file. Browser QA found it; unit tests could not, because the
+     "only offers values the field actually lists" check below reads `value`
+     entries and says nothing about a `meaning` that duplicates one. */
+  "hero.imageFit": { kind: "value", value: "fit" },
+  // The phone has drawn the headline alone since long before the control existed.
+  "hero.mobileCopy": { kind: "value", value: "title-only" },
   "call-to-action.align": { kind: "value", value: "left" }, // text-align: inherit → the page's left
   "image-banner.align": { kind: "value", value: "left" },
   "image-text.imageSide": { kind: "value", value: "left" },
+  /* The hero draws its picture on the RIGHT, where `image-text` draws it left —
+     same field name, two different renderers, and this file's rule is that a
+     `value` entry equals what its own renderer falls back to. */
+  "hero.imageSide": { kind: "value", value: "right" },
   "image-text.imageRatio": { kind: "value", value: "4:5" },
   "collections-row.style": { kind: "value", value: "card" },
   "collections-row.layout": { kind: "value", value: "strip" },

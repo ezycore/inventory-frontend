@@ -7,6 +7,7 @@ import {
   HeroFullBleedView,
   type HeroFullBleedFallback,
 } from "@/components/storefront/home/hero-fullbleed";
+import type { HeroFrame } from "@/components/storefront/home/hero-static";
 
 /**
  * A full-width builder hero drawn as the classic home's banner hero: the store
@@ -33,6 +34,8 @@ export function HeroFullBleedStoreIsland({
   storeName,
   storeWords,
   align,
+  mobileCopy,
+  frame,
   slides,
   fallback,
 }: {
@@ -40,6 +43,8 @@ export function HeroFullBleedStoreIsland({
   storeName: string;
   storeWords: boolean;
   align?: "left" | "center";
+  mobileCopy?: "full" | "title-only";
+  frame?: HeroFrame;
   slides: StoreHeroSlide[];
   /** The store banner and how to crop it — no copy; the slides carry that. */
   fallback: HeroFullBleedFallback;
@@ -54,6 +59,14 @@ export function HeroFullBleedStoreIsland({
     buttonLabel: slide.buttonLabel?.trim() || (storeWords ? t.startShopping : undefined),
   }));
   return (
-    <HeroFullBleedView base={base} slides={shown} storeName={storeName} fallback={fallback} align={align} />
+    <HeroFullBleedView
+      base={base}
+      slides={shown}
+      storeName={storeName}
+      fallback={fallback}
+      align={align}
+      mobileCopy={mobileCopy}
+      frame={frame}
+    />
   );
 }

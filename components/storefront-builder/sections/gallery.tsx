@@ -2,6 +2,7 @@
 import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
+import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { SfImage } from "@/components/storefront/sf-image";
 import { SectionHeading } from "@/components/storefront-builder/section-heading";
 import { SectionLink } from "@/components/storefront-builder/section-link";
@@ -9,14 +10,6 @@ import type { SectionViewProps } from "@/components/storefront-builder/section-v
 
 type Spec = (typeof SECTION_SPECS)["gallery"];
 type Settings = SettingsOf<Spec["settings"]>;
-
-const RATIOS: Record<NonNullable<Settings["frame"]>, string> = {
-  "1:1": "1 / 1",
-  "4:5": "4 / 5",
-  "3:4": "3 / 4",
-  "4:3": "4 / 3",
-  "16:9": "16 / 9",
-};
 
 const DESKTOP_COLUMNS = 3;
 const PHONE_COLUMNS = 2;
@@ -32,7 +25,7 @@ export function galleryVars(settings: Pick<Settings, "columns" | "frame">): CSSP
   return {
     "--sfb-gallery-cols": String(desktop),
     "--sfb-gallery-cols-m": String(phone),
-    ...(settings.frame ? { "--sfb-gallery-frame": RATIOS[settings.frame] } : {}),
+    ...(settings.frame ? { "--sfb-gallery-frame": ASPECT_RATIOS[settings.frame] } : {}),
   } as CSSProperties;
 }
 

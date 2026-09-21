@@ -61,6 +61,29 @@ describe("HeroFullBleedStoreIsland", () => {
     expect(container.querySelector(".sf-hero-fullbleed")?.getAttribute("data-align")).toBe("center");
   });
 
+  it("passes the phone-text choice on to the view", () => {
+    // The trap §0.4 of the plan names: a prop that stops at `sections/hero.tsx`
+    // fixes the plain full-bleed hero and silently leaves the store-banner one
+    // drawing the old rendering.
+    const draw2 = (mobileCopy?: "full" | "title-only") =>
+      render(
+        <HeroFullBleedStoreIsland
+          base="/shop"
+          storeName="Rafi's Mart"
+          storeWords
+          mobileCopy={mobileCopy}
+          slides={[{ title: "Eid edit", subtitle: "Free delivery over 1000tk" }]}
+          fallback={{ image: banner, fit: "cover" }}
+        />,
+      );
+    const attr = (c: HTMLElement) => c.querySelector(".sf-hero-fullbleed")?.getAttribute("data-mobile-copy");
+    expect(attr(draw2("full").container)).toBe("full");
+    // Anything but "full" sets NO attribute, so the stylesheet's `:not(...)`
+    // keeps drawing what every shop already saw.
+    expect(attr(draw2("title-only").container)).toBeNull();
+    expect(attr(draw2().container)).toBeNull();
+  });
+
   it("stands in for the shop whatever the wording setting, but invents no button without it", () => {
     // The two are separate promises: "Use the store banner" is what makes this
     // hero the shop's own, and "Use the store's wording" only decides whether a

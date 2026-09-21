@@ -2,6 +2,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HeroSlidesView } from "@/components/storefront/hero-slides";
+import { HeroOpenView } from "@/components/storefront/home/hero-static";
 
 const slides = [
   { title: "First", image: { url: "/first.jpg" }, buttonLabel: "Browse", link: "/products" },
@@ -21,6 +22,96 @@ const draw = (props: Partial<Parameters<typeof HeroSlidesView>[0]> = {}) =>
   );
 
 describe("HeroSlidesView", () => {
+  it("gives every slide the same shape, so the box does not resize mid-rotation", () => {
+    const { container } = draw({
+      frame: { vars: { "--sfb-hero-frame": "21 / 9" } as React.CSSProperties, base: true, mobile: false },
+    });
+    const cards = [...container.querySelectorAll(".sf-herocard")] as HTMLElement[];
+    expect(cards).toHaveLength(3);
+    // The slides share one grid cell, so a shape on the wrapper would never
+    // reach the `Media` calls that read it — and an identical copy on each is
+    // what stops the stack changing height as they cross-fade.
+    for (const card of cards) {
+      expect(card.getAttribute("data-frame")).toBe("");
+      expect(card.getAttribute("data-frame-m")).toBeNull();
+      expect(card.style.getPropertyValue("--sfb-hero-frame")).toBe("21 / 9");
+    }
+  });
+
+  it("places every slide the same way, on both layouts", () => {
+    const placement = { side: "left", mobileFirst: "text" } as const;
+    for (const layout of ["card", "open"] as const) {
+      const { container } = draw({ layout, placement });
+      const roots = [...container.querySelectorAll(layout === "card" ? ".sf-herocard" : ".sf-heroopen")];
+      expect(roots).toHaveLength(3);
+      for (const root of roots) {
+        expect(root.getAttribute("data-media-side")).toBe("left");
+        expect(root.getAttribute("data-mobile-first")).toBe("text");
+      }
+    }
+  });
+
+  /**
+   * The open hero is inline-styled, and two of its inline values are written by
+   * the STYLESHEET through a custom property. That is a coupling across two
+   * files with nothing in either one pointing at the other: delete the `var()`
+   * here and the CSS rules still parse, still compute, and simply stop
+   * reaching anything — no error, no failing type, just a control that quietly
+   * does nothing. These assertions are the only thing holding the two halves
+   * together.
+   *
+   * Asserted on the style ATTRIBUTE rather than `el.style.*`, because jsdom's
+   * CSS parser drops `var()` values from the property accessors.
+   */
+  describe("the stylesheet's reach into an inline-styled hero", () => {
+    const open = (photo?: { src: string; fit: "cover" | "canvas" }) =>
+      render(
+        <HeroOpenView title="Eid edit" photo={photo} />,
+      ).container.querySelector(".sf-heroopen") as HTMLElement;
+
+    it("reads --heroopen-cols for its columns, so the left-picture rule can swap them", () => {
+      const root = open({ src: "/a.jpg", fit: "cover" });
+      const style = root.getAttribute("style") ?? "";
+      /* Paired with `.sf-heroopen[data-media-side="left"] { --heroopen-cols: 1fr 1.1fr }`
+         in storefront.css. That rule is the only way the picture moving left
+         also moves the WIDER column, which is the answer the card gives too. */
+      expect(style).toContain("--heroopen-cols");
+      /* And the fallback, which is what every untouched hero renders: unset,
+         it is `--herocols` — `1fr` on a phone, `1.1fr 1fr` above. */
+      expect(style.replace(/\s+/g, "")).toContain("var(--heroopen-cols,var(--herocols))");
+    });
+
+    it("drops to one column with no photo, reaching for no variable at all", () => {
+      // The collapse case: a lone copy panel must not inherit a two-track grid.
+      const style = (open().getAttribute("style") ?? "").replace(/\s+/g, "");
+      expect(style).toContain("grid-template-columns:1fr");
+      expect(style).not.toContain("--heroopen-cols");
+    });
+
+    it("reads --heroopen-ratio for its picture, so the shape rules can set it", () => {
+      // Paired with the `--heroopen-ratio` rules in storefront.css, which resolve
+      // the merchant's shape per breakpoint; `4 / 3` is what this hero always drew.
+      const html = render(<HeroOpenView title="Eid edit" photo={{ src: "/a.jpg", fit: "cover" }} />)
+        .container.innerHTML.replace(/\s+/g, "");
+      expect(html).toContain("var(--heroopen-ratio,4/3)");
+    });
+  });
+
+  it("gives the open hero's photo column the class its placement rules order", () => {
+    // `HeroOpenView` is inline-styled throughout; `order` has to come from the
+    // stylesheet because it changes at a breakpoint, so the column needs a hook.
+    const { container } = draw({ layout: "open" });
+    expect(container.querySelectorAll(".sf-heroopen-media")).toHaveLength(2);
+  });
+
+  it("leaves the slides unshaped when the merchant chose no shape", () => {
+    const { container } = draw();
+    for (const card of container.querySelectorAll(".sf-herocard")) {
+      expect(card.getAttribute("data-frame")).toBeNull();
+      expect(card.getAttribute("data-frame-m")).toBeNull();
+    }
+  });
+
   it("keeps the card's shape: every slide a card, stacked, with dots and no arrows", () => {
     const { container } = draw();
     expect(container.querySelectorAll(".sf-heroslides-slide")).toHaveLength(3);

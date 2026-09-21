@@ -24,6 +24,9 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       align?: string;
       promises?: string[];
       campaignLabel?: string;
+      mobileCopy?: string;
+      frame?: { vars?: Record<string, string>; base?: boolean; mobile?: boolean };
+      placement?: { side?: string; mobileFirst?: string };
     };
   }) => (
     <span
@@ -36,6 +39,12 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       data-align={props.align}
       data-promises={props.promises?.join("|")}
       data-campaign={props.campaignLabel}
+      data-mobile-copy={props.mobileCopy}
+      data-frame-vars={props.frame ? JSON.stringify(props.frame.vars) : undefined}
+      data-frame-base={props.frame?.base ? "true" : undefined}
+      data-frame-mobile={props.frame?.mobile ? "true" : undefined}
+      data-side={props.placement?.side}
+      data-first={props.placement?.mobileFirst}
     />
   ),
 }));
@@ -72,6 +81,148 @@ describe("hero", () => {
     expect(container.querySelector("img")).not.toBeNull();
     expect([...container.querySelectorAll("a")].map((a) => a.getAttribute("href"))).toEqual(["/shop/products"]);
     expect(container.querySelector("[data-island]")).toBeNull();
+  });
+
+  describe("picture shape", () => {
+    const frameOf = (settings: Record<string, unknown>) => {
+      const { container } = renderPage([
+        hero(settings, [{ id: "s1", settings: { image, title: "Eid" } }]),
+      ]);
+      const root =
+        container.querySelector("[data-island]") ??
+        (container.querySelector(".sf-herocard, .sf-heroopen") as HTMLElement | null);
+      return root;
+    };
+
+    it("leaves every layout untouched when the merchant chose no shape", () => {
+      // The promise the classic home depends on: no attribute, no variable, so
+      // the stylesheet keeps drawing the shape it always drew.
+      for (const layout of ["card", "open", "full-bleed"]) {
+        const root = frameOf({ layout }) as HTMLElement;
+        expect(root.getAttribute("data-frame")).toBeNull();
+        expect(root.getAttribute("data-frame-m")).toBeNull();
+        expect(root.getAttribute("data-frame-base")).toBeNull();
+        expect(root.getAttribute("data-frame-mobile")).toBeNull();
+      }
+    });
+
+    it("puts the ratio on a static card as a variable, with the attribute that says it exists", () => {
+      const root = frameOf({ layout: "card", frame: { base: "21:9" } }) as HTMLElement;
+      // The attribute is what the `min-height` and phone-vs-desktop rules read;
+      // CSS cannot ask whether a custom property was set.
+      expect(root.getAttribute("data-frame")).toBe("");
+      expect(root.getAttribute("data-frame-m")).toBeNull();
+      expect(root.style.getPropertyValue("--sfb-hero-frame")).toBe("21 / 9");
+    });
+
+    it("keeps a phone-only shape off the desktop variable", () => {
+      const root = frameOf({ layout: "open", frame: { mobile: "4:5" } }) as HTMLElement;
+      expect(root.getAttribute("data-frame")).toBeNull();
+      expect(root.getAttribute("data-frame-m")).toBe("");
+      expect(root.style.getPropertyValue("--sfb-hero-frame")).toBe("");
+      expect(root.style.getPropertyValue("--sfb-hero-frame-m")).toBe("4 / 5");
+    });
+
+    it("reaches the rotating hero and both full-bleed islands", () => {
+      // Each of these is a separate island; a prop that stops at the server
+      // wrapper fixes one hero and silently leaves the others unshaped.
+      const rotating = renderPage([
+        hero({ layout: "card", frame: { base: "1:1", mobile: "9:16" } }, [
+          { id: "s1", settings: { image, title: "One" } },
+          { id: "s2", settings: { image, title: "Two" } },
+        ]),
+      ]);
+      const stack = rotating.container.querySelector("[data-island]") as HTMLElement;
+      expect(stack.getAttribute("data-island")).toBe("hero-slides");
+      expect(stack.getAttribute("data-frame-base")).toBe("true");
+      expect(stack.getAttribute("data-frame-mobile")).toBe("true");
+
+      for (const settings of [
+        { layout: "full-bleed", frame: { base: "21:9" } },
+        { layout: "full-bleed", storeBanner: true, frame: { base: "21:9" } },
+      ]) {
+        const root = frameOf(settings) as HTMLElement;
+        expect(root.getAttribute("data-frame-base")).toBe("true");
+        /* Both halves of the shape, and they must describe the SAME one: the
+           ratio for the card and open heroes' `aspect-ratio`, and the padding
+           percentage for the full-width hero, which cannot use `aspect-ratio`
+           because a ceiling would clip its copy (see `ASPECT_RATIO_PADDING`).
+           9 / 21 = 42.8571%, so a mismatch here means the two maps have drifted. */
+        expect(JSON.parse(root.getAttribute("data-frame-vars") ?? "{}")).toEqual({
+          "--sfb-hero-frame": "21 / 9",
+          "--sfb-hero-pad": "42.8571%",
+        });
+      }
+    });
+  });
+
+  describe("picture placement", () => {
+    const rootOf = (settings: Record<string, unknown>, slides = 1) => {
+      const { container } = renderPage([
+        hero(
+          settings,
+          Array.from({ length: slides }, (_, i) => ({
+            id: `s${i}`,
+            settings: { image, title: `Slide ${i}` },
+          })),
+        ),
+      ]);
+      return (container.querySelector("[data-island]") ??
+        container.querySelector(".sf-herocard, .sf-heroopen")) as HTMLElement;
+    };
+
+    it("sets no attribute when the merchant placed nothing", () => {
+      // The classic home's promise: unplaced heroes keep the placement the
+      // stylesheet has always drawn.
+      for (const layout of ["card", "open"]) {
+        const root = rootOf({ layout });
+        expect(root.getAttribute("data-media-side")).toBeNull();
+        expect(root.getAttribute("data-mobile-first")).toBeNull();
+      }
+    });
+
+    it("marks a left picture and leaves a right one to the default", () => {
+      expect(rootOf({ layout: "card", imageSide: "left" }).getAttribute("data-media-side")).toBe("left");
+      // Right IS the default, so it needs no attribute and gets none — one way
+      // to draw one rendering.
+      expect(rootOf({ layout: "card", imageSide: "right" }).getAttribute("data-media-side")).toBeNull();
+    });
+
+    it("carries the phone order on both static layouts", () => {
+      expect(rootOf({ layout: "card", mobileFirst: "text" }).getAttribute("data-mobile-first")).toBe("text");
+      expect(rootOf({ layout: "open", mobileFirst: "picture" }).getAttribute("data-mobile-first")).toBe(
+        "picture",
+      );
+    });
+
+    it("reaches the rotating hero too", () => {
+      const stack = rootOf({ layout: "card", imageSide: "left", mobileFirst: "text" }, 2);
+      expect(stack.getAttribute("data-island")).toBe("hero-slides");
+      expect([stack.getAttribute("data-side"), stack.getAttribute("data-first")]).toEqual(["left", "text"]);
+    });
+
+    it("never places a full-bleed hero, whose picture is its background", () => {
+      const root = rootOf({ layout: "full-bleed", imageSide: "left", mobileFirst: "text" });
+      expect(root.getAttribute("data-side")).toBeNull();
+      expect(root.getAttribute("data-first")).toBeNull();
+    });
+  });
+
+  it("sends the phone-text choice to whichever full-bleed hero is drawn", () => {
+    // Two islands draw a full-width hero — the plain one and the store-banner
+    // one — and the setting has to reach both. Missing the second is the trap
+    // §0.4 of the plan names, and the previous plan's §11 logs it happening.
+    const copyOf = (settings: Record<string, unknown>) => {
+      const { container } = renderPage([
+        hero(settings, [{ id: "s1", settings: { image, title: "Eid", subtitle: "Free delivery" } }]),
+      ]);
+      return container.querySelector("[data-island]")?.getAttribute("data-mobile-copy");
+    };
+    expect(copyOf({ layout: "full-bleed", mobileCopy: "full" })).toBe("full");
+    expect(copyOf({ layout: "full-bleed", storeBanner: true, mobileCopy: "full" })).toBe("full");
+    // Unset stays unset all the way down: no attribute, so the stylesheet's
+    // `:not(...)` keeps drawing what the shop already showed.
+    expect(copyOf({ layout: "full-bleed" })).toBeNull();
   });
 
   it("keeps a phone link as typed and hides the store's name when a slide has no title", () => {

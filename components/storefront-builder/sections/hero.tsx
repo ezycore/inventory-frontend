@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import type { StoreCampaign, StoreHeroSlide, StorefrontImage } from "@/lib/storefront-client";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
+import { ASPECT_RATIOS, ASPECT_RATIO_PADDING } from "@/lib/storefront-builder/aspect-ratios";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { money } from "@/components/storefront/format";
@@ -14,6 +16,8 @@ import {
   heroPrimaryButton,
   heroSecondaryButton,
   heroSlidePhoto,
+  type HeroFrame,
+  type HeroPlacement,
 } from "@/components/storefront/home/hero-static";
 import { Island } from "@/components/storefront-builder/islands/island-map";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
@@ -60,6 +64,38 @@ export function heroSlides(blocks: readonly SlideBlock[], keepEmpty = false): St
       },
     ];
   });
+}
+
+/**
+ * The hero's chosen shape, as the pair every framed builder section carries: the
+ * custom properties hold the ratio, and `base`/`mobile` say a ratio EXISTS,
+ * which each view turns into `data-frame` / `data-frame-m`.
+ *
+ * Both halves, because CSS cannot ask whether a custom property was set, and two
+ * rules depend on the answer — the full-bleed hero's `min-height` floor has to be
+ * lifted only where a shape replaces it (a floor beats an `aspect-ratio`, so
+ * 21:9 on a 390px phone would otherwise compute 167px, be floored straight back
+ * to 260px, and show the merchant nothing), and a phone-only shape must not also
+ * crop the desktop.
+ *
+ * `image-banner` and `gallery` carry the same pair for the same reason. Plain
+ * data throughout, so it crosses an island boundary unchanged.
+ */
+function heroFrame(settings: Pick<Settings, "frame">): HeroFrame | undefined {
+  const frame = settings.frame;
+  if (!frame?.base && !frame?.mobile) return undefined;
+  return {
+    vars: {
+      ...responsiveVars("sfb-hero-frame", frame, (ratio) => ASPECT_RATIOS[ratio]),
+      /* The same shape as a percentage, for the ONE layout that cannot use
+         `aspect-ratio`: a full-width hero's words sit on the photograph, so its
+         box has to be able to grow past the shape rather than clip them. See
+         `ASPECT_RATIO_PADDING`. */
+      ...responsiveVars("sfb-hero-pad", frame, (ratio) => ASPECT_RATIO_PADDING[ratio]),
+    },
+    base: !!frame.base,
+    mobile: !!frame.mobile,
+  };
 }
 
 const storeWord = (word: "shopNow" | "browseCats" | "campaignOff") => (
@@ -120,10 +156,28 @@ export function HeroSection({
   /* Every layout, not just `open`. The control was offered on all three and
      moved nothing on two of them (plan phase 4). */
   const align = settings.align ?? "left";
+  /* Full-bleed only — the other two layouts show every word on a phone already,
+     and `field-visibility.ts` hides the control there. Passed as the merchant's
+     value or not at all, so the classic home's own callers stay attribute-free. */
+  const mobileCopy = settings.mobileCopy;
+  const frame = heroFrame(settings);
+  /* Card and open only — a full-bleed hero's picture is its background, and
+     `field-visibility.ts` hides both controls there. Undefined rather than a
+     resolved default, so a hero nobody placed sets no attribute at all and the
+     stylesheet keeps drawing what it always drew. */
+  const placement: HeroPlacement | undefined =
+    settings.imageSide || settings.mobileFirst
+      ? { side: settings.imageSide, mobileFirst: settings.mobileFirst }
+      : undefined;
 
   if (settings.layout === "full-bleed") {
     if (!settings.storeBanner) {
-      return <Island name="hero-fullbleed" props={{ base: context.base, slides, storeName, align }} />;
+      return (
+        <Island
+          name="hero-fullbleed"
+          props={{ base: context.base, slides, storeName, align, mobileCopy, frame }}
+        />
+      );
     }
     return (
       <Island
@@ -133,6 +187,8 @@ export function HeroSection({
           storeName,
           storeWords: !!settings.storeWords,
           align,
+          mobileCopy,
+          frame,
           slides,
           /* The store banner, and nothing else. The view reaches for it only
              where a slide has no artwork of its own, which is what "Use the
@@ -172,6 +228,8 @@ export function HeroSection({
           storeName,
           layout: settings.layout === "open" ? "open" : "card",
           align,
+          frame,
+          placement,
           banner: settings.storeBanner ? context.banner : undefined,
           storeWords: !!settings.storeWords,
           /* Plain text, not the finished badge: an island's props cross the
@@ -259,11 +317,13 @@ export function HeroSection({
     slideLink,
   };
   return settings.layout === "open" ? (
-    <HeroOpenView {...copy} align={align} />
+    <HeroOpenView {...copy} align={align} frame={frame} placement={placement} />
   ) : (
     <HeroCardView
       {...copy}
       align={align}
+      frame={frame}
+      placement={placement}
       promises={settings.promises ? (context.trustBadges ?? []).map((badge) => badge.text.trim()) : []}
     />
   );

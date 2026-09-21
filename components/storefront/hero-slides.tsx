@@ -12,6 +12,8 @@ import {
   heroPrimaryButton,
   heroSecondaryButton,
   heroSlidePhoto,
+  type HeroFrame,
+  type HeroPlacement,
 } from "@/components/storefront/home/hero-static";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
@@ -48,6 +50,8 @@ export function HeroSlidesView({
   banner,
   storeWords,
   campaignLabel,
+  frame,
+  placement,
   promises = [],
 }: {
   base: string;
@@ -66,6 +70,15 @@ export function HeroSlidesView({
    * "off" is the shopper's and lives in the dictionary this component reads.
    */
   campaignLabel?: string;
+  /**
+   * The merchant's shape, handed to EVERY slide rather than to the stack. The
+   * slides share one grid cell, so one shape on the wrapper would not reach the
+   * `Media` calls that read it — and giving them all the same one is what keeps
+   * the box from resizing as the slides cross-fade.
+   */
+  frame?: HeroFrame;
+  /** Where the picture sits, handed to every slide for the same reason as `frame`. */
+  placement?: HeroPlacement;
   /** The store's promises. Card only, and identical on every slide — see below. */
   promises?: string[];
 }) {
@@ -154,7 +167,7 @@ export function HeroSlidesView({
             inert={!active}
           >
             {layout === "open" ? (
-              <HeroOpenView {...copy} align={align} />
+              <HeroOpenView {...copy} align={align} frame={frame} placement={placement} />
             ) : (
               /* The promises go on EVERY card, not once beneath the stack.
                  They belong inside the card's border — that footer strip is
@@ -162,7 +175,13 @@ export function HeroSlidesView({
                  detached strip under a bordered card is not that shape. The
                  copies are identical, so nothing about them appears to change
                  as the slides cross-fade, which is what decision D6 is for. */
-              <HeroCardView {...copy} align={align} promises={promises} />
+              <HeroCardView
+                {...copy}
+                align={align}
+                frame={frame}
+                placement={placement}
+                promises={promises}
+              />
             )}
           </div>
         );

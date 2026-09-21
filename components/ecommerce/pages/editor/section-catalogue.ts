@@ -281,6 +281,7 @@ const FIELD_LABELS: Record<string, string> = {
   flow: "Layout",
   focal: "Focus point",
   frame: "Picture shape",
+  "hero.frame": "Hero shape",
   galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
@@ -298,6 +299,8 @@ const FIELD_LABELS: Record<string, string> = {
   line: "Show a line",
   link: "Link",
   mobileColumns: "Columns on phones",
+  mobileCopy: "Phone text",
+  mobileFirst: "First on phones",
   mobileImage: "Phone picture",
   mode: "Style",
   name: "Name",
@@ -349,11 +352,23 @@ const HINTS: Record<string, string> = {
   hideRelated: "Add a Related products section to show them somewhere else on the page.",
   alt: "Say what the picture shows. Screen readers read it aloud.",
   frame: "Default shows each picture whole. A shape crops it to fit.",
+  /* NOT the bare `frame` hint above. A hero always has a box — it has never
+     drawn a picture at its own proportions — so "default shows each picture
+     whole" would be false on every hero. Says what unset draws instead. */
+  "hero.frame":
+    "Default keeps each layout's own shape: a card is 16:9 on phones and 4:3 above, an open hero 4:3, and a full-width hero fills a set height. A phone shape applies below 680px on card and open heroes, and below 640px on a full-width one.",
   buttonHref: "A page on your store like /products, a full web address, or tel: / mailto:.",
   link: "A page on your store like /products, a full web address, or tel: / mailto:.",
   ctaHref: "A page on your store like /products, or a full web address.",
   categoryIds: "Leave empty to show every collection.",
   mobileImage: "Optional. Shown on phones instead of the main picture.",
+  /* Section-keyed like its neighbours: only the hero has this field today, but a
+     bare key is the collision `frame` already walked into — see `"hero.frame"`. */
+  "hero.mobileFirst":
+    "Default keeps each layout's own order. Text first pushes the picture down the phone's screen, often below the fold — use it where the picture is decoration rather than the product.",
+  "hero.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  "hero.mobileCopy":
+    "A full-width hero lays its words over the photograph, so a phone shows the headline alone. Everything adds the badge and the subtitle back, smaller. The headline is two lines on a phone either way.",
   cardImageFit: CARD_PHOTO_HINT,
   cardImageRatio: CARD_PHOTO_HINT,
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
@@ -385,6 +400,14 @@ const HINTS: Record<string, string> = {
 
 /** Option names that only make sense for one setting, where the same value means something else elsewhere. */
 const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
+  mobileFirst: {
+    picture: "The picture",
+    text: "The text",
+  },
+  mobileCopy: {
+    full: "Everything",
+    "title-only": "Headline only",
+  },
   storeHeading: {
     featured: "“Featured products”",
     newArrivals: "“New arrivals”",

@@ -5,6 +5,7 @@ import type { StoreHeroSlide, StorefrontImage } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroMedia } from "@/components/storefront/hero-media";
+import { heroFrameAttrs, type HeroFrame } from "@/components/storefront/home/hero-static";
 import { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
 import { wrap } from "@/components/storefront/home/wrap";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
@@ -55,6 +56,8 @@ export function HeroFullBleedView({
   storeName,
   fallback,
   align = "left",
+  mobileCopy,
+  frame,
 }: {
   base: string;
   slides: StoreHeroSlide[];
@@ -67,6 +70,25 @@ export function HeroFullBleedView({
    * classic home passes nothing.
    */
   align?: "left" | "center";
+  /**
+   * How much of the copy a phone shows. The phone has always drawn the headline
+   * alone — the badge and the subtitle were deleted outright below 640px, with
+   * nothing in the editor saying so — and `title-only` keeps exactly that.
+   * `full` brings both back, sized for a phone rather than inherited from the
+   * desktop; the rules are beside `.sf-hero-fullbleed` in storefront.css.
+   *
+   * Undefined, not `"title-only"`, is what the **classic home** passes: it sets
+   * no attribute at all, so the stylesheet's `:not([data-mobile-copy="full"])`
+   * keeps drawing that page exactly as it did.
+   */
+  mobileCopy?: "full" | "title-only";
+  /**
+   * The merchant's shape. Setting one takes this hero's `min-height` FLOOR away
+   * — see the rules beside `.sf-hero-fullbleed` in storefront.css. Without that,
+   * the floor wins every time and the control does nothing on the one layout
+   * whose height a merchant most wants to decide.
+   */
+  frame?: HeroFrame;
 }) {
   const centred = align === "center";
   const hasSlides = slides.length > 0;
@@ -108,6 +130,9 @@ export function HeroFullBleedView({
       className={`sf-hero-fullbleed${image ? " sf-hero-fullbleed-image" : ""}`}
       data-align={centred ? "center" : undefined}
       data-hide-mobile-copy={slide?.hideTextOnMobile || undefined}
+      data-mobile-copy={mobileCopy === "full" ? "full" : undefined}
+      {...heroFrameAttrs(frame)}
+      style={frame?.vars}
       {...(rotates ? { ...hoverProps, ...focusProps, ...swipeProps } : {})}
       aria-roledescription={rotates ? "carousel" : undefined}
     >

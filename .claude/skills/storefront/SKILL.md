@@ -2033,6 +2033,101 @@ Three rules go with it, and they are what make it safe:
 **A new section ships with its rules**, and a rule is a claim about the renderer —
 when the renderer changes, the rule is part of the change.
 
+⚠ **An empty choice must not repeat a value the field already lists** (2026-09-21).
+`field-empty-choice.ts` classifies every optional enum as `inherit`, `meaning` or `value`, and the trap
+is `meaning`: it is only correct when **no listed value says the same thing**. `"hero.imageFit"` was
+`meaning: "Whole picture"` while `fit` was on the list drawing the identical hero — `heroSlidePhoto`
+maps unset and `fit` to the same `canvas` — so the merchant saw "Whole picture" and "Show the whole
+picture" as separate choices. It is `{ kind: "value", value: "fit" }` now. No test can catch this
+mechanically (whether a phrase duplicates a value is a fact about the renderer), so every `meaning`
+entry carries a comment naming the answer no listed value gives, and only a browser pass found this one.
+
+⚠ **One key names the STYLE BOX, not a setting: `"hero.style.width"`** (2026-09-21).
+`section-style-fields.tsx` asks the same table before drawing Style → Width, because
+"Full width" is also what the hero's own Layout control is called and the Style tab's
+copy won — so Width = "Page column" boxed an edge-to-edge hero while its layout
+claimed otherwise. Two things follow. The optional-fields guarantee above **skips**
+`style.*` keys, since there is no spec field to check; its stand-in is a round-trip
+test that the stored style survives being hidden. And hiding is only half —
+`heroFullBleed` carries `ownsWidth`, without which the stale value keeps applying
+where nobody can see or clear it.
+
+### The hero's SHAPE and PLACEMENT are the merchant's, per device (2026-09-21)
+
+Four settings, and every one of them renders exactly what it rendered before when
+unset — which is what lets the **classic home page**, which passes none of them,
+share these renderers untouched.
+
+| Setting | What it does | Where it is dead |
+|---|---|---|
+| `frame` (responsive) | The hero's box: 21:9 → 9:16 | — |
+| `imageSide` | Picture left or right past the breakpoint | full-bleed, and with no picture |
+| `mobileFirst` | Picture or text first in the phone's column | full-bleed, no picture, or every slide hiding its text |
+| `mobileCopy` | Whether a phone shows the badge and subtitle | everything but full-bleed |
+
+**`frame` carries an ATTRIBUTE as well as a variable**, like `image-banner` and
+`gallery`: `data-frame` / `data-frame-m` beside `--sfb-hero-frame` / `-m`. CSS cannot
+ask whether a custom property was set, and two rules turn on exactly that question.
+
+⚠ **`min-height` is a FLOOR and a floor beats `aspect-ratio`.** `.sf-hero-fullbleed`
+is `clamp(380px, 62vh, 640px)`, so Cinema 21:9 on a 390px phone computes 167px, gets
+floored back to 260px, and shows the merchant nothing. The floor is lifted to `0`
+wherever a shape replaces it — `[data-frame]` — and only there.
+
+⚠ **…and `aspect-ratio` is a CEILING, which is why the full-width hero does not use
+it** (2026-09-21). That hero lays its type over the photograph under
+`overflow: hidden` with `align-items: flex-end`, so a shape shorter than the words
+makes them overflow the TOP and be sliced — browser QA caught 21:9 on a phone cutting
+a badge's ascenders off. **No `min-height` rescues it:** `0`, `auto`, `fit-content`,
+`min-content` and `max-content` were each measured against the live hero in Chrome and
+every one lost to the ratio. So that hero takes its shape as `padding-top` on a
+zero-width `::before` — percentage padding resolves against the containing block's
+WIDTH, so it draws the same shape but ADDS to layout instead of fixing the box, and the
+hero ends up as tall as the shape or as tall as its copy, whichever is more.
+`ASPECT_RATIO_PADDING` in `lib/storefront-builder/aspect-ratios.ts` derives those
+percentages from `ASPECT_RATIOS` so the two cannot drift. Every other caller keeps
+`aspect-ratio`: their picture is a slot with nothing to overflow.
+
+⚠ **Three specificity traps in these rules, all live, all the same shape.**
+`:not()` and `:has()` each take their argument's specificity, so hero selectors
+that look weak are not. (1) `[data-frame-m]` (0,2,0) outranks a bare
+`.sf-herocard` (0,1,0), so a phone-only shape follows the merchant onto the
+desktop unless the desktop block carries a `:not([data-frame])` twin. (2) Inside
+the 640px block `.sf-hero-fullbleed:has(> .sf-hero-media)` **ties** with
+`[data-frame-m]`, so the frame rules must come *after* it or the `min-height`
+floor returns. (3) `.sf-herocard:not(:has(> .sf-herocard-media))` — the rule that
+collapses a card with no photo to one column — also weighs (0,2,0), the same as
+`.sf-herocard[data-media-side="left"]`, so the placement rule must carry
+`:has(> .sf-herocard-media)` itself or a pictureless card renders two columns with
+a void in the first.
+
+**Before adding any `.sf-herocard` / `.sf-heroopen` / `.sf-hero-fullbleed` rule,
+count its specificity against the rules it must not beat, and remember that a
+placement or shape attribute sits on the ROOT whatever the slide carries** — a
+rotating hero reaches the empty case on slide two.
+
+⚠ **Both static heroes answer "which column is wider" the same way: the COPY
+keeps it.** `--herocols` is `1.1fr 1fr`, sized for copy on the left, so moving the
+picture left has to swap the tracks too — the card does it by redeclaring its
+`grid-template-areas` and columns together, the open hero through
+`--heroopen-cols`, which exists only because its `grid-template-columns` is inline
+and a stylesheet cannot otherwise reach it.
+
+**Two placement settings, not one responsive value**, and the reason generalises:
+the two devices start from opposite defaults — the picture is second on a desktop
+card and first on a phone — and a responsive value inherits the desktop's until it
+is set, so one field would move every existing hero's photograph below the fold. A
+ratio that inherits is merely surprising; a reordered column is destructive. Where
+inheritance is surprising the builder's responsive model wins; where it is
+destructive it does not.
+
+The card's desktop swap redeclares `grid-template-areas` **and** the columns:
+`--herocols` is `1.1fr 1fr`, sized for copy on the left, so moving the areas alone
+hands the extra tenth to the photograph. The wider column follows the copy.
+
+`lib/storefront-builder/aspect-ratios.ts` is the one ratio map — `image-banner`,
+`gallery`, `image-text` and `video` each had a private copy before 2026-09-21.
+
 ### `age-chips` — a facet that is not a category
 
 `AgeChips` (`sections/category-sections.tsx`) renders the store's AGE tags as a chip row, in the

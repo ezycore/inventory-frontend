@@ -4,6 +4,23 @@ import { sectionFrame } from "@/lib/storefront-builder/section-style";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 
 describe("sectionFrame", () => {
+  it("lets a frame that owns its width beat the stored one", () => {
+    const heroFullBleed = { top: "0px", bottom: "0px", width: "full", ownsAlign: true, ownsWidth: true } as const;
+
+    // The case this exists for: a full-bleed hero whose Style tab still stores
+    // "Page column" from before that control was hidden. The layout wins, so
+    // the hero is edge to edge and the stale value cannot box it.
+    expect(sectionFrame({ width: "content" }, heroFullBleed).width).toBe("full");
+    expect(sectionFrame(undefined, heroFullBleed).width).toBe("full");
+
+    // ⚠ The inverted `??`, and why this test exists: `ownsAlign` works by
+    // OMITTING a variable, so copying its shape here would compile and change
+    // nothing. Without `ownsWidth` the stored value still wins, as it must for
+    // every other section.
+    const card = { top: "0px", bottom: "0px", width: "full", ownsAlign: true } as const;
+    expect(sectionFrame({ width: "content" }, card).width).toBe("content");
+  });
+
   it("applies the defaults when a section has no style", () => {
     const frame = sectionFrame(undefined);
     expect(frame.width).toBe("content");

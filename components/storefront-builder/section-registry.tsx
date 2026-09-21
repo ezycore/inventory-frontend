@@ -177,7 +177,12 @@ const HOME_FRAMES = {
      the Content tab, is the only thing that moves hero text (plan phase 5). */
   heroCard: { ...even("var(--pad)"), ownsAlign: true },
   heroOpen: { top: "clamp(28px,5vw,64px)", bottom: "clamp(20px,3vw,40px)", ownsAlign: true },
-  heroFullBleed: { top: "0px", bottom: "0px", width: "full", ownsAlign: true },
+  /* And its width: "Full width" is already what the Layout control calls this
+     hero, so the Style tab offering a second "Full width" — which won, and could
+     box an edge-to-edge hero into the page column — was two levers on one
+     decision. `field-visibility.ts` hides that control for this layout; this is
+     the other half, without which the stored value would keep applying. */
+  heroFullBleed: { top: "0px", bottom: "0px", width: "full", ownsAlign: true, ownsWidth: true },
   row: { top: "clamp(16px,3vw,28px)", bottom: "8px" },
   tiles: even("clamp(16px,3vw,28px)"),
 } satisfies Record<string, FrameDefaults>;

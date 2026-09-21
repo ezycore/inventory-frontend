@@ -15,6 +15,58 @@ import { brandButton, buttonMetrics } from "@/lib/storefront-button";
  * Builder's hero passes a single slide.
  */
 
+/**
+ * The shape the merchant chose for a hero, ready for a view to put on its root
+ * element: `vars` carries `--sfb-hero-frame` and its `-m` twin, and the two
+ * booleans say which of them exists.
+ *
+ * The booleans are not redundant with the variables. CSS cannot ask whether a
+ * custom property was set, and two of the stylesheet's rules turn on exactly
+ * that: the full-bleed hero lifts its `min-height` floor only where a shape
+ * replaces it, and a phone-only shape must not reach the desktop. So a view
+ * spreads `heroFrameAttrs(frame)` beside `style={{ ...frame?.vars }}`.
+ *
+ * Undefined on every classic home hero, which sets nothing and keeps the shapes
+ * the stylesheet has always drawn.
+ */
+export interface HeroFrame {
+  vars: CSSProperties;
+  /** A desktop shape is set — `data-frame`. */
+  base: boolean;
+  /** A phone shape is set — `data-frame-m`. */
+  mobile: boolean;
+}
+
+/**
+ * Where the picture sits relative to the copy: `side` past the breakpoint, and
+ * `mobileFirst` in the phone's single column.
+ *
+ * Two fields and not one responsive value, because the two devices start from
+ * opposite defaults — the picture is second on a desktop card and first on a
+ * phone — and a responsive value inherits the desktop's until it is set, which
+ * would move every existing hero's photograph below the fold.
+ *
+ * Both undefined on every classic home hero, which keeps the placement this
+ * file has always drawn: picture right on a desktop, picture first on a phone
+ * card, copy first on a phone open hero.
+ */
+export interface HeroPlacement {
+  side?: "left" | "right";
+  mobileFirst?: "picture" | "text";
+}
+
+/** `data-media-side` / `data-mobile-first` for a hero's root element. */
+export const heroPlacementAttrs = (placement?: HeroPlacement) => ({
+  "data-media-side": placement?.side === "left" ? "left" : undefined,
+  "data-mobile-first": placement?.mobileFirst,
+});
+
+/** `data-frame` / `data-frame-m` for a hero's root element. */
+export const heroFrameAttrs = (frame?: HeroFrame) => ({
+  "data-frame": frame?.base ? "" : undefined,
+  "data-frame-m": frame?.mobile ? "" : undefined,
+});
+
 /** The hero photo, as `Media` takes it. */
 export interface HeroPhoto {
   src: string;
@@ -141,8 +193,15 @@ export function HeroCardView({
   priority = true,
   slideLink,
   align = "left",
+  frame,
+  placement,
   promises = [],
-}: HeroCopy & { align?: "left" | "center"; promises?: string[] }) {
+}: HeroCopy & {
+  align?: "left" | "center";
+  frame?: HeroFrame;
+  placement?: HeroPlacement;
+  promises?: string[];
+}) {
   return (
     /* `data-align`, not an inline style: centring a card is four rules, not one
        — the copy column, the button row's own stretch on a phone and the trust
@@ -154,6 +213,9 @@ export function HeroCardView({
       className="sf-herocard"
       data-align={align === "center" ? "center" : undefined}
       data-hide-mobile-copy={hideMobileCopy || undefined}
+      {...heroFrameAttrs(frame)}
+      {...heroPlacementAttrs(placement)}
+      style={frame?.vars}
     >
       <div className="sf-herocard-copy">
         {/* The ACCENT, not the brand. A hero badge is the storefront's most
@@ -234,7 +296,9 @@ export function HeroOpenView({
   priority = true,
   slideLink,
   align = "left",
-}: HeroCopy & { align?: "left" | "center" }) {
+  frame,
+  placement,
+}: HeroCopy & { align?: "left" | "center"; frame?: HeroFrame; placement?: HeroPlacement }) {
   const centred = align === "center";
   return (
     /* Two classes on an otherwise inline-styled hero, and only because neither
@@ -243,10 +307,17 @@ export function HeroOpenView({
     <div
       className="sf-heroopen"
       data-hide-mobile-copy={hideMobileCopy || undefined}
+      {...heroFrameAttrs(frame)}
+      {...heroPlacementAttrs(placement)}
       style={{
+        ...frame?.vars,
         display: "grid",
         // No photo → the copy panel takes the full width (see HeroCardView).
-        gridTemplateColumns: photo ? "var(--herocols)" : "1fr",
+        /* `--heroopen-cols` so the stylesheet can swap the tracks when the
+           picture moves left — an inline value is otherwise unreachable from
+           CSS. Unset it falls back to `--herocols`, which is `1fr` on a phone
+           and `1.1fr 1fr` above, exactly as before. */
+        gridTemplateColumns: photo ? "var(--heroopen-cols, var(--herocols))" : "1fr",
         gap: "clamp(24px,4vw,48px)",
         alignItems: "center",
       }}
@@ -318,7 +389,11 @@ export function HeroOpenView({
           the page. Dropped entirely with no photo — an empty tinted block is
           worse than none (see HeroCardView). */}
       {photo ? (
+        /* The class exists only so the placement rules have something to order
+           — this hero is inline-styled everywhere else, and `order` has to come
+           from a stylesheet because it changes at a breakpoint. */
         <div
+          className="sf-heroopen-media"
           style={{
             background: "var(--accent-soft)",
             borderRadius: "var(--radius-lg)",
@@ -330,7 +405,10 @@ export function HeroOpenView({
             {...photo}
             alt=""
             label="lifestyle shot"
-            ratio="4 / 3"
+            /* The merchant's shape where they chose one — the stylesheet
+               resolves `--heroopen-ratio` per breakpoint, so a phone shape does
+               not reach the desktop. */
+            ratio="var(--heroopen-ratio, 4 / 3)"
             radius={0}
             style={{ borderRadius: "var(--radius-md)" }}
             // The likely LCP image — see HeroCardView.

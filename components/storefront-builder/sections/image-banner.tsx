@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import type { SettingsOf } from "@/lib/storefront-builder/settings";
+import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { focalPosition } from "@/lib/storefront-focal";
 import { SfImage } from "@/components/storefront/sf-image";
@@ -11,20 +12,11 @@ import type { SectionViewProps } from "@/components/storefront-builder/section-v
 type Spec = (typeof SECTION_SPECS)["image-banner"]["settings"];
 type Settings = SettingsOf<Spec>;
 
-const RATIOS: Record<NonNullable<Settings["frame"]>["base"], string> = {
-  "4:1": "4 / 1",
-  "3:1": "3 / 1",
-  "21:9": "21 / 9",
-  "16:9": "16 / 9",
-  "4:3": "4 / 3",
-  "1:1": "1 / 1",
-};
-
 /** The shape and focus point as custom properties — the phone's own, when set, as `-m`. */
 function bannerVars(settings: Settings): CSSProperties {
   const focal = settings.focal;
   return {
-    ...responsiveVars("sfb-banner-frame", settings.frame, (ratio) => RATIOS[ratio]),
+    ...responsiveVars("sfb-banner-frame", settings.frame, (ratio) => ASPECT_RATIOS[ratio]),
     ...(focal?.base ? { "--sfb-banner-focal": focalPosition(focal.base) } : {}),
     ...(focal?.mobile ? { "--sfb-banner-focal-m": focalPosition(focal.mobile) } : {}),
   } as CSSProperties;

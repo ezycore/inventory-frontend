@@ -1,12 +1,11 @@
 // coding-standard: maintained
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { parseVideoEmbed, videoPosterUrl } from "@/lib/storefront-builder/video-embed";
 import { Island } from "@/components/storefront-builder/islands/island-map";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["video"]["settings"];
-
-const RATIOS = { "16:9": "16 / 9", "9:16": "9 / 16", "1:1": "1 / 1" } as const;
 
 /**
  * A YouTube or Facebook video behind a click-to-load cover (plan §10): the page
@@ -35,7 +34,7 @@ export function VideoSection({ settings }: SectionViewProps<Spec>) {
           embed,
           label: settings.label,
           poster: settings.poster?.mediumUrl ?? settings.poster?.url ?? videoPosterUrl(embed),
-          ratio: RATIOS[ratio],
+          ratio: ASPECT_RATIOS[ratio],
         }}
       />
     </div>

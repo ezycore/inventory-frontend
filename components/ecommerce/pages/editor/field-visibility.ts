@@ -59,6 +59,22 @@ const str = (value: unknown): string | undefined => (typeof value === "string" ?
 /** The section's layout, for the rules that turn on it. */
 const layoutOf = (scope: FieldScope) => str(scope.settings.layout);
 
+/**
+ * True where the hero draws a picture at all — which is not the same as a slide
+ * carrying one. `heroSlidePhoto` falls back to the **store banner**, and
+ * `sections/hero.tsx` hands that banner to the card and open heroes whenever
+ * "Use the store banner" is on, so a hero of imageless slides still shows a
+ * photograph and still has something to place.
+ *
+ * The editor cannot see whether a banner has actually been uploaded
+ * (`context.banner` is storefront data), so this over-shows on a shop that has
+ * the toggle on and no banner yet. That is the right side to err on: an offered
+ * control that does nothing on one configuration is a smaller lie than a hidden
+ * control for a picture the shopper can see.
+ */
+const anyPicture = ({ settings, blocks }: FieldScope) =>
+  !!settings.storeBanner || blocks.some((block) => !!block.image || !!block.mobileImage);
+
 /** The block a block-field belongs to. Empty for a section-level field. */
 const blockOf = (scope: FieldScope): Record<string, unknown> =>
   (scope.blockIndex === undefined ? undefined : scope.blocks[scope.blockIndex]) ?? {};
@@ -155,6 +171,35 @@ const RULES: Record<string, VisibilityRule> = {
      full-bleed branch reads it. */
   "hero.secondaryLabel": (scope) => layoutOf(scope) !== "full-bleed",
   "hero.secondaryLink": (scope) => layoutOf(scope) !== "full-bleed",
+
+  /* Where the picture sits relative to the copy. A full-bleed hero's picture is
+     its background — there is nothing to put on a side, and nothing to order —
+     and with no picture on any slide there is nothing to place at all. */
+  "hero.imageSide": (scope) => layoutOf(scope) !== "full-bleed" && anyPicture(scope),
+  "hero.mobileFirst": (scope) =>
+    layoutOf(scope) !== "full-bleed" &&
+    anyPicture(scope) &&
+    /* With the copy hidden on every slide, the phone's column has ONE thing in
+       it. "Which comes first" then has nothing to answer — and unlike the rule
+       above, this one turns on a block setting rather than the section's. */
+    !scope.blocks.every((block) => !!block.hideTextOnMobile),
+
+  /* The one STYLE-BOX key in this table, and it earns its place: "Full width"
+     is what the hero's own Layout control calls this layout, and the Style tab
+     offered a second control with the same words that won — so Width = "Page
+     column" boxed an edge-to-edge hero while its layout still claimed
+     otherwise. Card and open heroes have no such collision and keep theirs.
+
+     `heroFullBleed`'s `ownsWidth` is the other half. Neither works alone: hide
+     the control without it and the stored width keeps applying invisibly; set
+     it without hiding the control and the merchant changes a setting that does
+     nothing. */
+  "hero.style.width": (scope) => layoutOf(scope) !== "full-bleed",
+
+  /* Full-bleed only. That layout lays its type over the photograph and has
+     always shown the headline alone on a phone; the card and open heroes draw
+     every word on every device, so there is nothing for this to decide. */
+  "hero.mobileCopy": (scope) => layoutOf(scope) === "full-bleed",
 
   /* A focus point aims a CROP. `canvas` fit shows the whole picture and ignores
      it — and an unset fit *is* canvas, so the control is dead until the

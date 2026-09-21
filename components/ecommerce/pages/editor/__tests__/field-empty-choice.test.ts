@@ -35,12 +35,58 @@ describe("fieldEmptyChoice", () => {
   });
 
   it("reads the same field differently per section, and falls back to the shared entry", () => {
-    /* A hero's `imageFit` follows nothing — no hero calls `useStoreImageFit()`,
-       and every branch draws the whole picture — so empty is its own answer
-       there. `cardImageFit` is the shared entry, and it really does follow the
+    /* A hero's `imageFit` follows nothing — no hero calls `useStoreImageFit()` —
+       so it cannot be the shared `inherit` entry. It draws the listed `fit`
+       value, which is a different answer again; see the dedicated test below.
+       `cardImageFit` is the shared entry, and it really does follow the
        Customize panel for every product section. */
-    expect(fieldEmptyChoice("hero", "imageFit")).toEqual({ kind: "meaning", label: "Whole picture" });
+    expect(fieldEmptyChoice("hero", "imageFit")?.kind).toBe("value");
     expect(fieldEmptyChoice("product-carousel", "cardImageFit")?.kind).toBe("inherit");
+  });
+
+  /**
+   * A `meaning` that describes what one of the field's OWN values already draws
+   * puts the same answer on the list twice, and the merchant has no way to tell
+   * the two apart. `hero.imageFit` shipped that way and only a browser pass
+   * caught it: the list read "Whole picture" and "Show the whole picture", and
+   * `heroSlidePhoto` maps unset and `fit` to the same `canvas`.
+   *
+   * There is no mechanical check for this — whether a phrase duplicates a value
+   * is a question about the renderer, not the data — so each `meaning` entry
+   * carries a comment saying which answer no listed value gives, and this test
+   * pins the one that got it wrong.
+   */
+  it("does not offer one answer twice: an empty fit IS the listed 'fit' value", () => {
+    expect(fieldEmptyChoice("hero", "imageFit")).toEqual({ kind: "value", value: "fit" });
+
+    // The `meaning` entries that remain each name something no value lists: a
+    // picture drawn at its own proportions where every listed value is a ratio,
+    // and two answers that differ by layout or breakpoint.
+    expect(fieldEmptyChoice("image-banner", "frame")).toEqual({ kind: "meaning", label: "Whole picture" });
+    expect(fieldEmptyChoice("gallery", "frame")).toEqual({ kind: "meaning", label: "Whole picture" });
+  });
+
+  /**
+   * Every optional enum the hero shipped in 2026-09-21's shape work, together,
+   * because the one that was MISSED shipped a phantom "Default" to the editor
+   * and only a browser pass found it. A generic "Default" answers neither of the
+   * two questions at the top of this file.
+   */
+  it("classifies every one of the hero's shape and placement settings", () => {
+    // Two ratios at two breakpoints on a card, so no listed value says it.
+    expect(fieldEmptyChoice("hero", "frame")).toEqual({ kind: "meaning", label: "The layout decides" });
+    // "picture" on a card, "text" on an open hero — naming either would lie
+    // about the other.
+    expect(fieldEmptyChoice("hero", "mobileFirst")).toEqual({
+      kind: "meaning",
+      label: "The layout decides",
+    });
+    // These two DO draw one listed value, so they name it rather than a meaning.
+    expect(fieldEmptyChoice("hero", "imageSide")).toEqual({ kind: "value", value: "right" });
+    expect(fieldEmptyChoice("hero", "mobileCopy")).toEqual({ kind: "value", value: "title-only" });
+    // The hero draws its picture right where `image-text` draws it left: the
+    // same field name, two renderers, and each entry equals its own.
+    expect(fieldEmptyChoice("image-text", "imageSide")).toEqual({ kind: "value", value: "left" });
   });
 
   it("is undefined for a field nobody has classified, which keeps the old label", () => {

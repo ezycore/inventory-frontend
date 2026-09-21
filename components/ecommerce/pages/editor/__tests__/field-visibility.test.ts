@@ -43,6 +43,75 @@ describe("field visibility", () => {
     expect(shown("promises", { layout: "full-bleed" })).toBe(false);
   });
 
+  it("hides the Style tab's Width on a full-bleed hero, and keeps the stored value", () => {
+    // R11: this is the one key here that names the style box rather than a
+    // setting, so the spec-field guarantee above skips it and this stands in.
+    const styled = (layout: string): EditorSection => ({
+      id: "hero",
+      type: "hero",
+      v: 1,
+      enabled: true,
+      settings: { layout },
+      style: { width: "content" },
+    });
+    const scopeOf = (section: EditorSection) => ({ settings: section.settings ?? {}, blocks: [] });
+
+    // "Full width" is what the Layout control already calls this layout.
+    expect(isFieldVisible("style.width", "hero", scopeOf(styled("full-bleed")))).toBe(false);
+    // Card and open have no collision and keep the control.
+    expect(isFieldVisible("style.width", "hero", scopeOf(styled("card")))).toBe(true);
+    expect(isFieldVisible("style.width", "hero", scopeOf(styled("open")))).toBe(true);
+
+    // Hidden is not erased: the stored width rides through the save untouched,
+    // and switching the layout back hands the merchant their choice again.
+    const [saved] = savableSections([styled("full-bleed")]);
+    expect(saved.style).toEqual({ width: "content" });
+  });
+
+  it("offers the picture's placement only where there is a picture to place", () => {
+    const withPhoto = [{ image: { url: "/a.jpg" } }];
+    const phoneOnly = [{ mobileImage: { url: "/a.jpg" } }];
+    for (const field of ["imageSide", "mobileFirst"]) {
+      expect(shown(field, { layout: "card" }, withPhoto)).toBe(true);
+      expect(shown(field, { layout: "open" }, withPhoto)).toBe(true);
+      // A phone picture is still a picture.
+      expect(shown(field, { layout: "card" }, phoneOnly)).toBe(true);
+      // A full-bleed hero's picture is its background: nothing to place.
+      expect(shown(field, { layout: "full-bleed" }, withPhoto)).toBe(false);
+      // Text-only slides have nothing to put on a side.
+      expect(shown(field, { layout: "card" }, [{ title: "Eid" }])).toBe(false);
+      /* …unless the STORE BANNER is standing in for one. `heroSlidePhoto` falls
+         back to it and `sections/hero.tsx` hands it to both these layouts, so a
+         picture is drawn and there is something to place after all. Hiding here
+         would hide a control the renderer honours, which is the one thing
+         `field-visibility.ts` must never do. */
+      expect(shown(field, { layout: "card", storeBanner: true }, [{ title: "Eid" }])).toBe(true);
+      expect(shown(field, { layout: "open", storeBanner: true }, [{ title: "Eid" }])).toBe(true);
+      // The banner never reaches a full-bleed hero's placement — it has none.
+      expect(shown(field, { layout: "full-bleed", storeBanner: true }, [{ title: "Eid" }])).toBe(false);
+    }
+  });
+
+  it("drops the phone order once every slide hides its text", () => {
+    // One thing left in the column, so "which comes first" answers nothing.
+    // The side control is unaffected — it is a desktop question.
+    const hidden = [{ image: { url: "/a.jpg" }, hideTextOnMobile: true }];
+    expect(shown("mobileFirst", { layout: "card" }, hidden)).toBe(false);
+    expect(shown("imageSide", { layout: "card" }, hidden)).toBe(true);
+    // One slide still showing its text is enough to keep the question real.
+    const mixed = [...hidden, { image: { url: "/b.jpg" }, title: "Second" }];
+    expect(shown("mobileFirst", { layout: "card" }, mixed)).toBe(true);
+  });
+
+  it("offers the phone-text choice to the full-bleed hero alone", () => {
+    // It is the only layout that lays its type over the photograph, and the
+    // only one whose phone rendering ever dropped a word the merchant typed.
+    expect(shown("mobileCopy", { layout: "full-bleed" })).toBe(true);
+    expect(shown("mobileCopy", { layout: "full-bleed", storeBanner: true })).toBe(true);
+    expect(shown("mobileCopy", { layout: "card" })).toBe(false);
+    expect(shown("mobileCopy", { layout: "open" })).toBe(false);
+  });
+
   it("offers a focus point only where the picture is actually cropped", () => {
     // Unset fit IS canvas, which shows the whole picture and ignores the anchor.
     expect(shown("focal", { layout: "card" }, [{ imageFit: "crop" }], 0)).toBe(true);
@@ -64,6 +133,12 @@ describe("field visibility", () => {
    */
   it("names only optional fields, so hiding can never make a section unsaveable", () => {
     for (const key of VISIBILITY_RULE_KEYS) {
+      // A `style.*` key governs the STYLE BOX, not a spec field, so there is no
+      // spec entry to check and this guarantee does not reach it. Its own is
+      // the round-trip test below: hide the control, save, and the stored style
+      // is still there. `savableSections` sends `section.style` whole, exactly
+      // as it sends `section.settings`.
+      if (key.includes(".style.")) continue;
       const [type, field] = key.split(".");
       const spec = SECTION_SPECS[type as keyof typeof SECTION_SPECS] as {
         settings: Record<string, { optional?: boolean }>;
@@ -184,11 +259,15 @@ describe("field visibility", () => {
       [
         "hero.campaignBadge",
         "hero.focal",
+        "hero.imageSide",
+        "hero.mobileCopy",
+        "hero.mobileFirst",
         "hero.promises",
         "hero.secondaryLabel",
         "hero.secondaryLink",
         "hero.slideshow",
         "hero.storeWords",
+        "hero.style.width",
         "product-carousel.categoryId",
         "product-carousel.productIds",
         "product-carousel.tagIds",

@@ -1,12 +1,11 @@
 // coding-standard: maintained
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { ASPECT_RATIOS } from "@/lib/storefront-builder/aspect-ratios";
 import { SfImage } from "@/components/storefront/sf-image";
 import { SectionLink } from "@/components/storefront-builder/section-link";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["image-text"]["settings"];
-
-const RATIOS = { "4:5": "4 / 5", "1:1": "1 / 1", "4:3": "4 / 3", "16:9": "16 / 9" } as const;
 
 /** A button draws only with both a label and a link — never as a dead button. */
 const button = (label: string | undefined, href: string | undefined) =>
@@ -33,7 +32,7 @@ export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) 
         width={settings.image.width}
         height={settings.image.height}
         className="sfb-split-media"
-        style={{ aspectRatio: RATIOS[settings.imageRatio ?? "4:5"] }}
+        style={{ aspectRatio: ASPECT_RATIOS[settings.imageRatio ?? "4:5"] }}
       />
       <div>
         {settings.badge ? (

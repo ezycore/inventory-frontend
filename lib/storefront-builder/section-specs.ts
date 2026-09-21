@@ -67,8 +67,41 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       layout: { type: "enum", values: ["card", "open", "full-bleed"] },
-      /** Read by the `open` layout only. */
+      /** Where the type sits, on every layout — card, open and full-bleed alike. */
       align: { type: "enum", values: ["left", "center"], optional: true },
+      /*
+       * The hero's box, and the phone's own where it is set. Unset keeps the
+       * shape each layout has always drawn: 16:9 then 4:3 past the breakpoint on
+       * a card, 4:3 open, and on full-bleed a `min-height` floor rather than a
+       * shape at all — which is why setting this takes that floor away.
+       *
+       * A SECTION setting, not a per-slide one: the rotating hero stacks every
+       * slide in one grid cell, so per-slide shapes would only make the box as
+       * tall as the tallest slide.
+       */
+      frame: {
+        type: "enum",
+        values: ["21:9", "16:9", "4:3", "1:1", "4:5", "9:16"],
+        responsive: true,
+        optional: true,
+      },
+      /*
+       * Where the picture and the copy sit relative to each other. Two settings
+       * and not one responsive one, because the two devices start from opposite
+       * defaults — the picture is second on a desktop card and first on a phone —
+       * and a responsive value inherits the desktop's until it is set, which
+       * would move every existing hero's photograph below the fold.
+       *
+       * Card and open only. A full-bleed hero's picture is its background.
+       */
+      imageSide: { type: "enum", values: ["left", "right"], optional: true },
+      mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
+      /**
+       * Full-bleed only: how much of the slide's copy a phone shows. The phone
+       * has always drawn the headline alone, which is `title-only`; `full` adds
+       * the badge and the subtitle back, sized for a phone.
+       */
+      mobileCopy: { type: "enum", values: ["full", "title-only"], optional: true },
       /*
        * The classic home hero, for a hero moved from it (plan §17, Phase 5 step 5);
        * all unset on a new hero. `slideshow` rotates even one slide, as the home
@@ -101,10 +134,14 @@ export const SECTION_SPECS = {
         subtitle: { type: "string", max: 160, optional: true },
         buttonLabel: { type: "string", max: 30, optional: true },
         link: { type: "url", optional: true },
-        hideTextOnMobile: { type: "boolean", optional: true },
         /** A second button, on any card or open slide (decision D3). */
         secondaryLabel: { type: "string", max: 30, optional: true },
         secondaryLink: { type: "url", optional: true },
+        /* Last, and after BOTH buttons. Spec order is the order the editor
+           draws these controls in (`settings-fields.tsx` maps
+           `Object.entries(specs)`), and sitting between `link` and
+           `secondaryLabel` split the button pair down the middle of the panel. */
+        hideTextOnMobile: { type: "boolean", optional: true },
       },
     },
   },

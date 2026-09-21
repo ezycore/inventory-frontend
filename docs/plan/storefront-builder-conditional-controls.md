@@ -272,6 +272,13 @@ Ordered so that each phase makes the next one smaller. Phase 3 in particular rem
    islands already do. One behaviour in all four branches.
 3. [x] `field-empty-choice.ts`: `"hero.imageFit"` becomes `WHOLE_PICTURE` ("Whole picture"). Drop the
    comment citing `useStoreImageFit()`.
+   ⚠ **Superseded 2026-09-21 — this step was half right.** Dropping the `inherit` claim was correct:
+   no hero calls `useStoreImageFit()`. `WHOLE_PICTURE` was not, because **`fit` is a listed value that
+   draws exactly what unset draws** (`heroSlidePhoto` maps both to `canvas`), so the control ended up
+   offering "Whole picture" and "Show the whole picture" as two choices for one rendering. It is now
+   `{ kind: "value", value: "fit" }`, which is what this file's own doctrine prescribes for an empty
+   that renders as a listed value. Found by browser QA during the follow-on plan
+   (`storefront-hero-shape-controls.md`, §7 S5); unit tests could not catch it.
 
 ### Phase 2 — Full-bleed keeps its slides
 
@@ -748,3 +755,7 @@ and where you stopped. Keep it short — the board in §0.8 says *what* is done,
 - **2026-09-20** — Hero audited against the code (§3): 6 renderer defects, 6 inapplicable controls.
   Plan written. The conditional-visibility principle generalised from Hero to the whole builder (§1, §5)
   after review. No code written yet. Blocked on D1–D6.
+- **2026-09-21** — One correction from the follow-on plan's browser QA: phase 1 step 3's
+  `"hero.imageFit": WHOLE_PICTURE` put one answer on the list twice and is now
+  `{ kind: "value", value: "fit" }`. The step is annotated above. Nothing else in this plan changed.
+

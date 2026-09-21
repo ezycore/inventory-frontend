@@ -59,6 +59,22 @@ export interface FrameDefaults {
    * enough on its own; the variables have to stop being emitted too.
    */
   ownsAlign?: boolean;
+  /**
+   * The section's own settings decide its width, so the Style tab's must not
+   * also. The full-bleed hero is the case: its Layout control is already named
+   * "Full width", and the Style tab offered a second control with the same
+   * three options and the same words, which won.
+   *
+   * ⚠ **Not mechanically the same as `ownsAlign`.** Align is a variable that
+   * simply stops being emitted. Width is a precedence chain —
+   * `oneOf(…, style.width) ?? defaults?.width ?? "content"` — so this has to
+   * INVERT that `??` and let the frame's own width win over the stored one.
+   * Copying the `ownsAlign` shape here compiles and does nothing.
+   *
+   * Like `ownsAlign`, it travels with hiding the control: hide it without this
+   * and a stored width keeps applying where nobody can see or clear it.
+   */
+  ownsWidth?: boolean;
 }
 
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
@@ -130,7 +146,11 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
       // Omitted entirely for a section that aligns its own text — see `ownsAlign`.
       ...(defaults?.ownsAlign ? {} : responsiveVars("sfb-align", readAlign(style.align))),
     },
-    width: oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content",
+    // The frame first where it owns the width — see `ownsWidth`, and note this
+    // is an inverted `??` rather than an omitted variable.
+    width: defaults?.ownsWidth
+      ? (defaults.width ?? "content")
+      : (oneOf(["content", "wide", "full"] as const, style.width) ?? defaults?.width ?? "content"),
     tone: oneOf(["auto", "light", "dark"] as const, style.textTone) ?? "auto",
   };
 }

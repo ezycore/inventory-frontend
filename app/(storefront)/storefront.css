@@ -2698,6 +2698,41 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      trust badges in one column; `order` is what moves it to the top here. */
   order: -1;
 }
+
+/* ---- "Picture shape" (`frame`), on all three heroes ----
+   The merchant's own box, and the phone's own where they set one. Unset touches
+   nothing: every rule below is gated on a data attribute the builder adds only
+   when a shape exists, so the classic home — which sets none — keeps the shapes
+   this file has always drawn.
+
+   Why an attribute AND a variable, when the variable alone would carry the
+   ratio: CSS cannot ask whether a custom property was set. Two things here turn
+   on exactly that question — the full-bleed hero's `min-height` floor, which has
+   to be lifted only where a shape replaces it, and the difference between a
+   phone-only shape and one that also crops the desktop. `image-banner` and
+   `gallery` carry the same pair for the same reason.
+
+   Mobile-first, like the rest of this file: the phone's shape resolves first and
+   the 680px block hands the desktop back to `--sfb-hero-frame`. A phone-only
+   shape therefore never reaches a desktop, and a desktop-only shape reaches the
+   phone on purpose — a ratio that inherits is a shape the merchant chose,
+   applied somewhere they did not think about, which is the builder's own
+   responsive model. */
+/* ---- "First on phones" (`mobileFirst`) and "Picture side" (`imageSide`) ----
+   The card leads with the photograph on a phone and the open hero leads with
+   its copy, because their DOM orders differ and neither was ever a choice. These
+   two settings make it one. Unset draws exactly what each already drew.
+
+   ⚠ Text-first on a phone is a KNOWN regression, not a neutral option — the
+   note above this block records that copy-first pushed the photograph to ~477px
+   on an iPhone SE, where the fold cut it in half and no product was visible. The
+   control carries a hint saying so. It is offered because the merchant may have
+   a hero whose picture is decoration, and because "Hide text on phones" is
+   already a louder version of the same choice. */
+.sf-herocard[data-mobile-first="text"] .sf-herocard-media { order: 0; }
+
+.sf-herocard[data-frame-m] { --herocard-ratio: var(--sfb-hero-frame-m); }
+.sf-herocard[data-frame]:not([data-frame-m]) { --herocard-ratio: var(--sfb-hero-frame); }
 .sf-herocard-copy {
   display: flex;
   flex-direction: column;
@@ -2720,13 +2755,27 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 .sf-herocard-badge {
   /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. */
-  display: inline-block;
   background: var(--accent-soft);
   color: var(--accent);
   font-size: 11.5px;
   font-weight: 600;
   padding: 5px 11px;
   border-radius: 999px;
+  /* One line on a phone. The badge accepts 60 characters — the limit the classic
+     banner hero set, where the chip sat on a full-width photograph — and at
+     11.5px in a padded card that wraps to three lines stacked above the
+     headline, which reads as a broken pill rather than a label.
+
+     Clamped rather than shortened: lowering the limit would invalidate badges
+     merchants have already saved. `-webkit-box` replaces `inline-block` for the
+     clamp to work, and `width: fit-content` is what keeps the chip hugging its
+     text — a box element would otherwise stretch the column. */
+  display: -webkit-box;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
 }
 .sf-herocard-title {
   /* Scales WITH the merchant's type-scale axis rather than flattening to a
@@ -2804,6 +2853,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: none;
 }
 @media (min-width: 680px) {
+  /* `[data-frame-m]` outranks the plain `.sf-herocard` below, so a PHONE-only
+     shape would otherwise follow the merchant onto the desktop. Both rules are
+     needed, and `:not()` is what keeps them apart. */
+  .sf-herocard[data-frame] { --herocard-ratio: var(--sfb-hero-frame); }
+  .sf-herocard[data-frame-m]:not([data-frame]) { --herocard-ratio: 4 / 3; }
   .sf-herocard {
     --herocard-ratio: 4 / 3;
     grid-template-columns: var(--herocols);
@@ -2832,6 +2886,30 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     grid-template-areas:
       "copy"
       "trust";
+  }
+  /* Picture on the left. Redeclaring the AREAS is what moves it — reordering
+     the children would break the `:has()` collapse above, which needs the media
+     child to stay the third one.
+
+     The columns swap with them, and that is a decision rather than a detail:
+     `--herocols` is `1.1fr 1fr`, sized for copy on the left, so redeclaring the
+     areas alone would hand the extra tenth to the photograph and squeeze the
+     headline. The wider column follows the COPY, not the position.
+
+     ⚠ **`:has(> .sf-herocard-media)` is load-bearing, not decoration.** The
+     collapse rule above is `.sf-herocard:not(:has(…))`, and `:not()` and `:has()`
+     each take their argument's specificity — so it weighs (0,2,0), exactly what
+     `.sf-herocard[data-media-side="left"]` weighs on its own. A tie goes to
+     source order, and this rule is written later, so without the `:has()` here
+     it would beat the collapse and hand a PICTURELESS card two columns with
+     nothing in the first: the void that rule exists to prevent. The placement
+     attribute sits on the root whatever the slide carries, and a rotating hero
+     whose second slide has no picture reaches it mid-rotation. */
+  .sf-herocard[data-media-side="left"]:has(> .sf-herocard-media) {
+    grid-template-columns: 1fr 1.1fr;
+    grid-template-areas:
+      "media copy"
+      "media trust";
   }
   .sf-herocard-copy {
     grid-area: copy;
@@ -2865,7 +2943,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding: 0;
     font-size: 12.5px;
   }
-  .sf-herocard-badge { margin-bottom: 16px; }
+  /* `inline-block` again, which makes the phone's `-webkit-line-clamp` inert:
+     the desktop card's copy column is wide enough for 60 characters on one line,
+     and a clamp there would cut a badge that fits. Desktop rendering is
+     unchanged from before the clamp existed. */
+  .sf-herocard-badge { display: inline-block; margin-bottom: 16px; }
   .sf-herocard-title { font-size: var(--h1); margin-bottom: 14px; }
   .sf-herocard-sub { font-size: 15px; margin-bottom: 22px; }
   /* Never on a desktop: the setting is "hide text on PHONES". */
@@ -2881,7 +2963,19 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    the same reason — it is where `--herocols` becomes two columns. */
 .sf-heroopen {
   position: relative;
+  /* Read by the `<Media>` call's inline `aspect-ratio`, exactly as
+     `--herocard-ratio` is on the card. 4:3 is the shape this hero has always
+     drawn; the rules below hand it to the merchant's when they choose one. */
+  --heroopen-ratio: 4 / 3;
 }
+/* The open hero leads with its COPY on a phone — the opposite of the card, and
+   for no better reason than that the copy is its first child. `picture` puts the
+   photograph first; the card's own default needs no rule because `order: -1` on
+   its media already does it. */
+.sf-heroopen[data-mobile-first="picture"] > .sf-heroopen-media { order: -1; }
+
+.sf-heroopen[data-frame-m] { --heroopen-ratio: var(--sfb-hero-frame-m); }
+.sf-heroopen[data-frame]:not([data-frame-m]) { --heroopen-ratio: var(--sfb-hero-frame); }
 .sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
   display: none;
 }
@@ -2889,6 +2983,24 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
     display: block;
   }
+  /* Picture on the left. A two-column grid with no named areas, so `order` is
+     the whole job — and it must be re-stated here because the phone rule above
+     may have set it already.
+
+     The columns swap with it, for the same reason the card's do: `--herocols` is
+     `1.1fr 1fr`, sized for copy on the LEFT, and `order` alone would hand the
+     wider track to the photograph. The two heroes must answer "which column is
+     wider" the same way, or one section gives two answers. `--heroopen-cols` is
+     read by the inline `grid-template-columns` in `HeroOpenView`, which is the
+     only way a stylesheet can reach it — an inline value cannot be overridden. */
+  .sf-heroopen[data-media-side="left"] {
+    --heroopen-cols: 1fr 1.1fr;
+  }
+  .sf-heroopen[data-media-side="left"] > .sf-heroopen-media { order: -1; }
+  .sf-heroopen:not([data-media-side="left"]) > .sf-heroopen-media { order: 0; }
+  /* Same pair as the card above, and the same reason for the `:not()`. */
+  .sf-heroopen[data-frame] { --heroopen-ratio: var(--sfb-hero-frame); }
+  .sf-heroopen[data-frame-m]:not([data-frame]) { --heroopen-ratio: 4 / 3; }
 }
 
 /* ---- Rotating card / open hero (components/storefront/hero-slides.tsx) ----
@@ -3140,6 +3252,47 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      cancelling the pointer stream before the swipe reaches the hook. */
   touch-action: pan-y;
 }
+/* "Picture shape" (`frame`) on the full-width hero.
+
+   ⚠ **`min-height` above is a FLOOR, not a box, and a floor beats an
+   `aspect-ratio`.** Cinema 21:9 on a 390px phone computes 167px, gets floored
+   straight back to 260px, and shows the merchant exactly what they saw before —
+   a control that does nothing on the one layout whose height they most want to
+   decide. So the floor goes wherever a shape replaces it, and only there: an
+   unset hero keeps `clamp(380px, 62vh, 640px)` and every live shop is untouched.
+
+   `align-items: flex-end` stays either way — the copy sits at the bottom of the
+   box whether the box is a floor or a ratio. */
+/* "Picture shape" on the full-width hero — a SPACER, not `aspect-ratio`, and it
+   is the only hero shaped this way.
+
+   ⚠ `aspect-ratio` FIXES a box. This hero lays its type over the photograph
+   under `overflow: hidden` with `align-items: flex-end`, so the moment the
+   shape is shorter than the words, the words overflow the TOP and are sliced —
+   browser QA caught Cinema 21:9 on a phone cutting the badge's ascenders off.
+
+   **No `min-height` rescues it.** `0`, `auto`, `fit-content`, `min-content` and
+   `max-content` were each measured against this hero in Chrome and every one
+   lost to the ratio: the box stayed at the ratio's height and the copy hung out
+   above it. The ratio is not a floor the copy can raise — it is a ceiling.
+
+   So the shape arrives as `padding-top` on a zero-width `::before`, the
+   technique that predates `aspect-ratio`. A percentage padding resolves against
+   the CONTAINING BLOCK'S WIDTH, which is this hero, so it draws the same shape —
+   but it ADDS to the layout rather than fixing it, and the hero ends up as tall
+   as the shape or as tall as its copy, whichever is more. Measured: 40:3 gives
+   the copy's own height, 21:9 and 9:16 give the shape's.
+
+   `width: 0` so the spacer takes no room in the flex row, and the floor goes
+   because the shape has replaced it. */
+.sf-hero-fullbleed[data-frame] {
+  min-height: 0;
+}
+.sf-hero-fullbleed[data-frame]::before {
+  content: "";
+  width: 0;
+  padding-top: var(--sfb-hero-pad);
+}
 .sf-hero-fullbleed-image { background: var(--surface-2); }
 .sf-hero-fullbleed-scrim {
   position: absolute;
@@ -3166,6 +3319,22 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     inset: 0;
     width: 100%;
   }
+  /* The phone's own shape, and the floor lifted for it — same reasoning as the
+     desktop rule above. A DESKTOP-only shape lifts the phone's floor too (the
+     second rule): the ratio it inherits is the whole point, and leaving the
+     floor under it would clamp that ratio back out of existence on exactly the
+     device this control was added for.
+
+     **After `:has(> .sf-hero-media)`, not before.** That rule is also two
+     classes' worth of specificity, so on a tie the later one wins and putting
+     these first hands the floor straight back. */
+  .sf-hero-fullbleed[data-frame-m] { min-height: 0; }
+  .sf-hero-fullbleed[data-frame-m]::before {
+    content: "";
+    width: 0;
+    padding-top: var(--sfb-hero-pad-m);
+  }
+  .sf-hero-fullbleed[data-frame]:not([data-frame-m]) { min-height: 0; }
   .sf-hero-fullbleed-scrim {
     background: linear-gradient(
       180deg,
@@ -3179,8 +3348,35 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     width: 100%;
     padding: 18px var(--pad) 22px;
   }
-  .sf-hero-fullbleed-badge,
-  .sf-hero-fullbleed-sub { display: none; }
+  /* "Phone text" (`mobileCopy`). The phone used to delete the badge and the
+     subtitle outright, so a merchant typed 160 characters, watched them render
+     on the desktop preview, and never learned the phone threw them away.
+
+     `:not(…)` rather than a positive rule for the hide, because the CLASSIC
+     home page passes no attribute at all — it keeps today's rendering with no
+     change to its markup, and only a builder hero set to "Everything" opts in.
+
+     The title's own 2-line clamp below stays whichever way this goes: it is the
+     one rule here protecting the fold on a hero whose whole point is the
+     photograph. */
+  .sf-hero-fullbleed:not([data-mobile-copy="full"]) .sf-hero-fullbleed-badge,
+  .sf-hero-fullbleed:not([data-mobile-copy="full"]) .sf-hero-fullbleed-sub { display: none; }
+  /* Shown, but sized for a phone rather than inherited from the desktop — the
+     desktop subtitle is 16px with a 26px margin, which is a third of a small
+     phone's hero before the button. */
+  .sf-hero-fullbleed[data-mobile-copy="full"] .sf-hero-fullbleed-sub {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 13.5px !important;
+    line-height: 1.4 !important;
+    margin: 0 0 12px !important;
+  }
+  .sf-hero-fullbleed[data-mobile-copy="full"] .sf-hero-fullbleed-badge {
+    font-size: 10.5px !important;
+    letter-spacing: 0.12em !important;
+  }
   .sf-hero-fullbleed-title {
     display: -webkit-box;
     overflow: hidden;
