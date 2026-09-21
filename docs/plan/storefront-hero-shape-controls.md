@@ -16,6 +16,7 @@ You do not need any prior context on this work. Read §0 in full before opening 
 | Document | Why |
 |---|---|
 | `inventory-frontend/docs/plan/storefront-builder-conditional-controls.md` | The plan this one continues. It shipped the Hero's content clean-up and the visibility mechanism (`field-visibility.ts`) that five steps here depend on. Its §11 log records the traps. |
+| `inventory-frontend/docs/plan/storefront-section-controls.md` | The plan this one is continued by. It takes this plan's argument — a merchant owns the shape, per device — to the other 32 sections, and its §2 audit is the list of what they still cannot control. Read it before adding a control to any section, so the two ask the same question in one voice. |
 | `inventory-backend/docs/plan/storefront-builder.md` | The master plan every code comment cites ("plan §17, Phase 5 step 5", "§5.2 `SectionStyle`"). |
 | `.claude/skills/storefront/SKILL.md` | The storefront reference: hero branches, image fit and focal rules, and "Every hero rotates in its OWN shape". |
 | `inventory-frontend/CLAUDE.md` | Repo conventions. `// coding-standard: maintained` on line 1 means the file already conforms — make your change and skip the standard review. Every file named here carries the marker. |

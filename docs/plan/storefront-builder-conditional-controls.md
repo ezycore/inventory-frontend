@@ -14,6 +14,7 @@ You do not need any prior context on this work. Read §0 in full before opening 
 
 | Document | Why |
 |---|---|
+| `inventory-frontend/docs/plan/storefront-section-controls.md` | Where §5's rollout went next. It carries the per-section control audit and the phases that grow the shared style box; every new field it adds registers a visibility rule through this plan's §2 mechanism. |
 | `inventory-backend/docs/plan/storefront-builder.md` | The master plan every code comment cites ("plan §17, Phase 5 step 5", "§5.2 `SectionStyle`", "§6"). 2,532 lines — §5 target architecture, §6 page registry and §8 the section library are the parts this plan sits inside. |
 | `.claude/skills/storefront/SKILL.md` | The storefront reference: hero branches, image fit and focal rules, and the deliberate decision that heroes do **not** call `useStoreImageFit()`. |
 | `inventory-frontend/CLAUDE.md` | Repo conventions. `// coding-standard: maintained` on a file's first line means it already conforms — make your change and skip the standard review. Every file named in this plan carries the marker. |
