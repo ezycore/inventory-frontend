@@ -39,7 +39,10 @@ export function OrderFormSection({ settings, data, context }: SectionViewProps<S
       {settings.text ? (
         <p style={{ margin: "0 0 16px", color: "var(--muted)", lineHeight: 1.6 }}>{settings.text}</p>
       ) : null}
-      <Island name="order-form" props={{ product, coupon: settings.coupon ?? false }} />
+      <Island
+        name="order-form"
+        props={{ product, coupon: settings.coupon ?? false, buttonLabel: settings.buttonLabel }}
+      />
     </div>
   );
 }

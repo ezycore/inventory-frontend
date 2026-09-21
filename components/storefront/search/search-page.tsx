@@ -53,7 +53,7 @@ const wrap: CSSProperties = {
 const VIEW_KEY = "sf-search-view";
 type SearchView = "grid" | "list";
 
-function SearchInner() {
+function SearchInner({ emptyHeading, emptyText }: { emptyHeading?: string; emptyText?: string }) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
   const sp = useSearchParams();
@@ -203,8 +203,13 @@ function SearchInner() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
             <Icon name="search" size={40} />
           </div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{t.noResults}</h3>
-          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>{t.noResultsMsg}</p>
+          {/* The merchant's own words when they wrote some, else the
+              storefront's in the shopper's language. A builder search page can
+              say "Try 'baby lotion'" where the default says nothing useful. */}
+          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{emptyHeading || t.noResults}</h3>
+          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>
+            {emptyText || t.noResultsMsg}
+          </p>
           {/* With filters on, "browse everything" is the wrong advice — clearing
               them is the shorter route back to results. */}
           {chips.length > 0 ? (
@@ -369,11 +374,16 @@ function SearchRow({
   );
 }
 
-export function SearchPageView() {
+/**
+ * `emptyHeading` / `emptyText` are the BUILDER search section's own words for an
+ * empty result. The classic search route passes neither and keeps the
+ * storefront's wording in the shopper's language.
+ */
+export function SearchPageView({ emptyHeading, emptyText }: { emptyHeading?: string; emptyText?: string } = {}) {
   const { t } = useStorefrontUI();
   return (
     <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: "var(--muted)" }}>{t.loading}</p>}>
-      <SearchInner />
+      <SearchInner emptyHeading={emptyHeading} emptyText={emptyText} />
     </Suspense>
   );
 }

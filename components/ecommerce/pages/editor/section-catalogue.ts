@@ -261,6 +261,15 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
   subheading: "Line under the heading",
+  tileRatio: "Tile shape",
+  sort: "Order",
+  verticalAlign: "Words up or down",
+  scrim: "Shade under the words",
+  screens: "Show on",
+  emptyHeading: "Heading when nothing is found",
+  emptyText: "Text when nothing is found",
+  expired: "When the clock runs out",
+  expiredText: "What it says then",
   perView: "Cards in view",
   openFirst: "Open the first one",
   /* A different question from the Style tab's Text alignment, and it was asked
@@ -375,6 +384,13 @@ const HINTS: Record<string, string> = {
   categoryIds: "Leave empty to show every collection.",
   mobileImage: "Optional. Shown on phones instead of the main picture.",
   subheading: "One line under the heading, for the sentence the heading cannot hold.",
+  tileRatio: "Empty keeps the square tile this row has always drawn.",
+  sort: "Empty keeps the order the source gives. A hand-picked row always keeps yours.",
+  scrim: "Empty keeps each alignment's own shade — a gradient under words at the bottom, a flat wash under centred ones.",
+  screens: "The bar has always been a phone thing. Computers too puts it on every screen — check it against your header and cart drawer first.",
+  emptyHeading: "Empty keeps your shop's own wording in the shopper's language.",
+  emptyText: "Empty keeps your shop's own wording in the shopper's language.",
+  "order-form.buttonLabel": "Empty keeps your shop's own “Place order” in the shopper's language.",
   perView: "How many cards a shopper sees at once. Empty keeps the row's own measure.",
   openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
   flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
@@ -430,6 +446,20 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
   mobileFirst: {
     picture: "The picture",
     text: "The text",
+  },
+  screens: {
+    phones: "Phones",
+    "phones-and-computers": "Phones and computers",
+  },
+  sort: {
+    newest: "Newest first",
+    "price-low": "Cheapest first",
+    "price-high": "Dearest first",
+  },
+  expired: {
+    hide: "Hide the section",
+    keepZero: "Keep it, showing zero",
+    message: "Show a message",
   },
   mobileCopy: {
     full: "Everything",

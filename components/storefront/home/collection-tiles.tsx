@@ -129,14 +129,14 @@ export function CollectionTile({
      large one, so the same tile arrives as a soft chip on one and a slab on the
      other. 18% of a square is the desktop corner, held at every size. */
   const thumbSize: CSSProperties = strip
-    ? { width: "var(--sf-chip-thumb)", aspectRatio: "1 / 1", borderRadius: "18%" }
+    ? { width: "var(--sf-chip-thumb)", aspectRatio: "var(--sfb-tile-ratio, 1 / 1)", borderRadius: "18%" }
     : {
         /* The grid thumb, sized by the row's own breakpoint — see the note at
            the top of this file. A literal corner is wrong once the box grows
            from a 60px disc to a 179px tile, so it takes the theme's own radius
            token, which is what the photo tile beside it already uses. */
         width: "var(--sf-hc-thumb)",
-        aspectRatio: "1 / 1",
+        aspectRatio: "var(--sfb-tile-ratio, 1 / 1)",
         borderRadius: "var(--radius-md)",
       };
   return (

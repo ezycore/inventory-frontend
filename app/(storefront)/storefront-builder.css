@@ -313,6 +313,12 @@
    hid the heading and the line behind the box's edge. `overflow: clip` (not
    `hidden`) is what lets it grow — a scroll container gives up its content-based
    minimum height, a clipping box keeps it. */
+/* The video's shape. Its own class so the phone can answer differently — an
+   inline `aspect-ratio` cannot carry a media query. */
+.sfb-video-box {
+  aspect-ratio: var(--sfb-video-ratio, 16 / 9);
+}
+
 .sfb-banner {
   display: block;
   color: #ffffff;
@@ -346,6 +352,19 @@
   object-position: var(--sfb-banner-focal, 50% 50%);
 }
 
+/*
+ * The banner's words over its picture — THREE questions that used to be one.
+ *
+ * `align` is which side they take, `verticalAlign` how high they sit, `scrim`
+ * how dark the shade under them is. Until 2026-09-21 a single `align` answered
+ * all three, so a merchant could not ask for left copy in the middle of the
+ * picture and could not touch the shade at all.
+ *
+ * ⚠ **Unset on all three must reproduce the old pair byte for byte**: left meant
+ * bottom-anchored under a gradient, centre meant middle-anchored under a flat
+ * 35% wash. The two blocks below are those two, unchanged; everything after them
+ * only applies when the merchant has answered.
+ */
 .sfb-banner-copy {
   grid-area: 1 / 1;
   position: relative;
@@ -363,6 +382,32 @@
   align-items: center;
   background: rgba(0, 0, 0, 0.35);
   text-align: center;
+}
+
+.sfb-banner-copy[data-align="right"] {
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* A height of its own. Written after the two blocks above and carrying the same
+   weight, so it overrides whichever of them set `justify-content`. */
+.sfb-banner-copy[data-valign="top"] {
+  justify-content: flex-start;
+}
+
+.sfb-banner-copy[data-valign="middle"] {
+  justify-content: center;
+}
+
+.sfb-banner-copy[data-valign="bottom"] {
+  justify-content: flex-end;
+}
+
+/* A shade of the merchant's own replaces whichever the alignment brought — flat,
+   because a chosen percentage is a statement about readability everywhere on the
+   picture, not only at the edge the gradient darkens. */
+.sfb-banner-copy[data-scrim] {
+  background: rgb(0 0 0 / var(--sfb-banner-scrim, 0%));
 }
 
 .sfb-banner-heading {
@@ -464,6 +509,45 @@
   .sfb-inner {
     padding-inline: var(--sfb-pi-m, var(--sfb-pi, var(--pad)));
   }
+  .sfb-video-box {
+    aspect-ratio: var(--sfb-video-ratio-m, var(--sfb-video-ratio, 16 / 9));
+  }
+  /* A phone shape for the collection tiles. The variable is read by
+     `collection-tiles.tsx`, which the classic home draws too — it sets neither,
+     so it keeps its square. */
+  [style*="--sfb-tile-ratio-m"] {
+    --sfb-tile-ratio: var(--sfb-tile-ratio-m);
+  }
+  /* The banner's words, answered for the phone. Each rule needs the weight of
+     its desktop twin plus one, which the extra attribute gives it. */
+  .sfb-banner-copy[data-align-m="left"] {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .sfb-banner-copy[data-align-m="center"] {
+    align-items: center;
+    text-align: center;
+  }
+  .sfb-banner-copy[data-align-m="right"] {
+    align-items: flex-end;
+    text-align: right;
+  }
+  .sfb-banner-copy[data-valign-m="top"] {
+    justify-content: flex-start;
+  }
+  .sfb-banner-copy[data-valign-m="middle"] {
+    justify-content: center;
+  }
+  .sfb-banner-copy[data-valign-m="bottom"] {
+    justify-content: flex-end;
+  }
+  /* The gallery's phone shape. Two attributes for the reason `image-banner`
+     records: a shape set on the phone alone must not crop the desktop, which
+     keeps drawing each picture at its own proportions. */
+  .sfb-gallery[data-frame-m] .sfb-gallery-media {
+    aspect-ratio: var(--sfb-gallery-frame-m, var(--sfb-gallery-frame));
+    object-fit: cover;
+  }
   .sfb-split-media {
     aspect-ratio: var(--sfb-split-ratio-m, var(--sfb-split-ratio, 4 / 5));
   }
@@ -556,7 +640,20 @@
   .sfb-sec[data-hide="desktop"] {
     display: none;
   }
-  .sfb-orderbar {
+  /*
+   * The bar is a phone thing by default, and was a phone thing by LAW until
+   * 2026-09-21 — a merchant could not have it on a desktop at all.
+   *
+   * ⚠ Two selectors naming the states that HIDE, rather than one `:not()` around
+   * the state that shows. `:not([data-screens="phones-and-computers"])` would
+   * carry its argument's weight — the trap this stylesheet has produced four
+   * times — and would also match anything else that happens to lack the
+   * attribute. The bare `:not([data-screens])` here is only the unset case and
+   * has nothing to outweigh. The `!important` stays: the bar sets `display`
+   * inline, and an inline style beats any selector without it.
+   */
+  .sfb-orderbar:not([data-screens]),
+  .sfb-orderbar[data-screens="phones"] {
     display: none !important;
   }
   .sfb-benefits {

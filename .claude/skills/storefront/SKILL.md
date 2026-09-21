@@ -137,7 +137,17 @@ The **style box** every section shares is declared beside them in
   verbatim into the backend.
 - `STYLE_BOX_SPEC` is the style box's whole vocabulary — `Object.keys` of it is the allowlist the
   backend's `checkStyle` enforces, and `SPACING_STEPS` lives there too. Until 2026-09-21 the backend
-  hand-wrote both and nothing compared them; do not reintroduce a second copy on either side.
+  hand-wrote both and nothing compared them; do not reintroduce a second copy on either side. The box
+  is background, padding (top, bottom and an optional side gutter), width, alignment, text tone and
+  colour, corner radius, an outline, an overlay over a background picture, and an anchor — the
+  section's own name on the page, which a link reaches as `#name`.
+- **Making a setting responsive is safe.** A value saved before the field grew a phone answer is read
+  as the base, in `readField` here and `checkField` in the backend — but only a NON-object value, since
+  a responsive `focal` or `image` stores an object and a bare one cannot be told apart from a malformed
+  `{ base, mobile }`.
+- **A column count travels as a whole CSS track list, not a number** (`grid-track.ts`). Selecting on
+  `[style*="--cols"]` to detect "the merchant answered" also matches `--cols-m`, so a phone-only answer
+  would break the desktop.
 - Bump a section's `v` for any change that would make an already-saved instance invalid.
 - A **new field type** (as `focal` was) needs a case in the backend's `checkValue`
   (`inventory-backend/src/utils/storefront-section-validation.ts`) and in `readScalar`

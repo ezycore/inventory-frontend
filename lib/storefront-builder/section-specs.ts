@@ -255,7 +255,15 @@ export const SECTION_SPECS = {
   "search-results": {
     v: 1,
     pages: ["search"],
-    settings: {},
+    settings: {
+      /**
+       * What a shopper reads when a search finds nothing — the one thing on this
+       * page a merchant would write, and the section had no settings at all.
+       * Unset keeps the storefront's own wording in the shopper's language.
+       */
+      emptyHeading: { type: "string", max: 120, optional: true },
+      emptyText: { type: "string", max: 300, optional: true },
+    },
   },
   /**
    * A collection's products, on the collection page once it is on the builder.
@@ -361,6 +369,18 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       source: { type: "enum", values: ["featured", "newest", "category", "tag", "manual"] },
+      /**
+       * The order the products come back in, over whatever the source gives.
+       * Unset keeps the source's own order — which for `manual` is the order the
+       * merchant picked them in, and must stay that way.
+       *
+       * ⚠ **No `name` here, against the plan's own list.** The catalogue sorts by
+       * newest and by price and nothing else (`storefront-catalog.service.ts`),
+       * and a fourth value would be a control that quietly falls back to the
+       * default. Adding alphabetical order is a catalogue change with its own
+       * index question, not an enum entry.
+       */
+      sort: { type: "enum", values: ["newest", "price-low", "price-high"], optional: true },
       categoryId: { type: "ref", to: "category", optional: true },
       tagIds: { type: "refs", to: "tag", max: 10, optional: true },
       productIds: { type: "refs", to: "product", max: 24, optional: true },
@@ -465,6 +485,8 @@ export const SECTION_SPECS = {
       // not the desktop's 2–6 (`resolveHomeCollections`).
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      /** The tile's shape. Unset keeps each layout's own, as the classic row drew it. */
+      tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       showLabels: { type: "boolean", optional: true },
     },
   },
@@ -527,6 +549,8 @@ export const SECTION_SPECS = {
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      /** The tile's shape. Unset keeps each mode's own, as the classic row drew it. */
+      tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       showLabels: { type: "boolean", optional: true },
     },
   },
@@ -576,6 +600,8 @@ export const SECTION_SPECS = {
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
       coupon: { type: "boolean", optional: true },
+      /** Every other buy control in the builder lets the merchant write the button. */
+      buttonLabel: { type: "string", max: 30, optional: true },
     },
   },
   /**
@@ -622,6 +648,11 @@ export const SECTION_SPECS = {
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
       buttonLabel: { type: "string", max: 30, optional: true },
+      /**
+       * Which screens the bar stands on. Phones only until 2026-09-21, by a
+       * `display: none !important` a merchant could not reach.
+       */
+      screens: { type: "enum", values: ["phones", "phones-and-computers"], optional: true },
     },
   },
   /**
@@ -703,7 +734,7 @@ export const SECTION_SPECS = {
       /** The play button's and player's accessible name. */
       label: { type: "string", min: 1, max: 120 },
       poster: { type: "image", optional: true },
-      ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], optional: true },
+      ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], responsive: true, optional: true },
     },
   },
   /**
@@ -724,7 +755,17 @@ export const SECTION_SPECS = {
       focal: { type: "focal", responsive: true, optional: true },
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 240, optional: true },
-      align: { type: "enum", values: ["left", "center"], optional: true },
+      /**
+       * Where the words sit ACROSS the picture. Until 2026-09-21 this decided
+       * three things at once — side, height and the shade under the words — so a
+       * merchant could not ask for left copy in the middle, or touch the shade
+       * at all. It now answers one question; `verticalAlign` and `scrim` answer
+       * the other two, and unset on all three reproduces the old pair exactly.
+       */
+      align: { type: "enum", values: ["left", "center", "right"], responsive: true, optional: true },
+      verticalAlign: { type: "enum", values: ["top", "middle", "bottom"], responsive: true, optional: true },
+      /** Percent of black under the words. Unset keeps each alignment's own. */
+      scrim: { type: "number", min: 0, max: 80, int: true, optional: true },
       buttonLabel: { type: "string", max: 40, optional: true },
       link: { type: "url", optional: true },
     },
@@ -742,7 +783,7 @@ export const SECTION_SPECS = {
       heading: { type: "string", max: 120, optional: true },
       ...SUBHEADING,
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
-      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], optional: true },
+      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
     },
     blocks: {
       max: 24,
@@ -774,6 +815,12 @@ export const SECTION_SPECS = {
       heading: { type: "string", max: 120, optional: true },
       ...SUBHEADING,
       endsAt: { type: "date" },
+      /**
+       * What the section does once the clock reaches zero — the one state it is
+       * guaranteed to enter, and it had no answer for it.
+       */
+      expired: { type: "enum", values: ["hide", "keepZero", "message"], optional: true },
+      expiredText: { type: "string", max: 160, optional: true },
       campaignId: { type: "ref", to: "campaign", optional: true },
     },
   },

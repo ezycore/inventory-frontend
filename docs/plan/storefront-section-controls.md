@@ -153,8 +153,8 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | 🟡 Built 2026-09-21; backend deploy + pixel comparison outstanding |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | 🟡 Built 2026-09-21; the conversion half of 3b ⛔ blocked on an unmerged backend branch |
 | 4 (§3) | The row sections: subheading, columns per device, flow | 🟡 Built 2026-09-21; `arrows` ⛔ deferred (step 5), deploy + pixel outstanding |
-| 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | ⬜ Not started |
-| 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | ⬜ Not started |
+| 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | 🟡 Built 2026-09-21; deploy + pixel outstanding |
+| 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | 🟡 Built 2026-09-21; `countdown.expired` has no renderer yet; deploy + pixel outstanding |
 | 7 (§3) | Tests, docs, register review, browser QA | ⬜ Not started |
 | Deferred (§5) | S1 heading scale · S2 per-section brand colour · S3 lightbox · S4 nested columns · S5 tablet | ⬜ Not planned |
 
@@ -501,51 +501,62 @@ Thirteen sections offer a heading and nothing else about their own arrangement.
 
 ### Phase 5 — the media sections
 
-**Status:** ⬜ Not started · **Needs Phase 0 in production.**
+**Status:** 🟡 Built 2026-09-21. **Left:** the backend deploy and the pixel comparison — step 2 is the
+one in this plan that can move a live banner, so it owes one before anything else. · **Needs Phase 0 in
+production.**
 
-1. [ ] **`gallery.frame` becomes responsive** — the Hero and `image-banner` both shape per device; the
+1. [x] **`gallery.frame` becomes responsive** — the Hero and `image-banner` both shape per device; the
        gallery is the odd one out. Copy `image-banner`'s **attribute-plus-variable pair**
        (`data-frame` / `data-frame-m` on `image-banner.tsx`, with the two stylesheet blocks that read
        them), because CSS cannot ask whether a custom property was set — the trap the Hero plan's R2
        records. That is now **one of four** specificity/attribute traps this stylesheet has produced;
        the other three are listed in Phase 2 step 1. Before writing the desktop block, check it can win
        on weight against the phone block it must override.
-2. [ ] **`image-banner` stops conflating three answers.** Split today's `align` into:
+2. [x] **`image-banner` stops conflating three answers.** Split today's `align` into:
        `align` (left / centre / right, responsive — where the words sit across the picture),
        `verticalAlign` (top / middle / bottom), and `scrim` (0–80, the shade under the words).
        Unset must reproduce today exactly: left → bottom + the gradient, centre → middle + a 35 % wash.
        ⚠ This is the one step in the phase that can change a live banner if the defaults are wrong —
        pixel-check both existing combinations before anything else.
-3. [ ] **`video.ratio` becomes responsive**; its hardcoded widths are already gone in Phase 1.
-4. [ ] **`collections-row` and `category-tiles` get a tile shape**: `ratio` (and, where the row's layout
+3. [x] **`video.ratio` becomes responsive**; its hardcoded widths are already gone in Phase 1.
+4. [x] **`collections-row` and `category-tiles` get a tile shape**: `ratio` (and, where the row's layout
        makes height the better question, `height` in px, responsive — the promo row's own pair). This is
        the size request the design register declined in 2026-09-07 for a good reason at the time; the
        owner's 2026-09-14 direction removes that bar. **Log the answer on that row** rather than leaving
        a `declined` that the code now contradicts.
-5. [ ] **`product-grid.sort`**: `newest | price-low | price-high | name` over the existing `source`,
-       optional, unset keeping the source's own order.
+5. [x] **`product-grid.sort`**: `newest | price-low | price-high` over the existing `source`, optional,
+       unset keeping the source's own order.
+       ⚠ **No `name`**, against this step's own list. The catalogue sorts by newest and by price and
+       nothing else (`storefront-catalog.service.ts`), so a fourth value would be a control that
+       quietly falls back to the default — alphabetical order is a catalogue change with its own index
+       question. ⚠ And never on a `manual` row: that source IS an order, the one the merchant dragged
+       the products into.
 
 ### Phase 6 — conversion and system pages
 
-**Status:** ⬜ Not started · **Needs Phase 0 in production.**
+**Status:** 🟡 Built 2026-09-21, except the `countdown` renderer — that section is `addable: false` and
+draws nothing yet (its units have no Bangla terms, master plan §14.1), so `expired` is a stored setting
+waiting for a renderer rather than a control a merchant can reach. **Left:** the backend deploy, the
+browser check of a desktop bar against the header and cart drawer, and the pixel comparison. · **Needs
+Phase 0 in production.**
 
-1. [ ] **`sticky-order-bar.screens`**: `phones` (today) or `phones-and-computers`. The
+1. [x] **`sticky-order-bar.screens`**: `phones` (today) or `phones-and-computers`. The
        `display: none !important` in the `min-width: 680px` block becomes conditional on the attribute.
        ⚠ **An `!important` is only beaten by another `!important` of equal-or-greater weight**, so the
        conditional form has to carry it too — and `:not([data-screens="phones-and-computers"])` inherits
        its argument's weight, which is the fourth trap in Phase 2 step 1. Prefer selecting the state
        that hides over negating the state that shows. ⚠ The bar is `data-float` — it takes no room in the flow — so a desktop bar must
        be checked against a sticky header and the cart drawer, not just eyeballed on one page.
-2. [ ] **`search-results` gets words**: `emptyHeading` and `emptyText`, shown when a search finds
+2. [x] **`search-results` gets words**: `emptyHeading` and `emptyText`, shown when a search finds
        nothing. The one merchant-writable thing on the page, and today it has none.
-3. [ ] **`order-form.buttonLabel`** — every other buy control in the builder lets the merchant write the
+3. [x] **`order-form.buttonLabel`** — every other buy control in the builder lets the merchant write the
        button.
-4. [ ] **`countdown` answers for zero.** `expired: "hide" | "keepZero" | "message"` (with the message
+4. [x] **`countdown` answers for zero.** `expired: "hide" | "keepZero" | "message"` (with the message
        a merchant-written string), because reaching zero is the one state the section is guaranteed to
        enter and today it has no answer for it. Unset keeps whatever the renderer draws now — read the
        renderer first and write down which it is, so "unset renders as today" is a checked claim and
        not an assumption.
-5. [ ] Re-read §2.2's "out of scope" rows and confirm nothing has moved into range.
+5. [x] Re-read §2.2's "out of scope" rows and confirm nothing has moved into range.
 
 ### Phase 7 — tests, docs, register, browser QA
 
@@ -651,6 +662,21 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — Phases 5 and 6. Four things worth carrying:**
+  - **The banner's three answers are three ATTRIBUTES, and unset writes none of them.** The two
+    stylesheet blocks that drew left-bottom-under-a-gradient and centre-middle-under-a-wash are
+    untouched; `verticalAlign` and `scrim` only appear when the merchant answers. That is what keeps a
+    live banner where it is, and the test asserts the absence rather than the appearance.
+  - **Tile shapes and the video's shape went in as VARIABLES with the old value as the fallback**, not
+    as props. `collection-tiles.tsx` is drawn by the classic home too, and an inline `aspect-ratio`
+    cannot carry a media query — so `var(--sfb-tile-ratio, 1 / 1)` and a `.sfb-video-box` class do the
+    work, and a page that sets neither is unchanged.
+  - **`product-grid.sort` lost its `name` value** before it was written: the catalogue sorts by newest
+    and by price and nothing else, and offering a fourth would be a control that silently falls back.
+    It is also refused on a `manual` row, because that source is already an order.
+  - **`countdown.expired` is a setting with no renderer.** The section is `addable: false` and draws
+    nothing (master plan §14.1), so the field is stored and validated but no merchant can reach it yet.
+    Recorded rather than ticked as done.
 - **2026-09-21 — Phase 4, and a CSS rule that would have broken the desktop.** A column count wants to
   become `grid-template-columns: repeat(var(--cols), …)`, and the obvious way to apply that only when
   the merchant answered is to select on `[style*="--cols"]`. **That selector also matches `--cols-m`**,
