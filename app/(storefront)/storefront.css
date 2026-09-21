@@ -3138,6 +3138,15 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   /* Containing block for the arrows (`.sf-hero-arrow`), which sit against the
      stack rather than inside a slide. */
   position: relative;
+  /* Keep vertical page scrolling native while horizontal drags belong to the
+     rotating hero. Without it the browser runs `touch-action: auto`, is free to
+     claim the gesture while it decides whether the drag is a scroll, and fires
+     `pointercancel` — which `useHeroRotation` correctly treats as an abandoned
+     swipe, so the slide never moves. Intermittent by nature: it depends on the
+     drag's angle and on the browser, which is why a quick test on a phone can
+     miss it entirely. `.sf-hero-fullbleed` carries the same declaration for the
+     same reason; the two heroes must not disagree about this. */
+  touch-action: pan-y;
 }
 .sf-heroslides-slide {
   grid-area: 1 / 1;
@@ -3457,8 +3466,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   overflow: hidden;
   background: var(--surface);
   /* Keep vertical page scrolling native while horizontal drags belong to the
-     rotating hero. This matches `.sf-hero` and prevents mobile browsers from
-     cancelling the pointer stream before the swipe reaches the hook. */
+     rotating hero, so a mobile browser cannot cancel the pointer stream before
+     the swipe reaches the hook. `.sf-heroslides` carries the same declaration —
+     it is written out there rather than shared, because the two heroes have no
+     class in common. */
   touch-action: pan-y;
 }
 /* "Picture shape" (`frame`) on the full-width hero.

@@ -2491,6 +2491,23 @@ checkout fields scoped to its id. Notes:
   predates the toggle is unchanged. Do not treat it as decoration: what shoppers
   type there reaches the COURIER via `composeCourierNote`. The backend strips the
   value when the box is off, so never rely on the client alone to omit it.
+- The **guest sign-in notice** (`GuestNotice`, above the contact fields) is
+  switchable PER BREAKPOINT — `store.checkout.guestNotice.{showOnDesktop,
+  showOnMobile}`, each **unset reading as ON**. Merchants ask for this because on
+  a phone the block is ~100px between the shopper and the first input.
+  - It resolves through the shared `stripVisibilityClass` / `isStripHiddenEverywhere`
+    pair, the same one the announcement bar, campaign strip and footer payment
+    badges use. **Do not write a `matchMedia` check**: checkout is server-rendered,
+    so a JS read paints the wrong state and corrects it after hydration.
+  - `sf-desktop-only` / `sf-mobile-only` carry `display: none !important`, and the
+    `!important` is load-bearing here — the notice sets `display: flex` INLINE,
+    which outranks a plain class.
+  - ⚠ **Hidden on both is dropped from the tree, not hidden with CSS.** The notice
+    holds a sign-in link; a `display: none` one is still reachable by the tab key
+    and announced by a screen reader. `ContactFields` renders `null` for that case.
+  - The control lives in **Store Settings → Checkout**, never Customize — there is
+    no checkout preview to style against (see the `checkout-fields-placement` note
+    on why checkout controls stay out of the Customize draft).
 
 - ⚠ **That embedded editor runs in `paymentMode` — a deliberately smaller surface.**
   A method needs a note (how to pay) and a field (what to send back), plus

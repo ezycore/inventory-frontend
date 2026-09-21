@@ -13,11 +13,29 @@ import { Icon } from "@/components/storefront/sf-icons";
  *
  * It earns its place because the consequence is invisible otherwise — a guest's
  * only record of the order is the tracking link on the confirmation screen, and
- * they should learn that before they order, not after.
+ * they should learn that before they order, not after. That is why it is shown
+ * by default and why the merchant control below it is per-device rather than a
+ * single switch: on a phone this block costs about a hundred pixels above the
+ * first input, and a merchant may want that height back there and nowhere else.
+ *
+ * `className` carries that choice as `sf-desktop-only` / `sf-mobile-only` — a
+ * CLASS, because checkout is server-rendered and a `matchMedia` check paints the
+ * wrong state before correcting itself. Those classes declare `!important`,
+ * which they must: the `display: flex` below is inline and outranks a plain
+ * class. "Hidden on both" never reaches here — `ContactFields` renders nothing.
  */
-export function GuestNotice({ base, t }: { base: string; t: Dict }) {
+export function GuestNotice({
+  base,
+  t,
+  className,
+}: {
+  base: string;
+  t: Dict;
+  className?: string;
+}) {
   return (
     <div
+      className={className}
       style={{
         display: "flex",
         gap: 11,

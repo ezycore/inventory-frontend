@@ -12999,6 +12999,10 @@ export interface components {
                 /** @enum {string} */
                 addressMode?: "detailed" | "flat";
                 showOrderNotes?: boolean;
+                guestNotice?: {
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
                 customFields?: {
                     key: string;
                     /** @enum {string} */
@@ -21432,6 +21436,10 @@ export interface operations {
                         /** @enum {string} */
                         addressMode?: "detailed" | "flat";
                         showOrderNotes?: boolean;
+                        guestNotice?: {
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                        };
                         ordersPaused?: boolean;
                         pausedMessage?: string;
                         pausedWhatsApp?: boolean;

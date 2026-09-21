@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useContentPages } from "@/services/api";
+import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
@@ -44,6 +45,14 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [addressMode, setAddressMode] = useState(checkout.addressMode ?? "detailed");
   // Unset reads as ON — every store that predates the toggle was showing it.
   const [orderNotes, setOrderNotes] = useState(checkout.showOrderNotes !== false);
+  // Same rule for the guest notice, and separately per device: `!== false` so an
+  // unsaved store reads as shown everywhere rather than as a merchant's "off".
+  const [noticeOnDesktop, setNoticeOnDesktop] = useState(
+    checkout.guestNotice?.showOnDesktop !== false,
+  );
+  const [noticeOnMobile, setNoticeOnMobile] = useState(
+    checkout.guestNotice?.showOnMobile !== false,
+  );
   const [ordersPaused, setOrdersPaused] = useState(checkout.ordersPaused ?? false);
   const [pausedMessage, setPausedMessage] = useState(checkout.pausedMessage ?? "");
   const [pausedWhatsApp, setPausedWhatsApp] = useState(checkout.pausedWhatsApp ?? false);
@@ -140,6 +149,32 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           checked={orderNotes}
           onChange={setOrderNotes}
         />
+        {/* Two switches, because the notice costs different amounts on the two
+            screens: on a phone it stands between the shopper and the first box,
+            on a desktop it sits in space the form was not using. Merchants whose
+            shoppers are almost all guests want the height back on the phone
+            without withdrawing the offer everywhere. */}
+        <div className="space-y-2">
+          <Label>Guest sign-in notice</Label>
+          <p className="text-xs text-muted-foreground">
+            Shown above the contact fields when nobody is signed in. It offers sign-in and says what
+            ordering as a guest means — the tracking link is their only record of the order. Takes
+            about 100px above the first box on a phone.
+          </p>
+          <div className="grid gap-3 rounded-lg border p-3">
+            <ToggleRow label="Show on computers" checked={noticeOnDesktop} onChange={setNoticeOnDesktop} />
+            <ToggleRow label="Show on phones" checked={noticeOnMobile} onChange={setNoticeOnMobile} />
+          </div>
+          {/* Both off is reachable in two clicks and is a legitimate choice, but
+              it withdraws the offer rather than moving it — worth saying at the
+              point of the decision, the same way the strip editors do. */}
+          {isStripHiddenEverywhere(noticeOnDesktop, noticeOnMobile) ? (
+            <p className="text-xs text-amber-700 dark:text-amber-500">
+              Both are off, so guests are never offered sign-in at checkout. They can still sign in
+              from the account page.
+            </p>
+          ) : null}
+        </div>
         <CheckoutCustomFields
           fields={customFields}
           onChange={setCustomFields}
@@ -161,6 +196,7 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
         termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
         addressMode,
         showOrderNotes: orderNotes,
+        guestNotice: { showOnDesktop: noticeOnDesktop, showOnMobile: noticeOnMobile },
         // Drop entries the merchant started and left blank rather than sending a
         // labelless field the shopper would meet as an unexplained input, then
         // splice the Payments tab's entries back where they were.

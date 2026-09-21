@@ -630,6 +630,12 @@ export interface StorefrontStore {
     addressMode?: "detailed" | "flat";
     /** The "Delivery notes" box under the address. Unset reads as ON. */
     showOrderNotes?: boolean;
+    /**
+     * Where the guest sign-in notice shows. Both unset read as ON. Resolved into
+     * a CSS class (`stripVisibilityClass`), never `matchMedia` — checkout is
+     * server-rendered and a JS check would paint the wrong state first.
+     */
+    guestNotice?: { showOnDesktop?: boolean; showOnMobile?: boolean };
     /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
     /** "Pause online orders": buy buttons show `pausedMessage`; the order API refuses. */
