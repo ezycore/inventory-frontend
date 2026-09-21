@@ -152,7 +152,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, one doubled, two misnamed | 🟡 Built 2026-09-21; pixel comparison outstanding |
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | 🟡 Built 2026-09-21; backend deploy + pixel comparison outstanding |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | 🟡 Built 2026-09-21; the conversion half of 3b ⛔ blocked on an unmerged backend branch |
-| 4 (§3) | The row sections: subheading, columns per device, flow | ⬜ Not started |
+| 4 (§3) | The row sections: subheading, columns per device, flow | 🟡 Built 2026-09-21; `arrows` ⛔ deferred (step 5), deploy + pixel outstanding |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | ⬜ Not started |
 | 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | ⬜ Not started |
 | 7 (§3) | Tests, docs, register review, browser QA | ⬜ Not started |
@@ -469,27 +469,34 @@ deployed**, which is why the store is migrated with the difference recorded rath
 
 ### Phase 4 — the row sections earn their shape
 
-**Status:** ⬜ Not started · **Needs Phase 0 in production.**
+**Status:** 🟡 Built 2026-09-21, except `product-carousel.arrows` — see step 5. **Left:** the backend
+deploy and the pixel comparison. · **Needs Phase 0 in production.**
 
 Thirteen sections offer a heading and nothing else about their own arrangement.
 
-1. [ ] **X8 subheading.** `subheading: { type: "string", max: 240, optional: true }` on the thirteen
+1. [x] **X8 subheading.** `subheading: { type: "string", max: 240, optional: true }` on the thirteen
        sections in §2.1. One renderer change: `SectionHeading` and `SectionTitle` grow an optional line
        under the title — **inert for the four classic callers**, which pass none (§0.3).
-2. [ ] **`benefits.columns` becomes responsive**, and the CSS moves out of the `min-width: 680px` block
+2. [x] **`benefits.columns` becomes responsive**, and the CSS moves out of the `min-width: 680px` block
        so a phone can take two. Unset keeps today: up to three past the breakpoint, one on a phone.
-3. [ ] **`how-to-order.columns`**, responsive, over Phase 1's wrap as the unset default.
-4. [ ] **`testimonials`**: `columns` responsive, and `flow: "wrap" | "scroll"` responsive — the phone's
+3. [x] **`how-to-order.columns`**, responsive, over Phase 1's wrap as the unset default.
+4. [x] **`testimonials`**: `columns` responsive, and `flow: "wrap" | "scroll"` responsive — the phone's
        swipe row becomes the default rather than the law. Reuse `category-promo-cards`'s `flow`
        vocabulary; do not mint a second word for the same idea.
-5. [ ] **`product-carousel`**: `perView` responsive and `arrows` boolean, again in the promo row's
-       vocabulary. ⚠ Both must reach the **island** (`product-rail`), not stop at the renderer (§0.4).
-6. [ ] **`related-products`**: `columns` responsive and `...CARD_PHOTO`, so it matches every other
+5. [~] **`product-carousel`**: `perView` responsive — done, and it reaches the island through `--cols`,
+       which is what the rail's track already divides itself by.
+       ⛔ **`arrows` is NOT built, and the reason is worth reading before someone tries.** The arrows
+       that `category-promo-cards` has belong to `CategoryStrip`, which owns the scroll CONTAINER — and
+       the rail's scroll container is `ProductRailTrack`, with its own `grid-auto-flow: column` track
+       and snap points, shared with the **classic** home's product rail. Giving the carousel arrows
+       means moving that container into `CategoryStrip`, which changes a component two storefronts draw,
+       and that is a refactor with its own pixel gate rather than a boolean. It needs a step of its own.
+6. [x] **`related-products`**: `columns` responsive and `...CARD_PHOTO`, so it matches every other
        product row.
-7. [ ] **`campaign-offers`**: `limit` (1–12). **`shop-by-tag`**: `flow`. **`faq`**: `openFirst`.
+7. [x] **`campaign-offers`**: `limit` (1–12). **`shop-by-tag`**: `flow`. **`faq`**: `openFirst`.
        **`countdown`** and **`offer-pricing`**: the subheading of step 1, which the X8 list did not
        carry because §2.2 had no row for either until the 2026-09-21 re-read (§7).
-8. [ ] Labels and hints for every new field in `section-catalogue.ts` — a field with no entry falls back
+8. [x] Labels and hints for every new field in `section-catalogue.ts` — a field with no entry falls back
        to its key, which reads like a bug to a merchant.
 
 ### Phase 5 — the media sections
@@ -644,6 +651,24 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — Phase 4, and a CSS rule that would have broken the desktop.** A column count wants to
+  become `grid-template-columns: repeat(var(--cols), …)`, and the obvious way to apply that only when
+  the merchant answered is to select on `[style*="--cols"]`. **That selector also matches `--cols-m`**,
+  so a phone-only answer would switch the DESKTOP to a track list built from a variable that is not set
+  there — `grid-template-columns` computes to invalid and the row collapses. The variable therefore
+  carries the whole **track list** (`grid-track.ts`), so the stylesheet's own
+  `var(--x, <the row's own layout>)` is the unset case and no second selector is needed. Three rows use
+  it: `benefits`, `how-to-order`, `testimonials`.
+  - **`testimonials.columns` needs `flow: wrap` on a phone.** The phone's swipe row is a flex track and
+    has no columns to count, so the column control there is conditional on the row being a grid — said
+    in the field's hint rather than left for a merchant to discover.
+  - **A subheading that is unset adds no markup.** `SectionTitle` and the new `SectionLede` both return
+    exactly what they returned before when no line is given — the bare `<h2>` with its own margin, or
+    the flex row — because the four classic callers pass none and 21 live stores carry sections that
+    do not. Each of the five inline sections kept its own bottom margin (16, 18, 16, 14 and 8), which
+    is why `SectionLede` takes it as a prop rather than picking one.
+  - **`arrows` was dropped from this phase**, with the reason in step 5: it is a refactor of a
+    component both storefronts draw, not a boolean.
 - **2026-09-21 — Phase 3, and the change that unblocks every later responsive field.** Making a
   setting responsive **refused every value already saved for it**: `checkField` and `readField` both
   required `{ base, mobile }`, so `imageRatio: "4:5"` on a live page would have rendered as the default

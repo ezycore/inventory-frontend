@@ -41,7 +41,7 @@ export function GallerySection({
   const desktop = settings.columns?.base ?? DESKTOP_COLUMNS;
   return (
     <div>
-      <SectionHeading base={context.base} heading={settings.heading} />
+      <SectionHeading base={context.base} heading={settings.heading} subheading={settings.subheading} />
       <ul className="sfb-gallery" data-frame={settings.frame ? "" : undefined} style={galleryVars(settings)}>
         {blocks.map(({ id, settings: tile }) => {
           const caption = tile.caption?.trim();

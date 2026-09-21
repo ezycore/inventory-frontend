@@ -22,7 +22,9 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
   if (categories.length === 0) return null;
   return (
     <>
-      {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
+      {settings.heading ? (
+        <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
+      ) : null}
       <CategoryTileRow
         base={context.base}
         categories={categories}

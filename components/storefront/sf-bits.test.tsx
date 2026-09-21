@@ -41,6 +41,25 @@ describe("SectionTitle", () => {
     expect(row.children[1].textContent).toBe("View all");
   });
 
+  it("adds no wrapper for a section that was given no line", () => {
+    // ⚠ The ABSENCE again. Thirteen sections grew a subheading; the four classic
+    // callers pass none, and their markup has to be what it was.
+    const { container } = render(<SectionTitle>Our picks</SectionTitle>);
+    expect((container.firstElementChild as HTMLElement).className).toBe("sfb-title-row");
+    expect(container.querySelectorAll("p")).toHaveLength(0);
+  });
+
+  it("puts the line under the heading, inside one block", () => {
+    const { container } = render(<SectionTitle subheading="Made in Dhaka">Our picks</SectionTitle>);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.className).toBe("");
+    expect(wrapper.children[0].className).toBe("sfb-title-row");
+    expect(wrapper.children[1].textContent).toBe("Made in Dhaka");
+    // The gap moves to the wrapper, so the pair spaces like the heading did.
+    expect(wrapper.style.marginBottom).toBe("16px");
+    expect((wrapper.children[0] as HTMLElement).style.marginBottom).toBe("6px");
+  });
+
   it("draws the heading alone when there is no action", () => {
     const { container } = render(<SectionTitle>Our picks</SectionTitle>);
     const row = container.firstElementChild as HTMLElement;

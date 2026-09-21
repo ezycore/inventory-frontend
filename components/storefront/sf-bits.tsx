@@ -288,17 +288,24 @@ export function StatusPill({
 export function SectionTitle({
   children,
   action,
+  subheading,
 }: {
   children: ReactNode;
   action?: ReactNode;
+  /**
+   * A line under the title. **The four classic callers pass none**, so their
+   * markup is unchanged — the wrapper is only added when there is something to
+   * put in it.
+   */
+  subheading?: ReactNode;
 }) {
-  return (
+  const row = (
     <div
       className="sfb-title-row"
       style={{
         display: "flex",
         alignItems: "center",
-        marginBottom: 16,
+        marginBottom: subheading ? 6 : 16,
         gap: 12,
       }}
     >
@@ -314,6 +321,15 @@ export function SectionTitle({
         {children}
       </h2>
       {action}
+    </div>
+  );
+  if (!subheading) return row;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {row}
+      <p style={{ fontSize: 14.5, color: "var(--muted)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>
+        {subheading}
+      </p>
     </div>
   );
 }

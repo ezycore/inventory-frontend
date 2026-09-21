@@ -12,11 +12,14 @@ import { SectionLink } from "@/components/storefront-builder/section-link";
 export function SectionHeading({
   base,
   heading,
+  subheading,
   linkLabel,
   linkHref,
 }: {
   base: string;
   heading?: ReactNode;
+  /** A line under the heading; drawn only with a heading to sit under. */
+  subheading?: ReactNode;
   linkLabel?: ReactNode;
   linkHref?: string;
 }) {
@@ -26,7 +29,12 @@ export function SectionHeading({
         {linkLabel} →
       </SectionLink>
     ) : null;
-  if (heading) return <SectionTitle action={link}>{heading}</SectionTitle>;
+  if (heading)
+    return (
+      <SectionTitle action={link} subheading={subheading}>
+        {heading}
+      </SectionTitle>
+    );
   return link ? (
     <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>{link}</div>
   ) : null;

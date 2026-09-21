@@ -1,5 +1,9 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
+import { TRACK } from "@/lib/storefront-builder/grid-track";
+import { SectionLede } from "@/components/storefront-builder/section-lede";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
 
 type Spec = (typeof SECTION_SPECS)["how-to-order"]["settings"];
@@ -14,12 +18,8 @@ type BlockSpec = (typeof SECTION_SPECS)["how-to-order"]["blocks"]["settings"];
 export function HowToOrderSection({ settings, blocks }: SectionViewProps<Spec, BlockSpec>) {
   return (
     <>
-      {settings.heading ? (
-        <h2 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 18px", letterSpacing: "-0.02em" }}>
-          {settings.heading}
-        </h2>
-      ) : null}
-      <ol className="sfb-steps">
+      <SectionLede heading={settings.heading} subheading={settings.subheading} gap={18} />
+      <ol className="sfb-steps" style={responsiveVars("sfb-step-track", settings.columns, TRACK) as CSSProperties}>
         {blocks.map(({ id, settings: step }, index) => (
           <li key={id} className="sfb-step">
             <span

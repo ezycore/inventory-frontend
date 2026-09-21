@@ -47,10 +47,27 @@ const CARD_PHOTO = {
  * set, to `ctaHref` or else the row's collection or the catalogue. Both unset on
  * a new section, which shows only the merchant's words.
  */
+/**
+ * A line under a section's heading. Thirteen sections offered a heading and
+ * nothing beneath it, and the alternative — stacking a Rich text section above
+ * the row — has its own padding, its own width and its own place in the tree,
+ * so the pair drifts apart the moment either is styled (owner decision D5 of
+ * `inventory-frontend/docs/plan/storefront-section-controls.md`).
+ */
+const SUBHEADING = { subheading: { type: "string", max: 240, optional: true } } as const;
+
 const STORE_ROW = {
+  ...SUBHEADING,
   storeHeading: { type: "enum", values: ["featured", "newArrivals", "selected", "collection"], optional: true },
   viewAll: { type: "boolean", optional: true },
 } as const;
+
+/**
+ * What a row does when its items do not fit: wrap onto another line, or scroll
+ * sideways. `category-promo-cards` named this first; every row that asks the
+ * same question uses its word rather than minting a second one.
+ */
+const FLOW = { type: "enum", values: ["wrap", "scroll"], responsive: true, optional: true } as const;
 
 const ICON = {
   type: "enum",
@@ -304,7 +321,10 @@ export const SECTION_SPECS = {
     pages: ["product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       limit: { type: "number", min: 1, max: 8, int: true, optional: true },
+      columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      ...CARD_PHOTO,
     },
   },
   faq: {
@@ -312,6 +332,9 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      /** Opens the first question, for a page whose first answer is the one that sells. */
+      openFirst: { type: "boolean", optional: true },
     },
     blocks: {
       max: 30,
@@ -356,6 +379,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** The store's own promises (Customize → Footer) in place of the blocks, as the classic home band. */
       storePromises: { type: "boolean", optional: true },
     },
@@ -420,6 +444,8 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       tagIds: { type: "refs", to: "tag", max: 20 },
+      ...SUBHEADING,
+      flow: FLOW,
       /** The classic home row's heading — "Shop by age" in the shopper's language when Heading is empty. */
       storeHeading: { type: "enum", values: ["shopByAge"], optional: true },
     },
@@ -429,6 +455,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** Unset or empty lists every top-level collection. */
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       style: { type: "enum", values: ["card", "plain"], optional: true },
@@ -467,6 +494,9 @@ export const SECTION_SPECS = {
       tagIds: { type: "refs", to: "tag", max: 10, optional: true },
       productIds: { type: "refs", to: "product", max: 24, optional: true },
       limit: { type: "number", min: 1, max: 24, int: true },
+      /** Cards in view at once; unset keeps the rail's own measure. */
+      perView: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      arrows: { type: "boolean", optional: true },
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
@@ -478,6 +508,8 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      limit: { type: "number", min: 1, max: 12, int: true, optional: true },
       /** "Current offers" in the shopper's language when Heading is empty, as the classic home row. */
       storeHeading: { type: "enum", values: ["campaignOffers"], optional: true },
     },
@@ -487,6 +519,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** Unset or empty lists every top-level collection. */
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       mode: { type: "enum", values: ["tile", "overlay", "circle", "disc"], optional: true },
@@ -570,6 +603,7 @@ export const SECTION_SPECS = {
     pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       text: { type: "string", max: 400, optional: true },
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
@@ -600,6 +634,10 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
+      /** Unset keeps the phone's swipe row and the desktop's wrap — a choice now, not a law. */
+      flow: FLOW,
     },
     blocks: {
       max: 12,
@@ -618,8 +656,13 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
-      /** Past the breakpoint; a phone takes one column. */
-      columns: { type: "number", min: 1, max: 4, int: true, optional: true },
+      ...SUBHEADING,
+      /**
+       * ⚠ Responsive since 2026-09-21. It was written into a `min-width: 680px`
+       * block, so the one screen the merchant's choice could not reach was the
+       * phone — which was always one column.
+       */
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
     },
     blocks: {
       max: 12,
@@ -635,6 +678,9 @@ export const SECTION_SPECS = {
     pages: ["landing"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      /** Unset wraps the steps into as many columns as fit, at 220px each. */
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
     },
     blocks: {
       max: 8,
@@ -694,6 +740,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
       frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], optional: true },
     },
@@ -725,6 +772,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       endsAt: { type: "date" },
       campaignId: { type: "ref", to: "campaign", optional: true },
     },

@@ -19,7 +19,7 @@ export function SelectedProductsSection({ settings, context, data }: SectionView
   const products = data?.items ?? [];
   if (products.length === 0) return null;
   const media = sectionCardMedia(settings);
-  const { heading, linkLabel, linkHref } = productRowHeading(settings, context, "selected");
+  const { heading, subheading, linkLabel, linkHref } = productRowHeading(settings, context, "selected");
   const link =
     linkLabel && linkHref ? (
       <SectionLink base={context.base} href={linkHref} style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)" }}>

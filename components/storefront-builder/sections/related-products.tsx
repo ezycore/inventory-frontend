@@ -20,7 +20,9 @@ export function RelatedProductsSection({ settings, context }: SectionViewProps<S
       props={{
         product: { slug: product.slug, categoryId: product.categoryId },
         heading: settings.heading,
+        subheading: settings.subheading,
         limit: settings.limit,
+        columns: settings.columns,
         currency: context.currency,
       }}
     />

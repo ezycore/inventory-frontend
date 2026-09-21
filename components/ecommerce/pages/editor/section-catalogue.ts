@@ -260,6 +260,9 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
 /** Setting labels, by setting key. Shared across sections — the same key means the same thing. */
 const FIELD_LABELS: Record<string, string> = {
   align: "Alignment",
+  subheading: "Line under the heading",
+  perView: "Cards in view",
+  openFirst: "Open the first one",
   /* A different question from the Style tab's Text alignment, and it was asked
      in the same words. A grid already spans the content column, so there is no
      row left to move: this places each tile INSIDE its own column (`GRID_ALIGN`
@@ -371,6 +374,11 @@ const HINTS: Record<string, string> = {
   ctaHref: "A page on your store like /products, or a full web address.",
   categoryIds: "Leave empty to show every collection.",
   mobileImage: "Optional. Shown on phones instead of the main picture.",
+  subheading: "One line under the heading, for the sentence the heading cannot hold.",
+  perView: "How many cards a shopper sees at once. Empty keeps the row's own measure.",
+  openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
+  flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
+  "testimonials.columns": "How many reviews sit side by side. On a phone this needs the row set to Wrap — a swipe row has no columns.",
   /* Section-keyed like its neighbours: only the hero has this field today, but a
      bare key is the collision `frame` already walked into — see `"hero.frame"`. */
   "hero.mobileFirst":

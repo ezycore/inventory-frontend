@@ -29,7 +29,9 @@ type Spec = (typeof SECTION_SPECS)["collections-row"]["settings"];
 export function CollectionsRowSection({ settings, context }: SectionViewProps<Spec>) {
   const categories = sectionCategories(context.categories ?? [], settings.categoryIds);
   if (categories.length === 0) return null;
-  const heading = settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null;
+  const heading = settings.heading ? (
+    <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
+  ) : null;
 
   if (settings.style === "plain") {
     return (

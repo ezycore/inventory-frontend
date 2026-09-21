@@ -222,11 +222,51 @@
 }
 
 /* Testimonial cards: a grid past the breakpoint, one swipeable row on a phone. */
+/* Reviews. Unset is the auto-fill this row has always drawn; a column count
+   from the merchant replaces it. */
 .sfb-cards {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   align-items: stretch;
+}
+
+/* ⚠ A whole TRACK LIST in one variable, not a count — so the fallback below is
+   the row's own layout and an unset value needs no second selector. Selecting on
+   `[style*="--x"]` would be wrong here anyway: it matches `--x-m` too, so a
+   phone-only answer would switch the desktop to a track list built from a
+   variable that is not set there. */
+.sfb-cards {
+  grid-template-columns: var(--sfb-review-track, repeat(auto-fill, minmax(260px, 1fr)));
+}
+
+/*
+ * A row that does not fit: wrap onto another line, or scroll sideways.
+ *
+ * ⚠ Attribute, not variable, and for the reason the overlay records — CSS
+ * cannot ask whether a custom property was set, and this has to select a whole
+ * layout rather than fill in a value. `data-flow-m` is the phone's answer and is
+ * read only inside the breakpoint block.
+ */
+[data-flow="scroll"] {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin-inline: calc(-1 * var(--pad));
+  padding-inline: var(--pad);
+  scroll-padding-inline: var(--pad);
+}
+
+[data-flow="scroll"] > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+[data-flow="wrap"] {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
 
 /* Benefit cards: the section's column count past the breakpoint, one column on a phone. */
@@ -476,6 +516,40 @@
     flex: 0 0 85%;
     scroll-snap-align: start;
   }
+  /* The merchant's own answer for the phone beats the swipe row above — which
+     is the point of `flow`: that row stopped being a law. */
+  [data-flow-m="wrap"] {
+    display: flex;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  [data-flow-m="scroll"] {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  /* A phone column count for the reviews needs the row set to WRAP first: the
+     swipe row is a flex track and has no columns to count. Weight (0,2,0)
+     against the generic `[data-flow-m="wrap"]` above, so this wins wherever
+     both apply and the row becomes a grid rather than a wrapping flex line. */
+  .sfb-cards[data-flow-m="wrap"] {
+    display: grid;
+    overflow-x: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    grid-template-columns: var(--sfb-review-track-m, var(--sfb-review-track, 1fr));
+  }
+  /* A phone column count for the benefit cards. The control was written into the
+     desktop block, so the one screen a merchant could not reach was the phone. */
+  .sfb-benefits {
+    grid-template-columns: var(--sfb-benefit-track-m, 1fr);
+  }
+  .sfb-steps {
+    grid-template-columns: var(--sfb-step-track-m, 1fr);
+  }
 }
 
 @media (min-width: 680px) {
@@ -486,7 +560,7 @@
     display: none !important;
   }
   .sfb-benefits {
-    grid-template-columns: repeat(var(--sfb-benefit-cols, 3), minmax(0, 1fr));
+    grid-template-columns: var(--sfb-benefit-track, repeat(3, minmax(0, 1fr)));
   }
   /* Steps WRAP. `grid-auto-flow: column` gave eight steps eight columns —
      unreadable slivers, and no control to fix it with. `auto-fit` keeps the
@@ -495,7 +569,7 @@
      they no longer do. The column count itself becomes a merchant control in
      this plan's Phase 4; this is the defect underneath it. */
   .sfb-steps {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: var(--sfb-step-track, repeat(auto-fit, minmax(220px, 1fr)));
   }
   /* The picture's share, as a percentage; the copy takes what is left. Unset is
      the even split this section has always drawn. Note this block is

@@ -30,6 +30,7 @@ export function DealStripView({
   currency,
   t,
   heading,
+  subheading,
   style,
 }: {
   base: string;
@@ -37,6 +38,8 @@ export function DealStripView({
   currency?: string;
   t: Dict;
   heading?: string;
+  /** A line under the heading, from a builder section. The classic home passes none. */
+  subheading?: string;
   style?: CSSProperties;
 }) {
   const live = offerCampaigns(campaigns);
@@ -73,7 +76,16 @@ export function DealStripView({
     <section className="sf-deals" {...named} style={style}>
       {heading || live.length > 1 ? (
         <div className="sf-deals-heading">
-          {heading ? <h2 id={headingId}>{heading}</h2> : null}
+          {heading ? (
+            <div>
+              <h2 id={headingId}>{heading}</h2>
+              {subheading ? (
+                <p style={{ fontSize: 14.5, color: "var(--muted)", lineHeight: 1.6, margin: "6px 0 0", whiteSpace: "pre-line" }}>
+                  {subheading}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           {live.length > 1 ? (
             <span className="sf-deals-position" aria-live="polite">
               {current + 1} / {live.length}
