@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import type { SectionFieldSpec, SectionPageContext } from "./field-specs";
+import { ANCHOR_PATTERN } from "./style-specs";
 
 /**
  * Reading a section instance's settings against its spec, for the renderer.
@@ -89,11 +90,23 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** Same allowlist as the backend: http(s), `tel:`, `mailto:` and store-relative paths. */
+/** Same pattern the style box accepts as a section's `anchor`, with the `#`. */
+const ANCHOR_LINK = new RegExp(ANCHOR_PATTERN.replace("^", "^#"));
+
 export const isAllowedSectionUrl = (value: string): boolean => {
   if (value.length > MAX_URL_LENGTH || value !== value.trim()) return false;
   if (/^https?:\/\/[^\s]+$/i.test(value)) return true;
   if (/^tel:\+?[0-9 ()-]{3,20}$/i.test(value)) return true;
   if (/^mailto:[^\s@]+@[^\s@]+$/i.test(value)) return true;
+  // A jump to another section of the SAME page, by the name its Style tab gives
+  // it. ⚠ **This has to match the backend's `isAllowedSectionUrl` exactly.** The
+  // backend saved `#order-here` happily while this reader still refused it, so
+  // the section's `buttonHref` read as invalid, the required setting was missing
+  // and `prepareSections` dropped the WHOLE SECTION from the page — silently,
+  // because that is what it does with an instance it cannot draw. Found in the
+  // browser on 2026-09-21; no test caught it, because both sides were tested
+  // against themselves rather than against each other.
+  if (ANCHOR_LINK.test(value)) return true;
   return /^\/(?!\/)[^\s]*$/.test(value);
 };
 

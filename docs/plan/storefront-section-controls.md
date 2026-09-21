@@ -703,6 +703,26 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — the full browser sweep found two real bugs, both of them mine, and neither of them
+  visible to any test.** A fixture page carrying all 18 landing-page section types with every new
+  control was published to demo org `new3` and asserted against the rendered DOM.
+  - **`image-text` lost its shape rules the moment it was given a phone picture.** `SfImage` wraps the
+    `<img>` in a `<picture style="display:contents">` as soon as `mobileImage` is set. `display:
+    contents` still promotes the `<img>` to the grid item, so the layout looked right — but the CHILD
+    combinator in `.sfb-split[data-image-fit="fit"] > .sfb-split-media` stopped matching, and `imageFit`,
+    `mobileFirst` **and the pre-existing `imageSide`** silently stopped applying. Adding `mobileImage` is
+    what exposed `imageSide`; that rule had been correct for as long as the section could not have a
+    phone picture. All four rules are descendants now. `image-banner` and `gallery` were already written
+    as descendants, which is the only reason they were not hit too.
+  - **A section that linked to an anchor vanished from the page.** The backend accepted
+    `buttonHref: "#order-here"` (Phase 2 widened `isAllowedSectionUrl` there) but the FRONTEND's own
+    copy of `isAllowedSectionUrl` in `settings.ts` still refused it — so a `call-to-action`'s required
+    `buttonHref` read as invalid, and `prepareSections` dropped the whole section without a trace,
+    which is what it is supposed to do with an instance it cannot draw. **Two allowlists, one widened.**
+    Both now carry the anchor pattern and both have a test naming the other.
+  - The general lesson, and it is the third time this plan has paid it: **a change was tested on each
+    side against itself.** The backend test proved the backend accepts an anchor; the frontend test
+    proved `merchantLinkHref` keeps one. Nothing tested the two together, and the section disappeared.
 - **2026-09-21 — Phases 5 and 6. Four things worth carrying:**
   - **The banner's three answers are three ATTRIBUTES, and unset writes none of them.** The two
     stylesheet blocks that drew left-bottom-under-a-gradient and centre-middle-under-a-wash are

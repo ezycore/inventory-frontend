@@ -490,7 +490,14 @@
 /* The whole picture inside its box, blurred bands filling the rest — what the
    CLASSIC editorial band draws (`bannerPhoto`'s `canvas` default) and what this
    section could not do until 2026-09-21. Unset is `crop`, so nothing moves. */
-.sfb-split[data-image-fit="fit"] > .sfb-split-media {
+/* ⚠ DESCENDANT, not child. `SfImage` wraps the `<img>` in a
+   `<picture style="display:contents">` as soon as the section is given a phone
+   picture, so `> .sfb-split-media` stops matching — while `display: contents`
+   still promotes the `<img>` to the grid item, so `order` and the track still
+   work and the breakage is invisible except that these rules never apply. Found
+   in the browser on 2026-09-21, not by any test. `image-banner` and `gallery`
+   were already written as descendants, which is why only this section broke. */
+.sfb-split[data-image-fit="fit"] .sfb-split-media {
   object-fit: contain;
   background: var(--surface);
 }
@@ -498,7 +505,7 @@
 /* Which of the picture and the copy leads the phone's single column. Below the
    breakpoint the grid is one column in source order — picture, then copy — so
    only "text" has anything to do. */
-.sfb-split[data-mobile-first="text"] > .sfb-split-media {
+.sfb-split[data-mobile-first="text"] .sfb-split-media {
   order: 1;
 }
 
@@ -680,10 +687,10 @@
      flip the desktop against `imageSide`. This resets it before the side rule
      below decides, and both carry the same weight, so the source order here is
      what makes `imageSide` win. */
-  .sfb-split > .sfb-split-media {
+  .sfb-split .sfb-split-media {
     order: 0;
   }
-  .sfb-split[data-image-side="right"] > .sfb-split-media {
+  .sfb-split[data-image-side="right"] .sfb-split-media {
     order: 1;
   }
 }

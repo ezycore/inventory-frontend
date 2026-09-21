@@ -296,6 +296,27 @@ describe("image-text", () => {
     );
   });
 
+  it("keeps its shape rules working once a phone picture wraps the img in a <picture>", () => {
+    // ⚠ The regression this exists for. `SfImage` wraps the `<img>` in a
+    // `<picture style="display:contents">` the moment a phone picture is given.
+    // `display: contents` still promotes the `<img>` to the grid item, so the
+    // layout looks fine — but the CHILD combinator in
+    // `.sfb-split[data-image-fit="fit"] > .sfb-split-media` stops matching, and
+    // the fit, the phone-first order and `imageSide` all silently stop applying.
+    // Found in a browser on 2026-09-21. The stylesheet now uses descendants; this
+    // pins the DOM shape that made the difference.
+    const mobileImage = { url: "https://cdn.example.com/a-phone.jpg" };
+    const { container } = renderPage([
+      section("i1", "image-text", { image, mobileImage, heading: "Our story", imageFit: "fit" }),
+    ]);
+    const media = container.querySelector(".sfb-split-media") as HTMLElement;
+    const split = container.querySelector(".sfb-split") as HTMLElement;
+    expect(media.parentElement?.tagName).toBe("PICTURE");
+    expect(media.parentElement?.parentElement).toBe(split);
+    // The attributes the stylesheet selects on are still on the split itself.
+    expect(split.dataset.imageFit).toBe("fit");
+  });
+
   it("gives the phone a picture of its own", () => {
     const mobileImage = { url: "https://cdn.example.com/a-phone.jpg" };
     const { container } = renderPage([

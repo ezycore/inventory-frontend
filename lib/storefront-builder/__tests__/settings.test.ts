@@ -134,3 +134,25 @@ describe("readImage", () => {
     expect(readImage({ url: "data:image/png;base64,AAAA" })).toBeUndefined();
   });
 });
+
+describe("isAllowedSectionUrl — a jump to another section", () => {
+  it("accepts an anchor, so the section that links to one still draws", () => {
+    // ⚠ The regression this exists for: the BACKEND accepted `#order-here` while
+    // this reader still refused it, so a call-to-action's required `buttonHref`
+    // read as invalid and `prepareSections` dropped the whole section from the
+    // page — silently, because that is what it does with an instance it cannot
+    // draw. Found in a browser on 2026-09-21, by a section simply not appearing.
+    // These two allowlists must agree; `storefront-section-validation.ts` in the
+    // backend is the other half.
+    expect(isAllowedSectionUrl("#order-here")).toBe(true);
+    expect(isAllowedSectionUrl("#a")).toBe(true);
+  });
+
+  it("accepts exactly what the style box will take as a name, and no more", () => {
+    expect(isAllowedSectionUrl("#Order-Here")).toBe(false);
+    expect(isAllowedSectionUrl("#-leading")).toBe(false);
+    expect(isAllowedSectionUrl("#")).toBe(false);
+    expect(isAllowedSectionUrl("#a b")).toBe(false);
+    expect(isAllowedSectionUrl("javascript:alert(1)")).toBe(false);
+  });
+});
