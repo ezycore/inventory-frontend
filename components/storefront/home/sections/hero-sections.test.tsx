@@ -19,6 +19,42 @@ const props = {
   store: { name: "My Store", trustBadges: [] },
 } as SectionProps;
 
+/**
+ * ⚠ **The classic home is what LIVE shops render**, and it shares every hero
+ * renderer with the Storefront Builder (plan §0.3 of
+ * `storefront-hero-shape-controls.md`). The builder's shape and placement
+ * settings reach those views as props these callers do not pass, and every one
+ * of them is inert when unset — the stylesheet's rules are all gated on a
+ * `data-` attribute the builder alone emits.
+ *
+ * This asserts the ABSENCE, because absence is the whole promise: an attribute
+ * that leaked here would hand a live shop a shape, a placement or a phone-copy
+ * rule its owner never chose, and no other test in this file would notice.
+ */
+describe("the classic home stays untouched by the builder's hero settings", () => {
+  const BUILDER_ONLY = [
+    "data-frame",
+    "data-frame-m",
+    "data-media-side",
+    "data-mobile-first",
+    "data-mobile-copy",
+  ];
+
+  it.each([
+    ["HeroCard", HeroCard],
+    ["HeroOpen", HeroOpen],
+    ["HeroFullBleed", HeroFullBleed],
+  ])("%s emits no builder-only attribute and no shape variable", (_name, Hero) => {
+    const { container } = render(<Hero {...props} />);
+    for (const attr of BUILDER_ONLY) {
+      expect(container.querySelector(`[${attr}]`)).toBeNull();
+    }
+    // The variables travel with the attributes; neither may appear here.
+    expect(container.innerHTML).not.toContain("--sfb-hero-frame");
+    expect(container.innerHTML).not.toContain("--sfb-hero-pad");
+  });
+});
+
 describe("HeroCard", () => {
   it("uses merchant identity without inventing a sale or promise", () => {
     render(<HeroCard {...props} />);
