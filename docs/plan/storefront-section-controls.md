@@ -710,6 +710,22 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — the image-only hero card's white strip: a collapsed ROW is not a collapsed GAP.**
+  Spotted by the owner in a screenshot of the UriiBaba clone — a white band under the banner, inside
+  the card's border. Not the height work (`data-h`, `data-h-m` and `data-frame` were all absent); the
+  tail of the 2026-09-21 image-only-slide incident.
+  - The collapse rule that fix added redeclares **two** rows, `"media"` and `"trust"`. A slide with
+    neither copy nor trust badges leaves the second one 0px — and `row-gap: 24px` is still painted
+    between them. Measured: card 473, media 447, strip 25px (24 gap + 1 border).
+  - **Desktop only.** The phone card is a single row with `row-gap: normal`, so it never had it —
+    which is why the incident's own screenshots and every check since missed it.
+  - Fixed with a second rule keyed on BOTH children being absent, written with two `:not(:has(…))` so
+    it outweighs the two-row rule — the fifth specificity trap this stylesheet has produced. A slide
+    that regains trust badges stops matching and falls back.
+  - **No test can see this**: jsdom does no layout, so the strip itself is invisible to the suite. The
+    test asserts the DOM the selector reads — the absence of the trust child, beside the absence of
+    the copy child that the incident added. Asserting only one of the two is the same half-promise
+    that let the first version ship.
 - **2026-09-21 — the hero got a HEIGHT, per device, on all three layouts.** Asked for after the sweep;
   the hero plan's audit row M2 had recorded "no height or shape on any layout" and only the shape half
   (`frame`) was ever built. Three things decided the shape of it:

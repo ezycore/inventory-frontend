@@ -2952,6 +2952,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding: 0;
     max-height: 70svh;
   }
+  /* ⚠ **A collapsed row is not a collapsed GAP.** The rule above redeclares two
+     rows, `media` and `trust`, and a slide with neither copy NOR trust badges
+     leaves the second one 0px — but `row-gap: 24px` is still painted between
+     them, so the card renders 25px taller than its picture and the extra shows
+     as a white strip under the photograph, inside the border.
+
+     That is the tail of the 2026-09-21 image-only-slide incident: collapsing the
+     copy took the column back but left the gap, and both live merchants' heroes
+     are exactly this shape — an image and no text at all. Found on the UriiBaba
+     clone, at desktop width only; the phone never had it, because the phone card
+     is a single row with no row-gap.
+
+     Written with BOTH `:not(:has(…))` so it outweighs the rule above — each one
+     carries its argument's weight, which is the specificity trap this stylesheet
+     has now produced five times. A slide that regains trust badges stops matching
+     and falls straight back to the two-row rule. */
+  .sf-herocard:not(:has(> .sf-herocard-copy)):not(:has(> .sf-herocard-trust)) {
+    grid-template-areas: "media";
+    row-gap: 0;
+  }
   /* Picture on the left. Redeclaring the AREAS is what moves it — reordering
      the children would break the `:has()` collapse above, which needs the media
      child to stay the third one.
