@@ -2733,6 +2733,36 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 
 .sf-herocard[data-frame-m] { --herocard-ratio: var(--sfb-hero-frame-m); }
 .sf-herocard[data-frame]:not([data-frame-m]) { --herocard-ratio: var(--sfb-hero-frame); }
+
+/* ---- "Height" (`height`), on all three heroes ----
+   The merchant's own height in pixels, per device, written in the same
+   mobile-first pair as the shape above: the phone's answer resolves here and
+   the 680px block hands the desktop back to `--sfb-hero-h`.
+
+   ⚠ **A height REPLACES the shape on the screen it applies to**, which is why
+   every rule below also sets `--*-ratio: auto`. With both in force the media's
+   inline `aspect-ratio` would compute a WIDTH from the height and the picture
+   would collapse to a column — the same collision the promo card row records as
+   "a height REPLACES the shape rather than joining it". Setting the ratio
+   variable to `auto` is enough: the inline `aspect-ratio: var(--herocard-ratio)`
+   then resolves to `auto`, i.e. no ratio at all, and the explicit height below
+   is the only thing sizing the box.
+
+   Unset touches nothing — every rule is gated on `data-h` / `data-h-m`, which
+   the builder adds only when a height exists, so the classic home and every
+   hero nobody has resized are byte-identical. */
+.sf-herocard[data-h-m] {
+  --herocard-ratio: auto;
+  --herocard-h: var(--sfb-hero-h-m);
+}
+.sf-herocard[data-h]:not([data-h-m]) {
+  --herocard-ratio: auto;
+  --herocard-h: var(--sfb-hero-h);
+}
+.sf-herocard[data-h] .sf-herocard-media,
+.sf-herocard[data-h-m] .sf-herocard-media {
+  height: var(--herocard-h);
+}
 .sf-herocard-copy {
   display: flex;
   flex-direction: column;
@@ -2858,6 +2888,19 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      needed, and `:not()` is what keeps them apart. */
   .sf-herocard[data-frame] { --herocard-ratio: var(--sfb-hero-frame); }
   .sf-herocard[data-frame-m]:not([data-frame]) { --herocard-ratio: 4 / 3; }
+  /* A phone-only height must not follow the merchant onto the desktop, so the
+     desktop is handed back its own value — or, with no desktop height, back to
+     the shape it would otherwise have drawn. `:not()` keeps the two apart, as
+     it does for the shape above. */
+  .sf-herocard[data-h] {
+    --herocard-ratio: auto;
+    --herocard-h: var(--sfb-hero-h);
+  }
+  .sf-herocard[data-h-m]:not([data-h]) {
+    --herocard-ratio: 4 / 3;
+    --herocard-h: auto;
+  }
+  .sf-herocard[data-h-m]:not([data-h]) .sf-herocard-media { height: auto; }
   .sf-herocard {
     --herocard-ratio: 4 / 3;
     grid-template-columns: var(--herocols);
@@ -3004,6 +3047,20 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 
 .sf-heroopen[data-frame-m] { --heroopen-ratio: var(--sfb-hero-frame-m); }
 .sf-heroopen[data-frame]:not([data-frame-m]) { --heroopen-ratio: var(--sfb-hero-frame); }
+
+/* The open hero's height — same pair, same "a height replaces the shape" rule. */
+.sf-heroopen[data-h-m] {
+  --heroopen-ratio: auto;
+  --heroopen-h: var(--sfb-hero-h-m);
+}
+.sf-heroopen[data-h]:not([data-h-m]) {
+  --heroopen-ratio: auto;
+  --heroopen-h: var(--sfb-hero-h);
+}
+.sf-heroopen[data-h] > .sf-heroopen-media,
+.sf-heroopen[data-h-m] > .sf-heroopen-media {
+  height: var(--heroopen-h);
+}
 .sf-heroopen[data-hide-mobile-copy="true"] .sf-heroopen-copy {
   display: none;
 }
@@ -3028,6 +3085,15 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-heroopen:not([data-media-side="left"]) > .sf-heroopen-media { order: 0; }
   /* Same pair as the card above, and the same reason for the `:not()`. */
   .sf-heroopen[data-frame] { --heroopen-ratio: var(--sfb-hero-frame); }
+  .sf-heroopen[data-h] {
+    --heroopen-ratio: auto;
+    --heroopen-h: var(--sfb-hero-h);
+  }
+  .sf-heroopen[data-h-m]:not([data-h]) {
+    --heroopen-ratio: 4 / 3;
+    --heroopen-h: auto;
+  }
+  .sf-heroopen[data-h-m]:not([data-h]) > .sf-heroopen-media { height: auto; }
   .sf-heroopen[data-frame-m]:not([data-frame]) { --heroopen-ratio: 4 / 3; }
 }
 
@@ -3321,6 +3387,32 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   width: 0;
   padding-top: var(--sfb-hero-pad);
 }
+
+/* "Height" on the full-width hero — a `min-height`, i.e. the SAME KIND of thing
+   this layout's default already is, not a fixed box.
+
+   ⚠ A fixed height here would slice the copy exactly as a fixed `aspect-ratio`
+   does: the words sit on the photograph under `overflow: hidden` with
+   `align-items: flex-end`, so a box shorter than them cuts their tops off. That
+   is the whole reason the shape arrives as a padding spacer rather than
+   `aspect-ratio` (see the block above). A floor cannot do that — the hero ends
+   up as tall as the merchant's height or as tall as its copy, whichever is more.
+
+   ⚠ And the height REPLACES the shape, so the spacer goes wherever a height
+   applies. Leaving both would stack a floor under a spacer and the hero would be
+   the sum of the two, which is neither answer.
+
+   ⚠ And unlike the card and the open hero, this layout is written DESKTOP-first
+   with its phone answers in a `max-width: 640px` block — its own breakpoint, not
+   the 680 the rest of the file uses (hero plan §7, S4). So the desktop value
+   belongs here, unwrapped, and the phone's goes in that block. Writing this pair
+   mobile-first, as the other two layouts are, would have applied the PHONE height
+   at every width. */
+.sf-hero-fullbleed[data-h] { min-height: var(--sfb-hero-h); }
+.sf-hero-fullbleed[data-h]::before,
+.sf-hero-fullbleed[data-h-m]::before {
+  padding-top: 0;
+}
 .sf-hero-fullbleed-image { background: var(--surface-2); }
 .sf-hero-fullbleed-scrim {
   position: absolute;
@@ -3363,6 +3455,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding-top: var(--sfb-hero-pad-m);
   }
   .sf-hero-fullbleed[data-frame]:not([data-frame-m]) { min-height: 0; }
+  /* The phone's own height. A desktop-only height needs no rule — it is already
+     in force from the unwrapped block above and reaches the phone on purpose,
+     which is the builder's responsive model everywhere else in this file. */
+  .sf-hero-fullbleed[data-h-m] { min-height: var(--sfb-hero-h-m); }
   .sf-hero-fullbleed-scrim {
     background: linear-gradient(
       180deg,

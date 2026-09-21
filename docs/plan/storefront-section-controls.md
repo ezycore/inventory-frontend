@@ -710,6 +710,26 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — the hero got a HEIGHT, per device, on all three layouts.** Asked for after the sweep;
+  the hero plan's audit row M2 had recorded "no height or shape on any layout" and only the shape half
+  (`frame`) was ever built. Three things decided the shape of it:
+  - **A height REPLACES the shape** on the screen it is given, which is the rule the promo card row
+    already states — with both in force, the media's inline `aspect-ratio` computes a WIDTH from the
+    height and the picture collapses to a column. Every height rule therefore also sets
+    `--herocard-ratio` / `--heroopen-ratio` to `auto`; the inline `aspect-ratio: var(--…-ratio)` then
+    resolves to `auto`, and the explicit height is the only thing sizing the box.
+  - **On full-bleed it is a `min-height`, not a fixed box.** That hero lays its type over the
+    photograph under `overflow: hidden`, so a box shorter than the words slices them off the top —
+    the same trap `ASPECT_RATIO_PADDING` exists to avoid. A floor cannot do that, and a floor is what
+    that layout's default already is.
+  - ⚠ **The three layouts do not share a breakpoint.** Card and open are written mobile-first against
+    680px; **full-bleed is desktop-first with its phone answers in a `max-width: 640px` block** — its
+    own breakpoint (hero plan §7, S4). Writing the full-bleed pair mobile-first, as the other two are,
+    applied the PHONE height at every width. Caught by reading the file, before it rendered.
+  - Measured on both devices: at 1440px the card takes its 420, the open hero its 380, full-bleed its
+    500, and a hero with a shape AND a height takes the height; at 390px the phone values (260, 300)
+    win, a desktop-only height reaches the phone on purpose, and a hero with neither is untouched
+    (205px card, 280.8px full-bleed floor).
 - **2026-09-21 — the four items the sweep left open, closed.** With a real desktop viewport this time:
   the browser window could not be resized all session (zoomed and maximised, `resize_window` a no-op at
   606 CSS px), so the desktop was reached by rendering the storefront **into a same-origin iframe sized

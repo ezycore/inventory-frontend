@@ -304,6 +304,9 @@ const FIELD_LABELS: Record<string, string> = {
   galleryLayout: "Photo layout",
   heading: "Heading",
   height: "Picture height (px)",
+  /* The hero is the whole band, not a picture inside one — "Picture height"
+     would be describing the wrong box. */
+  "hero.height": "Hero height (px)",
   hideDescription: "Hide the description",
   hideText: "Hide text",
   hideTextOnMobile: "Hide text on phones",
@@ -400,6 +403,11 @@ const HINTS: Record<string, string> = {
   "hero.mobileFirst":
     "Default keeps each layout's own order. Text first pushes the picture down the phone's screen, often below the fold — use it where the picture is decoration rather than the product.",
   "hero.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  /* Section-keyed, like `"hero.frame"` above it and for the same reason: the
+     promo row's `height` means a card's height, this one means the whole hero's,
+     and the two layouts answer differently to a number. */
+  "hero.height":
+    "The hero's height in pixels. A height REPLACES Picture shape on the screen you set it for — set one or the other, not both. On a full-width hero it is a minimum, so the hero still grows if the words need more room.",
   /* Section-keyed for the reason `"hero.frame"` gives: `image-text` and the hero
      ask the same question of layouts that start from different defaults. */
   "image-text.mobileFirst":

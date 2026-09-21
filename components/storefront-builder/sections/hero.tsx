@@ -81,11 +81,17 @@ export function heroSlides(blocks: readonly SlideBlock[], keepEmpty = false): St
  * `image-banner` and `gallery` carry the same pair for the same reason. Plain
  * data throughout, so it crosses an island boundary unchanged.
  */
-function heroFrame(settings: Pick<Settings, "frame">): HeroFrame | undefined {
+function heroFrame(settings: Pick<Settings, "frame" | "height">): HeroFrame | undefined {
   const frame = settings.frame;
-  if (!frame?.base && !frame?.mobile) return undefined;
+  const height = settings.height;
+  // Either answers the hero's box, so either is enough to build the object —
+  // a height with no shape still needs its variables and attributes through.
+  if (!frame?.base && !frame?.mobile && height?.base === undefined && height?.mobile === undefined) {
+    return undefined;
+  }
   return {
     vars: {
+      ...responsiveVars("sfb-hero-h", height, (px) => `${px}px`),
       ...responsiveVars("sfb-hero-frame", frame, (ratio) => ASPECT_RATIOS[ratio]),
       /* The same shape as a percentage, for the ONE layout that cannot use
          `aspect-ratio`: a full-width hero's words sit on the photograph, so its
@@ -93,8 +99,10 @@ function heroFrame(settings: Pick<Settings, "frame">): HeroFrame | undefined {
          `ASPECT_RATIO_PADDING`. */
       ...responsiveVars("sfb-hero-pad", frame, (ratio) => ASPECT_RATIO_PADDING[ratio]),
     },
-    base: !!frame.base,
-    mobile: !!frame.mobile,
+    base: !!frame?.base,
+    mobile: !!frame?.mobile,
+    heightBase: height?.base !== undefined,
+    heightMobile: height?.mobile !== undefined,
   };
 }
 

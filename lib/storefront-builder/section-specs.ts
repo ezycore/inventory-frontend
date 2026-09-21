@@ -102,6 +102,29 @@ export const SECTION_SPECS = {
         responsive: true,
         optional: true,
       },
+      /**
+       * The hero's height in pixels, per device.
+       *
+       * ⚠ **A height REPLACES the shape** on the screen it is given — the same
+       * rule the promo card row states, and for the same reason: with both, an
+       * aspect box computes its width from the height and the picture collapses
+       * to a column. The stylesheet hands `--herocard-ratio` / `--heroopen-ratio`
+       * to `auto` wherever a height applies, so the two are never both in force.
+       *
+       * ⚠ On the FULL-WIDTH hero it is a `min-height`, not a fixed box, because
+       * that hero lays its type over the photograph under `overflow: hidden` —
+       * a fixed box shorter than the words slices them off the top, which is the
+       * trap `ASPECT_RATIO_PADDING` exists to avoid. A floor lets the copy grow
+       * past it, and a floor is what that layout's own default already is.
+       */
+      height: {
+        type: "number",
+        min: 120,
+        max: 900,
+        int: true,
+        responsive: true,
+        optional: true,
+      },
       /*
        * Where the picture and the copy sit relative to each other. Two settings
        * and not one responsive one, because the two devices start from opposite

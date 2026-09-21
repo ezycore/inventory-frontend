@@ -35,6 +35,18 @@ export interface HeroFrame {
   base: boolean;
   /** A phone shape is set — `data-frame-m`. */
   mobile: boolean;
+  /**
+   * A desktop HEIGHT is set — `data-h`.
+   *
+   * ⚠ A height and a shape answer the same question, and a **height replaces
+   * the shape** on the screen it is given, exactly as it does on the promo card
+   * row: with both, an aspect box computes its width from the height and the
+   * picture collapses. The stylesheet hands `--*-ratio` to `auto` wherever a
+   * height applies, so the two can never both be in force on one screen.
+   */
+  heightBase?: boolean;
+  /** A phone height is set — `data-h-m`. */
+  heightMobile?: boolean;
 }
 
 /**
@@ -61,10 +73,12 @@ export const heroPlacementAttrs = (placement?: HeroPlacement) => ({
   "data-mobile-first": placement?.mobileFirst,
 });
 
-/** `data-frame` / `data-frame-m` for a hero's root element. */
+/** `data-frame` / `data-frame-m` and the height's `data-h` pair, for a hero's root. */
 export const heroFrameAttrs = (frame?: HeroFrame) => ({
   "data-frame": frame?.base ? "" : undefined,
   "data-frame-m": frame?.mobile ? "" : undefined,
+  "data-h": frame?.heightBase ? "" : undefined,
+  "data-h-m": frame?.heightMobile ? "" : undefined,
 });
 
 /** The hero photo, as `Media` takes it. */

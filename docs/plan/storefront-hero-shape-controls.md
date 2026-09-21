@@ -136,7 +136,7 @@ Line numbers are as of commit `74b98613` (2026-09-21).
 | # | What the merchant cannot control | Where it is nailed down |
 |---|---|---|
 | M1 | **Full-bleed hides the badge and the subtitle below 640px, and clamps the title to 2 lines.** No hint, no control, no note in the editor. | `storefront.css:3182` (the hide), `:3184` (the title clamp) |
-| M2 | **No height or shape on any layout.** Card `16/9` phone / `4/3` desktop; Open `4 / 3` always; full-bleed is a `min-height` **floor, not a box** — `clamp(380px,62vh,640px)` desktop, `clamp(260px,72vw,390px)` phone. | `storefront.css:2685`, `:2808`; `hero-static.tsx` `ratio="4 / 3"`; `storefront.css:3133`, `:3159` |
+| M2 ½ | **Shape SHIPPED as `frame`; HEIGHT shipped 2026-09-21** as `height`, per device, on all three layouts — a height REPLACES the shape on the screen it is given, and on full-bleed it is a `min-height` so the copy can still grow past it. Originally: **No height or shape on any layout.** Card `16/9` phone / `4/3` desktop; Open `4 / 3` always; full-bleed is a `min-height` **floor, not a box** — `clamp(380px,62vh,640px)` desktop, `clamp(260px,72vw,390px)` phone. | `storefront.css:2685`, `:2808`; `hero-static.tsx` `ratio="4 / 3"`; `storefront.css:3133`, `:3159` |
 | M3 | **The phone picture has no phone shape.** `mobileImage` exists, the box stays 16:9, so a portrait phone banner is letterboxed over a blurred copy. | same as M2 |
 | M4 | **`imageFit` is not responsive, but `focal` is.** Desktop box 4:3, phone box 16:9, one fit value. Half a responsive pair. | `section-specs.ts:96-97` |
 | M5 | Card buttons share one stretched phone row; no stack control. Centring happens to fix it, as a side effect. | `storefront.css` `.sf-herocard-copy a { flex: 1 1 auto }` |
