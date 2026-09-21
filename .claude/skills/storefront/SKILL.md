@@ -2118,14 +2118,6 @@ mid-rotation. They are drawn on phones too, unlike `.sf-cat-strip-arrow` — the
 merchant switched them on, and a control that appears only on a desktop is the
 phone defect this repo keeps finding. Both heroes draw the same `HeroNav`.
 
-⚠ **The arrow is a bare chevron, and the pill is not coming back** (2026-09-21).
-It shipped as a 38px disc of `--card` with a border and a shadow, which is what
-the shared `.sf-cat-strip-arrow` does — and on a hero photograph that disc reads
-as a hole punched in the picture. Legibility now comes from a halo
-(`drop-shadow`) under the glyph rather than a plate behind it, inverted to white
-on the full-bleed hero, whose type is white anyway. The 44px transparent tap
-target stays: it was never the pill.
-
 **`frame` carries an ATTRIBUTE as well as a variable**, like `image-banner` and
 `gallery`: `data-frame` / `data-frame-m` beside `--sfb-hero-frame` / `-m`. CSS cannot
 ask whether a custom property was set, and two rules turn on exactly that question.

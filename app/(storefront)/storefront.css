@@ -3204,25 +3204,17 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   pointer-events: none;
 }
 /* ---- "Slide controls" = Arrows (`hero.nav`) ----
-   **A bare chevron, and nothing behind it.** The dark carousel's arrows were
-   white on a translucent pill, which is one of the reasons decision D4 left
-   them out rather than porting them onto a light card; a pill in the store's
-   own surface was the first replacement and it was worse over a photograph —
-   a 38px disc of `--card` laid on someone's hero picture reads as a hole
-   punched in it. The glyph alone sits on the picture instead of covering it.
-
-   Which leaves legibility, since there is no longer a plate carrying it: the
-   chevron is the store's text colour with a WHITE HALO under it, so it survives
-   a dark photograph, a pale one, and the page's own ground without asking which
-   it is on. The full-bleed hero, whose type is white by definition, inverts the
-   pair below.
-
-   The button stays 44px and transparent — the tap target was never the pill,
-   and a 22px glyph is not something to ask a thumb to find.
+   The dark carousel's arrows were white chevrons on a translucent pill, drawn
+   for a photograph — which is why decision D4 left them out rather than porting
+   them onto a light card. These are the store's own surface, border and text
+   colour instead, so they read as part of the shop on a card, on the page and
+   over a photograph alike.
 
    Shared by both rotating heroes (`hero-nav.tsx`), and **drawn on phones too**,
    unlike `.sf-cat-strip-arrow`: the merchant switched them on, and a control
-   that appears only on a desktop is the phone defect this file keeps finding. */
+   that appears only on a desktop is the phone defect this file keeps finding.
+   They are inset rather than hung off the edge for the same reason — at 390px
+   an arrow outside the card would be off the screen. */
 .sf-hero-arrow {
   position: absolute;
   top: 50%;
@@ -3230,39 +3222,36 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   transform: translateY(-50%);
-  border: 0;
-  background: none;
+  /* A circle, so 999px rather than a corner token — see the radius rule. */
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
   color: var(--text);
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9)) drop-shadow(0 1px 2px rgba(15, 23, 42, 0.3));
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.14);
   cursor: pointer;
 }
 .sf-hero-arrow:hover {
-  opacity: 0.7;
+  border-color: var(--border-strong);
 }
 .sf-hero-arrow[data-edge="start"] {
-  left: 2px;
+  left: 10px;
 }
 .sf-hero-arrow[data-edge="end"] {
-  right: 2px;
+  right: 10px;
 }
 /* The full-bleed hero's own pair. Its copy runs to the bottom-left and its dots
    to the bottom-right, so arrows on the vertical middle clear both — but the
-   hero is edge to edge, so they take the page's own gutter rather than an inset
-   that would sit them against the screen edge. White, with the halo inverted:
-   everything this hero draws over its photograph is white already. */
-.sf-hero-fullbleed > .sf-hero-arrow {
-  color: #fff;
-  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.55));
-}
+   hero is edge to edge, so they take the page's own gutter rather than a 10px
+   inset that would sit them against the screen edge. */
 .sf-hero-fullbleed > .sf-hero-arrow[data-edge="start"] {
-  left: calc(var(--pad) - 12px);
+  left: var(--pad);
 }
 .sf-hero-fullbleed > .sf-hero-arrow[data-edge="end"] {
-  right: calc(var(--pad) - 12px);
+  right: var(--pad);
 }
 /* The shared dot is white, for type over a photograph. The row UNDER the hero
    sits on the page's own surface instead, so it takes the store's borders and
