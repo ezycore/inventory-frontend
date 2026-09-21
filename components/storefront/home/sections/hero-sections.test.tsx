@@ -93,6 +93,15 @@ describe("HeroCard", () => {
     expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
       "sf-visually-hidden",
     );
+
+    /* ⚠ The assertion this test was missing until 2026-09-21, which is why the
+       void column reached production. The card is a `grid-template-areas`
+       layout: an EMPTY copy child still holds its track, so the photograph
+       renders in half a card. The collapse rule beside `.sf-herocard` keys off
+       the child's absence, so absence is what has to be asserted — "the copy is
+       empty" is not the same promise and is the one that shipped. */
+    expect(container.querySelector(".sf-herocard-copy")).toBeNull();
+    expect(container.querySelector(".sf-herocard-media")).toBeInTheDocument();
   });
 
   it("keeps the open hero open, and the store's promises under the card, once slides exist", () => {
@@ -350,5 +359,66 @@ describe("HeroFullBleed", () => {
       "data-hide-mobile-copy",
       "true",
     );
+  });
+});
+
+/**
+ * ⚠ **The shape both live merchants actually have.** UriiBaba stores 4 hero
+ * slides and LunoraBaby 1, and every one of them carries an image and NO text:
+ * the words are baked into the artwork. That is not an edge case, it is how a
+ * banner is made — and it was the one slide shape no test asserted the layout
+ * of, which is how 2026-09-21's regression reached both shops' home pages
+ * (`docs/plan/storefront-builder.md` §17).
+ *
+ * Each case asserts the copy element is ABSENT rather than empty: the grid
+ * collapses on the child's absence, so an empty child is the defect itself.
+ */
+describe("a hero with a picture and nothing to say", () => {
+  const imageOnly = [{ image: { url: "/banner.jpg" } }] as SectionProps["heroSlides"];
+
+  it("gives the card's whole width to the picture", () => {
+    const { container } = render(<HeroCard {...props} heroSlides={imageOnly} />);
+    expect(container.querySelector(".sf-herocard-copy")).toBeNull();
+    expect(container.querySelector(".sf-herocard-media")).toBeInTheDocument();
+    // The page keeps a heading; it is simply not a column.
+    expect(screen.getByRole("heading", { level: 1 })).toHaveClass("sf-visually-hidden");
+  });
+
+  it("gives the open hero's whole width to the picture", () => {
+    const { container } = render(<HeroOpen {...props} heroSlides={imageOnly} />);
+    expect(container.querySelector(".sf-heroopen-copy")).toBeNull();
+    /* The open hero's columns are INLINE — a stylesheet cannot reach them — so
+       the collapse has to be in the style attribute, not in a rule. */
+    expect(container.querySelector<HTMLElement>(".sf-heroopen")?.style.gridTemplateColumns).toBe(
+      "1fr",
+    );
+  });
+
+  it("still lays out two columns as soon as the slide says anything", () => {
+    const withCopy = [
+      { image: { url: "/banner.jpg" }, title: "Winter sale" },
+    ] as SectionProps["heroSlides"];
+    const card = render(<HeroCard {...props} heroSlides={withCopy} />);
+    expect(card.container.querySelector(".sf-herocard-copy")).toBeInTheDocument();
+
+    const open = render(<HeroOpen {...props} heroSlides={withCopy} />);
+    expect(open.container.querySelector(".sf-heroopen-copy")).toBeInTheDocument();
+    expect(
+      open.container.querySelector<HTMLElement>(".sf-heroopen")?.style.gridTemplateColumns,
+    ).not.toBe("1fr");
+  });
+
+  it("counts a badge, a subtitle or a button as something to say", () => {
+    for (const slide of [
+      { image: { url: "/b.jpg" }, badge: "New" },
+      { image: { url: "/b.jpg" }, subtitle: "Free delivery" },
+      { image: { url: "/b.jpg" }, buttonLabel: "Shop" },
+    ]) {
+      const { container, unmount } = render(
+        <HeroCard {...props} heroSlides={[slide] as SectionProps["heroSlides"]} />,
+      );
+      expect(container.querySelector(".sf-herocard-copy")).toBeInTheDocument();
+      unmount();
+    }
   });
 });
