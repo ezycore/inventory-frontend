@@ -242,4 +242,66 @@ describe("image-text", () => {
     expect(full.querySelectorAll("a")[1].getAttribute("target")).toBe("_blank");
     expect(bare.querySelectorAll("a")).toHaveLength(0);
   });
+
+  /* ---- Phase 3: the Hero's per-device treatment ---- */
+
+  it("renders exactly as before when none of the new settings is given", () => {
+    const { container } = renderPage([section("i1", "image-text", { image, heading: "Our story" })]);
+    const split = container.querySelector(".sfb-split") as HTMLElement;
+    // ⚠ The defaults are stamped so the stylesheet has something to select on,
+    // and each one names what this section has always drawn: the picture on the
+    // left, the picture first on a phone, cropped to its shape.
+    expect(split.dataset.imageSide).toBe("left");
+    expect(split.dataset.mobileFirst).toBe("picture");
+    expect(split.dataset.imageFit).toBe("crop");
+    // And no variable at all, so the stylesheet's own 4:5 and even split stand.
+    const style = split.getAttribute("style") ?? "";
+    expect(style).not.toContain("--sfb-split");
+    expect(style).not.toContain("--sfb-split-ratio");
+  });
+
+  it("lets the phone lead with the copy, and fits the picture instead of cropping it", () => {
+    const { container } = renderPage([
+      section("i1", "image-text", { image, heading: "Our story", mobileFirst: "text", imageFit: "fit" }),
+    ]);
+    const split = container.querySelector(".sfb-split") as HTMLElement;
+    expect(split.dataset.mobileFirst).toBe("text");
+    expect(split.dataset.imageFit).toBe("fit");
+  });
+
+  it("divides the desktop row, and shapes the picture per device", () => {
+    const { container } = renderPage([
+      section("i1", "image-text", {
+        image,
+        heading: "Our story",
+        split: 65,
+        imageRatio: { base: "16:9", mobile: "1:1" },
+      }),
+    ]);
+    const style = (container.querySelector(".sfb-split") as HTMLElement).getAttribute("style") ?? "";
+    expect(style).toContain("--sfb-split: 65%");
+    expect(style).toContain("--sfb-split-ratio: 16 / 9");
+    expect(style).toContain("--sfb-split-ratio-m: 1 / 1");
+  });
+
+  it("reads a shape saved before the field was per-device", () => {
+    // ⚠ The reason `readField` accepts a bare value as the base: every
+    // `image-text` saved before 2026-09-21 stored `imageRatio` as a plain
+    // string, and refusing it would blank the shape and fail the next save.
+    const { container } = renderPage([
+      section("i1", "image-text", { image, heading: "Our story", imageRatio: "4:3" }),
+    ]);
+    expect((container.querySelector(".sfb-split") as HTMLElement).getAttribute("style") ?? "").toContain(
+      "--sfb-split-ratio: 4 / 3",
+    );
+  });
+
+  it("gives the phone a picture of its own", () => {
+    const mobileImage = { url: "https://cdn.example.com/a-phone.jpg" };
+    const { container } = renderPage([
+      section("i1", "image-text", { image, mobileImage, heading: "Our story" }),
+    ]);
+    const source = container.querySelector("picture source") as HTMLSourceElement;
+    expect(source?.getAttribute("srcset") ?? "").toContain("a-phone");
+  });
 });

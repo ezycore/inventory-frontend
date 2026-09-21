@@ -395,8 +395,26 @@
 .sfb-split-media {
   display: block;
   width: 100%;
+  /* The desktop's shape, with the phone's own below the breakpoint. Unset on
+     both, and it is the 4:5 this section has always drawn. */
+  aspect-ratio: var(--sfb-split-ratio, 4 / 5);
   object-fit: cover;
   border-radius: var(--radius-lg);
+}
+
+/* The whole picture inside its box, blurred bands filling the rest — what the
+   CLASSIC editorial band draws (`bannerPhoto`'s `canvas` default) and what this
+   section could not do until 2026-09-21. Unset is `crop`, so nothing moves. */
+.sfb-split[data-image-fit="fit"] > .sfb-split-media {
+  object-fit: contain;
+  background: var(--surface);
+}
+
+/* Which of the picture and the copy leads the phone's single column. Below the
+   breakpoint the grid is one column in source order — picture, then copy — so
+   only "text" has anything to do. */
+.sfb-split[data-mobile-first="text"] > .sfb-split-media {
+  order: 1;
 }
 
 @media (max-width: 679px) {
@@ -405,6 +423,9 @@
   }
   .sfb-inner {
     padding-inline: var(--sfb-pi-m, var(--sfb-pi, var(--pad)));
+  }
+  .sfb-split-media {
+    aspect-ratio: var(--sfb-split-ratio-m, var(--sfb-split-ratio, 4 / 5));
   }
   .sfb-sec[data-width="full"] > .sfb-inner:has(> .sf-hero-fullbleed),
   .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-content-frame),
@@ -476,8 +497,20 @@
   .sfb-steps {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
+  /* The picture's share, as a percentage; the copy takes what is left. Unset is
+     the even split this section has always drawn. Note this block is
+     `min-width: 680px`, so `--sfb-split-m` is never read here — the phone is one
+     column and has no split to give. */
   .sfb-split {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: var(--sfb-split, 1fr) minmax(0, 1fr);
+  }
+  /* ⚠ Past the breakpoint the phone's ordering must not survive: `mobileFirst`
+     answers for the single column only, and leaving its `order` in force would
+     flip the desktop against `imageSide`. This resets it before the side rule
+     below decides, and both carry the same weight, so the source order here is
+     what makes `imageSide` win. */
+  .sfb-split > .sfb-split-media {
+    order: 0;
   }
   .sfb-split[data-image-side="right"] > .sfb-split-media {
     order: 1;

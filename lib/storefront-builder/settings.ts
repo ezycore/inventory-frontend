@@ -162,7 +162,21 @@ const readScalar = (spec: SectionFieldSpec, value: unknown): unknown => {
 const readField = (spec: SectionFieldSpec, value: unknown): unknown => {
   if (value === undefined || value === null) return undefined;
   if (!spec.responsive) return readScalar(spec, value);
-  if (!isPlainObject(value)) return undefined;
+  // A value stored BEFORE the field became responsive is the desktop's answer.
+  //
+  // ⚠ This is what makes responsive-izing a setting a safe change. Without it,
+  // adding `responsive: true` to a field that live pages have already answered
+  // refuses every one of those answers — the page renders the section's default
+  // and the backend rejects the merchant's next save — and neither a `v` bump
+  // nor leaving the field alone is a way out.
+  //
+  // Only a NON-object value is read this way. A responsive `focal` or `image`
+  // stores an object as its scalar, and a bare one cannot be told apart from a
+  // malformed `{ base, mobile }`; those keep the strict rule.
+  if (!isPlainObject(value)) {
+    const base = readScalar(spec, value);
+    return base === undefined ? undefined : { base };
+  }
   const base = readScalar(spec, value.base);
   // A bad phone override falls back to the desktop value rather than dropping
   // both; a phone value with no desktop one is kept, because the desktop then

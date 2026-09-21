@@ -54,9 +54,22 @@ describe("readSettings", () => {
     expect(settings?.columns).toEqual({ base: 4 });
   });
 
-  it("drops a responsive field that is not { base, mobile }", () => {
-    const settings = readSettings(grid, { source: "newest", limit: 8, columns: 4 });
-    expect(settings?.columns).toBeUndefined();
+  it("reads a value saved before a field became responsive as the desktop's", () => {
+    // ⚠ This used to be dropped, and dropping it is what would have broken every
+    // page that answered a setting before it grew a phone value — the section
+    // would render its default and the backend would refuse the next save.
+    // `image-text.imageRatio` is the first, on 21 live stores.
+    expect(readSettings(grid, { source: "newest", limit: 8, columns: 4 })?.columns).toEqual({ base: 4 });
+    // It is read AS the base, so it still has to be a value the field accepts.
+    expect(readSettings(grid, { source: "newest", limit: 8, columns: 99 })?.columns).toBeUndefined();
+  });
+
+  it("still refuses a bare OBJECT where a responsive one is expected", () => {
+    // A responsive `focal` stores an object as its scalar, so a bare one cannot
+    // be told apart from a malformed `{ base, mobile }`. Those keep the strict
+    // rule rather than guessing.
+    const focalSpec = { focal: { type: "focal", responsive: true, optional: true } } as const;
+    expect(readSettings(focalSpec, { focal: { x: 30, y: 40 } })?.focal).toBeUndefined();
   });
 
   it("reads a focal point per breakpoint, dropping one outside the image", () => {

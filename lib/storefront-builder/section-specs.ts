@@ -373,8 +373,38 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       image: { type: "image" },
+      /** A phone picture of its own, where the desktop's crop reads badly upright. */
+      mobileImage: { type: "image", optional: true },
       imageSide: { type: "enum", values: ["left", "right"], optional: true },
-      imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], optional: true },
+      /**
+       * Which of the picture and the copy leads the phone's single column.
+       *
+       * ⚠ A SECOND setting rather than making `imageSide` responsive, and for
+       * the hero's reason (hero plan §5, D4): the two devices start from
+       * opposite defaults — the desktop from a side, the phone from the
+       * picture — so one responsive value would inherit the desktop's and move
+       * every photograph already below the fold.
+       */
+      mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
+      /**
+       * The picture's share of the row past the breakpoint, in percent.
+       *
+       * ⚠ **Not responsive**, unlike `category-promo-cards`'s setting of the
+       * same name. That row keeps its cards side by side on a phone, so a phone
+       * split means something there. This section stacks into one column below
+       * the breakpoint, where there is no row left to divide — storing a phone
+       * value would be storing a value nothing draws.
+       */
+      split: { type: "number", min: 20, max: 80, int: true, optional: true },
+      /**
+       * Whether the picture is cropped to its shape or shown whole inside it.
+       * Unset keeps `cover`, which is what every `image-text` drew before this
+       * existed — including Noor Collection's converted editorial band, the one
+       * page in that store's set that did not match the classic home it
+       * replaced (master plan §17).
+       */
+      imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
+      imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], responsive: true, optional: true },
       badge: { type: "string", max: 60, optional: true },
       heading: { type: "string", min: 1, max: 160 },
       text: { type: "string", max: 600, optional: true },

@@ -151,7 +151,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 0 (§3) | One source for the style box; backend generated and shipped | 🟡 Code in, both repos green — **awaiting the owner's backend deploy** (step 6) |
 | 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, one doubled, two misnamed | 🟡 Built 2026-09-21; pixel comparison outstanding |
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | 🟡 Built 2026-09-21; backend deploy + pixel comparison outstanding |
-| 3 (§3) | `image-text` gets the Hero's per-device treatment | ⬜ Not started |
+| 3 (§3) | `image-text` gets the Hero's per-device treatment | 🟡 Built 2026-09-21; the conversion half of 3b ⛔ blocked on an unmerged backend branch |
 | 4 (§3) | The row sections: subheading, columns per device, flow | ⬜ Not started |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | ⬜ Not started |
 | 6 (§3) | Conversion + system: sticky bar on desktop, search's empty words, small ones | ⬜ Not started |
@@ -410,7 +410,12 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
 
 ### Phase 3 — `image-text` gets the Hero's per-device treatment
 
-**Status:** ⬜ Not started · **Needs Phase 0 in production.**
+**Status:** 🟡 Built 2026-09-21 — the fields, the renderer, the stylesheet and the tests. **⛔ The
+conversion half of step 3b is blocked:** `storefront-home-conversion.ts` on `development` still has
+`editorial-split` in `UNMOVABLE_HOME_SECTIONS` returning `null`. The code that builds an `image-text`
+from it lives on the unmerged backend branch `fix/migrate-carry-trust-badges` (`acbd2e5`), so there is
+nothing here to teach. **Do it, and re-migrate Noor Collection, once that branch reaches
+`development`.** · **Needs Phase 0 in production.**
 
 The Hero's M6 in another section: two devices, opposite defaults, one control. Follow the Hero's answer
 exactly — **two settings, not one responsive one** (hero plan §5, D4) — because the devices start from
@@ -419,7 +424,7 @@ different defaults and a responsive value would inherit the desktop's and move e
 ```ts
 // section-specs.ts — "image-text".settings
 mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
-split:       { type: "number", min: 20, max: 80, int: true, responsive: true, optional: true },
+split:       { type: "number", min: 20, max: 80, int: true, optional: true },  // NOT responsive — see §7
 mobileImage: { type: "image", optional: true },
 imageFit:    { type: "enum", values: ["fit", "crop"], optional: true },
 // and imageRatio gains `responsive: true`
@@ -434,14 +439,14 @@ Noor Collection's converted band is the only thing on its home page that does no
 replaced (master plan §17). The conversion cannot set the field until it exists **and both repos are
 deployed**, which is why the store is migrated with the difference recorded rather than held back.
 
-1. [ ] `mobileFirst` — which of the picture and the copy leads the phone's single column. Same label and
+1. [x] `mobileFirst` — which of the picture and the copy leads the phone's single column. Same label and
        hint as the Hero's, so the two sections ask the question in one voice.
-2. [ ] `split` — the picture's share past the breakpoint, in percent, responsive. Replaces the fixed
+2. [x] `split` — the picture's share past the breakpoint, in percent, responsive. Replaces the fixed
        `1fr 1fr` as `grid-template-columns: var(--sfb-split, 1fr) var(--sfb-split-rest, 1fr)`; reuse
        `category-promo-cards`'s own `split` range (20–80) rather than inventing a second one.
-3. [ ] `imageRatio` responsive, and `mobileImage` — `SfImage` already takes a phone picture
+3. [x] `imageRatio` responsive, and `mobileImage` — `SfImage` already takes a phone picture
        (`image-banner.tsx:45`), so this is plumbing, not new machinery.
-3b. [ ] **`imageFit`**, in the store's own two words (`fit` / `crop`), unset keeping today's `cover`.
+3b. [~] **`imageFit`**, in the store's own two words (`fit` / `crop`), unset keeping today's `cover`.
        Then teach `storefront-home-conversion.ts` to write `imageFit: "fit"` on a converted editorial
        split and **re-migrate Noor Collection's home** with a pixel comparison
        (`PIXEL_STORE=<slug> pnpm pixel:capture` before, `pnpm pixel:compare` after) — the band is the
@@ -454,8 +459,11 @@ deployed**, which is why the store is migrated with the difference recorded rath
        Confirm any failure by re-running before you act on it.
        ⚠ The Hero deferred a **responsive** `imageFit` (hero plan §7, S1). This one is flat on purpose —
        the two agree, and making it responsive here is a new decision, not a tidy-up.
-4. [ ] Visibility rules: `mobileFirst` only with a picture; `split` only past the breakpoint's control
-       set — register both, and add the test that a hidden field is optional.
+4. [x] Visibility rules: **neither turned out to be needed**, and the reasons are worth keeping.
+       `image-text.image` is a REQUIRED setting, so "only with a picture" is always true — unlike the
+       hero, whose slides may carry none. And `split` stopped being responsive (§7), so there is no
+       phone tab on which it could be dead. Registering either would have been a rule that is always
+       true, which is noise in a table whose value is that every row means something.
 5. [ ] Browser QA **phone first**: photo-first and text-first, 20 / 50 / 80 splits, a portrait phone
        picture with a landscape desktop one.
 
@@ -636,6 +644,26 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — Phase 3, and the change that unblocks every later responsive field.** Making a
+  setting responsive **refused every value already saved for it**: `checkField` and `readField` both
+  required `{ base, mobile }`, so `imageRatio: "4:5"` on a live page would have rendered as the default
+  and failed the merchant's next save. Neither a `v` bump nor leaving the field alone is a way out of
+  that. Both readers now take a **non-object** bare value as the base.
+  - Only non-object. A responsive `focal` or `image` stores an object as its scalar, and a bare one
+    cannot be told apart from a malformed wrapper, so those keep the strict rule.
+  - This is a deliberate contract change: a backend test that asserted the refusal, and a frontend test
+    named "drops a responsive field that is not `{ base, mobile }`", both now assert the opposite. They
+    were written from the code's behaviour, and the behaviour was wrong.
+  - It matters beyond this phase: `gallery.frame`, `benefits.columns`, `testimonials.columns` and
+    `video.ratio` are all responsive-ized later in this plan, all with values already saved.
+  - **`image-text.split` is NOT responsive**, against the plan's own snippet. `category-promo-cards`
+    keeps its cards side by side on a phone, so a phone split means something there; this section
+    stacks into one column, where there is no row left to divide. A responsive value would have been a
+    value nothing draws — the thing the conditional-controls plan exists to prevent.
+  - ⚠ **Past the breakpoint, `mobileFirst`'s ordering has to be reset explicitly.** `order: 1` set for
+    the phone would otherwise survive into the desktop block and flip the row against `imageSide`. The
+    reset and the side rule carry the same weight, so their source order is what decides — the fifth
+    time this stylesheet's cascade has had to be reasoned about rather than assumed.
 - **2026-09-21 — Phase 2 built. Three things the plan did not say:**
   - **`padding.inline` had to be optional inside a required pair.** `top` and `bottom` are stored
     together and every one of them is required once a side is given; `inline` arrived after live pages

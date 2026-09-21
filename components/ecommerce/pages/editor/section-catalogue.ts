@@ -376,6 +376,16 @@ const HINTS: Record<string, string> = {
   "hero.mobileFirst":
     "Default keeps each layout's own order. Text first pushes the picture down the phone's screen, often below the fold — use it where the picture is decoration rather than the product.",
   "hero.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  /* Section-keyed for the reason `"hero.frame"` gives: `image-text` and the hero
+     ask the same question of layouts that start from different defaults. */
+  "image-text.mobileFirst":
+    "Default leads the phone with the picture, as this section always has. The text first pushes the picture down the screen — use it where the words are what a shopper came for.",
+  "image-text.imageSide": "Which side the picture takes on a desktop. Phones show one column, so this does nothing there.",
+  "image-text.split":
+    "How much of the desktop row the picture takes, 20 to 80 percent. The text takes the rest. Empty splits the row evenly. Phones stack, so this does nothing there.",
+  "image-text.imageFit":
+    "Default crops the picture to the shape. Fit shows the whole picture inside it, which is how the old home page's banner band drew it.",
+  "image-text.imageRatio": "The shape the picture is drawn at. A phone shape applies below 680px.",
   "hero.mobileCopy":
     "A full-width hero lays its words over the photograph, so a phone shows the headline alone. Everything adds the badge and the subtitle back, smaller. The headline is two lines on a phone either way.",
   cardImageFit: CARD_PHOTO_HINT,
