@@ -18,6 +18,11 @@ type Spec = (typeof SECTION_SPECS)["campaign-offers"]["settings"];
 export function CampaignOffersSection({ settings, context }: SectionViewProps<Spec>) {
   const campaigns = offerCampaigns(context.campaigns ?? []);
   if (campaigns.length === 0) return null;
+  /* Trimmed, like every other section that offers a heading beside the store's
+     own wording (`ShopByTagSection`). Untrimmed, a heading of spaces counted as
+     the merchant's: it suppressed the store's wording AND drew an empty `<h2>`,
+     so the row lost its title to a field that looks empty in the editor. */
+  const heading = settings.heading?.trim() || undefined;
   return (
     <Island
       name="campaign-offers"
@@ -25,8 +30,8 @@ export function CampaignOffersSection({ settings, context }: SectionViewProps<Sp
         base: context.base,
         campaigns,
         currency: context.currency,
-        heading: settings.heading,
-        headingWord: settings.heading ? undefined : settings.storeHeading,
+        heading,
+        headingWord: heading ? undefined : settings.storeHeading,
       }}
     />
   );

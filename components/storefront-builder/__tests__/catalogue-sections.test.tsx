@@ -185,6 +185,19 @@ describe("campaign-offers", () => {
     expect(own.dataset.heading).toBe("Eid deals");
   });
 
+  it("treats a heading of spaces as no heading, so the store's wording survives", () => {
+    /* Untrimmed, a heading of spaces counted as the merchant's: it suppressed
+       `headingWord` AND drew an empty `<h2>`, so the row lost its title to a
+       field that looks empty in the editor. Every sibling that offers this pair
+       trims (`ShopByTagSection`); this one now does too. */
+    const { container } = renderPage([
+      section("o1", "campaign-offers", { storeHeading: "campaignOffers", heading: "   " }),
+    ]);
+    const island = container.querySelector('[data-island="campaign-offers"]') as HTMLElement;
+    expect(island.dataset.headingWord).toBe("campaignOffers");
+    expect(island.dataset.heading).toBeUndefined();
+  });
+
   it("is left out when no campaign is running", () => {
     const { container } = renderPage([section("o1", "campaign-offers", {})], {}, { campaigns: [] });
     expect(container.querySelectorAll("section")).toHaveLength(0);

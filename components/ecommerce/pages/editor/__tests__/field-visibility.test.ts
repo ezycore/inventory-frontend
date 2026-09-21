@@ -121,6 +121,277 @@ describe("field visibility", () => {
     expect(shown("focal", { layout: "card" }, [{ imageFit: "crop" }, {}], 1)).toBe(false);
   });
 
+  describe("collections-row", () => {
+    const row = (settings: Record<string, unknown>) => (field: string) =>
+      isFieldVisible(field, "collections-row", scope(settings, []));
+    const TILE_FIELDS = ["layout", "align", "showLabels", "columns", "mobileColumns"];
+
+    it("drops the whole tile vocabulary for plain text links", () => {
+      // `CollectionLinks` takes `base` and `categories` and nothing else, so
+      // every one of these answers a question that treatment never asks.
+      const plain = row({ style: "plain", layout: "grid" });
+      for (const field of TILE_FIELDS) expect(plain(field)).toBe(false);
+      // The two that survive: which collections, and what the row is called.
+      expect(plain("categoryIds")).toBe(true);
+      expect(plain("heading")).toBe(true);
+    });
+
+    it("offers columns to the grid alone — a strip has no tracks to divide", () => {
+      const grid = row({ style: "card", layout: "grid" });
+      const strip = row({ style: "card", layout: "strip" });
+      // Unset style IS card and unset layout IS strip, so the bare case has to
+      // behave like the explicit one or the empty choices are lying.
+      const unset = row({});
+
+      for (const field of ["columns", "mobileColumns"]) {
+        expect(grid(field)).toBe(true);
+        expect(strip(field)).toBe(false);
+        expect(unset(field)).toBe(false);
+      }
+      // Alignment reaches both: the grid positions a tile in its column, the
+      // strip island takes `align` as a prop.
+      for (const at of [grid, strip, unset]) {
+        expect(at("align")).toBe(true);
+        expect(at("layout")).toBe(true);
+        expect(at("showLabels")).toBe(true);
+      }
+    });
+
+    it("keeps showing names even where the catalogue would override them", () => {
+      /* `categoryLabelsVisible` is `showLabels || !allPhotographed`, so the
+         toggle also does nothing when a chosen collection has no picture. That
+         is NOT claimed here: it depends on store data the editor cannot see,
+         and over-showing a control that works in most configurations beats
+         hiding one that works. Pinned so nobody "completes" the rule later. */
+      expect(row({ style: "card" })("showLabels")).toBe(true);
+    });
+
+    it("keeps every hidden value through a save", () => {
+      // Hidden is not erased: switch to plain, save, switch back, and the
+      // merchant's grid is exactly as they left it.
+      const section: EditorSection = {
+        id: "row",
+        type: "collections-row",
+        v: 1,
+        enabled: true,
+        settings: { style: "plain", layout: "grid", columns: 5, mobileColumns: 3, align: "center", showLabels: false },
+      };
+      const [saved] = savableSections([section]);
+      expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  describe("category-tiles", () => {
+    const tiles = (settings: Record<string, unknown>) => (field: string) =>
+      isFieldVisible(field, "category-tiles", scope(settings, []));
+
+    it("offers columns to the grid, and reads the OPPOSITE default from collections-row", () => {
+      /* The trap this test exists for: this section falls back to `grid`,
+         `collections-row` falls back to `strip`. One helper for both would hide
+         the columns of every untouched tile row. */
+      for (const field of ["columns", "mobileColumns"]) {
+        expect(tiles({ layout: "grid" })(field)).toBe(true);
+        expect(tiles({})(field)).toBe(true); // unset IS grid here…
+        expect(isFieldVisible(field, "collections-row", scope({}, []))).toBe(false); // …and strip there
+        expect(tiles({ layout: "strip" })(field)).toBe(false);
+      }
+      // Alignment survives a strip on both sections: the island takes it.
+      expect(tiles({ layout: "strip" })("align")).toBe(true);
+    });
+
+    it("drops pictures-only for the two modes that have no picture to hide behind", () => {
+      // `disc` always draws names; `circle` does too by either route — with
+      // photographs it is `circle`, without them `compact`, and both win.
+      expect(tiles({ mode: "disc" })("showLabels")).toBe(false);
+      expect(tiles({ mode: "circle" })("showLabels")).toBe(false);
+      expect(tiles({ mode: "tile" })("showLabels")).toBe(true);
+      expect(tiles({ mode: "overlay" })("showLabels")).toBe(true);
+      // Unset IS tile, so it must behave like the explicit one.
+      expect(tiles({})("showLabels")).toBe(true);
+    });
+
+    it("keeps every hidden value through a save", () => {
+      const section: EditorSection = {
+        id: "tiles",
+        type: "category-tiles",
+        v: 1,
+        enabled: true,
+        settings: { mode: "disc", layout: "strip", columns: 6, mobileColumns: 4, showLabels: false },
+      };
+      const [saved] = savableSections([section]);
+      expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  describe("category-promo-cards", () => {
+    const promo = (settings: Record<string, unknown>) => (field: string) =>
+      isFieldVisible(field, "category-promo-cards", scope(settings, []));
+
+    it("offers a side and a share only where the picture is beside the words", () => {
+      for (const field of ["side", "split"]) {
+        expect(promo({ shape: { base: "split" } })(field)).toBe(true);
+        expect(promo({ shape: { base: "stacked" } })(field)).toBe(false);
+        // Unset IS stacked — `resolveCardShape` moves the picture only on an
+        // explicit "split", so an untouched row must not offer either.
+        expect(promo({})(field)).toBe(false);
+        expect(promo({ shape: {} })(field)).toBe(false);
+      }
+    });
+
+    it("keeps the side control for a row split on ONE screen only", () => {
+      /* The point of "either, not both": one control serves two device tabs,
+         and `sideOf` is asked per screen. A desktop-split row still needs it
+         even though its phone is stacked, and vice versa. */
+      expect(promo({ shape: { base: "stacked", mobile: "split" } })("side")).toBe(true);
+      expect(promo({ shape: { base: "split", mobile: "stacked" } })("side")).toBe(true);
+      expect(promo({ shape: { base: "stacked", mobile: "stacked" } })("side")).toBe(false);
+    });
+
+    it("offers arrows only to a row that actually scrolls", () => {
+      // Not merely unstyled: with neither screen scrolling the renderer returns
+      // a plain div and `CategoryStrip` is never mounted.
+      expect(promo({ flow: { base: "scroll" } })("arrows")).toBe(true);
+      expect(promo({ flow: { mobile: "scroll" } })("arrows")).toBe(true);
+      expect(promo({ flow: { base: "wrap" } })("arrows")).toBe(false);
+      expect(promo({})("arrows")).toBe(false);
+    });
+
+    it("keeps every hidden value through a save", () => {
+      const section: EditorSection = {
+        id: "promo",
+        type: "category-promo-cards",
+        v: 1,
+        enabled: true,
+        settings: { shape: { base: "stacked" }, side: { base: "right" }, split: { base: 40 }, flow: { base: "wrap" }, arrows: false },
+      };
+      const [saved] = savableSections([section]);
+      expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  describe("image-banner", () => {
+    const banner = (settings: Record<string, unknown>) => (field: string) =>
+      isFieldVisible(field, "image-banner", scope(settings, []));
+
+    it("offers alignment only where a copy block is drawn — and a BUTTON is copy", () => {
+      expect(banner({ heading: "Eid" })("align")).toBe(true);
+      expect(banner({ text: "Free delivery" })("align")).toBe(true);
+      /* The audit note said "a heading or text"; the renderer's `hasCopy` also
+         counts the button, so a banner whose only copy is a button still
+         aligns. But only with BOTH halves — `buttonLabel && link` — because a
+         label with no destination is never drawn. */
+      expect(banner({ buttonLabel: "Shop", link: "/products" })("align")).toBe(true);
+      expect(banner({ buttonLabel: "Shop" })("align")).toBe(false);
+      expect(banner({ link: "/products" })("align")).toBe(false);
+      // A photograph on its own has nothing to align.
+      expect(banner({})("align")).toBe(false);
+      // Whitespace is not copy: the renderer trims, so this must too.
+      expect(banner({ heading: "   " })("align")).toBe(false);
+    });
+
+    it("offers a focus point only once a shape crops the picture", () => {
+      // No frame ⇒ the picture keeps its own proportions and nothing applies
+      // `object-position` at all — every rule carrying it is under [data-frame].
+      expect(banner({})("focal")).toBe(false);
+      expect(banner({ frame: {} })("focal")).toBe(false);
+      expect(banner({ frame: { base: "16:9" } })("focal")).toBe(true);
+      // A phone-only shape crops on the phone, and reads `--sfb-banner-focal-m`.
+      expect(banner({ frame: { mobile: "1:1" } })("focal")).toBe(true);
+    });
+
+    it("keeps every hidden value through a save", () => {
+      const section: EditorSection = {
+        id: "banner",
+        type: "image-banner",
+        v: 1,
+        enabled: true,
+        settings: {
+          image: { url: "https://cdn.example.com/banner.jpg" },
+          align: "center",
+          focal: { base: { x: 30, y: 70 } },
+        },
+      };
+      const [saved] = savableSections([section]);
+      expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  describe("campaign-offers", () => {
+    const offers = (settings: Record<string, unknown>) =>
+      isFieldVisible("storeHeading", "campaign-offers", scope(settings, []));
+
+    it("drops the store's wording once the merchant has written a heading", () => {
+      // `headingWord: heading ? undefined : storeHeading` — with a heading the
+      // store's word reaches nobody.
+      expect(offers({})).toBe(true);
+      expect(offers({ heading: "" })).toBe(true);
+      expect(offers({ heading: "Current offers" })).toBe(false);
+      // Trimmed, because the renderer now trims: spaces are not a heading.
+      expect(offers({ heading: "   " })).toBe(true);
+    });
+
+    it("leaves shop-by-tag's identical setting alone", () => {
+      /* The same trap as `shop-by-tag.tagIds` in the first slice. That section
+         names `heading` and `storeHeading` too, and answers the opposite: its
+         `storeHeading` picks the whole heading BLOCK, so it still changes the
+         rendering with a heading present. A bare rule would have hidden it. */
+      expect(isFieldVisible("storeHeading", "shop-by-tag", scope({ heading: "Shop by age" }, []))).toBe(true);
+      expect(isFieldVisible("storeHeading", "shop-by-tag", scope({}, []))).toBe(true);
+    });
+
+    it("keeps the hidden wording through a save", () => {
+      const section: EditorSection = {
+        id: "offers",
+        type: "campaign-offers",
+        v: 1,
+        enabled: true,
+        settings: { heading: "Eid deals", storeHeading: "campaignOffers" },
+      };
+      const [saved] = savableSections([section]);
+      expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  /**
+   * Three controls the rollout audit listed as candidates and the RENDERER
+   * refused. Pinned as assertions rather than deleted from the list, because a
+   * plausible-sounding candidate that was investigated and rejected is worth
+   * more written down than forgotten — the next audit would propose all three
+   * again from the same surface reading.
+   */
+  describe("candidates the renderer rejected", () => {
+    it("keeps the gallery's phone columns at every desktop count", () => {
+      /* Proposed as "phones only matter above one column". They do not:
+         `galleryVars` is `columns?.mobile ?? Math.min(desktop, 2)`, so the
+         `min` is only the DEFAULT — an explicit phone value is emitted as
+         `--sfb-gallery-cols-m` and read by the phone grid whatever the desktop
+         holds. It is also one responsive control with a device tab, not the
+         two separate fields the other two sections have. */
+      for (const columns of [{ base: 1 }, { base: 3 }, { base: 6 }]) {
+        expect(isFieldVisible("columns", "gallery", scope({ columns }, []))).toBe(true);
+      }
+    });
+
+    it("keeps the order form's coupon box in every configuration", () => {
+      // `OrderFormSection` passes `coupon` straight to the island, which reads
+      // it unconditionally (`{coupon ? <CouponRow/> : null}`). No setting on
+      // this section can make it dead.
+      expect(isFieldVisible("coupon", "order-form", scope({}, []))).toBe(true);
+      expect(isFieldVisible("coupon", "order-form", scope({ productId: "p1" }, []))).toBe(true);
+    });
+
+    it("keeps the video's cover picture on a YouTube link — the candidate was backwards", () => {
+      /* Proposed as "hide it for YouTube, which brings its own". The merchant's
+         cover WINS: `poster ?? videoPosterUrl(embed)`. Hiding it would take
+         away a working override, and for Facebook — where `videoPosterUrl`
+         returns undefined — it is the only cover there is. The existing hint
+         ("A YouTube video uses its own cover when this is empty") is the
+         correct treatment and already ships. */
+      expect(isFieldVisible("poster", "video", scope({ url: "https://youtu.be/abc" }, []))).toBe(true);
+      expect(isFieldVisible("poster", "video", scope({ url: "https://facebook.com/x/videos/1" }, []))).toBe(true);
+    });
+  });
+
   it("shows a field nobody has claimed is dead", () => {
     expect(shown("title", { layout: "card" })).toBe(true);
     expect(isFieldVisible("promises", "promises-band", scope({}))).toBe(true);
@@ -257,6 +528,20 @@ describe("field visibility", () => {
     // The inventory, so a rule cannot arrive without someone saying so here.
     expect(VISIBILITY_RULE_KEYS.sort()).toEqual(
       [
+        "collections-row.align",
+        "collections-row.columns",
+        "collections-row.layout",
+        "collections-row.mobileColumns",
+        "collections-row.showLabels",
+        "category-tiles.columns",
+        "category-tiles.mobileColumns",
+        "category-tiles.showLabels",
+        "category-promo-cards.arrows",
+        "category-promo-cards.side",
+        "category-promo-cards.split",
+        "campaign-offers.storeHeading",
+        "image-banner.align",
+        "image-banner.focal",
         "hero.campaignBadge",
         "hero.focal",
         "hero.imageSide",

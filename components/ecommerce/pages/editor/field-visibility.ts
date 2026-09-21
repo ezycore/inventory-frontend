@@ -75,6 +75,57 @@ const layoutOf = (scope: FieldScope) => str(scope.settings.layout);
 const anyPicture = ({ settings, blocks }: FieldScope) =>
   !!settings.storeBanner || blocks.some((block) => !!block.image || !!block.mobileImage);
 
+/**
+ * True where a collections row draws TILES rather than plain text links.
+ *
+ * Unset is `card` — `fieldEmptyChoice` says so and `collections-row.tsx` reads
+ * it that way — so the test is "not plain", never "is card".
+ */
+const tiled = ({ settings }: FieldScope) => str(settings.style) !== "plain";
+
+/**
+ * True where a category-tiles row draws a GRID, whose tracks a column count can
+ * divide. Its unset layout is `grid`, so the test is "not strip" — the mirror
+ * image of `collections-row`, which falls back to `strip`. The two sections
+ * name the same setting and mean the opposite by leaving it empty.
+ */
+const notStrip = ({ settings }: FieldScope) => str(settings.layout) !== "strip";
+
+/**
+ * Does a RESPONSIVE enum answer `value` on either screen?
+ *
+ * ⚠ **Either, not both, and that is the whole decision.** A responsive setting
+ * is stored as `{ base, mobile }` and the editor draws ONE control with a
+ * device tab over it, so visibility is decided once for both tabs. A row split
+ * on a desktop and stacked on a phone genuinely needs its Side control — the
+ * renderer asks per screen (`sideOf` in `category-banner-row.tsx`) — and
+ * hiding it because the phone is stacked would take away a control that works
+ * on the tab the merchant is not looking at.
+ *
+ * An unset `mobile` inherits the desktop, which this reads for free: if `base`
+ * matches, the answer is already true.
+ */
+const responsiveIs = (field: string, value: string) => ({ settings }: FieldScope) => {
+  const responsive = settings[field];
+  if (typeof responsive !== "object" || responsive === null) return false;
+  const { base, mobile } = responsive as { base?: unknown; mobile?: unknown };
+  return base === value || mobile === value;
+};
+
+/**
+ * Has a RESPONSIVE setting been answered on either screen at all?
+ *
+ * The twin of `responsiveIs` for a field whose live-ness turns on being set
+ * rather than on which value it holds — `image-banner.frame`, where any shape
+ * crops the picture and no shape leaves it whole.
+ */
+const responsiveSet = (field: string) => ({ settings }: FieldScope) => {
+  const responsive = settings[field];
+  if (typeof responsive !== "object" || responsive === null) return false;
+  const { base, mobile } = responsive as { base?: unknown; mobile?: unknown };
+  return base !== undefined || mobile !== undefined;
+};
+
 /** The block a block-field belongs to. Empty for a section-level field. */
 const blockOf = (scope: FieldScope): Record<string, unknown> =>
   (scope.blockIndex === undefined ? undefined : scope.blocks[scope.blockIndex]) ?? {};
@@ -207,6 +258,150 @@ const RULES: Record<string, VisibilityRule> = {
      focus point with no picture to point at; that one is about the control's
      own input, this one is about the renderer, and both apply.) */
   "hero.focal": (scope) => blockOf(scope).imageFit === "crop",
+
+  /* ---- collections-row ----
+     Two nested questions, and the outer one hides four controls at once.
+
+     **Plain** takes an early return (`collections-row.tsx`) and draws
+     `CollectionLinks`, which accepts `base` and `categories` and nothing else:
+     centred text links between hairlines, with the centring written into the
+     component rather than read from a setting. So the whole tile vocabulary —
+     which layout, how many columns, where they sit, whether names show — is
+     answered by a treatment that has no tiles.
+
+     Not a defect. `CollectionLinks`' own docstring makes the centring its
+     design ("quiet centred text links"), and "show names" on a row that is
+     nothing but names has no second state to offer. Teaching plain links to
+     align would be a new setting, not a repair.
+
+     Then **columns**, inside the tile treatments: only the grid divides a width
+     into tracks. The strip is a horizontal scroller whose tile width comes from
+     `--sf-chip`, so `CollectionsGrid`'s two count props never reach it — the
+     island takes `align`, `gap`, `className` and the tiles, and that is all.
+
+     ⚠ `showLabels` has a SECOND dead configuration this table deliberately does
+     not claim: `categoryLabelsVisible` is `showLabels || !allPhotographed`, so
+     turning names off does nothing unless every chosen collection has a
+     picture. That depends on the catalogue, which `FieldScope` cannot see —
+     the editor holds settings and blocks, never store data. Over-showing a
+     control that works in most configurations beats hiding one that works. */
+  "collections-row.layout": tiled,
+  "collections-row.align": tiled,
+  "collections-row.showLabels": tiled,
+  "collections-row.columns": (scope) => tiled(scope) && str(scope.settings.layout) === "grid",
+  "collections-row.mobileColumns": (scope) => tiled(scope) && str(scope.settings.layout) === "grid",
+
+  /* ---- category-tiles ----
+     Same two column settings as the row above and the SAME reason they die on a
+     strip — but ⚠ **the opposite default**, which is why these rules cannot
+     share a helper with it. `collections-row` falls back to `strip`; this
+     section falls back to `grid` (`category-tiles.tsx` reads
+     `settings.layout ?? "grid"`, and `fieldEmptyChoice` says so too). A rule
+     written as `=== "grid"` here would hide the columns of every tile row whose
+     merchant never touched Layout, which is most of them.
+
+     Worth knowing why the strip really is inert rather than merely unstyled:
+     `categoryTileRowLayout` emits `--sf-ct-mcols` on BOTH branches, so the
+     variable is on the strip's own element. Nothing reads it there — every rule
+     that does is under `.sf-cat-tiles` / `--controlled`, and the strip branch
+     returns no className at all. `--sf-ct-cols` is not even emitted.
+
+     `align` stays on both: the grid justifies a tile inside its track, and the
+     strip takes `align` as a prop. `layout` stays for the obvious reason. */
+  "category-tiles.columns": notStrip,
+  "category-tiles.mobileColumns": notStrip,
+
+  /* Pictures-only is a setting about PICTURES, and two of the four modes have
+     none to hide behind. `CategoryTileRow` computes
+     `compact || disc || circle || categoryLabelsVisible(…)`, so a `disc` row
+     always draws names, and a `circle` row does too by either route — with
+     photographs `circle` is set, without them `compact` is, and both short-
+     circuit the merchant's choice. Dropping the names there would leave a row
+     of unexplained initials, which is the component's stated reason.
+
+     ⚠ The same `categoryLabelsVisible` catalogue dependency as the row above
+     applies to `tile` and `overlay`, and is deliberately NOT claimed here for
+     the same reason: it turns on whether the categories are photographed, and
+     the editor cannot see that. */
+  "category-tiles.showLabels": ({ settings }) => {
+    const mode = str(settings.mode);
+    return mode !== "disc" && mode !== "circle";
+  },
+
+  /* ---- category-promo-cards ----
+     A side and a share of the card are questions about a picture BESIDE the
+     words, and the stacked card has the picture above them. The renderer says
+     so twice over, per screen: `sideOf` resolves to `"left"` unless that
+     screen's shape is split, so no `--right-*` / `--alternate-*` class is
+     emitted, and `--sf-bc-split-*` is written only under
+     `shape === "split" && split`. A stacked row cannot use either value.
+
+     Unset is `stacked` (`resolveCardShape` — only an explicit `"split"` moves
+     the picture), so `responsiveIs` asking for `"split"` gets the default
+     right without naming it. */
+  "category-promo-cards.side": responsiveIs("shape", "split"),
+  "category-promo-cards.split": responsiveIs("shape", "split"),
+
+  /* The arrows belong to a track, and a row that wraps has no track to arrow
+     through. `category-banner-row.tsx` returns a plain `<div>` when neither
+     screen scrolls — `if (!scrolls) return …` — so `CategoryStrip` is never
+     mounted and `cardArrows` reaches nothing at all. Not merely unstyled:
+     absent.
+
+     ⚠ Noted, NOT claimed: `ratio` looks dead once an explicit `height` is set
+     on both screens ("a height REPLACES the shape"), but `--sf-bc-ratio-set`
+     is emitted regardless and the `--fixedh-*` classes are what neutralise it.
+     Proving that is a stylesheet audit this pass has not done, and a rule
+     written on a guess is the thing this table exists to prevent. */
+  "category-promo-cards.arrows": responsiveIs("flow", "scroll"),
+
+  /* ---- image-banner ----
+     Alignment moves the copy block, and `image-banner.tsx` draws no copy block
+     at all unless there is something to put in it: `hasCopy` is
+     `heading || text || button`, and the whole `<div data-align>` is skipped
+     when it is false. A banner that is only a photograph has nothing to align.
+
+     ⚠ **The button counts, and the audit note that started this said only
+     "heading or text".** A banner whose sole copy is a button still draws the
+     block and still aligns it — but only with BOTH a label and a link, because
+     `button` is `buttonLabel && settings.link`; a label with no destination is
+     never drawn (the section refuses dead buttons). Trimmed here because the
+     renderer trims. */
+  "image-banner.align": ({ settings }) =>
+    !!(str(settings.heading)?.trim() ||
+      str(settings.text)?.trim() ||
+      (str(settings.buttonLabel)?.trim() && str(settings.link)?.trim())),
+
+  /* A focus point aims a CROP, and this banner only crops when the merchant
+     gave it a shape. With no frame the picture keeps its own proportions — the
+     section passes the image's real `width`/`height` through to `SfImage`, the
+     box takes its height from the picture, and `object-fit: cover` has nothing
+     to trim. `object-position` is not even applied: every rule carrying it is
+     under `.sfb-banner-box[data-frame]` or its `[data-frame-m]` twin.
+
+     Either screen, for the usual reason — a phone-only shape crops on the
+     phone, and `--sfb-banner-focal-m` is read there. Same shape of answer as
+     `hero.focal`, which asks about the fit instead because a hero always has a
+     box and this banner does not. */
+  "image-banner.focal": responsiveSet("frame"),
+
+  /* ---- campaign-offers ----
+     The merchant's heading WINS, and when it wins the store's own wording
+     reaches nobody: `headingWord` is `heading ? undefined : storeHeading`, and
+     the island's `heading ?? (headingWord ? … )` says the same thing a second
+     time. So the moment there is a heading, this control answers nothing.
+
+     ⚠ **Section-keyed, and `shop-by-tag` is why.** That section names the same
+     two settings and gives the opposite answer: its `storeHeading` chooses the
+     whole heading BLOCK — a flex row with an `<h2>` rather than a
+     `SectionTitle` — so it still changes the rendering with a heading present.
+     A bare `storeHeading` rule would have hidden a live control there. Same
+     trap as `shop-by-tag.tagIds` in the first slice, and the same lesson: key
+     by section type, always.
+
+     Trimmed to match the renderer, which this pass taught to trim — see the
+     note in `campaign-offers.tsx`. */
+  "campaign-offers.storeHeading": ({ settings }) => !str(settings.heading)?.trim(),
 };
 
 /**

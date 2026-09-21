@@ -417,15 +417,17 @@ column, not the hide column:
 | ✅ `product-grid`, `selected-products`, `product-carousel` | Collection / Tags / Products | the matching **Source** only — `productSectionRequest` reads one picker per source and ignores the other two |
 | ✅ `product-grid` | Whole rows | not a hand-picked source — `product-grid.tsx` ANDs the flag with `source !== "manual"` |
 | ✅ `promises-band` | the items list itself | **Use your store's promises** is off — the section reads the blocks *or* the store's badges, never both |
-| `collections-row` | Columns | grid layout |
-| `category-tiles` | Columns | grid layout |
-| `category-promo-cards` | Split, Side | `shape: "split"` |
-| `category-promo-cards` | Arrows | `flow: "scroll"` |
-| `image-banner` | Alignment | there is a heading or text to align |
-| `image-banner` | Focus point | a shape is set, so the picture is actually cropped |
-| `gallery` | Columns on phones | more than one column |
-| `order-form` | Coupon box | — confirm against the renderer |
-| `video` | Cover picture | not a YouTube link, which brings its own |
+| ✅ `collections-row` | Layout, Alignment, Show names | not the `plain` treatment — `CollectionLinks` takes `base` and `categories` and nothing else |
+| ✅ `collections-row` | Columns, Columns on phones | the `grid` layout, within a tile treatment — a strip's width comes from `--sf-chip` |
+| ✅ `category-tiles` | Columns, Columns on phones | **not** the `strip` layout — ⚠ this section's unset layout is `grid`, the opposite of the row above |
+| ✅ `category-tiles` | Show names | not `disc` or `circle` — both short-circuit `showLabels` and always draw names |
+| ✅ `category-promo-cards` | Split, Side | `shape: "split"` on **either** screen — the renderer asks per screen |
+| ✅ `category-promo-cards` | Arrows | `flow: "scroll"` on either screen — otherwise `CategoryStrip` is never mounted |
+| ✅ `image-banner` | Alignment | there is a heading, text **or a whole button** to align — the audit note missed the button |
+| ✅ `image-banner` | Focus point | a shape is set on either screen, so `object-position` is actually applied |
+| ❌ `gallery` | Columns on phones | **rejected.** One responsive control, not two fields, and an explicit phone value is honoured at any desktop count — the `min()` is only the default |
+| ❌ `order-form` | Coupon box | **rejected.** Passed straight to the island and read unconditionally; no setting makes it dead |
+| ❌ `video` | Cover picture | **rejected, and the candidate was backwards.** The merchant's cover WINS over YouTube's, and on Facebook it is the only cover there is |
 
 ### Carried over from the Hero pass
 
@@ -758,4 +760,62 @@ and where you stopped. Keep it short — the board in §0.8 says *what* is done,
 - **2026-09-21** — One correction from the follow-on plan's browser QA: phase 1 step 3's
   `"hero.imageFit": WHOLE_PICTURE` put one answer on the list twice and is now
   `{ kind: "value", value: "fit" }`. The step is annotated above. Nothing else in this plan changed.
+- **2026-09-21** — **Rollout slice 2: the nine remaining candidates, all seven sections.**
+  Six became rules, three were rejected by their own renderers, and five MORE dead controls turned up
+  that the audit list never named (`collections-row` Layout/Alignment/Show names under the `plain`
+  treatment, `category-tiles` Show names under `disc`/`circle`). Thirteen new keys, 22 → 35.
 
+  **The three rejections are the point of rule 3**, and each is now a test rather than a deletion:
+  `gallery`'s phone columns are honoured at any desktop count (the `min()` is a default, not a cap);
+  `order-form`'s coupon box is read unconditionally by the island; `video`'s cover picture **wins over**
+  YouTube's own, so hiding it for YouTube would have removed a working override — the candidate had the
+  condition inverted. A plausible candidate that was investigated and refused is worth writing down, or
+  the next audit proposes all three again from the same surface reading.
+
+  **Two traps worth carrying forward.** (1) `collections-row` and `category-tiles` name the same two
+  column settings and mean the OPPOSITE by leaving Layout empty — `strip` for the first, `grid` for the
+  second. One shared helper would have hidden the columns of every untouched tile row; there is a test
+  that fails if someone merges them. (2) A **responsive** setting is one control with a device tab, so
+  its rule is decided once for both screens: `responsiveIs` asks *either*, never *both*, because a row
+  split on a desktop and stacked on a phone genuinely needs its Side control.
+
+  Gates: `pnpm test` 239 files / **2500 passed**, `pnpm lint` 0 errors, `pnpm verify` clean. Browser QA
+  in org `new3`'s Home page, draft discarded afterwards. **One partial:** `image-banner.focal` could not
+  be isolated in the browser — `settings-fields.tsx:105` independently returns null with no picture to
+  point at, so proving the frame half needs an uploaded image; the rule is verified against the renderer,
+  the stylesheet and unit tests. Separately, and **not** an R2 failure: the suite's load flakiness fired
+  a third time (4 timeouts across 3 unrelated files, all green in isolation and on a clean re-run).
+- **2026-09-21** — **Rollout slice 3: the sweep. Every remaining section type audited; the builder is
+  now fully covered.** Twenty-one types that no audit had ever looked at — `rich-text`, `content-body`,
+  `cart-lines`, `checkout-form`, `account-area`, `search-results`, `collection-grid`, `product-main`,
+  `related-products`, `faq`, `call-to-action`, `image-text`, `shop-by-tag`, `campaign-offers`,
+  `single-product`, `offer-pricing`, `sticky-order-bar`, `testimonials`, `benefits`, `how-to-order`,
+  `spacer`.
+
+  **One rule came out of twenty-one sections, and that is the result, not a shortfall.** Almost every
+  one of them passes its settings straight to a renderer or an island that reads them unconditionally;
+  the core page sections (`collection-grid`, `product-main`, `account-area`, `cart-lines`,
+  `checkout-form`) carry a single `layout` each and nothing to gate it on. Counting them as audited is
+  what stops the next person re-deriving the same answer.
+
+  **`campaign-offers.storeHeading`** is the one: `headingWord: heading ? undefined : storeHeading`, so
+  the store's own wording reaches nobody once the merchant has written a heading. ⚠ **`shop-by-tag`
+  names the identical pair and answers the opposite** — its `storeHeading` chooses the whole heading
+  BLOCK, so it still changes the rendering with a heading present. A bare `storeHeading` key would have
+  hidden a live control there; this is the third time the section-keying rule has earned itself, after
+  `shop-by-tag.tagIds` and the two inverted `layout` defaults.
+
+  **One renderer defect found and FIXED rather than hidden** (rule 2): `campaign-offers` did not trim
+  its heading, so a heading of spaces counted as the merchant's — it suppressed the store's wording and
+  drew an empty `<h2>`, losing the row its title to a field that looks empty in the editor. Every
+  sibling offering this pair trims; this one now does too, with a test.
+
+  **`countdown` is specified but has no renderer** (the registry says so: its labels have no Bangla
+  terms yet). Its `endsAt` / `campaignId` pair looks like a textbook either/or, and no rule was written,
+  because rule 3 forbids claiming anything about a renderer that does not exist. It ships with the
+  section, whenever that is.
+
+  Final: **36 rule keys across 10 section types; 33 of 33 section types audited.** Gates: `pnpm test`
+  239 files / **2504 passed**, `pnpm lint` 0 errors, `pnpm verify` + `pnpm docs:verify` clean. Browser
+  QA in org `new3`: the wording control vanishes on a heading, returns when it is cleared, and stays
+  for a heading of spaces — the trim fix, live. No draft left behind.
