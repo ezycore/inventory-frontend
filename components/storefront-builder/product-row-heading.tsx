@@ -12,6 +12,7 @@ export interface ProductRowWording {
   source: ProductSource;
   categoryId?: string;
   heading?: string;
+  subheading?: string;
   ctaLabel?: string;
   ctaHref?: string;
   storeHeading?: "featured" | "newArrivals" | "selected" | "collection";
@@ -36,7 +37,7 @@ export function productRowHeading(
   settings: ProductRowWording,
   context: SectionContext,
   fallback: StoreWord,
-): { heading?: ReactNode; linkLabel?: ReactNode; linkHref?: string } {
+): { heading?: ReactNode; subheading?: string; linkLabel?: ReactNode; linkHref?: string } {
   const category =
     settings.source === "category"
       ? findSectionCategory(context.categories ?? [], settings.categoryId)?.category
@@ -49,10 +50,11 @@ export function productRowHeading(
   }
 
   if (!settings.viewAll) {
-    return { heading, linkLabel: settings.ctaLabel, linkHref: settings.ctaHref };
+    return { heading, subheading: settings.subheading, linkLabel: settings.ctaLabel, linkHref: settings.ctaHref };
   }
   return {
     heading,
+    subheading: settings.subheading,
     linkLabel: settings.ctaLabel?.trim() || word("viewAll"),
     linkHref: settings.ctaHref?.trim() || (category ? collectionHref("", category) : "/products"),
   };

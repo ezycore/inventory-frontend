@@ -8,6 +8,7 @@ import { HeroMedia } from "@/components/storefront/hero-media";
 import { heroFrameAttrs, type HeroFrame } from "@/components/storefront/home/hero-static";
 import { HeroCtaLink, HeroSlideLink } from "@/components/storefront/home/hero-links";
 import { wrap } from "@/components/storefront/home/wrap";
+import { HeroNav } from "@/components/storefront/hero-nav";
 import { useHeroRotation } from "@/components/storefront/use-hero-rotation";
 
 /**
@@ -58,6 +59,8 @@ export function HeroFullBleedView({
   align = "left",
   mobileCopy,
   frame,
+  nav,
+  interval,
 }: {
   base: string;
   slides: StoreHeroSlide[];
@@ -89,12 +92,25 @@ export function HeroFullBleedView({
    * whose height a merchant most wants to decide.
    */
   frame?: HeroFrame;
+  /**
+   * What the shopper moves the slides with — dots (unset), arrows, or both.
+   * This hero has always drawn its dots ON the photograph, so unlike the card
+   * and open heroes it has no second PLACE to put them; where they sit is not a
+   * question here, only whether they are what the merchant wants.
+   */
+  nav?: "dots" | "arrows" | "both";
+  /** How long each slide holds, in SECONDS. Unset is the shared 5s beat. */
+  interval?: number;
 }) {
   const centred = align === "center";
   const hasSlides = slides.length > 0;
   const rotates = slides.length > 1;
-  const { current, go, hoverProps, focusProps, swipeProps } =
-    useHeroRotation(slides.length);
+  const { current, go, hoverProps, focusProps, swipeProps } = useHeroRotation(
+    slides.length,
+    interval ? interval * 1000 : undefined,
+  );
+  const showDots = nav !== "arrows";
+  const showArrows = nav === "arrows" || nav === "both";
   // A selected slide owns its copy even when it is the only one. Falling back
   // to banner defaults here made an intentional image-only slide grow a title
   // and CTA it never asked for.
@@ -207,7 +223,7 @@ export function HeroFullBleedView({
           label={title || badge || storeName}
         />
       ) : null}
-        {rotates ? (
+        {rotates && showDots ? (
           <div className="sf-hero-fullbleed-dots" style={{ position: "absolute", zIndex: 3, display: "flex", gap: 8, right: "var(--pad)", bottom: 18 }}>
             {slides.map((s, i) => (
               <button
@@ -230,6 +246,9 @@ export function HeroFullBleedView({
               />
             ))}
           </div>
+        ) : null}
+        {rotates && showArrows ? (
+          <HeroNav onPrevious={() => go(current - 1)} onNext={() => go(current + 1)} />
         ) : null}
     </section>
   );

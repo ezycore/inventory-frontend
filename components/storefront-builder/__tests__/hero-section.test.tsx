@@ -25,7 +25,13 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       promises?: string[];
       campaignLabel?: string;
       mobileCopy?: string;
-      frame?: { vars?: Record<string, string>; base?: boolean; mobile?: boolean };
+      frame?: {
+        vars?: Record<string, string>;
+        base?: boolean;
+        mobile?: boolean;
+        heightBase?: boolean;
+        heightMobile?: boolean;
+      };
       placement?: { side?: string; mobileFirst?: string };
     };
   }) => (
@@ -43,6 +49,8 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       data-frame-vars={props.frame ? JSON.stringify(props.frame.vars) : undefined}
       data-frame-base={props.frame?.base ? "true" : undefined}
       data-frame-mobile={props.frame?.mobile ? "true" : undefined}
+      data-h={props.frame?.heightBase ? "" : undefined}
+      data-h-m={props.frame?.heightMobile ? "" : undefined}
       data-side={props.placement?.side}
       data-first={props.placement?.mobileFirst}
     />
@@ -121,6 +129,48 @@ describe("hero", () => {
       expect(root.getAttribute("data-frame-m")).toBe("");
       expect(root.style.getPropertyValue("--sfb-hero-frame")).toBe("");
       expect(root.style.getPropertyValue("--sfb-hero-frame-m")).toBe("4 / 5");
+    });
+
+    it("leaves every layout untouched when the merchant chose no height", () => {
+      for (const layout of ["card", "open", "full-bleed"]) {
+        const root = frameOf({ layout }) as HTMLElement;
+        expect(root.getAttribute("data-h")).toBeNull();
+        expect(root.getAttribute("data-h-m")).toBeNull();
+        expect(root.style.getPropertyValue("--sfb-hero-h")).toBe("");
+      }
+    });
+
+    it("puts a height on the hero as a pixel variable, with its own attribute", () => {
+      const root = frameOf({ layout: "card", height: { base: 520 } }) as HTMLElement;
+      // The attribute is what the "a height replaces the shape" rules read;
+      // CSS cannot ask whether a custom property was set.
+      expect(root.getAttribute("data-h")).toBe("");
+      expect(root.getAttribute("data-h-m")).toBeNull();
+      expect(root.style.getPropertyValue("--sfb-hero-h")).toBe("520px");
+    });
+
+    it("keeps a phone-only height off the desktop variable", () => {
+      // ⚠ Full-bleed draws through an ISLAND, so its variables arrive as props
+      // rather than on a style attribute — a height that stopped at the server
+      // wrapper would leave this layout unsized while the other two worked.
+      const root = frameOf({ layout: "full-bleed", height: { mobile: 300 } }) as HTMLElement;
+      expect(root.getAttribute("data-h")).toBeNull();
+      expect(root.getAttribute("data-h-m")).toBe("");
+      const vars = JSON.parse(root.getAttribute("data-frame-vars") ?? "{}");
+      expect(vars["--sfb-hero-h"]).toBeUndefined();
+      expect(vars["--sfb-hero-h-m"]).toBe("300px");
+    });
+
+    it("carries a height with no shape at all", () => {
+      // ⚠ `heroFrame` used to return undefined without a shape, which would have
+      // dropped the height on the floor — the object answers the hero's BOX, and
+      // either setting is enough to need it.
+      const root = frameOf({ layout: "open", height: { base: 400, mobile: 240 } }) as HTMLElement;
+      expect(root.getAttribute("data-frame")).toBeNull();
+      expect(root.getAttribute("data-h")).toBe("");
+      expect(root.getAttribute("data-h-m")).toBe("");
+      expect(root.style.getPropertyValue("--sfb-hero-h")).toBe("400px");
+      expect(root.style.getPropertyValue("--sfb-hero-h-m")).toBe("240px");
     });
 
     it("reaches the rotating hero and both full-bleed islands", () => {

@@ -19,6 +19,9 @@ function bannerVars(settings: Settings): CSSProperties {
     ...responsiveVars("sfb-banner-frame", settings.frame, (ratio) => ASPECT_RATIOS[ratio]),
     ...(focal?.base ? { "--sfb-banner-focal": focalPosition(focal.base) } : {}),
     ...(focal?.mobile ? { "--sfb-banner-focal-m": focalPosition(focal.mobile) } : {}),
+    // Unset keeps each alignment's OWN shade, which the stylesheet draws: a
+    // gradient under bottom-anchored words, a flat wash under centred ones.
+    ...(settings.scrim !== undefined ? { "--sfb-banner-scrim": `${settings.scrim}%` } : {}),
   } as CSSProperties;
 }
 
@@ -49,8 +52,21 @@ export function ImageBannerSection({ settings, context }: SectionViewProps<Spec>
         height={settings.frame?.base ? undefined : settings.image.height}
         className="sfb-banner-media"
       />
+      {/* ⚠ THREE attributes where there was one. `align` used to decide the side,
+          the height and the shade together, so a merchant could not ask for left
+          copy in the middle of the picture and could not touch the shade at all.
+          Unset on all three reproduces the old pair exactly — left means bottom
+          under a gradient, centre means middle under a flat wash — which the
+          stylesheet's own two blocks still draw. */}
       {hasCopy ? (
-        <div className="sfb-banner-copy" data-align={settings.align ?? "left"}>
+        <div
+          className="sfb-banner-copy"
+          data-align={settings.align?.base ?? "left"}
+          data-align-m={settings.align?.mobile}
+          data-valign={settings.verticalAlign?.base}
+          data-valign-m={settings.verticalAlign?.mobile}
+          data-scrim={settings.scrim !== undefined ? "" : undefined}
+        >
           {heading ? <h2 className="sfb-banner-heading">{heading}</h2> : null}
           {text ? <p className="sfb-banner-text">{text}</p> : null}
           {button ? (

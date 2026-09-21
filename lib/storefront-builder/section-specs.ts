@@ -47,10 +47,27 @@ const CARD_PHOTO = {
  * set, to `ctaHref` or else the row's collection or the catalogue. Both unset on
  * a new section, which shows only the merchant's words.
  */
+/**
+ * A line under a section's heading. Thirteen sections offered a heading and
+ * nothing beneath it, and the alternative — stacking a Rich text section above
+ * the row — has its own padding, its own width and its own place in the tree,
+ * so the pair drifts apart the moment either is styled (owner decision D5 of
+ * `inventory-frontend/docs/plan/storefront-section-controls.md`).
+ */
+const SUBHEADING = { subheading: { type: "string", max: 240, optional: true } } as const;
+
 const STORE_ROW = {
+  ...SUBHEADING,
   storeHeading: { type: "enum", values: ["featured", "newArrivals", "selected", "collection"], optional: true },
   viewAll: { type: "boolean", optional: true },
 } as const;
+
+/**
+ * What a row does when its items do not fit: wrap onto another line, or scroll
+ * sideways. `category-promo-cards` named this first; every row that asks the
+ * same question uses its word rather than minting a second one.
+ */
+const FLOW = { type: "enum", values: ["wrap", "scroll"], responsive: true, optional: true } as const;
 
 const ICON = {
   type: "enum",
@@ -85,6 +102,29 @@ export const SECTION_SPECS = {
         responsive: true,
         optional: true,
       },
+      /**
+       * The hero's height in pixels, per device.
+       *
+       * ⚠ **A height REPLACES the shape** on the screen it is given — the same
+       * rule the promo card row states, and for the same reason: with both, an
+       * aspect box computes its width from the height and the picture collapses
+       * to a column. The stylesheet hands `--herocard-ratio` / `--heroopen-ratio`
+       * to `auto` wherever a height applies, so the two are never both in force.
+       *
+       * ⚠ On the FULL-WIDTH hero it is a `min-height`, not a fixed box, because
+       * that hero lays its type over the photograph under `overflow: hidden` —
+       * a fixed box shorter than the words slices them off the top, which is the
+       * trap `ASPECT_RATIO_PADDING` exists to avoid. A floor lets the copy grow
+       * past it, and a floor is what that layout's own default already is.
+       */
+      height: {
+        type: "number",
+        min: 120,
+        max: 900,
+        int: true,
+        responsive: true,
+        optional: true,
+      },
       /*
        * Where the picture and the copy sit relative to each other. Two settings
        * and not one responsive one, because the two devices start from opposite
@@ -102,6 +142,52 @@ export const SECTION_SPECS = {
        * the badge and the subtitle back, sized for a phone.
        */
       mobileCopy: { type: "enum", values: ["full", "title-only"], optional: true },
+      /**
+       * What a shopper moves the slides WITH, on a hero with more than one.
+       *
+       * Unset is `dots`, which is what every rotating hero here has drawn since
+       * the dark carousel's arrows were dropped with it (decision D4) — those
+       * were white chevrons on a translucent dark pill, built for a photograph
+       * and wrong on a light card. `arrows` brings them back in the store's own
+       * surface and border instead, so they read as part of the shop; `both`
+       * draws the pair. Swipe works under all three and is never a setting.
+       */
+      nav: { type: "enum", values: ["dots", "arrows", "both"], optional: true },
+      /**
+       * How long each slide holds, in seconds. Unset is the 5-second beat every
+       * hero has always run at.
+       *
+       * ⚠ It is also what the dots' progress sweep is timed to, so the two are
+       * driven from one value (`--sf-hero-beat`) rather than set twice — a
+       * sweep that finishes early and then waits is the clearest way to make a
+       * slideshow look broken.
+       *
+       * The floor is 2 seconds because below that a hero reads as a flicker
+       * rather than a rotation, and nothing a shopper can act on stays on
+       * screen long enough to act on. The ceiling is 30 because past it a
+       * merchant wants a still picture, which is what one slide already is.
+       */
+      interval: { type: "number", min: 2, max: 30, int: true, optional: true },
+      /**
+       * Where the rotation dots sit, on a hero with more than one slide.
+       *
+       * Unset is `under` — the row beneath the hero this file has always drawn,
+       * because a bordered card has no surface to lay dots on and dots inside
+       * one read as part of the merchant's own content. `over` puts them on the
+       * bottom of the PICTURE instead, the way the full-width hero has always
+       * drawn its own.
+       *
+       * ⚠ **`over` needs a picture on EVERY slide.** The dots ride inside the
+       * active slide's media box, so a slide with no photograph has nowhere to
+       * put them and the hero would drop its dots mid-rotation; `HeroSlidesView`
+       * falls back to the row for the whole stack instead of letting them move.
+       * `field-visibility.ts` hides the control in the same case, so the
+       * fallback is what a merchant sees rather than what surprises them.
+       *
+       * Full-bleed sets nothing here: that hero draws its own dots on the
+       * photograph already, and has no second place to put them.
+       */
+      dots: { type: "enum", values: ["under", "over"], optional: true },
       /*
        * The classic home hero, for a hero moved from it (plan §17, Phase 5 step 5);
        * all unset on a new hero. `slideshow` rotates even one slide, as the home
@@ -238,7 +324,15 @@ export const SECTION_SPECS = {
   "search-results": {
     v: 1,
     pages: ["search"],
-    settings: {},
+    settings: {
+      /**
+       * What a shopper reads when a search finds nothing — the one thing on this
+       * page a merchant would write, and the section had no settings at all.
+       * Unset keeps the storefront's own wording in the shopper's language.
+       */
+      emptyHeading: { type: "string", max: 120, optional: true },
+      emptyText: { type: "string", max: 300, optional: true },
+    },
   },
   /**
    * A collection's products, on the collection page once it is on the builder.
@@ -304,7 +398,10 @@ export const SECTION_SPECS = {
     pages: ["product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       limit: { type: "number", min: 1, max: 8, int: true, optional: true },
+      columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      ...CARD_PHOTO,
     },
   },
   faq: {
@@ -312,6 +409,9 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      /** Opens the first question, for a page whose first answer is the one that sells. */
+      openFirst: { type: "boolean", optional: true },
     },
     blocks: {
       max: 30,
@@ -338,6 +438,18 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       source: { type: "enum", values: ["featured", "newest", "category", "tag", "manual"] },
+      /**
+       * The order the products come back in, over whatever the source gives.
+       * Unset keeps the source's own order — which for `manual` is the order the
+       * merchant picked them in, and must stay that way.
+       *
+       * ⚠ **No `name` here, against the plan's own list.** The catalogue sorts by
+       * newest and by price and nothing else (`storefront-catalog.service.ts`),
+       * and a fourth value would be a control that quietly falls back to the
+       * default. Adding alphabetical order is a catalogue change with its own
+       * index question, not an enum entry.
+       */
+      sort: { type: "enum", values: ["newest", "price-low", "price-high"], optional: true },
       categoryId: { type: "ref", to: "category", optional: true },
       tagIds: { type: "refs", to: "tag", max: 10, optional: true },
       productIds: { type: "refs", to: "product", max: 24, optional: true },
@@ -356,6 +468,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** The store's own promises (Customize → Footer) in place of the blocks, as the classic home band. */
       storePromises: { type: "boolean", optional: true },
     },
@@ -373,8 +486,38 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       image: { type: "image" },
+      /** A phone picture of its own, where the desktop's crop reads badly upright. */
+      mobileImage: { type: "image", optional: true },
       imageSide: { type: "enum", values: ["left", "right"], optional: true },
-      imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], optional: true },
+      /**
+       * Which of the picture and the copy leads the phone's single column.
+       *
+       * ⚠ A SECOND setting rather than making `imageSide` responsive, and for
+       * the hero's reason (hero plan §5, D4): the two devices start from
+       * opposite defaults — the desktop from a side, the phone from the
+       * picture — so one responsive value would inherit the desktop's and move
+       * every photograph already below the fold.
+       */
+      mobileFirst: { type: "enum", values: ["picture", "text"], optional: true },
+      /**
+       * The picture's share of the row past the breakpoint, in percent.
+       *
+       * ⚠ **Not responsive**, unlike `category-promo-cards`'s setting of the
+       * same name. That row keeps its cards side by side on a phone, so a phone
+       * split means something there. This section stacks into one column below
+       * the breakpoint, where there is no row left to divide — storing a phone
+       * value would be storing a value nothing draws.
+       */
+      split: { type: "number", min: 20, max: 80, int: true, optional: true },
+      /**
+       * Whether the picture is cropped to its shape or shown whole inside it.
+       * Unset keeps `cover`, which is what every `image-text` drew before this
+       * existed — including Noor Collection's converted editorial band, the one
+       * page in that store's set that did not match the classic home it
+       * replaced (master plan §17).
+       */
+      imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
+      imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], responsive: true, optional: true },
       badge: { type: "string", max: 60, optional: true },
       heading: { type: "string", min: 1, max: 160 },
       text: { type: "string", max: 600, optional: true },
@@ -390,6 +533,8 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       tagIds: { type: "refs", to: "tag", max: 20 },
+      ...SUBHEADING,
+      flow: FLOW,
       /** The classic home row's heading — "Shop by age" in the shopper's language when Heading is empty. */
       storeHeading: { type: "enum", values: ["shopByAge"], optional: true },
     },
@@ -399,6 +544,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** Unset or empty lists every top-level collection. */
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       style: { type: "enum", values: ["card", "plain"], optional: true },
@@ -408,6 +554,8 @@ export const SECTION_SPECS = {
       // not the desktop's 2–6 (`resolveHomeCollections`).
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      /** The tile's shape. Unset keeps each layout's own, as the classic row drew it. */
+      tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       showLabels: { type: "boolean", optional: true },
     },
   },
@@ -437,6 +585,9 @@ export const SECTION_SPECS = {
       tagIds: { type: "refs", to: "tag", max: 10, optional: true },
       productIds: { type: "refs", to: "product", max: 24, optional: true },
       limit: { type: "number", min: 1, max: 24, int: true },
+      /** Cards in view at once; unset keeps the rail's own measure. */
+      perView: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      arrows: { type: "boolean", optional: true },
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
@@ -448,6 +599,8 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      limit: { type: "number", min: 1, max: 12, int: true, optional: true },
       /** "Current offers" in the shopper's language when Heading is empty, as the classic home row. */
       storeHeading: { type: "enum", values: ["campaignOffers"], optional: true },
     },
@@ -457,6 +610,7 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       /** Unset or empty lists every top-level collection. */
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       mode: { type: "enum", values: ["tile", "overlay", "circle", "disc"], optional: true },
@@ -464,6 +618,8 @@ export const SECTION_SPECS = {
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
+      /** The tile's shape. Unset keeps each mode's own, as the classic row drew it. */
+      tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       showLabels: { type: "boolean", optional: true },
     },
   },
@@ -513,6 +669,8 @@ export const SECTION_SPECS = {
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
       coupon: { type: "boolean", optional: true },
+      /** Every other buy control in the builder lets the merchant write the button. */
+      buttonLabel: { type: "string", max: 30, optional: true },
     },
   },
   /**
@@ -540,6 +698,7 @@ export const SECTION_SPECS = {
     pages: ["landing", "product"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       text: { type: "string", max: 400, optional: true },
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
@@ -558,6 +717,11 @@ export const SECTION_SPECS = {
       /** On the product page, the page's own product. */
       productId: { type: "ref", to: "product", fromPage: ["product"] },
       buttonLabel: { type: "string", max: 30, optional: true },
+      /**
+       * Which screens the bar stands on. Phones only until 2026-09-21, by a
+       * `display: none !important` a merchant could not reach.
+       */
+      screens: { type: "enum", values: ["phones", "phones-and-computers"], optional: true },
     },
   },
   /**
@@ -570,6 +734,10 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
+      /** Unset keeps the phone's swipe row and the desktop's wrap — a choice now, not a law. */
+      flow: FLOW,
     },
     blocks: {
       max: 12,
@@ -588,8 +756,13 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
-      /** Past the breakpoint; a phone takes one column. */
-      columns: { type: "number", min: 1, max: 4, int: true, optional: true },
+      ...SUBHEADING,
+      /**
+       * ⚠ Responsive since 2026-09-21. It was written into a `min-width: 680px`
+       * block, so the one screen the merchant's choice could not reach was the
+       * phone — which was always one column.
+       */
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
     },
     blocks: {
       max: 12,
@@ -605,6 +778,9 @@ export const SECTION_SPECS = {
     pages: ["landing"],
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      /** Unset wraps the steps into as many columns as fit, at 220px each. */
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
     },
     blocks: {
       max: 8,
@@ -627,7 +803,7 @@ export const SECTION_SPECS = {
       /** The play button's and player's accessible name. */
       label: { type: "string", min: 1, max: 120 },
       poster: { type: "image", optional: true },
-      ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], optional: true },
+      ratio: { type: "enum", values: ["16:9", "9:16", "1:1"], responsive: true, optional: true },
     },
   },
   /**
@@ -648,7 +824,17 @@ export const SECTION_SPECS = {
       focal: { type: "focal", responsive: true, optional: true },
       heading: { type: "string", max: 120, optional: true },
       text: { type: "string", max: 240, optional: true },
-      align: { type: "enum", values: ["left", "center"], optional: true },
+      /**
+       * Where the words sit ACROSS the picture. Until 2026-09-21 this decided
+       * three things at once — side, height and the shade under the words — so a
+       * merchant could not ask for left copy in the middle, or touch the shade
+       * at all. It now answers one question; `verticalAlign` and `scrim` answer
+       * the other two, and unset on all three reproduces the old pair exactly.
+       */
+      align: { type: "enum", values: ["left", "center", "right"], responsive: true, optional: true },
+      verticalAlign: { type: "enum", values: ["top", "middle", "bottom"], responsive: true, optional: true },
+      /** Percent of black under the words. Unset keeps each alignment's own. */
+      scrim: { type: "number", min: 0, max: 80, int: true, optional: true },
       buttonLabel: { type: "string", max: 40, optional: true },
       link: { type: "url", optional: true },
     },
@@ -664,8 +850,9 @@ export const SECTION_SPECS = {
     pages: "all",
     settings: {
       heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
-      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], optional: true },
+      frame: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
     },
     blocks: {
       max: 24,

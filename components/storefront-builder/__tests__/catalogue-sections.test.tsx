@@ -25,6 +25,7 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       headingWord?: string;
       word?: string;
       wholeRows?: boolean;
+      arrows?: boolean;
     };
   }) => (
     <div
@@ -34,6 +35,7 @@ vi.mock("@/components/storefront-builder/islands/island-map", () => ({
       data-heading-word={props.headingWord}
       data-word={props.word}
       data-whole-rows={props.wholeRows === undefined ? undefined : String(props.wholeRows)}
+      data-arrows={props.arrows === undefined ? undefined : String(props.arrows)}
     >
       {props.children}
     </div>
@@ -97,6 +99,32 @@ describe("product-carousel", () => {
     expect(container.textContent).toContain("New in");
     expect(hrefs(container)).toEqual(["/shop/products?sort=newest"]);
   });
+
+  it("puts the cards in view on a variable and the arrows on a prop", () => {
+    // ⚠ Two different mechanisms on purpose. `perView` is a NUMBER the rail's
+    // track already divides itself by, so it rides `--cols` and needs no prop;
+    // `arrows` is BEHAVIOUR and has to reach the island itself, which is the
+    // miss §0.4 of the plan names.
+    const instance = section("r1", "product-carousel", {
+      source: "newest",
+      limit: 12,
+      heading: "New in",
+      perView: { base: 4, mobile: 2 },
+      arrows: true,
+    });
+    const { container } = renderPage([instance], { r1: { items } });
+    const wrapper = container.querySelector('[style*="--cols"]') as HTMLElement;
+    expect(wrapper.style.getPropertyValue("--cols")).toBe("4");
+    expect(wrapper.style.getPropertyValue("--cols-m")).toBe("2");
+    expect((wrapper.querySelector("[data-island]") as HTMLElement).dataset.arrows).toBe("true");
+  });
+
+  it("asks for no arrows when the merchant did not", () => {
+    const instance = section("r1", "product-carousel", { source: "newest", limit: 12, heading: "New in" });
+    const { container } = renderPage([instance], { r1: { items } });
+    const island = container.querySelector("[data-island]") as HTMLElement;
+    expect(island.dataset.arrows).toBe("false");
+  });
 });
 
 describe("product rows moved from the classic home", () => {
@@ -157,9 +185,12 @@ describe("product rows moved from the classic home", () => {
       { s1: { items } },
     );
     expect(container.querySelector('h2 [data-word="selected"]')).not.toBeNull();
-    expect((container.querySelector(".sfb-inner > div") as HTMLElement).style.maxWidth).toBe(
-      "calc(980px - 2 * var(--pad))",
-    );
+    // The column is declared as a variable rather than an inline `max-width`
+    // since 2026-09-21, so `.sfb-own-column` can stand aside for a merchant who
+    // picks a width on the Style tab. The number itself is unchanged.
+    const column = container.querySelector(".sfb-inner > div") as HTMLElement;
+    expect(column.className).toBe("sfb-own-column");
+    expect(column.getAttribute("style")).toContain("--sfb-own-column: calc(980px - 2 * var(--pad))");
   });
 });
 

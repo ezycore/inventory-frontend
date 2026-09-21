@@ -23,7 +23,9 @@ export function PromisesBandSection({ settings, blocks, context }: SectionViewPr
     : blocks.map((block) => block.settings);
   return (
     <>
-      {settings.heading ? <SectionTitle>{settings.heading}</SectionTitle> : null}
+      {settings.heading ? (
+        <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
+      ) : null}
       <PromiseRows promises={promises} />
     </>
   );

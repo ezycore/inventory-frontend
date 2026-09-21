@@ -105,7 +105,7 @@ question every quarter.
 |---|---|---|---|---|---|---|
 | A few departments shown as large promo cards — photo, name, a line of copy, a Shop Now button | *not recorded* | *not recorded* | *not recorded* | `category-banners` section + `sectionConfig.categoryIds` | 1 | `shipped` 2026-09-06 |
 | A promo card with the photograph **beside** the copy rather than above it | Home textiles (cushions, floor mats) | 1 | 2026-09-07 | `sectionConfig.cardShape: "split"` | 1 | `shipped` 2026-09-07 |
-| The category row's cards are too small and don't line up with the hero | Home textiles | 1 | 2026-09-07 | *(none — the merchant was on `category-tiles`, which is capped small by design; answered by moving them to `category-banners`)* | 1 | `declined` 2026-09-07 |
+| The category row's cards are too small and don't line up with the hero | Home textiles | 1 | 2026-09-07 | Answered 2026-09-21: `collections-row` and `category-tiles` take a **Tile shape** per device (`tileRatio`). Was `declined` 2026-09-07 — the merchant was moved to `category-banners` because the tiles were capped small by design, which was true then. The owner's 2026-09-14 direction removed that bar, and the code now contradicts the old row. | 1 | `shipped` 2026-09-21 (was `declined`) |
 | Two promo cards side by side on a **phone** | — | 0 | — | a phone override for `cardShape` / cards per row | 0 | `shipped` 2026-09-07 — not on a count: per-device composition added `sectionConfig[].mobile.cardShape` and `.cardPerRow` the same day, and the builder's `category-promo-cards` carries both as phone values (`shape`, `perRow`). Nobody has asked yet; found stale in the Phase 6 review |
 
 **The first row is the worked example of the whole loop, including its failure.** It shipped on one

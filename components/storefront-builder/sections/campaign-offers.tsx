@@ -23,14 +23,16 @@ export function CampaignOffersSection({ settings, context }: SectionViewProps<Sp
      the merchant's: it suppressed the store's wording AND drew an empty `<h2>`,
      so the row lost its title to a field that looks empty in the editor. */
   const heading = settings.heading?.trim() || undefined;
+  const shown = settings.limit === undefined ? campaigns : campaigns.slice(0, settings.limit);
   return (
     <Island
       name="campaign-offers"
       props={{
         base: context.base,
-        campaigns,
+        campaigns: shown,
         currency: context.currency,
         heading,
+        subheading: settings.subheading,
         headingWord: heading ? undefined : settings.storeHeading,
       }}
     />

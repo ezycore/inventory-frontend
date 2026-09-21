@@ -16,12 +16,14 @@ export function CampaignOffersIsland({
   campaigns,
   currency,
   heading,
+  subheading,
   headingWord,
 }: {
   base: string;
   campaigns: StoreCampaign[];
   currency?: string;
   heading?: string;
+  subheading?: string;
   headingWord?: "campaignOffers";
 }) {
   const { t } = useStorefrontUI();
@@ -32,6 +34,7 @@ export function CampaignOffersIsland({
       currency={currency}
       t={t}
       heading={heading ?? (headingWord ? t[headingWord] : undefined)}
+      subheading={subheading}
     />
   );
 }
