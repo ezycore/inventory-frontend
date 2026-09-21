@@ -15,6 +15,8 @@ import {
 import { Button } from '@ui/components/button'
 import { Input } from '@ui/components/input'
 import { Label } from '@ui/components/label'
+import { useOrgCalendar } from '@/hooks/use-org-calendar'
+import { isDateKeyBeforeOrgToday } from '@/lib/org-calendar'
 import { useAssignBatchExpiry } from '@/services/api'
 import type { BatchRow } from '@/services/api/modules/inventory/analytics.types'
 
@@ -44,6 +46,7 @@ export function AssignExpiryDialog({
 }: AssignExpiryDialogProps) {
   const t = useTranslations('inventory.batch')
   const tActions = useTranslations('common.actions')
+  const { timezone } = useOrgCalendar()
   const assign = useAssignBatchExpiry()
 
   const [quantity, setQuantity] = useState(String(batch.remainingQuantity))
@@ -60,7 +63,8 @@ export function AssignExpiryDialog({
   // A past date is allowed on purpose — finding out that undated stock went off
   // last month is exactly when someone reaches for this — but it is worth
   // saying out loud, because the lot becomes write-off material immediately.
-  const isPastDate = !!expiryDate && new Date(expiryDate) < new Date()
+  // "Past" on the org's calendar: a lot dated today is still good today.
+  const isPastDate = !!expiryDate && isDateKeyBeforeOrgToday(expiryDate, timezone)
 
   const submit = async () => {
     if (!canSubmit) return

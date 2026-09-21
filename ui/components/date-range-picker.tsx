@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import * as React from "react";
 import { format, isValid } from "date-fns";
@@ -47,8 +48,7 @@ export function DateRangePicker({
     if (range?.from && range?.to) setOpen(false);
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClear = () => {
     onChange?.(undefined);
   };
 
@@ -60,42 +60,49 @@ export function DateRangePicker({
   }, [value?.from, value?.to, placeholder]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal gap-2",
-            !value?.from && "text-muted-foreground"
-          )}
+    // The clear button is a SIBLING of the trigger, never a child: PopoverTrigger
+    // `asChild` turns the Button into the real <button>, and a <button> inside a
+    // <button> is invalid HTML — React logs a hydration error for it. It is
+    // absolutely positioned over the trigger's reserved right padding instead.
+    <div className="relative w-full">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            disabled={disabled}
+            className={cn(
+              "w-full justify-start text-left font-normal gap-2",
+              !value?.from && "text-muted-foreground",
+              value?.from && !disabled && "pr-9"
+            )}
+          >
+            <CalendarIcon className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate">{label}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="range"
+            selected={value}
+            onSelect={handleSelect}
+            numberOfMonths={1}
+            autoFocus
+            // Larger touch targets on mobile, compact on md+.
+            className="[--cell-size:3.5rem] text-lg md:[--cell-size:2rem] md:text-base"
+            classNames={rangeClassNames}
+          />
+        </PopoverContent>
+      </Popover>
+      {value?.from && !disabled && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear date range"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
-          <CalendarIcon className="h-4 w-4 shrink-0" />
-          <span className="flex-1 truncate">{label}</span>
-          {value?.from && (
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="Clear date range"
-              className="ml-auto h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
-          selected={value}
-          onSelect={handleSelect}
-          numberOfMonths={1}
-          autoFocus
-          // Larger touch targets on mobile, compact on md+.
-          className="[--cell-size:3.5rem] text-lg md:[--cell-size:2rem] md:text-base"
-          classNames={rangeClassNames}
-        />
-      </PopoverContent>
-    </Popover>
+          <X className="h-3 w-3" />
+        </button>
+      )}
+    </div>
   );
 }

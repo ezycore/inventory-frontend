@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   asPartId,
   LOOK,
+  MOVED_TO_PAGES,
   RAIL_GROUPS,
 } from "@/components/ecommerce/customize/parts-rail";
 import { PART_IDS } from "@/components/ecommerce/customize/use-customize-draft";
@@ -42,12 +43,28 @@ describe("the rail reaches every part", () => {
 
 describe("asPartId", () => {
   it("accepts a live part id", () => {
-    expect(asPartId("hero")).toBe("hero");
+    expect(asPartId("header")).toBe("header");
   });
 
   it("rejects anything else", () => {
     expect(asPartId("nonsense")).toBeNull();
     expect(asPartId(null)).toBeNull();
+  });
+
+  /* Customize is the SITE editor now. A part that moved to its own page must
+     not resolve to a row here — the workspace sends `?part=<moved>` to Pages,
+     and a stray id left in `PartId` would open a rail row instead. */
+  it.each(Object.keys(MOVED_TO_PAGES))("no longer has a row for %s", (moved) => {
+    expect(asPartId(moved)).toBeNull();
+    expect(rail).not.toContain(moved);
+  });
+
+  it("names a page for every part that moved", () => {
+    // Every value is a system page the builder actually has
+    // (`STOREFRONT_SYSTEM_PAGE_KEYS`), so the redirect cannot point nowhere.
+    expect(new Set(Object.values(MOVED_TO_PAGES))).toEqual(
+      new Set(["home", "product", "collection", "cart", "checkout", "account"]),
+    );
   });
 
   // `?part=` is a documented deep link. A bookmark or a support reply written

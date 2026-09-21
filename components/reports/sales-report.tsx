@@ -9,6 +9,7 @@ import { Skeleton } from '@ui/components/skeleton'
 import { useReportPeriod } from './use-report-period'
 import { PeriodFilter } from '@/components/shared/period-filter'
 import { TopCombosCard } from './top-combos-card'
+import { SalesBreakdownCard } from './sales-breakdown-card'
 import {
   DollarSign,
   TrendingUp,
@@ -253,6 +254,9 @@ export function SalesReport() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Which category / brand / tag sells most and least — its own query per dimension. */}
+          <SalesBreakdownCard params={params} formatCurrency={formatCurrency} />
 
           {/* Status Breakdown */}
           {data.statusBreakdown.length > 0 && (

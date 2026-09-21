@@ -21,6 +21,7 @@ import {
   getCategoryConfig,
   groupPermissions,
   PermissionGroupCard,
+  useVisiblePermissions,
 } from "@/components/shared/permissions";
 import type { Translator } from "@/i18n/config";
 import type { OrganizationRole } from "@/types/users";
@@ -56,7 +57,9 @@ export function RoleDetailsSheet({
     onOpenChange(next);
   };
 
-  const permissions = role?.permissions ?? [];
+  // Modules this workspace has switched off are left out, as in the builder.
+  // The role still holds them; they come back when the feature does.
+  const permissions = useVisiblePermissions(role?.permissions ?? []);
   const totalCategories = Object.keys(groupPermissions(permissions)).length;
 
   const trimmedQuery = query.trim().toLowerCase();

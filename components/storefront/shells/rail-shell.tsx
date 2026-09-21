@@ -2,9 +2,9 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { CatalogCategory } from "@/lib/storefront-client";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { Icon } from "@/components/storefront/sf-icons";
 import {
   ShellAnnouncement,
@@ -100,7 +100,7 @@ function CategoryRail({
   categories: CatalogCategory[];
   t: ShellProps["t"];
 }) {
-  const pathname = usePathname();
+  const pathname = useStorePathname();
   if (!categories.length) return null;
 
   const isActive = (c: CatalogCategory) =>

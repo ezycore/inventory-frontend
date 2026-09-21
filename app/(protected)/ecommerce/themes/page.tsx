@@ -3,12 +3,13 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useGetStorefrontSettings } from "@/services/api";
 import { READY_MADE_THEMES, recommendedThemeFor } from "@/lib/storefront-themes";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { resolveDesign } from "@/lib/storefront-theme";
 import { ThemeList } from "@/components/ecommerce/themes/theme-list";
 import { ThemeStage } from "@/components/ecommerce/themes/theme-stage";
+import { useLiveStoreSettings } from "@/components/ecommerce/use-live-store-settings";
+import type { StorefrontSettings } from "@/types";
 
 /**
  * Online Store → Themes. A whole look in one click, instead of asking a shop
@@ -25,7 +26,9 @@ import { ThemeStage } from "@/components/ecommerce/themes/theme-stage";
  * unsaved edit, so the merchant judges it with Save and Discard already up.
  */
 export default function ThemesPage() {
-  const { data: settings, isLoading } = useGetStorefrontSettings();
+  // The live look: a store on the builder keeps it on the Site, so the settings'
+  // copy would name a theme the shop no longer wears.
+  const { data: settings, isLoading } = useLiveStoreSettings();
   const activeId = settings?.theme?.appliedThemeId;
   const industry = useAuthStore((s) => s.user?.organization?.industry);
   const recommended = recommendedThemeFor(industry);
@@ -91,13 +94,11 @@ export default function ThemesPage() {
 /**
  * Whether the saved look still matches the applied theme.
  *
- * Deliberately compares the SAVED settings rather than reusing the Customize
+ * Deliberately compares the LIVE look rather than reusing the Customize
  * draft's `isThemeModified` — this page has no draft, and building one just to
  * answer a badge would run the whole seeding path for nothing.
  */
-function useThemeModified(
-  settings: ReturnType<typeof useGetStorefrontSettings>["data"],
-): boolean {
+function useThemeModified(settings: StorefrontSettings | undefined): boolean {
   const applied = settings?.theme?.appliedThemeId;
   if (!applied) return false;
   const theme = READY_MADE_THEMES.find((t) => t.id === applied);

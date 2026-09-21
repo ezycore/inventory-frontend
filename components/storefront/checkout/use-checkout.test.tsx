@@ -19,6 +19,8 @@ import { I18N } from "@/lib/storefront-i18n";
 
 const toastError = vi.fn();
 const placeOrder = vi.fn();
+const clearCart = vi.fn();
+const trackMetaEvent = vi.fn();
 
 let store: Record<string, unknown> = {};
 let cartItems: unknown[] = [];
@@ -46,8 +48,13 @@ vi.mock("@/services/storefront/hooks", () => ({
 // or every `useCartStore((s) => s.items)` call returns the whole state.
 vi.mock("@/services/stores/use-cart-store", () => ({
   useCartStore: (select: (s: unknown) => unknown) =>
-    select({ storeSlug: "rmc", items: cartItems, clear: vi.fn() }),
+    select({ storeSlug: "rmc", items: cartItems, clear: clearCart }),
   cartLineKey: (i: { productId: string }) => i.productId,
+}));
+// Only the event call is observed; the rest of the module (content ids, the purchase call) is real.
+vi.mock("@/lib/storefront-meta", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/storefront-meta")>()),
+  trackMetaEvent,
 }));
 vi.mock("@/services/stores/use-shopper-store", () => ({
   useShopperStore: (select: (s: unknown) => unknown) =>
@@ -223,5 +230,65 @@ describe("submit — the final gate keeps every rule", () => {
     act(() => result.current.setTermsAccepted(true));
     act(() => result.current.submit());
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A landing page's order form runs the same hook over lines it picked itself.
+ * What must differ is exactly what belongs to the cart: the shopper's basket is
+ * neither ordered nor emptied, and there is no mirrored cart to close.
+ */
+describe("lines — a landing page's order form", () => {
+  const lines = [
+    { productId: "p9", variantId: "v1", variantLabel: "Red", slug: "saree", name: "Saree", price: 3360, quantity: 2, maxQty: 5 },
+  ];
+  const openStore = {
+    currency: "BDT",
+    allowedPaymentMethods: ["cod"],
+    checkout: { requiredFields: ["name", "phone", "address"] },
+  };
+
+  it("orders the given lines, not the cart, and leaves the cart alone", () => {
+    store = openStore;
+    const { result } = renderHook(() => useCheckout({ lines }));
+    expect(result.current.subtotal).toBe(6720);
+
+    fillStepOne(result.current);
+    act(() => result.current.submit());
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    const [body, callbacks] = placeOrder.mock.calls[0];
+    expect(body.items).toEqual([{ productId: "p9", variantId: "v1", quantity: 2 }]);
+    expect(body.anonymousId).toBeUndefined();
+
+    act(() => callbacks.onSuccess({ orderNumber: "ORD-1" }));
+    expect(clearCart).not.toHaveBeenCalled();
+    expect(result.current.placed).toEqual({ orderNumber: "ORD-1" });
+  });
+
+  it("still empties the cart after a checkout-page order", () => {
+    store = openStore;
+    const { result } = renderHook(() => useCheckout());
+    fillStepOne(result.current);
+    act(() => result.current.submit());
+    act(() => placeOrder.mock.calls[0][1].onSuccess({ orderNumber: "ORD-2" }));
+    expect(clearCart).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports InitiateCheckout on the first edit, not on arrival", () => {
+    store = openStore;
+    const { result } = renderHook(() => useCheckout({ lines }));
+    expect(trackMetaEvent).not.toHaveBeenCalled();
+
+    fillStepOne(result.current);
+    const initiated = trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout");
+    expect(initiated).toHaveLength(1);
+    expect(initiated[0][2]).toMatchObject({ value: 6720, num_items: 2 });
+  });
+
+  it("reports InitiateCheckout on arrival at the checkout page", () => {
+    store = openStore;
+    renderHook(() => useCheckout());
+    expect(trackMetaEvent.mock.calls.filter(([, name]) => name === "InitiateCheckout")).toHaveLength(1);
   });
 });

@@ -1,5 +1,7 @@
 // coding-standard: maintained
 
+import { isPreviewSession } from "@/lib/storefront-preview";
+
 /**
  * The per-store cart handle used by the server-side cart mirror
  * (backend `docs/plan/abandoned-cart.md`).
@@ -68,8 +70,12 @@ export function cartAnonymousId(slug: string): string | null {
  *
  * Lives beside the handle because the two are always used together — a mirror
  * write needs an id AND a shopper, and this is the test for the second.
+ *
+ * The answer itself is `isPreviewSession()`, which is sticky for the tab. This
+ * read used to be the URL param alone, so a merchant's FIRST click inside the
+ * preview — which drops the param — turned them back into a shopper: their
+ * clicking through their own shop was mirrored as carts and counted as visits.
  */
 export function isSfPreview(): boolean {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("preview") === "1";
+  return isPreviewSession();
 }

@@ -134,6 +134,12 @@ export function ProductSearch({
           className="w-[--radix-popover-trigger-width] p-0"
           align="start"
           sideOffset={4}
+          // Not portalled, so the results list stays inside whatever dialog is
+          // hosting this picker. The ecommerce create-order dialog is one, and a
+          // portalled list there is outside the dialog's scroll lock, which
+          // cancels every wheel event over it — the list could only be scrolled
+          // by dragging its scrollbar. See the prop's note in `popover.tsx`.
+          portal={false}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
             // Don't close if clicking the input

@@ -266,6 +266,11 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       width: "wide",
       navHover: "underline",
       navChildHover: "highlight",
+      buttonShape: "pill",
+      buttonStyle: "soft",
+      buttonSize: "sm",
+      headingWeight: "regular",
+      headingCase: "upper",
     };
     expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
   });
@@ -369,17 +374,55 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     });
   });
 
-  it("persists collection layout and pagination template changes", () => {
-    const value = draft({
-      templates: {
-        collection: "grid-3",
-        pagination: "load-more",
-      },
-    });
-    const patch = toSettingsPatch(value, ["collections"]);
+  it("persists a site part's template change", () => {
+    const value = draft({ templates: { productCard: "bold", cardActions: "always" } });
+    const patch = toSettingsPatch(value, ["cards"]);
 
     expect(Object.keys(patch)).toEqual(["templates"]);
     expect(patch.templates).toEqual(value.templates);
+  });
+
+  /* Customize stopped editing the page layouts on 2026-09-20, but `templates`
+     is ONE block the PATCH replaces wholesale — so a site part's save has to
+     carry the page ids it no longer shows, or saving the header would erase
+     every page's layout. */
+  it("carries the page layout ids Customize no longer edits", () => {
+    const value = draft({
+      templates: {
+        productCard: "bold",
+        product: "gallery-top",
+        collection: "grid-3",
+        pagination: "load-more",
+        accountLayout: "tabs",
+        cartLayout: "compact",
+        checkout: "guided",
+        hero: "banner",
+        home: "minimal",
+      },
+    });
+    const patch = toSettingsPatch(value, ["cards"]);
+
+    expect(patch.templates).toMatchObject({
+      product: "gallery-top",
+      collection: "grid-3",
+      pagination: "load-more",
+      accountLayout: "tabs",
+      cartLayout: "compact",
+      checkout: "guided",
+      hero: "banner",
+      home: "minimal",
+    });
+  });
+
+  /* The same trap one block over: the hero's own blocks are only SENT by a part
+     that is dirty, and no part owns them any more — so a site-part save must
+     leave them out entirely rather than send a trimmed or empty version. */
+  it("sends no hero blocks when a site part is saved", () => {
+    const patch = toSettingsPatch(draft({}), ["look", "header", "footer"]);
+
+    expect(patch).not.toHaveProperty("heroSlides");
+    expect(patch).not.toHaveProperty("heroBanner");
+    expect(patch).not.toHaveProperty("sectionConfig");
   });
 });
 

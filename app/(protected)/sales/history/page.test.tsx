@@ -17,7 +17,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
  * mode worth a test: two pages of the same shape, one fixed.
  */
 
-const features = { current: {} as Record<string, boolean> };
+const features = { current: {} as Record<string, boolean> | undefined };
 
 vi.mock("@/services/stores/use-auth-store", () => ({
   useAuthStore: (selector: (s: unknown) => unknown) =>
@@ -107,11 +107,21 @@ describe("sales history — New Sale", () => {
     expect(screen.getByTestId("table")).toBeInTheDocument();
   });
 
-  it("hides New Sale when the flag is absent entirely", () => {
+  it("hides New Sale while the feature map has not loaded", () => {
     // An org whose feature map has not loaded is not an org that may sell at
     // the counter — the same direction `isFeatureEnabled` takes everywhere.
+    features.current = undefined;
     render(<SalesHistoryPage />);
 
     expect(newSale()).not.toBeInTheDocument();
+  });
+
+  it("offers New Sale when a loaded map is missing the key", () => {
+    // A missing key is ON, as the backend reads it: `requireFeature` blocks only
+    // an explicit `false`, so the counter this button opens would work.
+    features.current = { storefront: true };
+    render(<SalesHistoryPage />);
+
+    expect(newSale()).toBeInTheDocument();
   });
 });

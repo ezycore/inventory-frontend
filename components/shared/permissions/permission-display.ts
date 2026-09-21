@@ -129,6 +129,51 @@ const CATEGORY_STYLES: Record<string, Omit<CategoryConfig, "name">> = {
     bgColor: "bg-rose-50 dark:bg-rose-950/30",
     textColor: "text-rose-600 dark:text-rose-400",
   },
+  tags: {
+    color: "border-stone-200 dark:border-stone-700",
+    bgColor: "bg-stone-50 dark:bg-stone-950/30",
+    textColor: "text-stone-600 dark:text-stone-400",
+  },
+  discounts: {
+    color: "border-neutral-200 dark:border-neutral-700",
+    bgColor: "bg-neutral-50 dark:bg-neutral-950/30",
+    textColor: "text-neutral-600 dark:text-neutral-400",
+  },
+  accounts: {
+    color: "border-sky-200 dark:border-sky-800",
+    bgColor: "bg-sky-50 dark:bg-sky-950/30",
+    textColor: "text-sky-600 dark:text-sky-400",
+  },
+  transactions: {
+    color: "border-sky-200 dark:border-sky-800",
+    bgColor: "bg-sky-50 dark:bg-sky-950/30",
+    textColor: "text-sky-600 dark:text-sky-400",
+  },
+  purchases: {
+    color: "border-yellow-200 dark:border-yellow-800",
+    bgColor: "bg-yellow-50 dark:bg-yellow-950/30",
+    textColor: "text-yellow-600 dark:text-yellow-400",
+  },
+  returns: {
+    color: "border-fuchsia-200 dark:border-fuchsia-800",
+    bgColor: "bg-fuchsia-50 dark:bg-fuchsia-950/30",
+    textColor: "text-fuchsia-600 dark:text-fuchsia-400",
+  },
+  storefront: {
+    color: "border-lime-200 dark:border-lime-800",
+    bgColor: "bg-lime-50 dark:bg-lime-950/30",
+    textColor: "text-lime-600 dark:text-lime-400",
+  },
+  roles: {
+    color: "border-red-200 dark:border-red-800",
+    bgColor: "bg-red-50 dark:bg-red-950/30",
+    textColor: "text-red-600 dark:text-red-400",
+  },
+  costs: {
+    color: "border-zinc-200 dark:border-zinc-700",
+    bgColor: "bg-zinc-50 dark:bg-zinc-950/30",
+    textColor: "text-zinc-600 dark:text-zinc-400",
+  },
 };
 
 /**

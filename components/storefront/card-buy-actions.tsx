@@ -7,6 +7,8 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import type { CardQuickBuy } from "@/components/storefront/use-card-quick-buy";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 export type CardActions = StoreTemplates["cardActions"];
 
@@ -48,7 +50,8 @@ const OVER_IMAGE: CardActions[] = ["reveal"];
  * empty bar.
  */
 export function CardVariantFlyout({ qb }: { qb: CardQuickBuy }) {
-  if (!qb.fitsInline || qb.soldOut) return null;
+  const paused = useOrdersPaused();
+  if (paused || !qb.fitsInline || qb.soldOut) return null;
   return (
     <div className={`sf-qb-flyout${qb.flyoutOpen ? " sf-open" : ""}`}>
       <VariantSelector
@@ -69,7 +72,8 @@ export function CardVariantFlyout({ qb }: { qb: CardQuickBuy }) {
  */
 export function CardRevealActions({ qb }: { qb: CardQuickBuy }) {
   const { t } = useStorefrontUI();
-  if (qb.soldOut) return null;
+  const paused = useOrdersPaused();
+  if (paused || qb.soldOut) return null;
   return (
     <div className="sf-qb-reveal">
       <button type="button" onClick={() => qb.press("add")} disabled={qb.pending} style={cta(false, false, false)}>
@@ -186,6 +190,13 @@ export function CardCtaRow({
   price?: React.ReactNode;
 }) {
   const { t } = useStorefrontUI();
+  const paused = useOrdersPaused();
+
+  // Paused orders: no buy control on a card at all. The product page carries the
+  // merchant's message; `iconOnly` keeps the price it shares this row with.
+  if (paused) {
+    return actions === "iconOnly" ? <div style={{ marginTop: "auto", minWidth: 0 }}>{price}</div> : null;
+  }
 
   // Checked BEFORE the over-image layouts bail: `reveal` hides its buttons
   // entirely when sold out, so without this that layout's only signal would be
@@ -314,18 +325,23 @@ function cta(
   bold: boolean | undefined,
   disabled: boolean,
 ): CSSProperties {
-  return {
-    background: primary ? "var(--primary)" : "transparent",
-    color: primary ? "var(--on-primary)" : "var(--text)",
-    border: primary ? "1px solid var(--primary)" : "1px solid var(--border-strong)",
+  // The controls step of the merchant's radius scale, not a literal — a card
+  // CTA is the single most visible control in the shop, and hardcoding it here
+  // is what kept the Corners setting from reaching the buy button at all. A
+  // Buttons shape, when chosen, replaces it (`lib/storefront-button.ts`).
+  const metrics = {
+    radius: "var(--radius-sm)",
     padding: bold ? "12px 8px" : "10px 8px",
-    minHeight: 40,
-    // The controls step of the merchant's radius scale, not a literal — a card
-    // CTA is the single most visible control in the shop, and hardcoding it here
-    // is what kept the Corners setting from reaching the buy button at all.
-    borderRadius: "var(--radius-sm)",
-    fontFamily: "inherit",
     fontSize: bold ? 13 : 12.5,
+    minHeight: 40,
+  };
+  return {
+    ...(primary
+      ? // Its border is already the brand colour, so Outline needs no ring.
+        brandButton(metrics, { bordered: true })
+      : { background: "transparent", color: "var(--text)", ...buttonMetrics(metrics) }),
+    border: primary ? "1px solid var(--primary)" : "1px solid var(--border-strong)",
+    fontFamily: "inherit",
     fontWeight: bold ? 700 : 600,
     textTransform: bold ? "uppercase" : "none",
     letterSpacing: bold ? "0.03em" : "normal",

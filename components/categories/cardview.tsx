@@ -14,6 +14,7 @@ import { TruncatedText } from "@/components/shared/truncated-text";
 import { categoryProductsHref } from "./helper";
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator, AppLocale } from "@/i18n/config";
 // NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
 // `Category` — the page's `operations` are typed with it. The two duplicate
@@ -64,8 +65,8 @@ const CategoryCardView = (
     productCount, parentId, parent,
   } = category;
 
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
-  const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale);
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
+  const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale, getOrgTimezone());
 
   return (
     <Card className="p-5 hover:shadow-md transition-all duration-200 group gap-4">

@@ -57,6 +57,13 @@ export const storefront = {
   page: (slug: string, pageSlug: string) =>
     ["storefront", slug, "page", pageSlug] as const,
   /**
+   * One builder section's products as the editor preview re-queries them —
+   * filed by the query itself (`requestSignature`), so two sections asking the
+   * same thing share an entry and a section moved elsewhere keeps its products.
+   */
+  sectionData: (slug: string, signature: string) =>
+    ["storefront", slug, "section-data", signature] as const,
+  /**
    * A public tracking link's order. Sits under the PUBLIC prefix, not
    * `shopper(...)`: the reader is identified by the token in the URL, not by a
    * session, so signing in or out must not evict it — and a guest, who has no

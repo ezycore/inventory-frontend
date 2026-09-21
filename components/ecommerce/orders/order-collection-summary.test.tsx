@@ -12,10 +12,12 @@ import { OrderCollectionSummary } from "./order-collection-summary";
  * documents, so the order page showed a ৳3,450 invoice marked Paid and no sign of
  * the ৳1,800 that came back or the ৳50 conceded.
  */
-vi.mock("@/services/stores/use-auth-store", () => ({
-  useAuthStore: (selector: (s: unknown) => unknown) =>
-    selector({ user: { organization: { currency: "BDT" } } }),
-}));
+vi.mock("@/services/stores/use-auth-store", () => {
+  const state = { user: { organization: { currency: "BDT", timezone: "Asia/Dhaka" } } };
+  // A selector hook that also answers `getState()`, which `getOrgTimezone` reads.
+  const useAuthStore = (selector: (s: unknown) => unknown) => selector(state);
+  return { useAuthStore: Object.assign(useAuthStore, { getState: () => state }) };
+});
 
 /** The merchant's own order: ৳3,450 total, ৳150 prepaid, ৳1,800 refused, ৳50 off. */
 const order = {

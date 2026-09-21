@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import type { DashboardPeriod } from '@/services/api'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 import { bn as bnDateLocale } from 'date-fns/locale'
 import type { AppLocale } from '@/i18n/config'
 
@@ -46,21 +46,28 @@ export function calcChange(
 }
 
 // ── Format period date range for display ──
+/**
+ * The server's period instants, labelled on the ORGANIZATION's calendar: a Dhaka
+ * "today" starts at 18:00Z the evening before, which a browser in another zone
+ * would print as yesterday.
+ */
 export function formatPeriodLabel(
-  periodInfo?: { key: string; startDate: string; endDate: string },
-  locale: AppLocale = 'en',
+  periodInfo: { key: string; startDate: string; endDate: string } | undefined,
+  locale: AppLocale,
+  timezone: string,
 ): string {
   if (!periodInfo) return ''
   const opts = { locale: locale === 'bn' ? bnDateLocale : undefined }
   const start = new Date(periodInfo.startDate)
-  const end = new Date(periodInfo.endDate)
-  // endDate is exclusive upper bound, show day before
-  end.setDate(end.getDate() - 1)
-  const sameDay = start.toDateString() === end.toDateString()
-  if (sameDay) return format(start, 'MMM d, yyyy', opts)
-  const sameYear = start.getFullYear() === end.getFullYear()
-  const sameMonth = sameYear && start.getMonth() === end.getMonth()
-  if (sameMonth) return `${format(start, 'MMM d', opts)} – ${format(end, 'd, yyyy', opts)}`
-  if (sameYear) return `${format(start, 'MMM d', opts)} – ${format(end, 'MMM d, yyyy', opts)}`
-  return `${format(start, 'MMM d, yyyy', opts)} – ${format(end, 'MMM d, yyyy', opts)}`
+  // endDate is an exclusive instant (the next local midnight): the last day shown
+  // is the one just before it.
+  const end = new Date(new Date(periodInfo.endDate).getTime() - 1)
+  const fmt = (date: Date, pattern: string) => formatInTimeZone(date, timezone, pattern, opts)
+  const key = (date: Date, pattern: string) => formatInTimeZone(date, timezone, pattern)
+  if (key(start, 'yyyy-MM-dd') === key(end, 'yyyy-MM-dd')) return fmt(start, 'MMM d, yyyy')
+  const sameYear = key(start, 'yyyy') === key(end, 'yyyy')
+  const sameMonth = sameYear && key(start, 'MM') === key(end, 'MM')
+  if (sameMonth) return `${fmt(start, 'MMM d')} – ${fmt(end, 'd, yyyy')}`
+  if (sameYear) return `${fmt(start, 'MMM d')} – ${fmt(end, 'MMM d, yyyy')}`
+  return `${fmt(start, 'MMM d, yyyy')} – ${fmt(end, 'MMM d, yyyy')}`
 }

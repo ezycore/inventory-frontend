@@ -1,0 +1,379 @@
+/*
+ * Storefront Builder section frame. Every section renders inside `.sfb-sec`;
+ * its style box arrives as custom properties from `section-style.ts` and every
+ * responsive value from `responsive.ts`.
+ *
+ * ONE breakpoint, the storefront's own: `max-width: 679px` (see `storefront.css`
+ * "Responsive show/hide"). Do not add a second one here.
+ */
+
+.sfb-sec {
+  padding-block: var(--sfb-pt, 0px) var(--sfb-pb, 0px);
+  background-color: var(--sfb-bg, transparent);
+  background-image: var(--sfb-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  text-align: var(--sfb-align, left);
+}
+
+.sfb-sec[data-tone="light"] {
+  color: #ffffff;
+}
+
+.sfb-sec[data-tone="dark"] {
+  color: #0f172a;
+}
+
+.sfb-inner {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.sfb-sec[data-width="wide"] > .sfb-inner {
+  max-width: calc(var(--maxw) + 240px);
+}
+
+.sfb-sec[data-width="full"] > .sfb-inner {
+  max-width: none;
+}
+
+/* A section pinned to the screen (the sticky order bar) takes no room in the
+   page flow: its frame's box, padding and background go, its content stays.
+   Declared before the breakpoint blocks so `data-hide` still wins. */
+.sfb-sec[data-float] {
+  display: contents;
+}
+
+/* A full-bleed hero in a full-width section runs to the window edge. */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sf-hero-fullbleed) {
+  padding-inline: 0;
+}
+
+/* A content page's frame carries its own column and side padding (it is the
+   storefront's `ContentFrame`), so the section must not add a second gutter. */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-content-frame) {
+  padding-inline: 0;
+}
+
+/* A system page's core section draws a page the storefront already lays out —
+   the cart, the checkout, the account area — and that view brings its own column
+   and gutter with it. Without this the two gutters stack, which a wide page
+   absorbs inside its max-width column and a phone shows as a visibly narrower
+   page (caught by the pixel diff on phone alone). */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-core) {
+  padding-inline: 0;
+}
+
+/* ---- Shared pieces sections draw with ---- */
+
+/* The store's primary button, in the store's own colours. */
+.sfb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  /* The store's Buttons choices (storefront.css), each falling back to what
+     this button drew before them. */
+  padding: calc(12px * var(--btn-scale, 1)) calc(22px * var(--btn-scale, 1));
+  border-radius: var(--btn-radius, 10px);
+  background: var(--btn-bg, var(--primary));
+  color: var(--btn-fg, var(--on-primary));
+  box-shadow: var(--btn-ring, none);
+  font-size: calc(1em * var(--btn-scale, 1));
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sfb-button:hover {
+  background: var(--btn-bg-hover, var(--primary-hover, var(--primary)));
+}
+
+/* A section's own alignment wins over the style box's inherited one. */
+.sfb-cta {
+  text-align: var(--sfb-cta-align, inherit);
+}
+
+/* A product section's column override; unset keeps the store's `--cols` ramp. */
+.sfb-cols {
+  --cols: var(--sfb-cols);
+}
+
+/* The secondary button: the same shape, outlined. */
+.sfb-button--ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  /* The Outline style's ring is for brand buttons; a ghost already has a border. */
+  box-shadow: none;
+}
+
+.sfb-button--ghost:hover {
+  background: transparent;
+  border-color: var(--text);
+}
+
+/* A row of buttons; the row's gap replaces each button's own top margin. */
+.sfb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.sfb-actions > .sfb-button {
+  margin-top: 0;
+}
+
+/* The sticky order bar's bottom padding clears the phone's home indicator — but
+   only when no tab bar sits under it, since `--sf-bottom-nav-h` already includes
+   the inset. The bar itself is phones only (hidden past the breakpoint below). */
+.sfb-orderbar {
+  padding-bottom: calc(10px + max(0px, env(safe-area-inset-bottom) - var(--sf-bottom-nav-h, 0px)));
+}
+
+/* Testimonial cards: a grid past the breakpoint, one swipeable row on a phone. */
+.sfb-cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: stretch;
+}
+
+/* Benefit cards: the section's column count past the breakpoint, one column on a phone. */
+.sfb-benefits {
+  display: grid;
+  gap: 16px;
+}
+
+/* How to order: numbered steps, stacked on a phone, side by side past the breakpoint. */
+.sfb-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.sfb-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+
+/* Spacer: a band of the merchant's height, with an optional line across its middle. */
+.sfb-spacer {
+  display: flex;
+  align-items: center;
+  height: var(--sfb-space, 40px);
+}
+
+.sfb-spacer[data-line]::before {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+/* Image banner: the picture at its own shape, or cropped to the chosen one around
+   its focus point, with the words on a shade that keeps them readable.
+
+   The picture and the words share one grid cell, and the words stay in flow, so
+   the box is at least as tall as they are. A shape is the height the banner wants,
+   not a cap: a Strip 4:1 on a phone is about 90px, and cropping the words to that
+   hid the heading and the line behind the box's edge. `overflow: clip` (not
+   `hidden`) is what lets it grow — a scroll container gives up its content-based
+   minimum height, a clipping box keeps it. */
+.sfb-banner {
+  display: block;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.sfb-banner-box {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  overflow: clip;
+  border-radius: var(--radius-lg);
+}
+
+.sfb-banner-media {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sfb-banner-box[data-frame] {
+  aspect-ratio: var(--sfb-banner-frame);
+}
+
+/* Out of flow when cropped: its own height must not stretch the shape. */
+.sfb-banner-box[data-frame] .sfb-banner-media {
+  position: absolute;
+  inset: 0;
+  object-position: var(--sfb-banner-focal, 50% 50%);
+}
+
+.sfb-banner-copy {
+  grid-area: 1 / 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: clamp(16px, 4vw, 40px);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 75%);
+  text-align: left;
+}
+
+.sfb-banner-copy[data-align="center"] {
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.sfb-banner-heading {
+  margin: 0;
+  font-size: var(--h2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.sfb-banner-text {
+  margin: 8px 0 0;
+  max-width: 560px;
+  line-height: 1.55;
+}
+
+/* Full width runs the banner to the window edge, square-cornered. */
+.sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-banner) {
+  padding-inline: 0;
+}
+
+.sfb-sec[data-width="full"] .sfb-banner-box {
+  border-radius: 0;
+}
+
+/* Gallery: the merchant's column count, the phone's own below the breakpoint;
+   one tile shape when `frame` is set, else each picture at its own. */
+.sfb-gallery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(8px, 1.5vw, 16px);
+  grid-template-columns: repeat(var(--sfb-gallery-cols, 3), minmax(0, 1fr));
+  align-items: start;
+}
+
+.sfb-gallery-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sfb-gallery-media {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.sfb-gallery[data-frame] .sfb-gallery-media {
+  aspect-ratio: var(--sfb-gallery-frame);
+  object-fit: cover;
+}
+
+.sfb-gallery-caption {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Image + text: stacked on a phone, photo first; side by side past the breakpoint. */
+.sfb-split {
+  display: grid;
+  gap: clamp(20px, 4vw, 52px);
+  align-items: center;
+}
+
+.sfb-split-media {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 679px) {
+  .sfb-cta {
+    text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
+  }
+  .sfb-cols {
+    --cols: var(--sfb-cols-m, var(--sfb-cols));
+  }
+  .sfb-spacer {
+    height: var(--sfb-space-m, var(--sfb-space, 40px));
+  }
+  .sfb-gallery {
+    grid-template-columns: repeat(var(--sfb-gallery-cols-m, 2), minmax(0, 1fr));
+  }
+  /* `[data-frame-m]` is a shape the phone alone was given: the desktop above has
+     no frame and draws the picture whole. */
+  .sfb-banner-box[data-frame],
+  .sfb-banner-box[data-frame-m] {
+    aspect-ratio: var(--sfb-banner-frame-m, var(--sfb-banner-frame));
+  }
+  .sfb-banner-box[data-frame] .sfb-banner-media,
+  .sfb-banner-box[data-frame-m] .sfb-banner-media {
+    position: absolute;
+    inset: 0;
+    object-position: var(--sfb-banner-focal-m, var(--sfb-banner-focal, 50% 50%));
+  }
+  .sfb-sec {
+    padding-block: var(--sfb-pt-m, var(--sfb-pt, 0px)) var(--sfb-pb-m, var(--sfb-pb, 0px));
+    text-align: var(--sfb-align-m, var(--sfb-align, left));
+  }
+  .sfb-sec[data-hide="mobile"] {
+    display: none;
+  }
+  .sfb-cards {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--pad));
+    padding-inline: var(--pad);
+    scroll-padding-inline: var(--pad);
+  }
+  .sfb-cards > * {
+    flex: 0 0 85%;
+    scroll-snap-align: start;
+  }
+}
+
+@media (min-width: 680px) {
+  .sfb-sec[data-hide="desktop"] {
+    display: none;
+  }
+  .sfb-orderbar {
+    display: none !important;
+  }
+  .sfb-benefits {
+    grid-template-columns: repeat(var(--sfb-benefit-cols, 3), minmax(0, 1fr));
+  }
+  .sfb-steps {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  .sfb-split {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sfb-split[data-image-side="right"] > .sfb-split-media {
+    order: 1;
+  }
+}

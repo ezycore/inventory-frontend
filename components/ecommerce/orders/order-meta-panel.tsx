@@ -6,6 +6,7 @@ import { useSetOrderExcludedFromMeta } from "@/services/api";
 import type { AdminStorefrontOrder } from "@/types/api";
 import { Badge } from "@/ui/components/badge";
 import { Switch } from "@/ui/components/switch";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 
 /**
  * Whether this order reached Meta, and the merchant's per-order opt-out
@@ -56,7 +57,9 @@ export function OrderMetaPanel({
         <p className="text-xs text-muted-foreground">
           Counted as a purchase
           {order.meta?.purchaseSentAt
-            ? ` on ${new Date(order.meta.purchaseSentAt).toLocaleString()}`
+            ? ` on ${new Date(order.meta.purchaseSentAt).toLocaleString(undefined, {
+                timeZone: getOrgTimezone(),
+              })}`
             : ""}
           . Cancellations and returns after this point can&apos;t be taken back from Meta&apos;s
           reporting.

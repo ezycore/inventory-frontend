@@ -17,7 +17,9 @@ import {
   categoryPathQueryParams,
   isIndexableCatalogUrl,
 } from "@/lib/storefront-catalog-params";
-import View from "../products/view";
+import { SystemPage } from "@/components/storefront-builder/system-page";
+import { CollectionPageView } from "@/components/storefront/collection/collection-page";
+import { CollectionDataProvider } from "@/components/storefront/collection/collection-data";
 
 /**
  * Collection pages at real paths: `/phones` and `/phones/accessories`.
@@ -131,15 +133,22 @@ export default async function Page({
       ? crumbs.map((c) => ({ name: c.name, url: abs(c.path) }))
       : null;
 
+  const data = {
+    initialProducts: products ?? undefined,
+    initialPage: page,
+    collection,
+    crumbs,
+  };
   return (
     <>
       {trail ? <JsonLd data={breadcrumbJsonLd(trail)} /> : null}
-      <View
-        initialProducts={products ?? undefined}
-        initialPage={page}
-        collection={collection}
-        crumbs={crumbs}
-      />
+      {/* The same collection system page as `/products`: one page for every
+          collection, so a section a merchant adds appears on all of them. */}
+      <CollectionDataProvider value={data}>
+        <SystemPage path="/products">
+          <CollectionPageView {...data} />
+        </SystemPage>
+      </CollectionDataProvider>
     </>
   );
 }

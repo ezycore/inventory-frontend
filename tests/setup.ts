@@ -10,6 +10,13 @@ import { server } from "./mocks/server";
  * "storage.setItem is not a function" the first time a test writes to it.
  * Swap in a real in-memory Storage when that shadow is detected.
  */
+/*
+ * ⚠ `sessionStorage` deliberately gets NO such shim, even though the preview
+ * receivers now read it (`isPreviewSession`). Node's own works — it is only
+ * `localStorage` that arrives without `setItem` — and swapping in a plain
+ * object would take it off the prototype `tests/storage-spy.ts` patches to
+ * simulate a blocked or full store.
+ */
 if (typeof globalThis.localStorage?.setItem !== "function") {
   const store = new Map<string, string>();
   const memoryStorage: Storage = {
@@ -63,5 +70,13 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   cleanup();
   server.resetHandlers();
+  // Preview mode is sticky per tab (`isPreviewSession`), and a test file's
+  // "tab" is the whole file — without this, one case that previews leaves every
+  // later case in the same file previewing too.
+  try {
+    window.sessionStorage.clear();
+  } catch {
+    /* storage unavailable — nothing to clear */
+  }
 });
 afterAll(() => server.close());

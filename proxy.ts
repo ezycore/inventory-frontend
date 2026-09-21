@@ -14,11 +14,22 @@ import {
 } from "@/lib/storefront-domain-lookup";
 import { canonicalRedirectFor } from "@/lib/storefront-canonical-redirect";
 import {
+  PREVIEW_BUILDER_HEADER,
+  PREVIEW_BUILDER_PARAM,
   PREVIEW_CLEAR_PARAM,
   PREVIEW_COOKIE,
   PREVIEW_REQUEST_HEADER,
   PREVIEW_TOKEN_PARAM,
 } from "@/lib/storefront-preview";
+import {
+  cachedPageSlug,
+  isSitesPath,
+  isStoreHomePath,
+  sitesHomePath,
+  sitesPagePath,
+  sitesPreviewPath,
+} from "@/lib/storefront-sites";
+import { storeHomePageExists, storePageExists } from "@/lib/storefront-page-lookup";
 
 /**
  * Option A routing + admin auth gate.
@@ -46,6 +57,10 @@ import {
  * so store traffic is additionally **301'd onto its canonical host**
  * (`canonicalRedirectFor`) — the admin app is never touched by it. See
  * `lib/storefront-canonical-redirect.ts`.
+ *
+ * Store pages that can be HTML-cached are rewritten one step further, onto
+ * `app/(storefront)/sites/[slug]/[mode]/…` — a route that reads only its params
+ * (`lib/storefront-sites.ts`). That internal path is never served directly.
  */
 
 // Public admin routes that don't require authentication.
@@ -112,6 +127,16 @@ export async function proxy(request: NextRequest) {
   headers.delete("x-ezy-store-base");
   headers.delete("x-ezy-store-origin");
   headers.delete(PREVIEW_REQUEST_HEADER);
+  headers.delete(PREVIEW_BUILDER_HEADER);
+
+  // The cached route's internal path is not a public URL. Served directly it would
+  // put any store on the platform host (`app.ezycore.com/sites/<slug>/…`) — a
+  // second, uncanonical copy of every tenant. A custom domain is exempt only
+  // because it never gets here: its `/sites/…` is rewritten under `/shop` below,
+  // where it is an ordinary collection path.
+  if (isSitesPath(pathname) && store?.base !== "") {
+    return new NextResponse(null, { status: 404 });
+  }
 
   if (store) {
     const proto =
@@ -140,6 +165,11 @@ export async function proxy(request: NextRequest) {
       ? null
       : (freshToken ?? request.cookies.get(PREVIEW_COOKIE)?.value ?? null);
     if (previewToken) headers.set(PREVIEW_REQUEST_HEADER, previewToken);
+    // The page editor's frame of a system page (`/cart?builder=1`): the route
+    // draws the draft live instead of as saved. Meaningless without a token.
+    if (previewToken && request.nextUrl.searchParams.get(PREVIEW_BUILDER_PARAM) === "1") {
+      headers.set(PREVIEW_BUILDER_HEADER, "1");
+    }
 
     /** Remembers a token that arrived in the URL, on this store's host only. */
     const keepPreview = (response: NextResponse): NextResponse => {
@@ -205,6 +235,70 @@ export async function proxy(request: NextRequest) {
         const destination = `${scheme}://${sameHost ? hostHeader : target.host}${target.path}${request.nextUrl.search}`;
         return NextResponse.redirect(destination, 301);
       }
+    }
+
+    // ---- A landing page as the homepage ----
+    //
+    // The store's front door is the Customize home, drawn by the request-reading
+    // `shop` route, unless the merchant chose a landing page for it (backend
+    // `settings.homePageId`). Then it goes to the home routes beside the page
+    // routes: the cached one, or under owner preview the one that reads the token
+    // — and the question is asked with that token, since an unpublished shop
+    // answers only its owner.
+    //
+    // The same routes draw the store's `home` system page, once its classic home has
+    // moved onto the builder (the backend answers `/` with whichever applies).
+    //
+    // Never inside the Customize editor's frame (`?preview=1`): that frame edits
+    // the Customize home, which the shop draws again once the choice is cleared.
+    // The page editor's frame of a builder home says so (`builder=1`) and is let
+    // through, since it streams that page's unsaved sections.
+    const search = request.nextUrl.searchParams;
+    const customizeFrame = search.get("preview") === "1" && search.get(PREVIEW_BUILDER_PARAM) !== "1";
+    if (
+      (request.method === "GET" || request.method === "HEAD") &&
+      isStoreHomePath(store, pathname) &&
+      !customizeFrame &&
+      (await storeHomePageExists(store.slug, previewToken))
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = sitesHomePath(store, { preview: Boolean(previewToken) });
+      return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
+    }
+
+    // ---- HTML-cached store pages ----
+    //
+    // Onto the route that reads nothing but its params, so Next can cache the
+    // page per store and path. A preview is excluded — the cached route never
+    // previews, and the preview token is exactly the request state it cannot
+    // read — and so is anything but a read.
+    //
+    // And only a page that exists: a cached render cannot draw the shop's own
+    // 404 (see `lib/storefront-page-lookup.ts`), so a miss stays on the
+    // request-reading route below, which can.
+    // ---- Owner preview of a store page ----
+    //
+    // Onto its own request-reading route beside the cached one, which draws the
+    // draft in the page's own chrome. `shop/pages/[pageSlug]` cannot: its layout
+    // always draws the full shop shell. No existence check — a preview may be of
+    // a page nobody else can see, and the route answers its own 404.
+    if (previewToken && (request.method === "GET" || request.method === "HEAD")) {
+      const previewSlug = cachedPageSlug(store, pathname);
+      if (previewSlug) {
+        const url = request.nextUrl.clone();
+        url.pathname = sitesPreviewPath(store, previewSlug);
+        return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
+      }
+    }
+
+    const pageSlug =
+      !previewToken && (request.method === "GET" || request.method === "HEAD")
+        ? cachedPageSlug(store, pathname)
+        : null;
+    if (pageSlug && (await storePageExists(store.slug, pageSlug))) {
+      const url = request.nextUrl.clone();
+      url.pathname = sitesPagePath(store, pageSlug);
+      return keepPreview(NextResponse.rewrite(url, { request: { headers } }));
     }
 
     if (store.base === "") {

@@ -18,10 +18,11 @@ export const TOASTER_ID = "storefront";
  * `toasterId` is the whole job. Sonner renders a toast on the `<Toaster id>`
  * whose id matches, and on the id-less one only when a toast carries no id at
  * all. Stamping it here sends storefront toasts to `StorefrontToaster` — which
- * follows the SHOPPER's light/dark and sits top-center with a close button —
- * and leaves the admin's `<Toaster>` in `app/layout.tsx` to the admin. Look,
- * placement and theme all live on that component now; drop this id and a shop
- * toast silently renders in the admin's theme, bottom-right, again.
+ * follows the SHOPPER's light/dark and sits top-center with a close button.
+ * Look, placement and theme all live on that component now. Since the
+ * storefront got its own root layout (2026-09-14) the admin's id-less
+ * `<Toaster>` is not mounted on shop pages at all, so a shop toast without this
+ * id does not render anywhere — it is silently lost.
  */
 const base = { toasterId: TOASTER_ID } as const;
 

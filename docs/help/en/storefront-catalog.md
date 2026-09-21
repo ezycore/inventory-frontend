@@ -351,8 +351,27 @@ everyone else's. Colour alone does surprisingly little; type and spacing do most
   products rather than stretching the ones you have; your account pages stay a comfortable reading
   width whatever you choose.
 
+- **Heading weight** — **Light** for a quieter, editorial look, **Heavy** for headings that lead the
+  page. **Default** keeps them as bold as they are now.
+- **Heading letters** — **Capitals** sets your headings in capital letters with a little space
+  between them. It changes English headings only; Bangla has no capital letters.
+
 Corners and page width sit under **More options**, since most shops set them once and leave them.
 If you have already changed either one, that group opens for you.
+
+**Buttons** has three choices of its own, for the buy, checkout and other main buttons across your
+shop:
+
+- **Shape** — **Square**, **Rounded** or **Pill** gives every button the same corners. **Default**
+  keeps each button the shape it is now.
+- **Style** — **Solid** fills buttons with your brand colour. **Outline** draws a brand-colour line
+  and label on a clear button; **Soft** puts a pale tint of your brand colour behind the label. A
+  button on a hero or banner picture stays filled, so it can always be seen.
+- **Size** — **Compact** or **Large** makes every button a little smaller or bigger. Buttons keep
+  their sizes relative to each other: the cart's button stays smaller than the product page's.
+
+A plain button beside a main one — **Cancel**, **View cart** — takes the same shape and size, but
+keeps its own outline.
 
 Everything here applies to the whole shop at once, and none of it touches your products, pages or
 wording — you can try every combination and change your mind without losing any work.

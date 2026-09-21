@@ -10,6 +10,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { PasswordCard } from "@/components/storefront/account/password-card";
 import { sfInput as input } from "@/components/storefront/field-styles";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 const card: CSSProperties = {
   background: "var(--card)",
@@ -210,14 +211,14 @@ export function ProfileSection({ shopper }: { shopper: ShopperProfile }) {
               type="button"
               onClick={save}
               disabled={updateProfile.isPending}
-              style={{ background: "var(--primary)", color: "var(--on-primary)", border: "none", padding: "11px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer", opacity: updateProfile.isPending ? 0.7 : 1 }}
+              style={{ ...brandButton({ radius: 8, padding: "11px 22px", fontSize: 14 }), border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer", opacity: updateProfile.isPending ? 0.7 : 1 }}
             >
               {t.saveChanges}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              style={{ background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", padding: "11px 22px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+              style={{ ...buttonMetrics({ radius: 8, padding: "11px 22px", fontSize: 14 }), background: "transparent", color: "var(--text)", border: "1px solid var(--border-strong)", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
             >
               {t.cancelEdit}
             </button>

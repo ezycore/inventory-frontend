@@ -15,10 +15,8 @@ export function useReportPeriod(defaultPeriod: ReportPeriod = 'thisMonth') {
 
   const params = useMemo<ReportParams | undefined>(() => {
     if (!isCustomValid) return undefined
-    const p: ReportParams = {
-      period,
-      weekStartDay: 1,
-    }
+    // Week boundaries are the organization's `weekStartDay`, read server-side.
+    const p: ReportParams = { period }
     if (period === 'custom' && customStart && customEnd) {
       p.startDate = customStart
       p.endDate = customEnd

@@ -39,9 +39,10 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
  *
  * Nothing competes for the tag on navigation, and that is a precondition, not a
  * detail: Next re-asserts root metadata on every client-side navigation, so
- * while `app/layout.tsx` carried a `title` this hook lost the tab to
- * `BRAND.documentTitle` for a frame on every sidebar click. The root layout has
- * no title now — `(protected)` renders its own constant `<title>` — so the only
+ * while the root layout carried a `title` this hook lost the tab to
+ * `BRAND.documentTitle` for a frame on every sidebar click. The shared admin root
+ * (`components/layout/admin-root-layout.tsx`) has no title now — `ProtectedShell`
+ * renders its own constant `<title>` — so the only
  * writer here is this hook. Restoring a metadata title above `(protected)`
  * brings the flash back.
  *

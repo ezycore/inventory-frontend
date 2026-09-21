@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { useTranslations } from 'next-intl';
-import { format as formatDate } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { getOrgTimezone } from '@/hooks/use-org-calendar';
 import { SimpleTable, type SimpleColumn } from '@/ui/components/simple-table';
 import {
   ComboBadge,
@@ -232,11 +233,11 @@ export function SaleDetailsKv({ sale }: { sale: Sale }) {
         },
         {
           label: t('createdAt'),
-          value: formatDate(new Date(sale.createdAt), 'dd MMM yyyy hh:mm aa'),
+          value: formatInTimeZone(new Date(sale.createdAt), getOrgTimezone(), 'dd MMM yyyy hh:mm aa'),
         },
         {
           label: t('updatedAt'),
-          value: formatDate(new Date(sale.updatedAt), 'dd MMM yyyy hh:mm aa'),
+          value: formatInTimeZone(new Date(sale.updatedAt), getOrgTimezone(), 'dd MMM yyyy hh:mm aa'),
         },
         {
           label: t('costPrice'),

@@ -1,11 +1,18 @@
+// coding-standard: maintained
 import { notFound } from "next/navigation";
 import { getStoreContext } from "@/lib/storefront-host";
 import { getStore, getStorePage } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
-import View from "./view";
+import { StoreContentPage } from "@/components/storefront/content-page-view";
 
 // Host-resolved (dynamic render); the page body is cached via the fetch-level
 // `revalidate` in lib/storefront-server.ts.
+//
+// Shoppers normally never reach this route: `proxy.ts` rewrites a public
+// `/pages/<slug>` GET onto the cached `app/(storefront)/sites` route, and an owner
+// preview onto the `preview` route beside it. What still lands here is a page
+// that does not exist (so the shop's own 404 can render), a slug outside the
+// backend's grammar, and a `/shop/pages/…` request on a host that names no store.
 export const revalidate = 300;
 
 export async function generateMetadata({
@@ -47,5 +54,5 @@ export default async function Page({
   // as a liveness probe here.
   if (!store || !page) notFound();
 
-  return <View initialPage={page ?? undefined} />;
+  return <StoreContentPage initialPage={page} />;
 }

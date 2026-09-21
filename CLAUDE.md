@@ -128,6 +128,10 @@ pnpm test         # Run tests once (Vitest)
 pnpm test:watch   # Run tests in watch mode
 pnpm test:coverage  # Run tests with coverage
 
+# Pixel diff for moving a store onto the Storefront Builder (tests/pixel, output in .pixel/)
+PIXEL_STORE=<slug> pnpm pixel:capture   # screenshot the store's pages before a change
+PIXEL_STORE=<slug> pnpm pixel:compare   # fail on any page that no longer matches
+
 # Docs & contract gates — see "Docs on touch" above
 pnpm help:build       # Regenerate lib/help/content.generated.ts from docs/help/** (also predev/prebuild)
 pnpm help:verify      # Help freshness gate: stale ui_labels, phantom covers_routes, uncovered routes
@@ -184,9 +188,18 @@ This is a **Next.js 16 App Router** application for an inventory management SaaS
 ### Route Structure
 
 - `app/(auth)/` — Public auth pages (login, signup, forgot-password, etc.)
-- `app/(protected)/` — All authenticated pages; guarded by `app/(protected)/layout.tsx`
+- `app/(protected)/` — All authenticated pages; guarded by `ProtectedShell` (`components/layout/protected-shell.tsx`)
+- `app/(storefront)/` — The public shop
 
-The protected layout (`app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
+**There is no `app/layout.tsx` — the app has two root layouts.** `(auth)` and `(protected)` each render
+`AdminRootLayout` (`components/layout/admin-root-layout.tsx`: `<html>`, fonts, `globals.css`, next-intl,
+the workspace gate, the admin providers); `app/(storefront)/layout.tsx` renders the shop's own `<html>`
+with its own Tailwind build (`storefront-base.css`). Split on 2026-09-14 because one shared root cost
+every shopper the admin's 312 KB render-blocking stylesheet, and because a root layout that reads
+`headers()`/`cookies()` makes every route beneath it dynamic. **Never import `globals.css` or read the
+request in the storefront root layout.** Moving between the two trees is a full page load.
+
+The protected shell (`components/layout/protected-shell.tsx`, rendered by the server `app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
 
 ### State Management
 
@@ -319,7 +332,7 @@ render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeo
 
 **Browser tab (title + icon) is client-side, by necessity.** The organization lives in the persisted
 auth store, which no server `generateMetadata` can read — so both are set imperatively from
-`app/(protected)/layout.tsx`: `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
+`ProtectedShell` (`components/layout/protected-shell.tsx`): `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
 `useOrgDocumentTitle()` (`"<Page> · <Org>"`, e.g. `Products · ZeroDrop`). The page name is the **last
 breadcrumb**, so it is already translated and already matches the sidebar label — renaming a nav item
 renames the tab, and no page needs its own `metadata`. The storefront titles tabs separately via its
@@ -331,7 +344,7 @@ custom domains all read that one field, and it **never falls back to the org or 
 are separate uploads (Settings → Organization) because they are separate jobs: a wordmark logo
 cover-cropped to the 200×200 thumbnail renders in a tab as an unreadable middle slice, so an org with
 no favicon gets the platform mark instead. Don't "helpfully" re-add a `favicon ?? logo` fallback in
-`useOrgFavicon`, `shop/layout.tsx` or `StoreShell` — it was removed on purpose. The **one** place the
+`useOrgFavicon`, `StoreHead` (`components/storefront/store-head.tsx`) or `StoreShell` — it was removed on purpose. The **one** place the
 two mix is the 20×20 brand mark in storefront email (backend `storefront-shopper.service`), where
 `favicon ?? store.logo ?? org.logo` applies because no mark at all is worse than a cropped one.
 The storefront reads a **pre-resolved** `store.favicon` — the backend `getStoreInfo` owns that
@@ -423,10 +436,13 @@ paper sizes, popup toast, `invoicePrinting` gate; one page per order in bulk), a
 from the public store payload's `printable` block). Never hand-roll invoice markup or a raw
 `window.print()` — add an adapter to the engine instead.
 
-**Storefront CMS page bodies** render through `lib/storefront-markdown.ts` (dependency-free subset
-parser → block model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`);
-consecutive `Q:`/`A:` lines become styled FAQ cards. Extend the parser — never dump raw page text or add
-a markdown dependency without checking here first.
+**Storefront CMS page bodies** render through `<ContentBodyView>` (`components/storefront/content-body-view.tsx`).
+A body saved from the rich-text editor is TipTap JSON and renders with `<RichDocView>`
+(`components/storefront/rich-doc-view.tsx`, parsed by `lib/storefront-rich-doc.ts`). Only a **legacy** body
+that is not rich-doc JSON falls back to `lib/storefront-markdown.ts` (dependency-free subset parser → block
+model, XSS-safe by construction) + `<MarkdownView>` (`components/storefront/markdown-view.tsx`), where
+consecutive `Q:`/`A:` lines become styled FAQ cards. Never dump raw page text or add a markdown dependency
+without checking here first.
 
 The parser is now shared with the **customer help docs**, so it is no longer storefront-only despite the
 filename. Two renderers consume it and both must handle every block kind, or new syntax silently vanishes
@@ -615,6 +631,58 @@ anywhere, so that page cannot load. Don't widen the frontend gate further withou
 
 Subscription/billing enforcement lives in `lib/subscription-utils.ts`. `classifyEntitlementAccess()` returns `active | read_only | reactivate | blocked` (mirrors the backend `entitlementAccess` — keep in sync); the protected layout uses `shouldBlockWorkspaceAccess()` to force-logout only `blocked` orgs, the overdue banner uses `isPaymentOverdue()` (`read_only`) to show "Pay now", and `needsReactivation()` (`reactivate` = canceled **or** `incomplete`, i.e. awaiting a first payment) routes the user to `/dashboard/billing` to subscribe or re-subscribe (their data is retained; the backend confines them to billing routes). Both of those arrive from MC as `status:"inactive"`, so the classifier resolves them **before** the `inactive → blocked` branch — reordering that check silently locks customers out of checkout.
 
+### Timezones (mandatory policy)
+
+**The organization's calendar, never the browser's or the server's.** Merchants use this app from
+devices in any zone, and Next renders on servers in UTC. A date decided with `new Date().getDate()`,
+`toISOString().slice(0, 10)` or `toLocaleString()` is right on a Dhaka laptop and wrong everywhere
+else. The rule, shared with the backend (`inventory-backend/CLAUDE.md` → Timezones):
+
+- **Timestamps are UTC on the wire.** Format an instant in `organization.timezone`:
+  `useFormatters()` (`formatDate`/`formatDateTime` are org-tz; pass `formatDateOnly` for stored
+  date-only values), or `formatInTimeZone(…, timezone, …)` with `useOrgCalendar().timezone`.
+  Printed documents (`utils/print-documents.ts`) use the org zone too.
+- **Weeks start on `organization.weekStartDay`** (default Sunday, set in Settings → Organization).
+  The server applies it to every period — **never send a hard-coded `weekStartDay`**.
+- **Date-only values** (`YYYY-MM-DD` from `DatePicker`, stored as UTC midnight): keep them as strings
+  end-to-end — never round-trip through `new Date("YYYY-MM-DD")` (UTC midnight → the previous day
+  west of UTC). Read a stored one with `storedDateKey` / `formatDateOnly`; "today" is
+  `orgDateKey(timezone)`.
+- **Expiry dates are good through the end of the org's local expiry day** — decide with
+  `isExpiryPast` / `daysUntilDateOnly` (`lib/org-calendar.ts`), the mirror of the backend's
+  `isPastExpiry`. `ExpiryBadge`, `batch-select`, `use-batch-draws` and the expiry report all go
+  through them.
+- **Campaign and coupon windows** are whole days the server stores as org-local first/last
+  instants. The edit form must put them back as the org-local day (`orgDayOfInstant`), not hand the
+  stored ISO to the date field: the browser's zone can name a different day, and an untouched field
+  is sent back as-is. The backend reads a returned instant on the org's calendar too.
+- **A day clicked in a picker** (`DateRangePicker` hands back local midnight of that day) is keyed with
+  `pickedDayKey` — the one sanctioned read of a `Date`'s local parts. Never pass it an instant.
+- **Helpers:** `lib/org-calendar.ts` (`resolveTimezone`, `orgDateKey`, `orgDayOfInstant`,
+  `pickedDayKey`, `storedDateKey`, `isExpiryPast`, `daysUntilDateOnly`, `isDateKeyBeforeOrgToday`) and
+  `hooks/use-org-calendar.ts` (`useOrgCalendar`, and `getOrgTimezone` outside components).
+- **Enforced on merchant screens.** `eslint.config.mjs` (`merchantRestrictedSyntax`) forbids, in
+  `app/`, `components/`, `hooks/` and `utils/` minus the shopper storefront and tests: browser-clock
+  getters/setters, `toLocaleDateString`/`toLocaleTimeString`/`new Date(…).toLocaleString()` and
+  `Intl.DateTimeFormat` without `timeZone`, and `format`/`startOfDay`/… from `date-fns`. `lib/` holds
+  the sanctioned helpers and is outside the scope. An `eslint-disable` there needs a reason.
+- **Tests run with `TZ=UTC`** (`vitest.config.ts`); write date cases in the 00:00–05:59 Dhaka window
+  where UTC disagrees (`lib/org-calendar.test.ts`).
+- **Known exceptions, documented rather than hidden:** a landing page's schedule
+  (`components/ecommerce/pages/page-schedule.ts`) takes and shows times on the merchant's *device*
+  clock — its own design, predating this policy; moving it onto the org calendar is an open decision.
+  The courier payout "Received" date is sent as `YYYY-MM-DD` and still read as UTC midnight by the
+  backend (`inventory-backend/CLAUDE.md` → Timezones, "Not on the org calendar yet").
+- **Storefront exception — shown on the SHOPPER's clock.** A campaign's end is still one instant
+  decided by the org's timezone server-side, but the "Ends … at …" label prints it in the viewer's
+  own zone (`campaignEndsLabel`), and therefore only after hydration — the UTC server cannot know
+  that zone. The shopper's zone only *prints*; whether the campaign is live and what it costs are
+  decided by the backend on its own clock. See the `storefront` skill.
+- **Four clocks, one job each:** UTC stores instants; the organization's zone decides every merchant
+  date; the shopper's zone only prints an already-resolved instant on the storefront; Asia/Dhaka is
+  Mission Control's (backend `CLAUDE.md` → Timezones has the table).
+- **Mission Control is different** — its admin shows Asia/Dhaka (`mission-control/CLAUDE.md`).
+
 ### Path Aliases
 
 | Alias | Resolves to |
@@ -663,3 +731,13 @@ Keep these single sources — never re-derive VAT inline:
   8 of its 9 sections describe backend behavior. **If you change `utils/tax.ts`, change
   `SaleUtils.applyLineTaxes` identically** — both sides now have tests
   (`utils/tax.test.ts` here, `src/services/__tests__/tax-contract.test.ts` there).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { navGroups } from "../navItem";
-import { filterNavItems, flattenNavItems } from "@/lib/nav-utils";
+import {
+  featuresForPath,
+  filterNavItems,
+  flattenNavItems,
+  permissionsForPath,
+  unmetRouteFeatures,
+} from "@/lib/nav-utils";
 import { NavItem } from "@/types/layout";
 import { DEFAULT_ORGANIZATION_FEATURES, OrganizationFeatures } from "@/types";
 
@@ -191,6 +197,7 @@ describe("navGroups — Online Store as its own group", () => {
       "Themes",
       "Customize",
       "Content",
+      "Pages",
       "Abandoned Carts",
       "Meta Ad Reporting",
       "Store Settings",
@@ -412,5 +419,75 @@ describe("report gates follow the ledger rule, not the counter", () => {
         titles.includes("Sales History"),
       );
     }
+  });
+});
+
+/**
+ * The permission axis for three entries whose gate disagreed with the API
+ * behind them (2026-09-17). `RouteAccessGuard` reads the same table, so a wrong
+ * entry here was not just a missing row — it was a "no permission" screen on a
+ * page the backend would have served.
+ */
+describe("navGroups — gates that follow the API", () => {
+  const visibleFor = (permissions: string[]) =>
+    flattenNavItems(
+      navGroups.flatMap((group) =>
+        filterNavItems(group.items, "custom", permissions, BOTH),
+      ),
+    ).map((item) => item.title);
+
+  it("shows Roles to a manager, who holds roles.view and not users.manage", () => {
+    expect(visibleFor(["roles.view"])).toContain("Roles");
+    expect(permissionsForPath("/settings/roles")).toEqual(
+      expect.arrayContaining(["roles.view", "users.manage"]),
+    );
+  });
+
+  it("still shows Roles to users.manage alone — placing people needs the list", () => {
+    expect(visibleFor(["users.manage"])).toContain("Roles");
+  });
+
+  it("hides Roles from a role with neither", () => {
+    expect(visibleFor(["users.view"])).not.toContain("Roles");
+  });
+
+  it("gates Customize and Themes on storefront.design, which the Site API checks", () => {
+    const designer = visibleFor(["storefront.view", "storefront.design"]);
+    expect(designer).toEqual(expect.arrayContaining(["Customize", "Themes"]));
+
+    const settingsOnly = visibleFor(["storefront.view", "storefront.manage"]);
+    expect(settingsOnly).not.toContain("Customize");
+    expect(settingsOnly).not.toContain("Themes");
+    // …and keeps the settings-side screens that `manage` is for.
+    expect(settingsOnly).toEqual(expect.arrayContaining(["Coupons", "Campaigns"]));
+  });
+});
+
+/**
+ * A pre-tier organization's stored map has no `purchases` or `inventoryTracking`
+ * key. The backend reads both as ON, so the sidebar and the route guard must too.
+ */
+describe("navGroups — a feature map missing the newer keys", () => {
+  const legacy = (): OrganizationFeatures => {
+    const { purchases: _p, inventoryTracking: _i, ...rest } = BOTH;
+    return rest as OrganizationFeatures;
+  };
+
+  it("keeps the Buy and Stock groups", () => {
+    const titles = visibleTitles(legacy());
+    expect(titles).toEqual(
+      expect.arrayContaining(["Purchases", "Suppliers", "Inventory", "Current Stock"]),
+    );
+  });
+
+  it("does not lock a purchases or stock screen", () => {
+    expect(unmetRouteFeatures(featuresForPath("/purchases/orders"), legacy())).toEqual([]);
+    expect(unmetRouteFeatures(featuresForPath("/inventory"), legacy())).toEqual([]);
+  });
+
+  it("still hides them on an explicit false", () => {
+    const titles = visibleTitles({ ...legacy(), purchases: false, inventoryTracking: false });
+    expect(titles).not.toContain("Purchases");
+    expect(titles).not.toContain("Inventory");
   });
 });

@@ -5,7 +5,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Info } from "lucide-react";
 import {
-  useGetStorefrontSettings,
   useReorderCollections,
   useStorefrontCollections,
   useUpdateCollection,
@@ -17,6 +16,7 @@ import {
   toRowValue,
 } from "@/components/ecommerce/collections/collection-row";
 import { CollectionSeoFields } from "@/components/ecommerce/collections/collection-seo-fields";
+import { useLiveStoreSettings } from "@/components/ecommerce/use-live-store-settings";
 
 /**
  * Catalog → Collections: the full-width home for the storefront category
@@ -28,7 +28,8 @@ import { CollectionSeoFields } from "@/components/ecommerce/collections/collecti
  */
 export function CollectionsTab() {
   const { data: collections, isLoading } = useStorefrontCollections();
-  const { data: settings } = useGetStorefrontSettings();
+  // The live header, which a store on the builder keeps on its Site.
+  const { data: settings } = useLiveStoreSettings();
   const updateCollection = useUpdateCollection();
   const reorder = useReorderCollections();
   // Display-name edits are local until blur, so typing doesn't fire a PATCH per keystroke.

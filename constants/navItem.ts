@@ -206,18 +206,26 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.manage"],
           },
           {
+            // Writes nothing: it reads the live look off the Site (`design`) and
+            // Apply opens Customize — so it follows Customize's gate.
             title: "Themes",
             url: "/ecommerce/themes",
             icon: "sparkles",
             features: ["storefront"],
-            permissions: ["storefront.manage"],
+            permissions: ["storefront.design"],
           },
           {
+            // `storefront.design`, not `.manage`: Customize loads and saves the
+            // store's look through the Site (`/organization/storefront/site`),
+            // which the design split put under `design` — a `manage`-only role
+            // opened a page whose load 403'd. Its look-image uploads take either
+            // permission; only its collection edits need `manage`, and the page
+            // hides those without it.
             title: "Customize",
             url: "/ecommerce/customize",
             icon: "palette",
             features: ["storefront"],
-            permissions: ["storefront.manage"],
+            permissions: ["storefront.design"],
           },
           {
             title: "Content",
@@ -225,6 +233,16 @@ export const navGroups: NavGroup[] = [
             icon: "file-text",
             features: ["storefront"],
             permissions: ["storefront.manage"],
+          },
+          {
+            // Storefront Builder pages. `storefront.design`, not `storefront.manage`
+            // like its neighbours: it is what the page routes check, so a role
+            // holding only `manage` would open a screen whose every request 403s.
+            title: "Pages",
+            url: "/ecommerce/pages",
+            icon: "file-plus",
+            features: ["storefront"],
+            permissions: ["storefront.design"],
           },
           {
             title: "Abandoned Carts",
@@ -642,10 +660,15 @@ export const navGroups: NavGroup[] = [
             permissions: ["users.view"],
           },
           {
+            // Any of the two the page and `GET /api/roles` accept: `roles.view`
+            // is the permission for reading roles (`manager` holds it and not
+            // `users.manage`, so was denied the page), and `users.manage` needs
+            // the list to place people in roles. The owner bypass lives on the
+            // page and the API only.
             title: "Roles",
             url: "/settings/roles",
             icon: "shield",
-            permissions: ["users.manage"],
+            permissions: ["roles.view", "users.manage"],
           },
           // "Customize workspace" deliberately does NOT live here any more. It
           // is the way back from every hidden feature, so burying it under

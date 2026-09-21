@@ -12,6 +12,8 @@ import { Skeleton } from '@ui/components/skeleton'
 import { Badge } from '@ui/components/badge'
 import { Button } from '@ui/components/button'
 import { AlertTriangle, CalendarClock, PackageX, Boxes } from 'lucide-react'
+import { useOrgCalendar } from '@/hooks/use-org-calendar'
+import { daysUntilDateOnly, storedDateKey } from '@/lib/org-calendar'
 import { ExpiryWriteOffDialog } from './expiry-write-off-dialog'
 import { lotValue, type ExpiryBatchRow } from './expiry-report-types'
 
@@ -23,14 +25,6 @@ import { lotValue, type ExpiryBatchRow } from './expiry-report-types'
  */
 const DAY_OPTIONS: (number | null)[] = [null, 7, 15, 30, 60, 90]
 
-function formatDate(value: string | Date) {
-  return new Date(value).toISOString().slice(0, 10)
-}
-
-function daysUntil(value: string | Date) {
-  const ms = new Date(value).getTime() - Date.now()
-  return Math.ceil(ms / (24 * 60 * 60 * 1000))
-}
 
 function BatchTable({
   rows,
@@ -49,6 +43,10 @@ function BatchTable({
   /** Bound to the `reports.expiry` namespace. */
   t: Translator
 }) {
+  // Days on the org's calendar: an expiry date is a day, and a lot expiring
+  // today has 0 days left (it is still good) wherever the viewer's device is.
+  const { timezone } = useOrgCalendar()
+
   if (rows.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyText}</p>
   }
@@ -72,13 +70,13 @@ function BatchTable({
         </thead>
         <tbody>
           {rows.map((b) => {
-            const left = daysUntil(b.expiryDate)
+            const left = daysUntilDateOnly(b.expiryDate, timezone)
             return (
               <tr key={b._id} className="border-b last:border-0">
                 <td className="py-2">{b.productId?.name || t('unknownProduct')}</td>
                 <td className="py-2">{b.batchNumber || '-'}</td>
                 <td className="py-2">{b.locationId?.name || '-'}</td>
-                <td className="py-2">{formatDate(b.expiryDate)}</td>
+                <td className="py-2">{storedDateKey(b.expiryDate)}</td>
                 <td className="py-2 text-right">
                   <Badge
                     variant={tone === 'expired' ? 'destructive' : 'secondary'}

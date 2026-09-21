@@ -23,6 +23,7 @@ import { fullImageUrl, thumbImageUrl } from "@/lib/storefront-image";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
+import { SF_MOBILE_MEDIA } from "@/components/storefront/sf-image";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
@@ -33,6 +34,13 @@ const ZOOM = 2.4;
 /** Thumbnails shown; the rest of the gallery is reachable by cycling these. */
 const MAX_THUMBS = 4;
 const RADIUS = 14;
+/**
+ * The hero's `srcset` width. Phones render it full width, so they take the 800px
+ * medium instead of the 1600px original — a fifth of the bytes for a real upload,
+ * on the page's LCP image. Wider screens claim the original on purpose: the hover
+ * zoom magnifies 2.4×, which the medium would blur.
+ */
+const HERO_SIZES = `${SF_MOBILE_MEDIA} 100vw, 1600px`;
 
 const clampPct = (n: number) => Math.max(0, Math.min(100, n));
 
@@ -87,7 +95,8 @@ export function ProductGallery({
   const [origin, setOrigin] = useState("50% 50%");
 
   const activeIdx = Math.max(0, Math.min(index, images.length - 1));
-  const main = fullImageUrl(images[activeIdx]);
+  const active = images[activeIdx];
+  const main = fullImageUrl(active);
   const thumbs = images.slice(0, MAX_THUMBS);
 
   const track = (e: PointerEvent<HTMLDivElement>) => {
@@ -106,7 +115,8 @@ export function ProductGallery({
       style={{ cursor: main && !previewMobile ? "zoom-in" : undefined }}
     >
       <Media
-        src={main}
+        src={active}
+        sizes={HERO_SIZES}
         alt={alt}
         label="product"
         ratio={
@@ -118,6 +128,8 @@ export function ProductGallery({
         }
         radius={RADIUS}
         fit={fit}
+        // The product page's LCP image.
+        priority
         className="sf-pdp-zoom-img"
         style={{
           display: "block",

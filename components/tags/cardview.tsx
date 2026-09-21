@@ -12,6 +12,7 @@ import { Edit2, MoreVertical, Package, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import { formatDate } from "@/lib/format";
+import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { Translator, AppLocale } from "@/i18n/config";
 import type { TagListItem } from "@/types/api";
 
@@ -33,8 +34,8 @@ const TagCardView = (
   const { name, description, status, color, productCount, updatedAt, createdAt, _id } =
     tag;
 
-  const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale);
-  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale);
+  const updatedDate = formatDate(updatedAt, "dd MMM yyyy", locale, getOrgTimezone());
+  const createdDate = formatDate(createdAt, "dd MMM yyyy", locale, getOrgTimezone());
   const count = productCount ?? 0;
 
   return (

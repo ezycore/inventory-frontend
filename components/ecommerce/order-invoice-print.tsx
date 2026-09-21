@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { formatCurrency } from "@/lib/currency";
+import { formatDateTime } from "@/lib/format";
+import { resolveTimezone } from "@/lib/org-calendar";
 import {
   useGetStorefrontSettings,
   type AdminStorefrontOrder,
@@ -35,6 +37,8 @@ export function OrderInvoicePrintButton({
     printStorefrontOrderInvoices(orders, paper, {
       header: orgToPrintHeader(org, settings?.displayName),
       currency: (n) => formatCurrency(n, org?.currency),
+      // The org's calendar, not the printing device's zone.
+      formatDate: (iso) => formatDateTime(iso, "en", resolveTimezone(org?.timezone)),
     });
 
   return (

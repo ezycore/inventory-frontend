@@ -10,11 +10,15 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
+import { storePages } from "@/lib/storefront-page-controls";
 import { shippingRange } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Media } from "@/components/storefront/sf-bits";
 import { SideDrawer } from "@/components/storefront/side-drawer";
+import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
+import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { brandButton, buttonMetrics } from "@/lib/storefront-button";
 
 /**
  * Slide-over cart (the "drawer" cart variant). Quick cart review + totals; the
@@ -29,6 +33,7 @@ export function CartDrawer() {
 
   const open = useCartUI((s) => s.open);
   const closeCart = useCartUI((s) => s.closeCart);
+  const paused = useOrdersPaused();
 
   // The drawer IS the add-to-cart confirmation — clear any in-flight "Added"
   // toast so it can't double-speak (or cover the footer CTAs) over the drawer.
@@ -85,33 +90,44 @@ export function CartDrawer() {
               value={shipping === 0 && !estimated ? t.free : amount(shipping)}
               muted
             />
-            <button
-              type="button"
-              onClick={goCheckout}
-              style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
-            >
-              {t.proceed} · {amount(total)}
-            </button>
-            {/* Full cart page for editing at leisure — the drawer stays the quick path. */}
+            {/* A cart built before the merchant paused keeps its lines, but the
+                way to checkout is the notice. */}
+            {paused ? (
+              <div style={{ marginTop: 6 }}>
+                <OrdersPausedNotice paused={paused} compact />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={goCheckout}
+                style={{ ...primaryBtn(), width: "100%", marginTop: 6 }}
+              >
+                {t.proceed} · {amount(total)}
+              </button>
+            )}
+            {/* Full cart page for editing at leisure — the drawer stays the
+                quick path. Hidden when the merchant serves the drawer alone
+                (§6 page controls): the route would only bounce to checkout,
+                which is what the button above already does. */}
+            {storePages(store).cartPage ? (
             <button
               type="button"
               onClick={goCartPage}
               style={{
+                ...buttonMetrics({ radius: 8, padding: "11px 22px", fontSize: 13.5 }),
                 width: "100%",
                 marginTop: 8,
                 background: "transparent",
                 color: "var(--text)",
                 border: "1px solid var(--border-strong)",
-                padding: "11px 22px",
-                borderRadius: 8,
                 fontFamily: "inherit",
-                fontSize: 13.5,
                 fontWeight: 600,
                 cursor: "pointer",
               }}
             >
               {t.viewCart}
             </button>
+            ) : null}
           </>
         ) : undefined
       }
@@ -220,13 +236,9 @@ function Row({ label, value, muted }: { label: string; value: string; muted?: bo
 
 function primaryBtn(): React.CSSProperties {
   return {
-    background: "var(--primary)",
-    color: "var(--on-primary)",
+    ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }),
     border: "none",
-    padding: "12px 22px",
-    borderRadius: 8,
     fontFamily: "inherit",
-    fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
   };

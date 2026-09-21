@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { useMemo, useState } from 'react'
+import { useOrgCalendar } from '@/hooks/use-org-calendar'
+import { orgDateKey } from '@/lib/org-calendar'
 import { useTranslations } from 'next-intl'
 import { useExportData, type ExportDataType } from '@/services/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
@@ -80,7 +82,7 @@ const EXPORT_OPTIONS: {
   },
 ]
 
-function downloadCSV(data: any[], filename: string) {
+function downloadCSV(data: any[], filename: string, timezone: string) {
   if (!data || data.length === 0) return
 
   // Flatten nested objects for CSV
@@ -122,7 +124,8 @@ function downloadCSV(data: any[], filename: string) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`
+  // The org's date — `toISOString()` is the UTC one, yesterday before 06:00 in Dhaka.
+  link.download = `${filename}_${orgDateKey(timezone)}.csv`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -132,6 +135,7 @@ export function ExportData() {
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const features = useAuthStore((state) => state.user?.organization?.features)
+  const { timezone } = useOrgCalendar()
   const exportOptions = useMemo(
     () =>
       EXPORT_OPTIONS.filter(
@@ -155,7 +159,7 @@ export function ExportData() {
 
   // When data arrives, download it
   if (data && triggerExport && selectedType) {
-    downloadCSV(data, selectedType)
+    downloadCSV(data, selectedType, timezone)
     setTriggerExport(false)
   }
 

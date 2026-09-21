@@ -10,6 +10,7 @@ import {
   CartSummary,
 } from "@/components/storefront/cart/cart-blocks";
 import type { CartPageApi } from "@/components/storefront/cart/use-cart-page";
+import { brandButton } from "@/lib/storefront-button";
 
 /**
  * The four cart layouts.
@@ -184,7 +185,7 @@ function CartSummaryCta({ api }: { api: CartPageApi }) {
   return (
     <Link
       href={storeHref(base, "/checkout")}
-      style={{ display: "block", textAlign: "center", background: "var(--primary)", color: "var(--on-primary)", padding: "13px 18px", borderRadius: "var(--radius-md)", fontSize: 14, fontWeight: 700 }}
+      style={{ ...brandButton({ radius: "var(--radius-md)", padding: "13px 18px", fontSize: 14 }), display: "block", textAlign: "center", fontWeight: 700 }}
     >
       {t.proceed}
     </Link>

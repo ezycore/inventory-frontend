@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/lib/currency";
 import { formatPeriodLabel } from "@/components/dashboard/helpers";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import { useTransactionStats } from "@/services/api";
 import type { AppLocale } from "@/i18n/config";
 
 export interface TransactionStatsParams {
   period?: string;
-  weekStartDay?: number;
   startDate?: string;
   endDate?: string;
 }
@@ -30,6 +30,7 @@ export function TransactionStatsSection({
 }) {
   const t = useTranslations("accounts.transactions.stats");
   const locale = useLocale() as AppLocale;
+  const { timezone } = useOrgCalendar();
   const { data: stats, isLoading } = useTransactionStats(statsParams);
   const { format } = useCurrency();
 
@@ -47,7 +48,7 @@ export function TransactionStatsSection({
   // Dynamic chart subtitle
   const chartSubtitle = stats?.period
     ? t("breakdownSuffix", {
-        period: formatPeriodLabel(stats.period, locale),
+        period: formatPeriodLabel(stats.period, locale, timezone),
         grouping: stats.period.chartGrouping,
       })
     : "";

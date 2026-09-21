@@ -13,6 +13,7 @@
 import { format as formatDateFns } from "date-fns";
 import { bn as bnDateLocale } from "date-fns/locale";
 import type { Locale as DateFnsLocale } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 import { DEFAULT_LOCALE, type AppLocale } from "@/i18n/config";
 
@@ -31,21 +32,41 @@ export function formatNumber(
   return value.toLocaleString("en-IN", options);
 }
 
+/**
+ * An INSTANT as a date. Pass the organization's `timeZone` for anything
+ * merchant-facing (CLAUDE.md → "Timezones"); without it the browser's zone is
+ * used, which is only right for UI with no organization (the public storefront).
+ */
 export function formatDate(
   date: Date | string | number,
   pattern = "dd MMM yyyy",
   locale: AppLocale = DEFAULT_LOCALE,
+  timeZone?: string,
 ): string {
-  return formatDateFns(new Date(date), pattern, {
-    locale: DATE_FNS_LOCALES[locale],
-  });
+  const options = { locale: DATE_FNS_LOCALES[locale] };
+  return timeZone
+    ? formatInTimeZone(new Date(date), timeZone, pattern, options)
+    : formatDateFns(new Date(date), pattern, options);
 }
 
 export function formatDateTime(
   date: Date | string | number,
   locale: AppLocale = DEFAULT_LOCALE,
+  timeZone?: string,
 ): string {
-  return formatDate(date, "dd MMM yyyy, hh:mm a", locale);
+  return formatDate(date, "dd MMM yyyy, hh:mm a", locale, timeZone);
+}
+
+/**
+ * A stored DATE-ONLY value (an expiry date): UTC midnight of its calendar day,
+ * so it is read in UTC and names the same day in every zone.
+ */
+export function formatDateOnly(
+  date: Date | string | number,
+  pattern = "dd MMM yyyy",
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
+  return formatDate(date, pattern, locale, "UTC");
 }
 
 /**

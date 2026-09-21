@@ -5,14 +5,14 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * The advance/pause/swipe behaviour a rotating hero needs, extracted so the two
+ * The advance/pause/swipe behaviour a rotating hero needs, extracted so the
  * heroes that rotate cannot disagree about it.
  *
- * Both `HeroCarousel` (contained card) and `HeroFullBleed` (edge to edge) show
- * the same merchant slides on the same 5s beat with the same pause rules; only
- * their LAYOUT differs. Copying the timer into the second one would have been
- * two places to fix a dropped `clearInterval` or a missed reduced-motion check —
- * the repo's "extract on the second use" rule, and this is the second use.
+ * `HeroSlidesView` (a card, or copy on the page) and `HeroFullBleedView` (edge to
+ * edge) show the same merchant slides on the same 5s beat with the same pause
+ * rules; only their LAYOUT differs. Copying the timer into the second one would
+ * have been two places to fix a dropped `clearInterval` or a missed
+ * reduced-motion check — the repo's "extract on the second use" rule.
  *
  * Two behaviours worth keeping when you touch this:
  *  - **`cycle` restarts the dot's fill animation.** It is bumped on every manual
