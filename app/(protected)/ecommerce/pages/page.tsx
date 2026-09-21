@@ -13,6 +13,7 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
+import { CampaignPagesCard } from "@/components/ecommerce/pages/campaign-pages-card";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
 import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
@@ -25,8 +26,8 @@ import { SystemPagesCard } from "@/components/ecommerce/pages/system-pages-card"
  * Landing pages in the table. The builder API also holds content and system
  * pages, and listing those here would offer a Duplicate and a Delete the backend
  * refuses; a home page that is a builder page has its own card above
- * (`HomePageCard`), moved content pages have `StorePagesTable`, and system pages
- * `SystemPagesCard`.
+ * (`HomePageCard`), moved content pages have `StorePagesTable`, system pages
+ * `SystemPagesCard`, and a sale's own page `CampaignPagesCard`.
  */
 const landingPages = pageListOperations("landing");
 
@@ -109,6 +110,7 @@ export default function StorefrontPagesPage() {
         }}
       />
 
+      <CampaignPagesCard />
       <StorePagesTable />
       <SystemPagesCard />
 

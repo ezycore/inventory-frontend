@@ -76,11 +76,105 @@ Sub-category options are labelled `Parent › Child`: a child name is unique onl
 within its parent, so a flat list can show two identical entries meaning
 different things.
 
+### A campaign has its OWN page — `/campaigns/<slug>` (2026-09-21)
+
+Every campaign is now a shareable URL, whatever it is scoped to. Before this,
+only the scopes that happened to coincide with an existing public page could be
+linked: `category`/`subcategory` resolved to a collection path, `tag` to
+`/products?tags=…`, and **`product` and `storewide` fell back to `/products`** —
+the entire catalogue. So the most common shape of a real promotion, twenty items
+hand-picked across eight categories, was a sale the storefront priced correctly
+and that the merchant could not link anyone to.
+
+- **Route:** `app/(storefront)/shop/campaigns/[campaignSlug]/page.tsx`. A static
+  segment, so it wins over the `[...categoryPath]` catch-all, and `campaigns` is
+  in the backend's `RESERVED_STOREFRONT_SLUGS` — otherwise a merchant could
+  create a category that lands here and is silently unreachable.
+- **The grid is `CollectionPageView`**, the same component `/products` and every
+  collection page render. Only the scope differs: `campaignQueryParams` adds
+  `?campaign=<slug>`, which the backend AND-s onto the shopper's facets
+  (`storefront-catalog.service.buildFilter`). So a shopper can still filter and
+  sort *within* a sale, and the sale page can never drift from the rest of the
+  shop on layout, pagination mode or filter behaviour. The campaign travels in
+  `CollectionRouteData` for the same reason `collection` does — once the
+  collection page is on the builder, a core section draws the grid.
+- **The banner is the page's `<h1>`** (`components/storefront/campaign/campaign-header.tsx`),
+  so the toolbar drops its own heading rather than titling the page twice.
+  Mobile-first: one column with the discount badge above the name, turned into a
+  row by the `680px` rule in `storefront.css`. A promo link is opened on a phone
+  in a chat app more often than anywhere else.
+- **`campaignHref(base, campaign)`** (`lib/storefront-links.ts`) is the only way
+  to build the link. The promo strip and the deal cards both go through it, and
+  a campaign with no slug — rows predating this, until `backfill-slugs` runs —
+  still falls back to `/products`.
+- **Live vs scheduled.** The backend resolves a campaign that is live *or still
+  scheduled* and carries `live` on the payload; the page trusts that field and
+  never compares the dates itself, because the same server clock prices the grid.
+  A scheduled page counts *up* to its start and prints `campaignUpcoming` to
+  explain the everyday prices below it; it is `noindex` and left out of the
+  sitemap until it opens. **A STOREWIDE campaign's page is `noindex` and out of
+  the sitemap permanently** — its scope adds no narrowing, so the page is
+  `/products` with a banner and the two would compete for one product set. The
+  link is unaffected; only indexing changes. Both halves move together (the
+  route's `generateMetadata` here, `storefront-sitemap.service.ts` there) —
+  a sitemap listing a `noindex` URL is worse than either alone. An ended or switched-off campaign resolves to `null`
+  and the route 404s — keeping the URL alive would show full prices under a
+  banner promising a discount.
+- **The merchant gets the link** from a "Copy link" row action on
+  `/ecommerce/campaigns`, always on the tenant subdomain (a custom domain
+  redirects the subdomain to itself canonically, so one URL is right either way).
+  `subtitle` on the campaign form is the tagline the banner prints.
+
+#### …and the page can be a real builder page (opt-in)
+
+The default above is a route, not a `StorefrontPage` — so it is not in Pages and
+not editable. A merchant who wants to *sell* the sale (reviews, a video,
+their own headline) turns on **"Create a page for this campaign"** on the
+campaign form, and gets a `kind: "campaign"` page at **the same address**.
+
+- **Same URL, deliberately.** The page has no `slug` of its own; it is bound to
+  the campaign by `campaignId` and served at `/campaigns/<campaign.slug>`. The
+  merchant copies that link the moment they save the sale and designs the page
+  later — a second address at `/pages/<slug>` would leave the link they already
+  posted showing the undesigned one.
+- **The route is unchanged**: `<SystemPage path={`/campaigns/${campaign.slug}`}>`
+  wrapping the default view. `SystemPage` renders the builder page when one
+  exists and the children when it does not, which is the same fallback every
+  un-migrated system page uses — a 404 from the page read is the normal answer.
+  It is **not** the collection system page: a sale is not a collection, and a
+  merchant's collection sections do not belong on every campaign by default.
+- **`campaign-main` is its core section** — the banner plus the grid, drawn by
+  `CampaignFromRoute` from the route's data exactly as `collection-grid` is. It
+  cannot be removed, hidden or narrowed, and is `addable: false` in the editor
+  catalogue: which campaign it shows comes from the address, so a second one, or
+  one on another page, would have no campaign to draw. `hideBanner` is for the
+  merchant who writes their own headline above the grid — `campaign` is still
+  passed, because it is what scopes the products.
+- **21 sections are `pages: "all"`**, so hero, testimonials, video, FAQ,
+  benefits, galleries and image banner all work on a campaign page with no
+  manifest change. (`countdown` is in that set but `addable: false` repo-wide
+  until its units get Bangla terms, so do not promise it.) The one-product sellers (`order-form`, `offer-pricing`,
+  `sticky-order-bar`) stay off it on purpose: a campaign lists many products.
+- **The page is born published carrying only its core section**, so opting in
+  changes nothing a shopper sees until the merchant edits it. Pages shows them in
+  a **Campaign pages** card (`campaign-pages-card.tsx`), not the Store pages
+  table — they have no address of their own to edit and no page schedule, so
+  every column of that table would be blank.
+- **Deleting the campaign deletes the page.** There is no delete in Pages for
+  one: the address belongs to the campaign, so an orphan would be unreachable and
+  still editable.
+- The campaign row's second action opens the page, or creates it first for a
+  merchant who said no (`useCreateCampaignPage` → `POST …/campaigns/:id/page`,
+  idempotent). `createPage` is `hideInEdit` on the form: switching a field off
+  would read as "delete my page" without saying so.
+
 ### The "Ends" date is one function (2026-09-08)
 
-`campaignEndsLabel(endsAt, t)` in `lib/storefront-campaign-date.ts` — used
-by `CampaignStrip` and the deal cards in `band-sections.tsx`, the only two
-surfaces that print it.
+`campaignEndsLabel(endsAt, t)` in `lib/storefront-campaign-date.ts` — used by
+`CampaignStrip`, the deal cards in `band-sections.tsx` and the landing page's
+`CampaignHeader`, the three surfaces that print it. `campaignStartsLabel` is its
+twin for a scheduled campaign, over the same formatter (one instant, the viewer's
+zone, after hydration only) so the two can never word the same date differently.
 
 **One instant, shown on the shopper's clock (2026-09-17).** `endsAt` is the end of the
 merchant's day in the ORGANIZATION's timezone, and the backend alone decides whether a

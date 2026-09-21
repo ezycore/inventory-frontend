@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { merchantLinkHref, normalizeStoreLink, storeLinkHref } from "./storefront-links";
+import {
+  campaignHref,
+  merchantLinkHref,
+  normalizeStoreLink,
+  storeLinkHref,
+} from "./storefront-links";
 
 describe("owner-entered storefront links", () => {
   it("removes the legacy tenant prefix before applying the active base", () => {
@@ -36,5 +41,33 @@ describe("a link to another section of the same page", () => {
       expect(merchantLinkHref("/shop", link)).not.toBe(link);
       expect(merchantLinkHref("/shop", link).startsWith("/shop")).toBe(true);
     }
+  });
+});
+
+describe("a link to a campaign's own page", () => {
+  it("addresses the campaign, whatever it is scoped to", () => {
+    // The defect this replaced: the promo strip resolved a category or tag
+    // target to a public URL and sent EVERY other scope to /products. A campaign
+    // over twenty hand-picked products — the common shape of a real sale — was
+    // therefore unlinkable, and the shopper who tapped "40% off" was handed the
+    // whole shop.
+    expect(campaignHref("/shop", { slug: "eid-sale" })).toBe(
+      "/shop/campaigns/eid-sale",
+    );
+    expect(campaignHref("", { slug: "eid-sale" })).toBe("/campaigns/eid-sale");
+    expect(campaignHref("/shop", { slug: "ঈদ-অফার" })).toBe(
+      `/shop/campaigns/${encodeURIComponent("ঈদ-অফার")}`,
+    );
+  });
+
+  it("falls back to the catalogue only when there is no slug to link to", () => {
+    // Campaigns written before the landing page existed carry no slug until
+    // `backfill-slugs` runs. Linking them to /campaigns/undefined would 404; the
+    // full listing is wrong but reachable, which is the right trade for a row
+    // that is about to be healed.
+    expect(campaignHref("/shop", { slug: null })).toBe("/shop/products");
+    expect(campaignHref("/shop", {})).toBe("/shop/products");
+    expect(campaignHref("/shop", null)).toBe("/shop/products");
+    expect(campaignHref("/shop", { slug: "   " })).toBe("/shop/products");
   });
 });

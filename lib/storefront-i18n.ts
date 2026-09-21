@@ -38,6 +38,13 @@ export interface Dict {
    * (`campaignEndsLabel`), so each language can word and order it naturally.
    */
   campaignEndsAt: string;
+  /**
+   * The mirror of `campaignEndsAt`, for a campaign the merchant has shared
+   * before it opens. Same `{date}`/`{time}` substitution, same zone.
+   */
+  campaignStartsAt: string;
+  /** Sits under a scheduled campaign's header — why nothing is discounted yet. */
+  campaignUpcoming: string;
   campaignOffers: string;
   previousOffer: string;
   nextOffer: string;
@@ -539,6 +546,8 @@ const en: Dict = {
   viewCart: "View cart",
   campaignOff: "off",
   campaignEndsAt: "Ends {date} at {time}",
+  campaignStartsAt: "Starts {date} at {time}",
+  campaignUpcoming: "This sale hasn't started yet — prices drop when it opens.",
   campaignOffers: "Current offers",
   previousOffer: "Previous offer",
   nextOffer: "Next offer",
@@ -959,6 +968,8 @@ const bn: Dict = {
   viewCart: "কার্ট দেখুন",
   campaignOff: "ছাড়",
   campaignEndsAt: "শেষ হবে {date}, {time}",
+  campaignStartsAt: "শুরু হবে {date}, {time}",
+  campaignUpcoming: "অফারটি এখনও শুরু হয়নি — শুরু হলেই দাম কমে যাবে।",
   campaignOffers: "চলতি অফার",
   previousOffer: "আগের অফার",
   nextOffer: "পরের অফার",

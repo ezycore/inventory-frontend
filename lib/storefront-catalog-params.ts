@@ -202,6 +202,32 @@ export function categoryPathQueryParams(
   return { ...rest, categoryPath, page };
 }
 
+/**
+ * The URL params for a CAMPAIGN landing page (`/campaigns/<slug>`).
+ *
+ * The campaign slug replaces nothing — it is AND-ed onto the facets server-side,
+ * so a shopper can still filter and sort within the sale exactly as they can
+ * within a collection. The category facets stay available for that reason
+ * (unlike a collection page, where the collection *is* the URL): a campaign
+ * spanning eight categories is precisely the case where narrowing to one is
+ * useful.
+ */
+export function campaignQueryParams(
+  campaign: string,
+  sp: CatalogSearchParams,
+  page = 1,
+) {
+  return { ...catalogInfiniteParams(sp), campaign, page };
+}
+
+/** Infinite-scroll variant of the above — same params, minus the page cursor. */
+export function campaignInfiniteParams(
+  campaign: string,
+  sp: CatalogSearchParams,
+) {
+  return { ...catalogInfiniteParams(sp), campaign };
+}
+
 /** Infinite-scroll variant of the above — same params, minus the page cursor. */
 export function categoryPathInfiniteParams(
   categoryPath: string,

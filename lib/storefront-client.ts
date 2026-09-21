@@ -1022,6 +1022,13 @@ export interface ContentPageView {
 
 export interface StoreCampaign {
   _id: string;
+  /**
+   * The campaign's own landing page (`/campaigns/<slug>`).
+   *
+   * Null on a campaign written before that page existed — `campaignHref` falls
+   * back to the full listing for those rather than linking to a 404.
+   */
+  slug?: string | null;
   name: string;
   banner?: StorefrontImage | null;
   type: string;
@@ -1030,6 +1037,28 @@ export interface StoreCampaign {
   /** Target ids (category/product scope) — used to build the strip's link. */
   targets?: string[];
   endsAt?: string;
+}
+
+/**
+ * `GET …/campaigns/{campaignSlug}` — the landing page's header.
+ *
+ * `live` is the server's answer, not a date comparison the page makes: whether a
+ * sale is on is decided against the server's clock, which is also what prices the
+ * catalogue. A page that worked it out from `startsAt` could promise a discount
+ * the pricer is not applying.
+ */
+export interface StoreCampaignDetail {
+  _id: string;
+  slug: string;
+  name: string;
+  subtitle?: string | null;
+  banner?: StorefrontImage | null;
+  type: string;
+  value: number;
+  scope: string;
+  startsAt: string;
+  endsAt: string;
+  live: boolean;
 }
 
 export interface CatalogCategory {
@@ -1536,6 +1565,8 @@ export const storefrontApi = {
   ) => sfFetch<StoreTag[]>(slug, `/tags${buildQuery(params)}`),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
+  getCampaign: (slug: string, campaignSlug: string) =>
+    sfFetch<StoreCampaignDetail>(slug, `/campaigns/${encodeURIComponent(campaignSlug)}`),
   listPages: (slug: string) =>
     sfFetch<ContentPageLink[]>(slug, "/pages"),
   getPage: (slug: string, pageSlug: string) =>

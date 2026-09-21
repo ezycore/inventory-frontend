@@ -1775,6 +1775,91 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   background: transparent;
 }
 
+/* A campaign's own landing page header (`/campaigns/<slug>`).
+
+   Mobile-first, like the rest of this sheet: the base block IS the phone
+   layout — one column, badge above the name — and the 680px rule below turns it
+   into a row. A promo link is opened on a phone in a chat app more often than
+   anywhere else, so that is the layout that gets written first. */
+.sf-campaign-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--discount-soft);
+  color: var(--discount);
+}
+.sf-campaign-badge {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--discount);
+  color: var(--on-primary);
+}
+.sf-campaign-badge-amount {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.sf-campaign-badge-off {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.sf-campaign-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+.sf-campaign-title {
+  margin: 0;
+  font-size: var(--h2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.sf-campaign-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+.sf-campaign-when {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 12px;
+  font-weight: 650;
+}
+.sf-campaign-note {
+  margin: 0;
+  font-size: 12.5px;
+  opacity: 0.8;
+}
+@media (min-width: 680px) {
+  .sf-campaign-hero {
+    flex-direction: row;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 22px;
+  }
+}
+
 /* Campaigns are a deliberate carousel on phones, not a raw overflow box. The
    next-card peek, position, buttons and dots communicate that more content is
    available while the native scrollbar stays out of the storefront chrome. */

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useId, useRef, useState, type CSSProperties } from "react";
 import type { StoreCampaign } from "@/lib/storefront-client";
 import type { Dict } from "@/lib/storefront-i18n";
-import { storeHref } from "@/lib/storefront-links";
+import { campaignHref } from "@/lib/storefront-links";
 import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { offerCampaigns } from "@/lib/storefront-builder/store-lists";
@@ -166,7 +166,10 @@ function DealCard({
 
   return (
     <Link
-      href={storeHref(base, "/products")}
+      // The campaign's own page, which lists exactly what it discounts. Every
+      // card pointed at the full catalogue until that page existed, so a shopper
+      // who tapped "40% off" landed on the whole shop.
+      href={campaignHref(base, c)}
       className="sf-deal-card"
       aria-label={`${index + 1} / ${total}: ${c.name}, ${amount} ${t.campaignOff}`}
       style={{

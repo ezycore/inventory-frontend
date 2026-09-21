@@ -37,6 +37,25 @@ export const useUpdateCampaign = () => {
   });
 };
 
+/**
+ * Give an existing campaign the page the merchant declined at create time.
+ *
+ * Dirties the storefront catalogue (the campaign row now carries a `pageId`) AND
+ * the page lists, because the new page has to appear on the Pages screen without
+ * a reload.
+ */
+export const useCreateCampaignPage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => campaignsApi.createPage(id),
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Campaign page created");
+      invalidate(qc, "storefront.catalog.changed", "storefront.page.published");
+    },
+    onError: handleMutationError,
+  });
+};
+
 export const useDeleteCampaign = () => {
   const qc = useQueryClient();
   return useMutation({

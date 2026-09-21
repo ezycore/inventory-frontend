@@ -364,6 +364,39 @@ export const SECTION_SPECS = {
     },
   },
   /**
+   * A campaign's banner and the products it discounts — the core section of a
+   * campaign page, served at the sale's own address `/campaigns/<slug>`.
+   *
+   * **Which campaign is decided by the ADDRESS, not by a setting.** One page
+   * belongs to one campaign, and a merchant able to re-point it would have a
+   * page whose banner and grid disagreed with the link they had already shared.
+   * So, like `collection-grid`, this draws what the route resolved rather than
+   * what a field says.
+   *
+   * `layout` and `pagination` are the same store templates the collection page's
+   * core section overrides, unset on every page created with a campaign.
+   * `hideBanner` is for the merchant who writes their own headline above the
+   * grid with a hero or an image banner — the discount is still on every card,
+   * so the sale is never unannounced.
+   */
+  "campaign-main": {
+    v: 1,
+    pages: ["campaign"],
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["grid-3", "grid-4", "sidebar"],
+        optional: true,
+      },
+      pagination: {
+        type: "enum",
+        values: ["pages", "infinite", "load-more"],
+        optional: true,
+      },
+      hideBanner: { type: "boolean", optional: true },
+    },
+  },
+  /**
    * The product itself, on the product page once it is on the builder.
    * `hideRelated` drops its own "You may also like" row, for a page where the
    * merchant places a Related products section instead; unset keeps the row,

@@ -61,6 +61,16 @@ export const campaignFormConfig: DynamicFormConfig = {
       columnSpan: 6,
     },
     {
+      name: "subtitle",
+      type: "input",
+      label: "Tagline",
+      placeholder: "e.g. Three days only, on every cushion",
+      helperText:
+        "One line under the name on the campaign's own page. Optional.",
+      columnSpan: 12,
+      validation: { maxLength: 200 },
+    },
+    {
       name: "scope",
       type: "select",
       label: "Scope",
@@ -191,6 +201,20 @@ export const campaignFormConfig: DynamicFormConfig = {
       dependsOn: shownForScope("tag"),
     },
     {
+      name: "createPage",
+      type: "switch",
+      label: "Create a page for this campaign",
+      helperText:
+        "Off, the campaign link shows the sale's banner and its products. On, you get an editable page at that same link — add a countdown, reviews, a video. You can add one later from the campaign's row.",
+      columnSpan: 12,
+      defaultValue: false,
+      // Create only. Editing a campaign must not offer it: the page either
+      // exists or it does not, and switching a field off would read as "delete
+      // my page" without saying so. Adding one later is the row's own action,
+      // and removing one is deleting that page in Pages.
+      hideInEdit: true,
+    },
+    {
       name: "status",
       type: "select",
       label: "Status",
@@ -206,6 +230,8 @@ export const campaignFormConfig: DynamicFormConfig = {
 
 export const campaignDefaultValues = {
   name: "",
+  subtitle: "",
+  createPage: false,
   scope: "storewide" as const,
   type: "percentage" as const,
   value: 0,

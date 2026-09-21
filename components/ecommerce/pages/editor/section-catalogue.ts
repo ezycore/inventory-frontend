@@ -88,6 +88,16 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A collection's products. Created when your collection page moves onto the builder.",
     addable: false,
   },
+  "campaign-main": {
+    label: "Campaign products",
+    group: "Content",
+    description:
+      "The sale's banner and the products it discounts. Created with the campaign's own page.",
+    // Not addable: the page IS this section, and which campaign it shows comes
+    // from the page's address — a second one, or one on another page, would have
+    // no campaign to draw.
+    addable: false,
+  },
   "product-main": {
     label: "Product",
     group: "Content",
@@ -366,6 +376,9 @@ const FIELD_LABELS: Record<string, string> = {
      panel names it — one decision should not have two names. */
   "collection-grid.layout": "Products per row",
   "collection-grid.pagination": "Loading more products",
+  "campaign-main.layout": "Products per row",
+  "campaign-main.pagination": "Loading more products",
+  "campaign-main.hideBanner": "Hide the sale banner",
   "product-main.layout": "Photo layout",
   "account-area.layout": "Account layout",
   "content-body.layout": "Page frame",

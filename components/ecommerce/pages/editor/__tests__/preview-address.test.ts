@@ -31,6 +31,29 @@ describe("previewAddress", () => {
     expect(previewAddress(system("product"))).toBeNull();
   });
 
+  it("previews a campaign page at its CAMPAIGN's address", () => {
+    // The one kind with no slug of its own: it is served at the campaign's
+    // address, so reading `page.slug` found nothing and the editor showed
+    // "Store address unavailable." on every campaign page (found in browser QA).
+    expect(
+      previewAddress({
+        kind: "campaign",
+        systemKey: undefined,
+        slug: undefined,
+        campaignSlug: "eid-sale",
+      }),
+    ).toBe("/campaigns/eid-sale");
+    // A campaign deleted out from under its page has no address to preview.
+    expect(
+      previewAddress({
+        kind: "campaign",
+        systemKey: undefined,
+        slug: undefined,
+        campaignSlug: null,
+      }),
+    ).toBeNull();
+  });
+
   it("has no address for a page it cannot place", () => {
     expect(previewAddress(system("not-found"))).toBeNull();
     expect(previewAddress({ kind: "landing", systemKey: undefined, slug: undefined })).toBeNull();
@@ -38,6 +61,12 @@ describe("previewAddress", () => {
 });
 
 describe("needsBuilderParam", () => {
+  it("asks for the builder page at a campaign address", () => {
+    // That address also draws the campaign's DEFAULT banner and grid, so the
+    // editor has to say it wants the builder page.
+    expect(needsBuilderParam("/campaigns/eid-sale")).toBe(true);
+  });
+
   it("asks for the builder page wherever Customize could also be previewing", () => {
     expect(needsBuilderParam("/")).toBe(true);
     expect(needsBuilderParam("/cart")).toBe(true);

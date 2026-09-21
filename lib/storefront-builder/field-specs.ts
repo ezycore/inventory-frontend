@@ -17,6 +17,7 @@ export const SECTION_PAGE_CONTEXTS = [
   "landing",
   "content",
   "home",
+  "campaign",
   "collection",
   "product",
   "search",

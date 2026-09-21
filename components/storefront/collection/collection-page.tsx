@@ -29,6 +29,8 @@ import type { Crumb } from "@/lib/storefront-breadcrumb";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
 import {
+  campaignInfiniteParams,
+  campaignQueryParams,
   catalogInfiniteParams,
   catalogQueryParams,
   categoryPathInfiniteParams,
@@ -37,7 +39,9 @@ import {
 import type {
   CatalogCategoryDetail,
   ProductListResult,
+  StoreCampaignDetail,
 } from "@/lib/storefront-client";
+import { CampaignHeader } from "@/components/storefront/campaign/campaign-header";
 import { brandButton } from "@/lib/storefront-button";
 
 const wrap: CSSProperties = {
@@ -54,13 +58,22 @@ const wrap: CSSProperties = {
  * `/{category}/{sub?}` renders it with a resolved `collection`, which swaps the
  * `categoryId` query param for a `categoryPath` one — the backend then decides
  * whether to match `categoryId` (a parent, so the whole branch) or
- * `subcategoryId` (one child). Same component, so the two can never drift apart
- * in layout, pagination mode or filter behaviour.
+ * `subcategoryId` (one child). `/campaigns/{slug}` renders it with a `campaign`,
+ * which adds a `campaign` param the backend AND-s onto the facets. Same
+ * component, so the three can never drift apart in layout, pagination mode or
+ * filter behaviour.
+ *
+ * A campaign is NOT modelled as another kind of collection: its scope can be a
+ * tag, a product list or the whole store, so there is no category to hide from
+ * the filter panel and every facet stays useful inside it — narrowing a sale
+ * spanning eight categories to one is the case the panel is for.
  */
 function CollectionInner({
   initialProducts,
   initialPage,
   collection,
+  campaign,
+  hideCampaignBanner,
   crumbs,
   layout,
   pagination: paginationChoice,
@@ -68,6 +81,8 @@ function CollectionInner({
   initialProducts?: ProductListResult;
   initialPage: number;
   collection?: CatalogCategoryDetail;
+  campaign?: StoreCampaignDetail;
+  hideCampaignBanner?: boolean;
   crumbs?: Crumb[];
   layout?: string;
   pagination?: string;
@@ -97,11 +112,14 @@ function CollectionInner({
   // so only the chosen one fetches. Params are built through the shared builders
   // because the params object IS the cache key — `page.tsx` seeds page 1 with the
   // identical object (see storefront-catalog-params).
+  const campaignSlug = campaign?.slug;
   const pagedQuery = useStoreProducts(
     slug,
-    categoryPath
-      ? categoryPathQueryParams(categoryPath, filterState, page)
-      : catalogQueryParams(filterState, page),
+    campaignSlug
+      ? campaignQueryParams(campaignSlug, filterState, page)
+      : categoryPath
+        ? categoryPathQueryParams(categoryPath, filterState, page)
+        : catalogQueryParams(filterState, page),
     paged,
     // The server seeded ONE page — the one `?page=` named at request time. Hand
     // it over only while the shopper is still on it; seeding page 5 with page
@@ -110,9 +128,11 @@ function CollectionInner({
   );
   const infiniteQuery = useStoreProductsInfinite(
     slug,
-    categoryPath
-      ? categoryPathInfiniteParams(categoryPath, filterState)
-      : catalogInfiniteParams(filterState),
+    campaignSlug
+      ? campaignInfiniteParams(campaignSlug, filterState)
+      : categoryPath
+        ? categoryPathInfiniteParams(categoryPath, filterState)
+        : catalogInfiniteParams(filterState),
     !paged,
     initialProducts,
   );
@@ -170,11 +190,18 @@ function CollectionInner({
           page with nothing above it but home, and `Breadcrumb` drops a trail
           that short anyway. */}
       {crumbs ? <Breadcrumb base={base} crumbs={crumbs} /> : null}
+      {/* The campaign banner IS this page's `<h1>`, so the toolbar below drops
+          its own heading rather than titling the page twice. */}
+      {campaign && !hideCampaignBanner ? (
+        <CampaignHeader campaign={campaign} currency={currency} t={t} />
+      ) : null}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
-            {heading}
-          </h1>
+          {campaign ? null : (
+            <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+              {heading}
+            </h1>
+          )}
           <span style={{ fontSize: 13, color: "var(--muted)" }}>
             {total} {t.results}
           </span>
@@ -260,6 +287,8 @@ export function CollectionPageView({
   initialProducts,
   initialPage = 1,
   collection,
+  campaign,
+  hideCampaignBanner,
   crumbs,
   layout,
   pagination,
@@ -273,6 +302,15 @@ export function CollectionPageView({
   initialPage?: number;
   /** Set by the `/{category}/{sub?}` route; absent on the bare `/products` page. */
   collection?: CatalogCategoryDetail;
+  /** Set by the `/campaigns/{slug}` route — draws the banner and scopes the grid. */
+  campaign?: StoreCampaignDetail;
+  /**
+   * The `campaign-main` core section's own choice, for a merchant who writes
+   * their own headline above the grid. It hides the BANNER only — `campaign`
+   * still scopes the products, or the page would list the whole catalogue under
+   * that headline.
+   */
+  hideCampaignBanner?: boolean;
   /** Built server-side so the visible trail matches the page's JSON-LD exactly. */
   crumbs?: Crumb[];
   /**
@@ -290,6 +328,8 @@ export function CollectionPageView({
         initialProducts={initialProducts}
         initialPage={initialPage}
         collection={collection}
+        campaign={campaign}
+        hideCampaignBanner={hideCampaignBanner}
         crumbs={crumbs}
         layout={layout}
         pagination={pagination}
