@@ -37,13 +37,33 @@ export const BACKGROUND_KINDS = ["none", "color", "image"] as const;
 export const SECTION_WIDTHS = ["content", "wide", "full"] as const;
 
 /** Where the section's words sit. Responsive: the phone may answer differently. */
-export const SECTION_ALIGNS = ["left", "center"] as const;
+export const SECTION_ALIGNS = ["left", "center", "right"] as const;
 
 /**
  * Which way the section's text reads against its own background. `auto` leaves
- * it to the theme; the other two are the merchant overriding that judgement.
+ * it to the theme, `light` and `dark` are the merchant overriding that
+ * judgement, and `custom` hands the answer to `textColor`.
  */
-export const SECTION_TONES = ["auto", "light", "dark"] as const;
+export const SECTION_TONES = ["auto", "light", "dark", "custom"] as const;
+
+/**
+ * How round a section's own band is. Unset keeps the section's own corners —
+ * which for a full-width band means square, since a band running to the window
+ * edge has no corner to round.
+ */
+export const SECTION_RADII = ["none", "sm", "md", "lg"] as const;
+
+/** The darkest a background picture may be shaded, in percent. */
+export const MAX_OVERLAY = 80;
+
+/**
+ * A section's own name on the page, for a link to jump to — the move a landing
+ * page is built around, and the one thing the sticky order bar could do that no
+ * merchant could type. Lower case, digits and dashes, starting with a letter or
+ * digit, so it is a valid HTML id and a readable URL fragment.
+ */
+export const ANCHOR_PATTERN = "^[a-z0-9][a-z0-9-]{0,39}$";
+export const ANCHOR_MAX = 40;
 
 interface StyleFieldBase {
   /** Stored as `{ base, mobile? }` — the mobile value inherits base until set. */
@@ -63,8 +83,16 @@ export type StyleFieldSpec = StyleFieldBase &
     | { type: "number"; min: number; max: number; int?: boolean }
     | { type: "color" }
     | { type: "string"; pattern: string; max: number }
-    /** An object naming every edge, each edge a `SpacingStep` and each required. */
-    | { type: "spacing"; edges: readonly string[] }
+    /**
+     * An object of edges, each a `SpacingStep`. `edges` must all be present —
+     * a half-written side leaves the renderer guessing which edge was meant —
+     * while `optionalEdges` may be absent.
+     *
+     * ⚠ The split is not decoration. `inline` arrived after `top`/`bottom` had
+     * been saved on live pages; requiring it would have refused every one of
+     * them on its next save.
+     */
+    | { type: "spacing"; edges: readonly string[]; optionalEdges?: readonly string[] }
     /**
      * An object whose `kind` decides which of its other keys is read. `keys`
      * is the allowlist for those, so the validator has no hand-written list of
@@ -81,10 +109,18 @@ export type StyleFieldSpec = StyleFieldBase &
  */
 export const STYLE_BOX_SPEC = {
   background: { type: "background", kinds: BACKGROUND_KINDS, keys: ["kind", "color", "image"] },
-  padding: { type: "spacing", edges: ["top", "bottom"], responsive: true },
+  padding: { type: "spacing", edges: ["top", "bottom"], optionalEdges: ["inline"], responsive: true },
   width: { type: "enum", values: SECTION_WIDTHS },
   align: { type: "enum", values: SECTION_ALIGNS, responsive: true },
   textTone: { type: "enum", values: SECTION_TONES },
+  /** Read only when `textTone` is `custom`; kept otherwise, never erased. */
+  textColor: { type: "color" },
+  radius: { type: "enum", values: SECTION_RADII },
+  /** A hairline in the theme's own border colour, around the section's band. */
+  border: { type: "boolean" },
+  /** Percent of black over a background PICTURE. Nothing to shade without one. */
+  overlay: { type: "number", min: 0, max: MAX_OVERLAY, int: true },
+  anchor: { type: "string", pattern: ANCHOR_PATTERN, max: ANCHOR_MAX },
 } as const satisfies Record<string, StyleFieldSpec>;
 
 export type StyleBoxKey = keyof typeof STYLE_BOX_SPEC;

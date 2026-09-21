@@ -150,7 +150,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | Audit (§2) | 34 sections read against their renderers, the style box and the CSS | ✅ Done 2026-09-21 · re-read against `d3d2fdcd` 2026-09-21 (§7) |
 | 0 (§3) | One source for the style box; backend generated and shipped | 🟡 Code in, both repos green — **awaiting the owner's backend deploy** (step 6) |
 | 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, one doubled, two misnamed | 🟡 Built 2026-09-21; pixel comparison outstanding |
-| 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | ⬜ Not started |
+| 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | 🟡 Built 2026-09-21; backend deploy + pixel comparison outstanding |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | ⬜ Not started |
 | 4 (§3) | The row sections: subheading, columns per device, flow | ⬜ Not started |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | ⬜ Not started |
@@ -193,6 +193,7 @@ wrong per section.
 | **X8** | **No subheading on any row section.** Thirteen sections offer a heading and nothing under it. | `product-grid`, `product-carousel`, `selected-products`, `gallery`, `testimonials`, `benefits`, `faq`, `campaign-offers`, `shop-by-tag`, `collections-row`, `category-tiles`, `related-products`, `promises-band` |
 | **X9** | **No anchor on a section**, so a hero button cannot scroll to the order form further down the page — the core move of a landing page. The sticky bar reaches it through a private attribute no merchant can type. | `order-form-anchor.ts`; `isAllowedSectionUrl` (backend) refuses `#order` outright |
 | **X10** | **No custom spacing or width value** — five steps, three widths, nothing between. | `SPACING_STEPS`, `WIDTHS` |
+| **X13** | **Secondary text does not follow the section's tone**, and never did. Ten call sites draw `color: var(--muted)` on text sitting directly on the section's band, so a section set to `light` for a dark photograph keeps grey secondary text meant for a white page. Widening the tone to a custom colour makes it more visible but does not cause it. ⚠ Not fixed in Phase 2 and deliberately not half-fixed: overriding `--muted` inside the section would also repaint the cards that sit on `var(--card)` and carry their own colour on purpose (`testimonials`, `benefits`, `sticky-order-bar`). Found 2026-09-21 while implementing X6 (§7). | `image-text`, `call-to-action`, `how-to-order`, `order-form`, `offer-pricing` and `offer-price` — `color: "var(--muted)"` |
 | **X11** | **`call-to-action` offers two alignment controls for one question.** `SECTIONS_ALIGNING_THEMSELVES` names `hero` and nothing else, so the CTA shows its own Alignment on the Content tab *and* the Style tab's Text alignment. `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)`, so the precedence is already right — the section's own wins where given, the Style tab's applies where not — but both being offered means a merchant moving the Style tab's on a CTA that answers for itself sees nothing move. ⚠ Corrected 2026-09-21 from "three sections": see the note below. | `section-style-fields.tsx` → `SECTIONS_ALIGNING_THEMSELVES` (`hero` alone); `call-to-action.tsx` → `responsiveVars("sfb-cta-align", settings.align)` |
 | **X12** | **`collections-row` and `category-tiles` ask a different question in the same word.** Their `align` is **not** a duplicate of the Style tab's: a grid already spans the content column, so there is no row left to move and `GRID_ALIGN` places each tile **inside its own column**, while the Style tab's alignment moves the heading above it. Both were labelled "Alignment". Naming them apart is the whole fix; hiding either would take away a control that works. | `collection-tiles.tsx` → `GRID_ALIGN` and the comment above it; `category-tiles.tsx` → `settings.align ?? "left"` |
 
@@ -348,7 +349,9 @@ reading the diff — see Phase 7 step 3.
 
 ### Phase 2 — the style box grows
 
-**Status:** ⬜ Not started · **Needs Phase 0 in production.**
+**Status:** 🟡 Built 2026-09-21 on `feat/storefront-section-controls`; typecheck green and 317 tests
+across the touched suites. **Left:** the backend deploy (shared with Phase 0 — this branch carries both
+spec changes, so one deploy covers them) and the pixel comparison. · **Needs Phase 0 in production.**
 
 Six keys, added to `style-specs.ts`, `checkStyle` (via the generated spec), `section-style.ts`,
 `section-style-fields.tsx` and `storefront-builder.css`. Every one is optional; unset renders exactly as
@@ -366,7 +369,7 @@ align:    "left" | "center" | "right"           // widened, still responsive
 anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
 ```
 
-1. [ ] **X3 side padding.** `padding.inline`, responsive like its two neighbours, rendered as
+1. [x] **X3 side padding.** `padding.inline`, responsive like its two neighbours, rendered as
        `--sfb-pi` / `--sfb-pi-m` on `.sfb-inner`. ⚠ It must **compose with** the four
        `[data-width="full"] > .sfb-inner:has(…)` rules that drop the gutter today, not fight them: a
        merchant who sets side padding on a full-width banner is asking for exactly that gutter back.
@@ -376,32 +379,32 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
        incident): the `[data-frame-m]` desktop leak, the `:has(> .sf-hero-media)` floor ordering, the
        pictureless-card void column, and `[data-media-side="left"]` outweighing the collapse rule it
        had to lose to. Write the new rule where it can win on weight, not on document order.
-2. [ ] **X4 corners and border.** `--sfb-radius` and a `data-border` attribute on `.sfb-sec`. A
+2. [x] **X4 corners and border.** `--sfb-radius` and a `data-border` attribute on `.sfb-sec`. A
        full-width section keeps square corners (the banner already does this at
        `storefront-builder.css:259`); hide `radius` there through `field-visibility` rather than
        letting it store a value nothing draws.
-3. [ ] **X5 overlay.** `--sfb-overlay` painted by a `::before` over the background image, under the
+3. [x] **X5 overlay.** `--sfb-overlay` painted by a `::before` over the background image, under the
        content. **Visible only when `background.kind === "image"`** — register the rule; do not let it sit
        dead on a colour background.
-4. [ ] **X6 text colour.** Widen the tone control to four options and show the hex field only on
+4. [x] **X6 text colour.** Widen the tone control to four options and show the hex field only on
        `custom`. Reuse `BackgroundColour`'s "keep what is typed until it is a whole `#RRGGBB`" behaviour
        (`section-style-fields.tsx:123`) — the bug it fixes is the same one.
        ⚠ **Sections that draw through an island do not inherit it** (`campaign-offers`, `content-frame`,
        `product-cards`…): CSS `color` inherits, so a section whose island sets its own colour will not
        follow. List the offenders in the commit; fixing them is part of this step, not a follow-up.
-5. [ ] **X7 right alignment.** Widen the enum in `style-specs.ts`, the editor and `readAlign`, and
+5. [x] **X7 right alignment.** Widen the enum in `style-specs.ts`, the editor and `readAlign`, and
        **widen `call-to-action.align` to match in the same change** (Phase 1 deferred it here). Widening
        never invalidates a stored value, so no `v` moves — but it is a spec change in both files, so it
        regenerates the manifest and ships backend-first like any other.
        ⚠ `TITLE_JUSTIFY` in `section-style.ts` is a total `Record<Align, string>` on purpose: adding
        `right` to `SECTION_ALIGNS` fails to compile until it maps to `flex-end`. That is the gate, not a
        reminder.
-6. [ ] **X9 anchor.** `id` on the `<section>`, plus **both ends of the link path widened to accept
+6. [x] **X9 anchor.** `id` on the `<section>`, plus **both ends of the link path widened to accept
        `#anchor`**: `isAllowedSectionUrl` (backend, line 74) refuses it today, and `merchantLinkHref`
        would treat it as a store path. The editor's hint names the anchors already on the page.
-7. [ ] Editor: the Style tab keeps its shape — every new control gets "Section's own" as its unset
+7. [x] Editor: the Style tab keeps its shape — every new control gets "Section's own" as its unset
        choice, a hint that says where the value comes from, and a phone marker where it is responsive.
-8. [ ] Tests: each key round-trips through `sectionFrame`; an invalid value falls back rather than
+8. [x] Tests: each key round-trips through `sectionFrame`; an invalid value falls back rather than
        failing the section; `checkStyle` refuses an unknown key and each bad value; a hidden control
        keeps its stored value.
 
@@ -633,6 +636,28 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
   because `.sfb-split-media` is `object-fit: cover` with no control. Phase 3 gained `imageFit` and the
   re-migration that closes it. Worth noting for the rest of this plan: a control gap is cheap to argue
   about and expensive to discover on a live page.
+- **2026-09-21 — Phase 2 built. Three things the plan did not say:**
+  - **`padding.inline` had to be optional inside a required pair.** `top` and `bottom` are stored
+    together and every one of them is required once a side is given; `inline` arrived after live pages
+    had already saved that pair, so requiring it would have refused every one of them on its next save.
+    The spacing spec grew `optionalEdges` for exactly this, and `withPadding` had to stop treating "an
+    edge was cleared" as "drop the whole padding".
+  - **The overlay is switched by an attribute, not by its variable.** CSS cannot ask whether a custom
+    property was set, so a `::before` keyed on `--sfb-overlay` alone would paint a transparent layer —
+    and `isolation: isolate` plus a positioned `.sfb-inner` — over every section that has none. The
+    frame therefore reports `overlay` as well as emitting the value, and the element carries
+    `data-overlay`. Same trap as the hero plan's R2, in a new place.
+  - **Three of Phase 2's conditions live in the Style tab, not in `field-visibility`.** Radius at full
+    width, the overlay on a picture background, the colour box on the custom tone — all three turn on
+    the STYLE box, and `FieldScope` carries only `settings` and `blocks`. Rather than widen that
+    contract for three conditions, the tab renders them conditionally the way it already renders the
+    background colour and picture fields. ⚠ The radius one is paired with a real CSS override
+    (`.sfb-sec[data-width="full"] { border-radius: 0 }`), because hiding a control whose renderer still
+    drew something is the lie `field-visibility`'s rule 2 exists to prevent.
+  - **X6's warning about islands was half right.** `testimonials`, `benefits` and `sticky-order-bar` do
+    set their own `color` — but each sets `background: var(--card)` in the same breath, so a card on a
+    dark section must keep the theme's text colour rather than inherit the band's. They are correct as
+    they stand. The real gap is X13, and it is older than this plan.
 - **2026-09-21 — Phase 1 built, and X11 was two findings, not one.** The audit said three sections
   offered "two controls for one question". Reading the renderers says otherwise, and the difference
   matters enough to record:

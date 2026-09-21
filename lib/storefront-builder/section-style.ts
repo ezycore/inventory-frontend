@@ -3,7 +3,10 @@ import type { CSSProperties } from "react";
 import { responsiveVars } from "./responsive";
 import { readImage, type Responsive } from "./settings";
 import {
+  ANCHOR_PATTERN,
+  MAX_OVERLAY,
   SECTION_ALIGNS,
+  SECTION_RADII,
   SECTION_TONES,
   SECTION_WIDTHS,
   SPACING_STEPS,
@@ -36,13 +39,38 @@ const SPACING: Record<SpacingStep, string> = {
 
 export type SectionWidth = (typeof SECTION_WIDTHS)[number];
 export type SectionTone = (typeof SECTION_TONES)[number];
+export type SectionRadius = (typeof SECTION_RADII)[number];
 type Align = (typeof SECTION_ALIGNS)[number];
+
+/** Corner rounding, in the same fluid spirit as the spacing steps. */
+const RADIUS: Record<SectionRadius, string> = {
+  none: "0px",
+  sm: "8px",
+  md: "14px",
+  lg: "24px",
+};
 
 export interface SectionFrame {
   /** Custom properties for the section element. */
   style: CSSProperties;
   width: SectionWidth;
   tone: SectionTone;
+  /** A hairline around the section's band, when the merchant asked for one. */
+  border: boolean;
+  /**
+   * A shade over a background PICTURE, in percent.
+   *
+   * ⚠ Reported separately from `--sfb-overlay` because **CSS cannot ask whether
+   * a custom property was set** — the trap the hero plan's R2 records. The
+   * `::before` that paints it has to be switched on by an attribute, so the
+   * element carries `data-overlay` as well as the value.
+   */
+  overlay?: number;
+  /**
+   * The section's own name on the page, for a link to jump to. Rendered as the
+   * element's `id`, so it is also what `#anchor` in a merchant's link finds.
+   */
+  anchor?: string;
   /**
    * The merchant chose a width on the Style tab, rather than leaving the
    * section its own.
@@ -113,10 +141,12 @@ export interface FrameDefaults {
 const TITLE_JUSTIFY: Record<Align, string> = {
   left: "flex-start",
   center: "center",
+  right: "flex-end",
 };
 
 const DEFAULT_PADDING = { top: "md", bottom: "md" } as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+const ANCHOR = new RegExp(ANCHOR_PATTERN);
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -124,11 +154,20 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 const oneOf = <T extends string>(values: readonly T[], value: unknown): T | undefined =>
   typeof value === "string" && (values as readonly string[]).includes(value) ? (value as T) : undefined;
 
-const readPadding = (value: unknown): { top: SpacingStep; bottom: SpacingStep } | undefined => {
+interface Padding {
+  top: SpacingStep;
+  bottom: SpacingStep;
+  /** Added after top and bottom were already saved on live pages, so optional. */
+  inline?: SpacingStep;
+}
+
+const readPadding = (value: unknown): Padding | undefined => {
   if (!isPlainObject(value)) return undefined;
   const top = oneOf(SPACING_STEPS, value.top);
   const bottom = oneOf(SPACING_STEPS, value.bottom);
-  return top && bottom ? { top, bottom } : undefined;
+  if (!top || !bottom) return undefined;
+  const inline = oneOf(SPACING_STEPS, value.inline);
+  return inline ? { top, bottom, inline } : { top, bottom };
 };
 
 const readAlign = (value: unknown): Responsive<Align> | undefined => {
@@ -160,9 +199,23 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     vars["--sfb-pt"] = defaults.top;
     vars["--sfb-pb"] = defaults.bottom;
   }
+  // Side padding has no frame default to fall back to: a section that never
+  // asked for it keeps the inner column's own gutter, which is `--pad`.
+  if (base?.inline) vars["--sfb-pi"] = SPACING[base.inline];
   if (mobile) {
     vars["--sfb-pt-m"] = SPACING[mobile.top];
     vars["--sfb-pb-m"] = SPACING[mobile.bottom];
+    if (mobile.inline) vars["--sfb-pi-m"] = SPACING[mobile.inline];
+  }
+
+  const radius = oneOf(SECTION_RADII, style.radius);
+  if (radius) vars["--sfb-radius"] = RADIUS[radius];
+
+  const tone = oneOf(SECTION_TONES, style.textTone) ?? "auto";
+  // Read only on `custom`, and only when it is a whole colour — but kept in the
+  // stored box either way, so switching tone back and forth loses nothing.
+  if (tone === "custom" && typeof style.textColor === "string" && HEX_COLOR.test(style.textColor)) {
+    vars["--sfb-text"] = style.textColor;
   }
 
   const background = isPlainObject(style.background) ? style.background : {};
@@ -176,6 +229,18 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
   } else if (defaults?.band) {
     // An explicit "none" takes the band away; anything unset keeps it.
     vars["--sfb-bg"] = background.kind === "none" ? "transparent" : `var(--${defaults.band})`;
+  }
+
+  // Percent of black over a background PICTURE. A colour background has nothing
+  // to shade, and painting one anyway would darken a colour the merchant chose.
+  if (
+    background.kind === "image" &&
+    typeof style.overlay === "number" &&
+    Number.isInteger(style.overlay) &&
+    style.overlay > 0 &&
+    style.overlay <= MAX_OVERLAY
+  ) {
+    vars["--sfb-overlay"] = `${style.overlay}%`;
   }
 
   const align = readAlign(style.align);
@@ -196,7 +261,10 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
     width: defaults?.ownsWidth
       ? (defaults.width ?? "content")
       : (oneOf(SECTION_WIDTHS, style.width) ?? defaults?.width ?? "content"),
-    tone: oneOf(SECTION_TONES, style.textTone) ?? "auto",
+    tone,
+    border: style.border === true,
+    overlay: vars["--sfb-overlay"] ? Number(style.overlay) : undefined,
+    anchor: typeof style.anchor === "string" && ANCHOR.test(style.anchor) ? style.anchor : undefined,
     // A section that owns its width has no Width control to obey.
     styledWidth: !defaults?.ownsWidth && oneOf(SECTION_WIDTHS, style.width) !== undefined,
   };

@@ -14,6 +14,51 @@
   background-size: cover;
   background-position: center;
   text-align: var(--sfb-align, left);
+  border-radius: var(--sfb-radius, 0);
+}
+
+/* A band running to the window edge has no corner to round. The Style tab hides
+   the control here too (`field-visibility`), and this is the half that makes
+   that honest: the renderer really does ignore a stored radius at full width. */
+.sfb-sec[data-width="full"] {
+  border-radius: 0;
+}
+
+.sfb-sec[data-border] {
+  border: 1px solid var(--border);
+}
+
+/* A section a link can jump to clears the sticky header, the same offset the
+   order form has always used for the sticky bar's jump. */
+.sfb-sec[id] {
+  scroll-margin-top: calc(var(--sf-header-h, 0px) + 16px);
+}
+
+/*
+ * A shade over a background PICTURE, so dark type stays readable on a light
+ * photograph and light type on a dark one.
+ *
+ * ⚠ Switched by the ATTRIBUTE, not the variable: CSS cannot ask whether a
+ * custom property was set, so a `::before` keyed on `--sfb-overlay` alone would
+ * paint a transparent layer over every section that has none — and `isolate`
+ * plus a positioned `.sfb-inner` would then apply to all of them too.
+ */
+.sfb-sec[data-overlay] {
+  position: relative;
+  isolation: isolate;
+}
+
+.sfb-sec[data-overlay]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(0 0 0 / var(--sfb-overlay, 0%));
+  pointer-events: none;
+}
+
+.sfb-sec[data-overlay] > .sfb-inner {
+  position: relative;
 }
 
 /*
@@ -61,10 +106,17 @@
   color: #0f172a;
 }
 
+/* The merchant's own colour, when neither light nor dark is the answer. It
+   INHERITS, like the two tones above — which is why an island that paints its
+   own colour has to read it too rather than hardcoding one. */
+.sfb-sec[data-tone="custom"] {
+  color: var(--sfb-text, inherit);
+}
+
 .sfb-inner {
   max-width: var(--maxw);
   margin-inline: auto;
-  padding-inline: var(--pad);
+  padding-inline: var(--sfb-pi, var(--pad));
 }
 
 .sfb-sec[data-width="wide"] > .sfb-inner {
@@ -84,13 +136,13 @@
 
 /* A full-bleed hero in a full-width section runs to the window edge. */
 .sfb-sec[data-width="full"] > .sfb-inner:has(> .sf-hero-fullbleed) {
-  padding-inline: 0;
+  padding-inline: var(--sfb-pi, 0);
 }
 
 /* A content page's frame carries its own column and side padding (it is the
    storefront's `ContentFrame`), so the section must not add a second gutter. */
 .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-content-frame) {
-  padding-inline: 0;
+  padding-inline: var(--sfb-pi, 0);
 }
 
 /* A system page's core section draws a page the storefront already lays out —
@@ -99,7 +151,7 @@
    absorbs inside its max-width column and a phone shows as a visibly narrower
    page (caught by the pixel diff on phone alone). */
 .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-core) {
-  padding-inline: 0;
+  padding-inline: var(--sfb-pi, 0);
 }
 
 /* ---- Shared pieces sections draw with ---- */
@@ -289,7 +341,7 @@
 
 /* Full width runs the banner to the window edge, square-cornered. */
 .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-banner) {
-  padding-inline: 0;
+  padding-inline: var(--sfb-pi, 0);
 }
 
 .sfb-sec[data-width="full"] .sfb-banner-box {
@@ -350,6 +402,15 @@
 @media (max-width: 679px) {
   .sfb-title-row {
     justify-content: var(--sfb-title-justify-m, var(--sfb-title-justify, space-between));
+  }
+  .sfb-inner {
+    padding-inline: var(--sfb-pi-m, var(--sfb-pi, var(--pad)));
+  }
+  .sfb-sec[data-width="full"] > .sfb-inner:has(> .sf-hero-fullbleed),
+  .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-content-frame),
+  .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-core),
+  .sfb-sec[data-width="full"] > .sfb-inner:has(> .sfb-banner) {
+    padding-inline: var(--sfb-pi-m, var(--sfb-pi, 0));
   }
   .sfb-cta {
     text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
