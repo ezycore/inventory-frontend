@@ -11,6 +11,12 @@ import { Icon } from "@/components/storefront/sf-icons";
  * Shared by `HeroSlidesView` and `HeroFullBleedView` so the two cannot disagree
  * about what an arrow looks like, the way their dots still do.
  *
+ * **The chevron is the whole control** — no pill, no disc, no plate. The button
+ * is a transparent 44px tap target around it, the same shape `.sf-hero-dot`
+ * takes and for the same reason; what makes the glyph legible on a photograph
+ * is a halo rather than a background. The rules are beside `.sf-hero-arrow` in
+ * storefront.css.
+ *
  * ⚠ **Drawn on phones too**, unlike the category strip's arrows, which a
  * `(hover: hover)` query hides because a touch device scrolls that row by
  * swiping. A hero is different in the one way that matters: these are here
@@ -32,7 +38,7 @@ export function HeroNav({ onPrevious, onNext }: { onPrevious: () => void; onNext
         aria-label={t.previousSlide}
         onClick={onPrevious}
       >
-        <Icon name="back" size={18} />
+        <Icon name="back" size={22} />
       </button>
       <button
         type="button"
@@ -41,7 +47,7 @@ export function HeroNav({ onPrevious, onNext }: { onPrevious: () => void; onNext
         aria-label={t.nextSlide}
         onClick={onNext}
       >
-        <Icon name="chevR" size={18} />
+        <Icon name="chevR" size={22} />
       </button>
     </>
   );
