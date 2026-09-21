@@ -2887,6 +2887,28 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
       "copy"
       "trust";
   }
+  /* ⚠ **The same collapse, for the other side** — a card with a photograph and
+     nothing to say. `heroHasCopy` drops the copy child on an image-only slide,
+     which is what both live merchants' hero banners are, and without this the
+     `copy` column keeps its track and the picture renders in half a card,
+     letterboxed on its blurred fill. That shipped on 2026-09-21 and was rolled
+     back; see `docs/plan/storefront-builder.md` §17.
+
+     The ratio and the padding go with it. A card that is only a photograph IS
+     the banner, so it takes the frame the rotating hero drew before this one
+     replaced it — 5:2 for the 1600 × 640 the editor recommends, edge to edge,
+     with the same short-viewport cap. The phone needs none of this: the base
+     rule is already 16:9 and unpadded, which is exactly what the old carousel's
+     own phone block drew. */
+  .sf-herocard:not(:has(> .sf-herocard-copy)) {
+    --herocard-ratio: 5 / 2;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "media"
+      "trust";
+    padding: 0;
+    max-height: 70svh;
+  }
   /* Picture on the left. Redeclaring the AREAS is what moves it — reordering
      the children would break the `:has()` collapse above, which needs the media
      child to stay the third one.
@@ -2905,7 +2927,13 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      nothing in the first: the void that rule exists to prevent. The placement
      attribute sits on the root whatever the slide carries, and a rotating hero
      whose second slide has no picture reaches it mid-rotation. */
-  .sf-herocard[data-media-side="left"]:has(> .sf-herocard-media) {
+  /* ⚠ `:has(> .sf-herocard-copy)` is load-bearing for the same reason the media
+     half is: this rule weighs (0,3,0) and is written AFTER the copy-collapse
+     rule's (0,2,0), so on an image-only slide it would win and name a `copy`
+     area that has no child — two columns again, one of them void. Requiring
+     both children is what keeps placement a question only a card with both
+     sides can answer. */
+  .sf-herocard[data-media-side="left"]:has(> .sf-herocard-media):has(> .sf-herocard-copy) {
     grid-template-columns: 1fr 1.1fr;
     grid-template-areas:
       "media copy"
