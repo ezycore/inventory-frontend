@@ -43,6 +43,9 @@ import type {
 } from "@/lib/storefront-client";
 import { CampaignHeader } from "@/components/storefront/campaign/campaign-header";
 import { brandButton } from "@/lib/storefront-button";
+import { responsiveClasses, responsiveVars } from "@/lib/storefront-builder/responsive";
+import type { Responsive } from "@/lib/storefront-builder/settings";
+import { sectionCardLook, type CardLookSettings } from "@/lib/storefront-builder/card-media";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -77,6 +80,8 @@ function CollectionInner({
   crumbs,
   layout,
   pagination: paginationChoice,
+  cards,
+  header,
 }: {
   initialProducts?: ProductListResult;
   initialPage: number;
@@ -86,6 +91,8 @@ function CollectionInner({
   crumbs?: Crumb[];
   layout?: string;
   pagination?: string;
+  cards?: CollectionCards;
+  header?: CollectionHeader;
 }) {
   const { slug, base } = useStoreContext();
   const { t } = useStorefrontUI();
@@ -156,12 +163,18 @@ function CollectionInner({
   // The narrowest active facet names the page: a chosen sub-category is what the
   // shopper is actually looking at, so it beats its own parent.
   const heading =
-    collection?.name ??
+    /* The merchant's own words win — and name EVERY collection, which is what
+       the control's hint warns before they type. Trimmed, so a heading of
+       spaces is no heading: the same treatment `campaign-offers` gives its own. */
+    header?.heading?.trim() ||
+    collection?.name ||
     (facets.activeBrand && !facets.activeCategory
       ? facets.activeBrand.name
       : (facets.activeSubcategory?.name ??
         facets.activeCategory?.name ??
         t.allProducts));
+  const subheading =
+    campaign || header?.hideHeading ? undefined : header?.subheading?.trim() || undefined;
   const panel = (
     <FilterPanel
       categories={facets.categories}
@@ -175,12 +188,23 @@ function CollectionInner({
     />
   );
 
-  const gridClass = variant === "grid3" || variant === "sidebar" ? "sf-grid-3" : "sf-grid-4";
   const grid = (
-    <div className={gridClass} style={{ alignContent: "start" }}>
+    <div
+      className={gridClass(variant, cards?.columns)}
+      style={{ alignContent: "start", ...responsiveVars("sfb-cols", cards?.columns) }}
+      {...sectionCardLook(cards?.look ?? {})}
+    >
       {isLoading
         ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
-        : items.map((p) => <ProductCard key={p._id} product={p} currency={currency} />)}
+        : items.map((p) => (
+            <ProductCard
+              key={p._id}
+              product={p}
+              currency={currency}
+              imageFit={cards?.imageFit}
+              imageRatio={cards?.imageRatio}
+            />
+          ))}
     </div>
   );
 
@@ -196,15 +220,27 @@ function CollectionInner({
         <CampaignHeader campaign={campaign} currency={currency} t={t} />
       ) : null}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
+        {/* A campaign page's banner IS its heading, so neither the title nor the
+            merchant's override belongs here — `campaign-main` has no heading
+            setting to give one, and this branch predates both. */}
         <div>
-          {campaign ? null : (
+          {campaign || header?.hideHeading ? null : (
             <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
               {heading}
             </h1>
           )}
-          <span style={{ fontSize: 13, color: "var(--muted)" }}>
-            {total} {t.results}
-          </span>
+          {/* "A line under the heading" — with no heading there is nothing to
+              sit under, so it goes with it rather than floating alone. */}
+          {subheading ? (
+            <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "0 0 5px", maxWidth: "62ch" }}>
+              {subheading}
+            </p>
+          ) : null}
+          {header?.hideCount ? null : (
+            <span style={{ fontSize: 13, color: "var(--muted)" }}>
+              {total} {t.results}
+            </span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
           <FiltersButton
@@ -292,6 +328,8 @@ export function CollectionPageView({
   crumbs,
   layout,
   pagination,
+  cards,
+  header,
 }: {
   initialProducts?: ProductListResult;
   /**
@@ -320,6 +358,10 @@ export function CollectionPageView({
    */
   layout?: string;
   pagination?: string;
+  /** That section's cards: how many to a line, and the photo they are drawn in. */
+  cards?: CollectionCards;
+  /** That section's words above the grid. */
+  header?: CollectionHeader;
 }) {
   const { t } = useStorefrontUI();
   return (
@@ -333,7 +375,60 @@ export function CollectionPageView({
         crumbs={crumbs}
         layout={layout}
         pagination={pagination}
+        cards={cards}
+        header={header}
       />
     </Suspense>
   );
+}
+
+/**
+ * What the `collection-grid` section says about the cards, resolved to values
+ * the page can use. Absent on the classic collection route and on a campaign
+ * page, both of which keep following the store.
+ */
+/**
+ * The `collection-grid` section's words above the grid. Absent on the classic
+ * route and on a campaign page, which draws its banner instead.
+ */
+export interface CollectionHeader {
+  /** Replaces the collection's own name — on every collection page. */
+  heading?: string;
+  subheading?: string;
+  hideHeading?: boolean;
+  hideCount?: boolean;
+}
+
+export interface CollectionCards {
+  /** Cards to a line, per screen — over whatever `layout` implies. */
+  columns?: Responsive<number>;
+  imageFit?: "cover" | "canvas";
+  imageRatio?: string;
+  /**
+   * The cards' corners and button fill.
+   *
+   * ⚠ On the GRID, not on the page wrapper: the attributes redefine
+   * `--radius-md` and the `--btn-*` group for their whole subtree, and this
+   * page carries a filter toolbar, chips and a pager that are not cards.
+   */
+  look?: CardLookSettings;
+}
+
+/**
+ * The grid's classes.
+ *
+ * With no count of the merchant's own this is exactly what it always was: the
+ * narrow grid for the three-column and sidebar layouts, the wide one otherwise.
+ *
+ * With a count, the LAYOUT's class still decides which grid draws — a sidebar
+ * page keeps its rail and its narrow grid — and the column classes only
+ * redirect the count each screen reads. `.sf-grid-3` gained a `--colcols3`
+ * fallback for exactly this, so switching the class was never necessary: doing
+ * that would have moved a phone-only answer's DESKTOP from three cards to four,
+ * which is the screen the merchant did not touch.
+ */
+function gridClass(variant: string, columns?: Responsive<number>): string {
+  const base = variant === "grid3" || variant === "sidebar" ? "sf-grid-3" : "sf-grid-4";
+  const own = responsiveClasses("sfb-cols", columns);
+  return own ? `${base} ${own}` : base;
 }

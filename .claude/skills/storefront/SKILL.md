@@ -3203,8 +3203,11 @@ cached entry on the `/sites` route (see "Cached store pages").
   otherwise draws under it. Three rules live there: an arrow shows only when that direction can
   actually move (measured with `ResizeObserver` + `onScroll` via the tested `stripEdges`, never from
   a tile count — the same four categories overflow or don't depending on the window); the arrows are
-  **pointer-only**, the inverse of `.sf-deals-controls`, because a phone swipes natively and two
-  36px buttons would cover the two tiles a 360px screen shows; and one press moves ~80% of the track
+  **pointer-only AND desktop-width-only** (`(hover: hover) and (pointer: fine)`, then a
+  `max-width: 679px` rule that hides them again), the inverse of `.sf-deals-controls`, because a phone
+  swipes natively and two 36px buttons would cover the two tiles a 360px screen shows — the width half
+  was added 2026-09-22 because the page editor's phone preview is a 390px frame inside a desktop
+  Chrome, where `pointer: fine` still matches, so merchants were shown arrows their shoppers never get; and one press moves ~80% of the track
   (`stripStep`), not one tile. **The phone gets the carousel instead of the arrows** (2026-08-25):
   the track snaps `x mandatory` so a flick settles flush rather than stopping with a tile cut in half,
   and `.sf-chip-row` widens the chip to `100%/2.5 - gap`, i.e. two whole tiles and half of a third on

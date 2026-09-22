@@ -13,11 +13,20 @@ import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout"
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 
-/** Coupon field + apply button. */
+/**
+ * Coupon field + apply button.
+ *
+ * `sf-coupon-row` is what the checkout page's `sf-nocoupon-d` / `sf-nocoupon-m`
+ * wrapper hides, per screen — the merchant's "Hide the coupon field" control.
+ * It is a hook for that rule and nothing else, so it carries no styling of its
+ * own; the row keeps its inline layout. All four checkout layouts and the
+ * landing-page order form draw this one component, which is why the class can
+ * live here rather than being repeated at five call sites.
+ */
 export function CouponRow({ api }: { api: CheckoutApi }) {
   const { t, coupon, setCoupon, applyCoupon, applying } = api;
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+    <div className="sf-coupon-row" style={{ display: "flex", gap: 8, marginBottom: 14 }}>
       <input
         style={{ ...input, padding: "10px 12px" }}
         placeholder={t.coupon}

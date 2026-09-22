@@ -55,6 +55,20 @@ const categories = [
   { _id: ID(12), name: "Audio", slug: "audio", slugPath: "audio" },
 ] as CatalogCategory[];
 
+/** The same two collections, photographed and described. */
+const photographed = [
+  {
+    ...categories[0],
+    description: "Every handset we carry",
+    image: { url: "https://cdn.test/phones.webp" },
+  },
+  {
+    ...categories[1],
+    description: "Speakers and headphones",
+    image: { url: "https://cdn.test/audio.webp" },
+  },
+] as CatalogCategory[];
+
 const campaigns = [
   { _id: "c1", name: "Eid sale", type: "percentage", value: 10, scope: "storewide" },
   { _id: "c2", name: "", type: "fixed", value: 50, scope: "storewide" },
@@ -249,6 +263,99 @@ describe("category-tiles", () => {
     ]);
     const island = container.querySelector('[data-island="category-strip"]') as HTMLElement;
     expect(hrefs(island)).toEqual(["/shop/phones/cases", "/shop/audio"]);
+  });
+
+  /* A photographed, described catalogue — the only one where the tile's photo
+     box exists at all. Without pictures the row falls to its compact lettered
+     shape, which reserves no slot for a shape or a corner to apply to. */
+  const shot = { categories: photographed };
+
+  it("gives the photo box the shape the merchant picked, per screen", () => {
+    const { container } = renderPage(
+      [section("t1", "category-tiles", { tileRatio: { base: "16:9", mobile: "1:1" } })],
+      {},
+      shot,
+    );
+    const wrap = container.querySelector('[style*="--sfb-tile-ratio"]') as HTMLElement;
+    expect(wrap.style.getPropertyValue("--sfb-tile-ratio")).toBe("16 / 9");
+    expect(wrap.style.getPropertyValue("--sfb-tile-ratio-m")).toBe("1 / 1");
+    /* ⚠ The regression this pair guards: the variable was emitted and the tile
+       drew a literal `1 / 1`, so every shape but Square was inert. The box has
+       to READ it, with its own mode's shape as the fallback. */
+    const photo = container.querySelector(".sf-media-cover") as HTMLElement;
+    expect(photo.style.aspectRatio).toBe("var(--sfb-tile-ratio, 1 / 1)");
+  });
+
+  it("leaves the shape variable unset, and the tile square, when nobody asked", () => {
+    const { container } = renderPage([section("t1", "category-tiles", {})], {}, shot);
+    const wrap = container.querySelector(".sf-cat-tiles")?.parentElement as HTMLElement;
+    expect(wrap.style.getPropertyValue("--sfb-tile-ratio")).toBe("");
+    expect(wrap.style.getPropertyValue("--sfb-tile-radius")).toBe("");
+  });
+
+  it("rounds every box of the tile from one corner setting", () => {
+    const { container } = renderPage([section("t1", "category-tiles", { radius: 0 })], {}, shot);
+    const wrap = container.querySelector(".sf-cat-tiles")?.parentElement as HTMLElement;
+    expect(wrap.style.getPropertyValue("--sfb-tile-radius")).toBe("0px");
+    const card = container.querySelector(".sf-cat-tiles > a") as HTMLElement;
+    expect(card.style.borderRadius).toBe("var(--sfb-tile-radius, var(--radius-lg))");
+    const photo = container.querySelector(".sf-media-cover") as HTMLElement;
+    expect(photo.style.borderRadius).toBe("var(--sfb-tile-radius, var(--radius-md))");
+  });
+
+  it("draws the collection's own sentence, and drops it when asked", () => {
+    const { container } = renderPage([section("t1", "category-tiles", {})], {}, shot);
+    expect(container.textContent).toContain("Every handset we carry");
+
+    const hidden = renderPage(
+      [section("t1", "category-tiles", { hideDescription: true })],
+      {},
+      shot,
+    );
+    expect(hidden.container.textContent).toContain("Phones");
+    expect(hidden.container.textContent).not.toContain("Every handset we carry");
+  });
+
+  it("lets a fully photographed round row drop its captions", () => {
+    const { container } = renderPage(
+      [section("t1", "category-tiles", { mode: "circle", showLabels: false })],
+      {},
+      shot,
+    );
+    const tiles = [...container.querySelectorAll(".sf-cat-tiles > a")];
+    expect(tiles.map((t) => t.textContent)).toEqual(["", ""]);
+    // The picture is the whole tile, so the link carries the name for a reader.
+    expect(tiles.map((t) => t.getAttribute("aria-label"))).toEqual(["Phones", "Audio"]);
+  });
+
+  it("keeps a round row's names while any collection has no picture", () => {
+    /* `categoryLabelsVisible`: pictures-only needs EVERY listed collection
+       photographed, or the unphotographed ones become unexplained initials.
+       The rule the editor cannot enforce, because it cannot see the store. */
+    const { container } = renderPage(
+      [section("t1", "category-tiles", { mode: "circle", showLabels: false })],
+      {},
+      { categories: [photographed[0], categories[1]] as CatalogCategory[] },
+    );
+    expect(container.textContent).toContain("Phones");
+    expect(container.textContent).toContain("Audio");
+  });
+
+  it("passes the arrow switch to the strip, and nothing when unset", () => {
+    const off = renderPage(
+      [section("t1", "category-tiles", { layout: "strip", arrows: false })],
+      {},
+      shot,
+    );
+    expect(
+      off.container.querySelector('[data-island="category-strip"]')?.getAttribute("data-arrows"),
+    ).toBe("false");
+
+    // Unset stays unset, so `CategoryStrip`'s own `arrows = true` decides.
+    const plain = renderPage([section("t1", "category-tiles", { layout: "strip" })], {}, shot);
+    expect(
+      plain.container.querySelector('[data-island="category-strip"]')?.getAttribute("data-arrows"),
+    ).toBeNull();
   });
 });
 

@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { Monitor, Moon, Smartphone, Sun } from "lucide-react";
+import { Monitor, Moon, ShoppingCart, Smartphone, Sun } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
 import { DESKTOP_PREVIEW_WIDTH } from "@/components/ecommerce/customize/use-preview-scale";
 import type { PreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
@@ -88,6 +88,42 @@ export function PreviewThemeToggle({
       className={cn(previewToolbarButton, dark && "bg-muted text-foreground")}
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
+/**
+ * Sample cart on / off, above the preview of a cart or checkout page.
+ *
+ * Those two pages draw the shopper's basket, and in the editor that basket is
+ * empty — so without a sample the merchant previews an empty-cart message and
+ * neither the layout they are choosing nor the sections they put around it. The
+ * sample is therefore the default, and this button is how they reach the empty
+ * state, which shoppers see too and which is equally theirs to design.
+ *
+ * One pressed-state icon rather than a labelled segmented control: it sits in a
+ * toolbar that already carries three controls and must still fit a phone. What
+ * the sample is gets said inside the frame, where the sample is
+ * (`PreviewCartNotice`), which is the only place it cannot be missed.
+ */
+export function PreviewCartToggle({
+  filled,
+  onChange,
+}: {
+  filled: boolean;
+  onChange: (filled: boolean) => void;
+}) {
+  const label = filled ? "Preview the empty cart" : "Preview with a sample cart";
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!filled)}
+      aria-label={label}
+      aria-pressed={filled}
+      title={label}
+      className={cn(previewToolbarButton, filled && "bg-muted text-foreground")}
+    >
+      <ShoppingCart className="h-4 w-4" />
     </button>
   );
 }

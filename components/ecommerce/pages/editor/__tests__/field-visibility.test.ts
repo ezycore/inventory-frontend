@@ -68,6 +68,19 @@ describe("field visibility", () => {
     expect(saved.style).toEqual({ width: "content" });
   });
 
+  it("hides the Style tab's Corners on a full-bleed hero, which draws at full width", () => {
+    // Its frame carries `ownsWidth` with `width: "full"`, and
+    // `.sfb-sec[data-width="full"]` zeroes the radius — so a stored one is
+    // thrown away. The editor's own `widthOf(style) === "full"` test cannot see
+    // that: the width being full comes from the frame, never from the box.
+    const scopeOf = (layout: string) => ({ settings: { layout }, blocks: [] });
+    expect(isFieldVisible("style.radius", "hero", scopeOf("full-bleed"))).toBe(false);
+    expect(isFieldVisible("style.radius", "hero", scopeOf("card"))).toBe(true);
+    expect(isFieldVisible("style.radius", "hero", scopeOf("open"))).toBe(true);
+    // Every other section keeps it — the rule is the hero's, not a global one.
+    expect(isFieldVisible("style.radius", "rich-text", { settings: {}, blocks: [] })).toBe(true);
+  });
+
   it("offers the picture's placement only where there is a picture to place", () => {
     const withPhoto = [{ image: { url: "/a.jpg" } }];
     const phoneOnly = [{ mobileImage: { url: "/a.jpg" } }];
@@ -235,15 +248,34 @@ describe("field visibility", () => {
       expect(tiles({ layout: "strip" })("align")).toBe(true);
     });
 
-    it("drops pictures-only for the two modes that have no picture to hide behind", () => {
-      // `disc` always draws names; `circle` does too by either route — with
-      // photographs it is `circle`, without them `compact`, and both win.
+    it("drops pictures-only for the one mode that has no picture to hide behind", () => {
+      // `disc` is a strip of lettered initials by definition, and the row
+      // forces its names on — an initial with no name under it names nothing.
       expect(tiles({ mode: "disc" })("showLabels")).toBe(false);
-      expect(tiles({ mode: "circle" })("showLabels")).toBe(false);
+      // The three PHOTO shapes all answer it, `circle` included (2026-09-22).
+      expect(tiles({ mode: "circle" })("showLabels")).toBe(true);
       expect(tiles({ mode: "tile" })("showLabels")).toBe(true);
       expect(tiles({ mode: "overlay" })("showLabels")).toBe(true);
       // Unset IS tile, so it must behave like the explicit one.
       expect(tiles({})("showLabels")).toBe(true);
+    });
+
+    it("offers a shape, a corner and the sentence only where the tile draws one", () => {
+      for (const field of ["tileRatio", "radius"]) {
+        // The two letter/round shapes hard-code their box: a disc has no photo
+        // slot, and a circle is 1:1 behind `border-radius: 999px`.
+        expect(tiles({ mode: "disc" })(field)).toBe(false);
+        expect(tiles({ mode: "circle" })(field)).toBe(false);
+        expect(tiles({ mode: "tile" })(field)).toBe(true);
+        expect(tiles({ mode: "overlay" })(field)).toBe(true);
+        expect(tiles({})(field)).toBe(true); // unset IS tile
+      }
+      // Only `tile` (and its compact fallback) draws the collection's sentence.
+      expect(tiles({ mode: "tile" })("hideDescription")).toBe(true);
+      expect(tiles({})("hideDescription")).toBe(true);
+      for (const mode of ["overlay", "disc", "circle"]) {
+        expect(tiles({ mode })("hideDescription")).toBe(false);
+      }
     });
 
     it("keeps every hidden value through a save", () => {
@@ -385,6 +417,74 @@ describe("field visibility", () => {
       };
       const [saved] = savableSections([section]);
       expect(saved.settings).toEqual(section.settings);
+    });
+  });
+
+  describe("collection-grid", () => {
+    const shown = (settings: Record<string, unknown>, field: string) =>
+      isFieldVisible(field, "collection-grid", scope(settings, []));
+
+    it("offers the words while the page draws a heading", () => {
+      expect(shown({}, "heading")).toBe(true);
+      expect(shown({ hideHeading: false }, "subheading")).toBe(true);
+    });
+
+    it("takes the heading and its line away together", () => {
+      // `CollectionInner` skips both when the title goes — a line under a
+      // heading that is not drawn has nothing to sit under.
+      expect(shown({ hideHeading: true }, "heading")).toBe(false);
+      expect(shown({ hideHeading: true }, "subheading")).toBe(false);
+    });
+
+    it("keeps the count switch and the card controls, which are separate questions", () => {
+      for (const field of ["hideCount", "columns", "cardImageRatio", "layout"]) {
+        expect(shown({ hideHeading: true }, field)).toBe(true);
+      }
+    });
+
+    it("leaves every other section's heading alone", () => {
+      // A bare `heading` rule would have hidden thirteen sections' headings the
+      // moment any of them stored a `hideHeading` — the `shop-by-tag` trap.
+      expect(isFieldVisible("heading", "product-grid", scope({ hideHeading: true }, []))).toBe(true);
+    });
+  });
+
+  describe("product-main", () => {
+    const shape = (settings: Record<string, unknown>, field: string) =>
+      isFieldVisible(field, "product-main", scope(settings, []));
+
+    const rowFields = ["relatedLimit", "relatedColumns", "cardImageRatio", "cardImageFit"];
+
+    it("offers the related row's four controls while the row is drawn", () => {
+      for (const field of rowFields) {
+        expect(shape({}, field)).toBe(true);
+        expect(shape({ hideRelated: false }, field)).toBe(true);
+      }
+    });
+
+    it("takes all four away with the row itself", () => {
+      // `ProductPageView` skips the whole block — heading, grid and cards — so
+      // a count, a column number and a card photo describe nothing that is on
+      // the page.
+      for (const field of rowFields) {
+        expect(shape({ hideRelated: true }, field)).toBe(false);
+      }
+    });
+
+    it("keeps the BIG photo's controls whatever the row does", () => {
+      // The trap of putting two photo pairs on one section: hiding the related
+      // row must not take the product's own photo settings with it.
+      for (const field of ["imageRatio", "imageFit", "layout", "hideDescription"]) {
+        expect(shape({ hideRelated: true }, field)).toBe(true);
+      }
+    });
+
+    it("leaves the Related products SECTION's identical settings alone", () => {
+      // It draws its own row; hiding the built-in one is how a merchant reaches
+      // for it in the first place.
+      for (const field of ["limit", "columns", "cardImageRatio", "cardImageFit"]) {
+        expect(isFieldVisible(field, "related-products", scope({ hideRelated: true }, []))).toBe(true);
+      }
     });
   });
 
@@ -566,14 +666,22 @@ describe("field visibility", () => {
     // the one exception is called out where it sits.
     expect(VISIBILITY_RULE_KEYS.sort()).toEqual(
       [
+        "collection-grid.heading",
+        "collection-grid.subheading",
         "collections-row.align",
         "collections-row.columns",
         "collections-row.layout",
         "collections-row.mobileColumns",
         "collections-row.showLabels",
+        "collections-row.arrows",
+        "collections-row.radius",
         "category-tiles.columns",
         "category-tiles.mobileColumns",
         "category-tiles.showLabels",
+        "category-tiles.arrows",
+        "category-tiles.hideDescription",
+        "category-tiles.radius",
+        "category-tiles.tileRatio",
         "category-promo-cards.arrows",
         "category-promo-cards.side",
         "category-promo-cards.split",
@@ -599,6 +707,7 @@ describe("field visibility", () => {
         "hero.slideshow",
         "hero.storeWords",
         "call-to-action.style.align",
+        "hero.style.radius",
         "hero.style.width",
         "product-carousel.categoryId",
         "product-carousel.productIds",
@@ -607,6 +716,13 @@ describe("field visibility", () => {
         "product-grid.productIds",
         "product-grid.tagIds",
         "product-grid.wholeRows",
+        /* The four settings of a related row the merchant has switched off.
+           The big photo's own shape and fit are NOT here: they describe the
+           product, which is on the page either way. */
+        "product-main.cardImageFit",
+        "product-main.cardImageRatio",
+        "product-main.relatedColumns",
+        "product-main.relatedLimit",
         "promises-band.blocks",
         "selected-products.categoryId",
         "selected-products.productIds",

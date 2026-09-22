@@ -770,17 +770,51 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-shell[data-button-shape="rounded"] { --btn-radius: 12px; }
 .sf-shell[data-button-shape="pill"] { --btn-radius: 999px; }
 
-.sf-shell[data-button-style="outline"] {
+/* ⚠ **`[data-card-buttons]` is the SAME decision at a smaller scope** — a
+   Storefront Builder product section answering for its own cards
+   (`CARD_LOOK` → `sectionCardLook`). It shares these rules rather than
+   repeating them: one definition of what Outline and Soft mean, whether the
+   merchant sets it for the shop or for one row. The section writes the
+   attribute on its own wrapper, so the tokens are redefined for its subtree and
+   the shell's stay untouched everywhere else.
+
+   `solid` needs a rule of its own where the store-wide control does not: for
+   the shop, Solid is the ABSENCE of these tokens, but a section asking for
+   Solid inside an Outline shop has something to undo. */
+.sf-shell[data-button-style="solid"],
+[data-card-buttons="solid"] {
+  --btn-bg: var(--primary);
+  --btn-fg: var(--on-primary);
+  --btn-ring: none;
+  --btn-bg-hover: var(--primary-hover, var(--primary));
+}
+.sf-shell[data-button-style="outline"],
+[data-card-buttons="outline"] {
   --btn-bg: transparent;
   --btn-fg: var(--primary);
   --btn-ring: inset 0 0 0 1.5px var(--primary);
   --btn-bg-hover: var(--primary-soft);
 }
-.sf-shell[data-button-style="soft"] {
+.sf-shell[data-button-style="soft"],
+[data-card-buttons="soft"] {
   --btn-bg: var(--primary-soft);
   --btn-fg: var(--primary);
+  --btn-ring: none;
   --btn-bg-hover: color-mix(in srgb, var(--primary) 20%, transparent);
 }
+
+/* A product section's own card corners (`CARD_LOOK` → `sectionCardLook`). The
+   three values are `--radius-md` at the store's own Sharp / Soft / Round steps,
+   so a row set to Round looks exactly like a shop set to Round — one scale, two
+   scopes. Only `md` is touched: `sm` is the controls step and `lg` is for
+   panels, and neither is what "how round are these cards" asks.
+
+   The store's scale is on `.sf-shell` and this is on a section inside it, so
+   the two never contend — the nearer element simply redefines the token for its
+   own subtree. */
+[data-card-corners="sharp"] { --radius-md: 4px; }
+[data-card-corners="soft"] { --radius-md: 12px; }
+[data-card-corners="round"] { --radius-md: 18px; }
 
 .sf-shell[data-button-size="sm"] { --btn-scale: 0.88; }
 .sf-shell[data-button-size="lg"] { --btn-scale: 1.14; }
@@ -969,9 +1003,37 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
+/*
+ * The merchant's "Hide the coupon field" control (`checkout-form.hideCoupon`),
+ * one class per screen, because the server renders one HTML for both and cannot
+ * know which is asking. Same shape as `sf-banner-card--notext-d/-m`.
+ *
+ * ⚠ Mobile-first, like the rest of this stylesheet: the phone rule sits in the
+ * `max-width` block below and the desktop rule in the `min-width` block, so
+ * neither has to out-specify the other. Hiding on BOTH screens is allowed — it
+ * is how a merchant who runs no coupons at all takes the field off entirely,
+ * and it still costs nothing on the wire because the row is one input.
+ *
+ * ⚠ **`!important` is load-bearing, exactly as it is on `.sf-desktop-only`
+ * below.** `CouponRow` sets `display: flex` as an INLINE style, and an inline
+ * declaration beats any author stylesheet — so the first version of this rule
+ * was written, shipped and verified as "the class is applied", and the coupon
+ * box stayed on screen anyway. Moving the row's layout into a class instead
+ * would work too, but it would restyle the landing page's order form, which
+ * draws the same component.
+ */
+@media (min-width: 680px) {
+  .sf-nocoupon-d .sf-coupon-row {
+    display: none !important;
+  }
+}
+
 /* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */
 @media (max-width: 679px) {
   .sf-desktop-only {
+    display: none !important;
+  }
+  .sf-nocoupon-m .sf-coupon-row {
     display: none !important;
   }
   /* Reserve room for the fixed bottom nav so the footer/last content clears it.
@@ -1598,14 +1660,24 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   gap: var(--gap);
   grid-template-columns: repeat(var(--colcols), minmax(0, 1fr));
 }
+/* Two counts of its own, and both are now a FALLBACK: `--colcols3` is what a
+   collection page's own column setting writes over them (`.sfb-cols` in
+   storefront-builder.css, per screen). Nothing else emits that variable, so a
+   page that sets no count renders the same 2 and 3 this grid has always drawn —
+   the `var(…, <today's value>)` technique the builder plan's §0.3 sets out for a
+   renderer shared with the classic pages.
+
+   ⚠ The variable is `--colcols3`, not `--colcols`: `.sf-grid-4` reads that one,
+   and a single name would mean a count set on one layout silently following the
+   merchant into the other. */
 .sf-grid-3 {
   display: grid;
   gap: var(--gap);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--colcols3, 2), minmax(0, 1fr));
 }
 @media (min-width: 680px) {
   .sf-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--colcols3, 3), minmax(0, 1fr));
   }
 }
 
@@ -1753,6 +1825,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
   .sf-cat-strip-arrow[data-edge="end"] {
     right: -6px;
+  }
+}
+/* ⚠ **Phone WIDTH, on top of the pointer test above.** The pointer rule is the
+   real one — a touchscreen swipes and has no cursor to land on a 36px button —
+   but it answers about the DEVICE, and two screens that are not a phone ask the
+   same question: the page editor's phone preview (a 390px frame inside a desktop
+   Chrome, where `pointer: fine` still matches, so the merchant was shown arrows
+   their shoppers will never get) and a desktop window dragged to phone width,
+   where the arrows cover the two tiles that fit. Below the breakpoint the track
+   is swiped or dragged, never paged.
+
+   679px, not the 680 the tile GRID uses: the promo row's two screens split at
+   679/680 and its cards are the other thing these arrows page through, so the
+   pair has to agree about which side 680px is on.
+
+   After the pointer block on purpose: same specificity, so source order is what
+   makes this win. */
+@media (max-width: 679px) {
+  .sf-cat-strip-arrow {
+    display: none;
   }
 }
 

@@ -143,6 +143,22 @@ export interface Dict {
   selected: string;
   yourCart: string;
   emptyCartMsg: string;
+  /**
+   * The three strings below are read by a MERCHANT, in the page editor's preview
+   * frame, and never by a shopper — the shop is bilingual and the editor draws
+   * the real shop, so they are translated like everything else here rather than
+   * hard-coded in English.
+   *
+   * The notice above a previewed cart or checkout whose lines the preview
+   * invented (`services/storefront/use-preview-cart.ts`). It has to say so: the
+   * sample looks exactly like a real basket, and a merchant who read it as one
+   * would think their own shop had stock in their cart.
+   */
+  previewSampleCart: string;
+  /** A sample line's name when the shop has no products to borrow yet. */
+  previewSampleProduct: string;
+  /** Why Place order did nothing inside a preview frame. */
+  previewNoOrder: string;
   subtotal: string;
   shipping: string;
   discount: string;
@@ -631,6 +647,9 @@ const en: Dict = {
   selected: "Selected for you",
   yourCart: "Your cart",
   emptyCartMsg: "Your cart is empty",
+  previewSampleCart: "Sample cart, so you can see this page — shoppers see their own items.",
+  previewSampleProduct: "Sample product",
+  previewNoOrder: "Preview only — no order was placed.",
   subtotal: "Subtotal",
   shipping: "Shipping",
   discount: "Discount",
@@ -1053,6 +1072,9 @@ const bn: Dict = {
   selected: "আপনার জন্য বাছাই",
   yourCart: "আপনার কার্ট",
   emptyCartMsg: "আপনার কার্ট খালি",
+  previewSampleCart: "পেজটি দেখানোর জন্য নমুনা কার্ট — ক্রেতারা নিজেদের পণ্যই দেখবেন।",
+  previewSampleProduct: "নমুনা পণ্য",
+  previewNoOrder: "শুধু প্রিভিউ — কোনো অর্ডার দেওয়া হয়নি।",
   subtotal: "সাবটোটাল",
   shipping: "শিপিং",
   discount: "ছাড়",

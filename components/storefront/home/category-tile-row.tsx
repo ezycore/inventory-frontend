@@ -40,6 +40,8 @@ export function CategoryTileRow({
   mode,
   row,
   imageFit,
+  hideDescription,
+  arrows,
   renderStrip,
 }: {
   base: string;
@@ -47,6 +49,19 @@ export function CategoryTileRow({
   mode: StoreTemplates["categoryTiles"];
   row: CategoryRowLayout;
   imageFit: "cover" | "canvas";
+  /**
+   * Drop the merchant's one-liner and keep the name alone. Unset DRAWS it,
+   * which is what the classic home row has always done — so the home page
+   * caller, which passes nothing, is unchanged.
+   *
+   * It is read where `described` is computed rather than only at the tile,
+   * because the sentence is what turns a compact tile into a row and what sets
+   * the track's height: hiding it at the leaf would leave the row sized for
+   * text it no longer draws.
+   */
+  hideDescription?: boolean;
+  /** The strip's paging arrows on a pointer device; unset is on. */
+  arrows?: boolean;
   renderStrip: StripRenderer;
 }) {
   const overlay = mode === "overlay";
@@ -88,15 +103,22 @@ export function CategoryTileRow({
   /* `circle` joins `disc` here for the same reason: it is a scannable round
      strip, and a sentence under each circle turns it into a stack of cards. */
   const described =
+    !hideDescription &&
     !overlay && !disc && !circle && categories.some((c) => !!c.description?.trim());
-  /* Pictures-only is a setting about PICTURES, so the two letter shapes are
+  /* Pictures-only is a setting about PICTURES, so the two LETTER shapes are
      never subject to it: a `disc` row has no photographs by definition and a
      `compact` row is the fallback for a catalogue that has none, so dropping
-     the names there would leave a row of unexplained initials. */
+     the names there would leave a row of unexplained initials.
+
+     ⚠ `circle` used to sit in this list and no longer does (2026-09-22, owner's
+     request). It is a PHOTO shape — the section only chooses it when something
+     is photographed — so a merchant whose round crops speak for themselves can
+     drop the captions, exactly as `tile` and `overlay` can. What stays is the
+     leaf rule: a circle with no picture of its own still falls through to the
+     lettered branch below, and that branch draws its name whatever this says. */
   const labels =
     compact ||
     disc ||
-    circle ||
     categoryLabelsVisible(
       row.showLabels,
       categories.every((c) => !!cardImageUrl(c.image)),
@@ -117,7 +139,7 @@ export function CategoryTileRow({
          draw it — the name already sits on a photograph behind a scrim, and a
          second line of type over an image the merchant chose and we have never
          seen is where legibility runs out. */
-      description={overlay || disc || circle ? undefined : c.description}
+      description={hideDescription || overlay || disc || circle ? undefined : c.description}
       image={cardImageUrl(c.image)}
       imageFit={imageFit}
       overlay={overlay}
@@ -134,13 +156,29 @@ export function CategoryTileRow({
      and alignment. The strip arrives through `renderStrip` rather than as a
      class because its arrows are measured state — see `category-strip.tsx`. */
   return tileRow.strip ? (
-    renderStrip({ align: row.align, gap: "var(--gap)", vars: tileRow.style, children: tiles })
+    renderStrip({ align: row.align, gap: "var(--gap)", vars: tileRow.style, arrows, children: tiles })
   ) : (
     <div className={tileRow.className} style={tileRow.style}>
       {tiles}
     </div>
   );
 }
+
+/**
+ * The tile's corners, and the merchant's own answer ahead of them.
+ *
+ * Two tokens rather than one because a `tile` is two nested boxes — the tinted
+ * card and the photograph inside it — and the theme draws them at two different
+ * radii. `--sfb-tile-radius` (one px value, from the section's Corner roundness)
+ * overrides BOTH, so 0 squares the whole tile rather than leaving a square photo
+ * floating on a rounded card.
+ *
+ * Unset keeps the theme's own tokens, which is what every row drew before the
+ * control existed — and what the classic home, which emits no variable, still
+ * draws.
+ */
+const TILE_RADIUS = "var(--sfb-tile-radius, var(--radius-md))";
+const CARD_RADIUS = "var(--sfb-tile-radius, var(--radius-lg))";
 
 /**
  * The initial on a plain ground — a half-photographed catalogue still looks
@@ -166,7 +204,7 @@ function TileFallback({
     <span
       style={{
         aspectRatio: ratio,
-        borderRadius: "var(--radius-md)",
+        borderRadius: TILE_RADIUS,
         background: onCard ? "var(--card)" : "var(--primary-soft)",
         color: "var(--primary)",
         display: "flex",
@@ -222,8 +260,14 @@ function CategoryTile({
   strip: boolean;
   /**
    * False ⇒ the photograph is the whole tile. Decided for the SECTION (see
-   * `labels` in `CategoryTileRow`), which is also why the compact branch below
-   * ignores it — it is a letter shape, and the caller never sends false to one.
+   * `labels` in `CategoryTileRow`).
+   *
+   * ⚠ The compact/lettered branch below IGNORES it, and that is not an
+   * oversight. A `compact` or `disc` row never receives false — the row forces
+   * labels on for both — but a `circle` row now can, and an unphotographed
+   * collection inside one falls through to that same branch. A bare initial
+   * with no name under it names nothing, so the letter keeps its caption while
+   * its photographed neighbours drop theirs.
    */
   showLabel: boolean;
 }) {
@@ -245,6 +289,10 @@ function CategoryTile({
     return (
       <Link
         href={href}
+        /* The photograph's `alt` already names it, but it is the LINK's name a
+           screen reader reads out in a list of links — so a captionless circle
+           carries it here, as the tile and overlay branches do. */
+        aria-label={showLabel ? undefined : name}
         style={{
           ...flowStyle,
           display: "flex",
@@ -290,7 +338,7 @@ function CategoryTile({
           // Chosen disc rows sit on the page itself; the fallback keeps its card,
           // because there it is standing in for a photograph that never came.
           background: disc || circle ? "transparent" : "var(--primary-soft)",
-          borderRadius: "var(--radius-lg)",
+          borderRadius: CARD_RADIUS,
           padding: row ? "14px 15px" : "14px 8px 12px",
         }}
       >
@@ -331,7 +379,14 @@ function CategoryTile({
     );
   }
 
-  const ratio = overlay ? "3 / 4" : "1 / 1";
+  /* The tile's shape, and the merchant's own answer ahead of it.
+     ⚠ The fallback behind the variable is the mode's ORIGINAL shape, not one
+     shared default: `CategoryTileRow` is drawn by the CLASSIC home too and that
+     page sets nothing, so an unset control has to leave each mode exactly as it
+     drew before the control existed — square tiles, 3:4 overlays. The variable
+     is emitted by the builder sections (`responsiveVars("sfb-tile-ratio", …)`),
+     which is also where the phone override lands. */
+  const ratio = overlay ? "var(--sfb-tile-ratio, 3 / 4)" : "var(--sfb-tile-ratio, 1 / 1)";
   const media = image ? (
     <Media
       src={image}
@@ -340,7 +395,7 @@ function CategoryTile({
       radius={0}
       fit={imageFit}
       ratio={ratio}
-      style={{ borderRadius: "var(--radius-md)" }}
+      style={{ borderRadius: TILE_RADIUS }}
     />
   ) : (
     <TileFallback name={name} ratio={ratio} onCard={!overlay} />
@@ -351,7 +406,7 @@ function CategoryTile({
       <Link
         href={href}
         aria-label={showLabel ? undefined : name}
-        style={{ ...flowStyle, position: "relative", display: "block", borderRadius: "var(--radius-md)", overflow: "hidden" }}
+        style={{ ...flowStyle, position: "relative", display: "block", borderRadius: TILE_RADIUS, overflow: "hidden" }}
       >
         {media}
         {/* A scrim, not a translucent bar: the name has to stay legible over a
@@ -392,7 +447,7 @@ function CategoryTile({
         gap: 8,
         textAlign: "center",
         background: "var(--primary-soft)",
-        borderRadius: "var(--radius-lg)",
+        borderRadius: CARD_RADIUS,
         padding: 8,
       }}
     >
