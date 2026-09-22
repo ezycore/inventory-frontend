@@ -64,7 +64,8 @@ everywhere; shoppers can still sign in from the account page.
 
 ## Turn off a page you do not need
 
-Not every shop wants every page. Under **Shopper pages** in Store Settings you can switch off:
+Not every shop wants every page. Open **Pages** and use the switch beside each one under
+**Shop pages** to turn off:
 
 - **Search** — hides the search box in your header and on phones, and closes the search page. Useful
   for a small catalogue where browsing is faster than typing.

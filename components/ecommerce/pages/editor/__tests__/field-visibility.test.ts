@@ -562,6 +562,8 @@ describe("field visibility", () => {
 
   it("has a rule for every control an audit found dead", () => {
     // The inventory, so a rule cannot arrive without someone saying so here.
+    // Almost every entry is a control that does nothing in some configuration;
+    // the one exception is called out where it sits.
     expect(VISIBILITY_RULE_KEYS.sort()).toEqual(
       [
         "collections-row.align",
@@ -576,6 +578,11 @@ describe("field visibility", () => {
         "category-promo-cards.side",
         "category-promo-cards.split",
         "campaign-offers.storeHeading",
+        // Not a dead control — carried metadata. A store page's "Last updated"
+        // date moves across with the page so the line does not restate itself as
+        // today, and a `date` spec draws as a text box holding an ISO string.
+        // Offering that as something to type is worse than not offering it.
+        "content-body.updatedAt",
         "image-banner.align",
         "image-banner.focal",
         "hero.campaignBadge",

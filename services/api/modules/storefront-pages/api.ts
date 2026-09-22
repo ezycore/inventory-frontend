@@ -30,8 +30,14 @@ export interface StorefrontPageListParams {
   status?: StorefrontPage["status"];
 }
 
-/** Landing pages only: content pages move into the builder with the store migration, system pages in Phase 5. */
+/**
+ * The two kinds a merchant makes: a landing page for an ad, or one of the shop's
+ * own pages. System pages are built by the store migration and a campaign's page
+ * by its campaign, so neither can be created here.
+ */
 export interface CreateStorefrontPageInput {
+  /** Unset means a landing page, which is what this endpoint made before store pages. */
+  kind?: Extract<StorefrontPage["kind"], "landing" | "content">;
   title: string;
   /** Unset takes a free slug made from the title. */
   slug?: string;
@@ -46,6 +52,8 @@ export interface UpdateStorefrontPageInput {
   slug?: string;
   chrome?: StorefrontPage["chrome"];
   seo?: { title?: string; description?: string; noindex?: boolean };
+  /** Store pages only — where the storefront's footer lists this page. */
+  footer?: { show?: boolean; order?: number };
   /** Landing pages only; sent whole. `null` removes it. */
   schedule?: {
     startsAt: string | null;

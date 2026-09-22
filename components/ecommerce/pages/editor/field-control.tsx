@@ -118,6 +118,11 @@ export function FieldControl({
           value={typeof value === "string" ? value : ""}
           onChange={onChange}
           maxLength={spec.maxBytes}
+          // Which bridge opens a body that is not rich-doc JSON yet. The spec
+          // answers it per field, because a content page's body really was
+          // markdown while other legacy text is literal — passing nothing here
+          // would read every such body as markdown.
+          legacyFormat={spec.legacyFormat}
           imageUpload="page"
         />
       );

@@ -13321,6 +13321,7 @@ export interface components {
             slug: string;
             title: string;
             sortOrder?: number;
+            footer?: boolean;
         };
         ContentPagePublic: {
             _id: string;
@@ -42895,7 +42896,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    kind: "landing";
+                    kind: "landing" | "content";
                     title: string;
                     slug?: string;
                     /** @enum {string} */
@@ -43228,6 +43229,10 @@ export interface operations {
                         title?: string;
                         description?: string;
                         noindex?: boolean;
+                    };
+                    footer?: {
+                        show?: boolean;
+                        order?: number;
                     };
                     schedule?: {
                         /** Format: date-time */

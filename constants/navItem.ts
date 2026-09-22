@@ -228,13 +228,6 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.design"],
           },
           {
-            title: "Content",
-            url: "/ecommerce/content",
-            icon: "file-text",
-            features: ["storefront"],
-            permissions: ["storefront.manage"],
-          },
-          {
             // Storefront Builder pages. `storefront.design`, not `storefront.manage`
             // like its neighbours: it is what the page routes check, so a role
             // holding only `manage` would open a screen whose every request 403s.

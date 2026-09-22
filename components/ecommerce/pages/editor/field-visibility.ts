@@ -464,6 +464,14 @@ const RULES: Record<string, VisibilityRule> = {
      Trimmed to match the renderer, which this pass taught to trim — see the
      note in `campaign-offers.tsx`. */
   "campaign-offers.storeHeading": ({ settings }) => !str(settings.heading)?.trim(),
+
+  /* ---- content-body ----
+     Carried metadata, not a decision. `updatedAt` is the "Last updated" date the
+     page had on the Content screen, moved across so the line does not restate
+     itself as today; the spec keeps it a `date`, which draws as a text box
+     holding an ISO string. Presenting that as something to type is worse than
+     not offering it, and the value survives untouched while it is hidden. */
+  "content-body.updatedAt": () => false,
 };
 
 /**

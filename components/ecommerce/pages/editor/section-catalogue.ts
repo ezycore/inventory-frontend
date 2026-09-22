@@ -53,8 +53,10 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
   "content-body": {
     label: "Page body",
     group: "Content",
-    description: "This page's text in your store's page frame. Created when a page moves here from Content.",
+    description: "This page's own text, in your store's page frame. Every store page has one.",
     // Never offered in the library: it is the content page's own core section.
+    // It cannot be removed either — but it may be left empty, and an empty one
+    // draws nothing, so a page can be built from the sections around it.
     addable: false,
   },
   "cart-lines": {
@@ -382,11 +384,19 @@ const FIELD_LABELS: Record<string, string> = {
   "product-main.layout": "Photo layout",
   "account-area.layout": "Account layout",
   "content-body.layout": "Page frame",
+  "content-body.title": "Page heading",
+  "content-body.body": "Page text",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
 
 const HINTS: Record<string, string> = {
+  /* Says the quiet part: the editor is where this page's words go, and leaving
+     it empty is a choice rather than an unfinished page. Both settings are
+     optional, and an empty section draws nothing at all. */
+  "content-body.body":
+    "Your page's own words. Leave it empty to build the page from the sections instead — nothing is shown here then.",
+  "content-body.title": "Shown above the text. Leave it empty for a page with no heading of its own.",
   hideRelated: "Add a Related products section to show them somewhere else on the page.",
   "collections-row.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
   "category-tiles.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",

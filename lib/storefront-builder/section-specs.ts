@@ -239,17 +239,35 @@ export const SECTION_SPECS = {
     },
   },
   /**
-   * A content page's body in the store's content frame — the core section of a
-   * page moved from the Content screen (plan §6, §17 Phase 5 step 6). `body` is
-   * the page's own text in whichever format it was stored: rich text, or the
-   * markdown the CMS pages have always accepted (`ContentBodyView` reads both).
+   * A content page's body in the store's content frame — the core section of
+   * every store page, whether it was moved from the Content screen (plan §6, §17
+   * Phase 5 step 6) or made on the builder. `body` is the page's own text in
+   * whichever format it was stored: rich text, or the markdown the CMS pages
+   * have always accepted (`ContentBodyView` reads both).
+   *
+   * Required and unremovable, but allowed to be EMPTY — see the settings below.
    */
   "content-body": {
     v: 1,
     pages: ["content"],
     settings: {
-      title: { type: "string", max: 160 },
-      body: { type: "string", max: 200_000 },
+      /**
+       * The page's heading. Optional with `body` below: a store page whose
+       * content is built from other sections keeps an empty core section, and an
+       * empty section has no heading either.
+       */
+      title: { type: "string", max: 160, optional: true },
+      /**
+       * The page's own text, in the same rich-text editor the Content screen
+       * always had. `legacyFormat` is what lets a body written before that
+       * editor — plain markdown — open and save untouched; it converts lazily,
+       * on the merchant's first real edit.
+       *
+       * Optional, because the editor is the page's starting point and not an
+       * obligation (plan §3.4): a merchant may empty it and build the page from
+       * the sections around it, and the section then draws nothing at all.
+       */
+      body: { type: "richText", maxBytes: 200_000, optional: true, legacyFormat: "markdown" },
       /** The page's own "Last updated" date, kept from before the move. */
       updatedAt: { type: "date", optional: true },
       /**

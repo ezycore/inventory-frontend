@@ -4735,11 +4735,36 @@ Never persist or render the tenant-only `/shop` prefix as part of the owner rout
 copy must derive from `effectiveFreeShippingThreshold`; delivery windows are merchant-authored and
 must fall back to neutral checkout guidance when absent.
 
+## The Content screen is retired (2026-09-22)
+
+`/ecommerce/content` is a **redirect to `/ecommerce/pages`**, and its nav row is gone. A store page —
+About, Contact, a policy — is now made and edited in Pages like every other page of the shop, with
+its text in the same rich-text editor it always had.
+
+What that screen still did, and why it had to go: it **created**. A page made there after a store's
+cutover became a legacy CMS document that rendered on the shop (the storefront falls back to it when
+no builder page owns the slug) but appeared nowhere in Pages, so the merchant could not find it
+again.
+
+**The CMS model is untouched.** `contentPageService` still backs the storefront's fallback and is
+still the rollback target for `moveContentPagesBack`; its five endpoints still serve. Retiring the
+SCREEN is not retiring the data — that goes with the classic renderer, in the builder plan's own
+cleanup. `components/ecommerce/content/` was deleted because nothing rendered it any more.
+
+Plan: `inventory-backend/docs/plan/pages-and-settings-consolidation.md` §3.
+
 ## Page controls — Search / Cart page / Account (2026-09-16)
 
 A merchant can switch off three shopper pages (backend `docs/plan/storefront-builder.md` §6, step
 7a). The backend resolves them into one block on the store payload, `store.pages { search, cartPage,
 accounts }`, and this side reads it through **one** helper.
+
+**The admin controls are on Pages, not in Store settings** (moved 2026-09-22, backend
+`docs/plan/pages-and-settings-consolidation.md` §2.2): each is a row switch on the **Shop pages** card
+(`components/ecommerce/pages/system-pages-card.tsx`), beside the page it governs, and it saves on its
+own rather than behind a Save bar. The storage did not move with them — `pagesConfig.search`,
+`pagesConfig.cartPage` and `customersConfig.allowAccounts` are still two blocks, because merging them
+would be a migration on live stores for a tidier shape.
 
 **`storePages(store)` (`lib/storefront-page-controls.ts`) is the only reader.** Never touch
 `store.pages?.search` directly: **absent means ON**, and that is not a stylistic preference — a store

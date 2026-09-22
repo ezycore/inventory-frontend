@@ -307,6 +307,43 @@ export function isRichDocBody(body: string | null | undefined): boolean {
   return parseRichDoc(body) !== null;
 }
 
+/**
+ * Node types that say something without carrying any text — a picture, a rule,
+ * a table. A body holding only these is not empty.
+ */
+const RICH_DOC_ATOMS = new Set<string>([
+  IMAGE_NODE,
+  TABLE_NODE,
+  "horizontalRule",
+  FAQ_LIST_NODE,
+  CALLOUT_NODE,
+]);
+
+/**
+ * Does this body say nothing at all?
+ *
+ * Not the same question as `parseRichDoc` answers. An emptied rich-text box
+ * still serializes as a document — `{"type":"doc","content":[{"type":"paragraph"}]}`
+ * is what TipTap emits — so "it parses" and "it has content" part company
+ * exactly where a merchant clears a field. Anything that renders counts: text,
+ * a picture, a table, a rule, a callout, an FAQ list.
+ *
+ * A legacy (non-JSON) body is empty only when it is blank, because every
+ * character of it is content the markdown reader will draw.
+ */
+export function isRichDocEmpty(body: string | null | undefined): boolean {
+  if (!body || !body.trim()) return true;
+  const doc = parseRichDoc(body);
+  if (!doc) return false;
+  const hasContent = (nodes: readonly RichDocNode[] | undefined): boolean =>
+    (nodes ?? []).some((node) => {
+      if (node.type === "text") return !!node.text?.trim();
+      if (RICH_DOC_ATOMS.has(node.type)) return true;
+      return hasContent((node as { content?: readonly RichDocNode[] }).content);
+    });
+  return !hasContent(doc.content);
+}
+
 const emptyToUndef = <T,>(arr: T[]): T[] | undefined => (arr.length > 0 ? arr : undefined);
 
 function sfInlineToRichDocInline(nodes: SfInline[]): RichDocInlineNode[] {

@@ -1000,12 +1000,21 @@ export interface CatalogVariant {
   availableQuantity: number;
 }
 
-/** A footer link to a published CMS page. */
+/**
+ * One of the store's own pages, as the storefront links to it.
+ *
+ * Every published page is listed, not only the footer's: the checkout resolves
+ * its terms page against this list, and the trust strip looks here for a returns
+ * policy. `footer` says which ones the footer column shows — a merchant who
+ * keeps their terms out of the footer still has terms.
+ */
 export interface ContentPageLink {
   _id: string;
   slug: string;
   title: string;
   sortOrder?: number;
+  /** Unset reads as listed — every page stored before the flag existed. */
+  footer?: boolean;
 }
 
 /** A published CMS page rendered at /shop/pages/{pageSlug}. */

@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { useContentPages } from "@/services/api";
+import { useContentPages, useStorefrontPages } from "@/services/api";
 import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
@@ -68,10 +68,24 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [customFields, setCustomFields] = useState(() =>
     storedFields.filter((field) => !isMethodOwnedField(field)),
   );
-  const { data: pages } = useContentPages();
+  // BOTH page collections, because a store's pages may live in either: a page
+  // that moved onto the builder keeps its slug and is what the storefront
+  // serves, while a store that has not moved still has its CMS pages. Listing
+  // only the CMS ones left a migrated store unable to name its own terms page.
+  const { data: cmsPages } = useContentPages();
+  const { data: builderPages } = useStorefrontPages({ kind: "content", limit: 100 });
+  const livePages = [
+    ...(builderPages?.items ?? [])
+      .filter((page) => page.status === "published" && page.slug)
+      .map((page) => ({ title: page.title, slug: page.slug as string })),
+    ...(cmsPages ?? []).filter((page) => page.published).map((page) => ({ title: page.title, slug: page.slug })),
+  ];
+  // The builder's copy wins on a shared slug — it is the one shoppers get.
   const pageOptions = [
     { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
-    ...(pages ?? []).filter((page) => page.published).map((page) => ({ label: page.title, value: page.slug })),
+    ...livePages
+      .filter((page, index) => livePages.findIndex((other) => other.slug === page.slug) === index)
+      .map((page) => ({ label: page.title, value: page.slug })),
   ];
   const toggleField = (id: string, on: boolean) => setFields((current) => on ? Array.from(new Set([...current, id])) : current.filter((field) => field !== id));
 
@@ -113,7 +127,7 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
       </Card>
       <Card className="space-y-4 p-5 shadow-none">
         <ToggleRow label="Require terms acceptance" desc="Shopper must accept terms before placing an order." checked={terms} onChange={setTerms} />
-        {terms ? <div className="space-y-1.5"><Label>Terms page</Label><SimpleSelect value={termsPage} onValueChange={setTermsPage} options={pageOptions} className="max-w-sm" /><p className="text-xs text-muted-foreground">Manage pages under Content. Auto-detect uses a published page slugged like terms.</p></div> : null}
+        {terms ? <div className="space-y-1.5"><Label>Terms page</Label><SimpleSelect value={termsPage} onValueChange={setTermsPage} options={pageOptions} className="max-w-sm" /><p className="text-xs text-muted-foreground">Manage pages under Pages. Auto-detect uses a published page slugged like terms.</p></div> : null}
         <div className="space-y-2">
           <Label>Required checkout fields</Label>
           <div className="flex flex-wrap gap-4">

@@ -7,6 +7,7 @@ import {
   FAQ_LIST_NODE,
   FAQ_QUESTION_NODE,
   isRichDocBody,
+  isRichDocEmpty,
   parseRichDoc,
   safeAlign,
   safeCssColor,
@@ -158,5 +159,45 @@ describe("render-time attribute guards", () => {
     expect(clampSpan(9999)).toBe(1);
     expect(clampSpan("4")).toBe(1);
     expect(clampSpan(undefined)).toBe(1);
+  });
+});
+
+/**
+ * "Does it parse" and "does it say anything" part company exactly where a
+ * merchant clears a field: an emptied editor still serializes a document. A
+ * store page's core section is required but may be empty, and draws nothing when
+ * it is, so this is what decides that. Mirrors `isRichDocEmpty` in the backend's
+ * `src/utils/rich-doc.ts`.
+ */
+describe("isRichDocEmpty", () => {
+  const doc = (...content: unknown[]) => JSON.stringify({ type: "doc", content });
+  const para = (text: string) => ({ type: "paragraph", content: [{ type: "text", text }] });
+
+  it("calls a missing or blank body empty", () => {
+    expect(isRichDocEmpty(undefined)).toBe(true);
+    expect(isRichDocEmpty("")).toBe(true);
+    expect(isRichDocEmpty("  \n ")).toBe(true);
+  });
+
+  it("calls an emptied editor's document empty", () => {
+    expect(isRichDocEmpty(doc({ type: "paragraph" }))).toBe(true);
+    expect(isRichDocEmpty(doc(para("   ")))).toBe(true);
+  });
+
+  it("does not call written words empty, however deeply nested", () => {
+    expect(isRichDocEmpty(doc(para("Within 7 days.")))).toBe(false);
+    expect(
+      isRichDocEmpty(doc({ type: "bulletList", content: [{ type: "listItem", content: [para("One")] }] })),
+    ).toBe(false);
+  });
+
+  it("does not call a picture, a rule or a table empty — they draw without words", () => {
+    expect(isRichDocEmpty(doc({ type: "image", attrs: { src: "https://x/a.png" } }))).toBe(false);
+    expect(isRichDocEmpty(doc({ type: "horizontalRule" }))).toBe(false);
+    expect(isRichDocEmpty(doc({ type: "table", content: [] }))).toBe(false);
+  });
+
+  it("treats a legacy markdown body as content — every character of it draws", () => {
+    expect(isRichDocEmpty("## Returns")).toBe(false);
   });
 });
