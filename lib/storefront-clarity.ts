@@ -44,6 +44,28 @@ const call = (...args: unknown[]): void => {
 };
 
 /**
+ * Run `fn` once `window.clarity` exists, or give up.
+ *
+ * The consent call is the one that cannot afford to be dropped. The loader snippet installs a
+ * queueing stub synchronously, but it is a `next/script` `afterInteractive` tag, so on a slow
+ * first paint an effect can run before it — and a dropped consent call is not a no-op, it is
+ * cookies the shopper did not agree to. Retrying costs a handful of timers and removes the race.
+ *
+ * Bounded rather than open-ended: an ad blocker means `window.clarity` is never coming, and a
+ * timer that waits forever for it is a leak in every blocked session.
+ */
+const whenClarityReady = (fn: () => void, attempt = 0): void => {
+  if (typeof window === "undefined") return;
+  if (window.clarity) {
+    fn();
+    return;
+  }
+  // ~5s in total: 50 tries at 100ms. Longer than any observed hydration, shorter than a session.
+  if (attempt >= 50) return;
+  window.setTimeout(() => whenClarityReady(fn, attempt + 1), 100);
+};
+
+/**
  * Where the shopper is, as a Clarity filter.
  *
  * This is the single highest-value line of the integration: without it a merchant's dashboard is
@@ -114,13 +136,24 @@ export function upgradeClaritySession(reason: string): void {
  * and consent collected for a purpose that does not exist is not consent. Only
  * `analytics_Storage` follows the shopper's answer.
  *
- * A refusal is sent explicitly rather than left silent. Clarity's own default *is* the cookieless
- * mode, so silence and `denied` behave alike — but sending it makes the state the result of a
- * choice, which is the thing a consent record has to be able to show.
+ * **A refusal must be sent explicitly. Silence is not a refusal — measured live on a real
+ * project on 2026-09-23.** Microsoft's documentation says Clarity runs cookieless until a
+ * `consentv2` call arrives, and the first version of this integration relied on it: `off` mode
+ * called nothing at all. A live storefront load then set `_clck` and `_clsk` with no call ever
+ * made. So this is called on EVERY page view, before anything else, denied unless the shopper
+ * has said otherwise; nothing here may go back to treating an un-made call as a denial.
+ *
+ * **What it does NOT do is guarantee no cookies, and no code here can.** In the same session
+ * `_clck` survived an explicit denial, because cookies are a property of the merchant's own
+ * project: Clarity → Settings → Setup → Advanced settings → **Cookies**, which is ON when a
+ * project is created. A merchant who wants none turns it off there. The storefront's job is to
+ * report the shopper's answer accurately, not to promise an outcome it does not control.
  */
 export function setClarityConsent(analyticsGranted: boolean): void {
-  call("consentv2", {
-    ad_Storage: "denied",
-    analytics_Storage: analyticsGranted ? "granted" : "denied",
-  });
+  whenClarityReady(() =>
+    call("consentv2", {
+      ad_Storage: "denied",
+      analytics_Storage: analyticsGranted ? "granted" : "denied",
+    }),
+  );
 }

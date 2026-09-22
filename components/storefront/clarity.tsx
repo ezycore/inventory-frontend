@@ -14,9 +14,11 @@ import type { StorefrontStore } from "@/lib/storefront-client";
  * Renders nothing when the store has no Clarity — the backend omits the whole `clarity` block
  * when the merchant has it off or entered no id, so there is no flag to read here.
  *
- * **It sets no cookies.** Clarity runs in its own cookieless mode until a `consentv2` call
- * arrives, so this tag alone stores nothing on the shopper's device; whether that call is ever
- * made is `ConsentBar`'s business, not this file's.
+ * **This tag does set cookies**, unless the merchant has turned them off inside their own
+ * Clarity project (Settings → Setup → Advanced settings → Cookies, on by default). Microsoft's
+ * docs describe a cookieless mode that holds until `consentv2` is called; measured live on
+ * 2026-09-23 that is not what a default project does. `ConsentBar` sends the consent signal —
+ * denied until a shopper says otherwise — but the signal does not override that project switch.
  *
  * **`preview` is not a styling concern.** A merchant clicking around their own draft from the
  * Customize editor would otherwise fill their recordings with themselves, which is how a

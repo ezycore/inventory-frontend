@@ -546,7 +546,11 @@ export interface Dict {
   /* ---- cookie consent bar --------------------------------------------
      Shown only when the merchant asks for it (`clarity.cookieConsent`), and
      never on checkout. Deliberately NOT merchant-editable: a free-text legal
-     notice a shop owner can mistype is a liability, not a feature. */
+     notice a shop owner can mistype is a liability, not a feature.
+
+     The copy promises only what we control — whether visits are LINKED. It must
+     not promise that declining stops cookies: that is a switch inside the
+     merchant's own Clarity project. See `lib/storefront-clarity.ts`. */
   consentText: string;
   consentAccept: string;
   consentDecline: string;
@@ -975,11 +979,13 @@ const en: Dict = {
   footerSubscribed: "You're on the list. Thank you!",
   footerSubscribeFailed: "Couldn't sign you up. Please try again.",
   footerEmailInvalid: "Enter a valid email address",
-  // Plain, short and honest about the only thing a cookie buys here: recognising
-  // a repeat visit. No "we value your privacy" preamble — it says nothing and
-  // doubles the height of a bar the shopper did not ask for.
+  // Plain, short and honest about what the shopper is actually agreeing to: being
+  // recognised across visits. It does NOT promise that declining stops cookies —
+  // that is the merchant's Clarity project setting, not ours to promise. No "we
+  // value your privacy" preamble either; it says nothing and doubles the height of
+  // a bar the shopper did not ask for.
   consentText:
-    "We use cookies to understand how this shop is used. Decline and we still work \u2014 we just won't recognise you next time.",
+    "We use cookies to understand how this shop is used. Say no and nothing else changes \u2014 we just won't link your visits together.",
   consentAccept: "Allow",
   consentDecline: "No thanks",
 };
@@ -1403,7 +1409,7 @@ const bn: Dict = {
   footerSubscribeFailed: "সাবস্ক্রাইব করা যায়নি। আবার চেষ্টা করুন।",
   footerEmailInvalid: "সঠিক ইমেইল ঠিকানা দিন",
   consentText:
-    "এই দোকান কীভাবে ব্যবহার হচ্ছে বুঝতে আমরা কুকি ব্যবহার করি। না দিলেও সব কাজ করবে — শুধু পরেরবার আপনাকে চিনতে পারব না।",
+    "এই দোকান কীভাবে ব্যবহার হচ্ছে বুঝতে আমরা কুকি ব্যবহার করি। না বললেও সব কিছু আগের মতোই চলবে — শুধু আপনার ভিজিটগুলো একসাথে মিলানো হবে না।",
   consentAccept: "সম্মতি দিন",
   consentDecline: "ধন্যবাদ, প্রয়োজন নেই",
 };

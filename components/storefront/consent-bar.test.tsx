@@ -62,19 +62,30 @@ describe("ConsentBar", () => {
     delete window.clarity;
   });
 
-  it("never renders on checkout", () => {
+  it("never renders on checkout, and still denies", () => {
     pathname = "/shop/checkout";
     renderBar("always");
     waitForBar();
     expect(screen.queryByRole("region")).toBeNull();
-    // …and no consent is assumed either way: silence leaves Clarity in its cookieless mode.
-    expect(clarity).not.toHaveBeenCalled();
+    // Nothing goes between a shopper and a payment — but silence is not a refusal. Measured on a
+    // live project: with no consentv2 call at all, Clarity sets _clck and _clsk anyway.
+    expect(clarity).toHaveBeenCalledWith("consentv2", {
+      ad_Storage: "denied",
+      analytics_Storage: "denied",
+    });
   });
 
-  it("never renders when the merchant asked for no banner", () => {
+  it("never renders when the merchant asked for no banner, and denies explicitly", () => {
     renderBar("off");
     waitForBar();
     expect(screen.queryByRole("region")).toBeNull();
+    // `off` means no banner, not no consent handling: the denial still has to be sent, or the
+    // shopper's state is indistinguishable from an effect that never ran. Do not "simplify" it
+    // back into an early return.
+    expect(clarity).toHaveBeenCalledWith("consentv2", {
+      ad_Storage: "denied",
+      analytics_Storage: "denied",
+    });
   });
 
   it("does not paint during first paint", () => {

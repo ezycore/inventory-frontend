@@ -44,7 +44,7 @@ const CONSENT_OPTIONS: {
     value: "off",
     label: "No banner",
     description:
-      "Recommended. No cookies and no banner — you still get recordings and heatmaps. A returning shopper is counted as a new one.",
+      "Recommended. Shoppers are never asked, and Clarity is told they did not agree — so their visits are not linked together.",
   },
   {
     value: "eu",
@@ -145,8 +145,8 @@ function ClaritySettingsForm({ settings }: { settings: ClaritySettings }) {
         <div>
           <h2 className="text-base font-semibold">Cookie banner</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Clarity stores nothing on a shopper&apos;s device unless they agree, so a banner is
-            optional. Ask for it only if you need to recognise returning visitors.
+            Choose whether shoppers are asked before Clarity links their visits together. Their
+            answer reaches Clarity either way &mdash; by default we tell it they did not agree.
           </p>
         </div>
 
@@ -175,6 +175,12 @@ function ClaritySettingsForm({ settings }: { settings: ClaritySettings }) {
           <span className="block">
             Recordings are kept for 30 days and heatmaps for 13 months, then deleted by Microsoft.
             The project is yours: whoever can sign into it can watch those replays.
+          </span>
+          <span className="block">
+            <strong>Clarity sets cookies on your shop.</strong> That switch lives in Clarity, not
+            here, and new projects have it on. To run without them, open Clarity &rarr; Settings
+            &rarr; Setup &rarr; Advanced settings and turn <strong>Cookies</strong> off &mdash;
+            visits then stop being linked into one session.
           </span>
         </AlertDescription>
       </Alert>

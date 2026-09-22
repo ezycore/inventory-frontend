@@ -49,15 +49,21 @@ Once an ID is saved, the button **Open your Clarity dashboard** takes you straig
 - **Recordings of sessions that reached checkout and stopped.** These are the most expensive
   sessions you have.
 
-## The cookie banner
+## Cookies, and the banner
 
-Clarity stores nothing on a shopper's phone unless you ask it to, so **you do not need a cookie
-banner** — and by default your shop shows none. You still get recordings and heatmaps. The only
-thing you give up is recognising a repeat visitor as the same person.
+**Clarity sets cookies on your shop.** That is a switch inside Clarity, not in EzyCore, and a new
+project has it turned on. It is what lets Clarity join a shopper's pages into one recording and
+recognise them on a later visit.
 
-If you sell to Europe, or you want repeat visitors linked, change **Cookie banner**:
+If you would rather run without cookies, open Clarity → **Settings → Setup → Advanced settings**
+and turn **Cookies** off. Recordings and heatmaps keep working; they simply stop being linked
+across pages and visits.
 
-- **No banner** — recommended, and the default. Nothing stored, nothing shown.
+Separately, your shop can **ask** shoppers before Clarity links their visits. Their answer is sent
+to Clarity either way — by default we tell it they did not agree. Change **Cookie banner** to pick
+who gets asked:
+
+- **No banner** — recommended, and the default. Nobody is asked.
 - **Europe only** — only shoppers on a European clock see it. Bangladeshi shoppers never do.
 - **Everyone** — every shopper sees it.
 

@@ -21,7 +21,7 @@ import {
  *  - **It is not a modal.** No overlay, no backdrop, no scroll lock, no focus trap. A shopper can
  *    ignore it forever and still buy.
  *  - **It never renders on checkout.** Nothing goes between a shopper and a payment. A shopper
- *    who reaches checkout undecided stays undecided, and Clarity stays cookieless.
+ *    who reaches checkout undecided stays undecided, and the denial already sent stands.
  *  - **It mounts late** — on the first scroll, or after 3s. Appearing during first paint competes
  *    with LCP and reads as an interstitial.
  *  - **Both answers are final.** "No thanks" is a decision, not a dismissal to re-ask later.
@@ -30,8 +30,9 @@ import {
  *
  * `mode` is the merchant's choice and decides who ever sees this (`ClarityCookieConsent`):
  * `off` never renders it, `eu` shows it only to a shopper on a European clock, `always` to
- * everyone. **`off` is not "no consent handling"** — Clarity stores nothing at all until
- * `consentv2` is called, which is exactly what not calling it achieves.
+ * everyone. **`off` is not "no consent handling" and not a promise of no cookies.** Whatever the
+ * mode, the effect below sends a denial on every page view; and whatever we send, a Clarity
+ * project with its own Cookies switch on will still set `_clck`.
  */
 
 /** One value, one shape: what the shopper answered, or nothing if they have not. */
@@ -86,14 +87,17 @@ export function ConsentBar({ mode }: { mode: "off" | "eu" | "always" }) {
   useBottomBarHeight(ref, visible, "--sf-consent-h");
 
   useEffect(() => {
-    // A stored answer is replayed on every page load — Clarity's consent state lives in the tag,
-    // not in our storage, so a shopper who accepted last week is only recognised if we say so
-    // again now.
     const decided = readDecision();
-    if (decided) {
-      setClarityConsent(decided === "granted");
-      return;
-    }
+
+    // **Sent on every page view, before anything else, and denied unless the shopper said
+    // otherwise.** Two jobs in one call. A stored answer is replayed because Clarity's consent
+    // state lives in the tag and not in our storage, so a shopper who accepted last week is only
+    // recognised if we say so again now. And a *missing* answer is stated as a refusal rather
+    // than left silent — see `setClarityConsent`, where the live measurement that forced this
+    // is written down. An earlier version returned early for `mode === "off"` and called nothing
+    // at all, which left the shopper's state indistinguishable from an un-run effect.
+    setClarityConsent(decided === "granted");
+    if (decided) return;
 
     if (mode === "off" || onCheckout) return;
     if (mode === "eu" && !onEuropeanClock()) return;
