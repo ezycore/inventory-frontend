@@ -134,6 +134,14 @@ export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
 /** Sales per category / brand / tag — `GET /reports/sales/breakdown`. */
 export type SalesBreakdownReport = Schemas["SalesBreakdownReport"];
+/**
+ * Storefront orders on the ORDER clock — `GET /reports/orders`.
+ *
+ * Dated by when each order was PLACED, unlike every other report here, which
+ * reads the Sale ledger and therefore dates an online order by its DISPATCH.
+ * The two disagree by design; each screen says which it shows.
+ */
+export type OrdersReport = Schemas["OrdersReport"];
 
 // Organization & locations ---------------------------------------------------
 export type ApiOrganization = Schemas["Organization"];

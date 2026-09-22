@@ -6,21 +6,9 @@ import { PiggyBank, TrendingDown, TrendingUp, Truck, Wallet } from "lucide-react
 import StatsCard, { type StatData } from "@ui/components/StatsCard";
 import { useCurrency } from "@/lib/currency";
 import type { CashReport } from "@/types/api";
+import { calcPeriodChange } from "@/utils/period-change";
 
 type CashSummary = CashReport["summary"];
-
-/** Percent change against the same-length previous period. */
-function calcChange(current: number, previous: number) {
-  if (previous === 0 && current === 0)
-    return { value: 0, direction: "neutral" as const };
-  if (previous === 0) return { value: 100, direction: "up" as const };
-  const pct = ((current - previous) / previous) * 100;
-  return {
-    value: Math.abs(Math.round(pct)),
-    direction:
-      pct > 0 ? ("up" as const) : pct < 0 ? ("down" as const) : ("neutral" as const),
-  };
-}
 
 /**
  * The five cash figures, in the same order and the same words as the ledger page's tiles
@@ -42,10 +30,10 @@ export function CashSummaryCards({
   const { format: formatCurrency } = useCurrency();
 
   const incomeChange = summary
-    ? calcChange(summary.totalIncome, summary.previousIncome)
+    ? calcPeriodChange(summary.totalIncome, summary.previousIncome)
     : null;
   const expenseChange = summary
-    ? calcChange(summary.totalExpense, summary.previousExpense)
+    ? calcPeriodChange(summary.totalExpense, summary.previousExpense)
     : null;
 
   const stats: StatData[] = [
@@ -82,7 +70,7 @@ export function CashSummaryCards({
       variant: "success",
       prefix: "+",
       trend:
-        incomeChange && incomeChange.direction !== "neutral"
+        incomeChange
           ? {
               value: tCommon("vsPrevious", { value: incomeChange.value }),
               direction: incomeChange.direction,
@@ -96,7 +84,7 @@ export function CashSummaryCards({
       variant: "destructive",
       prefix: "-",
       trend:
-        expenseChange && expenseChange.direction !== "neutral"
+        expenseChange
           ? {
               value: tCommon("vsPrevious", { value: expenseChange.value }),
               direction: expenseChange.direction,

@@ -1,11 +1,13 @@
 'use client'
 // coding-standard: maintained
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useSalesReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
+import { calcPeriodChange } from '@/utils/period-change'
 import { useReportPeriod } from './use-report-period'
 import { PeriodFilter } from '@/components/shared/period-filter'
 import { TopCombosCard } from './top-combos-card'
@@ -17,17 +19,8 @@ import {
   Users,
   ArrowUp,
   ArrowDown,
+  Info,
 } from 'lucide-react'
-
-function calcChange(current: number, previous: number) {
-  if (previous === 0 && current === 0) return { value: 0, direction: 'neutral' as const }
-  if (previous === 0) return { value: 100, direction: 'up' as const }
-  const pct = ((current - previous) / previous) * 100
-  return {
-    value: Math.abs(Math.round(pct)),
-    direction: pct > 0 ? ('up' as const) : pct < 0 ? ('down' as const) : ('neutral' as const),
-  }
-}
 
 export function SalesReport() {
   const t = useTranslations('reports.sales')
@@ -42,7 +35,7 @@ export function SalesReport() {
   // Both sides net, or a quiet period following one with a big refund reads as
   // growth. Same rule as the dashboard's revenue trend.
   const salesChange = data
-    ? calcChange(data.summary.netSales, data.summary.previousNetSales)
+    ? calcPeriodChange(data.summary.netSales, data.summary.previousNetSales)
     : null
 
   return (
@@ -54,6 +47,23 @@ export function SalesReport() {
             {t('subtitle')}
           </p>
         </div>
+      </div>
+
+      {/* Which clock this page is on.
+          An online order becomes a Sale only at DISPATCH, so this page dates it
+          to the day the parcel left while the Orders Report dates it to the day
+          the shopper placed it. The two totals differ for the same week and both
+          are right — a live workspace read 26 sales / ৳20,700 here against 23
+          orders / ৳20,910 there, and it was read as the software disagreeing
+          with itself. */}
+      <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        <p className="text-muted-foreground">
+          {t('clockNote')}{' '}
+          <Link href="/reports/orders" className="font-medium underline underline-offset-2">
+            {t('clockLink')}
+          </Link>
+        </p>
       </div>
 
       <PeriodFilter
@@ -94,7 +104,7 @@ export function SalesReport() {
                     })}
                   </p>
                 )}
-                {salesChange && salesChange.direction !== 'neutral' && (
+                {salesChange && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     {salesChange.direction === 'up' ? (
                       <ArrowUp className="h-3 w-3 text-green-500" />

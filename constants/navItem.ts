@@ -489,6 +489,17 @@ export const navGroups: NavGroup[] = [
             anyFeatures: ["sales", "storefront"],
           },
           {
+            // The ORDER clock. Feature-gated on the storefront because without
+            // that module there are no orders at all — the one case where a
+            // report should vanish rather than degrade. `reports.view` like the
+            // rest; its cost figures are withheld server-side by `costs.view`.
+            title: "Orders Report",
+            url: "/reports/orders",
+            permissions: ["reports.view"],
+            icon: "clipboard-list",
+            features: ["storefront"],
+          },
+          {
             // The one report that reads purchase documents exclusively, so it
             // has nothing to show without the capability. P&L and Business
             // Position also touch purchase data but stay ungated on purpose —

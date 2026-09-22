@@ -31,20 +31,6 @@ export function getGreetingKey(hour: number): 'morning' | 'afternoon' | 'evening
   return 'evening'
 }
 
-// ── % change helper ──
-export function calcChange(
-  current: number,
-  previous: number,
-): { value: number; direction: 'up' | 'down' | 'neutral' } {
-  if (previous === 0 && current === 0) return { value: 0, direction: 'neutral' }
-  if (previous === 0) return { value: 100, direction: 'up' }
-  const pct = ((current - previous) / previous) * 100
-  return {
-    value: Math.abs(Math.round(pct)),
-    direction: pct > 0 ? 'up' : pct < 0 ? 'down' : 'neutral',
-  }
-}
-
 // ── Format period date range for display ──
 /**
  * The server's period instants, labelled on the ORGANIZATION's calendar: a Dhaka

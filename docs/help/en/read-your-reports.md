@@ -7,6 +7,7 @@ covers_routes:
   - /reports
   - /reports/inventory
   - /reports/sales
+  - /reports/orders
   - /reports/valuation
   - /reports/purchases
   - /reports/cash
@@ -21,8 +22,10 @@ features:
   - tax
   - purchases
   - inventoryTracking
+  - storefront
 ui_labels:
   - reports:landing.subtitle
+  - reports:orders.title
   - reports:sales.breakdown.title
   - reports:sales.breakdown.top
   - reports:sales.breakdown.lowest
@@ -81,6 +84,41 @@ and the one to check before deciding you can afford more stock.
 
 **Purchase Report** — a *Detailed analysis of purchase orders*, including order status. Useful for
 supplier negotiations, and for spotting a cost price that has crept up.
+
+
+## Orders Report — for online shops
+
+If you sell through your storefront, the **Orders Report** is the one to open. It counts orders **on
+the day the shopper placed them**, and every other report on this page counts invoices **on the day
+the parcel shipped**.
+
+That is why the Sales Report and the Orders Report show different totals for the same week. Both are
+correct, they are answering different questions:
+
+- **"How many orders came in on Monday?"** — Orders Report.
+- **"What did I invoice on Monday?"** — Sales Report. For an online order, that is the day it left
+  your shop, which may be Tuesday or Thursday.
+
+Each page says which it is, at the top, with a link to the other.
+
+What the Orders Report tells you that nothing else does:
+
+- **Where this period's orders got to.** Of the orders placed, how many were confirmed, dispatched
+  and delivered. The steps overlap on purpose — a delivered order was confirmed on the way, so it
+  counts at every step. The chips underneath are where the orders are *now*, and those do add up.
+- **Which courier is losing your parcels.** A returned rate per courier, beside what delivery
+  actually cost you. The cost is what the courier billed, not what they quoted.
+- **Which districts send parcels back.** Ranked by how many orders each district sent, not by the
+  rate — one refused parcel out of one is a 100% rate and tells you nothing.
+- **Why you rejected orders.** Fake numbers, no answer, out of stock. Cancellations are counted
+  separately, because those are usually the customer changing their mind.
+- **Top products and top customers, on the order clock.** A customer is matched by phone number, so
+  a guest order and an account order from the same number are one person, counted once.
+
+Two figures show a dash rather than a number, and that is deliberate. A **returned rate** is blank
+until at least one parcel has reached a customer's door — a shop with nothing delivered yet has no
+rate, and 0% would read as a perfect week. **Gross profit** leaves out any revenue whose cost you
+never entered, and says how much it left out underneath.
 
 ## Money and VAT
 

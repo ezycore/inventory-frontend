@@ -89,6 +89,20 @@ tightened backend-side), so the period header type-checks against the report res
 - **Stat tiles**: use the shared `StatsCard` (`ui/components/StatsCard`) — see the `stats-card` skill.
   Don't hand-roll a stat box.
 - **Charts**: follow the existing report charts (e.g. `tax-trend-chart.tsx`) — consistent axis/format.
+- **Period-on-period trends: `calcPeriodChange` (`utils/period-change.ts`) — never a local copy.**
+  It returns **`null` when there is no basis**: a previous period of zero, or a move that rounds to
+  nothing. Five hand-rolled `calcChange` copies read a zero previous period as **100% growth**, so a
+  shop's first trading month printed "↑ 100% vs previous period" under every tile — a number with no
+  basis, stated as fact (found in a browser on real data, 2026-09-22). Pinned by
+  `utils/period-change.test.ts`.
+  Every trend on the dashboard KPI row, the Sales, Purchase, Orders and Cash reports now goes
+  through it. **The one deliberate exception is `profit-loss-report.tsx`**, which keeps its own
+  two-line helper because it renders differently: a **signed** `-25%` with the arrow derived from
+  the sign, and a literal `0%` for a flat period. It also had the zero case right from the start —
+  it was the only copy that did, which is where the shared helper's behaviour came from.
+- **A count in a sentence needs ICU plural.** `"{count} orders"` renders "1 orders". Use
+  `"{count, plural, one {# order} other {# orders}}"`; Bangla does not inflect the noun, so
+  `"{count}টি অর্ডার"` is correct for both.
 - **VAT reports** are gated by the `tax` feature; gate with `isVatActive` (see the
   [`vat`](../vat/SKILL.md) skill — `isTaxActive` no longer exists) and hide
   tax reports when off.

@@ -6000,6 +6000,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/reports/orders
+         * @description Defined in `src/routes/reports.routes.ts:78`. Requires permission `reports.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_reports_orders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reports/export": {
         parameters: {
             query?: never;
@@ -6009,7 +6029,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/export
-         * @description Defined in `src/routes/reports.routes.ts:75`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:86`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_export"];
         put?: never;
@@ -6029,7 +6049,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax
-         * @description Defined in `src/routes/reports.routes.ts:85`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:96`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax"];
         put?: never;
@@ -6049,7 +6069,7 @@ export interface paths {
         };
         /**
          * GET /api/reports/tax/ledger
-         * @description Defined in `src/routes/reports.routes.ts:88`. Requires permission `reports.view`.
+         * @description Defined in `src/routes/reports.routes.ts:99`. Requires permission `reports.view`.
          */
         get: operations["get_api_reports_tax_ledger"];
         put?: never;
@@ -15344,6 +15364,114 @@ export interface components {
             outOfStockCount: number;
             inStockCount: number;
         };
+        OrdersReport: {
+            period: {
+                key: string;
+                /** Format: date-time */
+                startDate: string;
+                /** Format: date-time */
+                endDate: string;
+                /** @enum {string} */
+                chartGrouping: "hourly" | "daily" | "weekly" | "monthly";
+            };
+            summary: {
+                placed: number;
+                netValue: number;
+                grossValue: number;
+                discounts: number;
+                shippingCharged: number;
+                outstanding: number;
+                avgOrderValue: number | null;
+                previousPlaced: number;
+                previousNetValue: number;
+            };
+            funnel: {
+                placed: number;
+                confirmed: number;
+                processing: number;
+                dispatched: number;
+                completed: number;
+            };
+            outcomes: {
+                statuses: {
+                    status: string;
+                    count: number;
+                }[];
+                delivered: number;
+                returned: number;
+                rtoRate: number | null;
+            };
+            profit?: {
+                grossProfit: number;
+                totalCOGS: number;
+                costCoverage: {
+                    knownRevenue: number;
+                    unknownRevenue: number;
+                    unknownLines: number;
+                    uncommittedOrders: number;
+                };
+            };
+            topProducts: {
+                productId: string | null;
+                productName: string;
+                units: number;
+                revenue: number;
+                cost?: number;
+                profit?: number;
+            }[];
+            topCustomers: {
+                key: string | null;
+                name: string;
+                phone: string | null;
+                customerId: string | null;
+                hasAccount: boolean;
+                orders: number;
+                grossSpent: number;
+                refunded: number;
+                netSpent: number;
+                outstanding: number;
+            }[];
+            byCourier: {
+                provider: string | null;
+                name: string | null;
+                orders: number;
+                delivered: number;
+                returned: number;
+                rtoRate: number | null;
+                charged: number;
+                cost: number;
+                margin: number;
+            }[];
+            byDistrict: {
+                district: string | null;
+                orders: number;
+                netValue: number;
+                delivered: number;
+                returned: number;
+                rtoRate: number | null;
+            }[];
+            bySource: {
+                channel: string | null;
+                orders: number;
+                netValue: number;
+                share: number;
+            }[];
+            rejections: {
+                reason: string | null;
+                count: number;
+                share: number;
+            }[];
+            chartData: {
+                label: string;
+                value: number;
+                count: number;
+            }[];
+            shipping: {
+                charged: number;
+                cost: number;
+                margin: number;
+            };
+        };
         PositionReport: {
             assets: {
                 cash: number;
@@ -15496,6 +15624,8 @@ export interface components {
             [key: string]: unknown;
         };
         SalesBreakdownReport: {
+            /** @enum {string} */
+            source: "sales" | "orders";
             /** @enum {string} */
             dimension: "category" | "brand" | "tag";
             period: {
@@ -37479,6 +37609,7 @@ export interface operations {
         parameters: {
             query?: {
                 dimension?: "category" | "brand" | "tag";
+                source?: "sales" | "orders";
                 period?: string;
                 startDate?: string;
                 endDate?: string;
@@ -37866,6 +37997,49 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_reports_orders: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["OrdersReport"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;
