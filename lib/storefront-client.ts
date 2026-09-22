@@ -602,6 +602,20 @@ export interface StorefrontStore {
       purchase: boolean;
     };
   };
+  /**
+   * Microsoft Clarity config (backend `docs/plan/storefront-clarity.md`).
+   *
+   * **Presence is enabled**, same rule as `meta` above — the backend omits the whole block when
+   * the merchant has it off or has entered no project id.
+   *
+   * `cookieConsent` decides whether this storefront draws a consent bar, and to whom. `off` is
+   * not "ignore consent": Clarity sets no cookies at all until the page calls `consentv2`, so the
+   * no-banner default is also the no-storage one. See `components/storefront/consent-bar.tsx`.
+   */
+  clarity?: {
+    projectId: string;
+    cookieConsent: "off" | "eu" | "always";
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */

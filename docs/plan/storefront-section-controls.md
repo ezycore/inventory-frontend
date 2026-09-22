@@ -766,7 +766,7 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
     the bottom, full width.
   - ⚠ **The reported sticky-bar / contact-button overlap did not reproduce.** At 1200px the contact
     launcher sits at y 662–718 and the bar starts at 732; at 606px, 565–621 against 635. The launcher
-    already clears the bar because `useBuybarHeight` publishes the bar's measured height as
+    already clears the bar because `useBottomBarHeight` publishes the bar's measured height as
     `--sf-buybar-h` (68px, confirmed live) and `.sf-contact` anchors to
     `--sf-bottom-nav-h + --sf-ownerbar-h + --sf-buybar-h + 14px`. **The builder's bar calls that hook
     too**, which is what makes it work. The one arrangement that would still collide is two bottom bars

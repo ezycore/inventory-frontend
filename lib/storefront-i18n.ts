@@ -543,6 +543,13 @@ export interface Dict {
   footerSubscribed: string;
   footerSubscribeFailed: string;
   footerEmailInvalid: string;
+  /* ---- cookie consent bar --------------------------------------------
+     Shown only when the merchant asks for it (`clarity.cookieConsent`), and
+     never on checkout. Deliberately NOT merchant-editable: a free-text legal
+     notice a shop owner can mistype is a liability, not a feature. */
+  consentText: string;
+  consentAccept: string;
+  consentDecline: string;
 }
 
 const en: Dict = {
@@ -968,6 +975,13 @@ const en: Dict = {
   footerSubscribed: "You're on the list. Thank you!",
   footerSubscribeFailed: "Couldn't sign you up. Please try again.",
   footerEmailInvalid: "Enter a valid email address",
+  // Plain, short and honest about the only thing a cookie buys here: recognising
+  // a repeat visit. No "we value your privacy" preamble — it says nothing and
+  // doubles the height of a bar the shopper did not ask for.
+  consentText:
+    "We use cookies to understand how this shop is used. Decline and we still work \u2014 we just won't recognise you next time.",
+  consentAccept: "Allow",
+  consentDecline: "No thanks",
 };
 
 const bn: Dict = {
@@ -1388,6 +1402,10 @@ const bn: Dict = {
   footerSubscribed: "আপনি তালিকায় যুক্ত হয়েছেন। ধন্যবাদ!",
   footerSubscribeFailed: "সাবস্ক্রাইব করা যায়নি। আবার চেষ্টা করুন।",
   footerEmailInvalid: "সঠিক ইমেইল ঠিকানা দিন",
+  consentText:
+    "এই দোকান কীভাবে ব্যবহার হচ্ছে বুঝতে আমরা কুকি ব্যবহার করি। না দিলেও সব কাজ করবে — শুধু পরেরবার আপনাকে চিনতে পারব না।",
+  consentAccept: "সম্মতি দিন",
+  consentDecline: "ধন্যবাদ, প্রয়োজন নেই",
 };
 
 export const I18N: Record<Lang, Dict> = { en, bn };

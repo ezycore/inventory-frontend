@@ -111,6 +111,12 @@
    * home page, on desktop, and in every screenshot taken while building it.
    */
   --sf-buybar-h: 0px;
+  /*
+   * Height of the cookie consent bar while it is on screen, published the same
+   * way (`useBottomBarHeight`). 0 on every store that never shows one — which is
+   * the default — so the launcher's calc costs nothing when it is absent.
+   */
+  --sf-consent-h: 0px;
   /* Signed-in owner controls; 0 for shoppers and Customize previews. */
   --sf-ownerbar-h: 0px;
 
@@ -2259,6 +2265,73 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   white-space: nowrap;
 }
 
+/* ---- Cookie consent bar ----
+   Only mounted when the merchant asked for one (`clarity.cookieConsent`), and
+   never on checkout — see `consent-bar.tsx` for the rules this styling serves.
+
+   z-index 44 sits it directly under the contact launcher (45) rather than over
+   it, and `--sf-consent-h` (published by `useBottomBarHeight`) is what lifts the
+   launcher clear: otherwise the chat button floats exactly over the Allow
+   button, which is the one tap this bar exists to offer.
+
+   Anchored above the phone tab bar and the product buy bar for the same reason
+   the launcher is — a full-width strip pinned to `bottom: 0` would bury
+   Add-to-cart on every mobile product page. */
+.sf-consent {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--sf-bottom-nav-h, 0px) + var(--sf-buybar-h, 0px));
+  z-index: 44;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.08);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.sf-consent-text {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted-foreground);
+}
+.sf-consent-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* Both buttons carry the same size and the same border. Only the fill differs,
+   and only so one of them can be the default — a greyed-out refusal beside a
+   bright accept is the dark pattern this bar exists not to be. */
+.sf-consent-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sf-consent-btn:hover {
+  background: var(--muted);
+}
+.sf-consent-btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.sf-consent-btn-primary:hover {
+  filter: brightness(0.94);
+  background: var(--primary);
+}
+
 /* ---- Contact launcher (floating chat button) ---- */
 /*
  * Anchored off BOTH bottom-bar variables, so one rule serves phone and desktop
@@ -2275,7 +2348,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   position: fixed;
   bottom: calc(
     var(--sf-bottom-nav-h, 0px) + var(--sf-ownerbar-h, 0px) +
-      var(--sf-buybar-h, 0px) + 14px
+      var(--sf-buybar-h, 0px) + var(--sf-consent-h, 0px) + 14px
   );
   z-index: 45;
   display: flex;

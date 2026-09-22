@@ -856,7 +856,7 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     no glossary term. `listingSoldOut` (`components/storefront/product-choice.ts`) is the sold-out rule
     for a listing row before any option is chosen.
   - **Sticky order bar** (`islands/sticky-order-bar.tsx`) is phones only (`.sfb-orderbar`), fixed, and
-    publishes `--sf-buybar-h` through `useBuybarHeight` so the contact launcher stacks above it. Its
+    publishes `--sf-buybar-h` through `useBottomBarHeight` so the contact launcher stacks above it. Its
     button scrolls to the first element carrying `ORDER_FORM_ANCHOR`
     (`components/storefront-builder/order-form-anchor.ts`, stamped by the order form section), or opens
     the product page. It hides while a form is on screen, at the page end and when sold out. The
@@ -3802,7 +3802,7 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   `product-sticky-bar.tsx`.
   ⚠️ **The sticky bar owns its own ref.** It first took `buybarRef` off the shared hook return and
   `react-hooks/refs` rejected it — reading a ref off a shared object during render. It now creates
-  the ref and calls `useBuybarHeight` itself, *before* its early return, so the hook order stays
+  the ref and calls `useBottomBarHeight` itself, *before* its early return, so the hook order stays
   unconditional and `--sf-buybar-h` resets to 0 on the layouts that render no bar. Do not move that
   back up into the hook.
 
@@ -3816,10 +3816,11 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   the blank-value fallback to `social.whatsapp` happens, so the browser never picks between two
   copies of a phone number.
   **(2) `--sf-buybar-h` is new and load-bearing.** The launcher anchors to
-  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + 14px)` at `z-index: 45`. The product page's
+  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + var(--sf-consent-h) + 14px)` at `z-index: 45`.
+  The product page's
   sticky buy bar was ALREADY at `bottom: var(--sf-bottom-nav-h)`, so a button clearing only the tab
   bar lands squarely on Add-to-cart on every mobile product page — while looking perfect on the home
-  page, on desktop, and in every screenshot. `useBuybarHeight` measures it and resets on unmount,
+  page, on desktop, and in every screenshot. `useBottomBarHeight` measures it and resets on unmount,
   because the shell survives client-side navigation and a stale offset would follow the shopper
   around the whole site.
   **(3) The schema is plural, the registry has one row.** `contactButton.channels[]` with

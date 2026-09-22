@@ -57,6 +57,9 @@ export const queryKeys = {
     // Under the `storefront` prefix like the preview token: the Meta card lives on the Store
     // Settings page, so a settings-wide invalidation should refresh it too.
     storefrontMeta: () => ["organization", "storefront", "meta"] as const,
+    // Same prefix, same reason: the Clarity card sits beside the Meta one on Store Settings.
+    storefrontClarity: () =>
+      ["organization", "storefront", "clarity"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,

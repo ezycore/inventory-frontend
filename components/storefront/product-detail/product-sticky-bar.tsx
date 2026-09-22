@@ -3,7 +3,7 @@
 
 import { useRef, type CSSProperties } from "react";
 import { money } from "@/components/storefront/format";
-import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
+import { useBottomBarHeight } from "@/components/storefront/use-bottom-bar-height";
 import type { ProductDetail } from "@/components/storefront/product-detail/use-product-detail";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { brandButton } from "@/lib/storefront-button";
@@ -34,7 +34,7 @@ export function ProductStickyBar({ d }: { d: ProductDetail }) {
   const show = !paused && !!product && d.sticky && !(d.variable && d.variants.length === 0);
   // Called before the early return, so the hook order stays unconditional — and
   // so `--sf-buybar-h` is reset to 0 on the layouts that render no bar.
-  useBuybarHeight(ref, show);
+  useBottomBarHeight(ref, show);
 
   if (!show || !product) return null;
 

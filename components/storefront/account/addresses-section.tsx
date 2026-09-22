@@ -147,7 +147,7 @@ export function AddressesSection({ shopper }: { shopper: ShopperProfile }) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+    <div data-clarity-mask="true" style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       {addresses.map((a) => (
         <div key={a.id} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 18 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
