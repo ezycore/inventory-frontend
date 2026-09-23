@@ -154,6 +154,12 @@ const responsiveBaseSet = (field: string) => ({ settings }: FieldScope) => {
   return (responsive as { base?: unknown }).base !== undefined;
 };
 
+/** True while the collection page still draws its own title. */
+const headingShown = ({ settings }: FieldScope) => !settings.hideHeading;
+
+/** True while the product page still draws its built-in "You may also like" row. */
+const relatedRowShown = ({ settings }: FieldScope) => !settings.hideRelated;
+
 /** The block a block-field belongs to. Empty for a section-level field. */
 const blockOf = (scope: FieldScope): Record<string, unknown> =>
   (scope.blockIndex === undefined ? undefined : scope.blocks[scope.blockIndex]) ?? {};
@@ -275,6 +281,19 @@ const RULES: Record<string, VisibilityRule> = {
      nothing. */
   "hero.style.width": (scope) => layoutOf(scope) !== "full-bleed",
 
+  /* The full-bleed hero again, and the same renderer fact as its Width rule:
+     that layout's frame carries `ownsWidth` with `width: "full"`, so it draws
+     `data-width="full"` and `.sfb-sec[data-width="full"] { border-radius: 0 }`
+     throws a stored radius away. A card or open hero rounds normally and keeps
+     the control.
+
+     ⚠ Its stored width is unset, exactly like a core section's — which is why
+     the editor's `widthOf(style) === "full"` test could never catch either. The
+     type-wide half of that fix is `isCoreSection` in `section-style-fields.tsx`;
+     this is the per-settings half, and it belongs here for the same reason
+     `hero.style.width` does. */
+  "hero.style.radius": (scope) => layoutOf(scope) !== "full-bleed",
+
   /* The second STYLE-BOX key here, and a different shape of collision from the
      hero's. `call-to-action` has its own Alignment on the Content tab, and
      `.sfb-cta` reads `text-align: var(--sfb-cta-align, inherit)` — so the
@@ -352,6 +371,13 @@ const RULES: Record<string, VisibilityRule> = {
   "collections-row.showLabels": tiled,
   "collections-row.columns": (scope) => tiled(scope) && str(scope.settings.layout) === "grid",
   "collections-row.mobileColumns": (scope) => tiled(scope) && str(scope.settings.layout) === "grid",
+  /* Arrows page a TRACK, so they die on the grid the columns above live on —
+     the two are exact opposites, and `str(…) === "grid"` is safe for the
+     columns only because this row's unset layout is `strip`. Plain links have
+     no track either. */
+  "collections-row.arrows": (scope) => tiled(scope) && str(scope.settings.layout) !== "grid",
+  // A corner on a treatment made of text links has nothing to round.
+  "collections-row.radius": tiled,
 
   /* ---- category-tiles ----
      Same two column settings as the row above and the SAME reason they die on a
@@ -372,23 +398,58 @@ const RULES: Record<string, VisibilityRule> = {
      strip takes `align` as a prop. `layout` stays for the obvious reason. */
   "category-tiles.columns": notStrip,
   "category-tiles.mobileColumns": notStrip,
+  /* The mirror of the two above, and it needs its own reading of the SAME
+     default: this section falls back to `grid`, so arrows need an explicit
+     `strip` rather than merely "not grid". */
+  "category-tiles.arrows": ({ settings }) => str(settings.layout) === "strip",
 
-  /* Pictures-only is a setting about PICTURES, and two of the four modes have
-     none to hide behind. `CategoryTileRow` computes
-     `compact || disc || circle || categoryLabelsVisible(…)`, so a `disc` row
-     always draws names, and a `circle` row does too by either route — with
-     photographs `circle` is set, without them `compact` is, and both short-
-     circuit the merchant's choice. Dropping the names there would leave a row
-     of unexplained initials, which is the component's stated reason.
+  /* ---- the two shape controls ----
+     Both describe the PHOTO BOX, and two of the four styles have none.
+     `disc` draws a lettered circle and no picture at all; `circle` crops the
+     photo round, where a ratio other than 1:1 would make an ellipse and a
+     corner radius means nothing against `border-radius: 999px`. The renderer
+     hard-codes both for those two (`CategoryTile`), so the controls would be
+     inert rather than merely unusual.
 
-     ⚠ The same `categoryLabelsVisible` catalogue dependency as the row above
-     applies to `tile` and `overlay`, and is deliberately NOT claimed here for
-     the same reason: it turns on whether the categories are photographed, and
-     the editor cannot see that. */
-  "category-tiles.showLabels": ({ settings }) => {
+     ⚠ `tileRatio` was live on all four until 2026-09-22 and inert on ALL of
+     them: the section emitted `--sfb-tile-ratio` and `category-tile-row.tsx`
+     drew a literal `1 / 1`. Only `collections-row`, which shares the variable
+     name through `collection-tiles.tsx`, ever read it. */
+  "category-tiles.tileRatio": ({ settings }) => {
     const mode = str(settings.mode);
     return mode !== "disc" && mode !== "circle";
   },
+  "category-tiles.radius": ({ settings }) => {
+    const mode = str(settings.mode);
+    return mode !== "disc" && mode !== "circle";
+  },
+
+  /* The sentence under the name. `CategoryTileRow` suppresses it on `overlay`
+     (a second line of type over an unseen photograph), on `disc` and on
+     `circle` (both are scannable strips a sentence turns into a stack of
+     cards) — so on three of the four styles there is no description drawn for
+     this switch to hide. */
+  "category-tiles.hideDescription": ({ settings }) => {
+    const mode = str(settings.mode);
+    return mode !== "overlay" && mode !== "disc" && mode !== "circle";
+  },
+
+  /* Pictures-only is a setting about PICTURES, and ONE of the four modes has
+     none to hide behind: `CategoryTileRow` computes `compact || disc || …`, so
+     a `disc` row always draws its names. It is a strip of lettered initials by
+     definition, and an initial with no name under it names nothing.
+
+     ⚠ `circle` was here until 2026-09-22 and is not any more. It is a photo
+     shape — the section only chooses it when something is photographed — so it
+     answers the question, like `tile` and `overlay`. (A circle whose own
+     collection has no picture still keeps its caption; that is the renderer's
+     leaf rule, not a reason to take the control away from the row.)
+
+     ⚠ The `categoryLabelsVisible` catalogue dependency — names survive unless
+     EVERY listed collection has a picture — is deliberately NOT claimed here:
+     it turns on store data, and `FieldScope` holds settings and blocks only.
+     The control's hint says so instead. */
+  "category-tiles.showLabels": ({ settings }) => str(settings.mode) !== "disc",
 
   /* ---- category-promo-cards ----
      A side and a share of the card are questions about a picture BESIDE the
@@ -464,6 +525,40 @@ const RULES: Record<string, VisibilityRule> = {
      Trimmed to match the renderer, which this pass taught to trim — see the
      note in `campaign-offers.tsx`. */
   "campaign-offers.storeHeading": ({ settings }) => !str(settings.heading)?.trim(),
+
+  /* ---- product-main ----
+     Four controls about a row the merchant has just switched off. `hideRelated`
+     makes `ProductPageView` skip the whole block — heading, grid and cards — so
+     a count, a column number and a card photo shape have nothing left to
+     describe. All four are optional, and rule 1 applies: switch the row back on
+     and every answer is where it was left.
+
+     The `related-products` SECTION keeps its own copies of these settings and
+     they are unaffected; it draws its own row, which is the point of hiding
+     this one. */
+  "product-main.relatedLimit": relatedRowShown,
+  "product-main.relatedColumns": relatedRowShown,
+  "product-main.cardImageRatio": relatedRowShown,
+  "product-main.cardImageFit": relatedRowShown,
+
+  /* ---- collection-grid ----
+     With the heading hidden there is no title for the merchant's words to
+     replace and nothing for a line to sit under — `CollectionInner` skips both,
+     so both controls would be edits with no effect. The count is a separate
+     switch and stays: a page that opens with a hero still counts its results.
+
+     Rule 1 as always: switch the heading back on and the words are where they
+     were left. */
+  "collection-grid.heading": headingShown,
+  "collection-grid.subheading": headingShown,
+
+  /* ---- content-body ----
+     Carried metadata, not a decision. `updatedAt` is the "Last updated" date the
+     page had on the Content screen, moved across so the line does not restate
+     itself as today; the spec keeps it a `date`, which draws as a text box
+     holding an ISO string. Presenting that as something to type is worse than
+     not offering it, and the value survives untouched while it is hidden. */
+  "content-body.updatedAt": () => false,
 };
 
 /**

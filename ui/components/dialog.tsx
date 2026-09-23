@@ -4,6 +4,7 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@ui/lib/utils"
+import { ScrollLockProvider } from "@ui/lib/scroll-lock"
 import { Button } from "@ui/components/button"
 import { XIcon } from "lucide-react"
 
@@ -66,7 +67,10 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
+        {/* Everything below here is inside `react-remove-scroll`'s lock, which
+            changes where a scrollable popover may render — see
+            `useInsideScrollLock`. */}
+        <ScrollLockProvider value={true}>{children}</ScrollLockProvider>
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button

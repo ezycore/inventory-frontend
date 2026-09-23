@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
-import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
+import { sectionCardLook, sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { SectionHeading } from "@/components/storefront-builder/section-heading";
 import { productRowHeading } from "@/components/storefront-builder/product-row-heading";
@@ -28,7 +28,10 @@ export function ProductCarouselSection({ settings, context, data }: SectionViewP
           from the DOM rather than passed as a prop — so the merchant's choice
           rides a custom property the island inherits, and the phone can answer
           differently without a second rendering path. */}
-      <div style={responsiveVars("cols", settings.perView) as CSSProperties}>
+      <div
+        style={responsiveVars("cols", settings.perView) as CSSProperties}
+        {...sectionCardLook(settings)}
+      >
         <Island
           name="product-rail"
           props={{

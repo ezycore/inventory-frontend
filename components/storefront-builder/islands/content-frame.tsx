@@ -37,7 +37,10 @@ export function ContentFrameIsland({
   return (
     <div className="sfb-content-frame">
       <ContentFrame title={title} meta={meta} layout={layout}>
-        <ContentBodyView body={body} />
+        {/* A heading with no body is a real state — a page whose content is the
+            sections below it. Rendering the reader on an empty string would put
+            the body's own margins under that heading for nothing. */}
+        {body ? <ContentBodyView body={body} /> : null}
       </ContentFrame>
     </div>
   );

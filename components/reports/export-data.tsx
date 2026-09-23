@@ -22,6 +22,7 @@ import {
   Package,
   Users,
   Truck,
+  ClipboardList,
 } from 'lucide-react'
 
 /**
@@ -46,6 +47,17 @@ const EXPORT_OPTIONS: {
     labelKey: 'salesData',
     descriptionKey: 'salesDataDesc',
     icon: ShoppingCart,
+  },
+  {
+    // The storefront order list, on the ORDER clock — placed date, address,
+    // courier, consignment and what is still owed. `sales` above is the Sale
+    // ledger, which for an online order is its DISPATCH record, so the two files
+    // answer different questions and both are worth having.
+    value: 'orders',
+    features: ['storefront'],
+    labelKey: 'orderData',
+    descriptionKey: 'orderDataDesc',
+    icon: ClipboardList,
   },
   {
     value: 'purchases',
@@ -120,7 +132,12 @@ function downloadCSV(data: any[], filename: string, timezone: string) {
     ),
   ]
 
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+  // The BOM is what makes Excel read the file as UTF-8. Without it every Bangla
+  // product name, customer name and address opens as mojibake — the encoding is
+  // already correct, Excel just will not guess it.
+  const blob = new Blob(['\uFEFF', csvRows.join('\n')], {
+    type: 'text/csv;charset=utf-8;',
+  })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

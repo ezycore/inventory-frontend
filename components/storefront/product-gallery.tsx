@@ -78,6 +78,7 @@ export function ProductGallery({
   layout,
   index,
   onSelect,
+  imageFit,
 }: {
   images: StorefrontImage[];
   alt: string;
@@ -86,9 +87,23 @@ export function ProductGallery({
    *  swap in a shorter image list than the one that was being browsed. */
   index: number;
   onSelect: (index: number) => void;
+  /**
+   * The `product-main` section's own fit, where the merchant set one. Unset
+   * follows the store, which is every classic product page and every landing
+   * page's Single product section — so this prop is absent on both.
+   *
+   * Its twin, the SHAPE, does not travel as a prop: it has to differ per screen
+   * and an inline `aspect-ratio` cannot carry a media query, so the section
+   * writes a custom property instead and the hero reads it below.
+   */
+  imageFit?: "cover" | "canvas";
 }) {
   const { t } = useStorefrontUI();
-  const fit = useStoreImageFit();
+  // Both hooks run unconditionally and the prop wins after — `??` around a hook
+  // call would skip it whenever the section set a fit, which is a hook order
+  // that changes with a prop.
+  const storeFit = useStoreImageFit();
+  const fit = imageFit ?? storeFit;
   const imageRatio = useStoreImageRatio();
   const previewMobile = useSfPreview((s) => s.previewDevice === "mobile");
   const [zoomed, setZoomed] = useState(false);
@@ -120,11 +135,16 @@ export function ProductGallery({
         alt={alt}
         label="product"
         ratio={
-          // `top` keeps its own 16/11 letterbox: that layout runs the photo the
-          // full width of the page, where a 3:4 portrait would stand taller than
-          // the viewport. The merchant's shape applies to the side-by-side
-          // layout, which is the one framed like a product grid card.
-          layout === "top" ? "16 / 11" : imageRatio
+          // `--sf-pdp-ratio` is the product page section's own shape, per screen
+          // (`.sfb-pdp` in storefront-builder.css). It is absent everywhere else
+          // — the classic page, a landing page's Single product — and then the
+          // fallback is what has always drawn:
+          //
+          // `top` keeps its own 16/11 letterbox, because that layout runs the
+          // photo the full width of the page where a 3:4 portrait would stand
+          // taller than the viewport; the side-by-side layout, framed like a
+          // product grid card, follows the store's card shape.
+          `var(--sf-pdp-ratio, ${layout === "top" ? "16 / 11" : imageRatio})`
         }
         radius={RADIUS}
         fit={fit}

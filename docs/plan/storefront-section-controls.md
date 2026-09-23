@@ -248,7 +248,7 @@ Grouped by the phase that answers it. `—` means the section is correct as it s
 | **order-form** | Locked to 560 px (X2); no label on its own submit button. | 1, 6 |
 | **search-results** | **No settings at all** — including no words for an empty result, which is the one thing a merchant would write. | 6 |
 | **single-product** | Gallery layout and hide-description only. | out of scope |
-| **product-main**, **collection-grid**, **cart-lines**, **checkout-form**, **account-area**, **content-body** | One `layout` enum each. These are page layouts, not compositions. | out of scope (§5) |
+| ~~**product-main**~~, ~~**collection-grid**~~, **cart-lines**, **checkout-form**, **account-area**, **content-body** | One `layout` enum each. These are page layouts, not compositions. | out of scope (§5) — **overtaken for the first two, 2026-09-22 (§7)**: the owner asked for the product page to shape its photo "like the product grid sections", then for the collection page too. Both now carry the grid's shape controls. `checkout-form` separately gained `hideCoupon`. |
 
 ---
 
@@ -766,7 +766,7 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
     the bottom, full width.
   - ⚠ **The reported sticky-bar / contact-button overlap did not reproduce.** At 1200px the contact
     launcher sits at y 662–718 and the bar starts at 732; at 606px, 565–621 against 635. The launcher
-    already clears the bar because `useBuybarHeight` publishes the bar's measured height as
+    already clears the bar because `useBottomBarHeight` publishes the bar's measured height as
     `--sf-buybar-h` (68px, confirmed live) and `.sf-contact` anchors to
     `--sf-bottom-nav-h + --sf-ownerbar-h + --sf-buybar-h + 14px`. **The builder's bar calls that hook
     too**, which is what makes it work. The one arrangement that would still collide is two bottom bars
@@ -936,3 +936,70 @@ moved, a trap that cost an hour, a step that turned out to be wrong.
 - **2026-09-21 — the style box has no gate.** `checkStyle` hand-names its allowed keys and carries its
   own `SPACING_STEPS`; the section manifest's `--check` does not cover it. Phase 0 exists because of
   this, and it is why nothing merchant-visible ships first.
+
+### 2026-09-22 — the core sections were not as out of scope as §2.2 said
+
+§2.2 filed the six system-page core sections as "page layouts, not compositions", and §5 left them
+there. Three owner requests in one session went straight through that line: a per-screen coupon switch
+on the checkout, then the product page's photo shape "like the product grid sections", then the same
+for the collection page.
+
+**The line was drawn in the wrong place.** "A page layout is not a composition" is true and it is not
+the question a merchant asks. What they ask is *why can this row shape its photographs and this page
+cannot*, and the answer — that one is a section on a page and the other IS the page — is an
+implementation detail from where they stand. The grid's controls split cleanly in two:
+
+- **Which products** — `source`, `sort`, the three pickers, `wholeRows`, `ctaHref`. Genuinely
+  meaningless on a page whose route answers it. Still out of scope, and now for a stated reason rather
+  than by category.
+- **What they look like** — `columns` and the `CARD_PHOTO` pair. Nothing about these depends on being a
+  composition, and they are exactly what was asked for twice.
+
+So the rule this replaces §5's entry with: **a core section takes every SHAPE control its equivalent
+row has, and none of its SOURCE controls.** Applied to `product-main` (photo shape and fit per screen,
+related count, related columns, related card photo, hide description) and `collection-grid` (exact
+count per screen, card photo shape and fit). `campaign-main` draws the same grid through the same view
+and is the obvious next one, a settings entry and two lines away; it was left alone because nobody has
+asked yet, which is the register's own bar.
+
+Two collection-page controls were deliberately not built, and the reason is not scope: `limit`
+(products per page) and a merchant default `sort` both change the catalogue query's cache key, which
+`shop/products/page.tsx` seeds server-side from the URL alone. A key that differs by one field misses
+the seed and renders an empty page — they need the route to carry the section's settings.
+
+**Two live bugs in the column mechanism came out of building on it**, both fixed here and both worth
+knowing before touching `responsiveVars` again: `.sfb-cols` declares no `display: grid` and was being
+swapped in for the grid class (one card per line), and one class wrote both screens, so a phone-only
+count collapsed the desktop to a single column. `responsiveClasses` is the fix for the second and is
+the shape every future per-screen class should copy.
+
+### 2026-09-22 (later) — S6 was right about the card and wrong about its tokens
+
+§5's **S6 — per-section product-card style** reads: "a per-section style would fork the card, which is
+the piece most shared across the storefront." The owner then asked for a per-section card radius and
+button style, and the entry turned out to be protecting the right thing for the wrong reason.
+
+**The fork is the component, not the values.** `CARD_LOOK` (`cardCorners`, `cardButtons`) resolves to
+two data attributes on the section's own wrapper, and `storefront.css` styles from them using the SAME
+`--radius-md` and `--btn-*` tokens the store-wide controls set — sharing the selectors rather than
+repeating the declarations. Every card is still `ProductCard`, drawn by the same code, reading
+different values. Nothing forked.
+
+So S6 stands, narrowed: **no second card component, and no per-section control that would need one** —
+a different CTA arrangement, a different density, a different information order. Anything expressible
+as a token the card already reads is fair game, and both of these were.
+
+Two things worth carrying forward:
+
+- **`selected-products` was excluded on renderer evidence, not by category.** Its `PickGrid` is
+  explicitly not a `ProductCard` — "no border, no background, no buttons" — so both controls would have
+  had nothing to change. That is `field-visibility`'s rule applied one step earlier, at the spec: a
+  setting that can never do anything is better not offered than offered and hidden.
+- **A core section's wrapper is the whole page.** The attributes redefine tokens for everything inside
+  them, so on `product-main` and `collection-grid` they go on the related row and on the grid, not on
+  `.sfb-core`. A control named for the cards must not restyle whatever a merchant adds to the page
+  next.
+
+The collection page's heading landed in the same pass, and its rule is the one every core section
+shares: **one page draws every collection**, so the merchant's words are an override and unset keeps
+the collection's own name in the shopper's language.

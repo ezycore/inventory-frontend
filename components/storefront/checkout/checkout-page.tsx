@@ -19,6 +19,7 @@ import { GuidedCheckout } from "@/components/storefront/checkout/layouts/guided-
 import { EditorialCheckout } from "@/components/storefront/checkout/layouts/editorial-checkout";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import { OrdersPausedNotice } from "@/components/storefront/orders-paused-notice";
+import { PreviewCartNotice } from "@/components/storefront/preview-cart-notice";
 
 /**
  * A screen tall in every branch, so the store footer starts below the fold and
@@ -53,11 +54,32 @@ const wrap: CSSProperties = {
  * all answers to "should a checkout render at all", so a layout that got one
  * wrong would be a layout that takes an order it should have refused.
  *
+ * In the page editor's frame the basket may be the preview's own sample
+ * (`usePreviewCart`, applied in `useCheckout`): without it the empty-cart branch
+ * below is what a merchant designing their checkout page sees, every time. The
+ * form it draws is the real one, and `submit` refuses inside a preview.
+ *
  * `checkout` was widened from two values to four rather than gaining a parallel
  * `checkoutLayout` key — merchants already have `single-page`/`multi-step`
  * saved, and the two extra ids are purely additive.
  */
-export function CheckoutPageView({ layout: chosen }: { layout?: StoreTemplates["checkout"] }) {
+/**
+ * Which screens hide the coupon field. Both answers travel together and CSS
+ * picks — see `sf-nocoupon-d` / `sf-nocoupon-m` in `storefront.css`. Absent on
+ * the classic `/checkout` route, which has no section to carry the setting.
+ */
+export interface HideCoupon {
+  desktop: boolean;
+  mobile: boolean;
+}
+
+export function CheckoutPageView({
+  layout: chosen,
+  hideCoupon,
+}: {
+  layout?: StoreTemplates["checkout"];
+  hideCoupon?: HideCoupon;
+}) {
   const { slug, base } = useStoreContext();
   const { data: store } = useStore(slug);
   const api = useCheckout();
@@ -128,10 +150,33 @@ export function CheckoutPageView({ layout: chosen }: { layout?: StoreTemplates["
   }
 
   return (
-    <div style={wrap}>
+    // See `cart-page.tsx`: the sample's fields and buttons stay live inside the
+    // page editor's frame, where every other click is captured for selection.
+    // A checkout a merchant cannot fill is a checkout they cannot judge, and
+    // `submit` refuses a preview anyway.
+    //
+    // The coupon classes go HERE rather than on the row: all four layouts draw
+    // their own `CouponRow`, in their own place, so one wrapper is the only
+    // spot that covers every one of them without threading a prop through four
+    // files — and it is the same two-class, one-per-breakpoint shape the banner
+    // cards use (`sf-banner-card--notext-d/-m`).
+    <div
+      style={wrap}
+      className={couponClass(hideCoupon)}
+      data-preview-interactive={api.sampleCart ? "" : undefined}
+    >
+      {api.sampleCart ? <PreviewCartNotice text={t.previewSampleCart} /> : null}
       <Layout api={api} />
     </div>
   );
+}
+
+/** The hiding classes for this checkout, or undefined where nothing hides. */
+function couponClass(hide?: HideCoupon): string | undefined {
+  if (!hide?.desktop && !hide?.mobile) return undefined;
+  return [hide.desktop ? "sf-nocoupon-d" : "", hide.mobile ? "sf-nocoupon-m" : ""]
+    .filter(Boolean)
+    .join(" ");
 }
 
 const CHECKOUT_LAYOUTS: Record<

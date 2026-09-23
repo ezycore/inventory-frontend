@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import type { StatData } from '@ui/components/StatsCard'
 import type { Translator } from '@/i18n/config'
-import { calcChange } from '@/components/dashboard/helpers'
+import { calcPeriodChange, type PeriodChange } from '@/utils/period-change'
 import type { DashboardBlockContext, DashboardBlockId } from './context'
 
 /**
@@ -32,18 +32,25 @@ type KpiTileBuilder = (
   t: Translator,
 ) => StatData | null
 
-/** A flat period gets no trend chip rather than a "0%" one. */
+/**
+ * A period with no trend gets no chip.
+ *
+ * `calcPeriodChange` returns `null` both for a flat period and — the case this
+ * replaced — for a previous period of ZERO. The old local helper called that
+ * 100% growth, so a workspace in its first month of trading wore an "↑ 100%"
+ * chip on every KPI tile, against nothing.
+ */
 const trend = (
-  change: ReturnType<typeof calcChange>,
+  change: PeriodChange | null,
   t: Translator,
 ): StatData['trend'] =>
-  change.direction === 'neutral'
-    ? undefined
-    : {
+  change
+    ? {
         value: `${change.value}%`,
         direction: change.direction,
         label: t('vsPrevious'),
       }
+    : undefined
 
 export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
   /**
@@ -114,7 +121,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       description: t('ordersValue', { amount: formatCurrency(value) }),
       icon: ShoppingBag,
       variant: 'primary',
-      trend: trend(calcChange(placed, previousPlaced), t),
+      trend: trend(calcPeriodChange(placed, previousPlaced), t),
     }
   },
 
@@ -195,7 +202,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       icon: DollarSign,
       variant: 'success',
       trend: trend(
-        calcChange(overview.netRevenue ?? 0, overview.previousNetRevenue ?? 0),
+        calcPeriodChange(overview.netRevenue ?? 0, overview.previousNetRevenue ?? 0),
         t,
       ),
     }
@@ -209,7 +216,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       icon: ArrowDownToLine,
       variant: 'info',
       trend: trend(
-        calcChange(
+        calcPeriodChange(
           overview.purchases?.total ?? 0,
           overview.purchases?.previousTotal ?? 0,
         ),

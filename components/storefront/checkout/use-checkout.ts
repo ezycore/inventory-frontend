@@ -29,7 +29,8 @@ import { inferZone } from "@/lib/bd-zone";
 import { money } from "@/components/storefront/format";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
-import { cartAnonymousId } from "@/services/storefront/cart-identity";
+import { cartAnonymousId, isSfPreview } from "@/services/storefront/cart-identity";
+import { usePreviewCart } from "@/services/storefront/use-preview-cart";
 import { metaCheckoutAttribution, trackMetaPurchase } from "@/lib/storefront-meta";
 import { orderSource } from "@/lib/storefront-attribution";
 import { useInitiateCheckout } from "@/components/storefront/checkout/use-initiate-checkout";
@@ -90,7 +91,13 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
   const allItems = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
 
-  const items = lines ?? (storeSlug === slug ? allItems : []);
+  const cartItems = storeSlug === slug ? allItems : [];
+  /* The editor's frame again — see `useCartPage`. A checkout previewed with an
+     empty basket renders two lines of text where the whole form belongs, so the
+     layout picker on the `checkout-form` section changes nothing on screen. Off
+     for a landing page's form, which brings its own `lines`. */
+  const preview = usePreviewCart(cartItems, !lines);
+  const items = lines ?? preview?.items ?? cartItems;
   const currency = store?.currency;
   const methods = store?.allowedPaymentMethods ?? ["cod"];
   const savedAddresses = shopper?.addresses ?? [];
@@ -384,6 +391,18 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
   };
 
   const submit = () => {
+    // An admin preview frame draws the REAL checkout, so its Place order button
+    // is the real one — and an order placed from it is a real order: stock moves,
+    // a courier is booked, the merchant's own order list grows a parcel nobody
+    // bought. Every other write on this path already refuses a preview
+    // (`isSfPreview` guards the cart mirror, the guest-contact capture and every
+    // Meta event); placement was the one that did not, and it is the expensive
+    // one. Checked first, before any validation, so a half-filled form cannot
+    // reach it by another route.
+    if (isSfPreview()) {
+      toast.error(t.previewNoOrder);
+      return;
+    }
     // The button is never disabled for an incomplete form: pressing it is how a
     // shopper ASKS what is missing, and a disabled button answers nothing. The
     // refusal happens here instead, and it says why.
@@ -498,6 +517,8 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
     store,
     currency,
     items,
+    /** These lines are the editor preview's sample, not a real basket. */
+    sampleCart: preview?.sample ?? false,
     shopper,
     hydrated,
     placed,

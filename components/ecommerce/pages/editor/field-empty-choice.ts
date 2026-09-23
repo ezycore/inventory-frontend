@@ -59,11 +59,24 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   // Inherited from a Customize panel the merchant can still open and change.
   cardImageRatio: FOLLOW_PRODUCT_CARDS,
   cardImageFit: FOLLOW_PRODUCT_CARDS,
+  /* A DIFFERENT panel from the two above, and the choice has to say which:
+     the photo's shape and fit are Product cards, while the corners and the
+     button fill are `theme.design` — the Look part's Corner radius and
+     Buttons. One label naming the wrong screen is worse than none. */
+  cardCorners: { kind: "inherit", label: "Follow Corner radius" },
+  cardButtons: { kind: "inherit", label: "Follow Buttons" },
   /* A system page's core section overriding the store's own `templates.*`
      (plan §6). The panels that used to own these left Customize on the same
      day, so they name the stored value, not a screen — see `STORE_DEFAULT`. */
   "single-product.galleryLayout": STORE_DEFAULT,
   "product-main.layout": STORE_DEFAULT,
+  /* NOT `STORE_DEFAULT` beside the layout above, though all three are this
+     section's: the photo's shape and fit still have a Customize panel a
+     merchant can open and change — Product cards, the same one the card
+     settings name — so they name it, and the layout, whose panel left with the
+     per-page rows, names the stored value instead. */
+  "product-main.imageRatio": FOLLOW_PRODUCT_CARDS,
+  "product-main.imageFit": FOLLOW_PRODUCT_CARDS,
   "collection-grid.layout": STORE_DEFAULT,
   "collection-grid.pagination": STORE_DEFAULT,
   "account-area.layout": STORE_DEFAULT,
@@ -132,4 +145,32 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
 /** What empty means for one setting, or `undefined` while it is unclassified. */
 export function fieldEmptyChoice(sectionType: string | undefined, key: string): FieldEmptyChoice | undefined {
   return (sectionType ? EMPTY_CHOICES[`${sectionType}.${key}`] : undefined) ?? EMPTY_CHOICES[key];
+}
+
+/**
+ * Optional BOOLEANS whose renderer treats unset as ON.
+ *
+ * The switch drew `checked={value === true}`, so an unset setting whose section
+ * draws it as true showed the control OFF while the shop showed it on — and the
+ * merchant's first click then changed nothing they could see, because it wrote
+ * the `true` that was already in force. Browser QA caught it on Show names: the
+ * toggle sat off over a row of named tiles, and it took two clicks to hide one
+ * name.
+ *
+ * Same rule as a `value` entry above, in the one shape a switch has: the control
+ * shows what the section already draws. A boolean with no entry stays off when
+ * unset, which is every other optional boolean in the catalogue.
+ */
+const BOOLEAN_DEFAULTS: Record<string, boolean> = {
+  // `settings.showLabels ?? true` — category-tiles.tsx, collections-row.tsx.
+  "category-tiles.showLabels": true,
+  "collections-row.showLabels": true,
+  // `CategoryStrip`'s own `arrows = true` default, which unset falls through to.
+  "category-tiles.arrows": true,
+  "collections-row.arrows": true,
+};
+
+/** Does this boolean setting draw as ON while it is unset? */
+export function fieldDefaultsOn(sectionType: string | undefined, key: string): boolean {
+  return (sectionType ? BOOLEAN_DEFAULTS[`${sectionType}.${key}`] : undefined) ?? BOOLEAN_DEFAULTS[key] ?? false;
 }

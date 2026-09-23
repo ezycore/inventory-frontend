@@ -36,6 +36,7 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "account-area": { settings: {} },
   "search-results": { settings: {} },
   "collection-grid": { settings: {} },
+  "campaign-main": { settings: {} },
   "product-main": { settings: {} },
   "related-products": { settings: {} },
   faq: {

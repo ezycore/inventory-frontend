@@ -2,7 +2,8 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { useContentPages } from "@/services/api";
+import { useContentPages, useStorefrontPages } from "@/services/api";
+import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
@@ -44,6 +45,14 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [addressMode, setAddressMode] = useState(checkout.addressMode ?? "detailed");
   // Unset reads as ON — every store that predates the toggle was showing it.
   const [orderNotes, setOrderNotes] = useState(checkout.showOrderNotes !== false);
+  // Same rule for the guest notice, and separately per device: `!== false` so an
+  // unsaved store reads as shown everywhere rather than as a merchant's "off".
+  const [noticeOnDesktop, setNoticeOnDesktop] = useState(
+    checkout.guestNotice?.showOnDesktop !== false,
+  );
+  const [noticeOnMobile, setNoticeOnMobile] = useState(
+    checkout.guestNotice?.showOnMobile !== false,
+  );
   const [ordersPaused, setOrdersPaused] = useState(checkout.ordersPaused ?? false);
   const [pausedMessage, setPausedMessage] = useState(checkout.pausedMessage ?? "");
   const [pausedWhatsApp, setPausedWhatsApp] = useState(checkout.pausedWhatsApp ?? false);
@@ -59,10 +68,24 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [customFields, setCustomFields] = useState(() =>
     storedFields.filter((field) => !isMethodOwnedField(field)),
   );
-  const { data: pages } = useContentPages();
+  // BOTH page collections, because a store's pages may live in either: a page
+  // that moved onto the builder keeps its slug and is what the storefront
+  // serves, while a store that has not moved still has its CMS pages. Listing
+  // only the CMS ones left a migrated store unable to name its own terms page.
+  const { data: cmsPages } = useContentPages();
+  const { data: builderPages } = useStorefrontPages({ kind: "content", limit: 100 });
+  const livePages = [
+    ...(builderPages?.items ?? [])
+      .filter((page) => page.status === "published" && page.slug)
+      .map((page) => ({ title: page.title, slug: page.slug as string })),
+    ...(cmsPages ?? []).filter((page) => page.published).map((page) => ({ title: page.title, slug: page.slug })),
+  ];
+  // The builder's copy wins on a shared slug — it is the one shoppers get.
   const pageOptions = [
     { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
-    ...(pages ?? []).filter((page) => page.published).map((page) => ({ label: page.title, value: page.slug })),
+    ...livePages
+      .filter((page, index) => livePages.findIndex((other) => other.slug === page.slug) === index)
+      .map((page) => ({ label: page.title, value: page.slug })),
   ];
   const toggleField = (id: string, on: boolean) => setFields((current) => on ? Array.from(new Set([...current, id])) : current.filter((field) => field !== id));
 
@@ -104,7 +127,7 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
       </Card>
       <Card className="space-y-4 p-5 shadow-none">
         <ToggleRow label="Require terms acceptance" desc="Shopper must accept terms before placing an order." checked={terms} onChange={setTerms} />
-        {terms ? <div className="space-y-1.5"><Label>Terms page</Label><SimpleSelect value={termsPage} onValueChange={setTermsPage} options={pageOptions} className="max-w-sm" /><p className="text-xs text-muted-foreground">Manage pages under Content. Auto-detect uses a published page slugged like terms.</p></div> : null}
+        {terms ? <div className="space-y-1.5"><Label>Terms page</Label><SimpleSelect value={termsPage} onValueChange={setTermsPage} options={pageOptions} className="max-w-sm" /><p className="text-xs text-muted-foreground">Manage pages under Pages. Auto-detect uses a published page slugged like terms.</p></div> : null}
         <div className="space-y-2">
           <Label>Required checkout fields</Label>
           <div className="flex flex-wrap gap-4">
@@ -140,6 +163,32 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
           checked={orderNotes}
           onChange={setOrderNotes}
         />
+        {/* Two switches, because the notice costs different amounts on the two
+            screens: on a phone it stands between the shopper and the first box,
+            on a desktop it sits in space the form was not using. Merchants whose
+            shoppers are almost all guests want the height back on the phone
+            without withdrawing the offer everywhere. */}
+        <div className="space-y-2">
+          <Label>Guest sign-in notice</Label>
+          <p className="text-xs text-muted-foreground">
+            Shown above the contact fields when nobody is signed in. It offers sign-in and says what
+            ordering as a guest means — the tracking link is their only record of the order. Takes
+            about 100px above the first box on a phone.
+          </p>
+          <div className="grid gap-3 rounded-lg border p-3">
+            <ToggleRow label="Show on computers" checked={noticeOnDesktop} onChange={setNoticeOnDesktop} />
+            <ToggleRow label="Show on phones" checked={noticeOnMobile} onChange={setNoticeOnMobile} />
+          </div>
+          {/* Both off is reachable in two clicks and is a legitimate choice, but
+              it withdraws the offer rather than moving it — worth saying at the
+              point of the decision, the same way the strip editors do. */}
+          {isStripHiddenEverywhere(noticeOnDesktop, noticeOnMobile) ? (
+            <p className="text-xs text-amber-700 dark:text-amber-500">
+              Both are off, so guests are never offered sign-in at checkout. They can still sign in
+              from the account page.
+            </p>
+          ) : null}
+        </div>
         <CheckoutCustomFields
           fields={customFields}
           onChange={setCustomFields}
@@ -161,6 +210,7 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
         termsPageSlug: termsPage === AUTO_TERMS ? undefined : termsPage,
         addressMode,
         showOrderNotes: orderNotes,
+        guestNotice: { showOnDesktop: noticeOnDesktop, showOnMobile: noticeOnMobile },
         // Drop entries the merchant started and left blank rather than sending a
         // labelless field the shopper would meet as an unexplained input, then
         // splice the Payments tab's entries back where they were.

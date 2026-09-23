@@ -32,12 +32,15 @@ export function ProductOverview({
   heading: Heading = "h1",
   showDescription = true,
   pending = false,
+  imageFit,
 }: {
   d: ProductBuy;
   galleryTop: boolean;
   heading?: "h1" | "h2";
   showDescription?: boolean;
   pending?: boolean;
+  /** The product page section's own photo fit; unset follows the store. */
+  imageFit?: "cover" | "canvas";
 }) {
   const { t, base, product } = d;
   if (!product) return null;
@@ -63,6 +66,7 @@ export function ProductOverview({
         layout={galleryTop ? "top" : "side"}
         index={d.imgIdx}
         onSelect={d.setImgIdx}
+        imageFit={imageFit}
       />
 
       {/* Info */}

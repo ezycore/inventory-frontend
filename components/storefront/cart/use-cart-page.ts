@@ -3,6 +3,7 @@
 
 import { useStore } from "@/services/storefront/hooks";
 import { useCartRestore } from "@/services/storefront/use-cart-restore";
+import { usePreviewCart } from "@/services/storefront/use-preview-cart";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { cartLineKey, useCartStore } from "@/services/stores/use-cart-store";
@@ -27,8 +28,8 @@ export function useCartPage() {
 
   const storeSlug = useCartStore((s) => s.storeSlug);
   const allItems = useCartStore((s) => s.items);
-  const updateQty = useCartStore((s) => s.updateQty);
-  const removeItem = useCartStore((s) => s.removeItem);
+  const cartUpdateQty = useCartStore((s) => s.updateQty);
+  const cartRemoveItem = useCartStore((s) => s.removeItem);
   const hydrated = useHydrated();
 
   // `?recover=<token>` from an abandoned-cart email rebuilds the cart from the
@@ -36,7 +37,15 @@ export function useCartPage() {
   // built it, which is the entire point of the link. No-ops without the param.
   useCartRestore(slug);
 
-  const items = storeSlug === slug ? allItems : [];
+  const cartItems = storeSlug === slug ? allItems : [];
+  /* Inside the page editor's frame an empty basket draws the empty-cart card and
+     nothing else, so the layout being chosen — and everything arranged around it
+     — is invisible. `usePreviewCart` fills it there and ONLY there; `null` on
+     every real visit, which is why it can sit on the path the whole shop runs. */
+  const preview = usePreviewCart(cartItems);
+  const items = preview?.items ?? cartItems;
+  const updateQty = preview?.updateQty ?? cartUpdateQty;
+  const removeItem = preview?.removeItem ?? cartRemoveItem;
   const currency = store?.currency;
   const count = items.reduce((n, i) => n + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -51,6 +60,8 @@ export function useCartPage() {
     store,
     hydrated,
     items,
+    /** These lines are the editor preview's sample, not a real basket. */
+    sampleCart: preview?.sample ?? false,
     currency,
     count,
     subtotal,

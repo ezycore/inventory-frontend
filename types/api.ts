@@ -134,6 +134,14 @@ export type EmployeeReport = Schemas["EmployeeReport"];
 export type ComboSalesReport = Schemas["ComboSalesReport"];
 /** Sales per category / brand / tag — `GET /reports/sales/breakdown`. */
 export type SalesBreakdownReport = Schemas["SalesBreakdownReport"];
+/**
+ * Storefront orders on the ORDER clock — `GET /reports/orders`.
+ *
+ * Dated by when each order was PLACED, unlike every other report here, which
+ * reads the Sale ledger and therefore dates an online order by its DISPATCH.
+ * The two disagree by design; each screen says which it shows.
+ */
+export type OrdersReport = Schemas["OrdersReport"];
 
 // Organization & locations ---------------------------------------------------
 export type ApiOrganization = Schemas["Organization"];
@@ -221,6 +229,17 @@ export type MetaPurchaseTrigger = MetaSettings["purchaseTrigger"];
 /** One row of the events log. Carries no `payload` — see the backend DTO. */
 export type MetaEventRow = Schemas["MetaEvent"];
 export type MetaEventList = Schemas["MetaEventList"];
+
+/**
+ * Microsoft Clarity (backend `docs/plan/storefront-clarity.md`).
+ *
+ * Nothing here is masked, and that is the point: a Clarity project id is public by design — it
+ * ships in the storefront's own HTML — so unlike `MetaSettings` there is no field whose absence
+ * this type is carrying.
+ */
+export type ClaritySettings = Schemas["ClaritySettings"];
+/** `"off" | "eu" | "always"` — taken from the spec, never hand-written. */
+export type ClarityCookieConsent = ClaritySettings["cookieConsent"];
 
 /** Notification engine (backend docs/plan/notifications.md). */
 export type NotificationSettings = Schemas["NotificationSettings"];

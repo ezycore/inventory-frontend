@@ -8,6 +8,14 @@ export type CampaignScope = ApiCampaign["scope"];
 
 export interface CampaignInput {
   name: string;
+  /** Landing-page tagline. The slug is generated server-side, never sent. */
+  subtitle?: string;
+  /**
+   * Create the campaign's editable page alongside it. Create-only — an existing
+   * campaign gets one from `createPage()` below, and loses one by deleting that
+   * page in Pages.
+   */
+  createPage?: boolean;
   scope: CampaignScope;
   targets?: string[];
   type: "percentage" | "fixed";
@@ -68,6 +76,9 @@ export const campaignsApi = {
     id: string,
     body: Partial<CampaignInput>,
   ): Promise<ApiResponse<Campaign>> => apiClient.put(`${base}/${id}`, body),
+  /** Build the campaign's editable page after the fact. Idempotent. */
+  createPage: (id: string): Promise<ApiResponse<{ id: string }>> =>
+    apiClient.post(`${base}/${id}/page`, {}),
   remove: (id: string): Promise<ApiResponse<{ id: string }>> =>
     apiClient.delete(`${base}/${id}`),
 };

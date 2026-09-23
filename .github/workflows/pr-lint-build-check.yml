@@ -1,14 +1,14 @@
 name: PR and Push — Lint & Build Check
 
 on:
-  push:
-    branches:
-      - development
-      - main
   pull_request:
     branches:
       - development
       - main
+
+concurrency:
+  group: lint-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint_and_build:
@@ -31,7 +31,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies (pnpm)
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run ESLint
         run: pnpm run lint

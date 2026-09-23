@@ -16,6 +16,7 @@ import {
   type ProductListResult,
   type ShopperPrefs,
   type StoreCampaign,
+  type StoreCampaignDetail,
   type StorefrontStore,
 } from "@/lib/storefront-client";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -53,6 +54,8 @@ export const storefront = {
   tags: (slug: string, params: unknown = {}) =>
     ["storefront", slug, "tags", params] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
+  campaign: (slug: string, campaignSlug: string) =>
+    ["storefront", slug, "campaign", campaignSlug] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
   page: (slug: string, pageSlug: string) =>
     ["storefront", slug, "page", pageSlug] as const,
@@ -227,6 +230,24 @@ export const useStoreCampaigns = (slug: string, initialData?: StoreCampaign[]) =
     queryKey: storefront.campaigns(slug),
     queryFn: () => storefrontApi.listCampaigns(slug),
     enabled: !!slug,
+    staleTime: 60 * 1000,
+    initialData,
+  });
+
+/**
+ * One campaign's landing-page header. Seeded by the route, which already fetched
+ * it to build the page's metadata — so the banner is in the SSR HTML and a
+ * shopper arriving on a shared link never sees the header pop in.
+ */
+export const useStoreCampaign = (
+  slug: string,
+  campaignSlug: string,
+  initialData?: StoreCampaignDetail,
+) =>
+  useQuery({
+    queryKey: storefront.campaign(slug, campaignSlug),
+    queryFn: () => storefrontApi.getCampaign(slug, campaignSlug),
+    enabled: !!slug && !!campaignSlug,
     staleTime: 60 * 1000,
     initialData,
   });

@@ -32,7 +32,7 @@
     "noSalesData": "No sales data",
     "topCustomers": "Top Customers",
     "noCustomerData": "No customer data",
-    "ordersCount": "{count} orders",
+    "ordersCount": "{count, plural, one {# order} other {# orders}}",
     "due": "Due: {amount}",
     "paymentStatus": "Payment Status",
     "topCombos": "Top Combos",
@@ -71,7 +71,9 @@
       "unassigned": "{dimension, select, category {Products with no category} brand {Products with no brand} other {Products with no tag}}: {amount} from {units, plural, one {# unit} other {# units}}.",
       "overlapNote": "A product with more than one tag counts under each of its tags, so these figures add up to more than your total sales.",
       "basisNote": "Item sales after returns. Order discounts and delivery charges are not split by item, so this can differ from Total Sales above."
-    }
+    },
+    "clockNote": "This page counts invoices on the day they were issued. For an online order that is the day it shipped, so the Orders Report — which counts the day it was placed — will differ. Both are correct.",
+    "clockLink": "Open the Orders Report"
   },
   "purchases": {
     "title": "Purchase Report",
@@ -86,7 +88,7 @@
     "noPurchaseData": "No purchase data",
     "topSuppliers": "Top Suppliers",
     "noSupplierData": "No supplier data",
-    "ordersCount": "{count} orders",
+    "ordersCount": "{count, plural, one {# order} other {# orders}}",
     "due": "Due: {amount}",
     "orderStatus": "Order Status"
   },
@@ -234,6 +236,8 @@
     "inventoryDataDesc": "Export current inventory stock levels",
     "productsData": "Products Data",
     "productsDataDesc": "Export all product information",
+    "orderData": "Order Data",
+    "orderDataDesc": "Export storefront orders with address, courier and payment",
     "customerData": "Customer Data",
     "customerDataDesc": "Export all customer records",
     "supplierData": "Supplier Data",
@@ -314,5 +318,115 @@
     "cashNotTracked": "The Accounts module is off, so cash and bank balances are not tracked. Cash shows as zero — it does not mean your drawer is empty.",
     "basisNote": "Stock is valued at cost, not at what you would sell it for. This is a snapshot of today, not a balance sheet — it has no owner's equity side and is not an audited financial statement.",
     "stockNotTracked": "This business does not track stock, so there is no stock value to include in assets."
+  },
+  "orders": {
+    "title": "Orders Report",
+    "subtitle": "Storefront orders, counted on the day they were placed.",
+    "clockNote": "This page counts orders on the day they were placed. The Sales Report counts invoices on the day they shipped, so the two will not match — both are correct.",
+    "clockLink": "Open the Sales Report",
+    "placed": "Orders placed",
+    "ofCohort": "of {total} including cancelled and rejected",
+    "netValue": "Net value",
+    "afterDiscounts": "after {amount} in discounts",
+    "avgOrderValue": "Average order",
+    "avgBasis": "Across orders that counted as revenue",
+    "outstanding": "Still owed",
+    "outstandingNote": "On these orders, after advances and returns",
+    "profit": {
+      "title": "Gross profit",
+      "afterCarriage": "after {amount} paid to couriers",
+      "marginBasis": "Margin on revenue with a known cost",
+      "unknownCost": "{amount} of revenue has no cost behind it yet ({orders} orders not dispatched). The margin excludes it."
+    },
+    "funnel": {
+      "title": "Where this period's orders got to",
+      "subtitle": "Each stage counts orders that ever reached it, so the steps overlap. The chips below are where they are now and add up to the intake.",
+      "empty": "No orders were placed in this period.",
+      "outcomesTitle": "Where they are now",
+      "stages": {
+        "placed": "Placed",
+        "confirmed": "Confirmed",
+        "processing": "Processing",
+        "dispatched": "Dispatched",
+        "completed": "Delivered or collected"
+      }
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "ready_for_pickup": "Ready for pickup",
+      "delivered": "Delivered",
+      "picked_up": "Collected",
+      "returned": "Returned",
+      "partially_returned": "Partly returned",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    },
+    "couriers": {
+      "title": "Couriers",
+      "subtitle": "What each carried, what came back, and whether delivery paid for itself.",
+      "empty": "No orders in this period.",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "delivered": "Delivered",
+      "returned": "Returned",
+      "rto": "Returned rate",
+      "deliveryMargin": "Delivery margin",
+      "noCourier": "No courier (pickup or not dispatched)"
+    },
+    "districts": {
+      "title": "Districts",
+      "subtitle": "Ranked by order volume. A single refused parcel is a 100% rate and not a finding.",
+      "empty": "No orders in this period.",
+      "noDistrict": "No district",
+      "orders": "{count, plural, one {# order} other {# orders}}"
+    },
+    "sources": {
+      "title": "Order source",
+      "subtitle": "Where these orders came in from.",
+      "empty": "No orders in this period.",
+      "unknown": "Not recorded"
+    },
+    "channel": {
+      "website": "Website",
+      "messenger": "Messenger",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "comment": "Comment",
+      "phone": "Phone",
+      "manual": "Added by staff"
+    },
+    "rejections": {
+      "title": "Why orders were rejected",
+      "subtitle": "Orders the shop turned away. Cancellations are counted separately.",
+      "empty": "No orders were rejected in this period.",
+      "unrecorded": "No reason recorded"
+    },
+    "rejectionReason": {
+      "fake_number": "Fake number",
+      "no_answer": "No answer",
+      "out_of_stock": "Out of stock",
+      "price_dispute": "Price dispute",
+      "duplicate": "Duplicate order",
+      "other": "Other"
+    },
+    "topProducts": {
+      "title": "Top Selling Products",
+      "empty": "Nothing was ordered in this period."
+    },
+    "topCustomers": {
+      "title": "Top Customers",
+      "empty": "No customers in this period.",
+      "orders": "{count, plural, one {# order} other {# orders}}",
+      "guest": "Guest",
+      "refunded": "returned {amount}",
+      "due": "Due: {amount}"
+    },
+    "breakdown": {
+      "title": "Orders by category, brand and tag",
+      "subtitle": "Which groups were ordered the most this period, and which the least.",
+      "basisNote": "Item sales after returns. Order discounts and delivery charges are not split by item, so this can differ from Net value above."
+    }
   }
 }

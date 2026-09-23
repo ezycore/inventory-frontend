@@ -110,7 +110,7 @@ export function ProfileSection({ shopper }: { shopper: ShopperProfile }) {
 
   return (
     <>
-    <div style={card}>
+    <div data-clarity-mask="true" style={card}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>{t.personalDetails}</h2>
         {!editing ? (

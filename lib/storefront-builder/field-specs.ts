@@ -17,6 +17,7 @@ export const SECTION_PAGE_CONTEXTS = [
   "landing",
   "content",
   "home",
+  "campaign",
   "collection",
   "product",
   "search",
@@ -57,7 +58,16 @@ export type SectionFieldSpec = FieldBase &
     /** A crop anchor `{ x, y }`, each 0–100 percent of the image's own box. */
     | { type: "focal" }
     | { type: "date" }
-    | { type: "richText"; maxBytes: number }
+    /**
+     * A rich-text document, stored as TipTap JSON.
+     *
+     * `legacyFormat` says how to read a value that is NOT rich-doc JSON yet —
+     * bodies written before the rich-text editor existed. Set it and the field
+     * accepts such a value and opens it through that bridge; leave it unset and
+     * only a rich-doc document is allowed. It exists because a CMS page body
+     * really was markdown, while a POS textarea's `#` and `-` are literal.
+     */
+    | { type: "richText"; maxBytes: number; legacyFormat?: "markdown" | "plaintext" }
     | { type: "ref"; to: SectionRefKind }
     | { type: "refs"; to: SectionRefKind; max: number }
   );

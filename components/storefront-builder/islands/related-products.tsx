@@ -4,7 +4,7 @@
 import type { CSSProperties } from "react";
 import type { CatalogProduct } from "@/lib/storefront-client";
 import type { CardMedia } from "@/lib/storefront-builder/card-media";
-import { responsiveVars } from "@/lib/storefront-builder/responsive";
+import { responsiveClasses, responsiveVars } from "@/lib/storefront-builder/responsive";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductCard } from "@/components/storefront/product-card";
 import { useRelatedProducts } from "@/components/storefront/product-detail/use-product-detail";
@@ -45,8 +45,13 @@ export function RelatedProductsIsland({
           renderer and not its island is a control that silently does nothing,
           which is the miss this row had for every other product row's settings
           — no columns, no card photo shape. */}
+      {/* ⚠ `sf-grid-4` stays on, always. It was swapped OUT for the column
+          class, and `.sfb-cols` only redefines a variable — it declares no
+          `display: grid` — so a merchant who set a column count got a row with
+          no grid at all and cards stacked one per line. The column classes are
+          an override of the count, never a replacement for the grid. */}
       <div
-        className={columns ? "sfb-cols" : "sf-grid-4"}
+        className={gridClass(columns)}
         style={columns ? (responsiveVars("sfb-cols", columns) as CSSProperties) : undefined}
       >
         {related.map((p) => (
@@ -62,4 +67,10 @@ export function RelatedProductsIsland({
       </div>
     </div>
   );
+}
+
+/** The storefront's product grid, plus the column override for each screen that has one. */
+function gridClass(columns?: { base?: number; mobile?: number }): string {
+  const own = responsiveClasses("sfb-cols", columns);
+  return own ? `sf-grid-4 ${own}` : "sf-grid-4";
 }

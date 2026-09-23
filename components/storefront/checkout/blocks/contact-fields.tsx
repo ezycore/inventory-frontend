@@ -6,6 +6,10 @@ import { invalidInput } from "@/components/storefront/checkout/checkout-field";
 import { FieldPair, LabeledField } from "@/components/storefront/checkout/blocks/labeled-field";
 import { CustomFields } from "@/components/storefront/checkout/blocks/custom-fields";
 import { GuestNotice } from "@/components/storefront/checkout/guest-notice";
+import {
+  isStripHiddenEverywhere,
+  stripVisibilityClass,
+} from "@/lib/storefront-strip-display";
 import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout";
 
 /**
@@ -23,14 +27,34 @@ export function ContactFields({
   api: CheckoutApi;
   showHeading?: boolean;
 }) {
-  const { t, base, shopper, addr, set, captureContact, errors, touch } = api;
+  const { t, base, shopper, store, addr, set, captureContact, errors, touch } = api;
+
+  /* Where the merchant wants the sign-in offer. Unset on both is the default and
+     the overwhelming majority: shown everywhere, no class, the markup every shop
+     has always had. Hidden on BOTH is dropped from the tree rather than hidden
+     with CSS — it carries a link, and a `display: none` one is still reachable
+     by a screen reader and by the tab key. */
+  const guestNotice = store?.checkout?.guestNotice;
+  const noticeHidden = isStripHiddenEverywhere(
+    guestNotice?.showOnDesktop,
+    guestNotice?.showOnMobile,
+  );
 
   return (
     <div>
       {/* An OFFER, not a step. Signing in prefills saved addresses and files the
           order under the account; skipping it costs nothing — the notice just
           says what "skipping it" means. */}
-      {!shopper ? <GuestNotice base={base} t={t} /> : null}
+      {!shopper && !noticeHidden ? (
+        <GuestNotice
+          base={base}
+          t={t}
+          className={stripVisibilityClass(
+            guestNotice?.showOnDesktop,
+            guestNotice?.showOnMobile,
+          )}
+        />
+      ) : null}
 
       {showHeading ? <div style={groupLabel}>{t.contactHeading}</div> : null}
 

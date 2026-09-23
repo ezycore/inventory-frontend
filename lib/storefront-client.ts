@@ -602,6 +602,20 @@ export interface StorefrontStore {
       purchase: boolean;
     };
   };
+  /**
+   * Microsoft Clarity config (backend `docs/plan/storefront-clarity.md`).
+   *
+   * **Presence is enabled**, same rule as `meta` above — the backend omits the whole block when
+   * the merchant has it off or has entered no project id.
+   *
+   * `cookieConsent` decides whether this storefront draws a consent bar, and to whom. `off` is
+   * not "ignore consent": Clarity sets no cookies at all until the page calls `consentv2`, so the
+   * no-banner default is also the no-storage one. See `components/storefront/consent-bar.tsx`.
+   */
+  clarity?: {
+    projectId: string;
+    cookieConsent: "off" | "eu" | "always";
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -630,6 +644,12 @@ export interface StorefrontStore {
     addressMode?: "detailed" | "flat";
     /** The "Delivery notes" box under the address. Unset reads as ON. */
     showOrderNotes?: boolean;
+    /**
+     * Where the guest sign-in notice shows. Both unset read as ON. Resolved into
+     * a CSS class (`stripVisibilityClass`), never `matchMedia` — checkout is
+     * server-rendered and a JS check would paint the wrong state first.
+     */
+    guestNotice?: { showOnDesktop?: boolean; showOnMobile?: boolean };
     /** Merchant-defined notices + inputs, in render order within each slot. */
     customFields?: CheckoutFieldConfig[];
     /** "Pause online orders": buy buttons show `pausedMessage`; the order API refuses. */
@@ -994,12 +1014,21 @@ export interface CatalogVariant {
   availableQuantity: number;
 }
 
-/** A footer link to a published CMS page. */
+/**
+ * One of the store's own pages, as the storefront links to it.
+ *
+ * Every published page is listed, not only the footer's: the checkout resolves
+ * its terms page against this list, and the trust strip looks here for a returns
+ * policy. `footer` says which ones the footer column shows — a merchant who
+ * keeps their terms out of the footer still has terms.
+ */
 export interface ContentPageLink {
   _id: string;
   slug: string;
   title: string;
   sortOrder?: number;
+  /** Unset reads as listed — every page stored before the flag existed. */
+  footer?: boolean;
 }
 
 /** A published CMS page rendered at /shop/pages/{pageSlug}. */
@@ -1016,6 +1045,13 @@ export interface ContentPageView {
 
 export interface StoreCampaign {
   _id: string;
+  /**
+   * The campaign's own landing page (`/campaigns/<slug>`).
+   *
+   * Null on a campaign written before that page existed — `campaignHref` falls
+   * back to the full listing for those rather than linking to a 404.
+   */
+  slug?: string | null;
   name: string;
   banner?: StorefrontImage | null;
   type: string;
@@ -1024,6 +1060,28 @@ export interface StoreCampaign {
   /** Target ids (category/product scope) — used to build the strip's link. */
   targets?: string[];
   endsAt?: string;
+}
+
+/**
+ * `GET …/campaigns/{campaignSlug}` — the landing page's header.
+ *
+ * `live` is the server's answer, not a date comparison the page makes: whether a
+ * sale is on is decided against the server's clock, which is also what prices the
+ * catalogue. A page that worked it out from `startsAt` could promise a discount
+ * the pricer is not applying.
+ */
+export interface StoreCampaignDetail {
+  _id: string;
+  slug: string;
+  name: string;
+  subtitle?: string | null;
+  banner?: StorefrontImage | null;
+  type: string;
+  value: number;
+  scope: string;
+  startsAt: string;
+  endsAt: string;
+  live: boolean;
 }
 
 export interface CatalogCategory {
@@ -1530,6 +1588,8 @@ export const storefrontApi = {
   ) => sfFetch<StoreTag[]>(slug, `/tags${buildQuery(params)}`),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
+  getCampaign: (slug: string, campaignSlug: string) =>
+    sfFetch<StoreCampaignDetail>(slug, `/campaigns/${encodeURIComponent(campaignSlug)}`),
   listPages: (slug: string) =>
     sfFetch<ContentPageLink[]>(slug, "/pages"),
   getPage: (slug: string, pageSlug: string) =>

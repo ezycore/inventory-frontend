@@ -3,7 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { BadgePercent, FileText, Loader2, Package, Rocket, type LucideIcon } from "lucide-react";
+import { BadgePercent, FileText, Loader2, Megaphone, Package, Rocket, Store, type LucideIcon } from "lucide-react";
 import { useCreateStorefrontPage } from "@/services/api";
 import { Button } from "@/ui/components/button";
 import {
@@ -35,12 +35,40 @@ const TEMPLATE_ICONS: Record<PageTemplateId, LucideIcon> = {
   blank: FileText,
 };
 
+/** The two kinds a merchant makes. What each one is, in their words. */
+type PageKind = "content" | "landing";
+
+const KINDS: { id: PageKind; label: string; description: string; icon: LucideIcon }[] = [
+  {
+    id: "content",
+    label: "Store page",
+    description: "About, Contact, a policy. Sits in your footer and is found by Google.",
+    icon: Store,
+  },
+  {
+    id: "landing",
+    label: "Landing page",
+    description: "For an ad or an offer. Its own address, hidden from Google.",
+    icon: Megaphone,
+  },
+];
+
 /**
- * "New landing page": a starting point, the product it sells, and a name
- * (backend plan storefront-builder §9). The page is created with the template's
- * sections as its first draft, in one request, and the merchant lands in the
- * editor. The backend picks a free address, hides the page from search engines
- * and gives it the minimal header.
+ * "New page" — **one** button for both kinds a merchant makes, with the kind as
+ * the first question (plan `pages-and-settings-consolidation.md` §3.2).
+ *
+ * One button rather than one per table, for three reasons. The store-pages table
+ * hides itself when a store has none, so a button of its own would be missing for
+ * exactly the merchant who needs it. A merchant thinks "I want a new page", not
+ * "which of these four cards is mine". And the kind is not cosmetic: it decides
+ * the header and footer, whether search engines are invited, and whether the page
+ * joins the footer column — four defaults that differ in opposite directions, so
+ * asking once and up front is the honest way to set them.
+ *
+ * A **store page** needs nothing but a name: it is created with its own empty
+ * body section and opens on the rich-text editor. A **landing page** picks a
+ * starting point and the product it sells; the page is created with that
+ * template's sections as its first draft, in one request.
  */
 export function NewPageDialog({
   open,
@@ -51,24 +79,33 @@ export function NewPageDialog({
 }) {
   const router = useRouter();
   const create = useCreateStorefrontPage();
+  const [kind, setKind] = useState<PageKind>("content");
   const [templateId, setTemplateId] = useState<PageTemplateId>("single-product");
   const [productId, setProductId] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const template = pageTemplate(templateId);
+  const landing = kind === "landing";
   const name = title.trim();
-  const ready = !!name && (!template.needsProduct || !!productId);
+  const ready = !!name && (!landing || !template.needsProduct || !!productId);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!ready || create.isPending) return;
     create.mutate(
-      { title: name, sections: templateSections(template, productId) },
+      {
+        kind,
+        title: name,
+        // A store page's own section is the backend's to add: it is the one
+        // section the page must have, and it starts empty.
+        ...(landing ? { sections: templateSections(template, productId) } : {}),
+      },
       {
         onSuccess: (res) => {
           if (!res.data) return;
           setTitle("");
           setProductId(undefined);
           setTemplateId("single-product");
+          setKind("content");
           onOpenChange(false);
           router.push(`/ecommerce/pages/${res.data._id}`);
         },
@@ -80,29 +117,50 @@ export function NewPageDialog({
     // Closing is held while the request is out, so the merchant is not left
     // wondering whether a page was made.
     <Dialog open={open} onOpenChange={(next) => !create.isPending && onOpenChange(next)}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <form onSubmit={submit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>New landing page</DialogTitle>
+            <DialogTitle>New page</DialogTitle>
             <DialogDescription>
-              Pick a starting point. Everything on it can be changed in the editor.
+              Everything on it can be changed in the editor afterwards.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Starting point">
-            {PAGE_TEMPLATES.map((option) => (
-              <OptionCard
-                key={option.id}
-                selected={option.id === templateId}
-                onSelect={() => setTemplateId(option.id)}
-                icon={TEMPLATE_ICONS[option.id]}
-                label={option.label}
-                description={option.description}
-              />
-            ))}
+          <div className="space-y-2">
+            <Label>What kind of page?</Label>
+            <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Kind of page">
+              {KINDS.map((option) => (
+                <OptionCard
+                  key={option.id}
+                  selected={option.id === kind}
+                  onSelect={() => setKind(option.id)}
+                  icon={option.icon}
+                  label={option.label}
+                  description={option.description}
+                />
+              ))}
+            </div>
           </div>
 
-          {template.needsProduct ? (
+          {landing ? (
+            <div className="space-y-2">
+              <Label>Starting point</Label>
+              <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Starting point">
+                {PAGE_TEMPLATES.map((option) => (
+                  <OptionCard
+                    key={option.id}
+                    selected={option.id === templateId}
+                    onSelect={() => setTemplateId(option.id)}
+                    icon={TEMPLATE_ICONS[option.id]}
+                    label={option.label}
+                    description={option.description}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {landing && template.needsProduct ? (
             <div className="space-y-2">
               <Label htmlFor="new-page-product">Product</Label>
               <RefField
@@ -125,10 +183,12 @@ export function NewPageDialog({
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={TITLE_MAX}
-              placeholder="Eid offer"
+              placeholder={landing ? "Eid offer" : "Return & Refund Policy"}
             />
             <p className="text-xs text-muted-foreground">
-              For you — shoppers do not see it. It also makes the page&apos;s address.
+              {landing
+                ? "For you — shoppers do not see it. It also makes the page’s address."
+                : "Shoppers see this in your footer, and it makes the page’s address."}
             </p>
           </div>
 

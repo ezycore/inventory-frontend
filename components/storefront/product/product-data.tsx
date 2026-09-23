@@ -3,7 +3,10 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import type { CatalogProduct } from "@/lib/storefront-client";
-import { ProductPageView } from "@/components/storefront/product/product-page";
+import {
+  ProductPageView,
+  type ProductShape,
+} from "@/components/storefront/product/product-page";
 
 /**
  * The product a product route resolved on the server, so the page's content is
@@ -28,17 +31,24 @@ export function ProductDataProvider({
 /** The product, drawn from whatever the route resolved. Used by the core section. */
 export function ProductFromRoute({
   hideRelated,
+  hideDescription,
   layout,
+  shape,
 }: {
   hideRelated?: boolean;
+  hideDescription?: boolean;
   layout?: string;
+  /** The section's photo and related-row settings, already resolved to CSS values. */
+  shape?: ProductShape;
 }) {
   const { initialProduct } = useContext(ProductDataContext);
   return (
     <ProductPageView
       initialProduct={initialProduct}
       hideRelated={hideRelated}
+      hideDescription={hideDescription}
       layout={layout}
+      shape={shape}
     />
   );
 }

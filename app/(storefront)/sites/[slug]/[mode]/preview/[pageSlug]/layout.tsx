@@ -35,6 +35,7 @@ export default async function PreviewPageLayout({
       <PageFrame
         chrome={site.builder?.page?.chrome ?? "full"}
         reads={requestStorefront}
+        preview
         slug={site.slug}
         base={site.base}
         store={site.store}

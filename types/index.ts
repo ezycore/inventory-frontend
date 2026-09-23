@@ -681,6 +681,12 @@ export interface StorefrontCheckout {
   addressMode?: "detailed" | "flat";
   /** The "Delivery notes" box under the address. Unset reads as ON. */
   showOrderNotes?: boolean;
+  /**
+   * Where the guest sign-in notice shows at checkout. Both unset read as ON —
+   * the only render the notice ever had. Per-device because on a phone it is
+   * roughly a hundred pixels above the first input.
+   */
+  guestNotice?: { showOnDesktop?: boolean; showOnMobile?: boolean };
   /** Merchant-defined notices + inputs, in render order within each slot. Max 5. */
   customFields?: CheckoutField[];
   /** "Pause online orders" — shoppers browse, the order API refuses. */

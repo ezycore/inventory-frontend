@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { PencilRuler } from "lucide-react";
 import { DataTable } from "@/ui/components/dataTable";
-import { useStorefrontPages, type StorefrontPageListItem } from "@/services/api";
+import { useDeleteStorefrontPage, type StorefrontPageListItem } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
@@ -13,18 +13,22 @@ import { pageListOperations } from "@/components/ecommerce/pages/page-list-opera
 const storePages = pageListOperations("content");
 
 /**
- * The store's own pages — About, FAQ, the policies — once they have moved off
- * the Content screen onto the builder.
+ * The store's own pages — About, Contact, the policies.
  *
  * Their own table rather than rows among the landing pages: these carry no ad
- * attribution, and none of the landing actions apply (a policy page is not
- * duplicated, and deleting it here would take an address shoppers and the footer
- * both use). One action, the editor. A store that has not moved its pages sees
- * nothing at all.
+ * attribution, and the landing actions do not apply (a policy page is not
+ * duplicated, and it is never the homepage). Two actions: the editor, and
+ * delete.
+ *
+ * **Always drawn, even with no rows.** It used to hide itself when a store had
+ * none, which was defensible while the only way to get one was the store
+ * migration — and wrong the moment a merchant could make one, because the
+ * merchant with no store pages is the one who most needs to see that the shop
+ * has a place for them.
  */
 export function StorePagesTable() {
   const storeSlug = useAuthStore((s) => s.user?.organization?.slug);
-  const { data } = useStorefrontPages({ kind: "content", limit: 1 });
+  const deletePage = useDeleteStorefrontPage();
   const columns = useMemo(
     () =>
       buildPageColumns({ storeSlug }).filter(
@@ -46,8 +50,6 @@ export function StorePagesTable() {
     [],
   );
 
-  if (!data?.total) return null;
-
   return (
     <DataTable<StorefrontPageListItem>
       cardTitle={(n) => `Store pages (${n})`}
@@ -58,7 +60,9 @@ export function StorePagesTable() {
       customActions={customActions}
       operations={{
         ...storePages,
+        deleteMutation: deletePage,
         entityName: "Page",
+        deleteTooltip: "Delete page",
       }}
     />
   );

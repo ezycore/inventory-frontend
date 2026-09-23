@@ -1,5 +1,6 @@
 "use client";
 // coding-standard: maintained
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { useDomains } from "@/services/api/modules/domains/hooks";
 import {
@@ -208,7 +209,12 @@ export function SeoSettings({ settings }: { settings: StorefrontSettings }) {
           <h3 className="text-sm font-semibold">Search engine listing</h3>
           <p className="text-xs text-muted-foreground">
             How your store&apos;s home page appears in Google. Leave a field empty
-            to use the default shown in the preview.
+            to use the default shown in the preview. Every other page writes its
+            own in{" "}
+            <Link href="/ecommerce/pages" className="font-medium text-primary hover:underline">
+              Pages
+            </Link>{" "}
+            → the page → Page settings.
           </p>
         </div>
 
