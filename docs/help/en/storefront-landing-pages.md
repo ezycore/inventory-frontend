@@ -58,8 +58,12 @@ below the section you have open, or at the end.
 Each row has buttons to **Move up**, **Move down**, **Hide section**, **Duplicate section** and
 **Remove section**. A hidden section stays in the editor but shoppers do not see it.
 
-Press a section's name, or click it in the preview, to change its settings. Press **Back to sections**
-to return to the list.
+Press a section's name, or click it in the preview, to change its settings. Press **Sections**, at the
+top of the settings, to return to the list.
+
+A page that holds only one section — a store page you have just made, or your Cart, Checkout or
+Product page — opens straight on that section's settings, since there is nothing to choose from. Press
+**Sections** to reach the list and **Add section**.
 
 A row marked **Unfinished — not saved yet** is missing something it needs, such as a picture or the
 products to show. Fill it in; until then it is not saved and will not be published.

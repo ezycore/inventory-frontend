@@ -61,7 +61,15 @@ export function usePageEditor(page: StorefrontPage): PageEditor {
   const [history, setHistory] = useState<History<EditorSection[]>>(() =>
     startHistory(loadedSections(page)),
   );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // A page holding one section opens on that section's settings: the list would
+  // be a single row whose only use is to be clicked, and every system page
+  // (cart, checkout, product, …) and every new store page starts that way.
+  // Decided once, when the editor opens — not from the current count, which
+  // would reopen the settings the moment the merchant went back or deleted
+  // their way down to one.
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    history.present.length === 1 ? history.present[0].id : null,
+  );
   const [device, setDevice] = useState<EditorDevice>("desktop");
   // The last edit's section and time, to fold quick edits of one section into one step.
   const lastEdit = useRef<{ id: string; at: number } | null>(null);
