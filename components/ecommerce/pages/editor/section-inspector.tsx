@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Plus, Trash2 } from "lucide-react";
 import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
 import { Button } from "@/ui/components/button";
@@ -113,16 +113,18 @@ export function SectionInspector({
         <h2 className="text-base font-semibold">{sectionLabel(section.type)}</h2>
         {entry ? <p className="text-xs text-muted-foreground">{entry.description}</p> : null}
       </div>
+      {/* Named, not an X: with one section the rail opens here, so this button is
+          also the only way to the section list and its "Add section". */}
       <Button
         type="button"
         variant="ghost"
-        size="icon"
-        className="h-8 w-8 flex-none"
-        aria-label="Back to sections"
+        size="sm"
+        className="h-8 flex-none gap-1 px-2 text-muted-foreground hover:text-foreground"
         title="Back to sections"
         onClick={onClose}
       >
-        <X className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" />
+        Sections
       </Button>
     </div>
   );
