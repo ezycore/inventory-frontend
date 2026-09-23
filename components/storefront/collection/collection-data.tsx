@@ -8,7 +8,11 @@ import type {
   ProductListResult,
   StoreCampaignDetail,
 } from "@/lib/storefront-client";
-import { CollectionPageView } from "@/components/storefront/collection/collection-page";
+import {
+  CollectionPageView,
+  type CollectionCards,
+  type CollectionHeader,
+} from "@/components/storefront/collection/collection-page";
 
 /**
  * What a collection page's route resolved on the server — the seeded first page
@@ -90,9 +94,15 @@ export function CampaignFromRoute({
 export function CollectionFromRoute({
   layout,
   pagination,
+  cards,
+  header,
 }: {
   layout?: string;
   pagination?: string;
+  /** The section's own card count and photo; unset follows the store. */
+  cards?: CollectionCards;
+  /** Its words above the grid; unset keeps the collection's own name. */
+  header?: CollectionHeader;
 } = {}) {
   const data = useContext(CollectionDataContext);
   return (
@@ -104,6 +114,8 @@ export function CollectionFromRoute({
       crumbs={data.crumbs}
       layout={layout}
       pagination={pagination}
+      cards={cards}
+      header={header}
     />
   );
 }

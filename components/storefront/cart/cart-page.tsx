@@ -18,6 +18,7 @@ import {
   EditorialCart,
   PanelCart,
 } from "@/components/storefront/cart/cart-layouts";
+import { PreviewCartNotice } from "@/components/storefront/preview-cart-notice";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
@@ -42,6 +43,11 @@ const wrap: CSSProperties = {
  * Hydration and the empty state are handled HERE rather than in the layouts:
  * both are answers to "should a cart render at all", and an empty cart has no
  * anatomy worth varying.
+ *
+ * Inside the page editor's frame the basket may be the preview's own sample
+ * (`usePreviewCart`, applied in `useCartPage`) — without it a merchant designing
+ * their cart page previews the empty-cart card and none of the four layouts.
+ * The notice above it is what keeps the sample from reading as a real basket.
  */
 export function CartPageView({ layout: chosen }: { layout?: StoreTemplates["cartLayout"] }) {
   const { slug } = useStoreContext();
@@ -75,7 +81,11 @@ export function CartPageView({ layout: chosen }: { layout?: StoreTemplates["cart
   }
 
   return (
-    <div style={wrap}>
+    // `data-preview-interactive` exempts this subtree's controls from the page
+    // editor's click capture, so the sample's stepper and remove button work.
+    // Only ever set on a sample — see `page-draft-preview.tsx`.
+    <div style={wrap} data-preview-interactive={api.sampleCart ? "" : undefined}>
+      {api.sampleCart ? <PreviewCartNotice text={api.t.previewSampleCart} /> : null}
       <Layout api={api} />
     </div>
   );

@@ -143,6 +143,22 @@ export interface Dict {
   selected: string;
   yourCart: string;
   emptyCartMsg: string;
+  /**
+   * The three strings below are read by a MERCHANT, in the page editor's preview
+   * frame, and never by a shopper — the shop is bilingual and the editor draws
+   * the real shop, so they are translated like everything else here rather than
+   * hard-coded in English.
+   *
+   * The notice above a previewed cart or checkout whose lines the preview
+   * invented (`services/storefront/use-preview-cart.ts`). It has to say so: the
+   * sample looks exactly like a real basket, and a merchant who read it as one
+   * would think their own shop had stock in their cart.
+   */
+  previewSampleCart: string;
+  /** A sample line's name when the shop has no products to borrow yet. */
+  previewSampleProduct: string;
+  /** Why Place order did nothing inside a preview frame. */
+  previewNoOrder: string;
   subtotal: string;
   shipping: string;
   discount: string;
@@ -527,6 +543,17 @@ export interface Dict {
   footerSubscribed: string;
   footerSubscribeFailed: string;
   footerEmailInvalid: string;
+  /* ---- cookie consent bar --------------------------------------------
+     Shown only when the merchant asks for it (`clarity.cookieConsent`), and
+     never on checkout. Deliberately NOT merchant-editable: a free-text legal
+     notice a shop owner can mistype is a liability, not a feature.
+
+     The copy promises only what we control — whether visits are LINKED. It must
+     not promise that declining stops cookies: that is a switch inside the
+     merchant's own Clarity project. See `lib/storefront-clarity.ts`. */
+  consentText: string;
+  consentAccept: string;
+  consentDecline: string;
 }
 
 const en: Dict = {
@@ -631,6 +658,9 @@ const en: Dict = {
   selected: "Selected for you",
   yourCart: "Your cart",
   emptyCartMsg: "Your cart is empty",
+  previewSampleCart: "Sample cart, so you can see this page — shoppers see their own items.",
+  previewSampleProduct: "Sample product",
+  previewNoOrder: "Preview only — no order was placed.",
   subtotal: "Subtotal",
   shipping: "Shipping",
   discount: "Discount",
@@ -949,6 +979,15 @@ const en: Dict = {
   footerSubscribed: "You're on the list. Thank you!",
   footerSubscribeFailed: "Couldn't sign you up. Please try again.",
   footerEmailInvalid: "Enter a valid email address",
+  // Plain, short and honest about what the shopper is actually agreeing to: being
+  // recognised across visits. It does NOT promise that declining stops cookies —
+  // that is the merchant's Clarity project setting, not ours to promise. No "we
+  // value your privacy" preamble either; it says nothing and doubles the height of
+  // a bar the shopper did not ask for.
+  consentText:
+    "We use cookies to understand how this shop is used. Say no and nothing else changes \u2014 we just won't link your visits together.",
+  consentAccept: "Allow",
+  consentDecline: "No thanks",
 };
 
 const bn: Dict = {
@@ -1053,6 +1092,9 @@ const bn: Dict = {
   selected: "আপনার জন্য বাছাই",
   yourCart: "আপনার কার্ট",
   emptyCartMsg: "আপনার কার্ট খালি",
+  previewSampleCart: "পেজটি দেখানোর জন্য নমুনা কার্ট — ক্রেতারা নিজেদের পণ্যই দেখবেন।",
+  previewSampleProduct: "নমুনা পণ্য",
+  previewNoOrder: "শুধু প্রিভিউ — কোনো অর্ডার দেওয়া হয়নি।",
   subtotal: "সাবটোটাল",
   shipping: "শিপিং",
   discount: "ছাড়",
@@ -1366,6 +1408,10 @@ const bn: Dict = {
   footerSubscribed: "আপনি তালিকায় যুক্ত হয়েছেন। ধন্যবাদ!",
   footerSubscribeFailed: "সাবস্ক্রাইব করা যায়নি। আবার চেষ্টা করুন।",
   footerEmailInvalid: "সঠিক ইমেইল ঠিকানা দিন",
+  consentText:
+    "এই দোকান কীভাবে ব্যবহার হচ্ছে বুঝতে আমরা কুকি ব্যবহার করি। না বললেও সব কিছু আগের মতোই চলবে — শুধু আপনার ভিজিটগুলো একসাথে মিলানো হবে না।",
+  consentAccept: "সম্মতি দিন",
+  consentDecline: "ধন্যবাদ, প্রয়োজন নেই",
 };
 
 export const I18N: Record<Lang, Dict> = { en, bn };

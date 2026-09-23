@@ -61,7 +61,15 @@ export function CollectionsRowSection({ settings, context }: SectionViewProps<Sp
   return (
     /* The tile's shape as a variable with `1 / 1` behind it — `collection-tiles.tsx`
        is drawn by the CLASSIC home too, and that page sets nothing. */
-    <div style={responsiveVars("sfb-tile-ratio", settings.tileRatio, (r) => ASPECT_RATIOS[r]) as CSSProperties}>
+    <div
+      style={
+        {
+          ...responsiveVars("sfb-tile-ratio", settings.tileRatio, (r) => ASPECT_RATIOS[r]),
+          // Unset stays unset — see the same note on `category-tiles.tsx`.
+          ...(settings.radius === undefined ? {} : { "--sfb-tile-radius": `${settings.radius}px` }),
+        } as CSSProperties
+      }
+    >
       {heading}
       {grid ? (
         <CollectionsGrid
@@ -75,7 +83,13 @@ export function CollectionsRowSection({ settings, context }: SectionViewProps<Sp
       ) : (
         <Island
           name="category-strip"
-          props={{ align, gap: COLLECTION_STRIP_GAP, className: collectionStripClass(labels), children: tiles }}
+          props={{
+            align,
+            gap: COLLECTION_STRIP_GAP,
+            className: collectionStripClass(labels),
+            arrows: settings.arrows,
+            children: tiles,
+          }}
         />
       )}
     </div>

@@ -30,6 +30,8 @@ export function useProductDetail(
    * migration builds.
    */
   layout?: string,
+  /** That section's own related-row count; unset keeps the built-in four. */
+  relatedLimit?: number,
 ) {
   const { slug } = useStoreContext();
   const productSlug = String(useParams().productSlug);
@@ -46,7 +48,7 @@ export function useProductDetail(
     isLoading,
     isError,
   } = useStoreProduct(slug, productSlug, initialProduct);
-  const related = useRelatedProducts(product);
+  const related = useRelatedProducts(product, relatedLimit);
 
   // The component survives PDP→PDP navigation (related products), so the
   // shopper's picks reset per product slug.
@@ -76,14 +78,21 @@ export function useProductDetail(
  */
 export function useRelatedProducts(
   product: Pick<CatalogProduct, "slug" | "categoryId"> | undefined,
-  limit = 4,
+  /** `undefined` rather than a caller's own default, so an unset section setting lands here. */
+  limit?: number,
 ): CatalogProduct[] {
   const { slug } = useStoreContext();
+  const want = limit ?? 4;
+  /* One more than asked for, because the page's OWN product comes back in its
+     collection's products and is filtered out below — and never fewer than the
+     eight this has always fetched, so the query key of every row that has not
+     asked for more is unchanged and keeps its cache. */
+  const fetch = Math.max(8, want + 1);
   const { data } = useStoreProducts(
     slug,
-    product?.categoryId ? { categoryId: product.categoryId, limit: 8 } : { limit: 8 },
+    product?.categoryId ? { categoryId: product.categoryId, limit: fetch } : { limit: fetch },
   );
-  return (data?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, limit);
+  return (data?.items ?? []).filter((p) => p.slug !== product?.slug).slice(0, want);
 }
 
 export type ProductDetail = ReturnType<typeof useProductDetail>;

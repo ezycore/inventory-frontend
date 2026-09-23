@@ -36,7 +36,7 @@ export function OrderPlacedCard({
   };
 
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "48px 30px", textAlign: "center" }}>
+    <div data-clarity-mask="true" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "48px 30px", textAlign: "center" }}>
       <div style={{ width: 66, height: 66, borderRadius: "50%", background: "var(--primary-soft)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 22px", animation: "ezPop 0.4s" }}>
         <Icon name="check" size={30} />
       </div>

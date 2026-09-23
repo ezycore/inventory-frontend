@@ -3,6 +3,7 @@ import { act, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CatalogProduct } from "@/lib/storefront-client";
+import { PAGE_SECTION_SELECT } from "@/lib/storefront-builder/page-draft-messages";
 import {
   PAGE_DRAFT_APPLIED,
   PAGE_DRAFT_MESSAGE,
@@ -108,6 +109,74 @@ describe("PageDraftPreview", () => {
     draw();
     post({ type: PAGE_DRAFT_MESSAGE, payload: { sections: [offer] } });
     expect(screen.queryByText("Eid price")).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * The click capture, which is a `document`-level capture-phase listener that
+ * calls `stopPropagation` — so what it swallows never reaches React at all.
+ *
+ * That is right for the shop's own links and buttons (a click while editing must
+ * pick the section, not add a product to the merchant's basket or navigate the
+ * frame away) and wrong for the sample cart, whose stepper and remove button are
+ * the thing the merchant is looking at. Browser QA found the sample's controls
+ * inert for exactly this reason; the exemption is `[data-preview-interactive]`,
+ * which only a sample draws.
+ *
+ * Driven through a plain DOM node rather than a section view: the unit under
+ * test is the listener, and the cart view needs a store, a shopper context and a
+ * catalogue to render at all.
+ */
+describe("PageDraftPreview — clicks inside a section", () => {
+  let posted: unknown[];
+  let host: HTMLElement;
+
+  const click = (el: Element) =>
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+  beforeEach(() => {
+    posted = [];
+    vi.spyOn(window.parent, "postMessage").mockImplementation((message: unknown) => {
+      posted.push(message);
+    });
+    window.history.replaceState(null, "", "/shop/cart?preview=1&builder=1");
+    renderPreview();
+    host = document.createElement("div");
+    host.setAttribute("data-section-id", "cart-lines");
+    host.innerHTML =
+      '<button id="shop">Add to cart</button>' +
+      '<div data-preview-interactive=""><button id="sample">+</button></div>';
+    document.body.appendChild(host);
+  });
+
+  afterEach(() => {
+    host.remove();
+    vi.restoreAllMocks();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("swallows a shop control's click and picks the section instead", () => {
+    const delivered = click(host.querySelector("#shop") as Element);
+    expect(delivered).toBe(false);
+    expect(posted).toContainEqual({
+      type: PAGE_SECTION_SELECT,
+      payload: { id: "cart-lines" },
+    });
+  });
+
+  it("lets a sample cart's own control through, and does not select on it", () => {
+    const delivered = click(host.querySelector("#sample") as Element);
+    expect(delivered).toBe(true);
+    expect(posted).not.toContainEqual({
+      type: PAGE_SECTION_SELECT,
+      payload: { id: "cart-lines" },
+    });
+  });
+
+  /** The exemption is for controls, not for getting out of the page being edited. */
+  it("still swallows a link inside the sample", () => {
+    host.querySelector("[data-preview-interactive]")!.innerHTML = '<a id="away" href="/products">Browse</a>';
+    expect(click(host.querySelector("#away") as Element)).toBe(false);
   });
 });
 

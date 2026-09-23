@@ -7,7 +7,7 @@ import { useEffect, type RefObject } from "react";
  * Publish the sticky header's height as `--sf-header-h` on `.sf-root`, so
  * anything that sticks to the TOP of the viewport can clear it.
  *
- * The sibling of `useBuybarHeight`, and it exists for the mirror-image
+ * The sibling of `useBottomBarHeight`, and it exists for the mirror-image
  * collision: the header is `position: sticky; top: 0`, so a panel that sticks at
  * `top: 0` slides underneath it. Checkout's order rail is the first caller —
  * without this the Place-order button hides behind the search bar the moment the

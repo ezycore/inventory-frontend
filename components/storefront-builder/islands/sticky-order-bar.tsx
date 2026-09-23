@@ -11,7 +11,7 @@ import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { money } from "@/components/storefront/format";
 import { listingSoldOut } from "@/components/storefront/product-choice";
-import { useBuybarHeight } from "@/components/storefront/use-buybar-height";
+import { useBottomBarHeight } from "@/components/storefront/use-bottom-bar-height";
 import { useOrdersPaused } from "@/services/storefront/use-orders-paused";
 import {
   BUY_PANEL_SELECTOR,
@@ -90,7 +90,7 @@ export function StickyOrderBarIsland({
   const pinnedByPage = onProductPage && productLayout === "sticky";
   const show = !paused && !pinnedByPage && !listingSoldOut(product) && !formInView && !atEnd;
   // Before the early return, so `--sf-buybar-h` is reset whenever the bar hides.
-  useBuybarHeight(ref, show);
+  useBottomBarHeight(ref, show);
   if (!show) return null;
 
   const go = () => {

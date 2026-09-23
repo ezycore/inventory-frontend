@@ -7,7 +7,6 @@ covers_routes:
   - /ecommerce/collections
   - /ecommerce/themes
   - /ecommerce/customize
-  - /ecommerce/content
 features:
   - storefront
 ---
@@ -420,17 +419,21 @@ scroll stops loading on its own after a couple of screens so your footer links s
 Check it on a phone before you finish. Most shoppers will never see your store on a desktop, and a
 layout that looks balanced on a wide screen often does not survive the narrow one.
 
-## Content
+## Your written pages
 
-**Content** holds your written pages — About, delivery information, returns policy, terms, and any
-FAQ.
+Your written pages — About, delivery information, returns policy, terms, any FAQ — live under
+**Pages**, in the **Store pages** list. They used to have a screen of their own called Content; that
+screen now sends you to Pages, so an old bookmark still lands in the right place.
 
 These matter more than they look. Delivery and returns are the two things a hesitant shopper checks
 before paying, and a store with neither reads as untrustworthy. Write the returns page to match what
 you actually do — see [Take back a sold item](./sales-returns.md).
 
-Pages accept simple formatting: headings, bold, lists and links. Consecutive `Q:` and `A:` lines
-become styled question-and-answer cards, which is the tidiest way to lay out an FAQ.
+To add one, press **New page** and choose **Store page**. Its text is written in the same editor as
+before, with headings, bold, lists and links; consecutive `Q:` and `A:` lines become styled
+question-and-answer cards, which is the tidiest way to lay out an FAQ. You can also leave the text
+empty and build the page out of sections instead, the way a landing page is built — see
+[Sell with a landing page](./storefront-landing-pages.md).
 
 ## Next
 

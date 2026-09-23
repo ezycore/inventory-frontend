@@ -230,6 +230,17 @@ export type MetaPurchaseTrigger = MetaSettings["purchaseTrigger"];
 export type MetaEventRow = Schemas["MetaEvent"];
 export type MetaEventList = Schemas["MetaEventList"];
 
+/**
+ * Microsoft Clarity (backend `docs/plan/storefront-clarity.md`).
+ *
+ * Nothing here is masked, and that is the point: a Clarity project id is public by design — it
+ * ships in the storefront's own HTML — so unlike `MetaSettings` there is no field whose absence
+ * this type is carrying.
+ */
+export type ClaritySettings = Schemas["ClaritySettings"];
+/** `"off" | "eu" | "always"` — taken from the spec, never hand-written. */
+export type ClarityCookieConsent = ClaritySettings["cookieConsent"];
+
 /** Notification engine (backend docs/plan/notifications.md). */
 export type NotificationSettings = Schemas["NotificationSettings"];
 export type NotificationEventRow = NotificationSettings["events"][number];

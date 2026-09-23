@@ -50,6 +50,35 @@ describe("content-body", () => {
     expect(prepared.frame.width).toBe("full");
     expect(prepared.frame.style).toMatchObject({ "--sfb-pt": "0px", "--sfb-pb": "0px" });
   });
+
+  // The section is required and unremovable, so "no body" has to be a STATE of
+  // it rather than its absence — and a merchant who builds the page out of the
+  // sections around it must not get a blank framed band above them.
+  it("draws nothing at all when it has neither a heading nor a body", () => {
+    const { container } = renderPage([section("c1", "content-body", {})]);
+    expect(container.querySelector("[data-island]")).toBeNull();
+  });
+
+  it("counts an emptied rich-text box as empty, document and all", () => {
+    const emptied = JSON.stringify({ type: "doc", content: [{ type: "paragraph" }] });
+    const { container } = renderPage([section("c1", "content-body", { body: emptied })]);
+    expect(container.querySelector("[data-island]")).toBeNull();
+  });
+
+  it("keeps a picture-only body: it says something without saying any words", () => {
+    const picture = JSON.stringify({
+      type: "doc",
+      content: [{ type: "image", attrs: { src: "https://cdn.example.com/a.png" } }],
+    });
+    const { container } = renderPage([section("c1", "content-body", { body: picture })]);
+    expect(container.querySelector("[data-island]")).not.toBeNull();
+  });
+
+  it("draws a heading with no body — a page whose content is the sections below it", () => {
+    const { container } = renderPage([section("c1", "content-body", { title: "About us" })]);
+    const island = container.querySelector("[data-island]") as HTMLElement;
+    expect(JSON.parse(island.dataset.props ?? "{}")).toMatchObject({ title: "About us", body: "" });
+  });
 });
 
 describe("testimonials", () => {

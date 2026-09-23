@@ -18,3 +18,12 @@ export const PAGE_DRAFT_APPLIED = "ezycore-page-draft-applied";
 export const PAGE_SECTION_SELECT = "ezycore-page-section-select";
 /** Editor → preview frame: the section being edited — `payload.id`, or `null` for none. */
 export const PAGE_SECTION_FOCUS = "ezycore-page-section-focus";
+/**
+ * Editor → preview frame: draw the cart and checkout pages with a sample basket
+ * (`payload.filled`), or with the empty one the merchant also has to design.
+ *
+ * Its own message rather than a field on the draft: it is not part of the page,
+ * nothing about it is saved or published, and folding it into `PAGE_DRAFT_MESSAGE`
+ * would make toggling it redraw every section.
+ */
+export const PAGE_PREVIEW_CART = "ezycore-page-preview-cart";

@@ -9,11 +9,13 @@ import { storefrontUrl } from "@/lib/storefront-url";
 import {
   PAGE_DRAFT_MESSAGE,
   PAGE_DRAFT_READY,
+  PAGE_PREVIEW_CART,
   PAGE_SECTION_FOCUS,
   PAGE_SECTION_SELECT,
 } from "@/lib/storefront-builder/page-draft-messages";
 import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
 import {
+  PreviewCartToggle,
   PreviewDeviceToggle,
   PreviewStage,
   PreviewThemeToggle,
@@ -44,6 +46,7 @@ export function PagePreviewFrame({
   onDeviceChange,
   selectedId,
   onSelect,
+  cart,
   height = "calc(100vh - 11rem)",
 }: {
   slug?: string;
@@ -62,6 +65,12 @@ export function PagePreviewFrame({
   onDeviceChange: (device: EditorDevice) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /**
+   * The sample-basket switch, supplied only by the two pages that draw the
+   * shopper's cart (cart and checkout). Absent everywhere else, so no other page
+   * grows a control for a basket it never shows.
+   */
+  cart?: { filled: boolean; onChange: (filled: boolean) => void };
   height?: string;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -82,6 +91,14 @@ export function PagePreviewFrame({
     () => post({ type: PAGE_SECTION_FOCUS, payload: { id: selectedId } }),
     [post, selectedId],
   );
+  // Sent from every page, not only the two that offer the switch: the frame's
+  // default is the sample, so a page with no `cart` prop says so once and the
+  // store cannot be left holding another page's answer.
+  const cartFilled = cart?.filled ?? true;
+  const sendCart = useCallback(
+    () => post({ type: PAGE_PREVIEW_CART, payload: { filled: cartFilled } }),
+    [post, cartFilled],
+  );
 
   useEffect(() => {
     sendDraft();
@@ -90,6 +107,10 @@ export function PagePreviewFrame({
   useEffect(() => {
     sendFocus();
   }, [sendFocus]);
+
+  useEffect(() => {
+    sendCart();
+  }, [sendCart]);
 
   // The frame announces itself after every (re)load; only its own messages count.
   useEffect(() => {
@@ -101,13 +122,16 @@ export function PagePreviewFrame({
         // A reloaded frame carries no theme override — send it again, or a
         // reload silently drops the preview back to the merchant's own theme.
         postTheme();
+        // Same for the sample switch: the frame's store is new, and a merchant
+        // who had asked for the empty cart would get the sample back.
+        sendCart();
       } else if (event.data?.type === PAGE_SECTION_SELECT && typeof event.data.payload?.id === "string") {
         onSelect(event.data.payload.id);
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [sendDraft, sendFocus, postTheme, onSelect]);
+  }, [sendDraft, sendFocus, sendCart, postTheme, onSelect]);
 
   if (!slug || !address) {
     return (
@@ -131,6 +155,7 @@ export function PagePreviewFrame({
       <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-3 py-2">
         <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{address}</span>
         <div className="ml-auto flex flex-none items-center gap-1">
+          {cart ? <PreviewCartToggle filled={cart.filled} onChange={cart.onChange} /> : null}
           <PreviewDeviceToggle device={device} onChange={onDeviceChange} />
           <PreviewThemeToggle theme={theme} onChange={setTheme} />
           <button

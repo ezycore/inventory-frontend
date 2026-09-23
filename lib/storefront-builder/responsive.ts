@@ -32,3 +32,29 @@ export function responsiveVars<T extends string | number>(
   if (value.mobile !== undefined) vars[`--${name}-m`] = format(value.mobile);
   return vars as CSSProperties;
 }
+
+/**
+ * The class names that switch a responsive variable on, **one per screen it
+ * actually answers for** — `"sfb-cols"`, `"sfb-cols-m"`, or both.
+ *
+ * ⚠ **Why this is not one class.** A rule like
+ * `.sfb-cols { --cols: var(--sfb-cols) }` shadows the inherited value on every
+ * element it lands on. When the merchant set a PHONE count only, `--sfb-cols`
+ * is undefined, `--cols` computes to the guaranteed-invalid value, and
+ * `grid-template-columns: repeat(var(--cols), …)` falls back to `none` — so
+ * answering "2 on a phone" silently collapsed the DESKTOP grid to a single
+ * column. Emitting the class per screen leaves the untouched screen on the
+ * store's own ramp, which is what `responsiveVars` above already promises and
+ * what the stylesheet could not deliver on its own.
+ */
+export function responsiveClasses<T extends string | number>(
+  name: string,
+  value: Responsive<T> | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  const classes = [
+    value.base !== undefined ? name : "",
+    value.mobile !== undefined ? `${name}-m` : "",
+  ].filter(Boolean);
+  return classes.length ? classes.join(" ") : undefined;
+}

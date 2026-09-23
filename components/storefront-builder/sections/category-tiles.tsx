@@ -29,7 +29,17 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
        nothing — so it keeps the square it has always drawn. This is the size
        question the design register declined on 2026-09-07 and the owner's
        2026-09-14 direction reopened. */
-    <div style={responsiveVars("sfb-tile-ratio", settings.tileRatio, (r) => ASPECT_RATIOS[r]) as CSSProperties}>
+    <div
+      style={
+        {
+          ...responsiveVars("sfb-tile-ratio", settings.tileRatio, (r) => ASPECT_RATIOS[r]),
+          /* Unset stays UNSET rather than resolving to a number here: the tiles
+             fall back to the theme's own radius tokens, and two of them (card
+             and photo) differ. See `TILE_RADIUS` in `category-tile-row.tsx`. */
+          ...(settings.radius === undefined ? {} : { "--sfb-tile-radius": `${settings.radius}px` }),
+        } as CSSProperties
+      }
+    >
       {settings.heading ? (
         <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
       ) : null}
@@ -47,6 +57,8 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
           columnsExplicit: settings.columns !== undefined,
         }}
         imageFit={context.imageFit ?? "cover"}
+        hideDescription={settings.hideDescription}
+        arrows={settings.arrows}
         renderStrip={(strip) => <Island name="category-strip" props={strip} />}
       />
     </div>

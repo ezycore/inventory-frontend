@@ -42,13 +42,19 @@ import { useUndoShortcuts } from "./use-undo-shortcuts";
  */
 export function PageEditor({ page }: { page: StorefrontPage }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
-  const isProductPage = page.kind === "system" && page.systemKey === "product";
+  const systemKey = page.kind === "system" ? page.systemKey : undefined;
+  const isProductPage = systemKey === "product";
+  // The two pages whose content is the SHOPPER's basket. In the editor that
+  // basket is empty, so the preview fills it with a sample and this is the
+  // switch back to the empty state — see `PreviewCartToggle`.
+  const showsCart = systemKey === "cart" || systemKey === "checkout";
   const previewProduct = usePreviewProductSlug(slug, isProductPage);
   const editor = usePageEditor(page);
   const autosave = usePageAutosave(page, editor.savable);
   useUndoShortcuts(editor.undo, editor.redo);
 
   const [adding, setAdding] = useState(false);
+  const [cartFilled, setCartFilled] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirming, setConfirming] = useState<"discard" | "unpublish" | null>(null);
@@ -151,6 +157,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
             onDeviceChange={editor.setDevice}
             selectedId={editor.selectedId}
             onSelect={editor.select}
+            cart={showsCart ? { filled: cartFilled, onChange: setCartFilled } : undefined}
             height="calc(100vh - 13.5rem)"
           />
         </div>

@@ -602,6 +602,20 @@ export interface StorefrontStore {
       purchase: boolean;
     };
   };
+  /**
+   * Microsoft Clarity config (backend `docs/plan/storefront-clarity.md`).
+   *
+   * **Presence is enabled**, same rule as `meta` above — the backend omits the whole block when
+   * the merchant has it off or has entered no project id.
+   *
+   * `cookieConsent` decides whether this storefront draws a consent bar, and to whom. `off` is
+   * not "ignore consent": Clarity sets no cookies at all until the page calls `consentv2`, so the
+   * no-banner default is also the no-storage one. See `components/storefront/consent-bar.tsx`.
+   */
+  clarity?: {
+    projectId: string;
+    cookieConsent: "off" | "eu" | "always";
+  };
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -1000,12 +1014,21 @@ export interface CatalogVariant {
   availableQuantity: number;
 }
 
-/** A footer link to a published CMS page. */
+/**
+ * One of the store's own pages, as the storefront links to it.
+ *
+ * Every published page is listed, not only the footer's: the checkout resolves
+ * its terms page against this list, and the trust strip looks here for a returns
+ * policy. `footer` says which ones the footer column shows — a merchant who
+ * keeps their terms out of the footer still has terms.
+ */
 export interface ContentPageLink {
   _id: string;
   slug: string;
   title: string;
   sortOrder?: number;
+  /** Unset reads as listed — every page stored before the flag existed. */
+  footer?: boolean;
 }
 
 /** A published CMS page rendered at /shop/pages/{pageSlug}. */

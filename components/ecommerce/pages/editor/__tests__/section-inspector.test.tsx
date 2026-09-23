@@ -64,6 +64,26 @@ describe("SectionInspector tabs", () => {
     expect(screen.queryByText("Width")).toBeNull();
   });
 
+  it("offers a core section no Corners either, because it draws at full width", async () => {
+    /* The renderer zeroes a radius at full width (`.sfb-sec[data-width="full"]`)
+       and a core section's frame IS full width, so Corners could never do
+       anything on the cart, the checkout, the account area, search, a
+       collection, a product or a campaign page. It was offered on all of them
+       until 2026-09-22: the guard tested the STORED width, which a core section
+       can never have — it has no Width control and the API refuses one. */
+    inspect({ id: "cart", type: "cart-lines", v: 1, enabled: true, settings: {} });
+    await userEvent.click(screen.getByRole("tab", { name: "Style" }));
+    expect(screen.queryByText("Corners")).toBeNull();
+    // The line stays: an edge-to-edge band can still carry one above and below.
+    expect(screen.getByText("Outline")).toBeTruthy();
+  });
+
+  it("keeps Corners on an ordinary section, which draws in the page column", async () => {
+    inspect({ id: "rt", type: "rich-text", v: 1, enabled: true, settings: {} });
+    await userEvent.click(screen.getByRole("tab", { name: "Style" }));
+    expect(screen.getByText("Corners")).toBeTruthy();
+  });
+
   it("drops a hero control that does nothing in the layout the merchant picked", () => {
     const hero = (settings: Record<string, unknown>) => ({
       id: "hero-1",
@@ -179,5 +199,33 @@ describe("SectionInspector — number settings", () => {
     expect(box.tagName).toBe("INPUT");
     await userEvent.click(screen.getByText("Number of products"));
     expect(document.activeElement).toBe(box);
+  });
+});
+
+describe("SectionInspector — a switch whose section draws it on", () => {
+  /* Found in the browser: Show names sat OFF over a row of named tiles, because
+     the control read `value === true` while the section read `?? true`. The
+     first click then wrote the `true` already in force and changed nothing. */
+  it("shows an unset Show names ON, as the tiles draw it", () => {
+    inspect({ id: "t1", type: "category-tiles", v: 1, enabled: true, settings: {} });
+    expect(screen.getByLabelText("Show names").getAttribute("data-state")).toBe("checked");
+  });
+
+  it("still shows an explicit off as off", () => {
+    inspect({
+      id: "t1",
+      type: "category-tiles",
+      v: 1,
+      enabled: true,
+      settings: { showLabels: false },
+    });
+    expect(screen.getByLabelText("Show names").getAttribute("data-state")).toBe("unchecked");
+  });
+
+  it("leaves a switch with no such default off", () => {
+    inspect({ id: "t1", type: "category-tiles", v: 1, enabled: true, settings: {} });
+    expect(screen.getByLabelText("Hide the description").getAttribute("data-state")).toBe(
+      "unchecked",
+    );
   });
 });

@@ -89,7 +89,10 @@ export function StoreFooter({
     footerPaymentMethods:
       previewFooterPaymentMethods ?? store?.nav?.footerPaymentMethods,
     footerContentPages: previewContentPages ?? store?.nav?.footerContentPages,
-    infoPages: pages ?? [],
+    // The footer's own column, so the pages the merchant kept OUT of it are
+    // dropped here rather than at the source: the same list is what the checkout
+    // resolves its terms page against.
+    infoPages: (pages ?? []).filter((page) => page.footer !== false),
     // Drafted-empty must reach the localized default, not the saved text — so
     // the `??` picks the source and the `||` applies the fallback, in that order.
     // `store.copy`, not `store.theme` — merchant-written wording is a sibling of

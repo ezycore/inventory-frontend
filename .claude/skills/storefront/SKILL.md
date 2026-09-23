@@ -856,7 +856,7 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     no glossary term. `listingSoldOut` (`components/storefront/product-choice.ts`) is the sold-out rule
     for a listing row before any option is chosen.
   - **Sticky order bar** (`islands/sticky-order-bar.tsx`) is phones only (`.sfb-orderbar`), fixed, and
-    publishes `--sf-buybar-h` through `useBuybarHeight` so the contact launcher stacks above it. Its
+    publishes `--sf-buybar-h` through `useBottomBarHeight` so the contact launcher stacks above it. Its
     button scrolls to the first element carrying `ORDER_FORM_ANCHOR`
     (`components/storefront-builder/order-form-anchor.ts`, stamped by the order form section), or opens
     the product page. It hides while a form is on screen, at the page end and when sold out. The
@@ -3203,8 +3203,11 @@ cached entry on the `/sites` route (see "Cached store pages").
   otherwise draws under it. Three rules live there: an arrow shows only when that direction can
   actually move (measured with `ResizeObserver` + `onScroll` via the tested `stripEdges`, never from
   a tile count — the same four categories overflow or don't depending on the window); the arrows are
-  **pointer-only**, the inverse of `.sf-deals-controls`, because a phone swipes natively and two
-  36px buttons would cover the two tiles a 360px screen shows; and one press moves ~80% of the track
+  **pointer-only AND desktop-width-only** (`(hover: hover) and (pointer: fine)`, then a
+  `max-width: 679px` rule that hides them again), the inverse of `.sf-deals-controls`, because a phone
+  swipes natively and two 36px buttons would cover the two tiles a 360px screen shows — the width half
+  was added 2026-09-22 because the page editor's phone preview is a 390px frame inside a desktop
+  Chrome, where `pointer: fine` still matches, so merchants were shown arrows their shoppers never get; and one press moves ~80% of the track
   (`stripStep`), not one tile. **The phone gets the carousel instead of the arrows** (2026-08-25):
   the track snaps `x mandatory` so a flick settles flush rather than stopping with a tile cut in half,
   and `.sf-chip-row` widens the chip to `100%/2.5 - gap`, i.e. two whole tiles and half of a third on
@@ -3799,7 +3802,7 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   `product-sticky-bar.tsx`.
   ⚠️ **The sticky bar owns its own ref.** It first took `buybarRef` off the shared hook return and
   `react-hooks/refs` rejected it — reading a ref off a shared object during render. It now creates
-  the ref and calls `useBuybarHeight` itself, *before* its early return, so the hook order stays
+  the ref and calls `useBottomBarHeight` itself, *before* its early return, so the hook order stays
   unconditional and `--sf-buybar-h` resets to 0 on the layouts that render no bar. Do not move that
   back up into the hook.
 
@@ -3813,10 +3816,11 @@ summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md
   the blank-value fallback to `social.whatsapp` happens, so the browser never picks between two
   copies of a phone number.
   **(2) `--sf-buybar-h` is new and load-bearing.** The launcher anchors to
-  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + 14px)` at `z-index: 45`. The product page's
+  `calc(var(--sf-bottom-nav-h) + var(--sf-buybar-h) + var(--sf-consent-h) + 14px)` at `z-index: 45`.
+  The product page's
   sticky buy bar was ALREADY at `bottom: var(--sf-bottom-nav-h)`, so a button clearing only the tab
   bar lands squarely on Add-to-cart on every mobile product page — while looking perfect on the home
-  page, on desktop, and in every screenshot. `useBuybarHeight` measures it and resets on unmount,
+  page, on desktop, and in every screenshot. `useBottomBarHeight` measures it and resets on unmount,
   because the shell survives client-side navigation and a stale offset would follow the shopper
   around the whole site.
   **(3) The schema is plural, the registry has one row.** `contactButton.channels[]` with
@@ -4735,11 +4739,36 @@ Never persist or render the tenant-only `/shop` prefix as part of the owner rout
 copy must derive from `effectiveFreeShippingThreshold`; delivery windows are merchant-authored and
 must fall back to neutral checkout guidance when absent.
 
+## The Content screen is retired (2026-09-22)
+
+`/ecommerce/content` is a **redirect to `/ecommerce/pages`**, and its nav row is gone. A store page —
+About, Contact, a policy — is now made and edited in Pages like every other page of the shop, with
+its text in the same rich-text editor it always had.
+
+What that screen still did, and why it had to go: it **created**. A page made there after a store's
+cutover became a legacy CMS document that rendered on the shop (the storefront falls back to it when
+no builder page owns the slug) but appeared nowhere in Pages, so the merchant could not find it
+again.
+
+**The CMS model is untouched.** `contentPageService` still backs the storefront's fallback and is
+still the rollback target for `moveContentPagesBack`; its five endpoints still serve. Retiring the
+SCREEN is not retiring the data — that goes with the classic renderer, in the builder plan's own
+cleanup. `components/ecommerce/content/` was deleted because nothing rendered it any more.
+
+Plan: `inventory-backend/docs/plan/pages-and-settings-consolidation.md` §3.
+
 ## Page controls — Search / Cart page / Account (2026-09-16)
 
 A merchant can switch off three shopper pages (backend `docs/plan/storefront-builder.md` §6, step
 7a). The backend resolves them into one block on the store payload, `store.pages { search, cartPage,
 accounts }`, and this side reads it through **one** helper.
+
+**The admin controls are on Pages, not in Store settings** (moved 2026-09-22, backend
+`docs/plan/pages-and-settings-consolidation.md` §2.2): each is a row switch on the **Shop pages** card
+(`components/ecommerce/pages/system-pages-card.tsx`), beside the page it governs, and it saves on its
+own rather than behind a Save bar. The storage did not move with them — `pagesConfig.search`,
+`pagesConfig.cartPage` and `customersConfig.allowAccounts` are still two blocks, because merging them
+would be a migration on live stores for a tidier shape.
 
 **`storePages(store)` (`lib/storefront-page-controls.ts`) is the only reader.** Never touch
 `store.pages?.search` directly: **absent means ON**, and that is not a stylistic preference — a store

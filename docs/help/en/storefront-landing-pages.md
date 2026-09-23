@@ -32,17 +32,19 @@ find it through the link you share.
 
 ## Make a page
 
-1. Open **Pages** and press **New landing page**.
-2. Pick a starting point:
+1. Open **Pages** and press **New page**.
+2. Choose **Landing page** — the other kind, **Store page**, is for your About, Contact and policy
+   pages, which is covered in [Set up your online store](storefront-setup.md).
+3. Pick a starting point:
    - **Single product, cash on delivery** — the product, your promises, how to order, an order form
      and common questions.
    - **Offer or campaign** — the price and discount first, then an order form with a coupon box.
    - **Product launch** — large photos, room to tell shoppers what is new, and its benefits.
    - **Blank** — an empty page you fill yourself.
-3. Unless you picked Blank, choose the **Product** the page sells. Its photos, price and description
+4. Unless you picked Blank, choose the **Product** the page sells. Its photos, price and description
    fill the page, and stay up to date when you change the product.
-4. Give it a **Page name** you will recognise, like "Eid offer". Shoppers do not see this name.
-5. Press **Create and open editor**.
+5. Give it a **Page name** you will recognise, like "Eid offer". Shoppers do not see this name.
+6. Press **Create and open editor**.
 
 The page starts hidden. Nobody can open it until you publish it. Change the starting words — the
 promises, questions and headings are examples — and move or remove any section.

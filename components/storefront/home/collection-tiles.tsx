@@ -128,8 +128,17 @@ export function CollectionTile({
      and 90px on a phone: a literal 11px is 18% of the small one and 12% of the
      large one, so the same tile arrives as a soft chip on one and a slab on the
      other. 18% of a square is the desktop corner, held at every size. */
+  /* ⚠ The merchant's px answer overrides BOTH branches, including the
+     percentage below — a shop that asked for square corners means square on
+     every screen, and a percentage cannot express 0 without also expressing
+     "18% of whatever this box turns out to be". Unset keeps each branch's own
+     value, which is what the classic home (no variable) still draws. */
   const thumbSize: CSSProperties = strip
-    ? { width: "var(--sf-chip-thumb)", aspectRatio: "var(--sfb-tile-ratio, 1 / 1)", borderRadius: "18%" }
+    ? {
+        width: "var(--sf-chip-thumb)",
+        aspectRatio: "var(--sfb-tile-ratio, 1 / 1)",
+        borderRadius: "var(--sfb-tile-radius, 18%)",
+      }
     : {
         /* The grid thumb, sized by the row's own breakpoint — see the note at
            the top of this file. A literal corner is wrong once the box grows
@@ -137,7 +146,7 @@ export function CollectionTile({
            token, which is what the photo tile beside it already uses. */
         width: "var(--sf-hc-thumb)",
         aspectRatio: "var(--sfb-tile-ratio, 1 / 1)",
-        borderRadius: "var(--radius-md)",
+        borderRadius: "var(--sfb-tile-radius, var(--radius-md))",
       };
   return (
     <Link
