@@ -228,13 +228,6 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.design"],
           },
           {
-            title: "Content",
-            url: "/ecommerce/content",
-            icon: "file-text",
-            features: ["storefront"],
-            permissions: ["storefront.manage"],
-          },
-          {
             // Storefront Builder pages. `storefront.design`, not `storefront.manage`
             // like its neighbours: it is what the page routes check, so a role
             // holding only `manage` would open a screen whose every request 403s.
@@ -487,6 +480,17 @@ export const navGroups: NavGroup[] = [
             permissions: ["reports.view"],
             icon: "bar-chart-2",
             anyFeatures: ["sales", "storefront"],
+          },
+          {
+            // The ORDER clock. Feature-gated on the storefront because without
+            // that module there are no orders at all — the one case where a
+            // report should vanish rather than degrade. `reports.view` like the
+            // rest; its cost figures are withheld server-side by `costs.view`.
+            title: "Orders Report",
+            url: "/reports/orders",
+            permissions: ["reports.view"],
+            icon: "clipboard-list",
+            features: ["storefront"],
           },
           {
             // The one report that reads purchase documents exclusively, so it

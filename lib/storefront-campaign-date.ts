@@ -29,6 +29,37 @@
  * One function rather than formatting inline in both components: the strip and
  * the deal card must never disagree about when the same campaign ends.
  */
+function instantLabel(
+  value: string | null | undefined,
+  langCode: string,
+  template: string,
+  now: Date,
+  timeZone?: string,
+): string | null {
+  if (!value) return null;
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) return null;
+
+  const zone = timeZone ? { timeZone } : {};
+  const yearOf = (date: Date) =>
+    new Intl.DateTimeFormat("en-US", { year: "numeric", ...zone }).format(date);
+
+  const date = at.toLocaleDateString(langCode, {
+    day: "numeric",
+    month: "short",
+    // Only when it adds information — a same-year date is unambiguous without it.
+    ...(yearOf(at) === yearOf(now) ? null : { year: "numeric" }),
+    ...zone,
+  });
+  const time = at.toLocaleTimeString(langCode, {
+    hour: "numeric",
+    minute: "2-digit",
+    ...zone,
+  });
+
+  return template.replace("{date}", date).replace("{time}", time);
+}
+
 export function campaignEndsLabel(
   endsAt: string | null | undefined,
   language: { langCode: string; campaignEndsAt: string },
@@ -36,26 +67,31 @@ export function campaignEndsLabel(
   /** The zone to print in. Omitted in the storefront = the viewer's own zone. */
   timeZone?: string,
 ): string | null {
-  if (!endsAt) return null;
-  const end = new Date(endsAt);
-  if (Number.isNaN(end.getTime())) return null;
+  return instantLabel(
+    endsAt,
+    language.langCode,
+    language.campaignEndsAt,
+    now,
+    timeZone,
+  );
+}
 
-  const zone = timeZone ? { timeZone } : {};
-  const yearOf = (date: Date) =>
-    new Intl.DateTimeFormat("en-US", { year: "numeric", ...zone }).format(date);
-
-  const date = end.toLocaleDateString(language.langCode, {
-    day: "numeric",
-    month: "short",
-    // Only when it adds information — a same-year date is unambiguous without it.
-    ...(yearOf(end) === yearOf(now) ? null : { year: "numeric" }),
-    ...zone,
-  });
-  const time = end.toLocaleTimeString(language.langCode, {
-    hour: "numeric",
-    minute: "2-digit",
-    ...zone,
-  });
-
-  return language.campaignEndsAt.replace("{date}", date).replace("{time}", time);
+/**
+ * The "Starts …" twin, for a campaign whose landing page a merchant shared
+ * before the sale opened. Same instant-in-the-viewer's-zone rules as above,
+ * including the after-hydration-only requirement — it is the same formatter.
+ */
+export function campaignStartsLabel(
+  startsAt: string | null | undefined,
+  language: { langCode: string; campaignStartsAt: string },
+  now: Date = new Date(),
+  timeZone?: string,
+): string | null {
+  return instantLabel(
+    startsAt,
+    language.langCode,
+    language.campaignStartsAt,
+    now,
+    timeZone,
+  );
 }

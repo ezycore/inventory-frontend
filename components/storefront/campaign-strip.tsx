@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { campaignHref } from "@/lib/storefront-links";
 import { pageOf } from "@/lib/storefront-contact-message";
 import { campaignEndsLabel } from "@/lib/storefront-campaign-date";
 import {
@@ -15,7 +15,7 @@ import {
   STRIP_PADDING_BLOCK,
 } from "@/lib/storefront-strip-display";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { useStoreCampaigns, useStoreCategories, useStoreTags } from "@/services/storefront/hooks";
+import { useStoreCampaigns } from "@/services/storefront/hooks";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
@@ -60,9 +60,6 @@ export function CampaignStrip({
   const pathname = useStorePathname();
   const hydrated = useHydrated();
   const { data: campaigns } = useStoreCampaigns(slug, initialCampaigns);
-  // Both levels of the tree, flattened: a campaign's target may be either.
-  const { data: categories } = useStoreCategories(slug);
-  const { data: tags } = useStoreTags(slug);
   // Live draft from the Customize editor wins so the strip repaints as it is
   // edited. `undefined` means "nothing drafted" — unlike the contact launcher
   // there is no meaningful `null` here, because switching the strip off is a
@@ -118,22 +115,17 @@ export function CampaignStrip({
     campaign.type === "percentage"
       ? `${campaign.value}%`
       : money(campaign.value, currency);
-  // The campaign carries target IDs; the CTA needs a public URL, so each is
-  // looked up in the live facet lists. An unresolvable target (hidden category,
-  // retired tag) falls back to the full listing rather than a dead link.
-  const targetId = campaign.targets?.[0];
-  const allCategories = (categories ?? []).flatMap((c) => [c, ...(c.children ?? [])]);
-  const href =
-    (campaign.scope === "category" || campaign.scope === "subcategory") && targetId
-      ? collectionHref(base, allCategories.find((c) => c._id === targetId))
-      : campaign.scope === "tag" && targetId
-        ? (() => {
-            const tag = (tags ?? []).find((x) => x._id === targetId);
-            return tag
-              ? storeHref(base, `/products?tags=${encodeURIComponent(tag.slug)}`)
-              : storeHref(base, "/products");
-          })()
-        : storeHref(base, "/products");
+  // The CTA goes to the campaign's OWN page, whatever it is scoped to.
+  //
+  // It used to resolve the first target id against the live facet lists — a
+  // collection path for a category, a tag facet for a tag — and fall back to the
+  // whole catalogue for everything else. That left the two scopes a real sale
+  // most often uses, `product` and `storewide`, pointing at `/products`: the
+  // shopper was told a sale was on and handed the entire shop to search through.
+  // `/campaigns/<slug>` lists exactly what the campaign discounts, for every
+  // scope, and only a campaign with no slug yet still falls back
+  // (`campaignHref`).
+  const href = campaignHref(base, campaign);
   // After hydration only: the label is printed in the SHOPPER's zone, which the
   // server (UTC) cannot know — rendering it there would mismatch the hydrating
   // client for every shopper outside UTC.

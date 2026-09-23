@@ -31,6 +31,7 @@ export async function PageFrame({
   slug,
   base,
   store,
+  preview,
   children,
 }: {
   chrome: PageChrome;
@@ -38,12 +39,14 @@ export async function PageFrame({
   slug: string;
   base: string;
   store: StorefrontStore;
+  /** Owner preview of a draft. Only `StoreHead` reads it — see `Clarity`. */
+  preview?: boolean;
   children: ReactNode;
 }) {
   if (chrome !== "full") {
     return (
       <>
-        <StoreHead slug={slug} store={store} />
+        <StoreHead slug={slug} store={store} preview={preview} />
         <BareStoreFrame slug={slug} base={base} store={store} logoBar={chrome === "minimal"}>
           {children}
         </BareStoreFrame>
@@ -59,7 +62,7 @@ export async function PageFrame({
 
   return (
     <>
-      <StoreHead slug={slug} store={store} />
+      <StoreHead slug={slug} store={store} preview={preview} />
       <FullStoreFrame
         slug={slug}
         base={base}

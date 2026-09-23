@@ -9,6 +9,7 @@ import type {
   ComboSalesReport,
   EmployeeReport,
   InventoryReport,
+  OrdersReport,
   PurchaseReport,
   SalesBreakdownReport,
   SalesReport,
@@ -51,6 +52,7 @@ export type TaxReportData = TaxReport;
 export type TaxLedgerData = TaxLedger;
 export type ComboSalesReportData = ComboSalesReport;
 export type SalesBreakdownData = SalesBreakdownReport;
+export type OrdersReportData = OrdersReport;
 
 // Sub-rows, derived from the generated parents so they cannot drift from them.
 export type TaxRateRow = TaxReport["byRate"]["output"][number];
@@ -60,6 +62,13 @@ export type TaxLedgerKind = TaxLedgerEntry["kind"];
 export type ComboSalesRow = ComboSalesReport["combos"][number];
 export type SalesBreakdownDimension = SalesBreakdownReport["dimension"];
 export type SalesBreakdownRow = SalesBreakdownReport["rows"][number];
+export type SalesBreakdownSource = NonNullable<SalesBreakdownReport["source"]>;
+export type OrdersTopProduct = NonNullable<OrdersReport["topProducts"]>[number];
+export type OrdersTopCustomer = NonNullable<OrdersReport["topCustomers"]>[number];
+export type OrdersCourierRow = NonNullable<OrdersReport["byCourier"]>[number];
+export type OrdersDistrictRow = NonNullable<OrdersReport["byDistrict"]>[number];
+export type OrdersSourceRow = NonNullable<OrdersReport["bySource"]>[number];
+export type OrdersRejectionRow = NonNullable<OrdersReport["rejections"]>[number];
 
 // ── Export Types ──
 export type ExportDataType =
@@ -68,7 +77,8 @@ export type ExportDataType =
   | "inventory"
   | "products"
   | "customers"
-  | "suppliers";
+  | "suppliers"
+  | "orders";
 
 // ── Helper ──
 function buildReportParams(params?: ReportParams): string {
@@ -101,12 +111,21 @@ export const reportsApi = {
   getSalesBreakdown: (
     dimension: SalesBreakdownDimension,
     params?: ReportParams,
+    // Which clock to count on. Defaults to the Sale ledger, matching the API —
+    // the Orders Report passes "orders" to read the same panel order-dated.
+    source: SalesBreakdownSource = "sales",
   ): Promise<ApiResponse<SalesBreakdownData>> => {
     const qs = buildReportParams(params);
     return apiClient.get(
-      `/reports/sales/breakdown${qs}${qs ? "&" : "?"}dimension=${dimension}`,
+      `/reports/sales/breakdown${qs}${qs ? "&" : "?"}dimension=${dimension}&source=${source}`,
     );
   },
+
+  /** The ORDER clock — orders dated by when they were placed. */
+  getOrdersReport: (
+    params?: ReportParams,
+  ): Promise<ApiResponse<OrdersReportData>> =>
+    apiClient.get(`/reports/orders${buildReportParams(params)}`),
 
   getPurchaseReport: (
     params?: ReportParams,

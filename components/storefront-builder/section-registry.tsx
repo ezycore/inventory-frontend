@@ -28,6 +28,7 @@ import { CartLinesSection } from "@/components/storefront-builder/sections/cart-
 import { CheckoutFormSection } from "@/components/storefront-builder/sections/checkout-form";
 import { AccountAreaSection } from "@/components/storefront-builder/sections/account-area";
 import { SearchResultsSection } from "@/components/storefront-builder/sections/search-results";
+import { CampaignMainSection } from "@/components/storefront-builder/sections/campaign-main";
 import { CollectionGridSection } from "@/components/storefront-builder/sections/collection-grid";
 import { ProductMainSection } from "@/components/storefront-builder/sections/product-main";
 import { RelatedProductsSection } from "@/components/storefront-builder/sections/related-products";
@@ -262,6 +263,9 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   "collection-grid": defineSection(SECTION_SPECS["collection-grid"], CollectionGridSection, {
+    frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "campaign-main": defineSection(SECTION_SPECS["campaign-main"], CampaignMainSection, {
     frame: { top: "0px", bottom: "0px", width: "full" },
   }),
   "product-main": defineSection(SECTION_SPECS["product-main"], ProductMainSection, {

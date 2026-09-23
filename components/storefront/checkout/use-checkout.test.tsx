@@ -25,6 +25,8 @@ const trackMetaEvent = vi.fn();
 let store: Record<string, unknown> = {};
 let cartItems: unknown[] = [];
 let shopper: unknown = null;
+/** Whether this render is inside an admin preview frame. */
+let previewFrame = false;
 
 vi.mock("@/lib/storefront-toast", () => ({
   toast: { error: toastError, success: vi.fn() },
@@ -38,6 +40,9 @@ vi.mock("@/services/storefront/ui-context", () => ({
 vi.mock("@/services/storefront/hooks", () => ({
   useStore: () => ({ data: store }),
   useStorePages: () => ({ data: [] }),
+  // Read by `usePreviewCart` for the editor's sample basket. Disabled outside a
+  // preview frame, which is what these tests are — it never fetches here.
+  useStoreProducts: () => ({ data: undefined }),
   usePlaceOrder: () => ({ mutate: placeOrder, isPending: false }),
   useShopperAccount: () => ({
     updateAddress: { mutate: vi.fn() },
@@ -68,7 +73,8 @@ vi.mock("@/services/storefront/cart-identity", () => ({
   cartAnonymousId: () => null,
   // Read by `metaCheckoutAttribution` on the submit path: the Customize editor renders the real
   // storefront in an iframe, and a merchant theming their shop must not be tracked as a shopper.
-  isSfPreview: () => false,
+  // `submit` reads it too — a preview frame draws the real Place order button.
+  isSfPreview: () => previewFrame,
 }));
 vi.mock("@/lib/storefront-client", () => ({ storefrontApi: { validateCoupon: vi.fn() } }));
 
@@ -95,6 +101,7 @@ beforeEach(() => {
   store = { ...termsRequiredStore };
   cartItems = [{ productId: "p1", slug: "p", name: "Rice", price: 620, quantity: 1, maxQty: 9 }];
   shopper = null;
+  previewFrame = false;
 });
 
 /* ---------------------------------- tests --------------------------------- */
@@ -230,6 +237,25 @@ describe("submit — the final gate keeps every rule", () => {
     act(() => result.current.setTermsAccepted(true));
     act(() => result.current.submit());
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The page editor and the Customize editor both iframe the REAL storefront, so
+   * the Place order button a merchant sees while designing their checkout page
+   * is the real one. Pressing it used to place a real order: stock moved, a
+   * courier was booked and the merchant's own order list grew a parcel nobody
+   * bought. Every other write on this path already refused a preview; this was
+   * the one that did not.
+   */
+  it("places nothing from inside a preview frame, however complete the form", () => {
+    previewFrame = true;
+    const { result } = renderHook(() => useCheckout());
+    fillStepOne(result.current);
+    act(() => result.current.setTermsAccepted(true));
+    act(() => result.current.submit());
+
+    expect(placeOrder).not.toHaveBeenCalled();
+    expect(toastError).toHaveBeenCalledWith(I18N.en.previewNoOrder);
   });
 });
 

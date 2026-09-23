@@ -210,9 +210,36 @@
   text-align: var(--sfb-cta-align, inherit);
 }
 
-/* A product section's column override; unset keeps the store's `--cols` ramp. */
+/* A product section's column override; unset keeps the store's ramp.
+   Three variables, because three grids ask differently: the builder's own
+   product grids read `--cols` (`Grid`, home-shared.tsx), the storefront's
+   `.sf-grid-4` — the product page's related row, and the collection page's wide
+   layout — reads `--colcols`, and `.sf-grid-3`, the collection page's narrow
+   one, reads `--colcols3`. Writing all three here means one class answers for
+   whichever grid it lands on, rather than three classes that would each have to
+   know.
+
+   ⚠ The `-m` half is a SEPARATE class, emitted only when the merchant answered
+   for the phone (`responsiveClasses`). Writing both screens into this one rule
+   made a phone-only count blank the desktop grid — see that helper. */
 .sfb-cols {
   --cols: var(--sfb-cols);
+  --colcols: var(--sfb-cols);
+  --colcols3: var(--sfb-cols);
+}
+
+/* The product page's own photo shape (`product-main.imageRatio`), per screen.
+
+   Two names and never one: a custom property may not be defined from itself, so
+   the section writes `--sfb-pdp-frame` / `--sfb-pdp-frame-m` and the gallery
+   reads `--sf-pdp-ratio`, which these rules map. The gallery asks for it as
+   `var(--sf-pdp-ratio, <the store's shape>)`, so a classic product page — which
+   carries no `.sfb-pdp` and emits no variable — is byte-identical, and a
+   phone-only shape leaves the desktop on the store's (an undefined variable
+   makes `--sf-pdp-ratio` guaranteed-invalid, which is exactly when `var()`
+   takes its fallback). */
+.sfb-pdp {
+  --sf-pdp-ratio: var(--sfb-pdp-frame);
 }
 
 /* The secondary button: the same shape, outlined. */
@@ -614,8 +641,13 @@
   .sfb-cta {
     text-align: var(--sfb-cta-align-m, var(--sfb-cta-align, inherit));
   }
-  .sfb-cols {
-    --cols: var(--sfb-cols-m, var(--sfb-cols));
+  .sfb-cols-m {
+    --cols: var(--sfb-cols-m);
+    --colcols: var(--sfb-cols-m);
+    --colcols3: var(--sfb-cols-m);
+  }
+  .sfb-pdp {
+    --sf-pdp-ratio: var(--sfb-pdp-frame-m, var(--sfb-pdp-frame));
   }
   .sfb-spacer {
     height: var(--sfb-space-m, var(--sfb-space, 40px));

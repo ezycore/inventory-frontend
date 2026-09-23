@@ -6,6 +6,7 @@ import { usePurchaseReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
+import { calcPeriodChange } from '@/utils/period-change'
 import { useReportPeriod } from './use-report-period'
 import { PeriodFilter } from '@/components/shared/period-filter'
 import {
@@ -16,15 +17,6 @@ import {
   ArrowDown,
 } from 'lucide-react'
 
-function calcChange(current: number, previous: number) {
-  if (previous === 0 && current === 0) return { value: 0, direction: 'neutral' as const }
-  if (previous === 0) return { value: 100, direction: 'up' as const }
-  const pct = ((current - previous) / previous) * 100
-  return {
-    value: Math.abs(Math.round(pct)),
-    direction: pct > 0 ? ('up' as const) : pct < 0 ? ('down' as const) : ('neutral' as const),
-  }
-}
 
 export function PurchaseReport() {
   const t = useTranslations('reports.purchases')
@@ -37,7 +29,7 @@ export function PurchaseReport() {
   const { format: formatCurrency } = useCurrency()
 
   const purchaseChange = data
-    ? calcChange(data.summary.totalPurchases, data.summary.previousTotal)
+    ? calcPeriodChange(data.summary.totalPurchases, data.summary.previousTotal)
     : null
 
   return (
@@ -79,7 +71,7 @@ export function PurchaseReport() {
                 <div className="text-2xl font-bold">
                   {formatCurrency(data.summary.totalPurchases)}
                 </div>
-                {purchaseChange && purchaseChange.direction !== 'neutral' && (
+                {purchaseChange && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     {purchaseChange.direction === 'up' ? (
                       <ArrowUp className="h-3 w-3 text-yellow-500" />

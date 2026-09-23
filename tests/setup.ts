@@ -50,6 +50,25 @@ if (typeof globalThis.localStorage?.setItem !== "function") {
  * These are no-ops on purpose: nothing under test asserts on capture or scroll
  * behaviour, only on what the open popover renders.
  */
+/**
+ * jsdom has no `ResizeObserver` either, and `cmdk` (the multi-select's option
+ * list) constructs one on mount — so rendering that control throws
+ * `ResizeObserver is not defined` before a single assertion runs. Same reasoning
+ * as the stubs below: nothing under test asserts on resize behaviour, and jsdom
+ * has no layout for it to observe.
+ */
+if (!("ResizeObserver" in globalThis)) {
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    configurable: true,
+    writable: true,
+    value: class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  });
+}
+
 for (const name of [
   "hasPointerCapture",
   "setPointerCapture",

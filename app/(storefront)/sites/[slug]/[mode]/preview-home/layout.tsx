@@ -32,6 +32,7 @@ export default async function PreviewHomeLayout({
       <PageFrame
         chrome={page.chrome}
         reads={requestStorefront}
+        preview
         slug={site.slug}
         base={site.base}
         store={site.store}

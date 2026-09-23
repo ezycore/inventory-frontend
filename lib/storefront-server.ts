@@ -50,6 +50,7 @@ import type {
   CatalogCategoryDetail,
   ProductListResult,
   StoreCampaign,
+  StoreCampaignDetail,
   StorefrontStore,
   StoreTag,
 } from "@/lib/storefront-client";
@@ -139,6 +140,8 @@ export interface StorefrontSitemap {
   collections: { path: string }[];
   brands: { id: string }[];
   pages: { slug: string; updatedAt?: string }[];
+  /** Live campaign landing pages (`/campaigns/<slug>`). */
+  campaigns: { slug: string }[];
 }
 
 /** Every endpoint, declared once, over a given way of reading. */
@@ -170,6 +173,23 @@ function fetchersFor(read: StorefrontRead) {
     getStoreTags: (slug: string) => read<StoreTag[]>(slug, "/tags", 300, CATALOG),
 
     getStoreCampaigns: (slug: string) => read<StoreCampaign[]>(slug, "/campaigns", 60, CATALOG),
+
+    /**
+     * One campaign by slug — its landing page's header. `null` when the slug is
+     * unknown, the sale has ended, or the merchant switched it off; the page
+     * 404s on that rather than rendering a discount banner over full prices.
+     *
+     * Cached 1 min like the campaign list: whether the sale is live is a
+     * *server* judgement carried in `live`, so the window has to be re-read at
+     * roughly the rate the catalogue's prices are.
+     */
+    getStoreCampaign: (slug: string, campaignSlug: string) =>
+      read<StoreCampaignDetail>(
+        slug,
+        `/campaigns/${encodeURIComponent(campaignSlug)}`,
+        60,
+        CATALOG,
+      ),
 
     getStorePages: (slug: string) => read<ContentPageLink[]>(slug, "/pages", 300, CONTENT),
 
@@ -240,6 +260,7 @@ export const {
   getStoreCategoryByPath,
   getStoreTags,
   getStoreCampaigns,
+  getStoreCampaign,
   getStorePages,
   getStorePage,
   getStorefrontPage,

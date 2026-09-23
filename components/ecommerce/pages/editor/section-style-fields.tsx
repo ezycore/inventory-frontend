@@ -403,8 +403,23 @@ export function SectionStyleFields({
           radius there (`.sfb-sec[data-width="full"]`). Hiding a control whose
           renderer still drew something would be the lie that rule exists to
           stop. The line stays, because an edge-to-edge band can still carry one
-          above and below. */}
-      {widthOf(style) === "full" ? null : (
+          above and below.
+
+          ⚠ **The test is the width the section DRAWS at, not the one it stores.**
+          `widthOf(style)` alone was wrong for every section whose FRAME is
+          full-width by default: a core section renders `data-width="full"`
+          (`section-registry.tsx`) while its stored width is always unset —
+          there is no Width control for it and `assertCoreSection` refuses one on
+          the wire — so the guard could never fire and Corners was offered, and
+          dead, on all seven of them. The full-bleed hero is the same shape and
+          is answered in `field-visibility` beside its Width rule, because there
+          it turns on the section's own settings rather than its type. */}
+      {isCoreSection(section.type) ||
+      widthOf(style) === "full" ||
+      !isFieldVisible("style.radius", section.type, {
+        settings: section.settings ?? {},
+        blocks: (section.blocks ?? []).map((block) => block.settings ?? {}),
+      }) ? null : (
         <StyleSelect
           id={id("radius")}
           label="Corners"

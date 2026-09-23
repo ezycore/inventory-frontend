@@ -4,6 +4,7 @@ import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 
 import { cn } from "@ui/lib/utils"
+import { ScrollLockProvider } from "@ui/lib/scroll-lock"
 import { Button } from "@ui/components/button"
 
 function AlertDialog({
@@ -47,6 +48,7 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = "default",
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: "default" | "sm"
@@ -62,7 +64,12 @@ function AlertDialogContent({
           className
         )}
         {...props}
-      />
+      >
+        {/* Everything below here is inside `react-remove-scroll`'s lock, which
+            changes where a scrollable popover may render — see
+            `useInsideScrollLock`. */}
+        <ScrollLockProvider value={true}>{children}</ScrollLockProvider>
+      </AlertDialogPrimitive.Content>
     </AlertDialogPortal>
   )
 }

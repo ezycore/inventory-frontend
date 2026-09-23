@@ -13,6 +13,7 @@ import {
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores";
 import type { CustomAction } from "@/types/DataTable";
+import { CampaignPagesCard } from "@/components/ecommerce/pages/campaign-pages-card";
 import { buildPageColumns } from "@/components/ecommerce/pages/columns";
 import { HomePageCard } from "@/components/ecommerce/pages/home-page-card";
 import { HomepageDialog } from "@/components/ecommerce/pages/homepage-dialog";
@@ -25,8 +26,8 @@ import { SystemPagesCard } from "@/components/ecommerce/pages/system-pages-card"
  * Landing pages in the table. The builder API also holds content and system
  * pages, and listing those here would offer a Duplicate and a Delete the backend
  * refuses; a home page that is a builder page has its own card above
- * (`HomePageCard`), moved content pages have `StorePagesTable`, and system pages
- * `SystemPagesCard`.
+ * (`HomePageCard`), moved content pages have `StorePagesTable`, system pages
+ * `SystemPagesCard`, and a sale's own page `CampaignPagesCard`.
  */
 const landingPages = pageListOperations("landing");
 
@@ -44,7 +45,9 @@ export default function StorefrontPagesPage() {
       {
         type: "create",
         placement: "header",
-        label: "New landing page",
+        // ONE create button for both kinds a merchant makes; the dialog asks
+        // which. See `NewPageDialog` for why it is not a button per table.
+        label: "New page",
         icon: <Plus className="h-4 w-4" />,
         onClick: () => setCreating(true),
       },
@@ -89,7 +92,7 @@ export default function StorefrontPagesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pages"
-        subTitle="Landing pages for your ads and offers, built from sections. Each one has its own address on your store."
+        subTitle="Every page of your store — your own store pages, landing pages for ads, and the shop's built-in pages. Each one has its own address."
       />
 
       <HomePageCard />
@@ -109,6 +112,7 @@ export default function StorefrontPagesPage() {
         }}
       />
 
+      <CampaignPagesCard />
       <StorePagesTable />
       <SystemPagesCard />
 

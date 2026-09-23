@@ -37,6 +37,29 @@ const CARD_PHOTO = {
   cardImageFit: { type: "enum", values: ["fit", "crop"], optional: true },
 } as const;
 
+/**
+ * A product card's CHROME — its corners, and the fill of its buy buttons.
+ * `CARD_PHOTO`'s sibling, on the same six sections, and unset the same way:
+ * follow the store (Look → Corner radius, Look → Buttons).
+ *
+ * ⚠ **Neither forks the card.** Both resolve to custom properties the section
+ * writes on its own wrapper — `--radius-md` and the `--btn-*` group, the very
+ * tokens `storefront.css` sets store-wide — so the cards inside are the
+ * storefront's own `ProductCard`, drawn by the same code, reading different
+ * values. That distinction is what the master plan's S6 ("no per-section card
+ * style") was protecting: a second card COMPONENT would fork the piece most
+ * shared across the storefront. A token override cannot.
+ *
+ * `cardCorners` offers three steps and not the store scale's four. The fourth,
+ * `pill`, is not a rounder card — it is the step where CONTROLS stop having a
+ * radius and become a shape, which is a decision about buttons and chips across
+ * the whole shop, not about one row's cards.
+ */
+const CARD_LOOK = {
+  cardCorners: { type: "enum", values: ["sharp", "soft", "round"], optional: true },
+  cardButtons: { type: "enum", values: ["solid", "outline", "soft"], optional: true },
+} as const;
+
 /** An icon a row or card may carry — names from `components/storefront/sf-icons.tsx`. */
 /**
  * A product row's link to where its products live, and the heading it takes
@@ -239,17 +262,35 @@ export const SECTION_SPECS = {
     },
   },
   /**
-   * A content page's body in the store's content frame — the core section of a
-   * page moved from the Content screen (plan §6, §17 Phase 5 step 6). `body` is
-   * the page's own text in whichever format it was stored: rich text, or the
-   * markdown the CMS pages have always accepted (`ContentBodyView` reads both).
+   * A content page's body in the store's content frame — the core section of
+   * every store page, whether it was moved from the Content screen (plan §6, §17
+   * Phase 5 step 6) or made on the builder. `body` is the page's own text in
+   * whichever format it was stored: rich text, or the markdown the CMS pages
+   * have always accepted (`ContentBodyView` reads both).
+   *
+   * Required and unremovable, but allowed to be EMPTY — see the settings below.
    */
   "content-body": {
     v: 1,
     pages: ["content"],
     settings: {
-      title: { type: "string", max: 160 },
-      body: { type: "string", max: 200_000 },
+      /**
+       * The page's heading. Optional with `body` below: a store page whose
+       * content is built from other sections keeps an empty core section, and an
+       * empty section has no heading either.
+       */
+      title: { type: "string", max: 160, optional: true },
+      /**
+       * The page's own text, in the same rich-text editor the Content screen
+       * always had. `legacyFormat` is what lets a body written before that
+       * editor — plain markdown — open and save untouched; it converts lazily,
+       * on the merchant's first real edit.
+       *
+       * Optional, because the editor is the page's starting point and not an
+       * obligation (plan §3.4): a merchant may empty it and build the page from
+       * the sections around it, and the section then draws nothing at all.
+       */
+      body: { type: "richText", maxBytes: 200_000, optional: true, legacyFormat: "markdown" },
       /** The page's own "Last updated" date, kept from before the move. */
       updatedAt: { type: "date", optional: true },
       /**
@@ -298,6 +339,24 @@ export const SECTION_SPECS = {
         values: ["single", "multi", "guided", "editorial"],
         optional: true,
       },
+      /**
+       * Take the coupon field off the checkout, per screen.
+       *
+       * ⚠ **A hide flag, not a show flag, and that is the whole reason for the
+       * name.** Every checkout has shown this field since it existed, so unset
+       * must keep showing it — a `coupon: boolean` would read as "off" when
+       * absent and take the field off every live store's checkout on the day it
+       * shipped. Same shape and same reason as `category-promo-cards.hideText`
+       * and `single-product.hideDescription`. (`order-form.coupon` is a SHOW
+       * flag because that form never had one by default; the two are not
+       * inconsistent, they are each the safe default for their own history.)
+       *
+       * Responsive, because that is what it is for: a phone checkout is a column
+       * a shopper scrolls, and a coupon box near the top of it invites them to
+       * leave and hunt for a code. The merchant may want it on the desktop and
+       * gone on the phone, or the reverse.
+       */
+      hideCoupon: { type: "boolean", responsive: true, optional: true },
     },
   },
   /**
@@ -361,13 +420,83 @@ export const SECTION_SPECS = {
         values: ["pages", "infinite", "load-more"],
         optional: true,
       },
+      /**
+       * The cards' own count per screen, over whatever `layout` implies.
+       *
+       * ⚠ **It WINS over `layout`, on the screen it is set for**, and that is
+       * the whole reason it exists: `layout` answers three questions at once
+       * (how many columns, whether a filter rail stands beside them, and on
+       * which screens), so a merchant who wanted the rail AND four cards had to
+       * choose between them. A phone-only count leaves the desktop on the
+       * layout's — the classes are emitted per screen (`responsiveClasses`), so
+       * the untouched screen never moves.
+       */
+      columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      ...CARD_PHOTO,
+      ...CARD_LOOK,
+      /**
+       * The page's own `<h1>`, and the line under it.
+       *
+       * ⚠ **One page draws every collection**, so a typed heading names all of
+       * them — `/products`, `/sarees`, `/sarees/jamdani` alike — in the one
+       * language it was typed in. Unset keeps what the page has always drawn:
+       * the collection's own name, or the narrowest active facet's, or "All
+       * products" in the SHOPPER's language. That is why this is an override
+       * rather than the heading, and why the hint says so before the merchant
+       * types.
+       *
+       * `subheading` carries the same caveat and wears it better: a line like
+       * "Free delivery over 2000 taka" reads correctly above every collection,
+       * which is the case the control is really for.
+       */
+      heading: { type: "string", max: 120, optional: true },
+      ...SUBHEADING,
+      /**
+       * Two switches and not one, deliberately (the CTA-alignment lesson, X11):
+       * a merchant who puts a hero above the grid wants the heading gone and
+       * the count kept, and a merchant with a thin catalogue wants the opposite.
+       * A single "Hide the heading" that took both would leave one of them
+       * unable to ask.
+       */
+      hideHeading: { type: "boolean", optional: true },
+      hideCount: { type: "boolean", optional: true },
+    },
+  },
+  /**
+   * A campaign's banner and the products it discounts — the core section of a
+   * campaign page, served at the sale's own address `/campaigns/<slug>`.
+   *
+   * **Which campaign is decided by the ADDRESS, not by a setting.** One page
+   * belongs to one campaign, and a merchant able to re-point it would have a
+   * page whose banner and grid disagreed with the link they had already shared.
+   * So, like `collection-grid`, this draws what the route resolved rather than
+   * what a field says.
+   *
+   * `layout` and `pagination` are the same store templates the collection page's
+   * core section overrides, unset on every page created with a campaign.
+   * `hideBanner` is for the merchant who writes their own headline above the
+   * grid with a hero or an image banner — the discount is still on every card,
+   * so the sale is never unannounced.
+   */
+  "campaign-main": {
+    v: 1,
+    pages: ["campaign"],
+    settings: {
+      layout: {
+        type: "enum",
+        values: ["grid-3", "grid-4", "sidebar"],
+        optional: true,
+      },
+      pagination: {
+        type: "enum",
+        values: ["pages", "infinite", "load-more"],
+        optional: true,
+      },
+      hideBanner: { type: "boolean", optional: true },
     },
   },
   /**
    * The product itself, on the product page once it is on the builder.
-   * `hideRelated` drops its own "You may also like" row, for a page where the
-   * merchant places a Related products section instead; unset keeps the row,
-   * which is what every page moved from the classic product page draws.
    *
    * `layout` is the store's `templates.product` become a section setting, in
    * the SAME ids Customize stores and the same ids `single-product`'s
@@ -375,6 +504,48 @@ export const SECTION_SPECS = {
    * says". It carries the third value `sticky-bar`, which `galleryLayout` does
    * not: a landing page's single product is one block on a longer page, while
    * this is the product page itself.
+   *
+   * ### The photo, and the row under it
+   *
+   * Until 2026-09-22 this section answered two questions — the photo layout and
+   * whether the related row showed — and everything else about the page was the
+   * store's, set once under Customize → Product cards for every card in the
+   * shop. A merchant who wanted portrait product photos on the product page and
+   * square cards on the home page had no way to ask, which is the request this
+   * grew from.
+   *
+   * So it now carries the shape controls the product ROWS already had, split by
+   * which photo they frame:
+   *
+   * - `imageRatio` / `imageFit` — the **big photo**, the one the page is built
+   *   around. Named as `image-text`'s are rather than `cardImage*`, because this
+   *   is not a card. Unset follows the store, so a page nobody has touched is
+   *   unchanged; `imageRatio` is responsive because a shape that reads well in a
+   *   desktop's half-width column is often too tall for a phone, which gets the
+   *   photo at the full width of the screen.
+   * - `cardImageRatio` / `cardImageFit` — the **related cards**, the same pair
+   *   every other product row carries (`CARD_PHOTO`), meaning the same thing.
+   *
+   * ⚠ A section shape applies to BOTH gallery layouts, including the one whose
+   * hero is a fixed 16:11 letterbox (`gallery-top`). Unset keeps that letterbox;
+   * a merchant who names a shape has said what they want, and a control that
+   * silently does nothing on one of two layouts is the defect the visibility
+   * rules exist to prevent.
+   *
+   * ### The related row
+   *
+   * `hideRelated` drops the built-in "You may also like" row, for a page where
+   * the merchant places a Related products section instead; unset keeps the row,
+   * which is what every page moved from the classic product page draws.
+   * `relatedLimit` and `relatedColumns` shape the row in place, so the common
+   * case — four cards, three to a line — no longer needs the row hidden and a
+   * whole second section added to answer it. They are deliberately the same two
+   * settings `related-products` carries, with the same bounds: one decision, one
+   * vocabulary, whichever way the merchant reaches it.
+   *
+   * `hideDescription` is `single-product`'s, for the page whose description is
+   * told better by a Rich text or FAQ section below. It hides the merchant's own
+   * words on EVERY product at once, which is why the hint says so.
    */
   "product-main": {
     v: 1,
@@ -385,7 +556,19 @@ export const SECTION_SPECS = {
         values: ["gallery-left", "gallery-top", "sticky-bar"],
         optional: true,
       },
+      imageRatio: {
+        type: "enum",
+        values: ["square", "portrait", "landscape", "tall"],
+        responsive: true,
+        optional: true,
+      },
+      imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
+      hideDescription: { type: "boolean", optional: true },
       hideRelated: { type: "boolean", optional: true },
+      relatedLimit: { type: "number", min: 1, max: 8, int: true, optional: true },
+      relatedColumns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
+      ...CARD_PHOTO,
+      ...CARD_LOOK,
     },
   },
   /**
@@ -402,6 +585,7 @@ export const SECTION_SPECS = {
       limit: { type: "number", min: 1, max: 8, int: true, optional: true },
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
       ...CARD_PHOTO,
+      ...CARD_LOOK,
     },
   },
   faq: {
@@ -456,6 +640,7 @@ export const SECTION_SPECS = {
       limit: { type: "number", min: 1, max: 24, int: true },
       columns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
       ...CARD_PHOTO,
+      ...CARD_LOOK,
       ...STORE_ROW,
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
@@ -549,6 +734,8 @@ export const SECTION_SPECS = {
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       style: { type: "enum", values: ["card", "plain"], optional: true },
       layout: { type: "enum", values: ["strip", "grid"], optional: true },
+      /** See `category-tiles.arrows` — the same track, the same rule. */
+      arrows: { type: "boolean", optional: true },
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       // Its own setting rather than a responsive `columns`: a phone takes 2–4,
       // not the desktop's 2–6 (`resolveHomeCollections`).
@@ -556,6 +743,8 @@ export const SECTION_SPECS = {
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
       /** The tile's shape. Unset keeps each layout's own, as the classic row drew it. */
       tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
+      /** The tile's corners in px. Unset keeps the theme's own radius token. */
+      radius: { type: "number", min: 0, max: 40, int: true, optional: true },
       showLabels: { type: "boolean", optional: true },
     },
   },
@@ -572,6 +761,13 @@ export const SECTION_SPECS = {
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
+      /* ⚠ No `CARD_LOOK` here, unlike the five sections beside it.
+         `PickGrid` is deliberately NOT a `ProductCard` — "no border, no
+         background, no buttons", says its own docstring — so a card's corners
+         and a buy button's fill are two controls with nothing on the page to
+         change. The rule is `field-visibility`'s, applied a step earlier: a
+         setting that can never do anything is better not offered than offered
+         and hidden. */
       ...STORE_ROW,
     },
   },
@@ -591,6 +787,7 @@ export const SECTION_SPECS = {
       ctaLabel: { type: "string", max: 40, optional: true },
       ctaHref: { type: "url", optional: true },
       ...CARD_PHOTO,
+      ...CARD_LOOK,
       ...STORE_ROW,
     },
   },
@@ -615,12 +812,28 @@ export const SECTION_SPECS = {
       categoryIds: { type: "refs", to: "category", max: 30, optional: true },
       mode: { type: "enum", values: ["tile", "overlay", "circle", "disc"], optional: true },
       layout: { type: "enum", values: ["strip", "grid"], optional: true },
+      /**
+       * The strip's paging arrows on a pointer device. Unset is ON, which is
+       * every row drawn before the control existed. A phone never sees them
+       * whatever this says — it swipes the track — so this is a computer's
+       * question only (`.sf-cat-strip-arrow` in `storefront.css`).
+       */
+      arrows: { type: "boolean", optional: true },
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
       /** The tile's shape. Unset keeps each mode's own, as the classic row drew it. */
       tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
+      /** The tile's corners in px. Unset keeps the theme's own radius token. */
+      radius: { type: "number", min: 0, max: 40, int: true, optional: true },
       showLabels: { type: "boolean", optional: true },
+      /**
+       * Drop the collection's own one-liner and keep the name alone. Unset
+       * DRAWS it, which is what the row has always done — the sentence is the
+       * difference between a wayfinding tile and a card that sells, and a
+       * catalogue whose descriptions are internal notes needs it gone.
+       */
+      hideDescription: { type: "boolean", optional: true },
     },
   },
   "category-promo-cards": {

@@ -40,7 +40,7 @@ export function OrdersSection({ onTrack }: { onTrack: (orderNumber: string) => v
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+    <div data-clarity-mask="true" style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       {orders.map((o) => {
         const itemCount = o.items.reduce((n, i) => n + i.quantity, 0);
         const payLabel = storefrontPaymentMethodLabel(

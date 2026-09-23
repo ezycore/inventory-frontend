@@ -8,7 +8,7 @@ import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
-import { fieldEmptyChoice } from "./field-empty-choice";
+import { fieldDefaultsOn, fieldEmptyChoice } from "./field-empty-choice";
 import { RefField } from "./ref-field";
 import { valueLabel } from "./section-catalogue";
 
@@ -83,7 +83,15 @@ export function FieldControl({
         />
       );
     case "boolean":
-      return <Switch id={id} checked={value === true} onCheckedChange={(checked) => onChange(checked)} />;
+      /* Unset is not automatically off — see `fieldDefaultsOn`. The switch has
+         to show what the section draws, or its first click is a no-op. */
+      return (
+        <Switch
+          id={id}
+          checked={typeof value === "boolean" ? value : fieldDefaultsOn(sectionType, name)}
+          onCheckedChange={(checked) => onChange(checked)}
+        />
+      );
     case "enum": {
       const options = spec.values.map((option) => ({
         value: option,
@@ -118,6 +126,11 @@ export function FieldControl({
           value={typeof value === "string" ? value : ""}
           onChange={onChange}
           maxLength={spec.maxBytes}
+          // Which bridge opens a body that is not rich-doc JSON yet. The spec
+          // answers it per field, because a content page's body really was
+          // markdown while other legacy text is literal — passing nothing here
+          // would read every such body as markdown.
+          legacyFormat={spec.legacyFormat}
           imageUpload="page"
         />
       );

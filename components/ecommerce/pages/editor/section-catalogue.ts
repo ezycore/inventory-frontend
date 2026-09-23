@@ -53,8 +53,10 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
   "content-body": {
     label: "Page body",
     group: "Content",
-    description: "This page's text in your store's page frame. Created when a page moves here from Content.",
+    description: "This page's own text, in your store's page frame. Every store page has one.",
     // Never offered in the library: it is the content page's own core section.
+    // It cannot be removed either — but it may be left empty, and an empty one
+    // draws nothing, so a page can be built from the sections around it.
     addable: false,
   },
   "cart-lines": {
@@ -86,6 +88,16 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     label: "Products",
     group: "Content",
     description: "A collection's products. Created when your collection page moves onto the builder.",
+    addable: false,
+  },
+  "campaign-main": {
+    label: "Campaign products",
+    group: "Content",
+    description:
+      "The sale's banner and the products it discounts. Created with the campaign's own page.",
+    // Not addable: the page IS this section, and which campaign it shows comes
+    // from the page's address — a second one, or one on another page, would have
+    // no campaign to draw.
     addable: false,
   },
   "product-main": {
@@ -290,6 +302,8 @@ const FIELD_LABELS: Record<string, string> = {
   caption: "Caption",
   cardImageFit: "Card photo fit",
   cardImageRatio: "Card photo shape",
+  cardCorners: "Card corners",
+  cardButtons: "Card button style",
   categoryId: "Collection",
   categoryIds: "Collections",
   columns: "Columns",
@@ -310,6 +324,7 @@ const FIELD_LABELS: Record<string, string> = {
   /* The hero is the whole band, not a picture inside one — "Picture height"
      would be describing the wrong box. */
   "hero.height": "Hero height (px)",
+  hideCoupon: "Hide the coupon field",
   hideDescription: "Hide the description",
   hideText: "Hide text",
   hideTextOnMobile: "Hide text on phones",
@@ -366,14 +381,68 @@ const FIELD_LABELS: Record<string, string> = {
      panel names it — one decision should not have two names. */
   "collection-grid.layout": "Products per row",
   "collection-grid.pagination": "Loading more products",
+  /* `layout` above is already called "Products per row" — it is the store's own
+     name for a choice that answers three things at once. This is the exact
+     count, so it says so, and the hint says which one wins. */
+  "collection-grid.columns": "Exact number in a row",
+  "collection-grid.heading": "Heading (all collections)",
+  "collection-grid.hideHeading": "Hide the heading",
+  "collection-grid.hideCount": "Hide the results count",
+  "collection-grid.cardImageRatio": "Card photo shape",
+  "collection-grid.cardImageFit": "Card photo fit",
+  "campaign-main.layout": "Products per row",
+  "campaign-main.pagination": "Loading more products",
+  "campaign-main.hideBanner": "Hide the sale banner",
   "product-main.layout": "Photo layout",
+  /* The page's big photo, not a card — so it takes `image-text`'s words rather
+     than "Card photo shape", which on THIS section means the row underneath. */
+  "product-main.imageRatio": "Product photo shape",
+  "product-main.imageFit": "Product photo fit",
+  "product-main.hideDescription": "Hide the product's own words",
+  "product-main.relatedLimit": "Related products shown",
+  "product-main.relatedColumns": "Related products in a row",
+  "product-main.cardImageRatio": "Related card photo shape",
+  "product-main.cardImageFit": "Related card photo fit",
   "account-area.layout": "Account layout",
   "content-body.layout": "Page frame",
+  "content-body.title": "Page heading",
+  "content-body.body": "Page text",
 };
 
 const CARD_PHOTO_HINT = "Default follows Customize → Product cards, for every card on the store.";
 
 const HINTS: Record<string, string> = {
+  /* The overflow question, asked where the merchant actually asks it. Both
+     category rows answer it with this one control, so neither needs a separate
+     "what happens when they do not fit" setting — but nothing on the panel said
+     so, and a merchant looking for wrapping had no reason to open Layout. */
+  "category-tiles.layout": "Grid puts what does not fit on the next line. Strip keeps one row — arrows on a computer, a swipe on a phone.",
+  "collections-row.layout": "Grid puts what does not fit on the next line. Strip keeps one row — arrows on a computer, a swipe on a phone.",
+  /* Section-keyed rather than bare `arrows`: the promo row's arrows are the
+     same component, but this sentence is about a row of small tiles a phone
+     swipes, and naming the phone is the whole point of the hint. */
+  "category-tiles.arrows": "Only on a computer, and only while the row is too long to fit. Phones always swipe it.",
+  "collections-row.arrows": "Only on a computer, and only while the row is too long to fit. Phones always swipe it.",
+  "category-tiles.hideDescription": "Keeps the collection's name alone. The sentence still heads the collection's own page.",
+  "category-tiles.radius": "Empty follows your theme's Corner radius.",
+  /* NOT the bare `tileRatio` hint below, which promises a square: only the
+     tile, circle and disc styles draw one. An overlay has always been 3:4. */
+  "category-tiles.tileRatio": "Empty keeps each style's own shape — a square tile, a taller overlay.",
+  /* Names and the sentence under them are ONE decision in the markup (the tile
+     draws both or neither), and the row overrides an off switch whenever a
+     collection has no picture to stand on its own. Both are worth saying: the
+     first stops a merchant hunting for a second control, the second explains a
+     switch that appears to do nothing on a half-photographed catalogue. */
+  "category-tiles.showLabels": "Off leaves the pictures to speak — no name, no description. A row where any collection has no picture keeps its names anyway.",
+  "collections-row.radius": "Empty follows your theme's Corner radius.",
+  /* Says the quiet part: the editor is where this page's words go, and leaving
+     it empty is a choice rather than an unfinished page. Both settings are
+     optional, and an empty section draws nothing at all. */
+  "content-body.body":
+    "Your page's own words. Leave it empty to build the page from the sections instead — nothing is shown here then.",
+  "content-body.title": "Shown above the text. Leave it empty for a page with no heading of its own.",
+  "checkout-form.hideCoupon":
+    "Takes the code box off the checkout. Set it per screen — a coupon box on a phone invites a shopper to leave and hunt for a code.",
   hideRelated: "Add a Related products section to show them somewhere else on the page.",
   "collections-row.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
   "category-tiles.align": "Where each tile sits inside its own column. The heading follows Style → Text alignment.",
@@ -425,10 +494,37 @@ const HINTS: Record<string, string> = {
     "A full-width hero lays its words over the photograph, so a phone shows the headline alone. Everything adds the badge and the subtitle back, smaller. The headline is two lines on a phone either way.",
   cardImageFit: CARD_PHOTO_HINT,
   cardImageRatio: CARD_PHOTO_HINT,
+  cardCorners: "Default follows Look → Corner radius, for every card and panel in the store.",
+  cardButtons: "The fill of this section's Add to cart and Buy now. Default follows Look → Buttons.",
+  "product-main.cardCorners": "The corners of the “You may also like” cards. Default follows Look → Corner radius.",
+  "product-main.cardButtons": "The fill of the “You may also like” buttons. Default follows Look → Buttons.",
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
   galleryLayout: "Default uses your store's product page layout.",
   "product-main.layout": "Default keeps the layout your store already used. This page shows every product, so a change here applies to all of them.",
+  /* Says where unset comes FROM, like every other card-photo hint — and then
+     the one thing this control can do that Customize cannot: move the product
+     page's photo without moving every card in the shop. */
+  "product-main.imageRatio":
+    "The shape the product's photo is drawn in. Default follows Customize → Product cards; setting it here moves the product page only, and a phone shape applies below 680px.",
+  "product-main.imageFit":
+    "Default follows Customize → Product cards. Full photo shows the whole picture; Cropped fills the frame and trims what does not fit.",
+  "product-main.hideDescription":
+    "Takes the product's description off every product page. Use it where a Rich text or FAQ section below tells it better.",
+  "product-main.relatedLimit": "How many products the “You may also like” row shows. Empty shows four.",
+  "product-main.relatedColumns": "How many of them sit on a line. Empty follows your store's usual grid.",
   "collection-grid.layout": "Default keeps the layout your store already used, on every category page.",
+  "collection-grid.columns":
+    "Sets the exact number of products on a line, per screen. It wins over Products per row, so a page can keep its filter sidebar and still show four. Empty follows that choice.",
+  /* The warning has to arrive BEFORE the merchant types, because the trap is
+     invisible from this screen: the editor previews one collection and the
+     setting names all of them. */
+  "collection-grid.heading":
+    "⚠ One page draws every collection, so your words replace the name of each one — and stay in the language you type. Empty shows each collection's own name, and “All products” in the shopper's language.",
+  "collection-grid.subheading":
+    "One line under the heading, on every collection page — a delivery promise or an offer reads well here. A collection's own words do not.",
+  "collection-grid.hideHeading":
+    "Takes the page's title off, for a page that opens with a picture or your own words above the grid.",
+  "collection-grid.hideCount": "Takes the “84 results” line off.",
   "collection-grid.pagination":
     "Default keeps your store's choice. Setting it here moves category pages only — search results are unaffected.",
   "account-area.layout": "Default keeps the layout your store already used.",
@@ -457,6 +553,13 @@ const HINTS: Record<string, string> = {
 
 /** Option names that only make sense for one setting, where the same value means something else elsewhere. */
 const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
+  /* The store-wide lists' own words (`DESIGN_BUTTON_STYLES`, `DESIGN_RADII` in
+     `lib/storefront-theme.ts`), pinned here rather than derived from the value.
+     They are NOT in `CUSTOMIZE_OPTIONS` because that map reads
+     `TEMPLATE_OPTIONS`, which holds the `templates.*` pickers — these two
+     mirror `theme.design`, a different store setting with a different home. */
+  cardButtons: { solid: "Solid", outline: "Outline", soft: "Soft" },
+  cardCorners: { sharp: "Sharp", soft: "Soft", round: "Round" },
   mobileFirst: {
     picture: "The picture",
     text: "The text",
@@ -518,6 +621,10 @@ const CUSTOMIZE_OPTIONS: Record<string, string> = {
   galleryLayout: "product",
   // A system page's core section overriding the store's own `templates.*`.
   "product-main.layout": "product",
+  /* The same two lists Customize → Product cards offers, so "Extra tall" and
+     "Full photo" read identically whichever screen the merchant is on. */
+  "product-main.imageRatio": "imageRatio",
+  "product-main.imageFit": "imageFit",
   "collection-grid.layout": "collection",
   "collection-grid.pagination": "pagination",
   "account-area.layout": "accountLayout",

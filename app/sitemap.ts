@@ -133,6 +133,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     });
   }
+  // Live sales only (the backend filters), and no `lastmod`: the page's content
+  // is the catalogue, which changes on its own clock, not the campaign row's.
+  for (const c of data.campaigns ?? []) {
+    entries.push({
+      url: url(storeHref(base, `/campaigns/${encodeURIComponent(c.slug)}`)),
+      changeFrequency: "daily",
+      priority: 0.7,
+    });
+  }
   for (const p of data.pages) {
     entries.push({
       url: url(storeHref(base, `/pages/${encodeURIComponent(p.slug)}`)),

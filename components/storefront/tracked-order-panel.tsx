@@ -74,7 +74,10 @@ export function TrackedOrderPanel({ order }: { order: TrackedOrder }) {
     TRACK_STATUS[key]?.[lang === "bn" ? "bn" : "en"] ?? key;
 
   return (
-    <div style={wrap}>
+    // Masked for Clarity: this page prints a shopper's name, phone and delivery
+    // address behind a tokenised link that needs no login. Clarity masks form
+    // inputs by default; text like this it does not — see the plan's §7.3.
+    <div data-clarity-mask="true" style={wrap}>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
         {statusLabel(order.status)}
       </div>

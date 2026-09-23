@@ -6,8 +6,13 @@ import type { Crumb } from "@/lib/storefront-breadcrumb";
 import type {
   CatalogCategoryDetail,
   ProductListResult,
+  StoreCampaignDetail,
 } from "@/lib/storefront-client";
-import { CollectionPageView } from "@/components/storefront/collection/collection-page";
+import {
+  CollectionPageView,
+  type CollectionCards,
+  type CollectionHeader,
+} from "@/components/storefront/collection/collection-page";
 
 /**
  * What a collection page's route resolved on the server — the seeded first page
@@ -27,6 +32,14 @@ export interface CollectionRouteData {
   initialProducts?: ProductListResult;
   initialPage?: number;
   collection?: CatalogCategoryDetail;
+  /**
+   * Set by `/campaigns/{slug}`. It has to travel with the route data for the
+   * same reason `collection` does: once the collection page is on the builder,
+   * the grid is drawn by a core section that knows nothing about the route — and
+   * a campaign page whose section dropped the scope would quietly list the whole
+   * catalogue under a sale banner.
+   */
+  campaign?: StoreCampaignDetail;
   crumbs?: Crumb[];
 }
 
@@ -44,13 +57,52 @@ export function CollectionDataProvider({
   );
 }
 
+/**
+ * The campaign's banner and its products, drawn from whatever the route
+ * resolved. The core section of a campaign page.
+ *
+ * Separate from `CollectionFromRoute` rather than a flag on it: the two are the
+ * core sections of two different page kinds, and each must draw its own page
+ * even if a stored instance somehow arrived on the wrong one. `campaign` is
+ * still passed when the banner is hidden — it is what scopes the grid to the
+ * sale, and dropping it would list the whole catalogue under the merchant's own
+ * headline.
+ */
+export function CampaignFromRoute({
+  layout,
+  pagination,
+  hideBanner,
+}: {
+  layout?: string;
+  pagination?: string;
+  hideBanner?: boolean;
+} = {}) {
+  const data = useContext(CollectionDataContext);
+  return (
+    <CollectionPageView
+      initialProducts={data.initialProducts}
+      initialPage={data.initialPage ?? 1}
+      campaign={data.campaign}
+      hideCampaignBanner={hideBanner}
+      layout={layout}
+      pagination={pagination}
+    />
+  );
+}
+
 /** The grid, drawn from whatever the route resolved. Used by the core section. */
 export function CollectionFromRoute({
   layout,
   pagination,
+  cards,
+  header,
 }: {
   layout?: string;
   pagination?: string;
+  /** The section's own card count and photo; unset follows the store. */
+  cards?: CollectionCards;
+  /** Its words above the grid; unset keeps the collection's own name. */
+  header?: CollectionHeader;
 } = {}) {
   const data = useContext(CollectionDataContext);
   return (
@@ -58,9 +110,12 @@ export function CollectionFromRoute({
       initialProducts={data.initialProducts}
       initialPage={data.initialPage ?? 1}
       collection={data.collection}
+      campaign={data.campaign}
       crumbs={data.crumbs}
       layout={layout}
       pagination={pagination}
+      cards={cards}
+      header={header}
     />
   );
 }

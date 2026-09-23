@@ -47,7 +47,7 @@ export function CheckoutAddressBook({
   labels: { newAddress: string; default: string };
 }) {
   return (
-    <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+    <div data-clarity-mask="true" style={{ display: "grid", gap: 8, marginBottom: 16 }}>
       {addresses.map((a) => {
         const sel = !isNew && selectedId === a.id;
         return (

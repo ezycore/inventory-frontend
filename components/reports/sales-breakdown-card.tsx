@@ -8,6 +8,7 @@ import { useSalesBreakdown } from '@/services/api'
 import type {
   ReportParams,
   SalesBreakdownDimension,
+  SalesBreakdownSource,
 } from '@/services/api/modules/reports/api'
 import { splitBreakdown, type BreakdownMetric, type RankedRow } from '@/utils/sales-breakdown'
 import { Button } from '@ui/components/button'
@@ -36,15 +37,35 @@ const METRICS: BreakdownMetric[] = ['revenue', 'units', 'orders']
 export function SalesBreakdownCard({
   params,
   formatCurrency,
+  source = 'sales',
+  title,
+  description,
+  basisNote,
 }: {
   params?: ReportParams
   formatCurrency: (n: number) => string
+  /**
+   * Which clock to count on. `sales` reads the Sale ledger — where a storefront
+   * order appears only at dispatch — and `orders` reads orders on the day they
+   * were placed. Same card, same rules, two different right answers, so the
+   * caller supplies the heading that says which.
+   */
+  source?: SalesBreakdownSource
+  title?: string
+  description?: string
+  /**
+   * The footnote naming what the rows are measured against. It has to name the
+   * caller's own headline — on the Sales Report that is "Total Sales", on the
+   * Orders Report there is no such figure and the comparison is "Net value".
+   * A footnote pointing at a number that is not on the page is worse than none.
+   */
+  basisNote?: string
 }) {
   const t = useTranslations('reports.sales.breakdown')
   const [dimension, setDimension] = useState<SalesBreakdownDimension>('category')
   const [metric, setMetric] = useState<BreakdownMetric>('revenue')
   const [showAll, setShowAll] = useState(false)
-  const { data, isLoading } = useSalesBreakdown(dimension, params)
+  const { data, isLoading } = useSalesBreakdown(dimension, params, source)
 
   const split = useMemo(() => splitBreakdown(data?.rows ?? [], metric), [data, metric])
   const maxValue = split.ranked[0]?.row[metric] ?? 0
@@ -73,9 +94,9 @@ export function SalesBreakdownCard({
         <div>
           <CardTitle className="flex items-center gap-2">
             <Layers className="h-4 w-4" />
-            {t('title')}
+            {title ?? t('title')}
           </CardTitle>
-          <CardDescription>{t('subtitle')}</CardDescription>
+          <CardDescription>{description ?? t('subtitle')}</CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <Tabs
@@ -169,7 +190,7 @@ export function SalesBreakdownCard({
                 </p>
               )}
               {data?.overlapping && <p>{t('overlapNote')}</p>}
-              <p>{t('basisNote')}</p>
+              <p>{basisNote ?? t('basisNote')}</p>
             </div>
           </>
         )}

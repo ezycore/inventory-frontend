@@ -6,9 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StoreCampaign, StoreCampaignStrip } from "@/lib/storefront-client";
 import { CampaignStrip } from "@/components/storefront/campaign-strip";
 
-/* The strip reads four sources. Campaigns and the pathname are what the tests
-   drive; categories and tags only resolve the CTA target, and the preview store
-   is inert outside Customize. */
+/* The strip reads three sources. Campaigns and the pathname are what the tests
+   drive; the preview store is inert outside Customize. (It used to read the
+   category and tag lists too, to turn a campaign's first target id into a public
+   URL — the campaign's own page replaced all of that.) */
 const state = vi.hoisted(() => ({
   campaigns: [] as StoreCampaign[],
   pathname: "/shop",
@@ -19,8 +20,6 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/services/storefront/hooks", () => ({
   useStoreCampaigns: () => ({ data: state.campaigns }),
-  useStoreCategories: () => ({ data: [] }),
-  useStoreTags: () => ({ data: [] }),
 }));
 vi.mock("@/services/stores/use-sf-preview-store", () => ({
   useSfPreview: (select: (s: Record<string, unknown>) => unknown) =>
@@ -29,6 +28,7 @@ vi.mock("@/services/stores/use-sf-preview-store", () => ({
 
 const live: StoreCampaign = {
   _id: "c1",
+  slug: "mega-sale",
   name: "Mega Sale",
   type: "percentage",
   value: 20,
@@ -207,5 +207,25 @@ describe("CampaignStrip presentation", () => {
     const html = renderToString(<CampaignStrip slug="rmc" base="/shop" />);
     expect(html).toContain("Mega Sale");
     expect(html).not.toContain("Ends");
+  });
+});
+
+describe("CampaignStrip — where the CTA goes", () => {
+  const cta = () => strip()?.querySelector("a");
+
+  it("links to the campaign's own page, for every scope", () => {
+    // Before that page existed this resolved the first target id against the
+    // live facet lists and fell back to /products for anything it could not
+    // name — which was every product-scoped and every storewide campaign. A
+    // shopper told "20% off" was handed the whole catalogue to search.
+    state.campaigns = [{ ...live, scope: "product", targets: ["p1", "p2"] }];
+    renderStrip();
+    expect(cta()).toHaveAttribute("href", "/shop/campaigns/mega-sale");
+  });
+
+  it("falls back to the catalogue only for a campaign with no slug yet", () => {
+    state.campaigns = [{ ...live, slug: null }];
+    renderStrip();
+    expect(cta()).toHaveAttribute("href", "/shop/products");
   });
 });

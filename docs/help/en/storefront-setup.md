@@ -50,9 +50,22 @@ off hides the bar everywhere, and the editor warns you when you have done that. 
 the shop: use `/` for home and `/products` for the catalogue; old `/shop` links are corrected when
 saved, and full `https://` links remain external.
 
+## The guest sign-in notice
+
+Shoppers who are not signed in meet a short notice above the name and phone boxes at checkout. It
+offers sign-in and says what ordering as a guest means: the tracking link on the confirmation screen
+is their only record of the order. Guest checkout itself is never blocked.
+
+Under **Checkout** in Store Settings you can hide that notice, separately on computers and on phones.
+On a phone it stands about a hundred pixels above the first box, which is a real share of everything
+a shopper sees before scrolling — so hiding it there while keeping it on computers is a reasonable
+choice for a shop whose shoppers almost all order as guests. Switch both off and the offer disappears
+everywhere; shoppers can still sign in from the account page.
+
 ## Turn off a page you do not need
 
-Not every shop wants every page. Under **Shopper pages** in Store Settings you can switch off:
+Not every shop wants every page. Open **Pages** and use the switch beside each one under
+**Shop pages** to turn off:
 
 - **Search** — hides the search box in your header and on phones, and closes the search page. Useful
   for a small catalogue where browsing is faster than typing.

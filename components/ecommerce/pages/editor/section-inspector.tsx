@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import Link from "next/link";
 import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
 import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
@@ -24,6 +25,31 @@ type Screen = "desktop" | "mobile";
 
 const catalogueEntry = (type: string) =>
   Object.hasOwn(SECTION_CATALOGUE, type) ? SECTION_CATALOGUE[type as SectionType] : undefined;
+
+/**
+ * Core sections whose real controls live outside the builder, and where.
+ *
+ * A checkout, a cart and an account area are **shapes on this page** and
+ * **rules for the whole shop** at the same time. The shape is a section setting;
+ * the rules are not, because they apply to orders taken elsewhere too — a
+ * landing page's order form is the checkout with its own product
+ * (`islands/order-form.tsx`), and pausing orders empties every Buy button in the
+ * shop. So the settings stay in Store settings and this says where they went,
+ * rather than leaving a merchant to search a page whose preview shows the very
+ * fields they are looking for.
+ */
+const ELSEWHERE: Partial<Record<string, { text: string; href: string; label: string }>> = {
+  "checkout-form": {
+    text: "What the checkout asks for — required fields, the address format, your own questions, the minimum order — is set for the whole shop in",
+    href: "/ecommerce/settings",
+    label: "Store settings → Checkout.",
+  },
+  "cart-lines": {
+    text: "Delivery charges, payment methods and the minimum order are set for the whole shop in",
+    href: "/ecommerce/settings",
+    label: "Store settings.",
+  },
+};
 
 function moveBlock(blocks: EditorBlock[], index: number, delta: -1 | 1): EditorBlock[] {
   const to = index + delta;
@@ -139,6 +165,15 @@ export function SectionInspector({
         </TabsList>
 
         <TabsContent value="content" className="space-y-6">
+          {ELSEWHERE[section.type] ? (
+            <p className="rounded-md border bg-muted/50 px-3 py-2 text-xs leading-snug text-muted-foreground">
+              {ELSEWHERE[section.type].text}{" "}
+              <Link href={ELSEWHERE[section.type].href} className="font-medium text-primary hover:underline">
+                {ELSEWHERE[section.type].label}
+              </Link>
+            </p>
+          ) : null}
+
           <SettingsFields
             idPrefix={section.id}
             sectionType={section.type}

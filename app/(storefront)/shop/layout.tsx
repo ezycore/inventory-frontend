@@ -77,7 +77,7 @@ export default async function ShopLayout({
 
   return (
     <>
-      <StoreHead slug={slug} store={store} />
+      <StoreHead slug={slug} store={store} preview={!!previewToken} />
       {/* Owner preview is remembered in a cookie for four hours, so it long
           outlives the trip from the Customize editor — without this the merchant
           cannot tell their preview from their live shop, and a draft page in the

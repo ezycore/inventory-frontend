@@ -9,12 +9,14 @@ import {
   PAGE_DRAFT_APPLIED,
   PAGE_DRAFT_MESSAGE,
   PAGE_DRAFT_READY,
+  PAGE_PREVIEW_CART,
   PAGE_SECTION_FOCUS,
   PAGE_SECTION_SELECT,
 } from "@/lib/storefront-builder/page-draft-messages";
 import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import { storefront } from "@/services/storefront/hooks";
+import { usePreviewCartStore } from "@/services/stores/use-preview-cart-store";
 import {
   PageSections,
   prepareSections,
@@ -90,6 +92,10 @@ export function PageDraftPreview({
   // The section open in the editor. A ref, not state: marking it is a DOM change,
   // re-applied after each redraw, and it must not redraw the page itself.
   const focusedId = useRef<string | null>(null);
+  // The cart/checkout preview's sample-basket switch. A store rather than state
+  // here because the cart page's core section reads it from deep inside the shop's
+  // own view (`usePreviewCart`), not through a section prop.
+  const setCartFilled = usePreviewCartStore((s) => s.setFilled);
 
   useEffect(() => {
     if (!isPreviewSession()) return;
@@ -115,6 +121,13 @@ export function PageDraftPreview({
         }
         return;
       }
+      if (event.data?.type === PAGE_PREVIEW_CART) {
+        // Anything but an explicit `false` means "show the sample" — a frame
+        // that reloads mid-edit must come back with a cart, not with the empty
+        // state the merchant did not ask for.
+        setCartFilled(event.data.payload?.filled !== false);
+        return;
+      }
       if (event.data?.type !== PAGE_DRAFT_MESSAGE) return;
       const sections = event.data.payload?.sections;
       if (!Array.isArray(sections)) return;
@@ -125,8 +138,24 @@ export function PageDraftPreview({
     // Editing, not browsing: a click on a section picks it instead of following
     // whatever link it landed on.
     const onClick = (event: MouseEvent) => {
-      const section = event.target instanceof Element ? event.target.closest("[data-section-id]") : null;
+      const target = event.target instanceof Element ? event.target : null;
+      const section = target?.closest("[data-section-id]");
       if (!section) return;
+      /* One exception: the sample cart's own controls. This capture runs on
+         `document` and stops propagation, so React never sees the click — the
+         stepper, the remove button and the sample checkout's fields were all
+         inert, which is the same dead-control defect the sample exists to fix.
+         Scoped to `[data-preview-interactive]`, which ONLY a sample basket draws
+         (`cart-page.tsx`, `checkout-page.tsx`): the product page's Add to cart
+         must stay captured, or a click while editing would put a product in the
+         merchant's own basket. Links stay captured everywhere — following one
+         would navigate the frame out of the page being edited. */
+      if (
+        target?.closest("[data-preview-interactive]") &&
+        target.closest("button, input, select, textarea, label")
+      ) {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       window.parent.postMessage(
@@ -143,7 +172,7 @@ export function PageDraftPreview({
       document.removeEventListener("click", onClick, true);
       style.remove();
     };
-  }, []);
+  }, [setCartFilled]);
 
   // A redraw can replace the focused section's element; mark it again.
   useEffect(() => {

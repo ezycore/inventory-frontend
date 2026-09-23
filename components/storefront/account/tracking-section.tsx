@@ -98,7 +98,7 @@ export function TrackingSection({
   const statusNow = ORDER_STATUS[order.status]?.[lang === "bn" ? "bn" : "en"] ?? "";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
+    <div data-clarity-mask="true" style={{ display: "flex", flexDirection: "column", gap: "var(--gap)" }}>
       {back}
       <div style={{ display: "grid", gridTemplateColumns: "var(--cartgrid)", gap: "var(--gap)", alignItems: "start" }}>
         <div style={card}>

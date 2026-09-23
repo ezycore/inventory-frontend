@@ -50,6 +50,26 @@ export function storeLinkHref(
 }
 
 /**
+ * Link to a campaign's landing page — `/campaigns/<slug>`.
+ *
+ * **The fallback is the point.** A campaign written before the landing page
+ * existed has no slug until the backfill runs, and a product-scoped campaign had
+ * no public URL at all before it: the promo strip and the deal cards used to
+ * send every such shopper to `/products`, the whole catalogue, with nothing
+ * saying which twenty things were actually on sale. Those links come here now,
+ * and only a genuinely slugless campaign still falls back.
+ */
+export function campaignHref(
+  base: string,
+  campaign?: { slug?: string | null } | null,
+): string {
+  const slug = campaign?.slug?.trim();
+  return slug
+    ? storeHref(base, `/campaigns/${encodeURIComponent(slug)}`)
+    : storeHref(base, "/products");
+}
+
+/**
  * Link to a collection page.
  *
  * A collection's canonical URL is its PATH — `/phones`, `/phones/accessories` —

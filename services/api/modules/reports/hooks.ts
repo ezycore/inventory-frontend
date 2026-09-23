@@ -5,6 +5,7 @@ import {
   reportsApi,
   type ReportParams,
   type ExportDataType,
+  type SalesBreakdownSource,
   type SalesBreakdownDimension,
 } from "./api";
 
@@ -48,10 +49,28 @@ export const useComboSalesReport = (params?: ReportParams, enabled = true) => {
 export const useSalesBreakdown = (
   dimension: SalesBreakdownDimension,
   params?: ReportParams,
+  source: SalesBreakdownSource = "sales",
 ) => {
   return useQuery({
-    queryKey: queryKeys.reports.salesBreakdown(dimension, params),
-    queryFn: () => reportsApi.getSalesBreakdown(dimension, params),
+    queryKey: queryKeys.reports.salesBreakdown(dimension, params, source),
+    queryFn: () => reportsApi.getSalesBreakdown(dimension, params, source),
+    select: (data) => data.data,
+    enabled: !!params,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * The Orders Report — storefront orders on the day they were PLACED.
+ *
+ * Deliberately a different query from `useSalesReport`: the two count different
+ * documents on different clocks and will not agree, which is why each screen
+ * states which one it is showing.
+ */
+export const useOrdersReport = (params?: ReportParams) => {
+  return useQuery({
+    queryKey: queryKeys.reports.orders(params),
+    queryFn: () => reportsApi.getOrdersReport(params),
     select: (data) => data.data,
     enabled: !!params,
     staleTime: 2 * 60 * 1000,
