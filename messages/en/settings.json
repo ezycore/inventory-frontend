@@ -1195,6 +1195,7 @@
         "sms_disabled": "SMS is off for this workspace.",
         "feature_off": "The feature behind this event is not enabled.",
         "no_recipient": "No address on file for this person.",
+        "undeliverable": "That address is a placeholder domain (like example.com) that cannot receive mail.",
         "suppressed": "This address or number failed permanently before, so we stopped sending to it.",
         "consent": "This person opted out of marketing.",
         "cap_reached": "The monthly SMS limit was reached.",
