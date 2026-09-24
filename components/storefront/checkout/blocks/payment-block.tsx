@@ -56,16 +56,11 @@ export function PaymentBlock({
                 <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>
                   {storefrontPaymentMethodLabel(m, t, store?.paymentMethods)}
                 </span>
-                {/* Only COD gets a built-in sub-line, and only because COD is
-                    the one method whose meaning is a promise we can make
-                    without the merchant: you pay on delivery. Bank transfer's
-                    next step differs per store, so we never guess it — the
-                    store states it itself, and it renders under the list. */}
-                {m === "cod" || storefrontPaymentMethodSubtitle(m, store?.paymentMethods) ? (
+                {/* The sub-line is the merchant's own words only — the platform
+                    adds none, not even for COD. */}
+                {storefrontPaymentMethodSubtitle(m, store?.paymentMethods) ? (
                   <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", marginTop: 1 }}>
-                    {m === "cod"
-                      ? t.codHint
-                      : storefrontPaymentMethodSubtitle(m, store?.paymentMethods)}
+                    {storefrontPaymentMethodSubtitle(m, store?.paymentMethods)}
                   </span>
                 ) : null}
               </span>

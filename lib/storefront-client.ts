@@ -608,14 +608,25 @@ export interface StorefrontStore {
    * **Presence is enabled**, same rule as `meta` above — the backend omits the whole block when
    * the merchant has it off or has entered no project id.
    *
-   * `cookieConsent` decides whether this storefront draws a consent bar, and to whom. `off` is
-   * not "ignore consent": Clarity sets no cookies at all until the page calls `consentv2`, so the
-   * no-banner default is also the no-storage one. See `components/storefront/consent-bar.tsx`.
+   * `cookieConsent` is the legacy name for the store-level `cookieBanner` below, still sent so a
+   * build that predates it keeps working. Read `cookieBanner` instead.
    */
   clarity?: {
     projectId: string;
     cookieConsent: "off" | "eu" | "always";
   };
+  /**
+   * Google Analytics 4 (backend `docs/plan/storefront-ga4.md`). **Presence is enabled**, same rule
+   * as `meta` and `clarity`.
+   */
+  ga4?: {
+    measurementId: string;
+  };
+  /**
+   * When the storefront draws its cookie-consent bar — store-level, shared by every tool that sets
+   * cookies. Present only when Clarity or GA4 is on. See `components/storefront/consent-bar.tsx`.
+   */
+  cookieBanner?: "off" | "eu" | "always";
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
@@ -832,6 +843,31 @@ export interface StoreMenuItem {
   type: "category" | "page" | "url" | "collections";
   value: string;
   children?: StoreMenuItem[];
+  /** Where a top-level item's dropdown comes from — see `buildMenuTree`. Unset ⇒ authored children, else inherited sub-categories. */
+  childrenMode?: "auto" | "custom" | "none";
+}
+
+/**
+ * How the menu behaves per device (`nav.menu`). Loose ids on the wire — the
+ * authority is `lib/storefront-menu.ts`, whose `resolveMenuSettings` narrows
+ * every field. Only the fields that differ from the defaults are stored.
+ */
+export interface StoreMenuSettings {
+  subcategories?: string;
+  mobile?: {
+    layout?: string;
+    open?: string;
+    viewAll?: boolean;
+    images?: boolean;
+    chips?: string;
+  };
+  desktop?: {
+    dropdown?: string;
+    openOn?: string;
+    railOpen?: string;
+    overflow?: string;
+    row?: boolean;
+  };
 }
 
 export interface StoreFooterGroup {
@@ -947,6 +983,27 @@ export interface StoreNav {
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
   utilityBar?: StoreUtilityBar;
+  /** How the menu behaves per device (Customize → Menu). */
+  menu?: StoreMenuSettings;
+  /** Catalogue filters & sort (Customize → Filters & sort). */
+  filters?: StoreFilterSettings;
+}
+
+/**
+ * Catalogue filters & sort (`nav.filters`). Loose ids on the wire — the
+ * authority is `lib/storefront-filters.ts`, whose `resolveFilterSettings`
+ * narrows every field. Only the fields that differ from the defaults are stored.
+ */
+export interface StoreFilterSettings {
+  enabled?: boolean;
+  groups?: { id: string; label?: string; hidden?: boolean; open?: boolean }[];
+  mobile?: { entry?: string; stickyBar?: boolean; quickChips?: string[] };
+  desktop?: { placement?: string };
+  priceMode?: string;
+  pricePresets?: { min?: number; max?: number }[];
+  brandMulti?: boolean;
+  showCounts?: boolean;
+  sort?: { default?: string; hidden?: string[] };
 }
 
 /**
@@ -1125,6 +1182,8 @@ export interface StoreTag {
   name: string;
   slug: string;
   color?: string | null;
+  /** The filter heading it files under ("Fabric"); null = the plain Tags group. */
+  group?: string | null;
   productCount: number;
 }
 
@@ -1139,6 +1198,28 @@ export interface StoreBrand {
   slug?: string;
   image?: StorefrontImage | null;
   productCount: number;
+}
+
+/**
+ * `GET …/facets` — every filter for the current result set, from one pass.
+ * Each facet is counted against the rows passing every OTHER active filter.
+ */
+export interface StoreFacets {
+  /** Products matching every active filter — the "Show N results" number. */
+  total: number;
+  /** Counts only, parent and sub-category ids alike; names come from the tree. */
+  categories: { _id: string; productCount: number }[];
+  brands: StoreBrand[];
+  tags: StoreTag[];
+  /** One group per variant attribute in the result set ("Size", "Colour"). */
+  options: { name: string; values: { value: string; productCount: number }[] }[];
+  price: {
+    min: number | null;
+    max: number | null;
+    presets: { min?: number; max?: number; productCount: number }[];
+  };
+  /** False when "In stock" would narrow nothing — hide the toggle. */
+  anyOutOfStock: boolean;
 }
 
 export interface ProductListResult {
@@ -1578,14 +1659,11 @@ export const storefrontApi = {
     sfFetch<CatalogProduct>(slug, `/products/${productSlug}`),
   listCategories: (slug: string) =>
     sfFetch<CatalogCategory[]>(slug, "/categories"),
-  listBrands: (
+  /** Every facet at once (`GET …/facets`); `params` are the listing's filters. */
+  listFacets: (
     slug: string,
     params: Record<string, string | number | undefined> = {},
-  ) => sfFetch<StoreBrand[]>(slug, `/brands${buildQuery(params)}`),
-  listTags: (
-    slug: string,
-    params: Record<string, string | number | undefined> = {},
-  ) => sfFetch<StoreTag[]>(slug, `/tags${buildQuery(params)}`),
+  ) => sfFetch<StoreFacets>(slug, `/facets${buildQuery(params)}`),
   listCampaigns: (slug: string) =>
     sfFetch<StoreCampaign[]>(slug, "/campaigns"),
   getCampaign: (slug: string, campaignSlug: string) =>

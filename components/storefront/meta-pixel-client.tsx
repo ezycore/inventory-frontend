@@ -4,7 +4,8 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "@/services/storefront/hooks";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
-import { useCartStore, cartLineKey, type CartItem } from "@/services/stores/use-cart-store";
+import type { CartItem } from "@/services/stores/use-cart-store";
+import { subscribeCartAdds } from "@/lib/storefront-cart-adds";
 import {
   captureFbclid,
   metaContentId,
@@ -58,31 +59,12 @@ export function MetaPixelClient({ slug }: { slug: string }) {
   }, [pathname]);
 
   // ---- AddToCart ---------------------------------------------------------
-  useEffect(() => {
-    // Read through `subscribe` inside an effect rather than a hook selector: this mounts inside
-    // the storefront chrome, and a selector would re-render it on every quantity tap.
-    let previous = useCartStore.getState().items;
-
-    return useCartStore.subscribe((state) => {
-      const next = state.items;
-      const before = previous;
-      previous = next;
-
-      // `restore()` (the abandoned-cart recovery link) replaces the whole cart with items the
-      // shopper added days ago. Reporting N add-to-carts for those would invent a burst of
-      // intent that never happened, so a bulk arrival into an empty cart is not an add.
-      if (before.length === 0 && next.length > 1) return;
-
-      for (const item of next) {
-        const key = cartLineKey(item);
-        const match = before.find((i) => cartLineKey(i) === key);
-        const added = item.quantity - (match?.quantity ?? 0);
-        // Decreases and removals report nothing — there is no Meta event for un-adding.
-        if (added <= 0) continue;
-        report(storeRef.current, item, added);
-      }
-    });
-  }, []);
+  // Subscribed once, through the shared definition of an add (`subscribeCartAdds`), so Meta and
+  // GA4 cannot disagree about what counted.
+  useEffect(
+    () => subscribeCartAdds((item, added) => report(storeRef.current, item, added)),
+    [],
+  );
 
   return null;
 }

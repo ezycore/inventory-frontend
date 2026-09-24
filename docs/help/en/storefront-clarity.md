@@ -3,7 +3,7 @@ title: See how shoppers use your shop
 slug: storefront-clarity
 summary: Watch where shoppers tap, how far they scroll and where they give up, using a free Microsoft tool connected to your shop.
 order: 107
-# Clarity is a TAB on Store Settings, not a screen of its own, so it shares that route with
+# Clarity is a row on Store Settings → Marketing, not a screen of its own, so it shares that route with
 # `storefront-setup`. That page has the lower `order`, and `findHelpForPath` keeps the first
 # match on a tie — so the "?" on Store Settings still opens the setup guide, and this page is
 # reached by browsing /help.
@@ -31,8 +31,8 @@ EzyCore.
    or Facebook account works.
 2. Create a project for your shop. Put your shop's web address in it.
 3. Open **Settings → Overview**. There is a short code there — that is your **Project ID**.
-4. In EzyCore, open **Ecommerce → Store Settings → Clarity**. Turn on **Enable Clarity**, paste the
-   Project ID, and save.
+4. In EzyCore, open **Ecommerce → Store Settings → Marketing** and tap **Microsoft Clarity** to open
+   it. Turn on **Enable Clarity**, paste the Project ID, and save.
 
 Your first recordings appear in Clarity within a couple of hours of a real visitor. Your own
 preview visits are never recorded, so you cannot test it by looking at your own draft — open the
@@ -60,12 +60,15 @@ and turn **Cookies** off. Recordings and heatmaps keep working; they simply stop
 across pages and visits.
 
 Separately, your shop can **ask** shoppers before Clarity links their visits. Their answer is sent
-to Clarity either way — by default we tell it they did not agree. Change **Cookie banner** to pick
-who gets asked:
+to Clarity either way — by default we tell it they did not agree. The **Cookie banner** card at the
+top of the **Marketing** tab picks who gets asked, and it covers Google Analytics too — one
+question, one answer, for both:
 
-- **No banner** — recommended, and the default. Nobody is asked.
+- **No banner** — the default. Nobody is asked.
 - **Europe only** — only shoppers on a European clock see it. Bangladeshi shoppers never do.
 - **Everyone** — every shopper sees it.
+
+Choosing the setting that is right for where you sell is up to you; your shop follows it.
 
 Wherever it appears, it is a small bar at the bottom of the page, never a pop-up, and it never
 shows on the checkout page.

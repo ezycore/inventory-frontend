@@ -3,7 +3,6 @@
 
 import { useRef } from "react";
 import type { CatalogCategory, StorefrontStore } from "@/lib/storefront-client";
-import { resolveHeaderMenu } from "@/lib/storefront-templates";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartNav } from "@/services/storefront/use-cart-nav";
 import { useShopperStore } from "@/services/stores/use-shopper-store";
@@ -12,7 +11,7 @@ import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
-import { expandHeaderMenu } from "@/components/storefront/header-nav";
+import { useStoreMenu } from "@/components/storefront/use-store-menu";
 import { useHeaderHeight } from "@/components/storefront/use-header-height";
 import { MobileBar } from "@/components/storefront/mobile/mobile-chrome";
 import {
@@ -78,21 +77,12 @@ export function StoreHeader({
   const { cartCount, cartSubtotal, goCart } = useCartNav(slug);
   const shopper = useShopperStore((s) => s.shopper);
   const hydrated = useHydrated();
-  const previewMenuSrc = useSfPreview((s) => s.headerMenuSrc);
-  const previewNavHeader = useSfPreview((s) => s.navHeader);
   const previewBadges = useSfPreview((s) => s.badges);
   const previewLogo = useSfPreviewImage("logo", store?.logo);
 
-  // Drafts from the admin Navigation editor win over the saved store payload.
-  // The legacy-fallback check uses the RAW menu (a store whose menu is only a
-  // collections block with zero listed collections still chose "custom");
-  // ctx gets the menu with collections blocks expanded into category links.
-  const rawMenu = previewNavHeader ?? store?.nav?.header ?? [];
-  const headerMenu = expandHeaderMenu(rawMenu, categories ?? []);
-  const menuSource = resolveHeaderMenu(
-    { ...store?.templates, ...(previewMenuSrc ? { headerMenu: previewMenuSrc } : {}) },
-    rawMenu.length > 0,
-  );
+  // The resolved menu, Customize draft first — shared with the phone bar and
+  // the sidebar so the three can never disagree about what the menu is.
+  const menu = useStoreMenu(store, categories, base);
 
   const variant = useHeaderVariant(store);
   const utilityBar = useResolvedUtilityBar(store);
@@ -124,8 +114,8 @@ export function StoreHeader({
     cartSubtotal,
     currency: store?.currency,
     goCart,
-    headerMenu,
-    menuSource,
+    menuTree: menu.tree,
+    menuDesktop: menu.settings.desktop,
     cats: categories ?? [],
     hideCategoryRow,
     showSearch: pages.search,

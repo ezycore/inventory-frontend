@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/format";
 import { useOrgCalendar } from "@/hooks/use-org-calendar";
 import { SmsCreditTerms } from "@/components/notifications/sms-credit-terms";
 import { SmsQuietHours } from "@/components/notifications/sms-quiet-hours";
+import { SmsStoreNameField } from "@/components/notifications/sms-store-name-field";
 import { SmsTestRow } from "@/components/notifications/sms-test-row";
 import { SmsUsageReport } from "@/components/notifications/sms-usage-report";
 import type { AppLocale } from "@/i18n/config";
@@ -157,6 +158,10 @@ export function SmsCreditCard() {
         )}
 
         {available && enabled && <SmsQuietHours />}
+
+        {/* Before any SMS is switched on is exactly when the signature should
+            be checked, so it shows whenever SMS is on the plan. */}
+        {available && <SmsStoreNameField />}
 
         {available && enabled && (
           <SmsTestRow

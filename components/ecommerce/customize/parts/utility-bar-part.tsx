@@ -4,11 +4,10 @@
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { OptionChip } from "@/ui/components/option-card";
-import { Switch } from "@/ui/components/switch";
 import {
   PartBlock,
   PartHint,
-  PartLabel,
+  PartSwitch,
 } from "@/components/ecommerce/customize/part-group";
 import type {
   CustomizeDraftApi,
@@ -90,8 +89,9 @@ export function UtilityBarPart({
         hint="Choose the controls shoppers see in this bar."
       >
         <div className="grid gap-2 rounded-lg border p-3">
-          <ItemSwitch
+          <PartSwitch
             label="Phone number"
+            ariaLabel="Show phone number in the utility bar"
             detail={
               settings.contact?.phone?.trim()
                 ? settings.contact.phone
@@ -100,18 +100,21 @@ export function UtilityBarPart({
             checked={value.showPhone}
             onCheckedChange={(showPhone) => update({ showPhone })}
           />
-          <ItemSwitch
+          <PartSwitch
             label="Track order"
+            ariaLabel="Show track order in the utility bar"
             checked={value.showTrackOrder}
             onCheckedChange={(showTrackOrder) => update({ showTrackOrder })}
           />
-          <ItemSwitch
+          <PartSwitch
             label="Language"
+            ariaLabel="Show language in the utility bar"
             checked={value.showLanguage}
             onCheckedChange={(showLanguage) => update({ showLanguage })}
           />
-          <ItemSwitch
+          <PartSwitch
             label="Light / dark theme"
+            ariaLabel="Show light / dark theme in the utility bar"
             checked={value.showTheme}
             onCheckedChange={(showTheme) => update({ showTheme })}
           />
@@ -138,35 +141,5 @@ export function UtilityBarPart({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function ItemSwitch({
-  label,
-  detail,
-  checked,
-  onCheckedChange,
-}: {
-  label: string;
-  detail?: string;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3">
-      <span className="min-w-0">
-        <PartLabel>{label}</PartLabel>
-        {detail ? (
-          <span className="block truncate text-xs text-muted-foreground">
-            {detail}
-          </span>
-        ) : null}
-      </span>
-      <Switch
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        aria-label={`Show ${label.toLowerCase()} in the utility bar`}
-      />
-    </label>
   );
 }

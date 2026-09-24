@@ -2,9 +2,15 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import type { CatalogCategory } from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import type { CatalogCategory, StorefrontStore } from "@/lib/storefront-client";
+import { storeHref } from "@/lib/storefront-links";
+import {
+  RAIL_OPEN_RULE,
+  initialOpenKeys,
+  isNodeActive,
+} from "@/lib/storefront-menu";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
+import { useStoreMenu } from "@/components/storefront/use-store-menu";
 import { Icon } from "@/components/storefront/sf-icons";
 import {
   ShellAnnouncement,
@@ -66,7 +72,7 @@ export function RailShell(props: ShellProps) {
         className="sf-rail-grid"
         style={{ flex: 1, maxWidth: "var(--maxw)", margin: "0 auto", width: "100%" }}
       >
-        <CategoryRail base={base} categories={categories} t={t} />
+        <CategoryRail base={base} store={store} categories={categories} t={t} />
         <div style={{ minWidth: 0 }}>
           <ShellBreadcrumb crumb={crumb} base={base} t={t} />
           <main>{children}</main>
@@ -87,28 +93,43 @@ export function RailShell(props: ShellProps) {
  * every page under the shell needs it and threading it would mean touching all
  * of them.
  *
- * Children are shown only under the OPEN parent. Listing every child of every
- * department turns a wayfinding column into a wall of forty links, which is the
- * failure mode this shape is supposed to prevent.
+ * Always the CATEGORY tree, whatever the header menu's source (owner decision C,
+ * 2026-09-24) — it is literally the category sidebar.
+ *
+ * Which departments show their children is the merchant's `railOpen`. The
+ * default is still "only the one being browsed": listing every child of every
+ * department turns a wayfinding column into a wall of forty links. `first` and
+ * `all` exist for the shop with two departments, where the home page otherwise
+ * showed a rail of two bare names; `flyout` keeps the column one line per
+ * department and pops the children out beside it.
+ *
+ * ⚠ `flyout` lifts the rail's internal scroll (`data-flyout`): a scroll
+ * container clips on both axes, so the pop-out would be cut off at the rail's
+ * right edge. It suits the few-departments shop it is for; a long rail should
+ * stay on an in-place mode.
  */
 function CategoryRail({
   base,
+  store,
   categories,
   t,
 }: {
   base: string;
+  store?: StorefrontStore;
   categories: CatalogCategory[];
   t: ShellProps["t"];
 }) {
   const pathname = useStorePathname();
-  if (!categories.length) return null;
-
-  const isActive = (c: CatalogCategory) =>
-    !!c.slugPath && pathname.includes(`/${c.slugPath}`);
+  const menu = useStoreMenu(store, categories, base);
+  const nodes = menu.categories;
+  const mode = menu.settings.desktop.railOpen;
+  if (!nodes.length) return null;
+  const openKeys = initialOpenKeys(nodes, RAIL_OPEN_RULE[mode], pathname);
+  const flyout = mode === "flyout";
 
   return (
     <aside className="sf-rail sf-desktop-only" aria-label={t.browseCats}>
-      <div className="sf-rail-inner">
+      <div className="sf-rail-inner" data-flyout={flyout ? "" : undefined}>
         <div
           style={{
             display: "flex",
@@ -127,18 +148,29 @@ function CategoryRail({
         </div>
 
         <nav style={{ display: "flex", flexDirection: "column" }}>
-          {categories.map((c) => {
-            const on = isActive(c);
-            const kids = c.children ?? [];
+          {nodes.map((node) => {
+            const on = isNodeActive(node, pathname);
+            const kids = node.children;
+            const kidLinks = kids.map((k) => (
+              <Link
+                key={k.key}
+                href={k.href}
+                className={`sf-rail-link sf-rail-link--child${
+                  isNodeActive(k, pathname) ? " is-on" : ""
+                }`}
+              >
+                {k.label}
+              </Link>
+            ));
             return (
-              <div key={c._id}>
+              <div key={node.key} className={flyout && kids.length ? "sf-rail-fly" : undefined}>
                 <Link
-                  href={collectionHref(base, c)}
+                  href={node.href}
                   aria-current={on ? "page" : undefined}
                   className={`sf-rail-link${on ? " is-on" : ""}`}
                 >
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {c.name}
+                    {node.label}
                   </span>
                   {kids.length ? (
                     <span style={{ display: "flex", flex: "none", color: "var(--faint)" }}>
@@ -147,20 +179,11 @@ function CategoryRail({
                   ) : null}
                 </Link>
 
-                {/* Only the open department expands — see the note above. */}
-                {on && kids.length ? (
+                {flyout && kids.length ? (
+                  <div className="sf-rail-flyout">{kidLinks}</div>
+                ) : openKeys.has(node.key) && kids.length ? (
                   <div style={{ display: "flex", flexDirection: "column", paddingBottom: 4 }}>
-                    {kids.map((k) => (
-                      <Link
-                        key={k._id}
-                        href={collectionHref(base, k)}
-                        className={`sf-rail-link sf-rail-link--child${
-                          isActive(k) ? " is-on" : ""
-                        }`}
-                      >
-                        {k.name}
-                      </Link>
-                    ))}
+                    {kidLinks}
                   </div>
                 ) : null}
               </div>

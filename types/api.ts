@@ -241,6 +241,13 @@ export type ClaritySettings = Schemas["ClaritySettings"];
 /** `"off" | "eu" | "always"` — taken from the spec, never hand-written. */
 export type ClarityCookieConsent = ClaritySettings["cookieConsent"];
 
+/** Google Analytics 4 (backend `docs/plan/storefront-ga4.md`). No secret — the id is public. */
+export type Ga4Settings = Schemas["Ga4Settings"];
+/** Store-level marketing settings: the cookie banner every measurement tool shares. */
+export type MarketingSettings = Schemas["MarketingSettings"];
+/** `"off" | "eu" | "always"` — taken from the spec, never hand-written. */
+export type CookieBannerMode = MarketingSettings["cookieBanner"];
+
 /** Notification engine (backend docs/plan/notifications.md). */
 export type NotificationSettings = Schemas["NotificationSettings"];
 export type NotificationEventRow = NotificationSettings["events"][number];
@@ -248,6 +255,11 @@ export type NotificationLogItem = Schemas["NotificationLogItem"];
 export type SmsTestResult = Schemas["SmsTestResult"];
 export type SmsUsageReport = Schemas["SmsUsageReport"];
 export type SmsUsageMonth = SmsUsageReport["months"][number];
+/** SMS template editor (backend docs/plan/sms-template-editor.md). */
+export type SmsTemplatePreview = Schemas["SmsTemplatePreview"];
+export type SmsTemplateError = SmsTemplatePreview["errors"][number];
+export type SmsTemplateCase = SmsTemplatePreview["cases"][number];
+export type SmsStoreName = NotificationSettings["sms"]["smsStoreName"];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];

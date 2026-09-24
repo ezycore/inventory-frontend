@@ -18,41 +18,50 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { HeaderNav } from "@/components/storefront/header-nav";
-import type { CatalogCategory, StoreMenuItem } from "@/lib/storefront-client";
+import {
+  DEFAULT_MENU_SETTINGS,
+  type MenuNode,
+  type ResolvedMenuSettings,
+} from "@/lib/storefront-menu";
 
-const CATEGORIES: CatalogCategory[] = [
-  { _id: "a", name: "Skin care", slug: "skin-care", slugPath: "skin-care" },
+const node = (label: string, href: string, children: MenuNode[] = [], external = false): MenuNode => ({
+  key: label,
+  label,
+  href,
+  external,
+  children,
+});
+
+const NODES: MenuNode[] = [
+  node("Shop", "/skin-care", [node("Serums", "/skin-care/serums")]),
+  node("Blog", "https://example.com/blog", [], true),
 ];
 
-const MENU: StoreMenuItem[] = [
-  {
-    label: "Shop",
-    type: "category",
-    value: "skin-care",
-    children: [{ label: "Serums", type: "category", value: "skin-care" }],
-  },
-  { label: "Blog", type: "url", value: "https://example.com/blog" },
-];
+const desktop = (p: Partial<ResolvedMenuSettings["desktop"]> = {}) => ({
+  ...DEFAULT_MENU_SETTINGS.desktop,
+  ...p,
+});
 
-const renderNav = () =>
-  render(<HeaderNav base="" menu={MENU} categories={CATEGORIES} />);
+const renderNav = (menu = desktop()) => render(<HeaderNav nodes={NODES} menu={menu} />);
+
+/** The wrapper that carries the open/close handlers — the link's parent. */
+const itemOf = (label: string) =>
+  screen.getByText(label).closest("a, button")?.parentElement as HTMLElement;
 
 describe("HeaderNav — what the stylesheet can reach", () => {
   it("gives every top-level item the class the hover rules select", () => {
     renderNav();
-    // Both kinds: a category link and a merchant-typed URL, which render
-    // through different branches of `NavLink` (`Link` vs a raw `<a>`) and would
-    // be easy to fix in one and miss in the other.
+    // Both kinds: a shop link and a merchant-typed URL, which render through
+    // different branches of `NavLink` (`Link` vs a raw `<a>`) and would be easy
+    // to fix in one and miss in the other.
     expect(screen.getByText("Shop").closest("a")).toHaveClass("sf-nav-top");
     expect(screen.getByText("Blog").closest("a")).toHaveClass("sf-nav-top");
   });
 
   it("gives a dropdown item its own class, answered separately", () => {
     renderNav();
-    // The dropdown is hover-mounted, so open it the way a shopper does — the
-    // handler sits on the item's wrapper, not on the link.
-    const top = screen.getByText("Shop").closest("a") as HTMLElement;
-    fireEvent.mouseEnter(top.parentElement as HTMLElement);
+    // Hover-mounted, so open it the way a pointer does.
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
     const child = screen.getByText("Serums").closest("a");
     expect(child).toHaveClass("sf-nav-child");
     expect(child).not.toHaveClass("sf-nav-top");
@@ -65,5 +74,49 @@ describe("HeaderNav — what the stylesheet can reach", () => {
     for (const link of screen.getAllByRole("link")) {
       expect(link.getAttribute("style") ?? "").not.toContain("color");
     }
+  });
+});
+
+describe("HeaderNav — how a dropdown opens (Customize → Menu)", () => {
+  it("hover: the list opens on a mouse and shows no extra row", () => {
+    renderNav();
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
+    expect(screen.getByText("Serums")).toBeInTheDocument();
+    expect(screen.queryByText("All Shop")).toBeNull();
+  });
+
+  it("hover: a touch never opens it by emulated hover", () => {
+    renderNav();
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "touch" });
+    expect(screen.queryByText("Serums")).toBeNull();
+  });
+
+  it("a first TAP on a parent opens the dropdown instead of leaving the page", () => {
+    renderNav();
+    const top = screen.getByText("Shop").closest("a") as HTMLElement;
+    fireEvent.pointerDown(top, { pointerType: "touch" });
+    const allowed = fireEvent.click(top);
+    expect(allowed).toBe(false); // navigation prevented
+    // The skipped page is the panel's first row.
+    expect(screen.getByText("All Shop").closest("a")).toHaveAttribute("href", "/skin-care");
+  });
+
+  it("click: the trigger is a button and the parent page heads the panel", () => {
+    renderNav(desktop({ openOn: "click" }));
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
+    expect(screen.queryByText("Serums")).toBeNull();
+    const trigger = screen.getByRole("button", { name: /Shop/ });
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("All Shop")).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByText("Serums")).toBeNull();
+  });
+
+  it("mega: the panel carries the parent's own page as well", () => {
+    renderNav(desktop({ dropdown: "mega" }));
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
+    expect(screen.getByText("All Shop")).toBeInTheDocument();
+    expect(screen.getByText("Serums").closest("a")).toHaveClass("sf-nav-mega-item");
   });
 });

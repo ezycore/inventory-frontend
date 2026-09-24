@@ -7,6 +7,7 @@ import { toast } from "@/lib/storefront-toast";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
+import { ga4LineItem, ga4Money, trackGa4Event } from "@/lib/storefront-ga4";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useCartStore } from "@/services/stores/use-cart-store";
 import { useWishlistStore } from "@/services/stores/use-wishlist-store";
@@ -66,7 +67,7 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
   const choice = resolveProductChoice(product, picked);
   const { variable, selected: selectedVariant, price } = choice;
 
-  // Meta `ViewContent` — one per product the shopper opens.
+  // Meta `ViewContent` and GA4 `view_item` — one per product the shopper opens.
   //
   // Keyed on the product id, NOT on this hook's render: it re-runs on every variant selection,
   // quantity tap and related-products refetch, and reporting each of those as a fresh product
@@ -74,14 +75,22 @@ export function useProductBuy(product: CatalogProduct | undefined, resetKey: str
   // key either — picking a size is not viewing a second product.
   const viewedProductId = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!product || viewedProductId.current === product._id) return;
+    // Waits for the store too: marking the product viewed before the store payload arrives
+    // would spend the one report on a send that cannot happen.
+    if (!product || !store || viewedProductId.current === product._id) return;
     viewedProductId.current = product._id;
     trackMetaEvent(store, "ViewContent", {
-      currency: store?.currency,
+      currency: store.currency,
       value: price,
       content_ids: [metaContentId(product._id)],
       content_name: product.name,
       content_type: "product",
+    });
+    // GA4 `view_item`, same moment and same once-per-product rule. No variant: the page opens
+    // before the shopper picks one, and a size pick is not a second product view.
+    trackGa4Event(store, "view_item", {
+      ...ga4Money(store, price),
+      items: [ga4LineItem({ productId: product._id, name: product.name, price }, 1)],
     });
     // `price` is read but intentionally not a dependency — see the keying note above.
     // eslint-disable-next-line react-hooks/exhaustive-deps

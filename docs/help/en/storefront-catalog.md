@@ -381,6 +381,21 @@ wording — you can try every combination and change your mind without losing an
 furniture and electronics, and **Extra tall** is for full-length shots. Cart and search-list
 thumbnails stay square whatever you pick, so those rows keep their shape.
 
+### Filters & sort
+
+**Filters & sort**, under *Across the site*, sets up the filters on your collection pages, sale pages
+and search results together. On a phone the filters open as a **Bottom sheet** (the default) or a
+**Side panel**, and the Filters and Sort buttons stay in view while a shopper scrolls back up. Pick
+up to six **Quick filters** — "In stock", "Size", "Price range" — to show as one-tap chips above
+your products.
+
+On a computer, choose **Panel** (a Filters button), **Sidebar** (pinned beside the products) or
+**Bar** (one dropdown per filter above the products). Under **Filter groups** you can put the
+groups in your own order, rename one in your shoppers' words, hide one, or have it open already.
+Sizes and colours from your product variants become filters by themselves. Below that you choose
+ready-made price ranges or typed prices, whether shoppers can tick several brands, and which sort
+your products open on.
+
 ### Footer
 
 **Footer** is the last thing a shopper reads and the place a hesitant one looks for proof that a real
@@ -429,7 +444,9 @@ These matter more than they look. Delivery and returns are the two things a hesi
 before paying, and a store with neither reads as untrustworthy. Write the returns page to match what
 you actually do — see [Take back a sold item](./sales-returns.md).
 
-To add one, press **New page** and choose **Store page**. Its text is written in the same editor as
+To add one, press **New page** and choose **Store page**, then type a name or pick one of the usual ones
+under **Start from**. A shop with no store pages yet sees those names in the **Store pages** list itself —
+tap one and **New page** opens with it filled in. Its text is written in the same editor as
 before, with headings, bold, lists and links; consecutive `Q:` and `A:` lines become styled
 question-and-answer cards, which is the tidiest way to lay out an FAQ. You can also leave the text
 empty and build the page out of sections instead, the way a landing page is built — see
