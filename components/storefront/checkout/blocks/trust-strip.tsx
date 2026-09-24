@@ -14,18 +14,16 @@ import type { CheckoutApi } from "@/components/storefront/checkout/use-checkout"
  * "secure payment" makes a promise on behalf of a merchant who never made it,
  * across every store on the platform. So:
  *
- * - Cash on delivery shows only when the merchant actually offers COD.
- * - The returns line shows only when the merchant has published a returns page,
- *   and it uses **that page's own title** and links to it — the merchant wrote
- *   the claim, we only point at it.
+ * The returns line shows only when the merchant has published a returns page,
+ * and it uses **that page's own title** and links to it — the merchant wrote
+ * the claim, we only point at it.
  *
- * Which means the strip renders nothing at all for a bank-transfer-only store
- * with no policy pages. That is correct: nothing true was available to say.
+ * Which means the strip renders nothing at all for a store with no returns
+ * page. That is correct: nothing true was available to say.
  */
 export function TrustStrip({ api }: { api: CheckoutApi }) {
-  const { t, base, methods, isPickup, returnsPage } = api;
-  const showCod = !isPickup && methods.includes("cod");
-  if (!showCod && !returnsPage) return null;
+  const { base, returnsPage } = api;
+  if (!returnsPage) return null;
 
   return (
     <div
@@ -40,17 +38,14 @@ export function TrustStrip({ api }: { api: CheckoutApi }) {
         marginTop: 14,
       }}
     >
-      {showCod ? <Item>{t.codHint}</Item> : null}
-      {returnsPage ? (
-        <Item>
-          <Link
-            href={storeHref(base, `/pages/${returnsPage.slug}`)}
-            style={{ textDecoration: "underline" }}
-          >
-            {returnsPage.title}
-          </Link>
-        </Item>
-      ) : null}
+      <Item>
+        <Link
+          href={storeHref(base, `/pages/${returnsPage.slug}`)}
+          style={{ textDecoration: "underline" }}
+        >
+          {returnsPage.title}
+        </Link>
+      </Item>
     </div>
   );
 }
