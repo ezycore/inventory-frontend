@@ -110,6 +110,22 @@ describe("MenuTreeList — the other layouts", () => {
     expect(screen.getByText("Cushions")).toBeInTheDocument();
   });
 
+  it("step in: the lead row stays on the top screen, never above Back", () => {
+    render(
+      <MenuTreeList
+        nodes={NODES}
+        settings={phone({ layout: "drill" })}
+        onClose={() => {}}
+        lead={<a href="/products">All products</a>}
+      />,
+    );
+    expect(screen.getByText("All products")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Floor mats/ }));
+    expect(screen.queryByText("All products")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Back/ }));
+    expect(screen.getByText("All products")).toBeInTheDocument();
+  });
+
   it("show all: every group open, parents as links — the list as it was", () => {
     renderTree(phone({ layout: "expanded" }));
     expect(screen.getByText("Round")).toBeInTheDocument();

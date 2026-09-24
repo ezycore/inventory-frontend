@@ -1,6 +1,10 @@
 # Storefront filter controls — review + improvement plan
 
-Status: **PLAN — not started** (drafted 2026-09-24). Owner decisions in §4 close before Phase 1.
+Status: **Phases 0–4 BUILT 2026-09-24, uncommitted** — targeted tests, typecheck and lint green;
+phone browser QA done (sheet, accordion, Size filter, F5 navigation, P6 chip); desktop drawer/sidebar/bar,
+typed price range and the Customize panel (save + reload round-trip) QA'd 2026-09-24. Auto-built price ranges
+not exercised — the QA shop has a single price. Phase 5 not started. Owner
+approved decisions A–E (all "recommended") the same day — see §4.
 Companion to [`storefront-menu-controls.md`](storefront-menu-controls.md); sequence after that
 plan's Phase 0 (shared sub-category rule) — see §3.6.
 
@@ -181,6 +185,22 @@ filter's category group — up to four times on one phone screen. The menu plan'
 ---
 
 ## 5. Phases
+
+**What shipped differs from the text below in these places** (the text is kept as agreed):
+
+- Settings live in **`nav.filters`**, not `design.filters` — a ready-made theme stamps `theme`
+  wholesale and would erase renamed/reordered groups (the menu's decision D, same reason).
+- The endpoint is `GET /storefront/:slug/facets` (beside `/brands` and `/tags`), not `/catalog/facets`.
+- Quick chips are group ids only (`availability` toggles in place; every other chip opens a
+  mini-sheet for its group) — no separate `price:presets` id; the Price group's chip shows the ranges.
+- The merchant's default sort is sent as a request param derived from settings
+  (`CatalogSearchParams.defaultSort`), never written to the URL, so SSR seeds and indexability are
+  unchanged.
+- "Biggest discount" shipped (`sort=discount`); "Best selling" deferred to Phase 5 (decision E).
+- Found on the way, fixed: `--sf-header-h` reported a NON-sticky header's height, which would have
+  floated every sticky panel a header below the top; the facet calls were never scoped to a
+  campaign page's own products.
+
 
 Tests run once at the end; targeted test files only while building.
 

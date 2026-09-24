@@ -23,6 +23,10 @@ import {
   type ResolvedMenuSettings,
 } from "@/lib/storefront-menu";
 import {
+  resolveFilterSettings,
+  type ResolvedFilterSettings,
+} from "@/lib/storefront-filters";
+import {
   mobileTemplate,
   resolveMobileChrome,
   type MobileChrome,
@@ -210,6 +214,11 @@ export interface CustomizeDraft {
    * back down on save, so only what the merchant changed is stored.
    */
   navMenu: ResolvedMenuSettings;
+  /**
+   * Catalogue filters & sort (Customize → Filters & sort). Resolved like
+   * `navMenu`; `filterSettingsOverrides` diffs it back down on save.
+   */
+  navFilters: ResolvedFilterSettings;
   announcement: AnnouncementDraft;
   campaignStrip: CampaignStripDraft;
   utilityBar: UtilityBarDraft;
@@ -276,6 +285,7 @@ export type PartId =
   | "utility"
   | "mobile"
   | "cards"
+  | "filters"
   | "contact"
   | "footer"
   | "shell"
@@ -313,6 +323,7 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.templates.imageFit,
     d.templates.imageRatio,
   ],
+  filters: (d) => d.navFilters,
   contact: (d) => d.contactButton,
   footer: (d) => [
     d.templates.footer,
@@ -436,6 +447,9 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     heroBanner: settings.heroBanner ?? {},
     navHeader: settings.nav?.header ?? [],
     navMenu: resolveMenuSettings(settings.nav?.menu),
+    // The collection layout's legacy `sidebar` reads as a sidebar placement —
+    // the same answer the storefront gives, so the panel shows what the shop does.
+    navFilters: resolveFilterSettings(settings.nav?.filters, templates.collection),
     announcement: {
       enabled: a?.enabled ?? false,
       useShippingRule: a?.useShippingRule ?? false,

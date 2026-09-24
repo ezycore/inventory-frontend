@@ -34,11 +34,13 @@ export function useHeaderHeight(
     const root = document.querySelector<HTMLElement>(".sf-root");
     if (!root) return;
 
+    // A bar that does not stick scrolls away, so it leaves nothing to clear —
+    // publishing its height would float every sticky panel (the catalogue's
+    // filter bar, checkout's rail) a header's height below the top edge.
+    const stuck = (el: HTMLElement | null) =>
+      el && getComputedStyle(el).position === "sticky" ? el.offsetHeight : 0;
     const publish = () => {
-      const height = Math.max(
-        mobileBar.current?.offsetHeight ?? 0,
-        desktopBar.current?.offsetHeight ?? 0,
-      );
+      const height = Math.max(stuck(mobileBar.current), stuck(desktopBar.current));
       root.style.setProperty("--sf-header-h", `${Math.round(height)}px`);
     };
     publish();

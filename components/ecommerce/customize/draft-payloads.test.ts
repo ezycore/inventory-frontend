@@ -8,6 +8,7 @@ import {
 import { resolveMobileChrome } from "@/lib/storefront-mobile";
 import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
+import { DEFAULT_FILTER_SETTINGS } from "@/lib/storefront-filters";
 import { DEFAULT_MENU_SETTINGS } from "@/lib/storefront-menu";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 import { seedDraft } from "@/components/ecommerce/customize/use-customize-draft";
@@ -135,6 +136,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   heroBanner: {},
   navHeader: [],
   navMenu: DEFAULT_MENU_SETTINGS,
+  navFilters: DEFAULT_FILTER_SETTINGS,
   utilityBar: {
     enabled: true,
     showOnDesktop: true,
@@ -569,6 +571,26 @@ describe("the Menu part", () => {
     );
     expect(patch).toHaveProperty("templates");
     expect(patch.nav?.menu).toEqual({ mobile: { layout: "drill" } });
+  });
+
+  // The Filters part lives in `nav`, and `nav` is replaced wholesale — a part
+  // that forgot to take it would save nothing and report success.
+  it("saves nav for the Filters part, with only the changed filter settings", () => {
+    const patch = toSettingsPatch(
+      draft({
+        navFilters: {
+          ...DEFAULT_FILTER_SETTINGS,
+          desktop: { placement: "sidebar" },
+          sort: { default: "newest", hidden: [] },
+        },
+      }),
+      ["filters"],
+    );
+    expect(patch.nav?.filters).toEqual({
+      desktop: { placement: "sidebar" },
+      sort: { default: "newest" },
+    });
+    expect(toSettingsPatch(draft({}), ["filters"]).nav?.filters).toBeUndefined();
   });
 
   it("stores no menu block for a shop left on the defaults", () => {

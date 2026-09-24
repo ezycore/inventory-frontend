@@ -20,6 +20,7 @@ import {
   Rows3,
   Smartphone,
   ShoppingCart,
+  SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -32,6 +33,7 @@ import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announc
 import { CampaignStripPart } from "@/components/ecommerce/customize/parts/campaign-strip-part";
 import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
+import { FiltersPart } from "@/components/ecommerce/customize/parts/filters-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
@@ -110,6 +112,10 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
       { id: "announcement", title: "Announcement bar", icon: Megaphone },
       { id: "campaign", title: "Campaign strip", icon: Percent },
       { id: "cards", title: "Product cards", icon: LayoutGrid },
+      /* Site-wide, beside Product cards, and not a collection-page setting:
+         search draws the same filters and is not a builder page, so a setting
+         on the collection section could never reach it (filter plan §1). */
+      { id: "filters", title: "Filters & sort", icon: SlidersHorizontal },
       /* NOT "Content pages": the frame it picks also wraps the ORDER TRACKING
          page, which has no builder page of its own — so this is genuinely
          site-wide, and the old name hid the half a merchant cannot reach any
@@ -125,6 +131,7 @@ const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)]
 /** Opening a part points the preview at a page that actually shows it. */
 const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
+  filters: "collection",
   /* The tracking page is the one page this part's frame wraps that a merchant
      can reach nowhere else — a content page on the builder previews its own
      frame, the home page shows none of the four. */
@@ -148,9 +155,10 @@ export const previewPageForPart = (id: PartId): PreviewPage =>
 export const previewDeviceForPart = (
   id: PartId | null,
 ): "desktop" | "mobile" =>
-  // The Menu opens on the phone too: that is where most shoppers meet it
-  // (owner rule — mobile first), and its panel leads with the phone settings.
-  id === "mobile" || id === "menu" ? "mobile" : "desktop";
+  // The Menu and the filters open on the phone too: that is where most
+  // shoppers meet them (owner rule — mobile first), and both panels lead with
+  // the phone settings.
+  id === "mobile" || id === "menu" || id === "filters" ? "mobile" : "desktop";
 
 /**
  * Ids that used to be rows. `?part=` is a documented deep link, so a bookmark or
@@ -345,6 +353,8 @@ export function PartsRail({
         />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
+      ) : part.id === "filters" ? (
+        <FiltersPart draft={draft} patch={patch} onPreviewDevice={onPreviewDevice} />
       ) : (
         // Content pages are a single layout choice, so the part IS its picker.
         // Its id is not the template key it writes (`contentLayout`), which is

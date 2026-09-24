@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { subcategoriesFor } from "@/components/storefront/subcategory-strip";
+import { stripParent, subcategoriesFor } from "@/components/storefront/subcategory-strip";
 import type {
   CatalogCategory,
   CatalogCategoryDetail,
@@ -74,5 +74,18 @@ describe("subcategoriesFor", () => {
   it("returns nothing when the collection is absent from the tree", () => {
     // Unlisted or inactive — it never reaches the public payload.
     expect(subcategoriesFor(detail({ _id: "ghost" }), tree)).toEqual([]);
+  });
+});
+
+describe("stripParent", () => {
+  it("is the collection itself on a parent page and its parent on a child page (P6)", () => {
+    expect(stripParent(detail({}))?._id).toBe("lights");
+    const child = detail({
+      _id: "led",
+      isSubcategory: true,
+      parent: { _id: "lights", name: "Lights", slugPath: "lights" },
+    });
+    expect(stripParent(child)).toEqual({ _id: "lights", name: "Lights", slugPath: "lights" });
+    expect(stripParent(undefined)).toBeUndefined();
   });
 });

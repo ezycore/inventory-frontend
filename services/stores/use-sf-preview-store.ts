@@ -21,6 +21,7 @@ import type {
   StoreLogoStyle,
   StoreMenuItem,
   StoreMenuSettings,
+  StoreFilterSettings,
   StoreTemplates,
   StoreTemplatesRaw,
   StoreUtilityBar,
@@ -119,6 +120,8 @@ interface SfPreviewState {
    * `null` ("not drafted") and `{}` ("drafted back to every default") differ.
    */
   navMenu: StoreMenuSettings | null;
+  /** Draft filters & sort (Customize → Filters & sort) — same `null` vs `{}` rule. */
+  navFilters: StoreFilterSettings | null;
   /** Draft campaign strip (Customize → Campaign strip). */
   campaignStrip: StoreCampaignStrip | null;
   /**
@@ -233,6 +236,7 @@ interface SfPreviewState {
     announcement?: StoreAnnouncement;
     utilityBar?: StoreUtilityBar;
     navMenu?: StoreMenuSettings;
+    navFilters?: StoreFilterSettings;
     campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
@@ -290,6 +294,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   announcement: null,
   utilityBar: null,
   navMenu: null,
+  navFilters: null,
   campaignStrip: null,
   contactButton: undefined,
   collections: null,
@@ -360,6 +365,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       utilityBar:
         patch.utilityBar !== undefined ? patch.utilityBar : s.utilityBar,
       navMenu: patch.navMenu !== undefined ? patch.navMenu : s.navMenu,
+      navFilters: patch.navFilters !== undefined ? patch.navFilters : s.navFilters,
       campaignStrip:
         patch.campaignStrip !== undefined ? patch.campaignStrip : s.campaignStrip,
       contactButton:

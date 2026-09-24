@@ -1,396 +1,106 @@
 "use client";
 // coding-standard: maintained
 
-import { Fragment, useState, type ReactNode } from "react";
-import type { CatalogCategory, StoreBrand, StoreTag } from "@/lib/storefront-client";
+import { useState } from "react";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-
-/** Active product-list filters, straight from the URL ("" / false = unset). */
-export interface ProductFilters {
-  categoryId: string;
-  /** A child of `categoryId`; "" = the whole parent branch. */
-  subcategoryId: string;
-  brandId: string;
-  /** Comma-joined tag slugs, OR-combined. "" = no tag filter. */
-  tags: string;
-  minPrice: string;
-  maxPrice: string;
-  inStock: boolean;
-}
-
-/** Patch of query params; `undefined` deletes the param (single code path with the URL). */
-export type FilterPatch = Record<string, string | undefined>;
+import { Icon } from "@/components/storefront/sf-icons";
+import {
+  FilterGroupBody,
+  groupLabel,
+  type FilterContext,
+} from "@/components/storefront/filters/filter-group-body";
+import type { FilterGroup } from "@/lib/storefront-filters";
 
 /**
- * The products-page filter facets: Category, Brand, Price range, Availability.
- * The shared panel lives in the filter drawer for every collection layout.
- * Selections apply instantly via `onChange` (URL-driven; the panel holds no
- * staged state beyond the price fields' in-progress typing).
+ * Every filter group as an accordion — the body of the phone sheet, the side
+ * drawer and the desktop sidebar.
+ *
+ * Which groups, in what order and which start open is `orderFilterGroups`'
+ * answer (merchant order, active groups open, else the first). Selections apply
+ * instantly through the URL; the panel's only state is which folds are open.
  */
-export function FilterPanel({
-  categories,
-  brands,
-  tags = [],
-  filters,
-  onChange,
-  hideCategories = false,
-}: {
-  categories: CatalogCategory[];
-  brands: StoreBrand[];
-  tags?: StoreTag[];
-  filters: ProductFilters;
-  onChange: (patch: FilterPatch) => void;
-  /**
-   * Drop the Category facet. Set on a category PATH page, where the collection
-   * is the URL — offering it as a filter would let a shopper navigate off the
-   * page they are standing on without the address bar changing.
-   */
-  hideCategories?: boolean;
-}) {
-  const { t } = useStorefrontUI();
-  const activeTags = filters.tags ? filters.tags.split(",").filter(Boolean) : [];
-  // Tags are OR-combined and multi-select, so each row toggles itself in or out
-  // of the list rather than replacing it (the brand/category facets are single).
-  const toggleTag = (slug: string) => {
-    const next = activeTags.includes(slug)
-      ? activeTags.filter((s) => s !== slug)
-      : [...activeTags, slug];
-    onChange({ tags: next.join(",") || undefined });
-  };
-
+export function FilterPanel({ groups, ctx }: { groups: FilterGroup[]; ctx: FilterContext }) {
   return (
     <div>
-      {hideCategories ? null : (
-        <Group title={t.category}>
-          <FilterRow
-            label={t.allProducts}
-            active={!filters.categoryId}
-            onClick={() =>
-              onChange({ categoryId: undefined, subcategoryId: undefined })
-            }
-          />
-          {/* The whole tree is always visible. It was progressive-disclosure
-              first — children revealed only under the selected parent — to keep
-              the list short, but that hid the feature: this panel already lives
-              behind a Filters button in a drawer, so a shopper had to open the
-              drawer AND guess that picking a parent would reveal more. Two
-              hidden steps to find a facet is the same as not having it. If a
-              catalogue ever grows big enough for this to be unwieldy, cap or
-              group it — do not put it back behind a click. */}
-          {categories.map((c) => (
-            <Fragment key={c._id}>
-              <FilterRow
-                label={c.name}
-                // Lit only when the WHOLE branch is selected. With children
-                // permanently on screen, keeping the parent lit under an active
-                // child would read as two filters applied at once.
-                active={filters.categoryId === c._id && !filters.subcategoryId}
-                // Re-picking the parent widens back to the whole branch.
-                onClick={() =>
-                  onChange({ categoryId: c._id, subcategoryId: undefined })
-                }
-              />
-              {(c.children ?? []).map((child) => (
-                <FilterRow
-                  key={child._id}
-                  label={child.name}
-                  nested
-                  active={filters.subcategoryId === child._id}
-                  onClick={() =>
-                    onChange({
-                      categoryId: c._id,
-                      // Toggle: tapping the active child widens to the parent.
-                      subcategoryId:
-                        filters.subcategoryId === child._id
-                          ? undefined
-                          : child._id,
-                    })
-                  }
-                />
-              ))}
-            </Fragment>
-          ))}
-        </Group>
-      )}
-
-      {brands.length > 0 ? (
-        <Group title={t.brandLabel} divider>
-          <FilterRow
-            label={t.allBrands}
-            active={!filters.brandId}
-            onClick={() => onChange({ brandId: undefined })}
-          />
-          {brands.map((b) => (
-            <FilterRow
-              key={b._id}
-              label={b.name}
-              count={b.productCount}
-              active={filters.brandId === b._id}
-              onClick={() => onChange({ brandId: b._id })}
-            />
-          ))}
-        </Group>
-      ) : null}
-
-      {tags.length > 0 ? (
-        <Group title={t.tagsLabel} divider>
-          {tags.map((tag) => (
-            <FilterRow
-              key={tag._id}
-              label={tag.name}
-              count={tag.productCount}
-              active={activeTags.includes(tag.slug)}
-              onClick={() => toggleTag(tag.slug)}
-            />
-          ))}
-        </Group>
-      ) : null}
-
-      <Group title={t.priceRange} divider>
-        <PriceBounds
-          min={filters.minPrice}
-          max={filters.maxPrice}
-          onCommit={(min, max) =>
-            onChange({ minPrice: min || undefined, maxPrice: max || undefined })
-          }
-        />
-      </Group>
-
-      <Group title={t.availability} divider>
-        <SwitchRow
-          label={t.inStockFilter}
-          on={filters.inStock}
-          onToggle={() => onChange({ inStock: filters.inStock ? undefined : "1" })}
-        />
-      </Group>
+      {groups.map((g, i) => (
+        <AccordionGroup key={g.id} group={g} ctx={ctx} first={i === 0} />
+      ))}
     </div>
   );
 }
 
-function Group({
-  title,
-  divider,
-  children,
+function AccordionGroup({
+  group,
+  ctx,
+  first,
 }: {
-  title: string;
-  divider?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      style={
-        divider
-          ? { marginTop: 16, paddingTop: 15, borderTop: "1px solid var(--border)" }
-          : undefined
-      }
-    >
-      <div
-        style={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-          marginBottom: 12,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>{children}</div>
-    </div>
-  );
-}
-
-/** One facet row — checkbox square + label (+ optional count), single-select. */
-export function FilterRow({
-  label,
-  active,
-  count,
-  nested,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  count?: number;
-  /** A sub-category row — indented under its parent, same tap height. */
-  nested?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 9,
-        width: "100%",
-        fontSize: nested ? 12.5 : 13,
-        color: active ? "var(--text)" : "var(--muted)",
-        fontWeight: active ? 600 : 400,
-        background: "none",
-        border: "none",
-        // A bare row is only as tall as its 15px box — far too small to tap.
-        // Vertical padding takes it to 40px; the list gains the height it needs.
-        padding: "10px 0",
-        // Indent only — never a shorter row. The tap floor applies at every
-        // level, so nesting costs horizontal space, not height.
-        paddingLeft: nested ? 16 : undefined,
-        cursor: "pointer",
-        textAlign: "left",
-      }}
-    >
-      <span
-        style={{
-          width: 15,
-          height: 15,
-          borderRadius: 4,
-          flex: "none",
-          background: active ? "var(--primary)" : "transparent",
-          border: active ? "none" : "1.5px solid var(--border-strong)",
-        }}
-      />
-      <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
-      {count != null ? (
-        <span className="sf-mono" style={{ fontSize: 11, color: "var(--faint)" }}>
-          {count}
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-/**
- * Min/max price fields — plain numeric-text inputs (no native number input,
- * per house rules) committing on blur/Enter so half-typed bounds never fire a
- * fetch. Values resync when the URL changes elsewhere (chip ✕, Clear all).
- */
-function PriceBounds({
-  min,
-  max,
-  onCommit,
-}: {
-  min: string;
-  max: string;
-  onCommit: (min: string, max: string) => void;
+  group: FilterGroup;
+  ctx: FilterContext;
+  first: boolean;
 }) {
   const { t } = useStorefrontUI();
-  const [lo, setLo] = useState(min);
-  const [hi, setHi] = useState(max);
-  const [prev, setPrev] = useState(`${min}|${max}`);
-  if (prev !== `${min}|${max}`) {
-    setPrev(`${min}|${max}`);
-    setLo(min);
-    setHi(max);
+  const [open, setOpen] = useState(group.open);
+  // A group that gains a value (a chip tapped elsewhere, a quick chip) opens, so
+  // reopening the panel shows what is applied. Adjusted during render rather
+  // than in an effect so there is no closed frame first.
+  const active = ctx.facets.activeGroups.has(group.id);
+  const [wasActive, setWasActive] = useState(active);
+  if (active !== wasActive) {
+    setWasActive(active);
+    if (active) setOpen(true);
   }
-
-  const commit = () => {
-    if (lo && hi && Number(lo) > Number(hi)) onCommit(hi, lo);
-    else onCommit(lo, hi);
-  };
-  const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") commit();
-  };
-  const digits = (v: string) => v.replace(/[^0-9]/g, "");
-
+  const bodyId = `sf-fg-${group.id.replace(/[^a-zA-Z0-9-]/g, "_")}`;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-      <input
-        type="text"
-        inputMode="numeric"
-        value={lo}
-        placeholder={t.minLabel}
-        aria-label={t.minLabel}
-        onChange={(e) => setLo(digits(e.target.value))}
-        onBlur={commit}
-        onKeyDown={onKey}
-        style={priceField}
-      />
-      <span style={{ color: "var(--muted)", fontSize: 12 }}>–</span>
-      <input
-        type="text"
-        inputMode="numeric"
-        value={hi}
-        placeholder={t.maxLabel}
-        aria-label={t.maxLabel}
-        onChange={(e) => setHi(digits(e.target.value))}
-        onBlur={commit}
-        onKeyDown={onKey}
-        style={priceField}
-      />
-    </div>
-  );
-}
-
-const priceField: React.CSSProperties = {
-  width: "100%",
-  minWidth: 0,
-  border: "1px solid var(--border-strong)",
-  borderRadius: 8,
-  padding: "9px 9px",
-  fontSize: 16,
-  fontFamily: "inherit",
-  background: "var(--card)",
-  color: "var(--text)",
-};
-
-function SwitchRow({
-  label,
-  on,
-  onToggle,
-}: {
-  label: string;
-  on: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={onToggle}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 9,
-        width: "100%",
-        background: "none",
-        border: "none",
-        // Matches the option rows above — the 18px switch alone is not tappable.
-        padding: "10px 0",
-        cursor: "pointer",
-        fontSize: 13,
-        fontFamily: "inherit",
-        color: on ? "var(--text)" : "var(--muted)",
-        fontWeight: on ? 600 : 400,
-        textAlign: "left",
-      }}
-    >
-      {label}
-      <span
+    <div style={first ? undefined : { borderTop: "1px solid var(--border)" }}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={() => setOpen((o) => !o)}
         style={{
-          width: 30,
-          height: 18,
-          borderRadius: 999,
-          background: on ? "var(--primary)" : "var(--border-strong)",
-          position: "relative",
-          flex: "none",
-          transition: "background 0.15s",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          width: "100%",
+          padding: "14px 0",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          color: "var(--text)",
+          textAlign: "left",
         }}
       >
         <span
           style={{
-            position: "absolute",
-            top: 2,
-            left: on ? 14 : 2,
-            width: 14,
-            height: 14,
-            borderRadius: "50%",
-            background: "#fff",
-            transition: "left 0.15s",
+            flex: 1,
+            minWidth: 0,
+            fontSize: 11.5,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
           }}
-        />
-      </span>
-    </button>
+        >
+          {groupLabel(group, t)}
+        </span>
+        {active ? (
+          <span
+            aria-hidden
+            style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--primary)" }}
+          />
+        ) : null}
+        <span
+          aria-hidden
+          style={{ display: "flex", color: "var(--muted)", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.15s" }}
+        >
+          <Icon name="chevD" size={15} />
+        </span>
+      </button>
+      {open ? (
+        <div id={bodyId} style={{ paddingBottom: 14 }}>
+          <FilterGroupBody group={group} ctx={ctx} />
+        </div>
+      ) : null}
+    </div>
   );
 }

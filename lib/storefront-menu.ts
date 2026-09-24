@@ -452,7 +452,17 @@ export function initialOpenKeys(
   return new Set(rule === "active-or-first" && first ? [first] : []);
 }
 
-/** The chips row: parents only, or each parent followed by its sub-categories. */
-export function chipNodes(nodes: MenuNode[], mode: MenuChips): MenuNode[] {
-  return mode === "all" ? nodes.flatMap((n) => [n, ...n.children]) : nodes;
+/**
+ * The chips row: parents only, or each parent followed by its sub-categories.
+ *
+ * `pathname` applies the rule shared with the filter plan (§3.6): on a page
+ * inside a department that HAS sub-categories, the collection page draws its own
+ * sub-category strip, so the row falls back to parents — otherwise one phone
+ * screen lists the same sub-categories twice.
+ */
+export function chipNodes(nodes: MenuNode[], mode: MenuChips, pathname?: string): MenuNode[] {
+  if (mode !== "all") return nodes;
+  const stripShown =
+    pathname !== undefined && nodes.some((n) => n.children.length > 0 && isNodeActive(n, pathname));
+  return stripShown ? nodes : nodes.flatMap((n) => [n, ...n.children]);
 }

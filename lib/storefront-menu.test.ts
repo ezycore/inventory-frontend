@@ -215,6 +215,20 @@ describe("chipNodes", () => {
     expect(labels(chipNodes(nodes, "parents"))).toEqual(["Led", "Phones"]);
     expect(labels(chipNodes(nodes, "all"))).toEqual(["Led", "Strips", "Accessories", "Phones", "Accessories"]);
   });
+
+  // The rule shared with the filter plan (§3.6): the collection page draws its
+  // own sub-category strip, so the chips row must not repeat it.
+  it("falls back to parents inside a department whose page draws the strip", () => {
+    expect(labels(chipNodes(nodes, "all", "/shop/led/strips"))).toEqual(["Led", "Phones"]);
+    expect(labels(chipNodes(nodes, "all", "/shop/led"))).toEqual(["Led", "Phones"]);
+    expect(labels(chipNodes(nodes, "all", "/shop"))).toEqual([
+      "Led",
+      "Strips",
+      "Accessories",
+      "Phones",
+      "Accessories",
+    ]);
+  });
 });
 
 describe("menu settings", () => {

@@ -70,6 +70,7 @@ export function StorePreviewBridge() {
         // which must clear the saved one rather than read as "not drafted".
         // Only when the payload carries `nav` at all, like every slot here.
         navMenu: p.nav ? (p.nav.menu ?? {}) : undefined,
+        navFilters: p.nav ? (p.nav.filters ?? {}) : undefined,
         campaignStrip: p.nav?.campaignStrip,
         collections: p.collections,
         footerGroups: p.nav?.footer,

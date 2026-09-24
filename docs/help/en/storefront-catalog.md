@@ -381,6 +381,21 @@ wording — you can try every combination and change your mind without losing an
 furniture and electronics, and **Extra tall** is for full-length shots. Cart and search-list
 thumbnails stay square whatever you pick, so those rows keep their shape.
 
+### Filters & sort
+
+**Filters & sort**, under *Across the site*, sets up the filters on your collection pages, sale pages
+and search results together. On a phone the filters open as a **Bottom sheet** (the default) or a
+**Side panel**, and the Filters and Sort buttons stay in view while a shopper scrolls back up. Pick
+up to six **Quick filters** — "In stock", "Size", "Price range" — to show as one-tap chips above
+your products.
+
+On a computer, choose **Panel** (a Filters button), **Sidebar** (pinned beside the products) or
+**Bar** (one dropdown per filter above the products). Under **Filter groups** you can put the
+groups in your own order, rename one in your shoppers' words, hide one, or have it open already.
+Sizes and colours from your product variants become filters by themselves. Below that you choose
+ready-made price ranges or typed prices, whether shoppers can tick several brands, and which sort
+your products open on.
+
 ### Footer
 
 **Footer** is the last thing a shopper reads and the place a hesitant one looks for proof that a real

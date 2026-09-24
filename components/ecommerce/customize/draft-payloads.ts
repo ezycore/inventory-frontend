@@ -26,6 +26,7 @@ import { normalizeStoreLink } from "@/lib/storefront-links";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import { mobileOverrides } from "@/lib/storefront-mobile";
 import { menuSettingsOverrides } from "@/lib/storefront-menu";
+import { filterSettingsOverrides } from "@/lib/storefront-filters";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -305,6 +306,8 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
     // Only what differs from the defaults — a shop that never opened the Menu
     // panel stores nothing, and follows the defaults if they ever improve.
     menu: menuSettingsOverrides(draft.navMenu),
+    // Same discipline: only what differs from the defaults.
+    filters: filterSettingsOverrides(draft.navFilters),
   };
 }
 
@@ -463,7 +466,7 @@ export function toSettingsPatch(
   }
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
   if (
-    ["announcement", "campaign", "menu", "utility", "footer"].some((part) =>
+    ["announcement", "campaign", "menu", "filters", "utility", "footer"].some((part) =>
       dirty.has(part as PartId),
     )
   ) {

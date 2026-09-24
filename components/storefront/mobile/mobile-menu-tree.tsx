@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import {
   PHONE_OPEN_RULE,
@@ -119,10 +119,18 @@ export function MenuTreeList({
   nodes,
   settings,
   onClose,
+  lead,
 }: {
   nodes: MenuNode[];
   settings: PhoneMenu;
   onClose: () => void;
+  /**
+   * A row drawn above the menu on the top screen only (the drawer's "All
+   * products"). Owned here rather than by the caller because only this list
+   * knows when a category screen is open — above a Back row it read as the
+   * first thing inside the category.
+   */
+  lead?: ReactNode;
 }) {
   const { t } = useStorefrontUI();
   const pathname = useStorePathname();
@@ -179,6 +187,7 @@ export function MenuTreeList({
 
   return (
     <>
+      {lead}
       {nodes.map((node) => {
         const hasKids = node.children.length > 0;
         const active = isNodeActive(node, pathname);

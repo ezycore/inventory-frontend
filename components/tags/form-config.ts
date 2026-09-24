@@ -53,6 +53,14 @@ export const tagFormConfig: DynamicFormConfig = {
       options: COLOR_PRESETS,
     },
     {
+      name: "group",
+      type: "input",
+      label: "Filter group",
+      placeholder: "e.g. Fabric, Occasion",
+      columnSpan: 12,
+      validation: { maxLength: 40 },
+    },
+    {
       name: "status",
       type: "select",
       label: "Status",
@@ -94,6 +102,16 @@ export const getTagFormConfig = (t: Translator): DynamicFormConfig => ({
       placeholder: t("form.colorPlaceholder"),
       columnSpan: 12,
       options: COLOR_PRESETS,
+    },
+    {
+      // The storefront filter heading this tag files under (filter plan C2).
+      name: "group",
+      type: "input",
+      label: t("form.group"),
+      placeholder: t("form.groupPlaceholder"),
+      helperText: t("form.groupHint"),
+      columnSpan: 12,
+      validation: { maxLength: 40 },
     },
     {
       name: "status",

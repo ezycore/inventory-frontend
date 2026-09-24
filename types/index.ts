@@ -10,7 +10,7 @@ import type {
   SaleTransactions as ApiSaleTransactions,
 } from "./api";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
-import type { StoreMenuSettings } from "@/lib/storefront-client";
+import type { StoreFilterSettings, StoreMenuSettings } from "@/lib/storefront-client";
 
 // Common enums
 export enum ProductStatus {
@@ -605,6 +605,8 @@ export interface StorefrontNav {
   utilityBar?: StorefrontUtilityBar;
   /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
   menu?: StoreMenuSettings;
+  /** Catalogue filters & sort (Customize → Filters & sort); see `lib/storefront-filters.ts`. */
+  filters?: StoreFilterSettings;
 }
 
 /**

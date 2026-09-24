@@ -447,6 +447,9 @@
       "descriptionPlaceholder": "এই ট্যাগটি কী কাজে",
       "color": "রং",
       "colorPlaceholder": "চিপের রং বাছুন",
+      "group": "ফিল্টার গ্রুপ",
+      "groupPlaceholder": "যেমন কাপড়, উপলক্ষ",
+      "groupHint": "একই গ্রুপের ট্যাগগুলো দোকানের ফিল্টারে নিজস্ব শিরোনাম পায়। খালি রাখলে ট্যাগ-এর নিচে দেখাবে।",
       "status": "স্ট্যাটাস",
       "statusActive": "সক্রিয়",
       "statusInactive": "নিষ্ক্রিয়"

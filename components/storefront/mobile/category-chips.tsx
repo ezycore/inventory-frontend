@@ -7,6 +7,7 @@ import { storeHref } from "@/lib/storefront-links";
 import { chipNodes } from "@/lib/storefront-menu";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useStoreMenu } from "@/components/storefront/use-store-menu";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 
 /**
  * The departments as a scrolling row of text chips.
@@ -31,7 +32,8 @@ export function CategoryChips({
 }) {
   const { t } = useStorefrontUI();
   const menu = useStoreMenu(store, categories, base);
-  const chips = chipNodes(menu.categories, menu.settings.mobile.chips);
+  const pathname = useStorePathname();
+  const chips = chipNodes(menu.categories, menu.settings.mobile.chips, pathname);
   if (!chips.length) return null;
   return (
     <div className="sf-mchips" style={{ marginTop: 8 }}>

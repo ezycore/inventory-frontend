@@ -207,16 +207,22 @@ function MenuBody({
 
   return (
     <>
-      <SheetLink
-        node={{ href: storeHref(base, "/products"), external: false, label: t.allProducts }}
-        onClose={onClose}
-        strong
-      />
       {/* The resolved menu — the SAME tree the desktop header draws, so the
           Menu links setting finally governs the phone too (decision B). It
           used to print every category and then the custom menu flattened
           beneath it, so a custom menu listed its departments twice. */}
-      <MenuTreeList nodes={nodes} settings={settings} onClose={onClose} />
+      <MenuTreeList
+        nodes={nodes}
+        settings={settings}
+        onClose={onClose}
+        lead={
+          <SheetLink
+            node={{ href: storeHref(base, "/products"), external: false, label: t.allProducts }}
+            onClose={onClose}
+            strong
+          />
+        }
+      />
 
       {needsAccount || needsLang || needsTheme ? (
         <>

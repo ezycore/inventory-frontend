@@ -417,6 +417,12 @@ export interface Dict {
   sortNewest: string;
   sortPriceLow: string;
   sortPriceHigh: string;
+  /** Sort by the biggest share off the struck "was" price. */
+  sortDiscount: string;
+  /** Price-range chip, open below — `{max}` is a formatted amount. */
+  priceUnder: string;
+  /** Price-range chip, open above — `{min}` is a formatted amount. */
+  priceAbove: string;
   minLabel: string;
   maxLabel: string;
   reset: string;
@@ -861,6 +867,9 @@ const en: Dict = {
   sortNewest: "Newest",
   sortPriceLow: "Price: low to high",
   sortPriceHigh: "Price: high to low",
+  sortDiscount: "Biggest discount",
+  priceUnder: "Under {max}",
+  priceAbove: "{min} and up",
   minLabel: "Min",
   maxLabel: "Max",
   reset: "Reset",
@@ -1294,6 +1303,9 @@ const bn: Dict = {
   sortNewest: "নতুন আগে",
   sortPriceLow: "দাম: কম থেকে বেশি",
   sortPriceHigh: "দাম: বেশি থেকে কম",
+  sortDiscount: "সবচেয়ে বেশি ছাড়",
+  priceUnder: "{max}-এর নিচে",
+  priceAbove: "{min} বা তার বেশি",
   minLabel: "সর্বনিম্ন",
   maxLabel: "সর্বোচ্চ",
   reset: "রিসেট",

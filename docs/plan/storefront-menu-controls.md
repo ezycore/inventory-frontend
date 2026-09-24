@@ -1,6 +1,11 @@
 # Storefront menu controls — review + improvement plan
 
-Status: **Phases 0–4 BUILT 2026-09-24, uncommitted** — targeted tests green; full suites, typecheck/lint and browser QA pending. Phase 5 (optional) not started. Owner approved decisions A–D the same day — see §4.
+Status: **Phases 0–4 BUILT 2026-09-24, uncommitted** — targeted tests, typecheck and lint green (one pre-existing
+error elsewhere); full suites pending. Browser QA done the same day on the UriiBaba QA clone: phone accordion /
+step-in / current-department, desktop list / columns / full-width / More / click mode / touch tap, row-less headers,
+sidebar modes, Customize save round-trip. Fixed during QA: the sidebar flyout painted under the product grid
+(sticky rail had no z-index). Not verifiable there: More re-fitting on window resize (the browser window reported
+`hidden`, which pauses ResizeObserver). Phase 5 (optional) not started. Owner approved decisions A–D the same day — see §4.
 
 Scope: the storefront's category/link navigation on **phone first, desktop second** — the header
 menu, the dropdowns, the category sidebar ("rail"), the phone menu drawer/sheet and the phone

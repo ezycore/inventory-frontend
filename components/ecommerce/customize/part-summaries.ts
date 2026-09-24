@@ -12,6 +12,7 @@ import {
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import { MENU_MOBILE_LAYOUTS } from "@/lib/storefront-menu";
+import { FILTER_ENTRIES, FILTER_PLACEMENTS } from "@/lib/storefront-filters";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
@@ -126,6 +127,13 @@ export function partSummary(
       return [`On when a campaign is running · ${pages}`, where]
         .filter(Boolean)
         .join(" · ");
+    }
+    case "filters": {
+      const f = draft.navFilters;
+      if (!f.enabled) return "Filters off · sort only";
+      const phone = FILTER_ENTRIES.find((o) => o.id === f.mobile.entry)?.label ?? "Bottom sheet";
+      const desk = FILTER_PLACEMENTS.find((o) => o.id === f.desktop.placement)?.label ?? "Panel";
+      return `Phone: ${phone.toLowerCase()} · computer: ${desk.toLowerCase()}`;
     }
     case "menu": {
       const links =

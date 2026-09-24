@@ -2072,6 +2072,54 @@ menu flattened beneath it. Now:
   Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout +
   hover only.
 
+### Filters & sort — one layout, three pages (2026-09-24)
+
+Plan + review: `docs/plan/storefront-filter-controls.md` (owner decisions A–E all "recommended").
+Collection, campaign and search pages draw their filters through **`<CatalogFilters>`**
+(`components/storefront/filters/catalog-filters.tsx`) — toolbar, quick chips, active chips, the
+sheet/drawer, the desktop sidebar or bar — wrapped around the grid as `children`. Never put a
+Filters button or `FilterPanel` on a page directly.
+
+- **Data: one request.** `useCatalogFacets` reads `GET …/facets` (backend
+  `storefront-facets.service.ts`): categories (counts only), brands, tags (+ `group`), variant
+  `options`, price `{min,max,presets}`, `anyOutOfStock`, `total`. Each facet is counted against the
+  rows passing every OTHER filter. The old per-facet `/brands` and `/tags` routes stay for older
+  clients; nothing here calls them.
+- **URL grammar:** `brandId` is a comma list (OR); variant options are `opt.<Attribute>=M,L`
+  (case-insensitive server-side; one VARIANT must carry every selected group's value); sort adds
+  `discount`. `opt.*` rides in `CatalogSearchParams.options` as the raw params so the SSR seed and
+  the client build the same cache key.
+- **Settings: `nav.filters`**, not `theme.design` (a theme stamps `theme` and would wipe renamed
+  groups). Registry + resolver + group ordering in **`lib/storefront-filters.ts`**
+  (`resolveFilterSettings`, `filterSettingsOverrides`, `orderFilterGroups`, `sortGroups`,
+  `visibleSorts`, `defaultSortOf`). Read on the storefront through `useStoreFilters(store, layout)`
+  (draft first). The legacy collection layout `sidebar` resolves to `desktop.placement: "sidebar"`
+  until a placement is chosen — that fixed D1 with no data change.
+- **Default sort** is `CatalogSearchParams.defaultSort`, never a URL param: the three SSR pages pass
+  `defaultSortOf(store)`, the client passes the resolved setting, `featured` is never sent. So a
+  shop defaulting to Newest keeps clean, indexable URLs.
+- **Surfaces are CSS-switched** (`.sf-ftool*`, `.sf-fquick*`, `.sf-flayout*` in storefront.css):
+  sidebar from 1024px (right-hand under the rail shell — decision C), bar from 680px, the Filters
+  button hidden exactly where one takes over. Phone: sticky toolbar under `--sf-header-h` that hides
+  while reading down (`useHideOnScroll`), sort as its own sheet, quick-chip row.
+- **`SideDrawer side="sheet"`** is a bottom sheet under 680px and the right drawer above; children
+  use `flex: "1 1 auto", minHeight: 0` so a sheet sizes to its content.
+- **`--sf-header-h` is 0 when the header does not stick** (`use-header-height.ts` checks computed
+  `position`) — a scrolled-away header leaves nothing to clear.
+- **Category group** is an accordion with "All ‹Parent›" first; on the bare `/products` listing a
+  row NAVIGATES to the category page carrying the other filters (F5). Campaign and search keep the
+  `categoryId` param. Rows with no products under the other filters are dropped (F4).
+- **Availability** only shows when `anyOutOfStock` (never on an untracked shop — F6) or while on.
+- **Shared sub-category rule (§3.6):** `chipNodes(nodes, "all", pathname)` falls back to parents
+  inside a department whose page draws the `SubcategoryStrip` (which now leads with "All ‹Parent›",
+  `stripParent`).
+- **Customize → Filters & sort** (`parts/filters-part.tsx`, `filter-groups-editor.tsx`,
+  `filter-sort-price-fields.tsx`) under *Across the site*; phone first like Menu. ⚠ `toSettingsPatch`
+  lists `filters` among the parts that take `nav` — a part missing from that list saves nothing and
+  reports success.
+- **Tag groups:** `Tag.group` (free text, tags form "Filter group"); grouped tags become their own
+  `tagGroup:<name>` facet, still one `tags` param.
+
 ### ⚠ `display: contents` and `> :first-child` — the promo-card side bug (2026-09-07)
 
 `Picture side` on the category promo cards shipped doing nothing, and the shape of the failure is
@@ -3316,8 +3364,9 @@ cached entry on the `/sites` route (see "Cached store pages").
   horizontally: flat links, no dropdown for the scroll box to clip.
 
 - **Catalog facets** — `components/storefront/use-catalog-facets.ts` is the **one** owner of the
-  facet layer (URL state, the facet lists, the active-filter chips, `clearAll`, `setParams`), shared
-  by the collection grid and `/search`. It was inline in `products/view.tsx` until search gained
+  facet layer (URL state, the facet data from `GET …/facets`, the active-filter chips, `clearAll`,
+  `setParams`, `toggle`, `setSort`), shared by the collection grid, campaign pages and `/search` —
+  and drawn by `<CatalogFilters>` (see "Filters & sort"). It was inline in `products/view.tsx` until search gained
   facets; a second copy would have drifted on the first change to chip behaviour, and those two
   pages are exactly the ones a shopper compares. **A new page that filters the catalogue uses this
   hook** — do not re-read `?tags=`/`?brandId=` off `useSearchParams` by hand.
