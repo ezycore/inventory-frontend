@@ -224,9 +224,6 @@ export interface Dict {
   requiredTag: string;
   /** Group heading above name + phone, separating them from the address. */
   contactHeading: string;
-  /** One line under Cash on delivery. Says only what COD already means — no
-   *  claim the merchant has not made. */
-  codHint: string;
   /** Heading over the merchant's own bank-transfer instructions. Frames free
    *  text the store wrote (account number, reference) as the NEXT STEP, not as
    *  another blurb — so the shopper reads it as something to act on. */
@@ -721,7 +718,6 @@ const en: Dict = {
   optionalTag: "optional",
   requiredTag: "required",
   contactHeading: "Contact",
-  codHint: "Pay when your order arrives",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
   nameRequired: "Enter your full name",
   phoneRequired: "Enter your mobile number",
@@ -1162,7 +1158,6 @@ const bn: Dict = {
   optionalTag: "ঐচ্ছিক",
   requiredTag: "আবশ্যক",
   contactHeading: "যোগাযোগ",
-  codHint: "অর্ডার পৌঁছালে টাকা পরিশোধ করুন",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
   nameRequired: "আপনার পুরো নাম লিখুন",
   phoneRequired: "আপনার মোবাইল নম্বর লিখুন",
