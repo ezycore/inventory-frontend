@@ -30,14 +30,82 @@ export type SubscriptionAccess = "active" | "read_only" | "reactivate" | "blocke
  */
 export type EntitlementAccessFields = Pick<
   Entitlement,
-  "status" | "subscriptionStatus" | "cancelAtPeriodEnd" | "cancelAt" | "currentPeriodEnd"
+  | "status"
+  | "subscriptionStatus"
+  | "cancelAtPeriodEnd"
+  | "cancelAt"
+  | "currentPeriodEnd"
+  | "trialEndsAt"
+  | "trialPrepaid"
+  | "graceUntil"
 >;
+
+/** Whole days from now until `date`, rounded up, or null when it is absent or
+ * already past. A trial ending in two hours has "1 day left", not "0" — the
+ * merchant reads a day count, not a duration. */
+function daysUntil(date?: string | null): number | null {
+  if (!date) return null;
+  const ms = new Date(date).getTime() - Date.now();
+  if (Number.isNaN(ms) || ms <= 0) return null;
+  return Math.ceil(ms / 86_400_000);
+}
+
+/**
+ * Whether the workspace is inside a **grace** window: unpaid, but deliberately
+ * still fully usable (storefront included) until `graceUntil`. Mission Control
+ * grants it when a trial lapses unpaid, when a renewal fails, and while an
+ * in-trial upgrade waits for payment.
+ *
+ * Mirrors `isInGrace` in `easystock-backend/src/utils/subscription-status.ts`.
+ */
+export function isInGrace(entitlement?: EntitlementAccessFields | null): boolean {
+  return daysUntil(entitlement?.graceUntil) !== null;
+}
+
+/** Days left in the grace window, or null when there is no live grace. */
+export function graceDaysLeft(entitlement?: EntitlementAccessFields | null) {
+  return daysUntil(entitlement?.graceUntil);
+}
+
+/**
+ * Whether the current trial has already been paid for in advance.
+ *
+ * True only while the prepayment is *parked*: Mission Control clears the flag
+ * when it is spent on the first invoice, at which point the subscription is
+ * plainly `active` and there is nothing special left to say. Guarded on
+ * `trialing` as well as the flag, because a stale flag on an activated
+ * subscription would otherwise claim a trial that is over.
+ */
+export function isTrialPrepaid(entitlement?: EntitlementAccessFields | null) {
+  return (
+    entitlement?.subscriptionStatus === "trialing" &&
+    entitlement.trialPrepaid === true
+  );
+}
+
+/** Days left on a running trial that still needs paying for, or null.
+ *
+ * Drives the in-app countdown — the merchant's only notice inside the app that
+ * a trial is about to end. A **prepaid** trial returns null: it is still
+ * `trialing` (that is what preserves the days they paid for), but counting down
+ * at someone who has already paid, under a "Pay now" that resolves to nothing,
+ * is worse than saying nothing at all. */
+export function trialDaysLeft(entitlement?: EntitlementAccessFields | null) {
+  if (entitlement?.subscriptionStatus !== "trialing") return null;
+  if (isTrialPrepaid(entitlement)) return null;
+  return daysUntil(entitlement.trialEndsAt);
+}
 
 export function classifyEntitlementAccess(
   entitlement?: EntitlementAccessFields | null,
 ): SubscriptionAccess {
   if (!entitlement) return "blocked";
   const sub = entitlement.subscriptionStatus;
+  // Grace outranks every tier the status alone would give, `inactive` included —
+  // the two states that most need it arrive looking terminal (a lapsed trial is
+  // `past_due`, an in-trial upgrade held for payment is `incomplete`). Keep in
+  // step with the backend classifier, which resolves it in the same position.
+  if (isInGrace(entitlement)) return "read_only";
   // Both billing-only states are resolved BEFORE the inactive→blocked branch.
   // MC derives the mirror's `status` from the subscription status, so a canceled
   // sub arrives as `status:inactive` + `subscriptionStatus:canceled` and an

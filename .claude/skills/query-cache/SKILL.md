@@ -85,8 +85,9 @@ filter baked into their fetcher (`kind: "landing"` vs `kind: "content"`) share o
 same page and size, and whichever loads first fills both. The Pages screen shipped exactly that
 (2026-09-16): a cut-over store's Store pages table listed its landing page. Put the distinguishing
 filter in the key — `queryKeys.<r>.list({ kind })` — and keep the key and the fetcher in one place so
-they cannot drift ([`page-list-operations.ts`](../../../components/ecommerce/pages/page-list-operations.ts)).
-The `lists()` prefix still reaches both for invalidation.
+they cannot drift. The `lists()` prefix still reaches both for invalidation. (The Pages screen itself
+no longer has those tables — since 2026-09-23 it reads each kind through `useStorefrontPages({ kind })`,
+whose key is built from the same params as its fetch — but the trap stands for any `DataTable` pair.)
 
 **A lazy read modelled as a `useMutation`** (runs on click, not on mount) is legitimate — see
 `useOrderFraudScore`, `useOrganizationUsers`. It must be allowlisted in the gate (§7).

@@ -17,8 +17,9 @@ import type { StorefrontStore } from "@/lib/storefront-client";
  * **This tag does set cookies**, unless the merchant has turned them off inside their own
  * Clarity project (Settings → Setup → Advanced settings → Cookies, on by default). Microsoft's
  * docs describe a cookieless mode that holds until `consentv2` is called; measured live on
- * 2026-09-23 that is not what a default project does. `ConsentBar` sends the consent signal —
- * denied until a shopper says otherwise — but the signal does not override that project switch.
+ * 2026-09-23 that is not what a default project does. `ConsentBar` (mounted by `StoreHead`) sends
+ * the consent signal — denied until a shopper says otherwise — but the signal does not override
+ * that project switch.
  *
  * **`preview` is not a styling concern.** A merchant clicking around their own draft from the
  * Customize editor would otherwise fill their recordings with themselves, which is how a
@@ -49,7 +50,7 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       <Script id="ms-clarity" strategy="afterInteractive">
         {snippet}
       </Script>
-      <ClarityClient cookieConsent={clarity.cookieConsent} />
+      <ClarityClient />
     </>
   );
 }

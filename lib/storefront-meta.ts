@@ -1,5 +1,7 @@
 // coding-standard: maintained
 import { isSfPreview } from "@/services/storefront/cart-identity";
+import { storefrontItemId } from "@/lib/storefront-item-id";
+import { alreadySent, rememberSent } from "@/lib/storefront-sent-once";
 import type { StorefrontStore } from "@/lib/storefront-client";
 
 /**
@@ -92,7 +94,7 @@ const FBCLID_KEY = "ezy-fbclid";
  * future catalog feed, or Meta treats them as three unrelated products.
  */
 export const metaContentId = (productId: string, variantId?: string): string =>
-  variantId ? `${productId}:${variantId}` : productId;
+  storefrontItemId(productId, variantId);
 
 /**
  * The `Purchase` deduplication id — **the same cross-repo contract as `metaContentId`.**
@@ -261,43 +263,12 @@ export interface MetaPurchaseOrder {
 }
 
 /**
- * Every `event_id` this browser has already reported, so one order is one event.
- *
- * A module-level `Set` is not enough on its own: it dies with the tab, and the thank-you screen
- * is exactly the page a shopper reloads or returns to with the back button. `sessionStorage`
- * carries it across those; the `Set` is the fallback where storage throws (Safari private mode),
- * where it still covers the common in-page case.
- *
- * Meta would very likely collapse a repeat anyway — same `event_name`, same `event_id`, minutes
- * apart — but "very likely" is not a guarantee we get to make on a merchant's revenue, and this
- * is ten lines.
+ * Every `event_id` this browser has already reported, so one order is one event — see
+ * `lib/storefront-sent-once.ts`. Meta would very likely collapse a repeat anyway (same
+ * `event_name`, same `event_id`), but "very likely" is not a guarantee we get to make on a
+ * merchant's revenue.
  */
 const SENT_PURCHASES_KEY = "ezy-meta-purchases";
-const sentPurchases = new Set<string>();
-
-const alreadySent = (eventId: string): boolean => {
-  if (sentPurchases.has(eventId)) return true;
-  try {
-    const raw = window.sessionStorage.getItem(SENT_PURCHASES_KEY);
-    return !!raw && (JSON.parse(raw) as string[]).includes(eventId);
-  } catch {
-    return false;
-  }
-};
-
-const rememberSent = (eventId: string): void => {
-  sentPurchases.add(eventId);
-  try {
-    const raw = window.sessionStorage.getItem(SENT_PURCHASES_KEY);
-    const stored = raw ? (JSON.parse(raw) as string[]) : [];
-    // Bounded: a shopper placing more than a handful of orders in one session is not a case
-    // worth unbounded storage for, and the oldest ids can no longer be re-fired anyway.
-    const next = [...stored.filter((id) => id !== eventId), eventId].slice(-20);
-    window.sessionStorage.setItem(SENT_PURCHASES_KEY, JSON.stringify(next));
-  } catch {
-    // Storage blocked. The in-memory Set still covers this tab.
-  }
-};
 
 /**
  * Report the sale from the browser, when the merchant has asked for it.
@@ -320,7 +291,7 @@ export const trackMetaPurchase = (
 ): void => {
   if (!canSend(store, "Purchase")) return;
   const eventId = metaPurchaseEventId(order.orderNumber);
-  if (alreadySent(eventId)) return;
+  if (alreadySent(SENT_PURCHASES_KEY, eventId)) return;
 
   const contents = order.items.map((item) => ({
     id: metaContentId(item.productId, item.variantId),
@@ -330,7 +301,7 @@ export const trackMetaPurchase = (
 
   // Marked BEFORE the send, not after: `trackMetaEvent` swallows its own failures, so a thrown
   // `fbq` would otherwise leave the id unrecorded and let a re-render try again.
-  rememberSent(eventId);
+  rememberSent(SENT_PURCHASES_KEY, eventId);
   trackMetaEvent(
     store,
     "Purchase",

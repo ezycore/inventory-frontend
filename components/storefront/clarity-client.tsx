@@ -3,7 +3,6 @@
 
 import { useEffect } from "react";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
-import { ConsentBar } from "@/components/storefront/consent-bar";
 import {
   setClarityPageType,
   storefrontPageType,
@@ -13,19 +12,16 @@ import {
 /**
  * The client half of the Clarity tag: the page-type tag, and the checkout upgrade.
  *
- * Renders only the consent bar (itself usually nothing). The base tag is the server component
- * beside this file; everything here needs the router, which does not exist on the server.
+ * Renders nothing. The base tag is the server component beside this file; everything here needs
+ * the router, which does not exist on the server. The consent bar used to be mounted here; it is
+ * store-level now and `StoreHead` mounts it for Clarity and GA4 alike.
  *
  * **It does not report page views.** Clarity follows History API navigations itself, so an SPA
  * page-view call would double-count — the opposite of `MetaPixelClient`, which must fire its own
  * `PageView` because `fbq` does not watch the router. What Clarity cannot know is what *kind* of
  * page it is on, and that is the whole job of this file.
  */
-export function ClarityClient({
-  cookieConsent,
-}: {
-  cookieConsent: "off" | "eu" | "always";
-}) {
+export function ClarityClient() {
   const pathname = useStorePathname();
 
   useEffect(() => {
@@ -41,7 +37,5 @@ export function ClarityClient({
     if (pageType === "checkout") upgradeClaritySession("checkout");
   }, [pathname]);
 
-  // Mounted here rather than in the shell because consent only exists where the tag does: a
-  // store with no Clarity has nothing to ask about, and this component does not render on one.
-  return <ConsentBar mode={cookieConsent} />;
+  return null;
 }

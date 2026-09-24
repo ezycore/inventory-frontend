@@ -429,7 +429,9 @@ These matter more than they look. Delivery and returns are the two things a hesi
 before paying, and a store with neither reads as untrustworthy. Write the returns page to match what
 you actually do — see [Take back a sold item](./sales-returns.md).
 
-To add one, press **New page** and choose **Store page**. Its text is written in the same editor as
+To add one, press **New page** and choose **Store page**, then type a name or pick one of the usual ones
+under **Start from**. A shop with no store pages yet sees those names in the **Store pages** list itself —
+tap one and **New page** opens with it filled in. Its text is written in the same editor as
 before, with headings, bold, lists and links; consecutive `Q:` and `A:` lines become styled
 question-and-answer cards, which is the tidiest way to lay out an FAQ. You can also leave the text
 empty and build the page out of sections instead, the way a landing page is built — see

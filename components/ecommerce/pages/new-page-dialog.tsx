@@ -38,6 +38,15 @@ const TEMPLATE_ICONS: Record<PageTemplateId, LucideIcon> = {
 /** The two kinds a merchant makes. What each one is, in their words. */
 type PageKind = "content" | "landing";
 
+/** What the dialog opens on — a kind, and for a store page possibly its name. */
+export interface NewPageStart {
+  kind?: PageKind;
+  title?: string;
+}
+
+/** The store pages nearly every shop has; one tap names the page. */
+export const STORE_PAGE_STARTERS = ["About us", "Contact", "Return & Refund Policy", "Privacy Policy", "Terms"];
+
 const KINDS: { id: PageKind; label: string; description: string; icon: LucideIcon }[] = [
   {
     id: "content",
@@ -66,23 +75,28 @@ const KINDS: { id: PageKind; label: string; description: string; icon: LucideIco
  * asking once and up front is the honest way to set them.
  *
  * A **store page** needs nothing but a name: it is created with its own empty
- * body section and opens on the rich-text editor. A **landing page** picks a
+ * body section and opens on the rich-text editor. The usual ones are offered as
+ * one-tap names. The Pages list's empty states open this dialog already pointed
+ * somewhere (`start`): a landing page, or a store page with its name picked. The
+ * parent remounts it per open, via `key`, so the start is read fresh each time. A **landing page** picks a
  * starting point and the product it sells; the page is created with that
  * template's sections as its first draft, in one request.
  */
 export function NewPageDialog({
   open,
   onOpenChange,
+  start,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  start?: NewPageStart;
 }) {
   const router = useRouter();
   const create = useCreateStorefrontPage();
-  const [kind, setKind] = useState<PageKind>("content");
+  const [kind, setKind] = useState<PageKind>(start?.kind ?? "content");
   const [templateId, setTemplateId] = useState<PageTemplateId>("single-product");
   const [productId, setProductId] = useState<string | undefined>();
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(start?.title ?? "");
   const template = pageTemplate(templateId);
   const landing = kind === "landing";
   const name = title.trim();
@@ -141,6 +155,27 @@ export function NewPageDialog({
               ))}
             </div>
           </div>
+
+          {!landing ? (
+            <div className="space-y-2">
+              <Label>Start from</Label>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Common store pages">
+                {STORE_PAGE_STARTERS.map((starter) => (
+                  <Button
+                    key={starter}
+                    type="button"
+                    size="sm"
+                    variant={title.trim() === starter ? "default" : "outline"}
+                    aria-pressed={title.trim() === starter}
+                    className="h-9 rounded-full"
+                    onClick={() => setTitle(starter)}
+                  >
+                    {starter}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {landing ? (
             <div className="space-y-2">

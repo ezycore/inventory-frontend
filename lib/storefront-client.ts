@@ -608,14 +608,25 @@ export interface StorefrontStore {
    * **Presence is enabled**, same rule as `meta` above — the backend omits the whole block when
    * the merchant has it off or has entered no project id.
    *
-   * `cookieConsent` decides whether this storefront draws a consent bar, and to whom. `off` is
-   * not "ignore consent": Clarity sets no cookies at all until the page calls `consentv2`, so the
-   * no-banner default is also the no-storage one. See `components/storefront/consent-bar.tsx`.
+   * `cookieConsent` is the legacy name for the store-level `cookieBanner` below, still sent so a
+   * build that predates it keeps working. Read `cookieBanner` instead.
    */
   clarity?: {
     projectId: string;
     cookieConsent: "off" | "eu" | "always";
   };
+  /**
+   * Google Analytics 4 (backend `docs/plan/storefront-ga4.md`). **Presence is enabled**, same rule
+   * as `meta` and `clarity`.
+   */
+  ga4?: {
+    measurementId: string;
+  };
+  /**
+   * When the storefront draws its cookie-consent bar — store-level, shared by every tool that sets
+   * cookies. Present only when Clarity or GA4 is on. See `components/storefront/consent-bar.tsx`.
+   */
+  cookieBanner?: "off" | "eu" | "always";
   /** Admin-selected page templates (raw ids from the admin Templates tab). */
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */

@@ -32,6 +32,7 @@ import { useGuestContactCapture } from "@/hooks/use-guest-contact-capture";
 import { cartAnonymousId, isSfPreview } from "@/services/storefront/cart-identity";
 import { usePreviewCart } from "@/services/storefront/use-preview-cart";
 import { metaCheckoutAttribution, trackMetaPurchase } from "@/lib/storefront-meta";
+import { trackGa4Purchase } from "@/lib/storefront-ga4";
 import { orderSource } from "@/lib/storefront-attribution";
 import { useInitiateCheckout } from "@/components/storefront/checkout/use-initiate-checkout";
 import { canonicalizeBdPhone, isValidBdPhone } from "@/services/storefront/bd-phone";
@@ -499,6 +500,9 @@ export function useCheckout({ lines }: { lines?: CartItem[] } = {}) {
           // own guard. Before `clear()` would work equally well — it reads the order, not the
           // cart — but ahead of it is where the sale is unambiguously real.
           trackMetaPurchase(store, order);
+          // GA4 `purchase`, from the same once-per-placement moment, with its own send-once
+          // guard. Not gated on Meta's switch: the two tools are configured independently.
+          trackGa4Purchase(store, order);
           // The shopper's basket is not what a landing page's form ordered.
           if (!lines) clear();
           setPlaced(order);

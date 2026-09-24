@@ -106,7 +106,21 @@ export function CreateOrderDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        // An edit opens on the product search (the first field without the
+        // paste box), and focusing it pops the product list over the order the
+        // merchant came to read — and the keyboard on a phone. Focus the dialog
+        // itself instead so Esc and Tab still work.
+        onOpenAutoFocus={
+          form.isEdit
+            ? (e) => {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement | null)?.focus();
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <DialogTitle>{form.isEdit ? "Edit order" : "Create order"}</DialogTitle>
           <DialogDescription>
@@ -118,31 +132,34 @@ export function CreateOrderDialog({
 
         <div className="space-y-4">
           {/* Buyers send one blob of text; retyping it into five fields is the
-              slowest part of taking a chat order. */}
-          <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
-            <Label>Paste the customer&apos;s message</Label>
-            <Textarea
-              value={form.pasted}
-              rows={3}
-              placeholder={"Rahim Uddin\n01712345678\nHouse 12, Road 4, Dhanmondi, Dhaka"}
-              onChange={(e) => form.setPasted(e.target.value)}
-            />
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                Fills only the fields it recognises, and never overwrites one you
-                have already typed.
-              </p>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={form.applyPaste}
-                disabled={!form.pasted.trim()}
-              >
-                Fill fields
-              </Button>
+              slowest part of taking a chat order. Create only: the paste fills
+              empty fields alone, and an edit opens with every one filled. */}
+          {!form.isEdit && (
+            <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+              <Label>Paste the customer&apos;s message</Label>
+              <Textarea
+                value={form.pasted}
+                rows={3}
+                placeholder={"Rahim Uddin\n01712345678\nHouse 12, Road 4, Dhanmondi, Dhaka"}
+                onChange={(e) => form.setPasted(e.target.value)}
+              />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Fills only the fields it recognises, and never overwrites one you
+                  have already typed.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={form.applyPaste}
+                  disabled={!form.pasted.trim()}
+                >
+                  Fill fields
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           <CreateOrderLines
             open={open}

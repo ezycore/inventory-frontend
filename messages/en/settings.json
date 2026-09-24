@@ -450,7 +450,8 @@
       "trialEnds": "Trial ends",
       "noActiveTitle": "No active plan",
       "noActiveDescription": "No subscription is currently linked to your organization. Contact your administrator if you believe this is an error.",
-      "loadError": "Failed to load subscription details. Please try again."
+      "loadError": "Failed to load subscription details. Please try again.",
+      "paid": "Paid"
     },
     "scheduledChange": {
       "upgradeTitle": "Plan upgrade scheduled",
@@ -517,10 +518,10 @@
       "retry": "Try again"
     },
     "trialSwitch": {
-      "title": "End your free trial?",
-      "body": "Switching to {planName} ends your trial now. You'll pay {price} to activate it — until it's paid, your workspace is limited to the billing page.",
+      "title": "Switch plan and end your free trial?",
+      "body": "Switching to {planName} starts the paid plan now: you'll pay {price} to activate it. Your workspace keeps working for the days left on your trial — after that, unpaid, it's limited to the billing page.",
       "keep": "Keep trial",
-      "confirm": "End trial & continue"
+      "confirm": "Switch & continue"
     },
     "cycle": {
       "label": "Billing cycle",
@@ -548,7 +549,11 @@
       "payNow": "Pay now",
       "billing": "Billing",
       "payLinkFailed": "Couldn't open the payment page. Check your email for the invoice link, or try again.",
-      "nothingDue": "No outstanding payment was found."
+      "nothingDue": "No outstanding payment was found.",
+      "trialEnding": "Your free trial ends in <strong>{days, plural, one {# day} other {# days}}</strong>. Pay now and you keep every remaining trial day.",
+      "payEarly": "Pay now",
+      "grace": "Your trial has ended. Your workspace and online shop stay live for <strong>{days, plural, one {# more day} other {# more days}}</strong> — pay now to avoid interruption.",
+      "graceWithAmount": "Your trial has ended. Pay <strong>{amount}</strong> to continue — your workspace and online shop stay live for <strong>{days, plural, one {# more day} other {# more days}}</strong>."
     },
     "statusNames": {
       "trialing": "Trialing",
@@ -562,6 +567,12 @@
       "sslcommerz": "SSLCommerz",
       "paystation": "PayStation",
       "manual": "Manual"
+    },
+    "trialPrepaid": {
+      "title": "Payment received",
+      "body": "We've received your {amount} payment for {plan}. Your free trial still runs until {date} — nothing further is due, and your first paid period starts automatically when the trial ends.",
+      "bodyNoAmount": "We've received your payment for {plan}. Your free trial still runs until {date} — nothing further is due, and your first paid period starts automatically when the trial ends.",
+      "bodyNoDate": "We've received your payment for {plan}. Your free trial continues to its original end date — nothing further is due, and your first paid period starts automatically when it ends."
     }
   },
   "users": {

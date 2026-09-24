@@ -156,10 +156,11 @@ campaign form, and gets a `kind: "campaign"` page at **the same address**.
   until its units get Bangla terms, so do not promise it.) The one-product sellers (`order-form`, `offer-pricing`,
   `sticky-order-bar`) stay off it on purpose: a campaign lists many products.
 - **The page is born published carrying only its core section**, so opting in
-  changes nothing a shopper sees until the merchant edits it. Pages shows them in
-  a **Campaign pages** card (`campaign-pages-card.tsx`), not the Store pages
-  table — they have no address of their own to edit and no page schedule, so
-  every column of that table would be blank.
+  changes nothing a shopper sees until the merchant edits it. Pages lists them in
+  their own **Campaign pages** group (`components/ecommerce/pages/pages-list.tsx`),
+  which appears with the first one. Their row says "At the campaign's own link"
+  where other rows print an address, and their ⋯ actions are Edit and Open
+  campaigns — no Delete, no Copy link.
 - **Deleting the campaign deletes the page.** There is no delete in Pages for
   one: the address belongs to the campaign, so an orphan would be unreachable and
   still editable.
@@ -816,8 +817,23 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
 - **Gated on `storefront.design`**, not `storefront.manage` like the rest of Online Store: it is the
   permission every `/ecommerce/pages` route checks, so a role holding only `manage` would open a screen
   whose every request 403s.
-- **Landing pages only** (`kind: "landing"` on the list call). Content pages keep the Content screen
-  until the Phase 5 store migration (owner decision, 2026-09-15); system pages arrive then too.
+- **One grouped list, ordered by what merchants work on most** (redesigned 2026-09-23, reordered
+  2026-09-24; it had been two `DataTable`s and three cards). Header with the one **New page** button →
+  `HomePageCard` (every shopper's first page; a stacked card on a phone, a strip from `md`) →
+  `PagesList`: filter pills + search over **Landing pages → Campaign pages → Store pages**, in that
+  order because ads send shoppers to landing pages and store pages are written once →
+  `SystemPagesCard` (**Shop pages**, set once). From `lg` the Shop pages card moves to a side column;
+  the home card stays at the top of the main column. There is no Orders column — only landing pages
+  have orders, so the count sits under a landing row's title at every width. The empty Landing group
+  is a call to action (**Make a page for your next ad**) that opens the dialog on Landing page
+  (`NewPageDialog`'s `start` prop). Every row is `PageRow` (`page-row.tsx`): the title opens the editor, the status badge comes
+  from `pageStatus()` (`page-status.ts` — Draft / Off / Scheduled / Ended / Live, the schedule deciding
+  for a published page), and everything else sits behind ⋯ in `PageRowActions` — a bottom `Sheet` on a
+  phone, a `DropdownMenu` on desktop, one action list for both. The list fetches each kind with
+  `limit: 100` (the backend's cap) and does not page; search is client-side over title and slug.
+  **The Store pages group is always drawn**: empty, it offers `STORE_PAGE_STARTERS` (exported from
+  `new-page-dialog.tsx`, also the dialog's "Start from" chips) as one-tap starts that open the dialog
+  with the name picked. Colours are theme tokens only (`primary`, `muted`, `card`) — no per-kind hues.
 - **Orders per landing page** (Phase 4, 2026-09-15). `lib/storefront-attribution.ts` keeps the visit's
   source in `sessionStorage` (`ezy-visit-source`): `utm_*` tags from any URL the shopper arrives on and
   the id of the last landing page they came through, each last-touch on its own, never under
@@ -1053,6 +1069,14 @@ stay lifted over a frame repainting the saved store. That is why the iframe's `o
 it, a setting the merchant has just switched off **appears and then vanishes** on the next frame load
 (found 2026-09-20 on the campaign strip's desktop/mobile switches).
 
+**What sits over the covered frame is `<PreviewSkeleton>`** (`components/ecommerce/customize/preview-skeleton.tsx`,
+2026-09-24) — a pulsing outline of a shop (header, banner, product grid) in the device's own bezel,
+with a "Loading…" pill. Both previews use it; never go back to a bare text cover, which left a blank
+pane for the 2–3 seconds the token mint + SSR + hydration take. The **page editor's** frame
+(`pages/editor/page-preview-frame.tsx`) is covered the same way: `paintedKey` vs
+`frameKey = address#chrome#reloadKey`, lifted by the frame's `PAGE_DRAFT_READY`, with a 1.5s
+reveal after `onLoad` as the safety net for a frame that never announces itself.
+
 ⚠ **`apply` is a hand-written key-by-key merge, so step 3 is four touch points, not one** — state
 type, initial value, patch type, *and a line in the reducer*. Three of the four are enough to make
 the field look wired everywhere you would think to check: the editor streams it, the bridge maps it,
@@ -1075,7 +1099,7 @@ a category, a product, the logo — client-side navigates and the param is gone.
 (`lib/storefront-preview.ts`), which remembers the answer in `sessionStorage` for the life of the
 tab. Its consumers: all three receivers (`preview-bridge`, `preview-theme-bridge`,
 `page-draft-preview`) and `isSfPreview()` in `services/storefront/cart-identity.ts`, which is what
-cart-sync, attribution, meta pixel, the newsletter and guest capture read.
+cart-sync, attribution, meta pixel, GA4, the newsletter and guest capture read.
 
 The two bugs that produced it, both invisible to tests and to a quick click-through:
 
@@ -3598,6 +3622,24 @@ cached entry on the `/sites` route (see "Cached store pages").
   every other list in the app offered a number to click — hand-rolling the rows is a markup
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
+
+## Measurement tools — Meta Pixel, GA4, Clarity (shared helpers, 2026-09-24)
+
+Three third-party tools, one set of helpers. **Reuse these; do not re-derive them in a fourth tool.**
+
+| Helper | Owns |
+|---|---|
+| `lib/storefront-item-id.ts` → `storefrontItemId` | the line identity (`productId` / `productId:variantId`) — Meta `content_ids` and GA4 `item_id` |
+| `lib/storefront-cart-adds.ts` → `subscribeCartAdds` | what counts as an add-to-cart (the increase only; no recovery-link burst) |
+| `lib/storefront-sent-once.ts` → `alreadySent` / `rememberSent` | send-once per id across reloads, namespaced per tool |
+| `lib/storefront-consent.ts` | the shopper's one consent answer (`sf-consent-v1`) and `onEuropeanClock` |
+| `lib/storefront-ga4.ts` | the only `window.gtag` caller; boot script, Consent Mode v2, `ga4PurchaseItems` |
+
+`StoreHead` mounts the tags and the **store-level** `ConsentBar` (mode = `store.cookieBanner`), once,
+when Clarity or GA4 is on. GA4's consent default is set by an inline boot script before hydration, and
+`lib/storefront-ga4.test.ts` pins it to `ga4DefaultGranted`. Admin side: Store Settings → **Marketing**
+(`components/ecommerce/settings/marketing-settings-tab.tsx`). Behaviour and money rules: backend
+`docs/features/storefront-ga4.md`.
 
 ## Courier remittance — the money screens (2026-09-12)
 

@@ -60,6 +60,10 @@ export const queryKeys = {
     // Same prefix, same reason: the Clarity card sits beside the Meta one on Store Settings.
     storefrontClarity: () =>
       ["organization", "storefront", "clarity"] as const,
+    // The Marketing tab's other two cards, under the same prefix for the same reason.
+    storefrontGa4: () => ["organization", "storefront", "ga4"] as const,
+    storefrontMarketing: () =>
+      ["organization", "storefront", "marketing"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,
