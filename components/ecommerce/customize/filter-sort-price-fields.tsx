@@ -134,7 +134,10 @@ export function SortFields({
           className="h-8"
         />
       </PartField>
-      <PartField label="Shoppers can also sort by">
+      <PartField
+        label="Shoppers can also sort by"
+        hint="Turn them all off and the Sort button disappears from the shop."
+      >
         <div className="space-y-2">
           {SORT_IDS.filter((id) => id !== value.default).map((id) => (
             <PartSwitch

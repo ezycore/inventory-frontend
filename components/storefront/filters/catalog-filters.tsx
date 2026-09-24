@@ -80,6 +80,8 @@ export function CatalogFilters({
   });
   const ctx: FilterContext = { facets, settings, categoryNav };
   const sorts = visibleSorts(settings);
+  // One sort is no choice — the merchant switched the rest off, so the control goes too.
+  const canSort = sorts.length > 1;
   const placement = enabled ? desktop.placement : "drawer";
   // Under the category-sidebar shell the page already has a left column; the
   // filters take the right one instead (owner decision C).
@@ -112,27 +114,31 @@ export function CatalogFilters({
           {enabled && placement === "bar" ? (
             <FilterBar className="sf-desktop-only" groups={groups} ctx={ctx} />
           ) : null}
-          <button
-            type="button"
-            className="sf-mobile-only sf-fsort-btn"
-            aria-haspopup="dialog"
-            onClick={() => setSortOpen(true)}
-          >
-            <Icon name="sliders" size={15} />
-            {t.sortLabel}
-          </button>
+          {canSort ? (
+            <button
+              type="button"
+              className="sf-mobile-only sf-fsort-btn"
+              aria-haspopup="dialog"
+              onClick={() => setSortOpen(true)}
+            >
+              <Icon name="sliders" size={15} />
+              {t.sortLabel}
+            </button>
+          ) : null}
           {hideCount ? null : (
             <span className="sf-mobile-only" style={{ marginLeft: "auto", fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>
               {total} {t.results}
             </span>
           )}
         </div>
-        <SortSelect
-          className="sf-desktop-only"
-          sort={facets.sort}
-          options={sorts}
-          onChange={facets.setSort}
-        />
+        {canSort ? (
+          <SortSelect
+            className="sf-desktop-only"
+            sort={facets.sort}
+            options={sorts}
+            onChange={facets.setSort}
+          />
+        ) : null}
       </div>
 
       {enabled ? <QuickChips groups={groups} ctx={ctx} /> : null}
@@ -181,13 +187,15 @@ export function CatalogFilters({
         </div>
       </SideDrawer>
 
-      <SortSheet
-        open={sortOpen}
-        onClose={() => setSortOpen(false)}
-        sort={facets.sort}
-        options={sorts}
-        onChange={facets.setSort}
-      />
+      {canSort ? (
+        <SortSheet
+          open={sortOpen}
+          onClose={() => setSortOpen(false)}
+          sort={facets.sort}
+          options={sorts}
+          onChange={facets.setSort}
+        />
+      ) : null}
     </>
   );
 }

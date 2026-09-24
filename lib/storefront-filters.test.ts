@@ -90,6 +90,13 @@ describe("visibleSorts", () => {
     const s = resolveFilterSettings({ sort: { default: "newest", hidden: ["newest", "discount"] } });
     expect(visibleSorts(s)).toEqual(["featured", "newest", "price_asc", "price_desc"]);
   });
+
+  it("leaves only the default when every other sort is hidden — the catalogue then drops the Sort control", () => {
+    const s = resolveFilterSettings({
+      sort: { default: "newest", hidden: ["featured", "price_asc", "price_desc", "discount"] },
+    });
+    expect(visibleSorts(s)).toEqual(["newest"]);
+  });
 });
 
 describe("orderFilterGroups", () => {

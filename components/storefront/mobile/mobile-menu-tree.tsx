@@ -65,7 +65,11 @@ function Label({ node, images }: { node: Pick<MenuNode, "label" | "image">; imag
   );
 }
 
-/** A row that leaves the page. External links open in a new tab, as on desktop. */
+/**
+ * A row that leaves the page. External links open in a new tab, as on desktop.
+ * No chevron: on a phone it promises a sub-menu, and a leaf has none — only a
+ * parent row (accordion or drill) draws one.
+ */
 export function SheetLink({
   node,
   onClose,
@@ -82,12 +86,7 @@ export function SheetLink({
   images?: boolean;
   current?: boolean;
 }) {
-  const body = (
-    <>
-      <Label node={node} images={images} />
-      <Icon name="chevR" size={16} style={{ color: "var(--faint)", flex: "none" }} />
-    </>
-  );
+  const body = <Label node={node} images={images} />;
   const style = { ...rowStyle(nested, strong), ...(current ? { color: "var(--primary)" } : null) };
   if (node.external) {
     return (

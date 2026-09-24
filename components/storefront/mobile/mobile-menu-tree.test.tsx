@@ -97,6 +97,14 @@ describe("MenuTreeList — accordion (the default)", () => {
     renderTree();
     expect(screen.getByText("About").closest("a")).toHaveAttribute("href", "/pages/about");
   });
+
+  it("draws a chevron only on rows that have a sub-menu", () => {
+    state.pathname = "/";
+    renderTree();
+    expect(screen.getByText("About").closest("a")?.querySelector("svg")).toBeNull();
+    expect(screen.getByText("Round").closest("a")?.querySelector("svg")).toBeNull();
+    expect(screen.getByRole("button", { name: /Cushions/ }).querySelector("svg")).not.toBeNull();
+  });
 });
 
 describe("MenuTreeList — the other layouts", () => {
