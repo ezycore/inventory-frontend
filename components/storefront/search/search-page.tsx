@@ -26,14 +26,9 @@ import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
 import { LoadMore } from "@/components/storefront/load-more";
 import { Pager } from "@/components/storefront/pager";
-import { FilterPanel } from "@/components/storefront/filter-panel";
-import {
-  FilterChips,
-  FiltersButton,
-  SortSelect,
-} from "@/components/storefront/filter-toolbar";
-import { SideDrawer } from "@/components/storefront/side-drawer";
+import { CatalogFilters } from "@/components/storefront/filters/catalog-filters";
 import { useCatalogFacets } from "@/components/storefront/use-catalog-facets";
+import { useStoreFilters } from "@/components/storefront/use-store-filters";
 import {
   searchInfiniteParams,
   searchQueryParams,
@@ -73,9 +68,9 @@ function SearchInner({ emptyHeading, emptyText }: { emptyHeading?: string; empty
   // The same facet layer the collection page uses — one hook, so a tag or a
   // price bound narrows identically on both pages (it is literally the same URL
   // param hitting the same endpoint).
-  const facets = useCatalogFacets();
+  const filterSettings = useStoreFilters(store);
+  const facets = useCatalogFacets({ defaultSort: filterSettings.sort.default });
   const { setParams, chips, clearAll, page, setPage } = facets;
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Keep `?q=` in step with the box. The facets write the URL too, so a stale
   // term would be resurrected on reload — and now that the filters live in the
@@ -155,8 +150,6 @@ function SearchInner({ emptyHeading, emptyText }: { emptyHeading?: string; empty
             {q ? ` · "${q}"` : ""}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-            <FiltersButton activeCount={chips.length} onClick={() => setDrawerOpen(true)} />
-            <SortSelect sort={facets.sort} onChange={(s) => setParams({ sort: s })} />
             <div style={{ display: "flex", border: "1px solid var(--border-strong)", borderRadius: 8, overflow: "hidden" }}>
               {(["grid", "list"] as const).map((v) => {
                 const active = view === v;
@@ -190,117 +183,86 @@ function SearchInner({ emptyHeading, emptyText }: { emptyHeading?: string; empty
         </div>
       )}
 
-      {isLoading ? null : <FilterChips chips={chips} onClearAll={clearAll} />}
-
-      {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
-          {Array.from({ length: 8 }, (_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "60px 30px", textAlign: "center" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
-            <Icon name="search" size={40} />
-          </div>
-          {/* The merchant's own words when they wrote some, else the
-              storefront's in the shopper's language. A builder search page can
-              say "Try 'baby lotion'" where the default says nothing useful. */}
-          <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{emptyHeading || t.noResults}</h3>
-          <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>
-            {emptyText || t.noResultsMsg}
-          </p>
-          {/* With filters on, "browse everything" is the wrong advice — clearing
-              them is the shorter route back to results. */}
-          {chips.length > 0 ? (
-            <button
-              type="button"
-              onClick={clearAll}
-              style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), border: "none", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
-            >
-              {t.clearAll}
-            </button>
-          ) : (
-            <Link href={storeHref(base, "/products")} style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), display: "inline-block", fontWeight: 600 }}>
-              {t.viewAllProducts}
-            </Link>
-          )}
-        </div>
-      ) : (
-        <>
-          {view === "list" ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {items.map((p) => (
-                <SearchRow key={p._id} product={p} currency={currency} base={base} slug={slug} addedLabel={t.added} addLabel={t.addToCart} outLabel={t.outOfStock} />
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
-              {items.map((p) => (
-                <ProductCard key={p._id} product={p} currency={currency} variant="compact" />
-              ))}
-            </div>
-          )}
-
-          {paged && pagination ? (
-            <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
-          ) : null}
-
-          {!paged ? (
-            // Keyed on the term AND the facets, so each new result set gets its
-            // own auto-load budget — see the note in load-more.tsx.
-            <LoadMore
-              key={resultKey}
-              mode={mode === "infinite" ? "infinite" : "loadMore"}
-              hasMore={infiniteQuery.hasNextPage}
-              loading={infiniteQuery.isFetchingNextPage}
-              onLoad={() => infiniteQuery.fetchNextPage()}
-              shown={items.length}
-              total={total}
-            />
-          ) : null}
-        </>
-      )}
-
-      {/* Same panel, same drawer as the collection page — search has no sidebar
-          template, so this is its only home here. */}
-      <SideDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        side="left"
-        title={t.filters}
-        headerAccessory={
-          chips.length > 0 ? (
-            <button
-              type="button"
-              onClick={clearAll}
-              style={{ fontSize: 12, fontWeight: 600, fontFamily: "inherit", color: "var(--muted)", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
-            >
-              {t.reset}
-            </button>
-          ) : undefined
-        }
-        footer={
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(false)}
-            style={{ ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }), width: "100%", border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}
-          >
-            {/* Live count — filters apply instantly, this just closes the drawer. */}
-            {t.showResults.replace("{n}", String(total))}
-          </button>
-        }
+      {/* Search is not a builder page, so it reads the site-wide settings only
+          — plan §1: they live under "Across the site" for exactly this page. */}
+      <CatalogFilters
+        facets={facets}
+        settings={filterSettings}
+        total={total}
+        categoryNav={false}
+        hideCategory={false}
       >
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 16px" }}>
-          <FilterPanel
-            categories={facets.categories}
-            brands={facets.brands}
-            tags={facets.tags}
-            filters={facets.filters}
-            onChange={setParams}
-          />
-        </div>
-      </SideDrawer>
+        {isLoading ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "60px 30px", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 14, color: "var(--faint)" }}>
+              <Icon name="search" size={40} />
+            </div>
+            {/* The merchant's own words when they wrote some, else the
+                storefront's in the shopper's language. A builder search page can
+                say "Try 'baby lotion'" where the default says nothing useful. */}
+            <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{emptyHeading || t.noResults}</h3>
+            <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 auto 20px", maxWidth: 360 }}>
+              {emptyText || t.noResultsMsg}
+            </p>
+            {/* With filters on, "browse everything" is the wrong advice — clearing
+                them is the shorter route back to results. */}
+            {chips.length > 0 ? (
+              <button
+                type="button"
+                onClick={clearAll}
+                style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), border: "none", fontFamily: "inherit", fontWeight: 600, cursor: "pointer" }}
+              >
+                {t.clearAll}
+              </button>
+            ) : (
+              <Link href={storeHref(base, "/products")} style={{ ...brandButton({ radius: 9, padding: "12px 24px", fontSize: 14 }), display: "inline-block", fontWeight: 600 }}>
+                {t.viewAllProducts}
+              </Link>
+            )}
+          </div>
+        ) : (
+          <>
+            {view === "list" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {items.map((p) => (
+                  <SearchRow key={p._id} product={p} currency={currency} base={base} slug={slug} addedLabel={t.added} addLabel={t.addToCart} outLabel={t.outOfStock} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(var(--searchcols), minmax(0,1fr))", gap: "var(--gap)" }}>
+                {items.map((p) => (
+                  <ProductCard key={p._id} product={p} currency={currency} variant="compact" />
+                ))}
+              </div>
+            )}
+
+            {paged && pagination ? (
+              <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
+            ) : null}
+
+            {!paged ? (
+              // Keyed on the term AND the facets, so each new result set gets its
+              // own auto-load budget — see the note in load-more.tsx.
+              <LoadMore
+                key={resultKey}
+                mode={mode === "infinite" ? "infinite" : "loadMore"}
+                hasMore={infiniteQuery.hasNextPage}
+                loading={infiniteQuery.isFetchingNextPage}
+                onLoad={() => infiniteQuery.fetchNextPage()}
+                shown={items.length}
+                total={total}
+              />
+            ) : null}
+          </>
+        )}
+
+      </CatalogFilters>
     </div>
   );
 }

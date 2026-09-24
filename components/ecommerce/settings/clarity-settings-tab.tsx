@@ -7,15 +7,13 @@ import {
   useGetClaritySettings,
   useUpdateClaritySettings,
 } from "@/services/api";
-import type { ClarityCookieConsent, ClaritySettings } from "@/types/api";
+import type { ClaritySettings } from "@/types/api";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/components/alert";
 import { Button } from "@/ui/components/button";
-import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
-import { SegmentedField } from "@/ui/components/segmented-field";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
-import { Field, SaveBar, ToggleRow } from "./settings-form-shared";
+import { Field, SaveBar, ToggleRow, useReportDirty } from "./settings-form-shared";
 
 /**
  * Microsoft Clarity (backend `docs/plan/storefront-clarity.md`).
@@ -35,60 +33,44 @@ import { Field, SaveBar, ToggleRow } from "./settings-form-shared";
 /** Where the merchant actually finds the id. The question this card exists to pre-empt. */
 const CLARITY_URL = "https://clarity.microsoft.com/";
 
-const CONSENT_OPTIONS: {
-  value: ClarityCookieConsent;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: "off",
-    label: "No banner",
-    description:
-      "Recommended. Shoppers are never asked, and Clarity is told they did not agree — so their visits are not linked together.",
-  },
-  {
-    value: "eu",
-    label: "Europe only",
-    description:
-      "Only shoppers on a European clock see the banner. Bangladeshi shoppers never do.",
-  },
-  {
-    value: "always",
-    label: "Everyone",
-    description:
-      "Every shopper sees a small bar at the bottom of your shop until they answer it.",
-  },
-];
-
-export function ClaritySettingsTab() {
+export function ClaritySettingsCard({
+  onDirtyChange,
+}: {
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const { data: settings, isLoading } = useGetClaritySettings();
   if (isLoading || !settings) {
     return <Skeleton className="h-80 w-full" />;
   }
-  return <ClaritySettingsForm settings={settings} />;
+  return <ClaritySettingsForm settings={settings} onDirtyChange={onDirtyChange} />;
 }
 
-function ClaritySettingsForm({ settings }: { settings: ClaritySettings }) {
+function ClaritySettingsForm({
+  settings,
+  onDirtyChange,
+}: {
+  settings: ClaritySettings;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const update = useUpdateClaritySettings();
 
   const [enabled, setEnabled] = useState(settings.enabled);
   const [projectId, setProjectId] = useState(settings.projectId ?? "");
-  const [consent, setConsent] = useState<ClarityCookieConsent>(
-    settings.cookieConsent,
+  useReportDirty(
+    enabled !== settings.enabled || projectId.trim() !== (settings.projectId ?? ""),
+    onDirtyChange,
   );
 
-  const save = () => update.mutate({ enabled, projectId, cookieConsent: consent });
+  // The cookie banner is store-level now (the Marketing tab's own card), so it is not sent here.
+  const save = () => update.mutate({ enabled, projectId });
 
   return (
     <div className="space-y-5">
-      <Card className="space-y-4 p-5 shadow-none">
-        <div>
-          <h2 className="text-base font-semibold">Microsoft Clarity</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            See how shoppers actually use your shop — where they tap, how far they scroll, and
-            where they give up. Free, and it stays in your own Clarity account.
-          </p>
-        </div>
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          See how shoppers actually use your shop — where they tap, how far they scroll, and
+          where they give up. Free, and it stays in your own Clarity account.
+        </p>
 
         <ToggleRow
           label="Enable Clarity"
@@ -139,29 +121,7 @@ function ClaritySettingsForm({ settings }: { settings: ClaritySettings }) {
             not instantly, and not for your own preview visits, which are never recorded.
           </p>
         ) : null}
-      </Card>
-
-      <Card className="space-y-4 p-5 shadow-none">
-        <div>
-          <h2 className="text-base font-semibold">Cookie banner</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose whether shoppers are asked before Clarity links their visits together. Their
-            answer reaches Clarity either way &mdash; by default we tell it they did not agree.
-          </p>
-        </div>
-
-        <SegmentedField
-          label="When to show the cookie banner"
-          value={consent}
-          options={CONSENT_OPTIONS}
-          onChange={(value) => setConsent(value as ClarityCookieConsent)}
-        />
-
-        <p className="text-xs text-muted-foreground">
-          Wherever it shows, the banner is a small bar at the bottom of the page — never a
-          pop-up, and never on the checkout page.
-        </p>
-      </Card>
+      </div>
 
       <Alert>
         <Eye className="size-4" />

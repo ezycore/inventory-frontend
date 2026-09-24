@@ -35,8 +35,22 @@ export function subcategoriesFor(
 }
 
 /**
- * The drill-down row on a collection page: one chip per sub-collection, the
- * current one highlighted.
+ * The department a collection page belongs to — itself on a parent page, its
+ * parent on a child page. The strip's "All ‹Parent›" chip links here.
+ */
+export function stripParent(
+  collection: CatalogCategoryDetail | undefined,
+): { _id: string; name: string; slugPath?: string } | undefined {
+  if (!collection) return undefined;
+  return collection.isSubcategory ? (collection.parent ?? undefined) : collection;
+}
+
+/**
+ * The drill-down row on a collection page: "All ‹Parent›" first, then one chip
+ * per sub-collection, the current one highlighted.
+ *
+ * The first chip is the way back up (plan P6): on a child page the only other
+ * route to the whole department was the breadcrumb.
  *
  * Holds no state, so it renders server-side too. Unlike the header's category
  * row this MAY scroll horizontally — every chip is a plain link, so there is no
@@ -46,15 +60,31 @@ export function SubcategoryStrip({
   base,
   items,
   activeId,
+  parent,
+  allLabel,
 }: {
   base: string;
   items: CatalogCategory[];
   activeId?: string;
+  /** The department — see `stripParent`. No chip without it. */
+  parent?: { _id: string; name: string; slugPath?: string };
+  /** "All {name}", already localized. */
+  allLabel?: string;
 }) {
   if (items.length === 0) return null;
+  const onParent = !!parent && parent._id === activeId;
 
   return (
     <nav aria-label="Sub-categories" style={row}>
+      {parent && allLabel ? (
+        <Link
+          href={collectionHref(base, parent)}
+          aria-current={onParent ? "page" : undefined}
+          style={onParent ? chipActive : chip}
+        >
+          {allLabel}
+        </Link>
+      ) : null}
       {items.map((c) => {
         const active = c._id === activeId;
         return (
@@ -77,6 +107,9 @@ const row: CSSProperties = {
   gap: 8,
   // Safe to scroll here (see the component note): these are flat links.
   overflowX: "auto",
+  // Phones overlay their scrollbar; desktop browsers drew a grey bar under the
+  // chips. The strip still scrolls by swipe, wheel and trackpad.
+  scrollbarWidth: "none",
   paddingBottom: 4,
   marginBottom: 14,
 };

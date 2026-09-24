@@ -12,7 +12,9 @@ import { useStorageLimit } from "@/hooks/use-plan-limit";
 import {
   getScheduledCancellation,
   getScheduledPlanChange,
+  isTrialPrepaid,
 } from "@/lib/subscription-utils";
+import { TrialPrepaidBanner } from "@/components/billing/trial-prepaid-banner";
 import {
   CancelSubscriptionButton,
   ScheduledCancellationBanner,
@@ -139,9 +141,21 @@ function PlanSummary({ entitlement }: { entitlement: Entitlement }) {
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-2">
         <Detail label={t("status")}>
-          <Badge variant={SUB_STATUS_VARIANT[subStatus] ?? "secondary"}>
-            {statusLabel}
-          </Badge>
+          <span className="flex flex-wrap items-center gap-1.5">
+            <Badge variant={SUB_STATUS_VARIANT[subStatus] ?? "secondary"}>
+              {statusLabel}
+            </Badge>
+            {/* "Trialing" alone reads as "not paying" — which is wrong, and
+                alarming, for a merchant who has already paid for this trial. */}
+            {isTrialPrepaid(entitlement) && (
+              <Badge
+                variant="secondary"
+                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              >
+                {t("paid")}
+              </Badge>
+            )}
+          </span>
         </Detail>
         <Detail label={t("billing")}>
           {intervalLabel(entitlement.interval, entitlement.intervalCount)}
@@ -490,6 +504,7 @@ export function BillingOverview() {
     <div className="space-y-4">
       <ScheduledCancellationBanner entitlement={entitlement} />
       <ScheduledPlanChangeBanner entitlement={entitlement} />
+      <TrialPrepaidBanner entitlement={entitlement} />
       <PlanSummary entitlement={entitlement} />
       <div className="grid gap-4 md:grid-cols-2">
         <UsageCard entitlement={entitlement} usage={usage} />

@@ -113,6 +113,89 @@ describe("BillingAlertBanner", () => {
     ).toBeInTheDocument();
   });
 
+  // The trial countdown is the merchant's only in-app warning; the email
+  // reminders are the only other one. It must appear in the final days and pay
+  // through the same button.
+  it("counts down the last days of a trial and offers early payment", async () => {
+    const trialEndsAt = new Date(Date.now() + 2 * 86_400_000).toISOString();
+    let payLinkHit = false;
+    server.use(
+      subscription({ status: "active", subscriptionStatus: "trialing", amount: 500 }),
+      subscriptionStatus({
+        status: "active",
+        subscriptionStatus: "trialing",
+        trialEndsAt,
+      }),
+      http.get("*/api/organization/billing/pay-link", () => {
+        payLinkHit = true;
+        return HttpResponse.json({
+          success: true,
+          data: {
+            url: "https://sandbox.paystation.test/pay/prepay1",
+            gateway: "paystation",
+            status: "prepay",
+          },
+        });
+      }),
+    );
+    renderWithProviders(<BillingAlertBanner />);
+
+    expect(await screen.findByText(/2 days/i)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /pay now/i }));
+    await waitFor(() => expect(payLinkHit).toBe(true));
+    await waitFor(() =>
+      expect(hrefSpy).toBe("https://sandbox.paystation.test/pay/prepay1"),
+    );
+  });
+
+  it("stops counting down once the trial has been paid for", async () => {
+    server.use(
+      subscription({ status: "active", subscriptionStatus: "trialing", amount: 500 }),
+      subscriptionStatus({
+        status: "active",
+        subscriptionStatus: "trialing",
+        trialEndsAt: new Date(Date.now() + 86_400_000).toISOString(),
+        trialPrepaid: true,
+      }),
+    );
+    renderWithProviders(<BillingAlertBanner />);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText(/trial/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /pay now/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("stays out of the way early in a trial", async () => {
+    server.use(
+      subscription({ status: "active", subscriptionStatus: "trialing", amount: 500 }),
+      subscriptionStatus({
+        status: "active",
+        subscriptionStatus: "trialing",
+        trialEndsAt: new Date(Date.now() + 12 * 86_400_000).toISOString(),
+      }),
+    );
+    renderWithProviders(<BillingAlertBanner />);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText(/trial/i)).not.toBeInTheDocument();
+  });
+
+  // In grace the shop is still live, so the copy must say so rather than
+  // repeating the read-only/suspended warning.
+  it("says the shop is still live during a grace window", async () => {
+    server.use(
+      subscription({ status: "active", subscriptionStatus: "past_due", amount: 500 }),
+      subscriptionStatus({
+        status: "active",
+        subscriptionStatus: "past_due",
+        graceUntil: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+      }),
+    );
+    renderWithProviders(<BillingAlertBanner />);
+    expect(await screen.findByText(/stay live/i)).toBeInTheDocument();
+    expect(screen.queryByText(/read-only/i)).not.toBeInTheDocument();
+  });
+
   it("Pay now fetches a live link and redirects to it", async () => {
     let payLinkHit = false;
     server.use(

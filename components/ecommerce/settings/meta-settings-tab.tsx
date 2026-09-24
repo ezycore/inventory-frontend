@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, ExternalLink, Info, Lock } from "lucide-react";
+import { AlertTriangle, ExternalLink, Info, Lock } from "lucide-react";
 import {
   useClearMetaToken,
   useGetMetaSettings,
@@ -11,7 +11,6 @@ import {
 } from "@/services/api";
 import type { MetaPurchaseTrigger, MetaSettings } from "@/types/api";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/components/alert";
-import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
@@ -19,7 +18,7 @@ import { Password } from "@/ui/components/input-password";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
 import { NO_AUTOFILL } from "@/components/ecommerce/courier-no-autofill";
-import { Field, SaveBar, ToggleRow } from "./settings-form-shared";
+import { Field, SaveBar, ToggleRow, useReportDirty } from "./settings-form-shared";
 import { MetaPurchaseTriggerPicker } from "./meta-purchase-trigger";
 
 /**
@@ -42,17 +41,33 @@ import { MetaPurchaseTriggerPicker } from "./meta-purchase-trigger";
 /** Where the merchant actually finds these two values. The single most-asked support question. */
 const EVENTS_MANAGER_URL = "https://business.facebook.com/events_manager2";
 
-export function MetaSettingsTab() {
+export function MetaSettingsCard({
+  onDirtyChange,
+}: {
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const { data: settings, isLoading } = useGetMetaSettings();
   if (isLoading || !settings) {
     return <Skeleton className="h-96 w-full" />;
   }
   // Keyed on the saved config so the local draft is rebuilt whenever the server view changes —
   // a test run stamps `verifiedAt`, and a stale draft would paint the card unverified again.
-  return <MetaSettingsForm key={settings.verifiedAt ?? "unverified"} settings={settings} />;
+  return (
+    <MetaSettingsForm
+      key={settings.verifiedAt ?? "unverified"}
+      settings={settings}
+      onDirtyChange={onDirtyChange}
+    />
+  );
 }
 
-function MetaSettingsForm({ settings }: { settings: MetaSettings }) {
+function MetaSettingsForm({
+  settings,
+  onDirtyChange,
+}: {
+  settings: MetaSettings;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const update = useUpdateMetaSettings();
   const test = useTestMetaConnection();
   const clearToken = useClearMetaToken();
@@ -65,6 +80,17 @@ function MetaSettingsForm({ settings }: { settings: MetaSettings }) {
   const [trigger, setTrigger] = useState<MetaPurchaseTrigger>(settings.purchaseTrigger);
   const [channels, setChannels] = useState(settings.channelReporting);
   const [events, setEvents] = useState(settings.browserEvents);
+  useReportDirty(
+    enabled !== settings.enabled ||
+      pixelId !== (settings.pixelId ?? "") ||
+      accessToken.trim() !== "" ||
+      testEventCode !== (settings.testEventCode ?? "") ||
+      capiEnabled !== settings.capiEnabled ||
+      trigger !== settings.purchaseTrigger ||
+      JSON.stringify(channels) !== JSON.stringify(settings.channelReporting) ||
+      JSON.stringify(events) !== JSON.stringify(settings.browserEvents),
+    onDirtyChange,
+  );
 
   const save = () =>
     update.mutate({
@@ -83,20 +109,10 @@ function MetaSettingsForm({ settings }: { settings: MetaSettings }) {
   return (
     <div className="space-y-5">
       <Card className="space-y-4 p-5 shadow-none">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold">Meta Pixel &amp; Conversions API</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Report storefront activity and confirmed sales to Meta so your ads can be measured
-              and optimised.
-            </p>
-          </div>
-          {settings.verifiedAt ? (
-            <Badge variant="secondary" className="gap-1 whitespace-nowrap">
-              <CheckCircle2 className="size-3.5" /> Connected
-            </Badge>
-          ) : null}
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Report storefront activity and confirmed sales to Meta so your ads can be measured and
+          optimised.
+        </p>
 
         <ToggleRow
           label="Enable Meta tracking"

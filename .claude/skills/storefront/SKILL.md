@@ -156,10 +156,11 @@ campaign form, and gets a `kind: "campaign"` page at **the same address**.
   until its units get Bangla terms, so do not promise it.) The one-product sellers (`order-form`, `offer-pricing`,
   `sticky-order-bar`) stay off it on purpose: a campaign lists many products.
 - **The page is born published carrying only its core section**, so opting in
-  changes nothing a shopper sees until the merchant edits it. Pages shows them in
-  a **Campaign pages** card (`campaign-pages-card.tsx`), not the Store pages
-  table — they have no address of their own to edit and no page schedule, so
-  every column of that table would be blank.
+  changes nothing a shopper sees until the merchant edits it. Pages lists them in
+  their own **Campaign pages** group (`components/ecommerce/pages/pages-list.tsx`),
+  which appears with the first one. Their row says "At the campaign's own link"
+  where other rows print an address, and their ⋯ actions are Edit and Open
+  campaigns — no Delete, no Copy link.
 - **Deleting the campaign deletes the page.** There is no delete in Pages for
   one: the address belongs to the campaign, so an orphan would be unreachable and
   still editable.
@@ -380,11 +381,13 @@ hidden parent takes its children with it. Link to a collection with **`collectio
 
 **A category surface that ignores `children` is a bug, not a simplification** (four of them shipped
 this way and were fixed 2026-08-07 — see the work log). The rule: anything that renders the category
-list renders the tree. Concretely, `store-header.tsx`'s `CategoryRow` feeds **both** its branches
-through `HeaderNav` — the collections branch passes a synthetic one-item `collections` menu and lets
-`expandHeaderMenu` nest it, so there is one dropdown implementation, not two. ⚠ Such a row can never
-be an **`overflowX: auto`** strip: a scroll container clips on *both* axes, so the absolutely
-positioned dropdown gets cut off at the row's bottom edge. `HeaderNav` wraps for exactly that reason.
+list renders the tree. Concretely, every menu surface draws one resolved tree —
+**`buildMenuTree` in `lib/storefront-menu.ts`**, read through `useStoreMenu`
+(`components/storefront/use-store-menu.ts`) — so there is one place a stored menu becomes links and
+one dropdown implementation (`HeaderNav`). See **"The menu — one tree, every surface"** below. ⚠ A
+menu row can never be an **`overflowX: auto`** strip: a scroll container clips on *both* axes, so the
+absolutely positioned dropdown gets cut off at the row's bottom edge. `HeaderNav` wraps (or collapses
+into More) for exactly that reason.
 
 The `/products` facet form is **`?categoryId=` + `?subcategoryId=` together**, never the child alone
 — a child's product carries both ids, so they AND-combine. Both are `noindex` (the path page is the
@@ -816,8 +819,23 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
 - **Gated on `storefront.design`**, not `storefront.manage` like the rest of Online Store: it is the
   permission every `/ecommerce/pages` route checks, so a role holding only `manage` would open a screen
   whose every request 403s.
-- **Landing pages only** (`kind: "landing"` on the list call). Content pages keep the Content screen
-  until the Phase 5 store migration (owner decision, 2026-09-15); system pages arrive then too.
+- **One grouped list, ordered by what merchants work on most** (redesigned 2026-09-23, reordered
+  2026-09-24; it had been two `DataTable`s and three cards). Header with the one **New page** button →
+  `HomePageCard` (every shopper's first page; a stacked card on a phone, a strip from `md`) →
+  `PagesList`: filter pills + search over **Landing pages → Campaign pages → Store pages**, in that
+  order because ads send shoppers to landing pages and store pages are written once →
+  `SystemPagesCard` (**Shop pages**, set once). From `lg` the Shop pages card moves to a side column;
+  the home card stays at the top of the main column. There is no Orders column — only landing pages
+  have orders, so the count sits under a landing row's title at every width. The empty Landing group
+  is a call to action (**Make a page for your next ad**) that opens the dialog on Landing page
+  (`NewPageDialog`'s `start` prop). Every row is `PageRow` (`page-row.tsx`): the title opens the editor, the status badge comes
+  from `pageStatus()` (`page-status.ts` — Draft / Off / Scheduled / Ended / Live, the schedule deciding
+  for a published page), and everything else sits behind ⋯ in `PageRowActions` — a bottom `Sheet` on a
+  phone, a `DropdownMenu` on desktop, one action list for both. The list fetches each kind with
+  `limit: 100` (the backend's cap) and does not page; search is client-side over title and slug.
+  **The Store pages group is always drawn**: empty, it offers `STORE_PAGE_STARTERS` (exported from
+  `new-page-dialog.tsx`, also the dialog's "Start from" chips) as one-tap starts that open the dialog
+  with the name picked. Colours are theme tokens only (`primary`, `muted`, `card`) — no per-kind hues.
 - **Orders per landing page** (Phase 4, 2026-09-15). `lib/storefront-attribution.ts` keeps the visit's
   source in `sessionStorage` (`ezy-visit-source`): `utm_*` tags from any URL the shopper arrives on and
   the id of the last landing page they came through, each last-touch on its own, never under
@@ -1053,6 +1071,14 @@ stay lifted over a frame repainting the saved store. That is why the iframe's `o
 it, a setting the merchant has just switched off **appears and then vanishes** on the next frame load
 (found 2026-09-20 on the campaign strip's desktop/mobile switches).
 
+**What sits over the covered frame is `<PreviewSkeleton>`** (`components/ecommerce/customize/preview-skeleton.tsx`,
+2026-09-24) — a pulsing outline of a shop (header, banner, product grid) in the device's own bezel,
+with a "Loading…" pill. Both previews use it; never go back to a bare text cover, which left a blank
+pane for the 2–3 seconds the token mint + SSR + hydration take. The **page editor's** frame
+(`pages/editor/page-preview-frame.tsx`) is covered the same way: `paintedKey` vs
+`frameKey = address#chrome#reloadKey`, lifted by the frame's `PAGE_DRAFT_READY`, with a 1.5s
+reveal after `onLoad` as the safety net for a frame that never announces itself.
+
 ⚠ **`apply` is a hand-written key-by-key merge, so step 3 is four touch points, not one** — state
 type, initial value, patch type, *and a line in the reducer*. Three of the four are enough to make
 the field look wired everywhere you would think to check: the editor streams it, the bridge maps it,
@@ -1075,7 +1101,7 @@ a category, a product, the logo — client-side navigates and the param is gone.
 (`lib/storefront-preview.ts`), which remembers the answer in `sessionStorage` for the life of the
 tab. Its consumers: all three receivers (`preview-bridge`, `preview-theme-bridge`,
 `page-draft-preview`) and `isSfPreview()` in `services/storefront/cart-identity.ts`, which is what
-cart-sync, attribution, meta pixel, the newsletter and guest capture read.
+cart-sync, attribution, meta pixel, GA4, the newsletter and guest capture read.
 
 The two bugs that produced it, both invisible to tests and to a quick click-through:
 
@@ -1977,19 +2003,18 @@ the CSS was written. Both moved out (an untouched header is unchanged) and `NavL
 `className`, not a `style`. `header-nav.test.tsx` pins it, including that no link carries an inline
 `color`.
 
-⚠ **`HeaderNav` is NOT the only menu row — this is the gap that shipped and was caught only in a
-browser.** `classic` and `centered` reach it through `CategoryRow`, but **`minimal` and `boutique`
-render their own flat row from `headerLinks(ctx)`** in `header/desktop-variants.tsx`, with their own
-typography (Boutique's is uppercase 11.5px with 0.15em tracking — that IS the anatomy). On those two
-the setting did nothing, and nothing failed: the header looked right and the control saved.
-`search-first` and `clinical` draw no menu row at all.
+⚠ **Every menu row is `HeaderNav` — this was the gap that shipped, twice.** `minimal` and
+`boutique` used to render their own flat row from `headerLinks(ctx)`, so the hover setting did
+nothing there (caught only in a browser, on a real `boutique` store) and every dropdown was silently
+dropped. Since 2026-09-24 they render `HeaderNav` with their own typography in `linkStyle` (never a
+colour); `search-first` and `clinical` have no row and reach `CategoryRow` only when the merchant
+turns on `nav.menu.desktop.row`. `desktop-variants.test.tsx` pins it from the source: no anatomy may
+contain a `<nav>` of its own, each reaches `<HeaderNav` or `<CategoryRow`, and no `linkStyle` holds
+a colour.
 
-So `.sf-nav-top` deliberately carries **no geometry** — only the colour every row already shared and
-the transition. `.sf-nav-bar` holds what is specific to `HeaderNav`'s row (flex + gap for its
-chevron, 13px/500, padding). A variant adds `sf-nav-top` and keeps its own type inline, minus the
-colour. `desktop-variants.test.tsx` walks every `*Desktop` export, finds the ones using
-`headerLinks(ctx)`, and fails if any lacks the class or still sets `color` inline — with a
-non-vacuity assertion so it cannot pass by finding none.
+So `.sf-nav-top` deliberately carries **no geometry** — only the colour every row shares and the
+transition. `.sf-nav-bar` holds what is specific to `HeaderNav`'s row (flex + gap for its chevron,
+13px/500, padding); an anatomy's own type rides in `linkStyle` and wins inline.
 
 **Verified in a live browser** (2026-09-07, a real store on `boutique`): all four top-level effects
 and all three dropdown effects fire on real pointer hover; the row grows 4px choosing `highlight` on
@@ -2008,6 +2033,92 @@ does when pointed at while they are looking at the menu. It is still a `theme.de
 through the same `patch({ design })`. All four hover ids reach both `CategoryRow` sources, since
 `collections` mode renders through the same `HeaderNav`. Every ready-made theme picks its own pair;
 **Classic stamps `none`/`none`** because Classic is the reset.
+
+### The menu — one tree, every surface (2026-09-24)
+
+Plan + review: `docs/plan/storefront-menu-controls.md`. The desktop row, the compact anatomies, the
+phone menu panel and the phone chips row each used to derive their own links, so the "Menu links
+come from" setting governed desktop only and the phone printed every category *and then* the custom
+menu flattened beneath it. Now:
+
+- **`lib/storefront-menu.ts`** is the only place a stored menu becomes links. `buildMenuTree`
+  (desktop), `phoneMenuTree` (owner decision B: a custom menu naming no category gets the category
+  tree put in front of it on phones), `categoryNodes` (the sidebar and chips — decision C: always
+  the categories). Renderers draw `MenuNode`s and never see a `collections` block or a leaf slug.
+  It also owns the **settings registry** for `nav.menu` (`MENU_*` option lists, default first;
+  `resolveMenuSettings`; `menuSettingsOverrides` stores only what differs).
+- **`useStoreMenu(store, categories, base)`** reads the Customize draft first (`headerMenuSrc`,
+  `navHeader`, `navMenu` in the preview store). The phone panel used to read only the SAVED menu,
+  so building a menu repainted the desktop preview while the phone preview stood still.
+- **Storage is `nav.menu`, not `theme.design`** — decision D: menu behaviour survives a theme
+  switch, and a theme stamps `theme` wholesale. Per-item **`childrenMode`** (`auto` / `custom` /
+  `none`) on `nav.header[]`; unset keeps the old rule (authored children, else inherited).
+- **Category items store the PATH** (`phones/accessories`) since 2026-09-24; `findCategory`
+  resolves both a path and a legacy leaf slug (parents before children). The editor labels options
+  "Parent › Child". No migration: an old item re-saves as a path the next time it is edited.
+- **Phone** (`mobile/mobile-menu-tree.tsx`): `accordion` is every shop's default (decision A) with
+  the browsed department open, else the first; `drill` (a screen per category, Back row); `expanded`
+  (the old list). The "All ‹category›" row keeps the parent page one tap away — when it is off the
+  row splits into a link and a chevron, never a toggle alone.
+- **Desktop** (`header-nav.tsx` + `header/nav-dropdown.tsx` + `header/use-nav-menu.ts`):
+  `dropdown` list / columns / mega; `openOn` hover / click — and a **touch** always opens on the
+  first tap (pointer events, so a hybrid laptop's mouse still hovers); `overflow` wrap / more
+  (measures once with every item rendered, then works from cached widths).
+- **Sidebar** (`shells/rail-shell.tsx`): `railOpen` active (the original) / first / all / flyout.
+  ⚠ flyout lifts the rail's internal scroll (`data-flyout`), because a scroll container would clip
+  the pop-out — it suits the few-departments shop it is for.
+- **Customize → Menu** is its own row under Header (`parts/menu-part.tsx`,
+  `menu-links-editor.tsx`, `menu-behaviour-fields.tsx`), opens the preview on a phone, and has a
+  Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout +
+  hover only.
+
+### Filters & sort — one layout, three pages (2026-09-24)
+
+Plan + review: `docs/plan/storefront-filter-controls.md` (owner decisions A–E all "recommended").
+Collection, campaign and search pages draw their filters through **`<CatalogFilters>`**
+(`components/storefront/filters/catalog-filters.tsx`) — toolbar, quick chips, active chips, the
+sheet/drawer, the desktop sidebar or bar — wrapped around the grid as `children`. Never put a
+Filters button or `FilterPanel` on a page directly.
+
+- **Data: one request.** `useCatalogFacets` reads `GET …/facets` (backend
+  `storefront-facets.service.ts`): categories (counts only), brands, tags (+ `group`), variant
+  `options`, price `{min,max,presets}`, `anyOutOfStock`, `total`. Each facet is counted against the
+  rows passing every OTHER filter. The old per-facet `/brands` and `/tags` routes stay for older
+  clients; nothing here calls them.
+- **URL grammar:** `brandId` is a comma list (OR); variant options are `opt.<Attribute>=M,L`
+  (case-insensitive server-side; one VARIANT must carry every selected group's value); sort adds
+  `discount`. `opt.*` rides in `CatalogSearchParams.options` as the raw params so the SSR seed and
+  the client build the same cache key.
+- **Settings: `nav.filters`**, not `theme.design` (a theme stamps `theme` and would wipe renamed
+  groups). Registry + resolver + group ordering in **`lib/storefront-filters.ts`**
+  (`resolveFilterSettings`, `filterSettingsOverrides`, `orderFilterGroups`, `sortGroups`,
+  `visibleSorts`, `defaultSortOf`). Read on the storefront through `useStoreFilters(store, layout)`
+  (draft first). The legacy collection layout `sidebar` resolves to `desktop.placement: "sidebar"`
+  until a placement is chosen — that fixed D1 with no data change.
+- **Default sort** is `CatalogSearchParams.defaultSort`, never a URL param: the three SSR pages pass
+  `defaultSortOf(store)`, the client passes the resolved setting, `featured` is never sent. So a
+  shop defaulting to Newest keeps clean, indexable URLs.
+- **Surfaces are CSS-switched** (`.sf-ftool*`, `.sf-fquick*`, `.sf-flayout*` in storefront.css):
+  sidebar from 1024px (right-hand under the rail shell — decision C), bar from 680px, the Filters
+  button hidden exactly where one takes over. Phone: sticky toolbar under `--sf-header-h` that hides
+  while reading down (`useHideOnScroll`), sort as its own sheet, quick-chip row.
+- **`SideDrawer side="sheet"`** is a bottom sheet under 680px and the right drawer above; children
+  use `flex: "1 1 auto", minHeight: 0` so a sheet sizes to its content.
+- **`--sf-header-h` is 0 when the header does not stick** (`use-header-height.ts` checks computed
+  `position`) — a scrolled-away header leaves nothing to clear.
+- **Category group** is an accordion with "All ‹Parent›" first; on the bare `/products` listing a
+  row NAVIGATES to the category page carrying the other filters (F5). Campaign and search keep the
+  `categoryId` param. Rows with no products under the other filters are dropped (F4).
+- **Availability** only shows when `anyOutOfStock` (never on an untracked shop — F6) or while on.
+- **Shared sub-category rule (§3.6):** `chipNodes(nodes, "all", pathname)` falls back to parents
+  inside a department whose page draws the `SubcategoryStrip` (which now leads with "All ‹Parent›",
+  `stripParent`).
+- **Customize → Filters & sort** (`parts/filters-part.tsx`, `filter-groups-editor.tsx`,
+  `filter-sort-price-fields.tsx`) under *Across the site*; phone first like Menu. ⚠ `toSettingsPatch`
+  lists `filters` among the parts that take `nav` — a part missing from that list saves nothing and
+  reports success.
+- **Tag groups:** `Tag.group` (free text, tags form "Filter group"); grouped tags become their own
+  `tagGroup:<name>` facet, still one `tags` param.
 
 ### ⚠ `display: contents` and `> :first-child` — the promo-card side bug (2026-09-07)
 
@@ -3253,8 +3364,9 @@ cached entry on the `/sites` route (see "Cached store pages").
   horizontally: flat links, no dropdown for the scroll box to clip.
 
 - **Catalog facets** — `components/storefront/use-catalog-facets.ts` is the **one** owner of the
-  facet layer (URL state, the facet lists, the active-filter chips, `clearAll`, `setParams`), shared
-  by the collection grid and `/search`. It was inline in `products/view.tsx` until search gained
+  facet layer (URL state, the facet data from `GET …/facets`, the active-filter chips, `clearAll`,
+  `setParams`, `toggle`, `setSort`), shared by the collection grid, campaign pages and `/search` —
+  and drawn by `<CatalogFilters>` (see "Filters & sort"). It was inline in `products/view.tsx` until search gained
   facets; a second copy would have drifted on the first change to chip behaviour, and those two
   pages are exactly the ones a shopper compares. **A new page that filters the catalogue uses this
   hook** — do not re-read `?tags=`/`?brandId=` off `useSearchParams` by hand.
@@ -3598,6 +3710,24 @@ cached entry on the `/sites` route (see "Cached store pages").
   every other list in the app offered a number to click — hand-rolling the rows is a markup
   decision and must not be visible to the shopkeeper. **Pass `total`** so the range readout renders;
   without it the footer silently drops to pager-only.
+
+## Measurement tools — Meta Pixel, GA4, Clarity (shared helpers, 2026-09-24)
+
+Three third-party tools, one set of helpers. **Reuse these; do not re-derive them in a fourth tool.**
+
+| Helper | Owns |
+|---|---|
+| `lib/storefront-item-id.ts` → `storefrontItemId` | the line identity (`productId` / `productId:variantId`) — Meta `content_ids` and GA4 `item_id` |
+| `lib/storefront-cart-adds.ts` → `subscribeCartAdds` | what counts as an add-to-cart (the increase only; no recovery-link burst) |
+| `lib/storefront-sent-once.ts` → `alreadySent` / `rememberSent` | send-once per id across reloads, namespaced per tool |
+| `lib/storefront-consent.ts` | the shopper's one consent answer (`sf-consent-v1`) and `onEuropeanClock` |
+| `lib/storefront-ga4.ts` | the only `window.gtag` caller; boot script, Consent Mode v2, `ga4PurchaseItems` |
+
+`StoreHead` mounts the tags and the **store-level** `ConsentBar` (mode = `store.cookieBanner`), once,
+when Clarity or GA4 is on. GA4's consent default is set by an inline boot script before hydration, and
+`lib/storefront-ga4.test.ts` pins it to `ga4DefaultGranted`. Admin side: Store Settings → **Marketing**
+(`components/ecommerce/settings/marketing-settings-tab.tsx`). Behaviour and money rules: backend
+`docs/features/storefront-ga4.md`.
 
 ## Courier remittance — the money screens (2026-09-12)
 

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
+import { Switch } from "@/ui/components/switch";
 
 /**
  * One part of the store in the Customize rail: icon chip + name + a live
@@ -185,5 +186,41 @@ export function PartHint({
     >
       {children}
     </p>
+  );
+}
+
+/**
+ * One on/off setting as a row: its name (and an optional detail line) beside a
+ * switch. The whole row is the `<label>`, so the name is a tap target too.
+ * `ariaLabel` names what the switch does when the visible name alone would be
+ * ambiguous out of context ("Phone number" → "Show phone number in the utility bar").
+ */
+export function PartSwitch({
+  label,
+  detail,
+  ariaLabel,
+  checked,
+  onCheckedChange,
+}: {
+  label: string;
+  detail?: string;
+  ariaLabel?: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3">
+      <span className="min-w-0">
+        <PartLabel>{label}</PartLabel>
+        {detail ? (
+          <span className="block truncate text-xs text-muted-foreground">{detail}</span>
+        ) : null}
+      </span>
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={ariaLabel ?? label}
+      />
+    </label>
   );
 }

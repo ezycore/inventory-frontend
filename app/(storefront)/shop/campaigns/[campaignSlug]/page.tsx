@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getStoreContext } from "@/lib/storefront-host";
-import { getStoreCampaign, getStoreProducts } from "@/lib/storefront-server";
+import { getStore, getStoreCampaign, getStoreProducts } from "@/lib/storefront-server";
+import { defaultSortOf } from "@/lib/storefront-filters";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import {
   campaignQueryParams,
@@ -99,9 +100,10 @@ export default async function Page({
   // Seeds the client's cache with the page `?page=` asked for, through the same
   // builder the view calls — the params object IS the cache key.
   const page = catalogPage(raw.page);
+  const store = await getStore(slug);
   const products = await getStoreProducts(
     slug,
-    campaignQueryParams(campaign.slug, sp, page),
+    campaignQueryParams(campaign.slug, { ...sp, defaultSort: defaultSortOf(store) }, page),
   );
 
   const data = {

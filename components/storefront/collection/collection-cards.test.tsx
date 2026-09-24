@@ -1,5 +1,6 @@
 // coding-standard: maintained
 
+import type { ReactNode } from "react";
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { I18N } from "@/lib/storefront-i18n";
@@ -36,13 +37,12 @@ vi.mock("@/components/storefront/use-catalog-facets", () => ({
     setParams: () => {},
     chips: [],
     clearAll: () => {},
-    sort: undefined,
+    sort: "featured",
     page: 1,
     setPage: () => {},
     params: {},
     categories: [],
-    brands: [],
-    tags: [],
+    data: { brands: [], tags: [], options: [], categories: [] },
     filters: {},
     currency: "BDT",
   }),
@@ -52,15 +52,18 @@ vi.mock("@/components/storefront/product-card", () => ({
     <div data-testid="card" data-fit={String(imageFit)} data-ratio={String(imageRatio)} />
   ),
 }));
-vi.mock("@/components/storefront/filter-panel", () => ({ FilterPanel: () => null }));
-vi.mock("@/components/storefront/side-drawer", () => ({ SideDrawer: () => null }));
-vi.mock("@/components/storefront/filter-toolbar", () => ({
-  FilterChips: () => null,
-  FiltersButton: () => null,
-  SortSelect: () => null,
+// The filter chrome is its own component with its own tests; here it only has
+// to hand the grid through.
+vi.mock("@/components/storefront/filters/catalog-filters", () => ({
+  CatalogFilters: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
+vi.mock("@/components/storefront/use-store-filters", async () => {
+  const { DEFAULT_FILTER_SETTINGS } = await import("@/lib/storefront-filters");
+  return { useStoreFilters: () => DEFAULT_FILTER_SETTINGS };
+});
 vi.mock("@/components/storefront/subcategory-strip", () => ({
   SubcategoryStrip: () => null,
+  stripParent: () => undefined,
   subcategoriesFor: () => [],
 }));
 vi.mock("@/components/storefront/pager", () => ({ Pager: () => null }));

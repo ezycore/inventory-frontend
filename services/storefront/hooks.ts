@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -49,10 +50,8 @@ export const storefront = {
   product: (slug: string, productSlug: string) =>
     ["storefront", slug, "product", productSlug] as const,
   categories: (slug: string) => ["storefront", slug, "categories"] as const,
-  brands: (slug: string, params: unknown = {}) =>
-    ["storefront", slug, "brands", params] as const,
-  tags: (slug: string, params: unknown = {}) =>
-    ["storefront", slug, "tags", params] as const,
+  facets: (slug: string, params: unknown = {}) =>
+    ["storefront", slug, "facets", params] as const,
   campaigns: (slug: string) => ["storefront", slug, "campaigns"] as const,
   campaign: (slug: string, campaignSlug: string) =>
     ["storefront", slug, "campaign", campaignSlug] as const,
@@ -199,28 +198,21 @@ export const useStoreCategories = (
     initialData,
   });
 
-/** Curated brand facet (products page filter; brand names for chips/headings). */
-export const useStoreBrands = (
+/**
+ * Every catalogue facet for the current filters, from one request. Keeps the
+ * previous answer on screen while the next loads, so the panel's rows and counts
+ * never blank out between two taps.
+ */
+export const useStoreFacets = (
   slug: string,
   params: Record<string, string | number | undefined> = {},
 ) =>
   useQuery({
-    queryKey: storefront.brands(slug, params),
-    queryFn: () => storefrontApi.listBrands(slug, params),
+    queryKey: storefront.facets(slug, params),
+    queryFn: () => storefrontApi.listFacets(slug, params),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
-  });
-
-/** The public tag facet. Curated server-side, so an empty list means "no tags in use". */
-export const useStoreTags = (
-  slug: string,
-  params: Record<string, string | number | undefined> = {},
-) =>
-  useQuery({
-    queryKey: storefront.tags(slug, params),
-    queryFn: () => storefrontApi.listTags(slug, params),
-    enabled: !!slug,
-    staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
 // `initialData` (server-fetched in shop/layout.tsx) seeds the cache so the

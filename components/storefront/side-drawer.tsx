@@ -12,9 +12,14 @@ const EXIT_MS = 280;
 /**
  * Shared slide-over shell: scrim + fixed full-height panel with a pinned
  * header (title, optional accessory, built-in close) and an optional pinned
- * footer. The cart drawer (right) and the products filter drawer (left) both
- * render through this — drawer mechanics live in one place. Children own
- * their scroll (`flex: 1, overflowY: "auto"`). Positioning + slide/fade
+ * footer. The cart drawer and the catalogue's filter and sort panels all render
+ * through this — drawer mechanics live in one place. Children own their scroll
+ * (`flex: "1 1 auto", minHeight: 0, overflowY: "auto"` — `auto`, not `1`, so a
+ * `sheet` sizes to its content instead of collapsing to its header).
+ *
+ * `side="sheet"` is a bottom sheet on a phone and a right-hand drawer from the
+ * storefront breakpoint up. The switch is CSS (`.sf-drawer-sheet`), not a
+ * `matchMedia` read, so the server and the first client render agree. Positioning + slide/fade
  * transitions live in storefront.css (`.sf-drawer*`, reduced-motion aware);
  * the component keeps itself mounted through the exit animation.
  */
@@ -29,7 +34,7 @@ export function SideDrawer({
 }: {
   open: boolean;
   onClose: () => void;
-  side?: "left" | "right";
+  side?: "left" | "right" | "sheet";
   title: ReactNode;
   /** Rendered between the title and the close button (e.g. a Reset link). */
   headerAccessory?: ReactNode;
@@ -58,7 +63,11 @@ export function SideDrawer({
   return (
     <>
       <div className={`sf-drawer-scrim${openCls}`} onClick={onClose} />
-      <div className={`sf-drawer sf-drawer-${side}${openCls}`}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`sf-drawer ${side === "sheet" ? "sf-drawer-right sf-drawer-sheet" : `sf-drawer-${side}`}${openCls}`}
+      >
         <div
           style={{
             padding: "16px 20px",

@@ -3,12 +3,13 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { metaContentId, trackMetaEvent } from "@/lib/storefront-meta";
+import { ga4LineItem, ga4Money, trackGa4Event } from "@/lib/storefront-ga4";
 import type { CartItem } from "@/services/stores/use-cart-store";
 
 type MetaStore = Parameters<typeof trackMetaEvent>[0];
 
 /**
- * Meta `InitiateCheckout` — once per checkout, never once per keystroke.
+ * Meta `InitiateCheckout` and GA4 `begin_checkout` — once per checkout, never once per keystroke.
  *
  * On the checkout page it fires on arrival: arriving there IS starting a
  * checkout. A landing page's order form is on the page from the first paint, so
@@ -54,6 +55,12 @@ export function useInitiateCheckout({
         quantity: i.quantity,
         item_price: i.price,
       })),
+    });
+    // GA4 `begin_checkout`, same moment. No order discount exists yet, so the list prices add up
+    // to `value` exactly.
+    trackGa4Event(current, "begin_checkout", {
+      ...ga4Money(current, basket.reduce((sum, i) => sum + i.price * i.quantity, 0)),
+      items: basket.map((i, index) => ga4LineItem(i, i.quantity, index)),
     });
   }, []);
 

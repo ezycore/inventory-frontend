@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Library,
   Megaphone,
+  Menu,
   MessageCircle,
   Percent,
   Package,
@@ -19,6 +20,7 @@ import {
   Rows3,
   Smartphone,
   ShoppingCart,
+  SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
@@ -31,9 +33,11 @@ import { AnnouncementPart } from "@/components/ecommerce/customize/parts/announc
 import { CampaignStripPart } from "@/components/ecommerce/customize/parts/campaign-strip-part";
 import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
+import { FiltersPart } from "@/components/ecommerce/customize/parts/filters-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
+import { MenuPart } from "@/components/ecommerce/customize/parts/menu-part";
 import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import { UtilityBarPart } from "@/components/ecommerce/customize/parts/utility-bar-part";
@@ -88,6 +92,10 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
     title: "Site frame",
     parts: [
       { id: "header", title: "Header", icon: PanelTop },
+      /* Its own row, not a block inside Header: the menu drives the phone
+         panel, the chips row and the category sidebar as much as the header,
+         and merchants look for it by name. */
+      { id: "menu", title: "Menu", icon: Menu },
       { id: "utility", title: "Utility bar", icon: Rows3 },
       /* Directly under Header, because it answers the same question for the
          other screen — and above Footer, because for these merchants far more
@@ -104,6 +112,10 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
       { id: "announcement", title: "Announcement bar", icon: Megaphone },
       { id: "campaign", title: "Campaign strip", icon: Percent },
       { id: "cards", title: "Product cards", icon: LayoutGrid },
+      /* Site-wide, beside Product cards, and not a collection-page setting:
+         search draws the same filters and is not a builder page, so a setting
+         on the collection section could never reach it (filter plan §1). */
+      { id: "filters", title: "Filters & sort", icon: SlidersHorizontal },
       /* NOT "Content pages": the frame it picks also wraps the ORDER TRACKING
          page, which has no builder page of its own — so this is genuinely
          site-wide, and the old name hid the half a merchant cannot reach any
@@ -119,6 +131,7 @@ const PARTS: RailPart[] = [LOOK, ...RAIL_GROUPS.flatMap((group) => group.parts)]
 /** Opening a part points the preview at a page that actually shows it. */
 const PART_PAGE: Partial<Record<PartId, PreviewPage>> = {
   cards: "collection",
+  filters: "collection",
   /* The tracking page is the one page this part's frame wraps that a merchant
      can reach nowhere else — a content page on the builder previews its own
      frame, the home page shows none of the four. */
@@ -141,7 +154,11 @@ export const previewPageForPart = (id: PartId): PreviewPage =>
  */
 export const previewDeviceForPart = (
   id: PartId | null,
-): "desktop" | "mobile" => (id === "mobile" ? "mobile" : "desktop");
+): "desktop" | "mobile" =>
+  // The Menu and the filters open on the phone too: that is where most
+  // shoppers meet them (owner rule — mobile first), and both panels lead with
+  // the phone settings.
+  id === "mobile" || id === "menu" || id === "filters" ? "mobile" : "desktop";
 
 /**
  * Ids that used to be rows. `?part=` is a documented deep link, so a bookmark or
@@ -184,6 +201,7 @@ export function PartsRail({
   open,
   onToggle,
   onManageCollections,
+  onPreviewDevice,
 }: {
   settings: StorefrontSettings;
   api: CustomizeDraftApi;
@@ -197,6 +215,8 @@ export function PartsRail({
    * role would get a 403 on Save.
    */
   onManageCollections?: () => void;
+  /** Points the preview at a device — the Menu part's Phone / Desktop switch. */
+  onPreviewDevice?: (device: "desktop" | "mobile") => void;
 }) {
   const {
     draft,
@@ -309,11 +329,14 @@ export function PartsRail({
       ) : part.id === "utility" ? (
         <UtilityBarPart settings={settings} draft={draft} patch={patch} />
       ) : part.id === "header" ? (
-        <HeaderPart
+        <HeaderPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
+      ) : part.id === "menu" ? (
+        <MenuPart
           draft={draft}
           patch={patch}
           patchTemplate={patchTemplate}
           onManageCollections={onManageCollections}
+          onPreviewDevice={onPreviewDevice}
         />
       ) : part.id === "contact" ? (
         <ContactPart
@@ -330,6 +353,8 @@ export function PartsRail({
         />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
+      ) : part.id === "filters" ? (
+        <FiltersPart draft={draft} patch={patch} onPreviewDevice={onPreviewDevice} />
       ) : (
         // Content pages are a single layout choice, so the part IS its picker.
         // Its id is not the template key it writes (`contentLayout`), which is

@@ -21,6 +21,11 @@ ui_labels:
   - settings:notifications.sms.quietHours.title
   - settings:notifications.sms.quietHours.hint
   - settings:notifications.sms.usage.title
+  - settings:notifications.smsEditor.editButton
+  - settings:notifications.smsEditor.bodyHint
+  - settings:notifications.smsEditor.casesTitle
+  - settings:notifications.smsEditor.reset
+  - settings:notifications.smsEditor.storeName.title
 ---
 
 # Notifications
@@ -96,10 +101,41 @@ You do not have to guess. In the table below, **hover an unticked SMS box** and 
 appears. Tick it and the message moves under the event name, so at a glance you can read everything
 your shop is currently texting.
 
-The wording is shown with your real shop name filled in, because that is what decides the length.
-Every message we ship fits in one SMS with room to spare — but a very long shop name can push one
-over the edge, and then a red **2 segments** label appears beside it. That label means every message
-on that row costs you double. Shortening your shop name is usually all it takes.
+The wording is shown with your real **SMS store name** filled in (see below), so what you read is
+what gets sent. Every message we ship fits in one SMS.
+
+### Your SMS store name
+
+The SMS number your customers see is ours, not yours — so the name at the end of each message is the
+only thing that tells them who texted. That is the **SMS store name**, on the SMS credit card.
+
+SMS can only carry English letters without costing double, so this name is always in English letters
+and at most 20 characters. If your store name already fits, it is used as it is. If it doesn't — it is
+in Bangla, or longer than 20 characters — the name is taken from your shop address instead, and the
+card asks you to check it reads right. Type your own and press **Save** to change it; this changes SMS
+only, never your emails or your storefront.
+
+### Writing your own SMS
+
+Rows that send an SMS to your customers have an **Edit SMS** link under the event name. It opens an
+editor where you write the message in your own words — the COD amount to keep ready, your phone
+number, a thank-you in your own voice.
+
+- **English letters only.** The editor says so: *English letters only. You can write Bangla in English
+  letters (Banglish).* "Apnar order confirm hoyeche" works; Bangla script is refused, because one
+  Bangla letter turns the whole message into two SMS.
+- **Insert, don't type, the details.** The buttons under the message add the customer's name, the order
+  number, the COD amount and so on, exactly where your cursor is.
+- **Your store name must be in it**, so the customer knows who wrote.
+- **It is always one SMS.** The editor checks your text against long names and big amounts as you type,
+  and won't save it until it fits.
+
+Under **How it will look** you see the message for a typical order, a very long name, a name written in
+Bangla, no name at all, and a prepaid order. A customer name in Bangla is replaced by the word you
+choose (for example *Customer* or *Sir*) — it is never spelled out in English letters on the customer's
+behalf. A very long name is shortened to the first name.
+
+**Reset to default** puts our wording back.
 
 ### Testing that SMS works
 

@@ -26,6 +26,7 @@ export interface CatalogSearchParams {
    * AND-combine correctly and the parent row stays lit while the child is on.
    */
   subcategoryId?: string;
+  /** Comma-joined brand ids, OR-combined (one id = the old single-select link). */
   brandId?: string;
   /**
    * Comma-joined tag SLUGS, OR-combined.
@@ -39,6 +40,32 @@ export interface CatalogSearchParams {
   maxPrice?: string;
   inStock?: string;
   sort?: string;
+  /**
+   * Variant-option facets, keyed by their full param name — `{ "opt.Size":
+   * "M,L" }`. Kept as the raw params (not `{ Size: [...] }`) so they spread
+   * straight into a request and the SSR seed and the client build the very same
+   * cache key.
+   */
+  options?: Record<string, string>;
+  /**
+   * The merchant's default sort (Customize → Filters & sort), applied when the
+   * URL names none. NOT read from the URL — a shop whose default is "Newest"
+   * keeps clean URLs, and `isIndexableCatalogUrl` still sees an unsorted page.
+   * Both the server seed and the client set it, so their cache keys agree.
+   */
+  defaultSort?: string;
+}
+
+/** Pick the `opt.*` params out of any key/value source, dropping blanks. */
+export function optionParams(
+  entries: Iterable<[string, string | string[] | undefined]>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, raw] of entries) {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (key.startsWith("opt.") && key.length > 4 && value) out[key] = value;
+  }
+  return out;
 }
 
 /** Normalize whatever Next hands a server page (`?a=1&a=2` arrives as an array). */
@@ -56,6 +83,7 @@ export function catalogSearchParams(
     maxPrice: one(raw.maxPrice),
     inStock: one(raw.inStock),
     sort: one(raw.sort),
+    options: optionParams(Object.entries(raw)),
   };
 }
 
@@ -98,7 +126,10 @@ export function catalogInfiniteParams(sp: CatalogSearchParams) {
     minPrice: sp.minPrice || undefined,
     maxPrice: sp.maxPrice || undefined,
     inStock: sp.inStock === "1" ? "1" : undefined,
-    sort: sp.sort || undefined,
+    // `featured` is the backend's own default, so it is never sent — a shop that
+    // kept it builds the exact key it always did.
+    sort: sp.sort || (sp.defaultSort !== "featured" ? sp.defaultSort : undefined) || undefined,
+    ...sp.options,
     limit: PRODUCTS_PAGE_SIZE,
   };
 }
@@ -160,6 +191,9 @@ export function isIndexableCatalogUrl(
   // Tag facets combine without limit and every combination is the same product
   // set re-sliced — exactly the case the rule above exists for.
   if (sp.tags) return false;
+  // Same for variant options and a multi-brand pick.
+  if (sp.options && Object.keys(sp.options).length) return false;
+  if (sp.brandId?.includes(",")) return false;
   // `?categoryId=` is no longer a landing page: a collection's canonical URL is
   // its PATH (`/phones`), and two URLs claiming the same page compete. The query
   // form still works for anyone holding an old link; it just isn't indexed.

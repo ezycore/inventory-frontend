@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useUpdateStorefrontSettings } from "@/services/api";
 import type { UpdateStorefrontSettingsDto } from "@/types";
 import { Button } from "@/ui/components/button";
@@ -51,4 +51,18 @@ export function ToggleRow({ label, desc, checked, onChange }: {
       <Switch checked={checked} onCheckedChange={onChange} />
     </label>
   );
+}
+
+/**
+ * Tell a collapsible parent whether this form holds unsaved edits — the Marketing tab shows an
+ * "Unsaved" dot on a collapsed row so typing is never silently left behind. A no-op when the form
+ * is rendered on its own.
+ */
+export function useReportDirty(
+  dirty: boolean,
+  onDirtyChange?: (dirty: boolean) => void,
+) {
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 }

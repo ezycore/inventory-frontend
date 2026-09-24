@@ -1,5 +1,6 @@
 import { getStoreContext } from "@/lib/storefront-host";
-import { getStoreProducts } from "@/lib/storefront-server";
+import { getStore, getStoreProducts } from "@/lib/storefront-server";
+import { defaultSortOf } from "@/lib/storefront-filters";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import {
   catalogCanonicalQuery,
@@ -56,8 +57,14 @@ export default async function Page({
   // page 3 as HTML, not page 1 followed by a client-side correction.
   const page = catalogPage(raw.page);
   const { slug } = await getStoreContext();
+  // The merchant's default sort decides page 1's order, so the seed needs it —
+  // the store read is the one the layout already made (cached).
+  const store = slug ? await getStore(slug) : null;
   const products = slug
-    ? await getStoreProducts(slug, catalogQueryParams(sp, page))
+    ? await getStoreProducts(
+        slug,
+        catalogQueryParams({ ...sp, defaultSort: defaultSortOf(store) }, page),
+      )
     : null;
   // The route owns the fetch (it owns the URL, the cache key and the seeded
   // page); the provider hands it to the core section when this page is on the

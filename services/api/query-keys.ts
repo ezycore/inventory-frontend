@@ -60,6 +60,10 @@ export const queryKeys = {
     // Same prefix, same reason: the Clarity card sits beside the Meta one on Store Settings.
     storefrontClarity: () =>
       ["organization", "storefront", "clarity"] as const,
+    // The Marketing tab's other two cards, under the same prefix for the same reason.
+    storefrontGa4: () => ["organization", "storefront", "ga4"] as const,
+    storefrontMarketing: () =>
+      ["organization", "storefront", "marketing"] as const,
     notifications: () => ["organization", "notifications"] as const,
     notificationLog: (params?: object) =>
       ["organization", "notifications", "log", params ?? {}] as const,
@@ -68,6 +72,14 @@ export const queryKeys = {
     // three or the usage figure quietly disagrees with the balance beside it.
     smsUsage: (months?: number) =>
       ["organization", "notifications", "sms-usage", months ?? null] as const,
+    // The SMS editor's live check, keyed by the whole draft so each keystroke
+    // (debounced) is its own entry. Under `notifications` so saving the
+    // template or the store name — both of which change what it renders —
+    // flushes it with everything else.
+    smsTemplatePreviews: () =>
+      ["organization", "notifications", "sms-template-preview"] as const,
+    smsTemplatePreview: (draft: object) =>
+      ["organization", "notifications", "sms-template-preview", draft] as const,
   },
 
   profile: {

@@ -4,6 +4,8 @@
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { Icon } from "@/components/storefront/sf-icons";
 import { SfSelect } from "@/components/storefront/sf-select";
+import type { SortId } from "@/lib/storefront-filters";
+import type { Dict } from "@/lib/storefront-i18n";
 
 export interface FilterChip {
   key: string;
@@ -79,7 +81,7 @@ export function FilterChips({
   );
 }
 
-/** Drawer trigger with an active-filter count badge. */
+/** Filters trigger with an active-filter count badge. */
 export function FiltersButton({
   activeCount,
   onClick,
@@ -135,28 +137,46 @@ export function FiltersButton({
   );
 }
 
-/** Server-side sort picker — Featured (default) / Newest / Price ↑ / Price ↓. */
+/** Each sort's shopper-facing name. */
+export function sortLabel(id: SortId, t: Dict): string {
+  switch (id) {
+    case "newest":
+      return t.sortNewest;
+    case "price_asc":
+      return t.sortPriceLow;
+    case "price_desc":
+      return t.sortPriceHigh;
+    case "discount":
+      return t.sortDiscount;
+    default:
+      return t.sortFeatured;
+  }
+}
+
+/**
+ * Server-side sort picker for wider screens. Offers the merchant's visible
+ * sorts only (`visibleSorts`); the phone gets `SortSheet` instead.
+ */
 export function SortSelect({
   sort,
+  options,
   onChange,
+  className,
 }: {
   sort: string;
-  onChange: (sort: string | undefined) => void;
+  options: SortId[];
+  onChange: (sort: string) => void;
+  className?: string;
 }) {
   const { t } = useStorefrontUI();
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+    <span className={className} style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
       <span style={{ fontSize: 12.5, color: "var(--muted)" }}>{t.sortLabel}</span>
       <SfSelect
-        value={sort || "featured"}
+        value={sort}
         ariaLabel={t.sortLabel}
-        onChange={(v) => onChange(v === "featured" ? undefined : v)}
-        options={[
-          { value: "featured", label: t.sortFeatured },
-          { value: "newest", label: t.sortNewest },
-          { value: "price_asc", label: t.sortPriceLow },
-          { value: "price_desc", label: t.sortPriceHigh },
-        ]}
+        onChange={onChange}
+        options={options.map((id) => ({ value: id, label: sortLabel(id, t) }))}
       />
     </span>
   );

@@ -13,8 +13,9 @@ type Audience = "customer" | "merchant";
  * SMS is the only channel billed per message, so the matrix cannot ask a
  * merchant to tick a box while hiding both the words and the price. The text
  * comes from the server already rendered with sample values and the org's real
- * store name (`sms-preview.ts`), so the segment count beside it is the count
- * they will be charged — not an estimate this component re-derives.
+ * SMS store name — and the merchant's own wording when they wrote some
+ * (`sms-preview.ts`) — so the segment count beside it is the count they will be
+ * charged, not an estimate this component re-derives.
  *
  * The segment badge is only drawn when it is bad news. A "1 segment" badge on
  * every row is decoration; a "2 segments" badge is the one thing on this screen

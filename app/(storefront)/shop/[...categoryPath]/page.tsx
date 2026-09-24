@@ -6,6 +6,7 @@ import {
   getStoreProducts,
 } from "@/lib/storefront-server";
 import { canonicalTarget } from "@/lib/storefront-canonical";
+import { defaultSortOf } from "@/lib/storefront-filters";
 import { storeHref } from "@/lib/storefront-links";
 import { breadcrumbJsonLd } from "@/lib/storefront-jsonld";
 import { collectionCrumbs } from "@/lib/storefront-breadcrumb";
@@ -107,13 +108,17 @@ export default async function Page({
   // params object IS the cache key, so it is built by the same helper `view.tsx`
   // calls — see `lib/storefront-catalog-params.ts`.
   const page = catalogPage(raw.page);
-  const [products, store] = await Promise.all([
-    getStoreProducts(
-      slug,
-      categoryPathQueryParams(collection.slugPath ?? path, sp, page),
+  // The store first: its default sort decides page 1's order, so the seed's
+  // key needs it (the read is the one the layout already made — cached).
+  const store = await getStore(slug);
+  const products = await getStoreProducts(
+    slug,
+    categoryPathQueryParams(
+      collection.slugPath ?? path,
+      { ...sp, defaultSort: defaultSortOf(store) },
+      page,
     ),
-    getStore(slug),
-  ]);
+  );
 
   // The breadcrumb mirrors the trail the page renders, and must use the SAME
   // absolute origin as `<link rel="canonical">` — the store's own domain when it
