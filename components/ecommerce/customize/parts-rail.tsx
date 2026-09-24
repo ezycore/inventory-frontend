@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Library,
   Megaphone,
+  Menu,
   MessageCircle,
   Percent,
   Package,
@@ -34,6 +35,7 @@ import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
 import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
+import { MenuPart } from "@/components/ecommerce/customize/parts/menu-part";
 import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
 import { UtilityBarPart } from "@/components/ecommerce/customize/parts/utility-bar-part";
@@ -88,6 +90,10 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
     title: "Site frame",
     parts: [
       { id: "header", title: "Header", icon: PanelTop },
+      /* Its own row, not a block inside Header: the menu drives the phone
+         panel, the chips row and the category sidebar as much as the header,
+         and merchants look for it by name. */
+      { id: "menu", title: "Menu", icon: Menu },
       { id: "utility", title: "Utility bar", icon: Rows3 },
       /* Directly under Header, because it answers the same question for the
          other screen — and above Footer, because for these merchants far more
@@ -141,7 +147,10 @@ export const previewPageForPart = (id: PartId): PreviewPage =>
  */
 export const previewDeviceForPart = (
   id: PartId | null,
-): "desktop" | "mobile" => (id === "mobile" ? "mobile" : "desktop");
+): "desktop" | "mobile" =>
+  // The Menu opens on the phone too: that is where most shoppers meet it
+  // (owner rule — mobile first), and its panel leads with the phone settings.
+  id === "mobile" || id === "menu" ? "mobile" : "desktop";
 
 /**
  * Ids that used to be rows. `?part=` is a documented deep link, so a bookmark or
@@ -184,6 +193,7 @@ export function PartsRail({
   open,
   onToggle,
   onManageCollections,
+  onPreviewDevice,
 }: {
   settings: StorefrontSettings;
   api: CustomizeDraftApi;
@@ -197,6 +207,8 @@ export function PartsRail({
    * role would get a 403 on Save.
    */
   onManageCollections?: () => void;
+  /** Points the preview at a device — the Menu part's Phone / Desktop switch. */
+  onPreviewDevice?: (device: "desktop" | "mobile") => void;
 }) {
   const {
     draft,
@@ -309,11 +321,14 @@ export function PartsRail({
       ) : part.id === "utility" ? (
         <UtilityBarPart settings={settings} draft={draft} patch={patch} />
       ) : part.id === "header" ? (
-        <HeaderPart
+        <HeaderPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
+      ) : part.id === "menu" ? (
+        <MenuPart
           draft={draft}
           patch={patch}
           patchTemplate={patchTemplate}
           onManageCollections={onManageCollections}
+          onPreviewDevice={onPreviewDevice}
         />
       ) : part.id === "contact" ? (
         <ContactPart

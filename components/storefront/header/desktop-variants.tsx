@@ -10,13 +10,13 @@ import {
   HeaderSearchBar,
   HeaderSearchIcon,
 } from "@/components/storefront/header-search";
+import { HeaderNav } from "@/components/storefront/header-nav";
 import {
   AccountLink,
   CartButton,
   CategoryRow,
   LangBtn,
   ThemeBtn,
-  headerLinks,
   type HeaderCtx,
 } from "@/components/storefront/header/header-shared";
 
@@ -64,28 +64,22 @@ export function ClassicDesktop({ ctx }: { ctx: HeaderCtx }) {
 /** Minimal — logo, centred link row, icons. No search field, no category row. */
 export function MinimalDesktop({ ctx }: { ctx: HeaderCtx }) {
   const { base, name, logo } = ctx;
-  const links = headerLinks(ctx);
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "12px var(--pad)", display: "flex", alignItems: "center", gap: 24 }}>
       <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 9, flex: "none" }}>
         <Brand name={name} logo={logo} markSize={32} nameSize={17} />
       </Link>
-      <nav style={{ flex: 1, display: "flex", gap: 20, overflowX: "auto", justifyContent: "center" }}>
-        {links.map((l) => (
-          <Link
-            key={l.key}
-            href={l.href}
-            /* `sf-nav-top` carries the colour and the merchant's hover choice;
-               the size stays here because it is this anatomy's own. An inline
-               `color` would outrank the hover rule — see the note in
-               `storefront.css`. */
-            className="sf-nav-top"
-            style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap" }}
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
+      {/* The shared row, in this anatomy's place and type. It was a flat row of
+          its own with `overflowX: auto`, which dropped every dropdown — and a
+          scroll container would have clipped them anyway. The size stays here
+          because it is this anatomy's own; the colour and the merchant's hover
+          choice come from `sf-nav-top`. */}
+      <HeaderNav
+        nodes={ctx.menuTree}
+        menu={ctx.menuDesktop}
+        rowStyle={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 20, justifyContent: "center" }}
+        linkStyle={{ fontSize: 13.5, fontWeight: 500 }}
+      />
       <div style={{ display: "flex", alignItems: "center", gap: 16, flex: "none" }}>
         <HeaderSearchIcon categories={ctx.cats} />
         {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
@@ -147,83 +141,89 @@ export function SearchFirstDesktop({ ctx }: { ctx: HeaderCtx }) {
   // no new empty state to design and nothing extra for an owner to fill in.
   const promise = ctx.deliveryPromise?.trim();
   return (
-    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "12px var(--pad)", display: "flex", alignItems: "center", gap: 16 }}>
-      <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
-        <Brand name={name} logo={logo} markSize={32} nameSize={17} />
-      </Link>
+    <>
+      <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "12px var(--pad)", display: "flex", alignItems: "center", gap: 16 }}>
+        <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
+          <Brand name={name} logo={logo} markSize={32} nameSize={17} />
+        </Link>
 
-      {promise ? (
-        <span
-          className="sf-desktop-only"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            flex: "none",
-            background: "var(--primary-soft)",
-            color: "var(--primary)",
-            borderRadius: 999,
-            padding: "6px 13px",
-            fontSize: 12,
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-          }}
-        >
-          <Icon name="truck" size={15} />
-          {promise}
-        </span>
-      ) : null}
+        {promise ? (
+          <span
+            className="sf-desktop-only"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flex: "none",
+              background: "var(--primary-soft)",
+              color: "var(--primary)",
+              borderRadius: 999,
+              padding: "6px 13px",
+              fontSize: 12,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Icon name="truck" size={15} />
+            {promise}
+          </span>
+        ) : null}
 
-      {/* `sf-search-pill` rounds the shared search field without forking it —
-          one search implementation, two shapes.
+        {/* `sf-search-pill` rounds the shared search field without forking it —
+            one search implementation, two shapes.
 
-          The WRAPPER is gated, not just the field inside it: it is `flex: 1`,
-          so leaving it would hold the pill's whole width open as a gap across
-          the middle of the bar. The three anatomies whose search sits in a
-          plain flex row need no such gate — the field removes itself. */}
-      {ctx.showSearch ? (
-        <div className="sf-search-pill" style={{ flex: 1, display: "flex", minWidth: 0 }}>
-          <HeaderSearchBar categories={cats} />
+            The WRAPPER is gated, not just the field inside it: it is `flex: 1`,
+            so leaving it would hold the pill's whole width open as a gap across
+            the middle of the bar. The three anatomies whose search sits in a
+            plain flex row need no such gate — the field removes itself. */}
+        {ctx.showSearch ? (
+          <div className="sf-search-pill" style={{ flex: 1, display: "flex", minWidth: 0 }}>
+            <HeaderSearchBar categories={cats} />
+          </div>
+        ) : (
+          <div style={{ flex: 1 }} />
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flex: "none" }}>
+          {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
+          <AccountLink ctx={ctx} />
+          <button
+            type="button"
+            onClick={ctx.goCart}
+            aria-label={t.cart}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "var(--primary)",
+              color: "var(--on-primary)",
+              border: "none",
+              borderRadius: 999,
+              padding: "9px 17px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Icon name="cart" size={17} />
+            {/* Count AND subtotal, not a bare number. A shopper filling a weekly
+                basket watches the running total — it is the single most useful
+                thing this header can carry, and "2" answers a question nobody
+                asked. Subtotal only: shipping needs a district they have not
+                picked, so a bigger number here would be contradicted at checkout. */}
+            {ctx.cartCount > 0
+              ? `${ctx.cartCount} · ${money(ctx.cartSubtotal, ctx.currency)}`
+              : t.cart}
+          </button>
         </div>
-      ) : (
-        <div style={{ flex: 1 }} />
-      )}
-
-      <div style={{ display: "flex", alignItems: "center", gap: 14, flex: "none" }}>
-        {ctx.needsTheme ? <ThemeBtn ctx={ctx} compact /> : null}
-        <AccountLink ctx={ctx} />
-        <button
-          type="button"
-          onClick={ctx.goCart}
-          aria-label={t.cart}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "var(--primary)",
-            color: "var(--on-primary)",
-            border: "none",
-            borderRadius: 999,
-            padding: "9px 17px",
-            fontSize: 12.5,
-            fontWeight: 600,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <Icon name="cart" size={17} />
-          {/* Count AND subtotal, not a bare number. A shopper filling a weekly
-              basket watches the running total — it is the single most useful
-              thing this header can carry, and "2" answers a question nobody
-              asked. Subtotal only: shipping needs a district they have not
-              picked, so a bigger number here would be contradicted at checkout. */}
-          {ctx.cartCount > 0
-            ? `${ctx.cartCount} · ${money(ctx.cartSubtotal, ctx.currency)}`
-            : t.cart}
-        </button>
       </div>
-    </div>
+      {/* This anatomy has no menu row of its own — search does the wayfinding.
+          `menuDesktop.row` is the merchant asking for one anyway; without it
+          the Menu panel's links would have nowhere to show on desktop. */}
+      {ctx.menuDesktop.row ? <CategoryRow ctx={ctx} /> : null}
+    </>
   );
 }
 
@@ -239,7 +239,6 @@ export function SearchFirstDesktop({ ctx }: { ctx: HeaderCtx }) {
  */
 export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
   const { base, name, logo, cats } = ctx;
-  const links = headerLinks(ctx);
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "16px var(--pad) 0" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
@@ -261,34 +260,15 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
           <CartButton ctx={ctx} />
         </div>
       </div>
-      <nav
-        style={{
-          display: "flex",
-          gap: "clamp(16px,2.6vw,32px)",
-          flexWrap: "wrap",
-          padding: "14px 0 12px",
-        }}
-      >
-        {links.map((l) => (
-          <Link
-            key={l.key}
-            href={l.href}
-            /* The tracking and the uppercasing ARE this anatomy, so they stay
-               inline; only the colour moves, because inline it would outrank
-               the merchant's hover rule. */
-            className="sf-nav-top"
-            style={{
-              fontSize: 11.5,
-              fontWeight: 600,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
+      {/* The tracking and the uppercasing ARE this anatomy, so they ride in
+          `linkStyle`; only the colour stays out, because inline it would
+          outrank the merchant's hover rule. */}
+      <HeaderNav
+        nodes={ctx.menuTree}
+        menu={ctx.menuDesktop}
+        rowStyle={{ display: "flex", alignItems: "center", gap: "clamp(16px,2.6vw,32px)", padding: "14px 0 12px" }}
+        linkStyle={{ fontSize: 11.5, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase" }}
+      />
     </div>
   );
 }
@@ -311,25 +291,31 @@ export function BoutiqueDesktop({ ctx }: { ctx: HeaderCtx }) {
 export function ClinicalDesktop({ ctx }: { ctx: HeaderCtx }) {
   const { base, name, logo, cats } = ctx;
   return (
-    <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "16px var(--pad)", display: "flex", alignItems: "center", gap: "clamp(16px,2.4vw,32px)" }}>
-      <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 9, flex: "none" }}>
-        <Brand name={name} logo={logo} markSize={34} nameSize={18} />
-      </Link>
+    <>
+      <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "16px var(--pad)", display: "flex", alignItems: "center", gap: "clamp(16px,2.4vw,32px)" }}>
+        <Link href={storeHref(base)} style={{ display: "flex", alignItems: "center", gap: 9, flex: "none" }}>
+          <Brand name={name} logo={logo} markSize={34} nameSize={18} />
+        </Link>
 
-      {/* The widest thing on this bar by design, so its absence has to close up
-          rather than leave 620px of nothing between the logo and the icons. */}
-      {ctx.showSearch ? (
-        <div style={{ flex: 1, display: "flex", minWidth: 0, maxWidth: 620 }}>
-          <HeaderSearchBar categories={cats} />
+        {/* The widest thing on this bar by design, so its absence has to close up
+            rather than leave 620px of nothing between the logo and the icons. */}
+        {ctx.showSearch ? (
+          <div style={{ flex: 1, display: "flex", minWidth: 0, maxWidth: 620 }}>
+            <HeaderSearchBar categories={cats} />
+          </div>
+        ) : null}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none", marginInlineStart: "auto" }}>
+          {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
+          {ctx.needsTheme ? <ThemeBtn ctx={ctx} /> : null}
+          <AccountLink ctx={ctx} />
+          <CartButton ctx={ctx} />
         </div>
-      ) : null}
-
-      <div style={{ display: "flex", alignItems: "center", gap: 18, flex: "none", marginInlineStart: "auto" }}>
-        {ctx.needsLang ? <LangBtn ctx={ctx} /> : null}
-        {ctx.needsTheme ? <ThemeBtn ctx={ctx} /> : null}
-        <AccountLink ctx={ctx} />
-        <CartButton ctx={ctx} />
       </div>
-    </div>
+      {/* This anatomy has no menu row of its own — search does the wayfinding.
+          `menuDesktop.row` is the merchant asking for one anyway; without it
+          the Menu panel's links would have nowhere to show on desktop. */}
+      {ctx.menuDesktop.row ? <CategoryRow ctx={ctx} /> : null}
+    </>
   );
 }

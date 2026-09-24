@@ -10,6 +10,7 @@ import type {
   SaleTransactions as ApiSaleTransactions,
 } from "./api";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type { StoreMenuSettings } from "@/lib/storefront-client";
 
 // Common enums
 export enum ProductStatus {
@@ -483,6 +484,8 @@ export interface StorefrontMenuItem {
   type: NavLinkType;
   value: string;
   children?: StorefrontMenuItem[];
+  /** Where a top-level item's dropdown comes from. Unset ⇒ authored children, else inherited sub-categories. */
+  childrenMode?: "auto" | "custom" | "none";
 }
 
 export interface StorefrontFooterLink {
@@ -600,6 +603,8 @@ export interface StorefrontNav {
   campaignStrip?: StorefrontCampaignStrip;
   /** Optional information strip above the main header. */
   utilityBar?: StorefrontUtilityBar;
+  /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
+  menu?: StoreMenuSettings;
 }
 
 /**

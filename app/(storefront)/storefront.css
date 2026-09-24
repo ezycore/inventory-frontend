@@ -2233,6 +2233,43 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   color: var(--primary);
 }
 
+/* ---- Menu settings (Customize → Menu, `nav.menu.desktop`) ---- */
+/* A click-to-open trigger, and the More menu, are buttons rather than links —
+   they no longer go anywhere on their own. Reset to look like the links beside
+   them; `.sf-nav-top` / `.sf-nav-bar` supply the rest, hover effect included. */
+.sf-nav-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+/* `columns`: the list flows into CSS columns; a row must never split across two. */
+.sf-nav-cols > .sf-nav-child {
+  display: block;
+  break-inside: avoid;
+}
+/* `mega`: one tile per sub-category — the picture when it has one, the name
+   always. `auto-fill` so four sub-categories and forty lay out the same way. */
+.sf-nav-mega {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 10px;
+}
+.sf-nav-mega-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: normal;
+}
+.sf-nav-mega-img {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--surface);
+}
+
 .sf-mchips {
   display: flex;
   gap: 7px;
@@ -2789,6 +2826,39 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--primary);
+}
+/* `railOpen: flyout` — sub-categories pop out beside the rail on hover or
+   keyboard focus. The rail's own scroll is lifted for this mode only: a scroll
+   container clips on both axes, so the pop-out would be cut off at its edge. */
+.sf-rail-inner[data-flyout] {
+  max-height: none;
+  overflow: visible;
+}
+.sf-rail-fly {
+  position: relative;
+}
+.sf-rail-flyout {
+  display: none;
+  position: absolute;
+  inset-inline-start: 100%;
+  top: 0;
+  z-index: 30;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+.sf-rail-fly:hover > .sf-rail-flyout,
+.sf-rail-fly:focus-within > .sf-rail-flyout {
+  display: flex;
+  flex-direction: column;
+}
+/* Inside the pop-out a child is not indented under anything. */
+.sf-rail-flyout .sf-rail-link--child {
+  padding-inline-start: 12px;
+  border-radius: 7px;
 }
 
 /* ---- Category tiles (home/sections/category-sections.tsx) ----

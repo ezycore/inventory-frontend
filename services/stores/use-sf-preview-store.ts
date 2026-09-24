@@ -20,6 +20,7 @@ import type {
   StoreSectionConfig,
   StoreLogoStyle,
   StoreMenuItem,
+  StoreMenuSettings,
   StoreTemplates,
   StoreTemplatesRaw,
   StoreUtilityBar,
@@ -113,6 +114,11 @@ interface SfPreviewState {
   announcement: StoreAnnouncement | null;
   /** Draft utility bar (Customize → Utility bar). */
   utilityBar: StoreUtilityBar | null;
+  /**
+   * Draft menu behaviour (Customize → Menu). A stored-shape override, so
+   * `null` ("not drafted") and `{}` ("drafted back to every default") differ.
+   */
+  navMenu: StoreMenuSettings | null;
   /** Draft campaign strip (Customize → Campaign strip). */
   campaignStrip: StoreCampaignStrip | null;
   /**
@@ -226,6 +232,7 @@ interface SfPreviewState {
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
     utilityBar?: StoreUtilityBar;
+    navMenu?: StoreMenuSettings;
     campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
@@ -282,6 +289,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   navHeader: null,
   announcement: null,
   utilityBar: null,
+  navMenu: null,
   campaignStrip: null,
   contactButton: undefined,
   collections: null,
@@ -351,6 +359,7 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.announcement !== undefined ? patch.announcement : s.announcement,
       utilityBar:
         patch.utilityBar !== undefined ? patch.utilityBar : s.utilityBar,
+      navMenu: patch.navMenu !== undefined ? patch.navMenu : s.navMenu,
       campaignStrip:
         patch.campaignStrip !== undefined ? patch.campaignStrip : s.campaignStrip,
       contactButton:

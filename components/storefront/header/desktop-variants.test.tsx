@@ -70,40 +70,36 @@ describe("desktop header anatomies", () => {
 });
 
 /**
- * **Every anatomy that draws its own menu row must reach the merchant's hover
- * setting** — and this is the gap that shipped.
+ * **Every anatomy that draws a menu row draws it through `HeaderNav`** — and
+ * this is the gap that shipped, twice.
  *
  * The hover control was built against `HeaderNav`, which `classic` and
- * `centered` reach through `CategoryRow`. But `minimal` and `boutique` render
- * their own flat row from `headerLinks(ctx)`, and on those two the new setting
- * did nothing at all — found only by loading a real store, which happened to be
- * on `boutique`. Nothing failed: the header looked right, the control saved, and
- * the effect never appeared.
+ * `centered` reach through `CategoryRow`. But `minimal` and `boutique` rendered
+ * their own flat row of links, and on those two the hover setting did nothing
+ * (found only by loading a real store on `boutique`) — and every dropdown was
+ * silently dropped, which is how a merchant's sub-categories vanished from two
+ * of six headers (plan `storefront-menu-controls.md`, D2). Nothing failed: the
+ * header looked right and the setting saved.
  *
- * Two conditions, because either alone lets it break again: the class has to be
- * on the link (that is what the rules select), and no `color` may be set inline
- * beside it (an inline declaration outranks every rule in the stylesheet, which
- * is the whole reason the effect was unwritable before this change).
+ * So the rule is structural now: no anatomy may render a `<nav>` of its own.
+ * `search-first` and `clinical` have no row by design, and reach one through
+ * `CategoryRow` only when the merchant asks (`menuDesktop.row`).
  */
-describe("the merchant's menu hover reaches every anatomy that has a menu", () => {
-  /** Anatomies rendering their own row rather than delegating to `CategoryRow`. */
-  const ownRow = anatomies.filter((name) => bodyOf(name).includes("headerLinks(ctx)"));
-
-  it("finds the anatomies that build their own menu row", () => {
-    // If this drops to zero the test below is vacuous — it would pass by
-    // asserting nothing, which is exactly how the original gap went unnoticed.
-    expect(ownRow.length).toBeGreaterThan(0);
+describe("every menu row is the shared one", () => {
+  it.each(anatomies)("%s draws no menu row of its own", (name) => {
+    expect(bodyOf(name)).not.toMatch(/<nav\b/);
   });
 
-  it.each(ownRow)("%s gives its links the hover class", (name) => {
-    expect(bodyOf(name)).toContain('className="sf-nav-top"');
+  it.each(anatomies)("%s reaches the shared menu", (name) => {
+    expect(bodyOf(name)).toMatch(/<HeaderNav\b|<CategoryRow\b/);
   });
 
-  it.each(ownRow)("%s sets no inline colour on them", (name) => {
+  it.each(anatomies)("%s passes no colour to the menu links", (name) => {
+    // `linkStyle` is for an anatomy's typography; a colour there would outrank
+    // the merchant's hover rule, exactly as the old inline row did.
     const body = bodyOf(name);
-    // Only the `<nav>` row — the cart button and account icons legitimately
-    // colour themselves inline and are not menu links.
-    const nav = body.slice(body.indexOf("<nav"));
-    expect(nav).not.toMatch(/color:\s*"var\(--muted\)"/);
+    for (const m of body.matchAll(/linkStyle=\{\{([^}]*)\}\}/g)) {
+      expect(m[1]).not.toMatch(/color/i);
+    }
   });
 });

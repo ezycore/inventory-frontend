@@ -13051,14 +13051,16 @@ export interface components {
                 header?: {
                     label: string;
                     /** @enum {string} */
-                    type: "category" | "page" | "url";
+                    type: "category" | "page" | "url" | "collections";
                     value?: string;
                     children?: {
                         label: string;
                         /** @enum {string} */
-                        type: "category" | "page" | "url";
+                        type: "category" | "page" | "url" | "collections";
                         value?: string;
                     }[];
+                    /** @enum {string} */
+                    childrenMode?: "auto" | "custom" | "none";
                 }[];
                 footer?: {
                     title: string;
@@ -13129,6 +13131,23 @@ export interface components {
                     showLanguage?: boolean;
                     showTheme?: boolean;
                     trackOrderLabel?: string;
+                };
+                menu?: {
+                    subcategories?: string;
+                    mobile?: {
+                        layout?: string;
+                        open?: string;
+                        viewAll?: boolean;
+                        images?: boolean;
+                        chips?: string;
+                    };
+                    desktop?: {
+                        dropdown?: string;
+                        openOn?: string;
+                        railOpen?: string;
+                        overflow?: string;
+                        row?: boolean;
+                    };
                 };
             };
             checkout?: {
@@ -14629,14 +14648,16 @@ export interface components {
                         header?: {
                             label: string;
                             /** @enum {string} */
-                            type: "category" | "page" | "url";
+                            type: "category" | "page" | "url" | "collections";
                             value?: string;
                             children?: {
                                 label: string;
                                 /** @enum {string} */
-                                type: "category" | "page" | "url";
+                                type: "category" | "page" | "url" | "collections";
                                 value?: string;
                             }[];
+                            /** @enum {string} */
+                            childrenMode?: "auto" | "custom" | "none";
                         }[];
                         footer?: {
                             title: string;
@@ -14707,6 +14728,23 @@ export interface components {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        menu?: {
+                            subcategories?: string;
+                            mobile?: {
+                                layout?: string;
+                                open?: string;
+                                viewAll?: boolean;
+                                images?: boolean;
+                                chips?: string;
+                            };
+                            desktop?: {
+                                dropdown?: string;
+                                openOn?: string;
+                                railOpen?: string;
+                                overflow?: string;
+                                row?: boolean;
+                            };
                         };
                     };
                     contactButton?: {
@@ -14952,14 +14990,16 @@ export interface components {
                         header?: {
                             label: string;
                             /** @enum {string} */
-                            type: "category" | "page" | "url";
+                            type: "category" | "page" | "url" | "collections";
                             value?: string;
                             children?: {
                                 label: string;
                                 /** @enum {string} */
-                                type: "category" | "page" | "url";
+                                type: "category" | "page" | "url" | "collections";
                                 value?: string;
                             }[];
+                            /** @enum {string} */
+                            childrenMode?: "auto" | "custom" | "none";
                         }[];
                         footer?: {
                             title: string;
@@ -15030,6 +15070,23 @@ export interface components {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        menu?: {
+                            subcategories?: string;
+                            mobile?: {
+                                layout?: string;
+                                open?: string;
+                                viewAll?: boolean;
+                                images?: boolean;
+                                chips?: string;
+                            };
+                            desktop?: {
+                                dropdown?: string;
+                                openOn?: string;
+                                railOpen?: string;
+                                overflow?: string;
+                                row?: boolean;
+                            };
                         };
                     };
                     contactButton?: {
@@ -21720,6 +21777,8 @@ export interface operations {
                                 type: "category" | "page" | "url" | "collections";
                                 value: string;
                             }[];
+                            /** @enum {string} */
+                            childrenMode?: "auto" | "custom" | "none";
                         }[];
                         footer?: {
                             title: string;
@@ -21789,6 +21848,23 @@ export interface operations {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        menu?: {
+                            subcategories?: string;
+                            mobile?: {
+                                layout?: string;
+                                open?: string;
+                                viewAll?: boolean;
+                                images?: boolean;
+                                chips?: string;
+                            };
+                            desktop?: {
+                                dropdown?: string;
+                                openOn?: string;
+                                railOpen?: string;
+                                overflow?: string;
+                                row?: boolean;
+                            };
                         };
                     };
                     checkout?: {
@@ -44529,6 +44605,8 @@ export interface operations {
                                     type: "category" | "page" | "url" | "collections";
                                     value: string;
                                 }[];
+                                /** @enum {string} */
+                                childrenMode?: "auto" | "custom" | "none";
                             }[];
                             footer?: {
                                 title: string;
@@ -44598,6 +44676,23 @@ export interface operations {
                                 showLanguage?: boolean;
                                 showTheme?: boolean;
                                 trackOrderLabel?: string;
+                            };
+                            menu?: {
+                                subcategories?: string;
+                                mobile?: {
+                                    layout?: string;
+                                    open?: string;
+                                    viewAll?: boolean;
+                                    images?: boolean;
+                                    chips?: string;
+                                };
+                                desktop?: {
+                                    dropdown?: string;
+                                    openOn?: string;
+                                    railOpen?: string;
+                                    overflow?: string;
+                                    row?: boolean;
+                                };
                             };
                         };
                         contactButton?: {

@@ -25,6 +25,7 @@ import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { normalizeStoreLink } from "@/lib/storefront-links";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import { mobileOverrides } from "@/lib/storefront-mobile";
+import { menuSettingsOverrides } from "@/lib/storefront-menu";
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -109,6 +110,9 @@ const trimHeaderMenu = (items: StorefrontMenuItem[]): StorefrontMenuItem[] =>
                 value: c.value.trim(),
               }))
           : undefined,
+      // Only a category item has sub-categories to inherit, so only it carries
+      // the choice; unset keeps the rule every existing menu was saved under.
+      childrenMode: it.type === "category" ? it.childrenMode : undefined,
     }));
 
 const trimFooterGroups = (groups: StorefrontFooterGroup[]): StorefrontFooterGroup[] =>
@@ -298,6 +302,9 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
       ...draft.utilityBar,
       trackOrderLabel: draft.utilityBar.trackOrderLabel.trim() || undefined,
     },
+    // Only what differs from the defaults — a shop that never opened the Menu
+    // panel stores nothing, and follows the defaults if they ever improve.
+    menu: menuSettingsOverrides(draft.navMenu),
   };
 }
 
@@ -423,6 +430,8 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
  */
 const TEMPLATE_PARTS = new Set<PartId>([
   "header",
+  // `templates.headerMenu` — where the menu's links come from.
+  "menu",
   "mobile",
   "cards",
   "footer",
@@ -454,7 +463,7 @@ export function toSettingsPatch(
   }
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
   if (
-    ["announcement", "campaign", "header", "utility", "footer"].some((part) =>
+    ["announcement", "campaign", "menu", "utility", "footer"].some((part) =>
       dirty.has(part as PartId),
     )
   ) {

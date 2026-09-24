@@ -521,7 +521,7 @@ that page's default). Add a key to the shared type and wire it in **both** compo
   | **Spatial / structural** ("which layout") — a sketch is the only honest answer | **`OptionCard`** with `media` | `ui/components/option-card.tsx` |
 
   All four share one rule: **a description that repeats what the control already shows is height with no information in it.** `SegmentedField`, `SwatchField` and `TemplatePicker` therefore render the sentence *once, under the control, for the selected option only* (their `caption` prop, on by default) rather than under every tile — a per-tile description in a 3-up grid inside the 380px Customize rail is read at ~95px and wraps to four lines. The storefront Customize editor is the reference implementation; see the `storefront` skill.
-- **Grouping controls inside one panel:** `PartBlock` (`components/ecommerce/customize/part-group.tsx`) is one slot per question and costs `py-4`; **`PartField`** is the compact sibling for several settings sharing a slot. Six settings as six `PartBlock`s spend 192px on block padding before drawing a single control.
+- **Grouping controls inside one panel:** `PartBlock` (`components/ecommerce/customize/part-group.tsx`) is one slot per question and costs `py-4`; **`PartField`** is the compact sibling for several settings sharing a slot. Six settings as six `PartBlock`s spend 192px on block padding before drawing a single control. An on/off setting is a **`PartSwitch`** row (same file) — never another hand-rolled label + `Switch`.
 
 ### Permission guards and plan ceilings (shared hooks)
 

@@ -3,20 +3,13 @@
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import type {
-  CatalogCategory,
-  HeaderMenuSource,
-  StoreMenuItem,
-} from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import type { CatalogCategory } from "@/lib/storefront-client";
+import { storeHref } from "@/lib/storefront-links";
+import type { MenuNode, ResolvedMenuSettings } from "@/lib/storefront-menu";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import type { ResolvedUtilityBar } from "@/lib/storefront-utility-bar";
 import { Icon } from "@/components/storefront/sf-icons";
-import {
-  HeaderNav,
-  expandHeaderMenu,
-  menuHref,
-} from "@/components/storefront/header-nav";
+import { HeaderNav } from "@/components/storefront/header-nav";
 
 /**
  * The header's shared vocabulary — the context every variant reads and the
@@ -49,9 +42,14 @@ export interface HeaderCtx {
   /** Store currency, for the subtotal above. */
   currency?: string;
   goCart: () => void;
-  headerMenu: StoreMenuItem[];
-  /** Where the top links come from — owner-chosen, never inferred from length. */
-  menuSource: HeaderMenuSource;
+  /**
+   * The resolved menu (`useStoreMenu`) — collections or the merchant's own,
+   * already decided. Every anatomy with a menu row draws exactly this.
+   */
+  menuTree: MenuNode[];
+  /** How that row behaves — dropdown style, open-on, overflow, the extra row. */
+  menuDesktop: ResolvedMenuSettings["desktop"];
+  /** The category tree, for the search field's category chips. */
   cats: CatalogCategory[];
   /** The `rail` shell lists departments itself; suppress the header row. */
   hideCategoryRow?: boolean;
@@ -114,22 +112,6 @@ export const bareBtn: CSSProperties = {
  *  surrounding gaps and alignment are unchanged. Mobile header only; the
  *  desktop bars are pointer-driven and densely packed by design. */
 export const tapPad: CSSProperties = { padding: 12, margin: -12 };
-
-/** Top links for the compact header variants, per the resolved menu source. */
-export function headerLinks(ctx: HeaderCtx): { key: string; label: string; href: string }[] {
-  const { base, headerMenu, menuSource, cats } = ctx;
-  return menuSource === "custom"
-    ? headerMenu.map((m) => ({
-        key: m.label,
-        label: m.label,
-        href: menuHref(m, base, cats),
-      }))
-    : cats.map((c) => ({
-        key: c._id,
-        label: c.name,
-        href: collectionHref(base, c),
-      }));
-}
 
 export function UtilityBar({
   ctx,
@@ -262,42 +244,19 @@ export function CartButton({ ctx, withLabel }: { ctx: HeaderCtx; withLabel?: boo
 }
 
 /**
- * The whole category tree as a menu: one `collections` block, which
- * `expandHeaderMenu` turns into a top-level link per parent carrying its
- * sub-categories as dropdown children.
+ * The menu row under Classic's and Centered's brand bar (and, when the merchant
+ * asks for it, under Search-first's and Clinical's — `menuDesktop.row`).
+ *
+ * Both menu sources go through `HeaderNav`, so a sub-category gets the same
+ * dropdown under its parent whether the merchant built a menu or not — the
+ * default store, whose owner never opened Customize, included.
  */
-const COLLECTIONS_MENU: StoreMenuItem[] = [
-  { label: "", type: "collections", value: "" },
-];
-
 export function CategoryRow({ ctx, center }: { ctx: HeaderCtx; center?: boolean }) {
-  const { base, headerMenu, menuSource, cats } = ctx;
   // The rail shell already lists every department down the left of the page;
   // drawing the same list again here is the duplication that has bitten this
   // storefront twice already (the trust badges, and the hero photograph).
-  if (ctx.hideCategoryRow) return null;
-  if (menuSource === "custom") {
-    if (headerMenu.length === 0) return null;
-    return <HeaderNav base={base} menu={headerMenu} categories={cats} center={center} />;
-  }
-  if (cats.length === 0) return null;
-  // Collections mode goes through the SAME component as a custom menu, so a
-  // sub-category gets the same hover/focus dropdown under its parent. This was a
-  // bare link row until now, which meant the default store — the one whose owner
-  // never opened Customize — surfaced no sub-categories in the header at all.
-  //
-  // It also has to stop being an `overflowX: auto` strip: a scroll container
-  // establishes a clipping box on BOTH axes, so the absolutely-positioned
-  // dropdown panel would be cut off at the row's bottom edge. `HeaderNav` wraps
-  // instead, which is what lets the panel escape.
-  return (
-    <HeaderNav
-      base={base}
-      menu={expandHeaderMenu(COLLECTIONS_MENU, cats)}
-      categories={cats}
-      center={center}
-    />
-  );
+  if (ctx.hideCategoryRow || ctx.menuTree.length === 0) return null;
+  return <HeaderNav nodes={ctx.menuTree} menu={ctx.menuDesktop} center={center} />;
 }
 
 function CartBadge({ count, compact }: { count: number; compact?: boolean }) {

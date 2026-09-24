@@ -11,6 +11,7 @@ import {
   DESIGN_WIDTHS,
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
+import { MENU_MOBILE_LAYOUTS } from "@/lib/storefront-menu";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import type { StorefrontSettings } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
@@ -126,11 +127,17 @@ export function partSummary(
         .filter(Boolean)
         .join(" · ");
     }
-    case "header": {
-      const menu =
+    case "menu": {
+      const links =
         draft.templates.headerMenu === "collections"
-          ? `menu from ${count(listed, "collection")}`
-          : `${count(draft.navHeader.filter((i) => i.label.trim()).length, "custom link")}`;
+          ? `From ${count(listed, "collection")}`
+          : count(draft.navHeader.filter((i) => i.label.trim()).length, "custom link");
+      // How the PHONE opens it — the half most shoppers meet, and the one a
+      // merchant came here to change.
+      const phone = MENU_MOBILE_LAYOUTS.find((o) => o.id === draft.navMenu.mobile.layout);
+      return `${links} · phone: ${phone?.label.toLowerCase() ?? "fold open"}`;
+    }
+    case "header": {
       /* Hover is appended only once it has been moved off `none`, the same
          rule the Look ramps follow: on the shop that never opened the control
          it would report a setting nobody made. */
@@ -145,7 +152,7 @@ export function partSummary(
       const hoverNote = hover.length
         ? ` · ${[...new Set(hover)].join("/")} hover`
         : "";
-      return `${labelOf("header", draft.templates.header)} · ${menu}${hoverNote}`;
+      return `${labelOf("header", draft.templates.header)}${hoverNote}`;
     }
     case "utility": {
       const u = draft.utilityBar;

@@ -8,6 +8,7 @@ import {
 import { resolveMobileChrome } from "@/lib/storefront-mobile";
 import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
+import { DEFAULT_MENU_SETTINGS } from "@/lib/storefront-menu";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 import { seedDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
@@ -133,6 +134,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   heroSlides: [],
   heroBanner: {},
   navHeader: [],
+  navMenu: DEFAULT_MENU_SETTINGS,
   utilityBar: {
     enabled: true,
     showOnDesktop: true,
@@ -548,5 +550,44 @@ describe("toPreviewPayload — sample content reaches the storefront", () => {
     const value = { ...edited, mobile: { ...edited.mobile, sticky: !edited.mobile.sticky } };
     expect(toPreviewPayload(value, wire).theme?.mobile).toHaveProperty("sticky");
     expect(toSettingsPayload(value).theme?.mobile).toHaveProperty("sticky");
+  });
+});
+
+/* Customize → Menu. The part writes two blocks — `templates.headerMenu` and
+   `nav` — and the PATCH replaces each wholesale, so a Menu save must carry
+   both, and `nav.menu` must hold only what the merchant moved off a default. */
+describe("the Menu part", () => {
+  it("saves templates and nav, with only the changed menu settings", () => {
+    const patch = toSettingsPatch(
+      draft({
+        navMenu: {
+          ...DEFAULT_MENU_SETTINGS,
+          mobile: { ...DEFAULT_MENU_SETTINGS.mobile, layout: "drill" },
+        },
+      }),
+      ["menu"],
+    );
+    expect(patch).toHaveProperty("templates");
+    expect(patch.nav?.menu).toEqual({ mobile: { layout: "drill" } });
+  });
+
+  it("stores no menu block for a shop left on the defaults", () => {
+    const patch = toSettingsPatch(draft({}), ["menu"]);
+    expect(patch.nav).toBeDefined();
+    expect(patch.nav?.menu).toBeUndefined();
+  });
+
+  it("keeps a category item's dropdown choice, and only a category's", () => {
+    const patch = toSettingsPatch(
+      draft({
+        navHeader: [
+          { label: "Mats", type: "category", value: "mats", childrenMode: "none" },
+          { label: "Blog", type: "url", value: "/blog", childrenMode: "auto" },
+        ],
+      }),
+      ["menu"],
+    );
+    expect(patch.nav?.header?.[0]?.childrenMode).toBe("none");
+    expect(patch.nav?.header?.[1]?.childrenMode).toBeUndefined();
   });
 });

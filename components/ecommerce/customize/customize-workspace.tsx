@@ -97,8 +97,9 @@ export function CustomizeWorkspace({
     openPart ? previewPageForPart(openPart) : "home",
   );
   /* Which device the preview should jump to, and a token so re-opening the same
-     part jumps again. Only the Phone bar part asks for one — see
-     `previewDeviceForPart`. */
+     part jumps again. The Phone bar and Menu parts ask for one on opening (see
+     `previewDeviceForPart`), and the Menu part's own Phone / Desktop switch
+     asks again. */
   const [deviceRequest, setDeviceRequest] = useState(() => ({
     device: previewDeviceForPart(openPart),
     token: 0,
@@ -170,6 +171,9 @@ export function CustomizeWorkspace({
             onToggle={togglePart}
             onManageCollections={
               canManageCollections ? () => setCollectionsPanel(true) : undefined
+            }
+            onPreviewDevice={(device) =>
+              setDeviceRequest((r) => ({ device, token: r.token + 1 }))
             }
           />
         )}

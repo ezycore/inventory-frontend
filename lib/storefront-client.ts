@@ -843,6 +843,31 @@ export interface StoreMenuItem {
   type: "category" | "page" | "url" | "collections";
   value: string;
   children?: StoreMenuItem[];
+  /** Where a top-level item's dropdown comes from — see `buildMenuTree`. Unset ⇒ authored children, else inherited sub-categories. */
+  childrenMode?: "auto" | "custom" | "none";
+}
+
+/**
+ * How the menu behaves per device (`nav.menu`). Loose ids on the wire — the
+ * authority is `lib/storefront-menu.ts`, whose `resolveMenuSettings` narrows
+ * every field. Only the fields that differ from the defaults are stored.
+ */
+export interface StoreMenuSettings {
+  subcategories?: string;
+  mobile?: {
+    layout?: string;
+    open?: string;
+    viewAll?: boolean;
+    images?: boolean;
+    chips?: string;
+  };
+  desktop?: {
+    dropdown?: string;
+    openOn?: string;
+    railOpen?: string;
+    overflow?: string;
+    row?: boolean;
+  };
 }
 
 export interface StoreFooterGroup {
@@ -958,6 +983,8 @@ export interface StoreNav {
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
   utilityBar?: StoreUtilityBar;
+  /** How the menu behaves per device (Customize → Menu). */
+  menu?: StoreMenuSettings;
 }
 
 /**

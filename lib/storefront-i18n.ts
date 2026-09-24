@@ -375,6 +375,14 @@ export interface Dict {
   ctxCart: string;
   ctxOrder: string;
   menu: string;
+  /** Menu row that opens a category's own listing — `{name}` = the category. */
+  menuAllIn: string;
+  /** The phone menu's "step in" layout: the row that returns to the top level. */
+  menuBack: string;
+  /** Desktop header: the dropdown holding top links that did not fit the row. */
+  menuMore: string;
+  /** Accessible name of the chevron that folds a category open — `{name}` = the category. */
+  menuToggle: string;
   allProducts: string;
   results: string;
   gridView: string;
@@ -824,6 +832,10 @@ const en: Dict = {
   ctxCart: "I have {count} item(s) in my cart and need help.",
   ctxOrder: "I'm checking on order {order}.",
   menu: "Menu",
+  menuAllIn: "All {name}",
+  menuBack: "Back",
+  menuMore: "More",
+  menuToggle: "Show {name} sub-categories",
   allProducts: "All products",
   results: "results",
   gridView: "Grid view",
@@ -1253,6 +1265,10 @@ const bn: Dict = {
   ctxCart: "আমার কার্টে {count}টি পণ্য আছে, সাহায্য দরকার।",
   ctxOrder: "আমি {order} অর্ডারটির খোঁজ নিচ্ছি।",
   menu: "মেনু",
+  menuAllIn: "সব {name}",
+  menuBack: "ফিরে যান",
+  menuMore: "আরও",
+  menuToggle: "{name}-এর উপ-বিভাগ দেখান",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
   gridView: "গ্রিড ভিউ",

@@ -19,6 +19,10 @@ import {
 } from "@/lib/storefront-templates";
 import { mergeSectionConfig } from "@/lib/storefront-sections";
 import {
+  resolveMenuSettings,
+  type ResolvedMenuSettings,
+} from "@/lib/storefront-menu";
+import {
   mobileTemplate,
   resolveMobileChrome,
   type MobileChrome,
@@ -200,6 +204,12 @@ export interface CustomizeDraft {
   heroSlides: StorefrontHeroSlide[];
   heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
+  /**
+   * How the menu behaves per device (Customize → Menu). RESOLVED, like
+   * `mobile`, so every control is concrete; `menuSettingsOverrides` diffs it
+   * back down on save, so only what the merchant changed is stored.
+   */
+  navMenu: ResolvedMenuSettings;
   announcement: AnnouncementDraft;
   campaignStrip: CampaignStripDraft;
   utilityBar: UtilityBarDraft;
@@ -262,6 +272,7 @@ export type PartId =
   | "announcement"
   | "campaign"
   | "header"
+  | "menu"
   | "utility"
   | "mobile"
   | "cards"
@@ -287,7 +298,10 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   look: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle, d.design],
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
-  header: (d) => [d.templates.header, d.templates.headerMenu, d.navHeader],
+  header: (d) => d.templates.header,
+  // Where the links come from, the links, and how they open — one thing to a
+  // merchant ("my menu"), and it drives the phone as much as the header.
+  menu: (d) => [d.templates.headerMenu, d.navHeader, d.navMenu],
   utility: (d) => d.utilityBar,
   // The template id and the arrangement over it are one visible thing to a
   // merchant — their phone header — so they share a slice. Splitting them would
@@ -421,6 +435,7 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     heroSlides: settings.heroSlides ?? [],
     heroBanner: settings.heroBanner ?? {},
     navHeader: settings.nav?.header ?? [],
+    navMenu: resolveMenuSettings(settings.nav?.menu),
     announcement: {
       enabled: a?.enabled ?? false,
       useShippingRule: a?.useShippingRule ?? false,
