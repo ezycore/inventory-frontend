@@ -67,6 +67,9 @@ Tags do not appear as a column in your sales or stock-value reports. A product c
 so its value would be counted twice and the totals would not add up. Use them to *filter* a report
 instead.
 
+Give a tag a **Filter group** — "Fabric", "Occasion" — and your online shop lists it under that
+heading in its filters instead of under a plain "Tags", so shoppers read it in their own words.
+
 You cannot delete a tag that is still on a product — take it off those products first.
 
 ## Add a product

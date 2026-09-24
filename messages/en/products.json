@@ -447,6 +447,9 @@
       "descriptionPlaceholder": "What this tag is for",
       "color": "Colour",
       "colorPlaceholder": "Pick a chip colour",
+      "group": "Filter group",
+      "groupPlaceholder": "e.g. Fabric, Occasion",
+      "groupHint": "Tags sharing a group get their own heading in the shop's filters. Leave empty to list it under Tags.",
       "status": "Status",
       "statusActive": "Active",
       "statusInactive": "Inactive"

@@ -1,17 +1,20 @@
 "use client";
 // coding-standard: maintained
 
-import { Fragment, type ReactNode } from "react";
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
-import type { CatalogCategory, StoreMenuItem } from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { storeHref } from "@/lib/storefront-links";
+import type { MenuNode, ResolvedMenuSettings } from "@/lib/storefront-menu";
 import { chromeHas, type MobileChrome } from "@/lib/storefront-mobile";
 import { storePages } from "@/lib/storefront-page-controls";
 import { useStore } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
-import { menuHref } from "@/components/storefront/header-nav";
 import { Icon } from "@/components/storefront/sf-icons";
+import {
+  MenuTreeList,
+  SheetLink,
+  rowStyle,
+} from "@/components/storefront/mobile/mobile-menu-tree";
 import { SideDrawer } from "@/components/storefront/side-drawer";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 
@@ -40,23 +43,24 @@ export function MobileMenuPanel({
   chrome,
   utilityNeeds,
   base,
-  categories,
-  menu,
+  nodes,
+  settings,
 }: {
   open: boolean;
   onClose: () => void;
   chrome: MobileChrome;
   utilityNeeds: UtilityNeeds;
   base: string;
-  categories: CatalogCategory[];
-  menu: StoreMenuItem[];
+  /** The resolved phone menu — `useStoreMenu().phoneTree`. */
+  nodes: MenuNode[];
+  settings: ResolvedMenuSettings["mobile"];
 }) {
   const { t } = useStorefrontUI();
   const body = (
     <MenuBody
       base={base}
-      categories={categories}
-      menu={menu}
+      nodes={nodes}
+      settings={settings}
       chrome={chrome}
       utilityNeeds={utilityNeeds}
       t={t}
@@ -162,32 +166,22 @@ function MenuSheet({
 
 function MenuBody({
   base,
-  categories,
-  menu,
+  nodes,
+  settings,
   chrome,
   utilityNeeds,
   t,
   onClose,
 }: {
   base: string;
-  categories: CatalogCategory[];
-  menu: StoreMenuItem[];
+  nodes: MenuNode[];
+  settings: ResolvedMenuSettings["mobile"];
   chrome: MobileChrome;
   utilityNeeds: UtilityNeeds;
   t: T;
   onClose: () => void;
 }) {
   const { lang, theme, toggleLang, toggleTheme } = useStorefrontUI();
-
-  // Flatten one level of admin menu items so nested links stay reachable.
-  const menuLinks = menu.flatMap((m) => [
-    { key: m.label, label: m.label, href: menuHref(m, base, categories) },
-    ...(m.children ?? []).map((c) => ({
-      key: `${m.label}:${c.label}`,
-      label: c.label,
-      href: menuHref(c, base, categories),
-    })),
-  ]);
 
   /* What the CHROME does not already offer, this panel has to.
      `drawer` and `minimal` put no account button on the bar and no Account tab
@@ -213,42 +207,29 @@ function MenuBody({
 
   return (
     <>
-      <SheetLink href={storeHref(base, "/products")} label={t.allProducts} onClose={onClose} strong />
-      {categories.map((c) => (
-        <Fragment key={c._id}>
-          <SheetLink href={collectionHref(base, c)} label={c.name} onClose={onClose} />
-          {/* Sub-categories inline under their parent. This panel is the ONLY
-              category navigation on mobile — the header's dropdown row is
-              desktop-only — so a child missing here is reachable only by landing
-              on the parent collection first. */}
-          {(c.children ?? []).map((child) => (
-            <SheetLink
-              key={child._id}
-              href={collectionHref(base, child)}
-              label={child.name}
-              onClose={onClose}
-              nested
-            />
-          ))}
-        </Fragment>
-      ))}
-
-      {menuLinks.length > 0 ? (
-        <>
-          <Rule />
-          {menuLinks.map((l) => (
-            <SheetLink key={l.key} href={l.href} label={l.label} onClose={onClose} />
-          ))}
-        </>
-      ) : null}
+      {/* The resolved menu — the SAME tree the desktop header draws, so the
+          Menu links setting finally governs the phone too (decision B). It
+          used to print every category and then the custom menu flattened
+          beneath it, so a custom menu listed its departments twice. */}
+      <MenuTreeList
+        nodes={nodes}
+        settings={settings}
+        onClose={onClose}
+        lead={
+          <SheetLink
+            node={{ href: storeHref(base, "/products"), external: false, label: t.allProducts }}
+            onClose={onClose}
+            strong
+          />
+        }
+      />
 
       {needsAccount || needsLang || needsTheme ? (
         <>
           <Rule />
           {needsAccount ? (
             <SheetLink
-              href={storeHref(base, "/account")}
-              label={t.myAccount}
+              node={{ href: storeHref(base, "/account"), external: false, label: t.myAccount }}
               onClose={onClose}
             />
           ) : null}
@@ -274,40 +255,6 @@ function MenuBody({
 const Rule = () => (
   <div style={{ height: 1, background: "var(--border)", margin: "10px 18px" }} />
 );
-
-/* `12px` of vertical padding around a ~16px line box keeps the nested row at
-   40px — the storefront's tap-target floor — despite the smaller type. */
-const rowStyle = (nested?: boolean, strong?: boolean) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: nested ? "12px 18px 12px 34px" : "13px 18px",
-  fontSize: nested ? 13.5 : 14.5,
-  fontWeight: strong ? 700 : nested ? 400 : 500,
-  color: nested ? "var(--muted)" : "var(--text)",
-});
-
-function SheetLink({
-  href,
-  label,
-  onClose,
-  strong,
-  nested,
-}: {
-  href: string;
-  label: string;
-  onClose: () => void;
-  strong?: boolean;
-  /** A sub-category — indented and lighter, but still a ≥40px tap target. */
-  nested?: boolean;
-}) {
-  return (
-    <Link href={href} onClick={onClose} style={rowStyle(nested, strong)}>
-      {label}
-      <Icon name="chevR" size={16} style={{ color: "var(--faint)" }} />
-    </Link>
-  );
-}
 
 /**
  * A row that changes the page rather than leaving it — language and theme.

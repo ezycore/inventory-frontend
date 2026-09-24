@@ -23,7 +23,7 @@ const clarity = vi.fn();
 const renderBar = (mode: "off" | "eu" | "always") =>
   render(
     <StorefrontUIProvider>
-      <ConsentBar mode={mode} />
+      <ConsentBar mode={mode} clarity />
     </StorefrontUIProvider>,
   );
 

@@ -23,6 +23,7 @@ import {
   previewToolbarButton,
 } from "@/components/ecommerce/customize/preview-stage";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import { PreviewSkeleton } from "@/components/ecommerce/customize/preview-skeleton";
 import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
 import { usePreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
 import { usePreviewWatchdog } from "@/components/ecommerce/customize/use-preview-watchdog";
@@ -404,13 +405,7 @@ export function BrowserPreview({
         device={device}
         hostRef={hostRef}
         height={viewportHeight}
-        overlay={
-          !painted ? (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/20 text-xs text-muted-foreground">
-              Loading preview…
-            </div>
-          ) : null
-        }
+        overlay={!painted ? <PreviewSkeleton device={device} label="Loading preview…" /> : null}
       >
         {/* `visibility`, not conditional mounting: the frame has to load and
             run to send the ack that reveals it. Opacity alone would still let

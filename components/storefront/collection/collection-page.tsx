@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { Suspense, useState, type CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import {
   useStore,
   useStoreProducts,
@@ -11,18 +11,14 @@ import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { ProductCard } from "@/components/storefront/product-card";
 import { SkeletonCard } from "@/components/storefront/sf-skeleton";
-import { FilterPanel } from "@/components/storefront/filter-panel";
-import {
-  FilterChips,
-  FiltersButton,
-  SortSelect,
-} from "@/components/storefront/filter-toolbar";
+import { CatalogFilters } from "@/components/storefront/filters/catalog-filters";
 import { useCatalogFacets } from "@/components/storefront/use-catalog-facets";
+import { useStoreFilters } from "@/components/storefront/use-store-filters";
 import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
-import { SideDrawer } from "@/components/storefront/side-drawer";
 import { Breadcrumb } from "@/components/storefront/breadcrumb";
 import {
   SubcategoryStrip,
+  stripParent,
   subcategoriesFor,
 } from "@/components/storefront/subcategory-strip";
 import type { Crumb } from "@/lib/storefront-breadcrumb";
@@ -42,7 +38,6 @@ import type {
   StoreCampaignDetail,
 } from "@/lib/storefront-client";
 import { CampaignHeader } from "@/components/storefront/campaign/campaign-header";
-import { brandButton } from "@/lib/storefront-button";
 import { responsiveClasses, responsiveVars } from "@/lib/storefront-builder/responsive";
 import type { Responsive } from "@/lib/storefront-builder/settings";
 import { sectionCardLook, type CardLookSettings } from "@/lib/storefront-builder/card-media";
@@ -99,13 +94,18 @@ function CollectionInner({
   // On a path page the collection comes from the ROUTE, not the query string —
   // there is no `?categoryId=` to read and the facet must not be user-editable.
   const categoryPath = collection?.slugPath;
+  const { data: store } = useStore(slug);
+  // Site-wide (Customize → Filters & sort), with the section's legacy
+  // `sidebar` layout read as a sidebar placement.
+  const filterSettings = useStoreFilters(store, layout);
   // Every facet lives in the URL; the hook owns reading it, the chips and the
   // reset. Shared with /search so the two pages can't drift on what a facet does.
-  const facets = useCatalogFacets({ categoryPath });
-  const { filterKey, setParams, chips, clearAll, sort, page, setPage } = facets;
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const { data: store } = useStore(slug);
+  const facets = useCatalogFacets({
+    categoryPath,
+    campaign: campaign?.slug ?? undefined,
+    defaultSort: filterSettings.sort.default,
+  });
+  const { filterKey, page, setPage } = facets;
 
   // Which listing mode the page or the store chose, with any
   // unsaved draft from the live preview applied. `store` is SSR-seeded in
@@ -175,19 +175,6 @@ function CollectionInner({
         t.allProducts));
   const subheading =
     campaign || header?.hideHeading ? undefined : header?.subheading?.trim() || undefined;
-  const panel = (
-    <FilterPanel
-      categories={facets.categories}
-      brands={facets.brands}
-      tags={facets.tags}
-      filters={facets.filters}
-      onChange={setParams}
-      // The collection is the URL here, so offering it as a facet would let a
-      // shopper filter themselves off the page they are standing on.
-      hideCategories={!!categoryPath}
-    />
-  );
-
   const grid = (
     <div
       className={gridClass(variant, cards?.columns)}
@@ -219,36 +206,29 @@ function CollectionInner({
       {campaign && !hideCampaignBanner ? (
         <CampaignHeader campaign={campaign} currency={currency} t={t} />
       ) : null}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
-        {/* A campaign page's banner IS its heading, so neither the title nor the
-            merchant's override belongs here — `campaign-main` has no heading
-            setting to give one, and this branch predates both. */}
-        <div>
-          {campaign || header?.hideHeading ? null : (
-            <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
-              {heading}
-            </h1>
-          )}
-          {/* "A line under the heading" — with no heading there is nothing to
-              sit under, so it goes with it rather than floating alone. */}
-          {subheading ? (
-            <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "0 0 5px", maxWidth: "62ch" }}>
-              {subheading}
-            </p>
-          ) : null}
-          {header?.hideCount ? null : (
-            <span style={{ fontSize: 13, color: "var(--muted)" }}>
-              {total} {t.results}
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-          <FiltersButton
-            activeCount={chips.length}
-            onClick={() => setDrawerOpen(true)}
-          />
-          <SortSelect sort={sort} onChange={(s) => setParams({ sort: s })} />
-        </div>
+      {/* A campaign page's banner IS its heading, so neither the title nor the
+          merchant's override belongs here — `campaign-main` has no heading
+          setting to give one, and this branch predates both. */}
+      <div style={{ marginBottom: 14 }}>
+        {campaign || header?.hideHeading ? null : (
+          <h1 style={{ fontSize: "var(--h2)", fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+            {heading}
+          </h1>
+        )}
+        {/* "A line under the heading" — with no heading there is nothing to
+            sit under, so it goes with it rather than floating alone. */}
+        {subheading ? (
+          <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "0 0 5px", maxWidth: "62ch" }}>
+            {subheading}
+          </p>
+        ) : null}
+        {/* Desktop only — on a phone the count rides in the filter toolbar,
+            which stays on screen while the heading scrolls away. */}
+        {header?.hideCount ? null : (
+          <span className="sf-desktop-only" style={{ fontSize: 13, color: "var(--muted)" }}>
+            {total} {t.results}
+          </span>
+        )}
       </div>
 
       {/* Under the heading, above the filters: it is navigation into the tree,
@@ -258,63 +238,45 @@ function CollectionInner({
         base={base}
         items={subcategories}
         activeId={collection?._id}
+        parent={stripParent(collection)}
+        allLabel={t.menuAllIn.replace("{name}", stripParent(collection)?.name ?? "")}
       />
 
-      <FilterChips chips={chips} onClearAll={clearAll} />
-
-      {grid}
-
-      {!isLoading && items.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>{t.noResults}</p>
-      ) : null}
-
-      {paged && pagination ? (
-        <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
-      ) : null}
-
-      {!paged && !isLoading && items.length > 0 ? (
-        // Keyed on the filters so a new query gets its own auto-load budget —
-        // see the note in load-more.tsx.
-        <LoadMore
-          key={filterKey}
-          mode={mode === "infinite" ? "infinite" : "loadMore"}
-          hasMore={infiniteQuery.hasNextPage}
-          loading={infiniteQuery.isFetchingNextPage}
-          onLoad={() => infiniteQuery.fetchNextPage()}
-          shown={items.length}
-          total={total}
-        />
-      ) : null}
-
-      <SideDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        side="left"
-        title={t.filters}
-        headerAccessory={
-          chips.length > 0 ? (
-            <button
-              type="button"
-              onClick={clearAll}
-              style={{ fontSize: 12, fontWeight: 600, fontFamily: "inherit", color: "var(--muted)", background: "none", border: "none", textDecoration: "underline", cursor: "pointer" }}
-            >
-              {t.reset}
-            </button>
-          ) : undefined
-        }
-        footer={
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(false)}
-            style={{ ...brandButton({ radius: 8, padding: "12px 22px", fontSize: 14 }), width: "100%", border: "none", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}
-          >
-            {/* Live count — filters apply instantly, this just closes the drawer. */}
-            {t.showResults.replace("{n}", String(total))}
-          </button>
-        }
+      <CatalogFilters
+        facets={facets}
+        settings={filterSettings}
+        total={total}
+        // Only the bare listing hands a category pick to the category's own
+        // page; a campaign keeps it as a facet inside the sale.
+        categoryNav={!categoryPath && !campaign}
+        hideCategory={!!categoryPath}
+        hideCount={header?.hideCount}
       >
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 16px" }}>{panel}</div>
-      </SideDrawer>
+        {grid}
+
+        {!isLoading && items.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 16 }}>{t.noResults}</p>
+        ) : null}
+
+        {paged && pagination ? (
+          <Pager page={pagination.page} totalPages={pagination.totalPages} onChange={setPage} />
+        ) : null}
+
+        {!paged && !isLoading && items.length > 0 ? (
+          // Keyed on the filters so a new query gets its own auto-load budget —
+          // see the note in load-more.tsx.
+          <LoadMore
+            key={filterKey}
+            mode={mode === "infinite" ? "infinite" : "loadMore"}
+            hasMore={infiniteQuery.hasNextPage}
+            loading={infiniteQuery.isFetchingNextPage}
+            onLoad={() => infiniteQuery.fetchNextPage()}
+            shown={items.length}
+            total={total}
+          />
+        ) : null}
+
+      </CatalogFilters>
     </div>
   );
 }

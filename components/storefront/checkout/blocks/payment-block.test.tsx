@@ -17,7 +17,6 @@ const t = {
   cod: "Cash on Delivery",
   bankTransfer: "Bank Transfer",
   customPayment: "Custom payment",
-  codHint: "Pay on delivery",
   default: "Default",
   optionalTag: "Optional",
   requiredTag: "Required",
@@ -79,11 +78,11 @@ describe("PaymentBlock with merchant-defined methods", () => {
     expect(screen.getByText("Cash on Delivery")).toBeInTheDocument();
   });
 
-  it("shows a merchant subtitle, and COD's built-in hint", () => {
+  it("shows a merchant subtitle, and no built-in sub-line for COD", () => {
     render(<PaymentBlock api={apiFor("bkash")} />);
 
     expect(screen.getByText("Send Money, then enter the TrxID")).toBeInTheDocument();
-    expect(screen.getByText("Pay on delivery")).toBeInTheDocument();
+    expect(screen.queryByText(/pay when your order arrives/i)).toBeNull();
   });
 
   it("shows only the selected method's note and fields", () => {

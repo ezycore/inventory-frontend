@@ -13,6 +13,7 @@ import {
   PAGE_SECTION_FOCUS,
   PAGE_SECTION_SELECT,
 } from "@/lib/storefront-builder/page-draft-messages";
+import { PreviewSkeleton } from "@/components/ecommerce/customize/preview-skeleton";
 import { usePreviewScale } from "@/components/ecommerce/customize/use-preview-scale";
 import {
   PreviewCartToggle,
@@ -80,6 +81,23 @@ export function PagePreviewFrame({
   const { hostRef, scale, ready, frameHeight } = usePreviewScale(device === "desktop");
   const { theme, setTheme, postTheme } = usePreviewTheme(frameRef);
 
+  /* The frame stays hidden behind a skeleton until it has asked for the draft
+     (`PAGE_DRAFT_READY`) — before that it is blank white, then the SAVED page,
+     and only then the merchant's draft. Tracked as "which frame is painted", as
+     in Customize's preview: a reload changes the key and re-arms the cover with
+     nothing to reset. */
+  const frameKey = `${address}#${chrome}#${reloadKey}`;
+  const [paintedKey, setPaintedKey] = useState<string | null>(null);
+  const painted = paintedKey === frameKey;
+  const revealTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Safety net: a frame that loads but never announces itself (the shop's own
+  // error page) is revealed anyway rather than left behind the cover.
+  const onFrameLoad = useCallback(() => {
+    clearTimeout(revealTimer.current);
+    revealTimer.current = setTimeout(() => setPaintedKey(frameKey), 1500);
+  }, [frameKey]);
+  useEffect(() => () => clearTimeout(revealTimer.current), []);
+
   const post = useCallback((message: unknown) => {
     frameRef.current?.contentWindow?.postMessage(message, "*");
   }, []);
@@ -125,13 +143,15 @@ export function PagePreviewFrame({
         // Same for the sample switch: the frame's store is new, and a merchant
         // who had asked for the empty cart would get the sample back.
         sendCart();
+        clearTimeout(revealTimer.current);
+        setPaintedKey(frameKey);
       } else if (event.data?.type === PAGE_SECTION_SELECT && typeof event.data.payload?.id === "string") {
         onSelect(event.data.payload.id);
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [sendDraft, sendFocus, sendCart, postTheme, onSelect]);
+  }, [sendDraft, sendFocus, sendCart, postTheme, onSelect, frameKey]);
 
   if (!slug || !address) {
     return (
@@ -177,17 +197,25 @@ export function PagePreviewFrame({
           </a>
         </div>
       </div>
-      <PreviewStage device={device} hostRef={hostRef} height={height}>
+      <PreviewStage
+        device={device}
+        hostRef={hostRef}
+        height={height}
+        overlay={!painted ? <PreviewSkeleton device={device} /> : null}
+      >
         {/* Mounted once the preview credential is in hand — before it, an
             unpublished page is a 404 and the frame would have to reload. */}
         {ready && !mintingToken ? (
           <iframe
-            key={`${address}#${chrome}#${reloadKey}`}
+            key={frameKey}
             ref={frameRef}
             src={`${pageUrl}?${frameQuery}`}
             title="Page preview"
+            onLoad={onFrameLoad}
             className="border-0 bg-white"
-            style={previewFrameSize(device, scale, frameHeight)}
+            // `visibility`, not unmounting: the frame has to load and run to
+            // send the ready message that lifts the cover.
+            style={{ visibility: painted ? "visible" : "hidden", ...previewFrameSize(device, scale, frameHeight) }}
           />
         ) : null}
       </PreviewStage>

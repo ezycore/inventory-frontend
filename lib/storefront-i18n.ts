@@ -224,9 +224,6 @@ export interface Dict {
   requiredTag: string;
   /** Group heading above name + phone, separating them from the address. */
   contactHeading: string;
-  /** One line under Cash on delivery. Says only what COD already means — no
-   *  claim the merchant has not made. */
-  codHint: string;
   /** Heading over the merchant's own bank-transfer instructions. Frames free
    *  text the store wrote (account number, reference) as the NEXT STEP, not as
    *  another blurb — so the shopper reads it as something to act on. */
@@ -375,6 +372,14 @@ export interface Dict {
   ctxCart: string;
   ctxOrder: string;
   menu: string;
+  /** Menu row that opens a category's own listing — `{name}` = the category. */
+  menuAllIn: string;
+  /** The phone menu's "step in" layout: the row that returns to the top level. */
+  menuBack: string;
+  /** Desktop header: the dropdown holding top links that did not fit the row. */
+  menuMore: string;
+  /** Accessible name of the chevron that folds a category open — `{name}` = the category. */
+  menuToggle: string;
   allProducts: string;
   results: string;
   gridView: string;
@@ -409,6 +414,12 @@ export interface Dict {
   sortNewest: string;
   sortPriceLow: string;
   sortPriceHigh: string;
+  /** Sort by the biggest share off the struck "was" price. */
+  sortDiscount: string;
+  /** Price-range chip, open below — `{max}` is a formatted amount. */
+  priceUnder: string;
+  /** Price-range chip, open above — `{min}` is a formatted amount. */
+  priceAbove: string;
   minLabel: string;
   maxLabel: string;
   reset: string;
@@ -707,7 +718,6 @@ const en: Dict = {
   optionalTag: "optional",
   requiredTag: "required",
   contactHeading: "Contact",
-  codHint: "Pay when your order arrives",
   phoneInvalid: "Enter a valid Bangladeshi mobile number, e.g. 01712345678",
   nameRequired: "Enter your full name",
   phoneRequired: "Enter your mobile number",
@@ -824,6 +834,10 @@ const en: Dict = {
   ctxCart: "I have {count} item(s) in my cart and need help.",
   ctxOrder: "I'm checking on order {order}.",
   menu: "Menu",
+  menuAllIn: "All {name}",
+  menuBack: "Back",
+  menuMore: "More",
+  menuToggle: "Show {name} sub-categories",
   allProducts: "All products",
   results: "results",
   gridView: "Grid view",
@@ -849,6 +863,9 @@ const en: Dict = {
   sortNewest: "Newest",
   sortPriceLow: "Price: low to high",
   sortPriceHigh: "Price: high to low",
+  sortDiscount: "Biggest discount",
+  priceUnder: "Under {max}",
+  priceAbove: "{min} and up",
   minLabel: "Min",
   maxLabel: "Max",
   reset: "Reset",
@@ -1141,7 +1158,6 @@ const bn: Dict = {
   optionalTag: "ঐচ্ছিক",
   requiredTag: "আবশ্যক",
   contactHeading: "যোগাযোগ",
-  codHint: "অর্ডার পৌঁছালে টাকা পরিশোধ করুন",
   phoneInvalid: "সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮",
   nameRequired: "আপনার পুরো নাম লিখুন",
   phoneRequired: "আপনার মোবাইল নম্বর লিখুন",
@@ -1253,6 +1269,10 @@ const bn: Dict = {
   ctxCart: "আমার কার্টে {count}টি পণ্য আছে, সাহায্য দরকার।",
   ctxOrder: "আমি {order} অর্ডারটির খোঁজ নিচ্ছি।",
   menu: "মেনু",
+  menuAllIn: "সব {name}",
+  menuBack: "ফিরে যান",
+  menuMore: "আরও",
+  menuToggle: "{name}-এর উপ-বিভাগ দেখান",
   allProducts: "সব পণ্য",
   results: "ফলাফল",
   gridView: "গ্রিড ভিউ",
@@ -1278,6 +1298,9 @@ const bn: Dict = {
   sortNewest: "নতুন আগে",
   sortPriceLow: "দাম: কম থেকে বেশি",
   sortPriceHigh: "দাম: বেশি থেকে কম",
+  sortDiscount: "সবচেয়ে বেশি ছাড়",
+  priceUnder: "{max}-এর নিচে",
+  priceAbove: "{min} বা তার বেশি",
   minLabel: "সর্বনিম্ন",
   maxLabel: "সর্বোচ্চ",
   reset: "রিসেট",

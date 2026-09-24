@@ -38,7 +38,7 @@ You do **not** need to build a Meta app or go through app review. If you cannot 
 "Generate access token" button, you do not have developer access to that business — ask whoever
 set up the ad account.
 
-Paste both into **Store Settings → Meta pixel**, then press **Send test event**. Meta should show it
+Paste both into **Store Settings → Marketing → Meta Pixel** (tap the row to open it), then press **Send test event**. Meta should show it
 within a few seconds. Until that works, nothing is being reported.
 
 ## When a sale counts
@@ -61,7 +61,7 @@ at all, and that cannot be fixed afterwards — so pick it once, early.
 
 ## Sending the purchase from the browser too
 
-**Store Settings → Meta pixel → Browser events → Purchase.** Off unless you turn it on.
+**Store Settings → Marketing → Meta Pixel → Browser events → Purchase.** Off unless you turn it on.
 
 Some ad setups work better when the purchase also arrives from the shopper's own browser, with
 their cookies attached. If yours is one of them, turn this on. Your sale is then reported twice —

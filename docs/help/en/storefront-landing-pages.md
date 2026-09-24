@@ -236,9 +236,10 @@ A shopper who opened the order form before the end can still place their order.
 
 ## See the orders a page brought in
 
-In **Pages**, the **Orders** column counts the orders placed by shoppers who came through each page —
-including a shopper who looked at another product first and ordered from the normal checkout. Press the
-number to open just those orders in your order list.
+In **Pages**, each landing page counts the orders placed by shoppers who came through it — including a
+shopper who looked at another product first and ordered from the normal checkout. The count is under the
+page's name. To open just those orders in your order list, press **⋯** on the page's row, then **See its
+orders**.
 
 An order counts for a page only when it is placed on the same visit, in the same browser. A shopper who
 comes back days later without opening the page again is not counted for it.
@@ -249,13 +250,13 @@ If you sell one product, or one offer is all your store is about right now, a la
 first thing shoppers see when they open your store's own address.
 
 1. Publish the page. Only a published page can be your homepage.
-2. In **Pages**, press **Use as homepage** on its row, then confirm.
+2. In **Pages**, press **⋯** on its row, then **Use as homepage**, and confirm.
 
 The row now shows **Homepage**, and your store's address opens the page with its own header and footer
 settings. The page keeps its own address too, so ads that already link to it keep working.
 
-Your homepage from **Customize** is kept, not replaced. Press **Stop using as homepage** on the same row
-to bring it back. Until then, **Customize** reminds you above the home page sections that shoppers are
+Your homepage from **Customize** is kept, not replaced. Press **⋯** on the same row, then **Stop using as
+homepage**, to bring it back. Until then, **Customize** reminds you above the home page sections that shoppers are
 not seeing them.
 
 Search engines are given your store's own search title and description for the homepage, and the page's

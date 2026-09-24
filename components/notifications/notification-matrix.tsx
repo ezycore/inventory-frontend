@@ -2,31 +2,18 @@
 // coding-standard: maintained
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import {
-  Clock,
-  Lock,
-  Mail,
-  MessageSquare,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Mail, MessageSquare } from "lucide-react";
 import {
   useNotificationSettings,
   useUpdateNotificationSettings,
 } from "@/services/api";
 import type { NotificationEventRow } from "@/types/api";
-import { SmsPreviewNote } from "@/components/notifications/sms-preview-note";
-import { Badge } from "@/ui/components/badge";
-import { Checkbox } from "@/ui/components/checkbox";
-import { SimpleSelect } from "@/ui/components/simple-select";
+import { NotificationChannelCell } from "@/components/notifications/notification-channel-cell";
+import { NotificationEventCell } from "@/components/notifications/notification-event-cell";
+import { SmsTemplateSheet } from "@/components/notifications/sms-template-sheet";
 import { SimpleTable, type SimpleColumn } from "@/ui/components/simple-table";
 import { Skeleton } from "@/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/components/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/ui/components/tooltip";
 
 type Audience = "customer" | "merchant";
 type Channel = "email" | "sms";
@@ -35,16 +22,15 @@ const AUDIENCES: Audience[] = ["customer", "merchant"];
 const CHANNELS: Channel[] = ["email", "sms"];
 
 /**
- * Where an event's own switch lives, for the rows the backend marks `managedBy`.
- *
- * The registry sends a slug, not a URL — it is this side that knows its own
- * routes. Two switches for one feature is a dead end, not a redundancy: a
- * merchant who un-ticked the box here and later enabled the feature on its own
- * page would get silence, with the send counted as done and nothing to read.
- * So the box becomes a link to whoever actually owns the decision.
+ * The email templates to echo back when a toggle replaces the event's stored
+ * config. SMS wording is deliberately NOT echoed: only the SMS editor's own
+ * endpoint writes it, and the server keeps it through this save regardless.
  */
-const MANAGED_BY_ROUTE: Record<string, string> = {
-  "storefront.cartRecovery": "/ecommerce/settings?tab=checkout",
+const emailTemplates = (row: NotificationEventRow) => {
+  const { emailSubject, emailBody } = row.templates ?? {};
+  return emailSubject || emailBody
+    ? { templates: { emailSubject, emailBody } }
+    : {};
 };
 
 interface NotificationMatrixProps {
@@ -73,6 +59,7 @@ export function NotificationMatrix({
   const { data, isLoading } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
   const [activeDomain, setActiveDomain] = useState<string>("all");
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   const events = useMemo(() => {
     const rows = data?.events ?? [];
@@ -91,6 +78,8 @@ export function NotificationMatrix({
         : events.filter((row) => row.domain === activeDomain),
     [events, activeDomain],
   );
+
+  const editingRow = events.find((row) => row.key === editingKey);
 
   // The SMS column renders always, but a box is only usable once the plan
   // grants SMS AND the merchant has flipped the master switch — the credit
@@ -114,82 +103,11 @@ export function NotificationMatrix({
             ? { merchant: { ...row.channels.merchant } }
             : {}),
           [audience]: { ...current, [channel]: !current[channel] },
-          ...(row.templates ? { templates: row.templates } : {}),
+          ...emailTemplates(row),
           ...(row.schedule ? { schedule: row.schedule } : {}),
         },
       },
     });
-  };
-
-  const channelCell = (
-    row: NotificationEventRow,
-    audience: Audience,
-    channel: Channel,
-  ) => {
-    const toggles = row.channels[audience];
-    // The event doesn't address this audience at all — not an "off" state.
-    if (!toggles) return <span className="text-muted-foreground/40">—</span>;
-
-    const checked = toggles[channel];
-    const smsLocked = channel === "sms" && !smsAvailable;
-    // A managed row reports what its feature currently does; the switch is
-    // elsewhere. The config API rejects an override for these keys outright, so
-    // an enabled box here would only ever produce a 400.
-    const locked = row.mandatory || smsLocked || !!row.managedBy;
-
-    const box = (
-      <Checkbox
-        checked={checked}
-        disabled={locked || updateSettings.isPending}
-        aria-label={`${row.key} ${audience} ${channel}`}
-        onCheckedChange={() => toggle(row, audience, channel)}
-      />
-    );
-
-    // A reserved same-size slot for the lock icon (present or not) keeps the
-    // checkbox itself at a fixed x-position — otherwise centering content of
-    // different widths (box alone vs. box+lock) shifts the box as state changes.
-    const content = (
-      <span className="inline-flex items-center gap-1">
-        {box}
-        {locked ? (
-          <Lock className="size-3 text-muted-foreground" />
-        ) : (
-          <span className="size-3" aria-hidden="true" />
-        )}
-      </span>
-    );
-
-    if (locked) {
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>{content}</TooltipTrigger>
-          <TooltipContent>
-            {row.mandatory
-              ? t("mandatoryHint")
-              : row.managedBy && !smsLocked
-                ? t("managedHint")
-                : t("smsLockedHint")}
-          </TooltipContent>
-        </Tooltip>
-      );
-    }
-
-    // An UNticked SMS box is exactly where the text matters: the merchant is
-    // deciding whether to start paying for this event, and the inline preview
-    // below only appears once it is already on. A tooltip answers "what would
-    // this say?" before the money is committed.
-    const preview = channel === "sms" ? row.smsPreview?.[audience] : undefined;
-    if (!preview || checked) return content;
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          <SmsPreviewNote preview={preview} audience={audience} />
-        </TooltipContent>
-      </Tooltip>
-    );
   };
 
   /**
@@ -208,73 +126,24 @@ export function NotificationMatrix({
           ...(row.channels.merchant
             ? { merchant: { ...row.channels.merchant } }
             : {}),
-          ...(row.templates ? { templates: row.templates } : {}),
+          ...emailTemplates(row),
           schedule: { hour },
         },
       },
     });
   };
 
-  const hourOptions = Array.from({ length: 24 }, (_, hour) => ({
-    value: String(hour),
-    label: `${String(hour).padStart(2, "0")}:00`,
-  }));
-
   const columns: SimpleColumn<NotificationEventRow>[] = [
     {
       key: "event",
       header: t("columns.event"),
       cell: (row) => (
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{t(`events.${row.key}` as never)}</span>
-            {row.mandatory && (
-              <Badge variant="secondary" className="text-[10px]">
-                {t("alwaysOn")}
-              </Badge>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground">{row.key}</div>
-          {/* The row is read-only, so it has to say where the switch IS —
-              a locked box with no destination is the dead end, restated. */}
-          {row.managedBy && MANAGED_BY_ROUTE[row.managedBy] ? (
-            <Link
-              href={MANAGED_BY_ROUTE[row.managedBy]}
-              className="mt-1.5 inline-flex items-center gap-1 text-xs text-primary underline-offset-2 hover:underline"
-            >
-              <SlidersHorizontal className="size-3" />
-              {t("managedElsewhere")}
-            </Link>
-          ) : null}
-          {/* Only for audiences whose SMS is actually ON — this is the running
-              cost of the current configuration, not a catalogue. The text for
-              an event that is off lives in the checkbox tooltip instead. */}
-          {AUDIENCES.filter(
-            (audience) => row.channels[audience]?.sms && row.smsPreview?.[audience],
-          ).map((audience) => (
-            <SmsPreviewNote
-              key={audience}
-              className="mt-1.5 rounded-md border-l-2 border-muted pl-2"
-              preview={row.smsPreview?.[audience]}
-              audience={audience}
-            />
-          ))}
-          {row.schedule && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <Clock className="size-3 text-muted-foreground" />
-              <SimpleSelect
-                size="sm"
-                className="h-7 w-24"
-                value={String(row.schedule.hour)}
-                onValueChange={(value) => setHour(row, Number(value))}
-                options={hourOptions}
-              />
-              <span className="text-xs text-muted-foreground">
-                {t("scheduleHint")}
-              </span>
-            </div>
-          )}
-        </div>
+        <NotificationEventCell
+          row={row}
+          canEditSms={data?.sms.available === true}
+          onEditSms={() => setEditingKey(row.key)}
+          onSetHour={(hour) => setHour(row, hour)}
+        />
       ),
     },
     ...AUDIENCES.flatMap((audience) =>
@@ -299,7 +168,16 @@ export function NotificationMatrix({
               </span>
             </div>
           ),
-          cell: (row) => channelCell(row, audience, channel),
+          cell: (row) => (
+            <NotificationChannelCell
+              row={row}
+              audience={audience}
+              channel={channel}
+              smsAvailable={smsAvailable}
+              pending={updateSettings.isPending}
+              onToggle={() => toggle(row, audience, channel)}
+            />
+          ),
         }),
       ),
     ),
@@ -349,6 +227,15 @@ export function NotificationMatrix({
         rows={visible}
         getRowKey={(row) => row.key}
       />
+
+      {editingRow && (
+        <SmsTemplateSheet
+          key={editingRow.key}
+          row={editingRow}
+          eventLabel={t(`events.${editingRow.key}` as never)}
+          onClose={() => setEditingKey(null)}
+        />
+      )}
     </div>
   );
 }

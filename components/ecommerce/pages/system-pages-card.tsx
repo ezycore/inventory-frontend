@@ -2,11 +2,12 @@
 // coding-standard: maintained
 
 import Link from "next/link";
-import { PencilRuler } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useGetStorefrontSettings, useStorefrontPages, useUpdateStorefrontSettings } from "@/services/api";
 import type { StorefrontSettings, UpdateStorefrontSettingsDto } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
+import { cn } from "@/ui/lib/utils";
 
 /** What each system page is, in the merchant's words. Keyed by `systemKey`. */
 const BLURB: Record<string, string> = {
@@ -62,7 +63,8 @@ const SWITCHES: Record<
  * and three of them can be switched off entirely, which is the one thing about
  * them a merchant decides.
  *
- * The home page is deliberately absent — it has its own card above.
+ * The home page is deliberately absent — it has its own card. On desktop this
+ * card sits in the side column under it; on a phone it closes the list.
  */
 export function SystemPagesCard() {
   const { data } = useStorefrontPages({ kind: "system", limit: 20 });
@@ -72,43 +74,50 @@ export function SystemPagesCard() {
   if (pages.length === 0) return null;
 
   return (
-    <div className="rounded-xl border bg-card">
-      <div className="border-b px-4 py-3">
-        <p className="text-sm font-semibold">Shop pages ({pages.length})</p>
-        <p className="text-xs text-muted-foreground">
-          Your shop&apos;s built-in pages. Add sections above and below what each one already shows,
-          or switch off the ones your shop does not need.
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="px-4 pb-2.5 pt-3.5">
+        <h2 className="text-base font-semibold lg:text-[15px]">Shop pages</h2>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">
+          Built into every shop. Add sections around them, or turn off the ones you don&apos;t use.
         </p>
       </div>
-      <ul className="divide-y">
+      <ul className="divide-y border-t">
         {pages.map((page) => {
           const control = SWITCHES[page.systemKey as string];
           const on = settings && control ? control.read(settings) : true;
           return (
-            <li key={page._id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{page.title}</p>
-                <p className="text-xs text-muted-foreground">
+            <li key={page._id} className="flex items-center gap-2 py-2 pl-4 pr-1.5">
+              <Link href={`/ecommerce/pages/${page._id}`} className="min-w-0 flex-1 py-1">
+                <span className={cn("block text-[15px] font-semibold lg:text-sm", !on && "text-muted-foreground")}>
+                  {page.title}
+                </span>
+                <span className="block text-[13px] text-muted-foreground lg:text-xs">
                   {control && !on ? control.off : (BLURB[page.systemKey as string] ?? "A built-in page of your shop.")}
-                  {page.hasDraft ? " It has unpublished changes." : null}
-                </p>
-              </div>
+                </span>
+                {page.hasDraft ? (
+                  <span className="mt-0.5 flex items-center gap-1.5 text-xs text-primary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    Unpublished changes
+                  </span>
+                ) : null}
+              </Link>
               {control ? (
-                <Switch
-                  checked={on}
-                  // One switch saves on its own, like the page settings do: this
-                  // is an operational choice about the live shop, not a draft to
-                  // publish later, and a Save bar on a card of four rows would
-                  // ask the merchant to confirm a decision they already made.
-                  disabled={!settings || update.isPending}
-                  onCheckedChange={(next) => update.mutate(control.write(next))}
-                  aria-label={`Show the ${page.title.toLowerCase()} page`}
-                />
+                // One switch saves on its own, like the page settings do: this
+                // is an operational choice about the live shop, not a draft to
+                // publish later, and a Save bar on a card of four rows would
+                // ask the merchant to confirm a decision they already made.
+                <span className="flex h-11 w-12 shrink-0 items-center justify-center">
+                  <Switch
+                    checked={on}
+                    disabled={!settings || update.isPending}
+                    onCheckedChange={(next) => update.mutate(control.write(next))}
+                    aria-label={`Show the ${page.title.toLowerCase()} page`}
+                  />
+                </span>
               ) : null}
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/ecommerce/pages/${page._id}`}>
-                  <PencilRuler className="mr-1.5 h-4 w-4" />
-                  Open editor
+              <Button asChild variant="ghost" size="icon" className="h-11 w-11 shrink-0 text-muted-foreground lg:h-9 lg:w-9">
+                <Link href={`/ecommerce/pages/${page._id}`} aria-label={`Edit the ${page.title.toLowerCase()} page`}>
+                  <ChevronRight className="h-5 w-5" />
                 </Link>
               </Button>
             </li>

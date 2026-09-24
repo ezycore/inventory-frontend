@@ -9,12 +9,21 @@ import {
   setClarityConsent,
   storefrontPageType,
 } from "@/lib/storefront-clarity";
+import { setGa4Consent } from "@/lib/storefront-ga4";
+import {
+  onEuropeanClock,
+  readConsentDecision,
+  writeConsentDecision,
+  type ConsentDecision,
+} from "@/lib/storefront-consent";
 
 /**
- * The cookie consent bar (backend `docs/plan/storefront-clarity.md` §6).
+ * The cookie consent bar (backend `docs/plan/storefront-clarity.md` §6, made store-level by
+ * `docs/plan/storefront-ga4.md` §5).
  *
- * Mounted by `ClarityClient`, so it exists only on a store that actually has Clarity — there is
- * no consent to collect otherwise.
+ * Mounted by `StoreHead` when a tool that sets cookies is on — Clarity, GA4, or both — and only
+ * then: there is no consent to collect otherwise. One question, one answer, forwarded to every
+ * tool that is on (`clarity` / `ga4` props).
  *
  * **Every rule below is an anti-annoyance rule, and each one is load-bearing:**
  *
@@ -28,53 +37,25 @@ import {
  *  - **The decision is remembered in `localStorage`, not a cookie.** Remembering a refusal must
  *    not write the thing being refused. A consent record is strictly-necessary storage.
  *
- * `mode` is the merchant's choice and decides who ever sees this (`ClarityCookieConsent`):
- * `off` never renders it, `eu` shows it only to a shopper on a European clock, `always` to
- * everyone. **`off` is not "no consent handling" and not a promise of no cookies.** Whatever the
- * mode, the effect below sends a denial on every page view; and whatever we send, a Clarity
- * project with its own Cookies switch on will still set `_clck`.
+ * `mode` is the merchant's choice (the store-level `cookieBanner`) and decides who ever sees
+ * this: `off` never renders it, `eu` shows it only to a shopper on a European clock, `always` to
+ * everyone. **`off` is not "no consent handling" and not a promise of no cookies.** For Clarity,
+ * whatever the mode, the effect below sends a denial on every page view; and a Clarity project
+ * with its own Cookies switch on will still set `_clck`. GA4's default is set before hydration by
+ * its boot script from the same mode and stored answer (`ga4DefaultGranted`), so this bar only
+ * sends GA4 the shopper's answer when they give one.
  */
-
-/** One value, one shape: what the shopper answered, or nothing if they have not. */
-const STORAGE_KEY = "sf-consent-v1";
-type Decision = "granted" | "denied";
-
-const readDecision = (): Decision | null => {
-  try {
-    const value = window.localStorage.getItem(STORAGE_KEY);
-    return value === "granted" || value === "denied" ? value : null;
-  } catch {
-    // Private mode, blocked storage, a locked-down browser. Treated as "not asked yet": the bar
-    // reappears next visit, which is the honest behaviour when the answer cannot be kept.
-    return null;
-  }
-};
-
-/**
- * Is this shopper somewhere a consent bar is expected?
- *
- * **Timezone, not IP, and deliberately.** The storefront is not proxied through Cloudflare —
- * Caddy terminates TLS and Cloudflare only answers the DNS-01 challenge — so `CF-IPCountry` does
- * not exist on our requests, and country gating would mean shipping a GeoIP database and running
- * a lookup on a hot path.
- *
- * `Europe/*` is strictly wider than the EEA+UK+CH set Clarity's own enforcement targets, and the
- * error it makes is always the safe one: a European travelling in Dhaka still sees the bar; a
- * Bangladeshi shopper never does.
- */
-const onEuropeanClock = (): boolean => {
-  try {
-    return (
-      Intl.DateTimeFormat().resolvedOptions().timeZone?.startsWith("Europe/") ??
-      false
-    );
-  } catch {
-    // A browser that cannot name its zone gets the bar: over-showing is the safe direction.
-    return true;
-  }
-};
-
-export function ConsentBar({ mode }: { mode: "off" | "eu" | "always" }) {
+export function ConsentBar({
+  mode,
+  clarity = false,
+  ga4 = false,
+}: {
+  mode: "off" | "eu" | "always";
+  /** Clarity is on for this store — forward the answer to it, and deny on every page view. */
+  clarity?: boolean;
+  /** GA4 is on for this store — forward the answer to it when the shopper gives one. */
+  ga4?: boolean;
+}) {
   const { t } = useStorefrontUI();
   const pathname = useStorePathname();
   const [visible, setVisible] = useState(false);
@@ -87,7 +68,7 @@ export function ConsentBar({ mode }: { mode: "off" | "eu" | "always" }) {
   useBottomBarHeight(ref, visible, "--sf-consent-h");
 
   useEffect(() => {
-    const decided = readDecision();
+    const decided = readConsentDecision();
 
     // **Sent on every page view, before anything else, and denied unless the shopper said
     // otherwise.** Two jobs in one call. A stored answer is replayed because Clarity's consent
@@ -96,7 +77,7 @@ export function ConsentBar({ mode }: { mode: "off" | "eu" | "always" }) {
     // than left silent — see `setClarityConsent`, where the live measurement that forced this
     // is written down. An earlier version returned early for `mode === "off"` and called nothing
     // at all, which left the shopper's state indistinguishable from an un-run effect.
-    setClarityConsent(decided === "granted");
+    if (clarity) setClarityConsent(decided === "granted");
     if (decided) return;
 
     if (mode === "off" || onCheckout) return;
@@ -111,17 +92,14 @@ export function ConsentBar({ mode }: { mode: "off" | "eu" | "always" }) {
       window.clearTimeout(timer);
       window.removeEventListener("scroll", show);
     };
-  }, [mode, onCheckout]);
+  }, [mode, onCheckout, clarity]);
 
   if (!visible || onCheckout) return null;
 
-  const answer = (decision: Decision) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, decision);
-    } catch {
-      // Unstorable answers still apply to this session — they are simply asked again next visit.
-    }
-    setClarityConsent(decision === "granted");
+  const answer = (decision: ConsentDecision) => {
+    writeConsentDecision(decision);
+    if (clarity) setClarityConsent(decision === "granted");
+    if (ga4) setGa4Consent(decision === "granted");
     setVisible(false);
   };
 

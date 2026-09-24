@@ -10,6 +10,7 @@ import type {
   SaleTransactions as ApiSaleTransactions,
 } from "./api";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type { StoreFilterSettings, StoreMenuSettings } from "@/lib/storefront-client";
 
 // Common enums
 export enum ProductStatus {
@@ -483,6 +484,8 @@ export interface StorefrontMenuItem {
   type: NavLinkType;
   value: string;
   children?: StorefrontMenuItem[];
+  /** Where a top-level item's dropdown comes from. Unset ⇒ authored children, else inherited sub-categories. */
+  childrenMode?: "auto" | "custom" | "none";
 }
 
 export interface StorefrontFooterLink {
@@ -600,6 +603,10 @@ export interface StorefrontNav {
   campaignStrip?: StorefrontCampaignStrip;
   /** Optional information strip above the main header. */
   utilityBar?: StorefrontUtilityBar;
+  /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
+  menu?: StoreMenuSettings;
+  /** Catalogue filters & sort (Customize → Filters & sort); see `lib/storefront-filters.ts`. */
+  filters?: StoreFilterSettings;
 }
 
 /**
@@ -1073,6 +1080,10 @@ export interface Entitlement {
    * derived from `trialEndsAt`, which is blanked the moment a trial ends.
    * Absent on mirrors written before the field existed — treat as `false`. */
   trialUsed?: boolean;
+  /** The current trial is already paid for. A prepaid subscription stays
+   * `trialing` (that preserves the days paid for), so this is the only thing
+   * separating it from one that still owes money. */
+  trialPrepaid?: boolean;
   pendingPlanChange?: ScheduledPlanChange | null;
   scheduledPlanChange?: ScheduledPlanChange | null;
   scheduledChange?: ScheduledPlanChange | null;
@@ -1084,6 +1095,11 @@ export interface Entitlement {
    * (= `currentPeriodEnd`), then the workspace is blocked. Cleared on resume. */
   cancelAtPeriodEnd?: boolean;
   cancelAt?: string | null;
+  /** Grace: the subscription is unpaid, but the workspace — and the public
+   * storefront with it — keeps working until this instant. Set when a trial
+   * lapses unpaid, a renewal fails, or an in-trial upgrade is waiting on its
+   * payment. Absent whenever no grace is in force. */
+  graceUntil?: string | null;
   nextPlanSlug?: string;
   nextPlanName?: string;
   nextPlanEffectiveAt?: string | null;
@@ -1135,7 +1151,14 @@ export interface SubscriptionInfo {
 export interface SubscriptionStatusInfo {
   entitlement: Pick<
     Entitlement,
-    "status" | "subscriptionStatus" | "cancelAtPeriodEnd" | "cancelAt" | "currentPeriodEnd"
+    | "status"
+    | "subscriptionStatus"
+    | "cancelAtPeriodEnd"
+    | "cancelAt"
+    | "currentPeriodEnd"
+    | "trialEndsAt"
+    | "trialPrepaid"
+    | "graceUntil"
   > | null;
 }
 

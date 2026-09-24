@@ -2233,6 +2233,43 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   color: var(--primary);
 }
 
+/* ---- Menu settings (Customize → Menu, `nav.menu.desktop`) ---- */
+/* A click-to-open trigger, and the More menu, are buttons rather than links —
+   they no longer go anywhere on their own. Reset to look like the links beside
+   them; `.sf-nav-top` / `.sf-nav-bar` supply the rest, hover effect included. */
+.sf-nav-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+/* `columns`: the list flows into CSS columns; a row must never split across two. */
+.sf-nav-cols > .sf-nav-child {
+  display: block;
+  break-inside: avoid;
+}
+/* `mega`: one tile per sub-category — the picture when it has one, the name
+   always. `auto-fill` so four sub-categories and forty lay out the same way. */
+.sf-nav-mega {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 10px;
+}
+.sf-nav-mega-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: normal;
+}
+.sf-nav-mega-img {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--surface);
+}
+
 .sf-mchips {
   display: flex;
   gap: 7px;
@@ -2592,6 +2629,23 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-drawer.sf-open {
   transform: translateX(0);
 }
+/* The filter/sort sheet: a bottom sheet on a phone (the convention for filters,
+   and it keeps the left edge for the menu drawer), the right drawer above. */
+@media (max-width: 679px) {
+  .sf-drawer.sf-drawer-sheet {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 88vh;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(102%);
+    box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, 0.4);
+  }
+  .sf-drawer.sf-drawer-sheet.sf-open {
+    transform: translateY(0);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .sf-drawer,
   .sf-drawer-scrim {
@@ -2720,6 +2774,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     position: sticky;
     /* Clears the sticky header; the rail scrolls internally past that. */
     top: 76px;
+    /* `sticky` makes the rail its own stacking context, so the flyout's
+       z-index only counted inside it and the product grid painted over the
+       pop-out. Above the content (hero controls reach 3), below the header (30). */
+    z-index: 5;
     align-self: start;
     padding-block: 16px;
   }
@@ -2789,6 +2847,39 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--primary);
+}
+/* `railOpen: flyout` — sub-categories pop out beside the rail on hover or
+   keyboard focus. The rail's own scroll is lifted for this mode only: a scroll
+   container clips on both axes, so the pop-out would be cut off at its edge. */
+.sf-rail-inner[data-flyout] {
+  max-height: none;
+  overflow: visible;
+}
+.sf-rail-fly {
+  position: relative;
+}
+.sf-rail-flyout {
+  display: none;
+  position: absolute;
+  inset-inline-start: 100%;
+  top: 0;
+  z-index: 30;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+.sf-rail-fly:hover > .sf-rail-flyout,
+.sf-rail-fly:focus-within > .sf-rail-flyout {
+  display: flex;
+  flex-direction: column;
+}
+/* Inside the pop-out a child is not indented under anything. */
+.sf-rail-flyout .sf-rail-link--child {
+  padding-inline-start: 12px;
+  border-radius: 7px;
 }
 
 /* ---- Category tiles (home/sections/category-sections.tsx) ----
@@ -4639,4 +4730,126 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   outline: 2px solid currentColor;
   outline-offset: 1px;
   box-shadow: none;
+}
+
+/* ---- Catalogue filters & sort (components/storefront/filters/*) ----
+   Which surface draws is decided here, never by a matchMedia read: the page is
+   server-rendered, and a JS breakpoint would flash the wrong one first. */
+.sf-ftool {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+@media (max-width: 679px) {
+  /* Sticks under the header (0 when the header itself scrolls away — see
+     use-header-height.ts) and slides up out of the way while reading down. */
+  .sf-ftool-sticky {
+    position: sticky;
+    top: var(--sf-header-h, 0px);
+    z-index: 25;
+    margin-left: calc(-1 * var(--pad));
+    margin-right: calc(-1 * var(--pad));
+    padding: 8px var(--pad);
+    background: var(--page, var(--card));
+    border-bottom: 1px solid var(--border);
+    transition: transform 0.2s ease;
+  }
+  .sf-ftool-hidden {
+    transform: translateY(calc(-100% - 1px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-ftool-sticky {
+    transition: none;
+  }
+}
+.sf-fsort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+}
+/* Quick chips (phone) and the desktop bar's group buttons share one pill. */
+.sf-fquick {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin: 0 0 12px;
+  scrollbar-width: none;
+}
+.sf-fquick::-webkit-scrollbar {
+  display: none;
+}
+.sf-fquick-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sf-fquick-chip.sf-on {
+  background: var(--primary-soft);
+  border-color: transparent;
+  color: var(--primary);
+}
+.sf-fquick-clear {
+  flex: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* The pinned sidebar starts at 1024px; below that it is the Filters button. */
+.sf-flayout-aside {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .sf-hide-wide {
+    display: none !important;
+  }
+  .sf-flayout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  .sf-flayout-right {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .sf-flayout-right .sf-flayout-aside {
+    order: 2;
+  }
+  .sf-flayout-aside {
+    display: block;
+    position: sticky;
+    top: calc(var(--sf-header-h, 0px) + 16px);
+    max-height: calc(100vh - var(--sf-header-h, 0px) - 32px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
 }

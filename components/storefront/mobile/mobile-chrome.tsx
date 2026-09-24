@@ -8,7 +8,7 @@ import type {
   CatalogCategory,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { storeHref } from "@/lib/storefront-links";
 import type {
   MobileActionId,
   MobileChrome as Chrome,
@@ -31,6 +31,8 @@ import {
 } from "@/components/storefront/mobile/use-mobile-chrome";
 import { headerNeeds } from "@/lib/storefront-utility-bar";
 import { useResolvedUtilityBar } from "@/components/storefront/use-utility-bar";
+import { useStoreMenu } from "@/components/storefront/use-store-menu";
+import { CategoryChips } from "@/components/storefront/mobile/category-chips";
 
 /**
  * The phone chrome — **one renderer for every mobile template**.
@@ -215,7 +217,7 @@ export function MobileBar({
           <SearchField />
         </div>
       ) : chrome.row === "chips" ? (
-        <CategoryChips base={base} categories={categories} />
+        <CategoryChips base={base} store={store} categories={categories} />
       ) : null}
     </div>
   );
@@ -256,36 +258,6 @@ function SearchField() {
         {t.searchPh}
       </span>
     </button>
-  );
-}
-
-/**
- * The departments as a scrolling row of text chips.
- *
- * Text, not the homepage's photo tiles: this is chrome on every page, so it has
- * to stay one 40px line whatever the merchant's category artwork looks like.
- * Renders nothing for a shop with no categories rather than an empty track.
- */
-function CategoryChips({
-  base,
-  categories,
-}: {
-  base: string;
-  categories: CatalogCategory[];
-}) {
-  const { t } = useStorefrontUI();
-  if (!categories.length) return null;
-  return (
-    <div className="sf-mchips" style={{ marginTop: 8 }}>
-      <Link href={storeHref(base, "/products")} className="sf-mchip">
-        {t.allProducts}
-      </Link>
-      {categories.map((c) => (
-        <Link key={c._id} href={collectionHref(base, c)} className="sf-mchip">
-          {c.name}
-        </Link>
-      ))}
-    </div>
   );
 }
 
@@ -350,6 +322,7 @@ export function MobileOverlays({
   categories: CatalogCategory[];
 }) {
   const chrome = useMobileChrome(store);
+  const menu = useStoreMenu(store, categories, base);
   /* The drawer is the LAST fallback for language and theme, so it has to know
      about the utility bar too — otherwise a phone bar carrying them still gets
      a second copy listed inside the menu. */
@@ -380,8 +353,8 @@ export function MobileOverlays({
         chrome={chrome}
         utilityNeeds={utilityNeeds}
         base={base}
-        categories={categories}
-        menu={store?.nav?.header ?? []}
+        nodes={menu.phoneTree}
+        settings={menu.settings.mobile}
       />
       <HeaderSearchMobile
         categories={categories}
