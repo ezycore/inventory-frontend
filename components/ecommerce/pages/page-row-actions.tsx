@@ -102,6 +102,11 @@ export function PageRowActions({
   };
 
   const landing = page.kind === "landing";
+  const homeAction: PageAction | null = page.isHome
+    ? { key: "stop-home", label: "Stop using as homepage", icon: <Undo2 className={ICON} />, onSelect: () => setHome.mutate(null) }
+    : page.status === "published"
+      ? { key: "home", label: "Use as homepage", icon: <HousePlus className={ICON} />, onSelect: () => setHomepageFor(page) }
+      : null;
   const actions: PageAction[] = [
     { key: "edit", label: "Edit page", icon: <PencilRuler className={ICON} />, href: `/ecommerce/pages/${page._id}` },
     ...(liveUrl
@@ -119,12 +124,8 @@ export function PageRowActions({
     ...(landing
       ? [
           { key: "duplicate", label: "Duplicate", icon: <Copy className={ICON} />, onSelect: () => duplicate.mutate(page._id), separated: true },
-          page.isHome
-            ? { key: "stop-home", label: "Stop using as homepage", icon: <Undo2 className={ICON} />, onSelect: () => setHome.mutate(null) }
-            : page.status === "published"
-              ? { key: "home", label: "Use as homepage", icon: <HousePlus className={ICON} />, onSelect: () => setHomepageFor(page) }
-              : null,
-        ].filter((action): action is PageAction => action !== null)
+          ...(homeAction ? [homeAction] : []),
+        ]
       : []),
     ...(page.kind !== "campaign"
       ? [{ key: "delete", label: "Delete page", icon: <Trash2 className={ICON} />, onSelect: () => setConfirmingDelete(true), destructive: true, separated: true }]

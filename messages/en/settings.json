@@ -1257,6 +1257,76 @@
         "empty": "No SMS sent yet."
       }
     },
-    "scheduleHint": "your local time"
+    "scheduleHint": "your local time",
+    "smsEditor": {
+      "editButton": "Edit SMS",
+      "customBadge": "Your wording",
+      "title": "Edit customer SMS",
+      "description": "Your customers get this text instead of the default. It is always sent as 1 SMS.",
+      "bodyLabel": "Message",
+      "bodyHint": "English letters only. You can write Bangla in English letters (Banglish).",
+      "insert": "Insert",
+      "fits": "Fits in 1 SMS",
+      "tooLong": "Too long for 1 SMS",
+      "budget": "{used} / {limit} characters when names and amounts are long",
+      "checking": "Checking…",
+      "casesTitle": "How it will look",
+      "cases": {
+        "typical": "Typical order",
+        "long_name": "Long name",
+        "bangla_name": "Name in Bangla",
+        "no_name": "No name",
+        "prepaid": "Prepaid order"
+      },
+      "oneSms": "1 SMS",
+      "segments": "{count} SMS",
+      "change": {
+        "fallback": "{variable} replaced by \"{value}\"",
+        "shortened": "{variable} shortened to \"{value}\"",
+        "builtin": "Too long — the default message will be sent"
+      },
+      "fallbackLabel": "If the {variable} can't be used, write",
+      "fallbackHint": "Used when there is none, or it is written in Bangla. A short word in English letters.",
+      "storePhoneEmpty": "Your store phone is empty, so {variable} will be blank. Add it in Settings → Receipt & Print.",
+      "reset": "Reset to default",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "vars": {
+        "customer_name": "Customer name",
+        "name": "Name",
+        "order_number": "Order number",
+        "invoice_number": "Invoice number",
+        "store_name": "Store name",
+        "total_amount": "Order total",
+        "paid_amount": "Amount paid",
+        "total_due": "Amount due",
+        "cod_amount": "COD amount",
+        "status": "Order status",
+        "tracking_id": "Tracking code",
+        "courier_name": "Courier",
+        "store_phone": "Store phone"
+      },
+      "errors": {
+        "SMS_TEMPLATE_NON_GSM": "\"{char}\" can't be sent. Custom SMS supports English letters only — you can write Bangla in English letters (Banglish).",
+        "SMS_TEMPLATE_EXTENDED_CHAR": "\"{char}\" can't be used in an SMS. Use {braces} only through the Insert buttons.",
+        "SMS_TEMPLATE_UNKNOWN_VAR": "{placeholder} doesn't exist for this message.",
+        "SMS_TEMPLATE_UNKNOWN_VAR_SUGGEST": "{placeholder} doesn't exist for this message. Did you mean {suggestion}?",
+        "SMS_TEMPLATE_STORE_NAME_REQUIRED": "Add the store name, so your customer knows who sent the SMS.",
+        "SMS_TEMPLATE_URL": "Links can't be sent in SMS.",
+        "SMS_TEMPLATE_EMPTY": "Write a message, or reset to the default.",
+        "SMS_TEMPLATE_TOO_LONG": "Too long for 1 SMS when names and amounts are long. Shorten the text.",
+        "SMS_TEMPLATE_FALLBACK_INVALID": "The replacement word must be in English letters and short."
+      },
+      "storeName": {
+        "title": "SMS store name",
+        "hint": "Every SMS ends with this name, so customers know who texted them. English letters only, up to 20 characters.",
+        "fromSlug": "Taken from your shop address. Check that it reads right, and change it if not.",
+        "fromDisplay": "Your store name.",
+        "custom": "Set by you.",
+        "save": "Save",
+        "useAutomatic": "Use automatic"
+      }
+    }
   }
 }

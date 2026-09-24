@@ -72,6 +72,14 @@ export const queryKeys = {
     // three or the usage figure quietly disagrees with the balance beside it.
     smsUsage: (months?: number) =>
       ["organization", "notifications", "sms-usage", months ?? null] as const,
+    // The SMS editor's live check, keyed by the whole draft so each keystroke
+    // (debounced) is its own entry. Under `notifications` so saving the
+    // template or the store name — both of which change what it renders —
+    // flushes it with everything else.
+    smsTemplatePreviews: () =>
+      ["organization", "notifications", "sms-template-preview"] as const,
+    smsTemplatePreview: (draft: object) =>
+      ["organization", "notifications", "sms-template-preview", draft] as const,
   },
 
   profile: {

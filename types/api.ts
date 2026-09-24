@@ -255,6 +255,11 @@ export type NotificationLogItem = Schemas["NotificationLogItem"];
 export type SmsTestResult = Schemas["SmsTestResult"];
 export type SmsUsageReport = Schemas["SmsUsageReport"];
 export type SmsUsageMonth = SmsUsageReport["months"][number];
+/** SMS template editor (backend docs/plan/sms-template-editor.md). */
+export type SmsTemplatePreview = Schemas["SmsTemplatePreview"];
+export type SmsTemplateError = SmsTemplatePreview["errors"][number];
+export type SmsTemplateCase = SmsTemplatePreview["cases"][number];
+export type SmsStoreName = NotificationSettings["sms"]["smsStoreName"];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
 export type ApiContentPage = Schemas["ContentPage"];

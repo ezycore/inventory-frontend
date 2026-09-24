@@ -8,6 +8,7 @@
  * parent's own page reachable — the easy thing to lose when a row becomes a
  * toggle instead of a link.
  */
+import Link from "next/link";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -116,7 +117,7 @@ describe("MenuTreeList — the other layouts", () => {
         nodes={NODES}
         settings={phone({ layout: "drill" })}
         onClose={() => {}}
-        lead={<a href="/products">All products</a>}
+        lead={<Link href="/products">All products</Link>}
       />,
     );
     expect(screen.getByText("All products")).toBeInTheDocument();
