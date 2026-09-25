@@ -32,6 +32,17 @@ describe("SectionTitle", () => {
     expect(row.style.marginBottom).toBe("16px");
   });
 
+  it("lets the heading INHERIT its colour, so a section's Text colour reaches it", () => {
+    /* Found in a browser: a band with Background = Colour and Text colour = a
+       merchant's own painted the band but left the heading `var(--text)`, the
+       theme's colour, because the h2 named the token instead of inheriting.
+       `.sfb-sec[data-tone]` sets `color` on the FRAME — everything drawn on the
+       band has to read it. Outside a builder section, inherit IS `--text`. */
+    const { container } = render(<SectionTitle>Our picks</SectionTitle>);
+    const heading = container.querySelector("h2") as HTMLElement;
+    expect(heading.style.color).toBe("inherit");
+  });
+
   it("draws the heading and its action, in that order", () => {
     const { container } = render(<SectionTitle action={<a href="/all">View all</a>}>Our picks</SectionTitle>);
     const row = container.firstElementChild as HTMLElement;

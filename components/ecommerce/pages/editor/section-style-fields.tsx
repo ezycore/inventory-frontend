@@ -264,7 +264,12 @@ export function SectionStyleFields({
       />
       {background.kind === "color" ? (
         <BackgroundColour
-          key={section.id}
+          /* Keyed per FIELD, not per section: both colour boxes are children of
+             the one list below, so `section.id` alone made them siblings with
+             the same key — React warns, and may reuse one's half-typed hex in
+             the other. The suffix keeps the remount-on-section-change this key
+             exists for. */
+          key={`${section.id}-background`}
           color={background.color}
           onChange={(color) => set(withBackground(style, "color", { color }))}
         />
@@ -390,7 +395,7 @@ export function SectionStyleFields({
           finds it again. */}
       {toneOf(style) === "custom" ? (
         <TextColour
-          key={section.id}
+          key={`${section.id}-text`}
           color={textColorOf(style)}
           onChange={(color) => set(withTextColor(style, color))}
         />

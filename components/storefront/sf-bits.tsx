@@ -313,7 +313,11 @@ export function SectionTitle({
         style={{
           fontSize: "var(--h2)",
           fontWeight: 700,
-          color: "var(--text)",
+          /* INHERIT, like the subheading's `--sfb-muted` below: a section's
+             Text colour is set on the frame and inherited, so a heading that
+             names the theme token ignores the merchant's choice. Outside a
+             builder section the inherited colour is `--text` anyway. */
+          color: "inherit",
           margin: 0,
           letterSpacing: "-0.02em",
         }}

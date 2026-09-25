@@ -2115,6 +2115,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   gap: 13px;
   text-align: left;
 }
+/* A promise the merchant took the icon off (`NO_ICON`). The 34px track exists
+   for a disc, so a row without one has to drop it: the text landed in that
+   track and wrapped to two words a line beside its full-width neighbours. */
+.sf-trust-row--bare {
+  grid-template-columns: minmax(0, 1fr);
+}
 @media (max-width: 679px) {
   .sf-trust-list {
     grid-template-columns: minmax(0, 420px);

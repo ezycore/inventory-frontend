@@ -518,15 +518,20 @@ that page's default). Add a key to the shared type and wire it in **both** compo
   - **Never** use `Select`, `SimpleSelect`, or a direct `<AdvancedSelect>` for products. Calling `<AdvancedSelect>` directly **bypasses** `shouldUseSearchableSelect()` — that heuristic only runs inside the DynamicForm / filter-bar renderers — so a hand-built `<AdvancedSelect optionsApi=…>` single select is a plain, unsearchable dropdown. This is exactly how the combo-components field and the storefront builder's `RefField` (section inspector + "New page → Landing page") shipped without search (found 2026-09-25).
   - **Multiple-mode** product pickers must declare `type: "fuseSelect"` explicitly — the `select` heuristic keeps every multiple-mode field on `<MultiSelect>` (plain substring search). This is the one case where hand-picking `fuseSelect` on an `optionsApi` field is required, not redundant (coupon "Limit to products", campaign "Products"). Outside DynamicForm, `<FuseAdvancedSelect mode="multiple">`.
   - **Before shipping a new product picker, grep for every caller** of the component you touched (e.g. `RefField` has two: `editor/field-control.tsx` and `pages/new-page-dialog.tsx`) — a fix or audit that only follows one entry point misses the others.
-- **Picking a control for a "choose one of these" setting** — there are four, and the wrong one is what makes an editor panel three screens tall. Match the control to the *kind* of question:
+- **Picking a control for a "choose one of these" setting** — there are five, and the wrong one is what makes an editor panel three screens tall. Match the control to the *kind* of question:
   | The question is | Control | Where |
   |---|---|---|
   | An **ordinal ramp**, 2–4 steps ("how big / how tight / how round") | **`SegmentedField`** | `ui/components/segmented-field.tsx` |
   | A **colour or material** ("which ground / which palette") | **`SwatchField`** | `ui/components/swatch-field.tsx` |
   | A **list of 5+ named things** that each need a sentence | **`SimpleSelect`** with `description` | `ui/components/simple-select.tsx` |
   | **Spatial / structural** ("which layout") — a sketch is the only honest answer | **`OptionCard`** with `media` | `ui/components/option-card.tsx` |
+  | A **glyph** from the storefront icon set | **`IconPicker`** / **`IconGrid`** | `components/ecommerce/customize/icon-picker.tsx` |
 
-  All four share one rule: **a description that repeats what the control already shows is height with no information in it.** `SegmentedField`, `SwatchField` and `TemplatePicker` therefore render the sentence *once, under the control, for the selected option only* (their `caption` prop, on by default) rather than under every tile — a per-tile description in a 3-up grid inside the 380px Customize rail is read at ~95px and wraps to four lines. The storefront Customize editor is the reference implementation; see the `storefront` skill.
+  The icon grid is the one case where the *shapes* are the choice: a list of names ("Check",
+  "Coins") asks the merchant to imagine each one, and shows them one row at a time. It also carries
+  **No icon** — see the `storefront` skill, since unset means a fallback glyph, never none.
+
+  The other four share one rule: **a description that repeats what the control already shows is height with no information in it.** `SegmentedField`, `SwatchField` and `TemplatePicker` therefore render the sentence *once, under the control, for the selected option only* (their `caption` prop, on by default) rather than under every tile — a per-tile description in a 3-up grid inside the 380px Customize rail is read at ~95px and wraps to four lines. The storefront Customize editor is the reference implementation; see the `storefront` skill.
 - **Grouping controls inside one panel:** `PartBlock` (`components/ecommerce/customize/part-group.tsx`) is one slot per question and costs `py-4`; **`PartField`** is the compact sibling for several settings sharing a slot. Six settings as six `PartBlock`s spend 192px on block padding before drawing a single control. An on/off setting is a **`PartSwitch`** row (same file) — never another hand-rolled label + `Switch`.
 
 ### Permission guards and plan ceilings (shared hooks)

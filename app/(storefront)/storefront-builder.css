@@ -720,6 +720,14 @@
   .sfb-steps {
     grid-template-columns: var(--sfb-step-track-m, 1fr);
   }
+  /* A phone column count for the promises band. Unset keeps the storefront's own
+     phone rule — one centred column up to 420px — which is what every band
+     written before the control draws. Two short promises a line is the whole
+     point of the control: one per line is a lot of scrolling for "Cash on
+     delivery". */
+  .sfb-trust-list {
+    grid-template-columns: var(--sfb-trust-track-m, minmax(0, 420px));
+  }
 }
 
 @media (min-width: 680px) {
@@ -744,6 +752,11 @@
   }
   .sfb-benefits {
     grid-template-columns: var(--sfb-benefit-track, repeat(3, minmax(0, 1fr)));
+  }
+  /* The band's own column count past the breakpoint; unset keeps the store's
+     `--trustcols` ramp (three), so an untouched band renders exactly as before. */
+  .sfb-trust-list {
+    grid-template-columns: var(--sfb-trust-track, repeat(var(--trustcols), minmax(0, 1fr)));
   }
   /* Steps WRAP. `grid-auto-flow: column` gave eight steps eight columns —
      unreadable slivers, and no control to fix it with. `auto-fit` keeps the

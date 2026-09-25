@@ -229,3 +229,63 @@ describe("SectionInspector — a switch whose section draws it on", () => {
     );
   });
 });
+
+describe("SectionInspector — the icon picker", () => {
+  /* A dropdown of names asked the merchant to imagine each shape one row at a
+     time, and had nowhere to say "no icon at all" — unset draws a fallback on
+     every surface, so taking a disc off was impossible until `NO_ICON`. */
+  const promisesBand = (blockSettings: Record<string, unknown>) => ({
+    id: "pb",
+    type: "promises-band" as const,
+    v: 1,
+    enabled: true,
+    settings: {},
+    blocks: [{ id: "b1", settings: { text: "Cash on delivery", ...blockSettings } }],
+  });
+
+  const inspectSaving = (section: EditorSection, onChange: (next: EditorSection) => void) =>
+    renderWithProviders(
+      <TooltipProvider>
+        <SectionInspector
+          section={section}
+          device="desktop"
+          onChange={onChange}
+          onAddBlock={() => {}}
+          onClose={() => {}}
+        />
+      </TooltipProvider>,
+    );
+
+  it("names what an unset promise icon does rather than guessing a glyph, and offers the shapes", async () => {
+    inspectSaving(promisesBand({}), () => {});
+    // Labelled by its field, like every other control here — so the glyph in
+    // force is read off the trigger's own text.
+    const trigger = screen.getByLabelText("Icon");
+    expect(trigger.textContent).toContain("The band decides");
+    await userEvent.click(trigger);
+    expect(screen.getByRole("button", { name: "Truck" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Lightning" })).toBeTruthy();
+  });
+
+  it("stores No icon as a value, because unset is the cycled fallback", async () => {
+    let saved: EditorSection | undefined;
+    inspectSaving(promisesBand({}), (next) => {
+      saved = next;
+    });
+    await userEvent.click(screen.getByLabelText("Icon"));
+    await userEvent.click(screen.getByRole("button", { name: "No icon" }));
+    expect(saved?.blocks?.[0].settings.icon).toBe("none");
+  });
+
+  it("shows a benefit card's fixed fallback as the value it draws, with no unset choice", async () => {
+    inspectSaving(
+      { id: "b1", type: "benefits", v: 1, enabled: true, settings: {}, blocks: [{ id: "x", settings: { title: "Pure cotton" } }] },
+      () => {},
+    );
+    const trigger = screen.getByLabelText("Icon");
+    expect(trigger.textContent).toContain("Check");
+    await userEvent.click(trigger);
+    expect(screen.queryByRole("button", { name: "Default" })).toBeNull();
+    expect(screen.getByRole("button", { name: "No icon" })).toBeTruthy();
+  });
+});

@@ -472,6 +472,7 @@ const HINTS: Record<string, string> = {
   openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
   flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
   "testimonials.columns": "How many reviews sit side by side. On a phone this needs the row set to Wrap — a swipe row has no columns.",
+  "promises-band.columns": "How many promises sit side by side. Empty follows your shop — three on a computer, one on a phone; switch the preview to the phone to give it its own count.",
   /* Section-keyed like its neighbours: only the hero has this field today, but a
      bare key is the collision `frame` already walked into — see `"hero.frame"`. */
   "hero.mobileFirst":
@@ -602,6 +603,13 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
     sale: "Sale red (soft)",
     neutral: "Neutral",
     solid: "Solid",
+  },
+  icon: {
+    // The grid shows the shape; these name the few whose word does not.
+    bolt: "Lightning",
+    card: "Payment card",
+    coins: "Money",
+    lock: "Padlock",
   },
   storeHeading: {
     featured: "“Featured products”",

@@ -886,11 +886,41 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   screenshot (`shownTestimonials`), and a new one starts nameless so a placeholder can't be saved; a
   CSS scroll-snap row on phones (`.sfb-cards`), no island. Benefits use `IconDisc`
   (`components/storefront/icon-disc.tsx`, shared with `PromiseRows`) and the section specs' shared
-  `ICON` enum. **Video embeds only through `parseVideoEmbed`** (`lib/storefront-builder/video-embed.ts`):
+  `ICON` enum — see **Icons in a section** below. **Video embeds only through `parseVideoEmbed`** (`lib/storefront-builder/video-embed.ts`):
   YouTube (watch, youtu.be, shorts, embed, live) and Facebook (videos, watch, reel, fb.watch), any other
   link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
   picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
   press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
+- **Icons in a section (`ICON`, 2026-09-25).** Two block settings carry a glyph — a promise's and a
+  benefit card's — and both are the same `ICON` enum in `lib/storefront-builder/section-specs.ts`.
+  - **`NO_ICON` (`"none"`) is a stored value, not the empty one.** Unset is *not* "no icon" anywhere:
+    `PromiseRows` cycles truck/shield/tag **by position** and a benefit card draws `check`. So a
+    merchant who wanted a bare row had nothing to pick, and the fallbacks have to keep drawing for
+    every band written before the control. A renderer that adds an icon setting opts in by handling
+    `NO_ICON` itself — **the trust badges do not offer it**, because the header, the footer and the
+    hero card draw the same badge and substitute their own fallback.
+  - **A bare promise row needs `sf-trust-row--bare`.** `.sf-trust-row` is a two-column grid with a
+    34px track for the disc; drop the disc alone and the text renders *inside* that track, wrapping
+    two words to a line beside its full-width neighbours.
+  - **The control is a grid of the shapes** (`components/ecommerce/customize/icon-picker.tsx`):
+    `IconGrid` is the shared half and each caller owns its trigger — a full-width select-shaped one
+    (`IconPicker`, the section field, routed from `field-control.tsx` on the field **name** `icon`), a
+    9×9 square one (`TrustBadgesField`). A dropdown of names asked the merchant to imagine a shape
+    from a word, one row at a time, and had nowhere to put "No icon".
+  - **What unset says is `fieldEmptyChoice`'s job, as everywhere else:** `"benefits.icon"` is a
+    `value` entry (`check` — one fixed listed glyph, so the control shows it and offers no "Default"),
+    `"promises-band.icon"` is `meaning` ("The band decides" — the cycled glyph depends on position, so
+    no listed value says it).
+  - **Text drawn on a band INHERITS its colour.** `.sfb-sec[data-tone]` sets `color` on the frame, so
+    a line that names `var(--text)` ignores the merchant's Text colour — which is what `PromiseRows`
+    and `SectionTitle`'s `h2` both did until 2026-09-25 (browser QA: yellow band, theme-coloured
+    words). A card with its own ground keeps the theme's tokens on purpose — see the `--sfb-muted`
+    note in `storefront-builder.css`. Still hardcoding `var(--text)` on a band: `tag-chip-links`,
+    `pick-grid`, `category-tile-row`, `collection-tiles`.
+  - **The band's column count** is `promises-band.columns` (responsive, 1–4) over `--sfb-trust-track`
+    / `-m` on `.sfb-trust-list`; unset keeps the store's `--trustcols` ramp (three past the
+    breakpoint, one centred column on a phone). `PromiseRows` takes `className`/`style` for exactly
+    this — the classic home band passes neither.
 - **Spacer** (Phase 6, every page; `sections/spacer.tsx`). `space` is a required responsive px number
   written to `--sfb-space` / `--sfb-space-m` (`.sfb-spacer`), with a zero-padding registry frame so the
   band is exactly that tall; `line` draws a `::before` in `--border`. **Setting labels are shared by key**
