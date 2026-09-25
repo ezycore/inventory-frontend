@@ -4,10 +4,12 @@
 import { useRef, useState, type CSSProperties } from "react";
 import {
   DEFAULT_MENU_SETTINGS,
+  isNodeActive,
   type MenuNode,
   type ResolvedMenuSettings,
 } from "@/lib/storefront-menu";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { NavDropdown, NavLink } from "@/components/storefront/header/nav-dropdown";
 import { useNavMenu, useNavOverflow } from "@/components/storefront/header/use-nav-menu";
 
@@ -75,6 +77,7 @@ export function HeaderNav({
   linkStyle?: CSSProperties;
 }) {
   const { t } = useStorefrontUI();
+  const pathname = useStorePathname();
   const rowRef = useRef<HTMLElement>(null);
   const nav = useNavMenu(menu.openOn, rowRef);
   const lastPointer = useRef<string>("mouse");
@@ -128,6 +131,10 @@ export function HeaderNav({
         // and the More menu, which has no page of its own.
         const trigger = hasKids && (menu.openOn === "click" || isMore);
         const open = nav.open === i;
+        // The department holding the page — its dropdown is shut most of the
+        // time, so the top link is the only "you are here" the header shows.
+        // On the More menu it means the page's own link collapsed into it.
+        const current = isNodeActive(node, pathname);
         return (
           <div
             key={node.key}
@@ -155,8 +162,8 @@ export function HeaderNav({
             {trigger ? (
               <button
                 type="button"
-                className="sf-nav-top sf-nav-bar sf-nav-trigger"
-                style={linkStyle}
+                className={`sf-nav-top sf-nav-bar sf-nav-trigger${current ? " sf-current" : ""}`}
+                style={current && linkStyle ? { ...linkStyle, fontWeight: undefined } : linkStyle}
                 aria-expanded={open}
                 aria-haspopup="true"
                 onClick={() => nav.toggle(i)}
@@ -169,6 +176,7 @@ export function HeaderNav({
                 node={node}
                 className="sf-nav-top sf-nav-bar"
                 style={linkStyle}
+                current={current}
                 onClick={(e) => {
                   // A touch has no hover, so on a tablet the first tap on a
                   // parent opens its dropdown instead of leaving the page; the

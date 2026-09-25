@@ -22,11 +22,22 @@ import type {
   PartId,
 } from "@/components/ecommerce/customize/use-customize-draft";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
+import { navActiveCustomColor, type StoreDesign } from "@/lib/storefront-theme";
 import { normalizeStoreLink } from "@/lib/storefront-links";
 import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import { mobileOverrides } from "@/lib/storefront-mobile";
 import { menuSettingsOverrides } from "@/lib/storefront-menu";
 import { filterSettingsOverrides } from "@/lib/storefront-filters";
+
+/**
+ * The design as it is stored. The custom "current page" colour is typed into a
+ * hex box, so a half-typed value ("#1a7") can sit in the draft; the backend
+ * refuses anything but `#rrggbb` or empty, so it is saved as empty (the brand)
+ * rather than failing the whole save.
+ */
+function savedDesign(design: StoreDesign): StoreDesign {
+  return { ...design, navActiveCustom: navActiveCustomColor(design.navActiveCustom) };
+}
 
 /**
  * The two things the Customize draft turns into: the settings PATCH and the
@@ -338,7 +349,7 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
          documents that would all hold the same constant. */
       mobile: mobileOverrides(draft.templates.mobile, draft.mobile),
       homeCollections: draft.homeCollections,
-      design: draft.design,
+      design: savedDesign(draft.design),
       heroAlign: draft.heroAlign,
       // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
       // shop shows no sections at all", where unset means "use the default the
@@ -547,7 +558,7 @@ export function toPreviewPayload(
          already treats `{}` as "no overrides". */
       mobile: mobileOverrides(draft.templates.mobile, draft.mobile) ?? {},
       homeCollections: draft.homeCollections,
-      design: draft.design,
+      design: savedDesign(draft.design),
       heroAlign: draft.heroAlign,
       homepageSections: draft.homepageSections,
     },

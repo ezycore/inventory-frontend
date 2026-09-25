@@ -18,7 +18,10 @@ import {
   DesktopMenuFields,
   PhoneMenuFields,
 } from "@/components/ecommerce/customize/menu-behaviour-fields";
-import { MenuHoverFields } from "@/components/ecommerce/customize/menu-hover-fields";
+import {
+  MenuActiveFields,
+  MenuHoverFields,
+} from "@/components/ecommerce/customize/menu-hover-fields";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 
 const SOURCES: {
@@ -169,7 +172,13 @@ export function MenuPart({
         />
       </PartBlock>
 
-      <PartBlock label="How it opens">
+      {/* Both devices — so above the switch, not inside one side of it. */}
+      <MenuActiveFields
+        design={draft.design}
+        onChange={(axis) => patch({ design: { ...draft.design, ...axis } })}
+      />
+
+      <PartBlock label="Edit menu for">
         <SegmentedField
           label="Device"
           caption={false}

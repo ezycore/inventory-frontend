@@ -3,6 +3,7 @@
 
 import {
   MENU_CHIPS,
+  MENU_COLLECTION_STRIPS,
   MENU_DROPDOWNS,
   MENU_MOBILE_LAYOUTS,
   MENU_OPEN_GROUPS,
@@ -28,6 +29,10 @@ type Phone = ResolvedMenuSettings["mobile"];
 /** What an unset phone-menu title shows, in the admin's own (English) editor. */
 const DEFAULT_TITLE = "Menu";
 type Desktop = ResolvedMenuSettings["desktop"];
+
+/** Shared by both devices — the same row, answered per screen. */
+const STRIP_LABEL = "Sub-categories on a collection page";
+const STRIP_HINT = "The row under a collection's heading — All ‹category›, then each sub-category.";
 
 const segments = <T extends string>(options: readonly MenuOption<T>[]) =>
   options.map((o) => ({ value: o.id, label: o.label, description: o.description }));
@@ -162,6 +167,13 @@ export function PhoneMenuFields({
           the Category strip layout there.
         </PartHint>
       )}
+      <Choice
+        label={STRIP_LABEL}
+        hint={STRIP_HINT}
+        value={value.collectionStrip}
+        options={MENU_COLLECTION_STRIPS}
+        onChange={(collectionStrip) => onChange({ collectionStrip })}
+      />
     </PartBlock>
   );
 }
@@ -247,6 +259,13 @@ export function DesktopMenuFields({
           under Page layout.
         </PartHint>
       )}
+      <Choice
+        label={STRIP_LABEL}
+        hint={STRIP_HINT}
+        value={value.collectionStrip}
+        options={MENU_COLLECTION_STRIPS}
+        onChange={(collectionStrip) => onChange({ collectionStrip })}
+      />
     </PartBlock>
   );
 }

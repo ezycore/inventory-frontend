@@ -30,6 +30,7 @@ vi.mock("@/services/storefront/hooks", () => ({
 vi.mock("@/services/stores/use-sf-preview-store", () => ({
   useStoreTemplate: (_store: unknown, key: string, own?: string) =>
     key === "pagination" ? (own ?? "pages") : (own ?? "grid4"),
+  useSfPreview: () => undefined,
 }));
 vi.mock("@/components/storefront/use-catalog-facets", () => ({
   useCatalogFacets: () => ({

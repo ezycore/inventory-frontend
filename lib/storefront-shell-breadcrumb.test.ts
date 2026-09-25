@@ -24,4 +24,17 @@ describe("shellCrumbLabel", () => {
     expect(shellCrumbLabel("/shop/checkout", labels)).toBe("Checkout");
     expect(shellCrumbLabel("/shop/account", labels)).toBe("Account");
   });
+
+  it("does not mistake category paths that start with a shell route name", () => {
+    expect(shellCrumbLabel("/shop/cushion/cartoon", labels)).toBe("");
+    expect(shellCrumbLabel("/shop/cartoon", labels)).toBe("");
+    expect(shellCrumbLabel("/shop/accounting-books", labels)).toBe("");
+    expect(shellCrumbLabel("/shop/search-lights/led", labels)).toBe("");
+  });
+
+  it("strips a custom store base before matching", () => {
+    expect(shellCrumbLabel("/cart", labels, "")).toBe("Cart");
+    expect(shellCrumbLabel("/cushion/cartoon", labels, "")).toBe("");
+    expect(shellCrumbLabel("/s/acme/account/orders", labels, "/s/acme")).toBe("Account");
+  });
 });

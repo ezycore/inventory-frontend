@@ -7,7 +7,7 @@ import { faviconHref, type StorefrontStore } from "@/lib/storefront-client";
 import { logoImageUrl } from "@/lib/storefront-image";
 import { storeHref } from "@/lib/storefront-links";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
-import { shellTheme } from "@/lib/storefront-shell-theme";
+import { activeColorStyle, shellTheme } from "@/lib/storefront-shell-theme";
 import { useFaviconOverride } from "@/hooks/use-favicon-override";
 import { useStore } from "@/services/storefront/hooks";
 import { StoreContextProvider } from "@/services/storefront/store-context";
@@ -52,6 +52,7 @@ export function BareStoreFrame({
   const store = data ?? initialStore;
   useFaviconOverride(faviconHref(store.favicon));
   const theme = shellTheme(store.theme?.brandColor, store.theme?.accentColor);
+  const design = resolveDesign(store.theme?.design);
 
   return (
     <StoreContextProvider slug={slug} base={base}>
@@ -61,9 +62,10 @@ export function BareStoreFrame({
         data-accent={theme.accent ? "" : undefined}
         /* No phone tab bar in this frame, so none of the 56px reserved for one. */
         data-sf-tabs="0"
-        {...designAttrs(resolveDesign(store.theme?.design))}
+        {...designAttrs(design)}
         style={{
           ...theme.style,
+          ...activeColorStyle(design),
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",

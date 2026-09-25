@@ -268,3 +268,25 @@ describe("menu settings", () => {
     expect(menuSettingsOverrides(typed)).toEqual({ mobile: { title: "Shop", subImages: true, allProducts: false } });
   });
 });
+
+describe("collection page sub-category row setting", () => {
+  it("defaults to the scroll row on both devices", () => {
+    const s = resolveMenuSettings(undefined);
+    expect(s.mobile.collectionStrip).toBe("scroll");
+    expect(s.desktop.collectionStrip).toBe("scroll");
+  });
+
+  it("reads each device's answer and narrows unknown ids", () => {
+    const s = resolveMenuSettings({
+      mobile: { collectionStrip: "tiles" },
+      desktop: { collectionStrip: "carousel" },
+    });
+    expect(s.mobile.collectionStrip).toBe("tiles");
+    expect(s.desktop.collectionStrip).toBe("scroll");
+  });
+
+  it("stores only a device that moved off the default", () => {
+    const s = resolveMenuSettings({ mobile: { collectionStrip: "wrap" } });
+    expect(menuSettingsOverrides(s)).toEqual({ mobile: { collectionStrip: "wrap" } });
+  });
+});

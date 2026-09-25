@@ -522,6 +522,9 @@ export interface StorefrontStore {
       width?: string;
       navHover?: string;
       navChildHover?: string;
+      navActive?: string;
+      navActiveColor?: string;
+      navActiveCustom?: string;
       buttonShape?: string;
       buttonStyle?: string;
       buttonSize?: string;
@@ -871,6 +874,7 @@ export interface StoreMenuSettings {
     title?: string;
     allProducts?: boolean;
     allProductsLabel?: string;
+    collectionStrip?: string;
   };
   desktop?: {
     dropdown?: string;
@@ -879,6 +883,7 @@ export interface StoreMenuSettings {
     overflow?: string;
     row?: boolean;
     viewAll?: boolean;
+    collectionStrip?: string;
   };
 }
 

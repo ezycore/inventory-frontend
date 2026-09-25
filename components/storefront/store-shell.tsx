@@ -22,7 +22,7 @@ import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import { designAttrs, resolveDesign } from "@/lib/storefront-theme";
-import { shellTheme } from "@/lib/storefront-shell-theme";
+import { activeColorStyle, shellTheme } from "@/lib/storefront-shell-theme";
 import { padCategoriesForPreview } from "@/lib/storefront-preview-samples";
 import { shellCrumbLabel } from "@/lib/storefront-shell-breadcrumb";
 import {
@@ -143,9 +143,8 @@ export function StoreShell({
   // breakpoints in storefront.css, and an inline var would outrank every media
   // query and freeze a themed store at its phone spacing. Same live-preview-wins
   // rule as the brand colour above; `designAttrs` omits an axis left at default.
-  const designAttributes = designAttrs(
-    resolveDesign(previewDesign ?? store?.theme?.design),
-  );
+  const design = resolveDesign(previewDesign ?? store?.theme?.design);
+  const designAttributes = designAttrs(design);
 
   // Live preview override (admin Navigation editor) wins so the bar repaints as
   // it's edited; otherwise the merchant's saved announcement.
@@ -168,7 +167,7 @@ export function StoreShell({
     : resolveTemplates(store).shell;
 
   const onHome = pathname === base || pathname === `${base}/` || pathname === "/";
-  const crumb = !onHome ? shellCrumbLabel(pathname, t) : "";
+  const crumb = !onHome ? shellCrumbLabel(pathname, t, base) : "";
 
   const Shell = SHELLS[shell] ?? StackedShell;
 
@@ -190,6 +189,7 @@ export function StoreShell({
         {...designAttributes}
         style={{
           ...theme.style,
+          ...activeColorStyle(design),
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
