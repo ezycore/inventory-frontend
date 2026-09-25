@@ -12,6 +12,7 @@ import {
   heroPrimaryButton,
   heroSecondaryButton,
   heroSlidePhoto,
+  type HeroBadgeTone,
   type HeroFrame,
   type HeroPlacement,
 } from "@/components/storefront/home/hero-static";
@@ -55,6 +56,7 @@ export function HeroSlidesView({
   banner,
   storeWords,
   campaignLabel,
+  badgeTone,
   frame,
   placement,
   promises = [],
@@ -78,6 +80,8 @@ export function HeroSlidesView({
    * "off" is the shopper's and lives in the dictionary this component reads.
    */
   campaignLabel?: string;
+  /** The hero's badge style, the same on every slide. */
+  badgeTone?: HeroBadgeTone;
   /**
    * The merchant's shape, handed to EVERY slide rather than to the stack. The
    * slides share one grid cell, so one shape on the wrapper would not reach the
@@ -221,6 +225,7 @@ export function HeroSlidesView({
             badge ||
             (campaignLabel ? `${campaignLabel} ${t.campaignOff}` : undefined) ||
             undefined,
+          badgeTone,
           title: title || storeName,
           hideTitle: !title && !storeWords,
           subtitle: slide.subtitle?.trim() || undefined,

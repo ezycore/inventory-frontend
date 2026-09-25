@@ -329,7 +329,7 @@ export function PartsRail({
       ) : part.id === "utility" ? (
         <UtilityBarPart settings={settings} draft={draft} patch={patch} />
       ) : part.id === "header" ? (
-        <HeaderPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
+        <HeaderPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "menu" ? (
         <MenuPart
           draft={draft}
@@ -345,12 +345,7 @@ export function PartsRail({
           patchContactButton={api.patchContactButton}
         />
       ) : part.id === "footer" ? (
-        <FooterPart
-          draft={draft}
-          patch={patch}
-          patchTemplate={patchTemplate}
-          patchContentPages={api.patchContentPages}
-        />
+        <FooterPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "filters" ? (

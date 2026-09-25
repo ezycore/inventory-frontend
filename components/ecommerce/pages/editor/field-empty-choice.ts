@@ -102,6 +102,10 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   "gallery.frame": WHOLE_PICTURE,
   // A stacked card runs 16:9 and a split card 4:3 — see resolveCardRatio.
   "category-promo-cards.ratio": { kind: "meaning", label: "The card decides" },
+  /* `PromiseRows` cycles truck, shield and tag BY POSITION, so which glyph an
+     unset promise draws depends on where the row sits — no listed value says
+     that, and it is not the same answer as "no icon" (`NO_ICON`). */
+  "promises-band.icon": { kind: "meaning", label: "The band decides" },
 
   // Built-in fallbacks: the control shows the value the section already draws.
   "hero.align": { kind: "value", value: "left" },
@@ -140,6 +144,9 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
   "category-promo-cards.side": { kind: "value", value: "left" }, // resolveCardSide
   "category-promo-cards.flow": { kind: "value", value: "wrap" }, // resolveBannerLayout
   "video.ratio": { kind: "value", value: "16:9" },
+  /* `benefit.icon ?? "check"` — benefits.tsx. Unlike the promises band, a
+     benefit card's fallback is one fixed listed glyph, so the control shows it. */
+  "benefits.icon": { kind: "value", value: "check" },
 };
 
 /** What empty means for one setting, or `undefined` while it is unclassified. */

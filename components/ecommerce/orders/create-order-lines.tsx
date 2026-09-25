@@ -87,7 +87,16 @@ export function CreateOrderLines({
       {lines.length > 0 ? (
         <SimpleTable
           columns={[
-            { key: "item", header: "Item", cell: (l: Line) => l.label },
+            {
+              key: "item",
+              header: "Item",
+              cell: (l: Line) => l.label,
+              // Item takes whatever width is left and wraps into it; the other
+              // columns are sized to their content, so the table fits a phone
+              // screen without scrolling sideways.
+              headClassName: "w-full",
+              cellClassName: "whitespace-normal break-words",
+            },
             {
               key: "qty",
               header: "Qty",
@@ -99,7 +108,7 @@ export function CreateOrderLines({
                   min={1}
                   max={l.availableQuantity}
                   onChange={(v) => onQuantity(l, v ?? 1)}
-                  className="w-20"
+                  className="w-14 px-2 text-right"
                 />
               ),
             },
@@ -111,7 +120,9 @@ export function CreateOrderLines({
                 const bad = rejectedFor(l);
                 if (bad) {
                   return (
-                    <span className="text-xs text-destructive">{bad.message}</span>
+                    <span className="block whitespace-normal text-xs text-destructive">
+                      {bad.message}
+                    </span>
                   );
                 }
                 const quoted = quotedFor(l);
@@ -148,6 +159,7 @@ export function CreateOrderLines({
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="h-8 w-8 p-0"
                   onClick={() => onRemove(l)}
                   aria-label={`Remove ${l.label}`}
                 >
@@ -157,6 +169,7 @@ export function CreateOrderLines({
             },
           ]}
           rows={lines}
+          className="[&_td]:px-1 [&_th]:px-1 sm:[&_td]:px-2 sm:[&_th]:px-2"
           getRowKey={(l: Line) => `${l.productId}:${l.variantId ?? ""}`}
         />
       ) : null}

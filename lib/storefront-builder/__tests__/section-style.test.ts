@@ -174,6 +174,39 @@ describe("sectionFrame", () => {
     expect(sectionFrame({ anchor: "-leading" }).anchor).toBeUndefined();
   });
 
+  it("describes the outline's sides, colour and thickness — and only while it is on", () => {
+    // Unset is what the switch alone drew: all four edges, and neither variable,
+    // so the stylesheet's own fallbacks (1px, `--border`) apply.
+    const plain = sectionFrame({ border: true });
+    expect(plain.borderSides).toBe("all");
+    expect(plain.style).not.toHaveProperty("--sfb-border-color");
+    expect(plain.style).not.toHaveProperty("--sfb-border-w");
+
+    expect(sectionFrame({ border: true, borderSides: "top-bottom" }).borderSides).toBe("top-bottom");
+    expect(sectionFrame({ border: true, borderSides: "diagonal" }).borderSides).toBe("all");
+
+    // A TONE resolves to a theme token, never a literal colour — the whole
+    // reason the control is an enum (`SECTION_BORDER_TONES`).
+    expect(sectionFrame({ border: true, borderTone: "brand" }).style).toMatchObject({
+      "--sfb-border-color": "var(--primary)",
+    });
+    expect(sectionFrame({ border: true, borderTone: "#ff0000" }).style).not.toHaveProperty("--sfb-border-color");
+
+    expect(sectionFrame({ border: true, borderWidth: 6 }).style).toMatchObject({ "--sfb-border-w": "6px" });
+    // Out of range, fractional and 0 are all refused rather than clamped: the
+    // backend refuses them too, so a stored one is a page saved before the cap.
+    expect(sectionFrame({ border: true, borderWidth: 7 }).style).not.toHaveProperty("--sfb-border-w");
+    expect(sectionFrame({ border: true, borderWidth: 1.5 }).style).not.toHaveProperty("--sfb-border-w");
+    expect(sectionFrame({ border: true, borderWidth: 0 }).style).not.toHaveProperty("--sfb-border-w");
+
+    // ⚠ Nothing is emitted while the line is OFF, though the values stay stored
+    // (`withBorder` keeps them) — a variable left behind would silently decide
+    // the colour of a line switched back on later.
+    const off = sectionFrame({ borderTone: "brand", borderWidth: 4 });
+    expect(off.style).not.toHaveProperty("--sfb-border-color");
+    expect(off.style).not.toHaveProperty("--sfb-border-w");
+  });
+
   it("shades a background PICTURE and nothing else", () => {
     const picture = { kind: "image", image: { url: "https://cdn.example.com/bg.webp" } };
     expect(sectionFrame({ background: picture, overlay: 40 }).style).toMatchObject({ "--sfb-overlay": "40%" });

@@ -61,8 +61,8 @@ column tells you which ones also have a store account, so you can tell a custome
 
 The list is read-only, and deliberately so: each row records that someone asked to hear from you and
 when. You cannot add an address by hand, because an address you typed in yourself is not a record of
-anyone agreeing to anything. To collect any, set your footer layout to **Stay in touch** under
-Online Store → Customize → Footer.
+anyone agreeing to anything. To collect any, add an **Email sign-up** block to your footer (or pick
+the **Stay in touch** layout) under Online Store → Customize → Footer.
 
 ## Next
 

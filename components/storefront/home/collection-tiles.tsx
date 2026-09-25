@@ -202,7 +202,10 @@ export function CollectionTile({
           style={{
             fontSize: 11.5,
             fontWeight: 500,
-            color: "var(--text)",
+            // INHERIT: the tile's column has no ground of its own, so the name
+            // sits on the section's band and takes its Text colour. Outside a
+            // builder section that inherits `--text`, as before.
+            color: "inherit",
             // Left, always — see the note on the column above. `alignSelf`
             // because the column itself centres its children, and `width:100%`
             // so the text box fills the chip rather than shrink-wrapping the
@@ -248,7 +251,9 @@ export function CollectionLinks({
       }}
     >
       {categories.map((c) => (
-        <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)", whiteSpace: "nowrap" }}>
+        // Plain links are drawn straight on the band, so the muted grey follows
+        // the section's tone where one is set (`--sfb-muted`).
+        <Link key={c._id} href={collectionHref(base, c)} style={{ fontSize: 13, fontWeight: 500, color: "var(--sfb-muted, var(--muted))", whiteSpace: "nowrap" }}>
           {c.name}
         </Link>
       ))}

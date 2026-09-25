@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { ArrowDown, ArrowUp } from "lucide-react";
+import type { StorefrontImage } from "@/lib/storefront-client";
 import { Input } from "@/ui/components/input";
 import { Switch } from "@/ui/components/switch";
 import { cn } from "@/ui/lib/utils";
@@ -38,12 +39,18 @@ export interface CollectionRowValue {
   seoTitle: string;
   seoDescription: string;
   /**
-   * Does this collection have a picture? Carried as a BOOLEAN rather than the
-   * image itself because no row renders it — the one caller that cares is
-   * Customize's pictures-only setting, which is offered only when every listed
-   * collection is photographed and otherwise has to say how many are not.
+   * Does this collection have a picture? Customize's pictures-only setting is
+   * offered only when every listed collection is photographed and otherwise
+   * has to say how many are not.
    */
   hasImage: boolean;
+  /**
+   * The picture itself. No row renders it; it rides along so the Customize
+   * preview's draft category tree (`publicCollections`) keeps the pictures the
+   * menu draws — without it the phone menu's "Category pictures" and
+   * "Sub-category pictures" switches did nothing in the preview.
+   */
+  image?: StorefrontImage | null;
 }
 
 export function CollectionRow({
@@ -190,5 +197,6 @@ export function toRowValue(c: {
     // Any variant counts: the storefront falls back through all three, so a
     // collection with only a thumbnail still renders a picture.
     hasImage: !!(c.image?.thumbnailUrl || c.image?.mediumUrl || c.image?.url),
+    image: c.image ?? null,
   };
 }

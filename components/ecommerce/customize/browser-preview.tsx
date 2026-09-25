@@ -145,9 +145,7 @@ export function BrowserPreview({
     setAppliedRequest(deviceRequest.token);
     if (deviceRequest.device !== device) setDevice(deviceRequest.device);
   }
-  const { hostRef, scale, ready, frameHeight } = usePreviewScale(
-    device === "desktop",
-  );
+  const { hostRef, scale, ready, frameHeight } = usePreviewScale(device);
   const { theme, setTheme, postTheme } = usePreviewTheme(ref);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -404,8 +402,9 @@ export function BrowserPreview({
       <PreviewStage
         device={device}
         hostRef={hostRef}
+        scale={scale}
         height={viewportHeight}
-        overlay={!painted ? <PreviewSkeleton device={device} label="Loading preview…" /> : null}
+        overlay={!painted ? <PreviewSkeleton device={device} scale={scale} label="Loading preview…" /> : null}
       >
         {/* `visibility`, not conditional mounting: the frame has to load and
             run to send the ack that reveals it. Opacity alone would still let

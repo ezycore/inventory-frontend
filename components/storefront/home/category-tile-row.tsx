@@ -315,7 +315,10 @@ function CategoryTile({
           style={{ borderRadius: 999 }}
         />
         {showLabel ? (
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)", lineHeight: 1.25 }}>
+          /* INHERIT: a round photo tile has no ground of its own, so the name
+             sits on the section's band and takes its Text colour
+             (`.sfb-sec[data-tone]`). Outside a builder section that is `--text`. */
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: "inherit", lineHeight: 1.25 }}>
             {name}
           </span>
         ) : null}
@@ -366,11 +369,18 @@ function CategoryTile({
           {name.charAt(0).toUpperCase()}
         </span>
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: "block", fontSize: row ? 14 : 12.5, fontWeight: row ? 600 : 500, color: "var(--text)", lineHeight: 1.25 }}>
+          {/* INHERIT on both shapes, unlike the `background` above. A disc or
+              circle sits on the band outright; the lettered fallback's card is
+              `--primary-soft`, a 13% TINT — it composites over whatever the
+              band is rather than establishing a ground of its own, so the
+              theme's dark ink on it went unreadable the moment a merchant set
+              a dark background. Only an OPAQUE ground (`--card`) keeps the
+              theme's colours. */}
+          <span style={{ display: "block", fontSize: row ? 14 : 12.5, fontWeight: row ? 600 : 500, color: "inherit", lineHeight: 1.25 }}>
             {name}
           </span>
           {description ? (
-            <span style={{ display: "block", fontSize: 12, color: "var(--muted)", lineHeight: 1.35, marginTop: 2 }}>
+            <span style={{ display: "block", fontSize: 12, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.35, marginTop: 2 }}>
               {description}
             </span>
           ) : null}
@@ -454,11 +464,13 @@ function CategoryTile({
       {media}
       {showLabel ? (
         <span style={{ paddingBottom: 2 }}>
-          <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--text)", lineHeight: 1.3 }}>
+          {/* Same as the lettered card above: `--primary-soft` is a tint, not a
+              ground, so the name follows the section's tone. */}
+          <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "inherit", lineHeight: 1.3 }}>
             {name}
           </span>
           {description ? (
-            <span style={{ display: "block", fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3, marginTop: 3 }}>
+            <span style={{ display: "block", fontSize: 11.5, color: "var(--sfb-muted, var(--muted))", lineHeight: 1.3, marginTop: 3 }}>
               {description}
             </span>
           ) : null}

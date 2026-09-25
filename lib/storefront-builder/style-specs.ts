@@ -57,6 +57,38 @@ export const SECTION_RADII = ["none", "sm", "md", "lg"] as const;
 export const MAX_OVERLAY = 80;
 
 /**
+ * Which edges the Outline draws on. Unset is `all`, the four-sided box the
+ * switch drew on its own before this existed, so no stored page moves.
+ *
+ * ⚠ **The left and right edges sit at the WINDOW, not around the content.** The
+ * border is on `.sfb-sec`, which always spans the viewport — `width` constrains
+ * `.sfb-inner` alone — so a four-sided outline reads as two hairlines glued to
+ * the browser edges. `top-bottom` is what a merchant almost always means by a
+ * line on a band: a rule between two sections. Inset-from-the-edge would mean
+ * moving the border onto an inner element, which would restyle every page that
+ * already has `border: true`; that is deliberately not offered.
+ */
+export const SECTION_BORDER_SIDES = ["all", "top", "bottom", "top-bottom"] as const;
+
+/**
+ * The Outline's colour, as a TONE and never a hex — the hero badge's rule
+ * (`badgeTone` in `section-specs.ts`). Each tone is a theme token that resolves
+ * per preset AND per dark mode in `storefront.css`, so every choice stays
+ * visible on whatever ground the merchant later picks; a typed colour cannot.
+ * Unset is `theme`, the `--border` hairline the switch drew on its own.
+ */
+export const SECTION_BORDER_TONES = ["theme", "strong", "brand", "accent", "text"] as const;
+
+/**
+ * The Outline's thickness in pixels. Whole pixels because a hairline is the
+ * point of the control and a fractional one renders differently per device
+ * pixel ratio; capped at 6 because past that a section is wearing a frame, and
+ * the band + corners + spacing already draw that better.
+ */
+export const MIN_BORDER_WIDTH = 1;
+export const MAX_BORDER_WIDTH = 6;
+
+/**
  * A section's own name on the page, for a link to jump to — the move a landing
  * page is built around, and the one thing the sticky order bar could do that no
  * merchant could type. Lower case, digits and dashes, starting with a letter or
@@ -116,8 +148,18 @@ export const STYLE_BOX_SPEC = {
   /** Read only when `textTone` is `custom`; kept otherwise, never erased. */
   textColor: { type: "color" },
   radius: { type: "enum", values: SECTION_RADII },
-  /** A hairline in the theme's own border colour, around the section's band. */
+  /**
+   * A line around the section's band. Kept a BOOLEAN, with the three keys below
+   * describing it, so every page saved before them renders byte for byte: unset
+   * is a 1px `--border` hairline on all four edges.
+   */
   border: { type: "boolean" },
+  /** Read only when `border` is on; kept otherwise, never erased. */
+  borderSides: { type: "enum", values: SECTION_BORDER_SIDES },
+  /** Read only when `border` is on; kept otherwise, never erased. */
+  borderTone: { type: "enum", values: SECTION_BORDER_TONES },
+  /** Read only when `border` is on; kept otherwise, never erased. */
+  borderWidth: { type: "number", min: MIN_BORDER_WIDTH, max: MAX_BORDER_WIDTH, int: true },
   /** Percent of black over a background PICTURE. Nothing to shade without one. */
   overlay: { type: "number", min: 0, max: MAX_OVERLAY, int: true },
   anchor: { type: "string", pattern: ANCHOR_PATTERN, max: ANCHOR_MAX },

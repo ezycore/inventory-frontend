@@ -1,5 +1,8 @@
 // coding-standard: maintained
+import type { CSSProperties } from "react";
 import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { responsiveVars } from "@/lib/storefront-builder/responsive";
+import { TRACK } from "@/lib/storefront-builder/grid-track";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 import { PromiseRows } from "@/components/storefront/home/promise-rows";
 import type { SectionViewProps } from "@/components/storefront-builder/section-view";
@@ -26,7 +29,14 @@ export function PromisesBandSection({ settings, blocks, context }: SectionViewPr
       {settings.heading ? (
         <SectionTitle subheading={settings.subheading}>{settings.heading}</SectionTitle>
       ) : null}
-      <PromiseRows promises={promises} />
+      {/* Unset leaves the list on the store's own ramp (`--trustcols`), which is
+          what every band written before the control already draws — the track
+          list is the variable for the reason `grid-track.ts` gives. */}
+      <PromiseRows
+        promises={promises}
+        className="sfb-trust-list"
+        style={responsiveVars("sfb-trust-track", settings.columns, TRACK) as CSSProperties}
+      />
     </>
   );
 }

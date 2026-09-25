@@ -4,7 +4,11 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { Monitor, Moon, ShoppingCart, Smartphone, Sun } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
-import { DESKTOP_PREVIEW_WIDTH } from "@/components/ecommerce/customize/use-preview-scale";
+import {
+  DESKTOP_PREVIEW_WIDTH,
+  MOBILE_PREVIEW,
+  PHONE_BEZEL,
+} from "@/components/ecommerce/customize/use-preview-scale";
 import type { PreviewTheme } from "@/components/ecommerce/customize/use-preview-theme";
 
 /**
@@ -128,20 +132,31 @@ export function PreviewCartToggle({
   );
 }
 
+/** The phone shell's outer size: the scaled phone viewport plus its bezel. */
+export function phoneShellSize(scale: number): CSSProperties {
+  return {
+    width: MOBILE_PREVIEW.width * scale + 2 * PHONE_BEZEL,
+    height: MOBILE_PREVIEW.height * scale + 2 * PHONE_BEZEL,
+  };
+}
+
 /**
- * Where a preview iframe sits: a real desktop width scaled to fit (`hostRef` is
- * what `usePreviewScale` measures), or a phone frame. Switching device only
- * resizes the same iframe, so the frame never reloads.
+ * Where a preview iframe sits: a real desktop width, or a real phone inside a
+ * phone shell, each scaled to fit the stage (`hostRef` is what
+ * `usePreviewScale` measures). Switching device only resizes the same iframe,
+ * so the frame never reloads.
  */
 export function PreviewStage({
   device,
   hostRef,
+  scale,
   height,
   overlay,
   children,
 }: {
   device: PreviewDevice;
   hostRef: Ref<HTMLDivElement>;
+  scale: number;
   height: string;
   /** Drawn over the stage — e.g. a "Loading preview…" cover. */
   overlay?: ReactNode;
@@ -149,19 +164,18 @@ export function PreviewStage({
 }) {
   return (
     <div
+      ref={hostRef}
       className="relative flex justify-center overflow-auto bg-muted/20"
       style={{ height, minHeight: 560 }}
     >
       <div
-        ref={device === "desktop" ? hostRef : undefined}
         className={cn(
           "flex-none overflow-hidden bg-white",
           device === "mobile"
-            ? // `max-w-`, not a hard `w-`: 390px plus the 10px bezels is wider
-              // than the phone a merchant may be standing on.
-              "my-5 h-[calc(100%-2.5rem)] w-full max-w-[390px] rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
+            ? "my-5 rounded-[2.2rem] border-[10px] border-neutral-800 shadow-2xl"
             : "h-full w-full",
         )}
+        style={device === "mobile" ? phoneShellSize(scale) : undefined}
       >
         {children}
       </div>
@@ -182,9 +196,12 @@ export function PreviewStage({
  * other. The height is in the frame's own unzoomed coordinates — height × zoom
  * lands on the host exactly, where a percentage would resolve in the zoomed space
  * and come up short.
+ *
+ * On mobile the frame is a real phone viewport, zoomed by the same means to fit
+ * inside `phoneShellSize`.
  */
 export function previewFrameSize(device: PreviewDevice, scale: number, frameHeight: number): CSSProperties {
   return device === "desktop"
     ? { zoom: scale, width: DESKTOP_PREVIEW_WIDTH, height: frameHeight || "100%" }
-    : { width: "100%", height: "100%" };
+    : { zoom: scale, width: MOBILE_PREVIEW.width, height: MOBILE_PREVIEW.height };
 }

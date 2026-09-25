@@ -116,7 +116,10 @@ export function PageSections({
             data-width={frame.width}
             data-tone={frame.tone}
             data-hide={hide}
-            data-border={frame.border ? "" : undefined}
+            /* The VALUE is which edges draw; `.sfb-sec[data-border]` still
+               matches it, so a page stored before `borderSides` existed keeps
+               the four-sided box (`sectionFrame` resolves unset to `all`). */
+            data-border={frame.border ? frame.borderSides : undefined}
             data-overlay={frame.overlay !== undefined ? "" : undefined}
             data-styled-width={frame.styledWidth ? "" : undefined}
             data-float={section.floating ? "" : undefined}

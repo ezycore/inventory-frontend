@@ -247,6 +247,14 @@ const RULES: Record<string, VisibilityRule> = {
   /* The running offer reaches the card and open heroes, single-slide and
      rotating alike (decision D6). The full-bleed hero has never drawn it. */
   "hero.campaignBadge": (scope) => layoutOf(scope) !== "full-bleed",
+  /* Which offer — asked only once the offer is on. */
+  "hero.campaignId": (scope) => layoutOf(scope) !== "full-bleed" && !!scope.settings.campaignBadge,
+  /* The chip's colour — asked only once there is a chip: the running offer is
+     on, or a slide carries its own badge text. The full-bleed hero draws its
+     badge as plain white type on the photograph, with no chip to colour. */
+  "hero.badgeTone": (scope) =>
+    layoutOf(scope) !== "full-bleed" &&
+    (!!scope.settings.campaignBadge || scope.blocks.some((block) => !!str(block.badge)?.trim())),
 
   /* The promises are the card's trust footer. The open hero has no footer to
      put them in and the full-bleed hero has no card at all. */

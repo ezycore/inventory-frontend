@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQueries } from "@tanstack/react-query";
 import { storefrontApi } from "@/lib/storefront-client";
-import { isPreviewSession } from "@/lib/storefront-preview";
+import { isPreviewSession, PAGE_EDITOR_ATTR } from "@/lib/storefront-preview";
 import {
   PAGE_DRAFT_APPLIED,
   PAGE_DRAFT_MESSAGE,
@@ -44,7 +44,13 @@ const EDITOR_FRAME_CSS =
   "[data-section-id]:hover{outline:2px dashed #2563eb;outline-offset:-2px}" +
   "[data-section-focused]{outline:2px solid #2563eb;outline-offset:-2px}" +
   "[data-float][data-section-id] .sfb-inner>*:hover{outline:2px dashed #2563eb;outline-offset:-2px}" +
-  "[data-float][data-section-focused] .sfb-inner>*{outline:2px solid #2563eb;outline-offset:-2px}";
+  "[data-float][data-section-focused] .sfb-inner>*{outline:2px solid #2563eb;outline-offset:-2px}" +
+  // The header's and footer's links do nothing here — see `onClick` — so they
+  // must not look clickable either.
+  `[${PAGE_EDITOR_ATTR}] a[href]:not([data-section-id] a){cursor:default}`;
+
+/** The messages only the page editor sends — never the Customize editor. */
+const PAGE_EDITOR_MESSAGES = new Set([PAGE_DRAFT_MESSAGE, PAGE_SECTION_FOCUS, PAGE_PREVIEW_CART]);
 
 /** Marks the section the editor has open, clearing any other; returns its element. */
 function markFocusedSection(id: string | null): Element | null {
@@ -96,6 +102,12 @@ export function PageDraftPreview({
   // here because the cart page's core section reads it from deep inside the shop's
   // own view (`usePreviewCart`), not through a section prop.
   const setCartFilled = usePreviewCartStore((s) => s.setFilled);
+  /* Whether the PAGE editor is the one driving this frame. `isPreviewSession()`
+     alone cannot say: the Customize editor's frame is a preview session too, and
+     a merchant browsing their shop there reaches builder pages that mount this.
+     Browsing is the point of that frame, so the chrome's links stay live there;
+     only a parent that has posted a page draft turns them off. */
+  const editorDriven = useRef(false);
 
   useEffect(() => {
     if (!isPreviewSession()) return;
@@ -107,6 +119,10 @@ export function PageDraftPreview({
     const onMessage = (event: MessageEvent) => {
       // Only the frame's own parent — the editor — may drive the page.
       if (event.source !== window.parent) return;
+      if (PAGE_EDITOR_MESSAGES.has(event.data?.type) && !editorDriven.current) {
+        editorDriven.current = true;
+        document.documentElement.setAttribute(PAGE_EDITOR_ATTR, "");
+      }
       if (event.data?.type === PAGE_SECTION_FOCUS) {
         const id = typeof event.data.payload?.id === "string" ? event.data.payload.id : null;
         focusedId.current = id;
@@ -140,7 +156,17 @@ export function PageDraftPreview({
     const onClick = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target : null;
       const section = target?.closest("[data-section-id]");
-      if (!section) return;
+      if (!section) {
+        /* The header and footer are the page's chrome, drawn by the layout rather
+           than as sections, so there is nothing to select. Their links — the
+           logo, the menu, the cart icon — would still navigate the frame off the
+           page being edited, onto an address the editor is not previewing. */
+        if (editorDriven.current && target?.closest("a[href]")) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        return;
+      }
       /* One exception: the sample cart's own controls. This capture runs on
          `document` and stops propagation, so React never sees the click — the
          stepper, the remove button and the sample checkout's fields were all
@@ -164,12 +190,27 @@ export function PageDraftPreview({
       );
     };
 
+    // A form navigates without a click: Enter in the header's search box, or a
+    // newsletter signup that would really subscribe. Only the sample basket's
+    // own fields are the merchant's to use.
+    const onSubmit = (event: SubmitEvent) => {
+      if (!editorDriven.current) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest("[data-preview-interactive]")) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
     window.addEventListener("message", onMessage);
     document.addEventListener("click", onClick, true);
+    document.addEventListener("submit", onSubmit, true);
     window.parent?.postMessage({ type: PAGE_DRAFT_READY }, "*");
     return () => {
       window.removeEventListener("message", onMessage);
       document.removeEventListener("click", onClick, true);
+      document.removeEventListener("submit", onSubmit, true);
+      document.documentElement.removeAttribute(PAGE_EDITOR_ATTR);
+      editorDriven.current = false;
       style.remove();
     };
   }, [setCartFilled]);

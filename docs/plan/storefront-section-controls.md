@@ -151,6 +151,7 @@ This plan is the handover. Someone will pick it up not knowing what you finished
 | 0 (§3) | One source for the style box; backend generated and shipped | 🟡 Code in, both repos green — **awaiting the owner's backend deploy** (step 6) |
 | 1 (§3) | Controls that exist and do nothing, or do two things — six hardcoded columns, one dead alignment, one doubled, two misnamed | 🟡 Built 2026-09-21; pixel comparison outstanding |
 | 2 (§3) | The style box grows: side padding, corners, border, overlay, text colour, right, anchor | 🟡 Built 2026-09-21; backend deploy + pixel comparison outstanding |
+| 2b (§3) | The Outline stops being one boolean: sides, a theme tone, 1–6px thickness | 🟡 Built 2026-09-25; rides Phase 0/2's pending backend deploy — no separate one |
 | 3 (§3) | `image-text` gets the Hero's per-device treatment | 🟡 Built 2026-09-21; the conversion half of 3b ⛔ blocked on an unmerged backend branch |
 | 4 (§3) | The row sections: subheading, columns per device, flow | 🟡 Built 2026-09-21; `arrows` ⛔ deferred (step 5), deploy + pixel outstanding |
 | 5 (§3) | Media sections: gallery shape per device, banner position + scrim, video shape | 🟡 Built 2026-09-21; deploy + pixel outstanding |
@@ -415,6 +416,53 @@ anchor:   string /^[a-z0-9][a-z0-9-]{0,39}$/    // the section's id on the page
        failing the section; `checkStyle` refuses an unknown key and each bad value; a hidden control
        keeps its stored value.
 
+### Phase 2b — the Outline gets sides, a colour and a thickness
+
+**Status:** 🟡 Built 2026-09-25 — the three keys, the renderer, the stylesheet, the editor and the
+tests, `pnpm test` green on both touched suites. **Left:** the backend deploy (shared with Phase 0 and
+Phase 2 — the same manifest, so **no deploy of its own**) and a browser pass. · **Needs Phase 0 in
+production.**
+
+**Why, after D2 said border colours stay on the theme.** Asked for by the owner on 2026-09-25, and it
+stays inside D2: the colour is a **tone**, so it can only be one of the theme's own tokens. No hex
+reaches the line. What Phase 2 shipped was one boolean drawing `1px solid var(--border)` on all four
+edges — and because the border is on `.sfb-sec`, which spans the window while `data-width` constrains
+`.sfb-inner` alone, "all four edges" means two hairlines glued to the browser edges. The rule between
+two sections, which is what a merchant usually wants from a line on a band, was not expressible at all.
+
+```ts
+// lib/storefront-builder/style-specs.ts — three keys beside `border`
+borderSides: "all" | "top" | "bottom" | "top-bottom"   // unset = all, the four-sided box
+borderTone:  "theme" | "strong" | "brand" | "accent" | "text"  // unset = theme (--border)
+borderWidth: number 1–6                                 // unset = 1px hairline
+```
+
+1. [x] `border` **stays a boolean** and the three keys describe it. A page saved with `border: true`
+       alone renders byte for byte: unset resolves to `all`, and `section-style.ts` emits neither
+       variable, so the stylesheet's own `var(--sfb-border-w, 1px)` / `var(--sfb-border-color,
+       var(--border))` fallbacks apply. ⚠ Do **not** widen `border` into an enum or an object — that is a
+       stored-shape change on 21 live stores for no gain.
+2. [x] Sides are an **attribute value, not a variable** (`data-border="top-bottom"`), for
+       `data-overlay`'s reason: no single declaration can take "these edges", so each choice zeroes the
+       widths it does not want in `storefront-builder.css` and the colour/thickness rule stays one rule.
+       `.sfb-sec[data-border]` still matches, which is what keeps the old pages' selector working.
+       ⚠ Left/right alone is deliberately **not offered**: it draws on the window edges. Inset-from-the-
+       content would mean moving the border onto an inner element, restyling every page that already
+       has `border: true`.
+3. [x] The colour is a **tone → theme token** (`BORDER_TONE`, a total `Record` so a new tone fails to
+       compile until it is mapped), never a hex — the `badgeTone` rule: each token is redefined per
+       preset and per dark mode in `storefront.css`, so the line stays visible on a ground the merchant
+       picks later.
+4. [x] Thickness is whole pixels, 1–6. A fraction renders differently per device pixel ratio, and past
+       6 the section is wearing a frame — which the band, corners and spacing already draw better.
+5. [x] Editor: the three controls are drawn **only while the switch is on** (three rows under an
+       untouched switch is rail height with no question in it), and switching it off **keeps** them —
+       `withBorder` leaves them alone, the rule `withTone` follows for `textColor`. `sectionFrame` reads
+       none of them while `border` is absent, so hidden really draws nothing.
+6. [x] Tests: `section-style.test.ts` (unset = today; tone → token; out-of-range, fractional and 0
+       refused rather than clamped; nothing emitted while the switch is off) and
+       `section-style-edits.test.ts` (each key round-trips; off keeps all three).
+
 ### Phase 3 — `image-text` gets the Hero's per-device treatment
 
 **Status:** 🟡 Built 2026-09-21 — the fields, the renderer, the stylesheet and the tests. **⛔ The
@@ -652,7 +700,7 @@ Answered by the product owner on 2026-09-21 unless noted. Do not re-open one wit
 | # | Decision | Answer |
 |---|---|---|
 | **D1** | What ships first: the dead controls, the shared style box, or a section at a time? | ✅ **Defects → style box → sections.** Phase 1 costs least and buys back the merchant's trust in the preview; Phase 2 lifts all 33 at once; the per-family phases follow. |
-| **D2** | How far do per-section colour controls go, given the background already takes any hex while the text takes two tones? | ✅ **Text colour and a background overlay — no per-section brand.** Heading, button and border colours stay on the theme, so a store stays recognisably one design. This is Phase 2 steps 3 and 4; anything further is S2 in §5. |
+| **D2** | How far do per-section colour controls go, given the background already takes any hex while the text takes two tones? | ✅ **Text colour and a background overlay — no per-section brand.** Heading and button colours stay on the theme, so a store stays recognisably one design. This is Phase 2 steps 3 and 4; anything further is S2 in §5. **Amended 2026-09-25 (owner):** the **outline** may name a theme *tone* (`brand`, `accent`, `text`, the two border greys) — Phase 2b. Still no hex on a line, so the palette is the theme's; S2's boundary is unchanged. |
 | **D3** | The style box is hand-copied into both repos with no gate. Generate it, or keep two copies and be careful? | ✅ **Generate it (Phase 0).** The section manifest already proves the pattern and `pnpm verify` already runs the check; being careful is what produced two copies of `SPACING_STEPS`. |
 | **D4** | `image-text`: one responsive `imageSide`, or `imageSide` + `mobileFirst` like the Hero? | ✅ **Two settings**, and the Hero's own words for them. The reasoning in hero plan §5 applies unchanged: the devices start from opposite defaults, so a responsive value would inherit the desktop's and move every existing photograph below the fold. |
 | **D5** | A subheading on thirteen sections, or let merchants stack a Rich text section above a row? | ✅ **A field.** A stacked section has its own padding, its own width and its own place in the tree, so the pair drifts apart the moment either is styled — and the merchant has to discover the trick first. |
@@ -666,7 +714,7 @@ Answered by the product owner on 2026-09-21 unless noted. Do not re-open one wit
 | Item | Why not now |
 |---|---|
 | **S1 — per-section heading scale** | `--h1` / `--h2` are the theme's, set store-wide under Look → Heading size. A per-section size is a second typography system and the first one has 12 % adoption. Revisit only with a request on the register. |
-| **S2 — per-section brand colour** (heading, button, border, gradients) | D2. The freedom to build 33 differently-branded bands is the freedom to stop having a theme. |
+| **S2 — per-section brand colour** (heading, button, gradients) | D2. The freedom to build 33 differently-branded bands is the freedom to stop having a theme. ⚠ The **border** left this list on 2026-09-25 (Phase 2b) — but as a *tone*, not a colour: the merchant picks which theme token the line draws in, and can still not type one. |
 | **S3 — gallery lightbox** | Blocked on the owner, not on design: it needs Bangla words for its controls (master plan §14.1). |
 | **S4 — nested columns / a layout container** | Deferred in master plan §8 and still the right call: it changes the section tree, the editor's drag model and the page payload, and every section in this plan is useful without it. |
 | **S5 — a tablet breakpoint** | Owner decision 6 (master plan §15). One breakpoint, 679 px. |
@@ -1003,3 +1051,26 @@ Two things worth carrying forward:
 The collection page's heading landed in the same pass, and its rule is the one every core section
 shares: **one page draws every collection**, so the merchant's words are an override and unset keeps
 the collection's own name in the shopper's language.
+
+### 2026-09-25 — one boolean is not a control, it is a default
+
+Asked where the Outline's colour, thickness and spacing were. The honest answer was that Phase 2 shipped
+the *switch* and called it done: `border: boolean` → `1px solid var(--border)` on all four edges, with no
+way to say which edges, what colour, or how thick. Phase 2b adds the three keys (§3).
+
+Three things it taught, worth carrying to the rest of the style box:
+
+- **The border was in the wrong place and nobody noticed, because it was never wrong enough to see.**
+  `.sfb-sec` spans the window — `data-width` constrains `.sfb-inner` alone — so the "box around the
+  section" was always two hairlines on the browser edges plus two rules. At 1px in the theme's grey that
+  reads as a section divider with some noise; at 6px in the brand colour it would read as a mistake. A
+  control gains its own QA the moment its range widens.
+- **Spacing was the request we did not build, and that was the right call.** Inset-from-the-content needs
+  the border on an inner element, which restyles every page that already has `border: true`. Padding +
+  background + corners already draw a boxed band. A style key whose only implementation changes live
+  pages is not a small key.
+- **A tone is how a colour control ships without breaking D2.** `brand`, `accent`, `text` and the two
+  border greys are the theme's own tokens, redefined per preset and per dark mode, so the merchant picks
+  *which* theme colour and never *a* colour. That is the third control in this repo to land this way
+  after `badgeTone` and the checkout notices — it should be the default answer for any future
+  colour-shaped request, with a hex reserved for the two places (background, text) that already have one.

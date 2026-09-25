@@ -107,7 +107,7 @@ export function CreateOrderDialog({
       }}
     >
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        className="max-h-[90vh] overflow-x-hidden overflow-y-auto sm:max-w-2xl"
         // An edit opens on the product search (the first field without the
         // paste box), and focusing it pops the product list over the order the
         // merchant came to read — and the keyboard on a phone. Focus the dialog
@@ -130,7 +130,10 @@ export function CreateOrderDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {/* `min-w-0`: DialogContent is a grid, and a grid item will not shrink
+            below its content — one long product name in a nowrap table cell
+            would widen the whole dialog past a phone's screen. */}
+        <div className="min-w-0 space-y-4">
           {/* Buyers send one blob of text; retyping it into five fields is the
               slowest part of taking a chat order. Create only: the paste fills
               empty fields alone, and an edit opens with every one filled. */}
@@ -304,7 +307,7 @@ export function CreateOrderDialog({
                     form.setDiscountType(v as "fixed" | "percentage")
                   }
                   options={DISCOUNT_TYPES}
-                  className="w-40"
+                  className="w-36 shrink-0"
                 />
                 <NumberField
                   value={form.discountValue}
@@ -315,7 +318,7 @@ export function CreateOrderDialog({
                   max={form.discountType === "percentage" ? 100 : undefined}
                   onChange={form.setDiscountValue}
                   placeholder="0"
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                 />
               </div>
               <p className="text-xs text-muted-foreground">

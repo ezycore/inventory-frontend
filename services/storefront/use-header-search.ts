@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { collectionHref, storeHref } from "@/lib/storefront-links";
+import { isPageEditorFrame } from "@/lib/storefront-preview";
 import { useStore, useStoreProducts } from "@/services/storefront/hooks";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorePathname } from "@/services/storefront/use-store-pathname";
@@ -132,7 +133,7 @@ export function useHeaderSearch(
 
   const goSearchPage = (term = q) => {
     const trimmed = term.trim();
-    if (!trimmed) return;
+    if (!trimmed || isPageEditorFrame()) return;
     remember(trimmed);
     const mode = onClose("navigate");
     router[mode === "replace" ? "replace" : "push"](
@@ -140,6 +141,7 @@ export function useHeaderSearch(
     );
   };
   const goProduct = (product: CatalogProduct) => {
+    if (isPageEditorFrame()) return;
     const mode = onClose("navigate");
     router[mode === "replace" ? "replace" : "push"](
       storeHref(base, `/products/${product.slug}`),
@@ -150,6 +152,7 @@ export function useHeaderSearch(
   // used to push still resolves, but it is `noindex` and canonicalizes elsewhere
   // — navigating a shopper to a URL the store itself disclaims.
   const goCategory = (category: CatalogCategory) => {
+    if (isPageEditorFrame()) return;
     const mode = onClose("navigate");
     router[mode === "replace" ? "replace" : "push"](
       collectionHref(base, category),

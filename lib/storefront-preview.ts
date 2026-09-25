@@ -121,6 +121,22 @@ export const PREVIEW_BUILDER_PARAM = "builder";
  */
 export const PREVIEW_BUILDER_HEADER = "x-ezy-store-preview-builder";
 
+/**
+ * Attribute `PageDraftPreview` sets on `<html>` once the PAGE editor — never the
+ * Customize editor — has driven this frame. Read through `isPageEditorFrame()`.
+ */
+export const PAGE_EDITOR_ATTR = "data-page-editor";
+
+/**
+ * Is this frame showing a page the page editor is editing? Then nothing in the
+ * shop may navigate it: it would leave the page being edited for an address the
+ * editor is not previewing. Links and forms are stopped by `PageDraftPreview`'s
+ * capture; this is for the navigations that are a `router.push` from a button or
+ * a key — the header search and the cart drawer.
+ */
+export const isPageEditorFrame = (): boolean =>
+  typeof document !== "undefined" && document.documentElement.hasAttribute(PAGE_EDITOR_ATTR);
+
 /** Header the storefront presents the token to the backend API on. */
 export const PREVIEW_API_HEADER = "x-storefront-preview";
 

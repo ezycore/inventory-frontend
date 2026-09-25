@@ -7,13 +7,7 @@ import { useWatch } from "react-hook-form";
 import { X } from "lucide-react";
 import { Button } from "@ui/components/button";
 import { NumberField } from "@ui/components/number-field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@ui/components/select";
+import { FuseAdvancedSelect } from "@ui/components/fuse-advanced-select";
 import { SimpleTable, type SimpleColumn } from "@ui/components/simple-table";
 import { useSelectOptions } from "@/services/api";
 
@@ -46,7 +40,7 @@ export default function ComboComponentsField({
   const t = useTranslations("products.products.comboField");
   const productType = useWatch({ control, name: "productType" });
   const selfId = useWatch({ control, name: "_id" });
-  const { data: options = [] } = useSelectOptions(
+  const { data: options = [], isLoading } = useSelectOptions(
     selectOptions("products", { fields: "_id,name,price,productType,variants" }),
   );
 
@@ -166,24 +160,20 @@ export default function ComboComponentsField({
 
   return (
     <div className="space-y-3">
-      <Select value="" onValueChange={addComponent}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={t("addPlaceholder")} />
-        </SelectTrigger>
-        <SelectContent>
-          {pickable.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-muted-foreground">
-              {t("noMoreProducts")}
-            </div>
-          ) : (
-            pickable.map((o) => (
-              <SelectItem key={o.key} value={o.key}>
-                {o.label}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+      {/* Fuse, never a plain Select: a catalogue can hold thousands of
+          products and variants (CLAUDE.md → "Product pickers"). `value=""`
+          keeps it an "add" control — each pick lands in the table below. */}
+      <FuseAdvancedSelect
+        value=""
+        options={pickable.map((o) => ({ label: o.label, value: o.key }))}
+        onValueChange={(next) => {
+          if (typeof next === "string" && next) addComponent(next);
+        }}
+        placeholder={
+          !isLoading && pickable.length === 0 ? t("noMoreProducts") : t("addPlaceholder")
+        }
+        disabled={isLoading || pickable.length === 0}
+      />
 
       {rows.length > 0 ? (
         <div className="rounded-lg border">

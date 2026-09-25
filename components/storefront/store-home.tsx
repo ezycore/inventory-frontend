@@ -99,9 +99,8 @@ export function StoreHome({
   const heroSlides =
     heroSrc === "banner" ? undefined : (previewSlides ?? store.heroSlides);
   // Category chips follow the Collections panel's unsaved draft under preview.
-  // The admin's collection list carries no image, so re-attach each category's
-  // own image by id — without this the chips would fall back to initial tiles
-  // and the preview would misrepresent the real homepage.
+  // The draft carries each category's image since 2026-09-25; the by-id
+  // fallback stays for an older editor tab still posting the image-less shape.
   const previewCategories = previewCollections?.map((pc) => ({
     ...pc,
     image: pc.image ?? categories.find((c) => c._id === pc._id)?.image,

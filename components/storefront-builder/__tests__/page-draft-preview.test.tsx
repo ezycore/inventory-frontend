@@ -180,6 +180,68 @@ describe("PageDraftPreview — clicks inside a section", () => {
   });
 });
 
+/**
+ * The header and footer are the layout's, not sections, so the section capture
+ * never saw them: the logo navigated the page editor's frame off the page being
+ * edited and onto an address it was not previewing ("not found"). They are
+ * turned off only once the PAGE editor has posted — the Customize frame is a
+ * preview session too, and browsing the shop is what that frame is for.
+ */
+describe("PageDraftPreview — the chrome around the sections", () => {
+  let chrome: HTMLElement;
+
+  const click = (el: Element) =>
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  const submit = (el: Element) =>
+    el.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+  beforeEach(() => {
+    vi.spyOn(window.parent, "postMessage").mockImplementation(() => {});
+    window.history.replaceState(null, "", "/shop/products?preview=1&builder=1");
+    renderPreview();
+    chrome = document.createElement("header");
+    chrome.innerHTML =
+      '<a id="logo" href="/"><img alt="" /></a>' +
+      '<button id="menu">Menu</button>' +
+      '<form id="search"><input name="q" /></form>' +
+      '<div data-preview-interactive=""><form id="sample"></form></div>';
+    document.body.appendChild(chrome);
+  });
+
+  afterEach(() => {
+    chrome.remove();
+    vi.restoreAllMocks();
+    window.history.replaceState(null, "", "/");
+  });
+
+  const driveFromPageEditor = () =>
+    post({ type: PAGE_DRAFT_MESSAGE, payload: { sections: [cta("Eid offer")] } });
+
+  it("leaves the chrome's links live until the page editor drives the frame", () => {
+    expect(click(chrome.querySelector("#logo") as Element)).toBe(true);
+    expect(submit(chrome.querySelector("#search") as Element)).toBe(true);
+    expect(document.documentElement.hasAttribute("data-page-editor")).toBe(false);
+  });
+
+  it("stops the logo and the search box from navigating once it does", () => {
+    driveFromPageEditor();
+    expect(click(chrome.querySelector("#logo img") as Element)).toBe(false);
+    expect(submit(chrome.querySelector("#search") as Element)).toBe(false);
+    expect(document.documentElement.hasAttribute("data-page-editor")).toBe(true);
+  });
+
+  it("leaves the chrome's buttons and the sample basket's forms alone", () => {
+    driveFromPageEditor();
+    expect(click(chrome.querySelector("#menu") as Element)).toBe(true);
+    expect(submit(chrome.querySelector("#sample") as Element)).toBe(true);
+  });
+
+  it("is not armed by the Customize editor's own messages", () => {
+    post({ type: "ezycore-preview", payload: {} });
+    expect(click(chrome.querySelector("#logo") as Element)).toBe(true);
+  });
+});
+
 describe("requestSignature", () => {
   it("files a query by what it asks for, not by the section it sits in", () => {
     const query = { type: "products", source: "newest", limit: 8, inStock: true } as const;
