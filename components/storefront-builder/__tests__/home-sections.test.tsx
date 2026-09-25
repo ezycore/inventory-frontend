@@ -241,6 +241,24 @@ describe("selected-products", () => {
     ]);
   });
 
+  it("lets a pick's name and price INHERIT, so the section's Text colour reaches them", () => {
+    /* A bare pick has no card of its own — it is drawn straight on the band —
+       so naming `--text` painted the theme's ink over a merchant's own ground.
+       A chip or a card that paints its OWN background keeps `--text` on
+       purpose (`tag-chip-links`, `category-banner-row`). */
+    const { container } = renderPage(
+      [section("s1", "selected-products", { source: "featured", limit: 4 })],
+      { s1: { items } },
+    );
+    // The media's own placeholder word is a span too — the pick's two lines are
+    // the ones carrying a font size.
+    const words = ([...container.querySelectorAll("a > span")] as HTMLElement[]).filter(
+      (w) => w.style.fontSize,
+    );
+    expect(words.map((w) => w.textContent?.trim())).toEqual(["Kurta", "৳1,200"]);
+    expect(words.map((w) => w.style.color)).toEqual(["inherit", "inherit"]);
+  });
+
   it("draws the link beside its heading only with both a label and a destination", () => {
     const { container } = renderPage(
       [

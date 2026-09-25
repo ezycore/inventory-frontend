@@ -45,8 +45,12 @@ export function PickGrid({
             loading={loading}
             style={{ marginBottom: 14 }}
           />
-          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", lineHeight: 1.35, marginBottom: 4 }}>{p.name}</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{money(p.price, currency)}</span>
+          {/* INHERIT: a bare pick has no card of its own, so the name and the
+              price are drawn straight on the section's band and must take its
+              Text colour (`.sfb-sec[data-tone]`). Outside a builder section the
+              inherited colour is `--text`, which is what they said before. */}
+          <span style={{ fontSize: 14, fontWeight: 500, color: "inherit", lineHeight: 1.35, marginBottom: 4 }}>{p.name}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "inherit" }}>{money(p.price, currency)}</span>
         </Link>
       ))}
     </div>

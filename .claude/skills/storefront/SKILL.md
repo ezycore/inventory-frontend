@@ -911,12 +911,20 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     `value` entry (`check` — one fixed listed glyph, so the control shows it and offers no "Default"),
     `"promises-band.icon"` is `meaning` ("The band decides" — the cycled glyph depends on position, so
     no listed value says it).
-  - **Text drawn on a band INHERITS its colour.** `.sfb-sec[data-tone]` sets `color` on the frame, so
-    a line that names `var(--text)` ignores the merchant's Text colour — which is what `PromiseRows`
-    and `SectionTitle`'s `h2` both did until 2026-09-25 (browser QA: yellow band, theme-coloured
-    words). A card with its own ground keeps the theme's tokens on purpose — see the `--sfb-muted`
-    note in `storefront-builder.css`. Still hardcoding `var(--text)` on a band: `tag-chip-links`,
-    `pick-grid`, `category-tile-row`, `collection-tiles`.
+  - **Text drawn on a band INHERITS its colour; text on its own ground does not.** `.sfb-sec[data-tone]`
+    sets `color` on the frame, so a line that names `var(--text)` ignores the merchant's Text colour —
+    which is what `SectionTitle`'s `h2`, `PromiseRows`, `PickGrid`, `CollectionTiles` and the round
+    tiles in `CategoryTileRow` all did until 2026-09-25 (browser QA found it: yellow band,
+    theme-coloured words). All now `color: inherit`, which outside a builder section resolves to
+    `--text` — the classic home renders byte for byte as before.
+    **The line is OPAQUE ground vs tint, not "has a background".** Only a solid ground keeps the
+    theme's ink — `--card` in `tag-chip-links`, `category-banner-row`, the benefit/review cards and
+    the sticky bar — because the merchant's own colour on a white chip is what comes out unreadable.
+    A **translucent** tint grounds nothing: `--primary-soft` is 13% alpha, so a `category-tiles`
+    card composites over the band, and keeping the theme's dark ink on it made every label
+    unreadable the moment a merchant set a dark background (browser QA, same day, one fix later).
+    Those labels inherit, and their sentence reads `var(--sfb-muted, var(--muted))` — the token the
+    `--sfb-muted` note in `storefront-builder.css` exists for. Pinned in `catalogue-sections.test.tsx`.
   - **The band's column count** is `promises-band.columns` (responsive, 1–4) over `--sfb-trust-track`
     / `-m` on `.sfb-trust-list`; unset keeps the store's `--trustcols` ramp (three past the
     breakpoint, one centred column on a phone). `PromiseRows` takes `className`/`style` for exactly
