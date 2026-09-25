@@ -1,11 +1,15 @@
+"use client";
 // coding-standard: maintained
 
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import type {
   CatalogCategory,
   CatalogCategoryDetail,
+  StorefrontImage,
 } from "@/lib/storefront-client";
+import type { Responsive } from "@/lib/storefront-builder/settings";
+import { SfImage } from "@/components/storefront/sf-image";
 import { collectionHref } from "@/lib/storefront-links";
 
 /**
@@ -45,6 +49,22 @@ export function stripParent(
   return collection.isSubcategory ? (collection.parent ?? undefined) : collection;
 }
 
+/** Customize → Menu's `collectionStrip` values (`MenuCollectionStrip`). */
+export type SubcategoryStyle = "scroll" | "wrap" | "tiles" | "hidden";
+
+/**
+ * What the row draws on each screen: the phone falls back to the desktop's
+ * answer, and both fall back to the scroll row every page had before the
+ * setting existed.
+ */
+export function subcategoryModes(display?: Responsive<SubcategoryStyle>): {
+  phone: SubcategoryStyle;
+  desktop: SubcategoryStyle;
+} {
+  const desktop = display?.base ?? "scroll";
+  return { phone: display?.mobile ?? desktop, desktop };
+}
+
 /**
  * The drill-down row on a collection page: "All ‹Parent›" first, then one chip
  * per sub-collection, the current one highlighted.
@@ -52,89 +72,84 @@ export function stripParent(
  * The first chip is the way back up (plan P6): on a child page the only other
  * route to the whole department was the breadcrumb.
  *
- * Holds no state, so it renders server-side too. Unlike the header's category
- * row this MAY scroll horizontally — every chip is a plain link, so there is no
- * dropdown for the scroll container to clip.
+ * Unlike the header's category row this MAY scroll horizontally — every chip is
+ * a plain link, so there is no dropdown for the scroll container to clip.
+ *
+ * **Style per screen, chosen in CSS.** The merchant picks scroll, wrap, tiles
+ * or hidden per device under Customize → Menu (`nav.menu.*.collectionStrip`).
+ * Both answers ride on the row as `data-sub-m` / `data-sub` and
+ * `storefront.css` selects the layout, so the server paints the right one on
+ * every device with no viewport branch in JavaScript. The picture slot is only emitted when a screen uses tiles.
+ *
+ * Every chip navigates to a new page, which remounts the row at scrollLeft 0.
+ * On a phone with many siblings that hid the chip just tapped and made the
+ * shopper swipe back to reach its neighbour, so the active chip is scrolled to
+ * the middle of the row on mount. In wrap and tiles the row does not overflow,
+ * so the same assignment is a no-op there.
  */
 export function SubcategoryStrip({
   base,
   items,
   activeId,
   parent,
+  parentImage,
   allLabel,
+  display,
 }: {
   base: string;
   items: CatalogCategory[];
   activeId?: string;
   /** The department — see `stripParent`. No chip without it. */
   parent?: { _id: string; name: string; slugPath?: string };
+  /** The department's own picture, for the "All" tile. */
+  parentImage?: StorefrontImage | null;
   /** "All {name}", already localized. */
   allLabel?: string;
+  /** The merchant's style per screen; unset is a scroll row everywhere. */
+  display?: Responsive<SubcategoryStyle>;
 }) {
-  if (items.length === 0) return null;
+  const rowRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    const el = rowRef.current;
+    const current = el?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!el || !current) return;
+    // Set scrollLeft directly: scrollIntoView would also scroll the page.
+    el.scrollLeft = current.offsetLeft - (el.clientWidth - current.offsetWidth) / 2;
+  }, [activeId]);
+
+  const { phone, desktop } = subcategoryModes(display);
+  if (items.length === 0 || (phone === "hidden" && desktop === "hidden")) return null;
   const onParent = !!parent && parent._id === activeId;
+  const tiles = phone === "tiles" || desktop === "tiles";
+
+  const chip = (key: string, href: string, name: string, active: boolean, image?: StorefrontImage | null) => (
+    <Link key={key} href={href} aria-current={active ? "page" : undefined} className="sf-subchip">
+      {tiles ? (
+        <span className="sf-subchip-pic" aria-hidden="true">
+          {image ? (
+            <SfImage image={image} alt="" sizes="120px" decorative />
+          ) : (
+            name.trim().charAt(0).toUpperCase()
+          )}
+        </span>
+      ) : null}
+      <span className="sf-subchip-name">{name}</span>
+    </Link>
+  );
 
   return (
-    <nav aria-label="Sub-categories" style={row}>
-      {parent && allLabel ? (
-        <Link
-          href={collectionHref(base, parent)}
-          aria-current={onParent ? "page" : undefined}
-          style={onParent ? chipActive : chip}
-        >
-          {allLabel}
-        </Link>
-      ) : null}
-      {items.map((c) => {
-        const active = c._id === activeId;
-        return (
-          <Link
-            key={c._id}
-            href={collectionHref(base, c)}
-            aria-current={active ? "page" : undefined}
-            style={active ? chipActive : chip}
-          >
-            {c.name}
-          </Link>
-        );
-      })}
+    <nav
+      ref={rowRef}
+      aria-label="Sub-categories"
+      className="sf-substrip"
+      data-sub={desktop}
+      data-sub-m={phone}
+    >
+      {parent && allLabel
+        ? chip(parent._id, collectionHref(base, parent), allLabel, onParent, parentImage)
+        : null}
+      {items.map((c) => chip(c._id, collectionHref(base, c), c.name, c._id === activeId, c.image))}
     </nav>
   );
 }
-
-const row: CSSProperties = {
-  display: "flex",
-  gap: 8,
-  // Safe to scroll here (see the component note): these are flat links.
-  overflowX: "auto",
-  // Phones overlay their scrollbar; desktop browsers drew a grey bar under the
-  // chips. The strip still scrolls by swipe, wheel and trackpad.
-  scrollbarWidth: "none",
-  paddingBottom: 4,
-  marginBottom: 14,
-};
-
-const chipBase: CSSProperties = {
-  flex: "none",
-  borderRadius: 999,
-  // 12px vertical around a ~16px line box clears the 40px tap floor.
-  padding: "12px 15px",
-  fontSize: 13,
-  fontWeight: 500,
-  whiteSpace: "nowrap",
-  border: "1px solid var(--border-strong)",
-};
-
-const chip: CSSProperties = {
-  ...chipBase,
-  background: "var(--card)",
-  color: "var(--muted)",
-};
-
-const chipActive: CSSProperties = {
-  ...chipBase,
-  background: "var(--primary-soft)",
-  borderColor: "transparent",
-  color: "var(--primary)",
-  fontWeight: 700,
-};

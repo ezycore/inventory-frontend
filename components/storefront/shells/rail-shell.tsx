@@ -151,23 +151,29 @@ function CategoryRail({
           {nodes.map((node) => {
             const on = isNodeActive(node, pathname);
             const kids = node.children;
-            const kidLinks = kids.map((k) => (
-              <Link
-                key={k.key}
-                href={k.href}
-                className={`sf-rail-link sf-rail-link--child${
-                  isNodeActive(k, pathname) ? " is-on" : ""
-                }`}
-              >
-                {k.label}
-              </Link>
-            ));
+            // The department is the page only when no child is — otherwise it
+            // is the trail and the child carries the mark (`.sf-current`, the
+            // merchant's Current page style, shared with every menu surface).
+            const childOn = kids.some((k) => isNodeActive(k, pathname));
+            const kidLinks = kids.map((k) => {
+              const kidOn = isNodeActive(k, pathname);
+              return (
+                <Link
+                  key={k.key}
+                  href={k.href}
+                  aria-current={kidOn ? "page" : undefined}
+                  className={`sf-rail-link sf-rail-link--child${kidOn ? " sf-current" : ""}`}
+                >
+                  {k.label}
+                </Link>
+              );
+            });
             return (
               <div key={node.key} className={flyout && kids.length ? "sf-rail-fly" : undefined}>
                 <Link
                   href={node.href}
-                  aria-current={on ? "page" : undefined}
-                  className={`sf-rail-link${on ? " is-on" : ""}`}
+                  aria-current={on && !childOn ? "page" : undefined}
+                  className={`sf-rail-link${on ? (childOn ? " sf-current-trail" : " sf-current") : ""}`}
                 >
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {node.label}

@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
 import { brightenForDark, readableTextOn } from "@/lib/color-contrast";
+import type { StoreDesign } from "@/lib/storefront-theme";
 
 export interface ShellTheme {
   /** Custom properties for the `.sf-shell` element's inline style. */
@@ -55,4 +56,19 @@ export function shellTheme(brandColor?: string, accentColor?: string): ShellThem
   } as CSSProperties;
 
   return { style, brand: !!brandColor, accent: !!accent };
+}
+
+/**
+ * The menu's custom "you are here" colour as custom properties, read by
+ * `.sf-shell[data-nav-active-color="custom"]` in storefront.css. Both theme
+ * variants ship, exactly like the brand's, so the stylesheet picks per
+ * `data-theme` with no flash. Empty unless the merchant chose `custom` and
+ * `resolveDesign` kept a usable colour.
+ */
+export function activeColorStyle(design: StoreDesign): CSSProperties {
+  if (design.navActiveColor !== "custom" || !design.navActiveCustom) return {};
+  return {
+    "--sf-active-light": design.navActiveCustom,
+    "--sf-active-dark": brightenForDark(design.navActiveCustom),
+  } as CSSProperties;
 }

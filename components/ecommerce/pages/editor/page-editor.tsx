@@ -26,6 +26,7 @@ import { pageContextOf } from "./section-instances";
 import { SectionTree } from "./section-tree";
 import { usePageAutosave } from "./use-page-autosave";
 import { loadedSections, usePageEditor } from "./use-page-editor";
+import { useStoreFacts } from "./use-store-facts";
 import { usePreviewProductSlug } from "./use-preview-product";
 import { useUndoShortcuts } from "./use-undo-shortcuts";
 
@@ -49,7 +50,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
   // switch back to the empty state — see `PreviewCartToggle`.
   const showsCart = systemKey === "cart" || systemKey === "checkout";
   const previewProduct = usePreviewProductSlug(slug, isProductPage);
-  const editor = usePageEditor(page);
+  const editor = usePageEditor(page, useStoreFacts());
   const autosave = usePageAutosave(page, editor.savable);
   useUndoShortcuts(editor.undo, editor.redo);
 

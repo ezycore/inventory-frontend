@@ -34,6 +34,7 @@ export function PromisesBandSection({ settings, blocks, context }: SectionViewPr
           list is the variable for the reason `grid-track.ts` gives. */}
       <PromiseRows
         promises={promises}
+        iconStyle={settings.iconStyle}
         className="sfb-trust-list"
         style={responsiveVars("sfb-trust-track", settings.columns, TRACK) as CSSProperties}
       />

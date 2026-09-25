@@ -1,15 +1,21 @@
 "use client";
 // coding-standard: maintained
 
-import { DESIGN_NAV_HOVERS, type StoreDesign } from "@/lib/storefront-theme";
+import {
+  DESIGN_NAV_ACTIVE_COLORS,
+  DESIGN_NAV_ACTIVES,
+  DESIGN_NAV_HOVERS,
+  type DesignOption,
+  type StoreDesign,
+} from "@/lib/storefront-theme";
+import { ColorField } from "@/ui/components/color-field";
 import { SegmentedField } from "@/ui/components/segmented-field";
 import { PartBlock, PartField } from "@/components/ecommerce/customize/part-group";
 
-const HOVER_OPTIONS = DESIGN_NAV_HOVERS.map((o) => ({
-  value: o.id,
-  label: o.label,
-  description: o.description,
-}));
+const options = (list: DesignOption[]) =>
+  list.map((o) => ({ value: o.id, label: o.label, description: o.description }));
+
+const HOVER_OPTIONS = options(DESIGN_NAV_HOVERS);
 
 /**
  * How a menu link reacts to a pointer — computer only, since a phone's menu is
@@ -51,6 +57,59 @@ export function MenuHoverFields({
           options={HOVER_OPTIONS}
         />
       </PartField>
+    </PartBlock>
+  );
+}
+
+/**
+ * How every menu marks the page the shopper is on — the phone menu, the
+ * collection page's sub-category row, the header row and its dropdowns, and
+ * the category sidebar. `design` axes like hover, so the save bar counts them
+ * under Look; drawn above the device switch because one answer serves both.
+ *
+ * A preset style and a colour, never free background / text / shadow pickers:
+ * the shopper's dark theme would turn a hand-picked pair unreadable, and the
+ * presets take their fill from the chosen colour so they cannot fail contrast.
+ */
+export function MenuActiveFields({
+  design,
+  onChange,
+}: {
+  design: StoreDesign;
+  onChange: (axis: Partial<StoreDesign>) => void;
+}) {
+  return (
+    <PartBlock
+      label="Current page"
+      hint="How your menus mark where the shopper is — in the phone menu, the sub-category row, the header and the sidebar."
+    >
+      <PartField label="Style">
+        <SegmentedField
+          label="Style"
+          value={design.navActive}
+          onChange={(navActive) => onChange({ navActive })}
+          options={options(DESIGN_NAV_ACTIVES)}
+        />
+      </PartField>
+      <PartField
+        label="Colour"
+        hint="If your brand colour is very dark, Accent or a colour of your own stands out more."
+      >
+        <SegmentedField
+          label="Colour"
+          value={design.navActiveColor}
+          onChange={(navActiveColor) => onChange({ navActiveColor })}
+          options={options(DESIGN_NAV_ACTIVE_COLORS)}
+        />
+      </PartField>
+      {design.navActiveColor === "custom" ? (
+        <ColorField
+          label="Your colour"
+          value={design.navActiveCustom}
+          onChange={(navActiveCustom) => onChange({ navActiveCustom })}
+          hint="Empty uses your brand colour. Lightened automatically on the dark theme so it stays readable."
+        />
+      ) : null}
     </PartBlock>
   );
 }
