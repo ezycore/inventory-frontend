@@ -13314,7 +13314,11 @@ export interface components {
                         open?: string;
                         viewAll?: boolean;
                         images?: boolean;
+                        subImages?: boolean;
                         chips?: string;
+                        title?: string;
+                        allProducts?: boolean;
+                        allProductsLabel?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -13322,6 +13326,7 @@ export interface components {
                         railOpen?: string;
                         overflow?: string;
                         row?: boolean;
+                        viewAll?: boolean;
                     };
                 };
                 filters?: {
@@ -14985,7 +14990,11 @@ export interface components {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -14993,6 +15002,7 @@ export interface components {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -15355,7 +15365,11 @@ export interface components {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15363,6 +15377,7 @@ export interface components {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -22354,7 +22369,11 @@ export interface operations {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -22362,6 +22381,7 @@ export interface operations {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -45212,7 +45232,11 @@ export interface operations {
                                     open?: string;
                                     viewAll?: boolean;
                                     images?: boolean;
+                                    subImages?: boolean;
                                     chips?: string;
+                                    title?: string;
+                                    allProducts?: boolean;
+                                    allProductsLabel?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;
@@ -45220,6 +45244,7 @@ export interface operations {
                                     railOpen?: string;
                                     overflow?: string;
                                     row?: boolean;
+                                    viewAll?: boolean;
                                 };
                             };
                             filters?: {

@@ -18,6 +18,7 @@ import {
   DesktopMenuFields,
   PhoneMenuFields,
 } from "@/components/ecommerce/customize/menu-behaviour-fields";
+import { MenuHoverFields } from "@/components/ecommerce/customize/menu-hover-fields";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 
 const SOURCES: {
@@ -192,13 +193,20 @@ export function MenuPart({
           hasChipsRow={draft.mobile.row === "chips"}
         />
       ) : (
-        <DesktopMenuFields
-          value={menu.desktop}
-          onChange={(p) => setMenu({ desktop: { ...menu.desktop, ...p } })}
-          headerHasRow={!rowless || menu.desktop.row}
-          headerCanAddRow={rowless}
-          hasSidebar={draft.templates.shell === "rail"}
-        />
+        <>
+          <DesktopMenuFields
+            value={menu.desktop}
+            onChange={(p) => setMenu({ desktop: { ...menu.desktop, ...p } })}
+            headerHasRow={!rowless || menu.desktop.row}
+            headerCanAddRow={rowless}
+            hasSidebar={draft.templates.shell === "rail"}
+          />
+          {/* `design` axes, so the save bar counts them under Look. */}
+          <MenuHoverFields
+            design={draft.design}
+            onChange={(axis) => patch({ design: { ...draft.design, ...axis } })}
+          />
+        </>
       )}
     </>
   );

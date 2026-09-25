@@ -97,7 +97,9 @@ export const couponFormConfig: DynamicFormConfig = {
       // matching ANY of the three lists is eligible, and leaving all three
       // empty applies the coupon to the whole order.
       name: "applicableProducts",
-      type: "select",
+      // `fuseSelect`, not `select`: multiple-mode `select` stays on the
+      // substring MultiSelect, and a product list needs fuzzy search.
+      type: "fuseSelect",
       mode: "multiple",
       zodType: "array",
       arrayOf: "string",

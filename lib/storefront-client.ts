@@ -859,7 +859,11 @@ export interface StoreMenuSettings {
     open?: string;
     viewAll?: boolean;
     images?: boolean;
+    subImages?: boolean;
     chips?: string;
+    title?: string;
+    allProducts?: boolean;
+    allProductsLabel?: string;
   };
   desktop?: {
     dropdown?: string;
@@ -867,6 +871,7 @@ export interface StoreMenuSettings {
     railOpen?: string;
     overflow?: string;
     row?: boolean;
+    viewAll?: boolean;
   };
 }
 

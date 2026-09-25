@@ -251,4 +251,20 @@ describe("menu settings", () => {
     const settings = resolveMenuSettings({ subcategories: "off", desktop: { dropdown: "mega", railOpen: "flyout" } });
     expect(resolveMenuSettings(menuSettingsOverrides(settings))).toEqual(settings);
   });
+
+  it("trims the phone panel's text, stores blank as the localized default", () => {
+    const settings = resolveMenuSettings({ mobile: { title: "  Browse  ", allProductsLabel: "x".repeat(60) } });
+    expect(settings.mobile.title).toBe("Browse");
+    // Never set ⇒ localized default; cleared ⇒ stored as "" and hides the heading.
+    expect(resolveMenuSettings({}).mobile.title).toBeNull();
+    expect(resolveMenuSettings({ mobile: { title: "" } }).mobile.title).toBe("");
+    const cleared = { ...DEFAULT_MENU_SETTINGS, mobile: { ...DEFAULT_MENU_SETTINGS.mobile, title: "" } };
+    expect(menuSettingsOverrides(cleared)).toEqual({ mobile: { title: "" } });
+    expect(settings.mobile.allProductsLabel).toHaveLength(40);
+    const typed = {
+      ...DEFAULT_MENU_SETTINGS,
+      mobile: { ...DEFAULT_MENU_SETTINGS.mobile, title: " Shop ", allProductsLabel: "   ", subImages: true, allProducts: false },
+    };
+    expect(menuSettingsOverrides(typed)).toEqual({ mobile: { title: "Shop", subImages: true, allProducts: false } });
+  });
 });

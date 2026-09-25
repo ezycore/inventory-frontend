@@ -37,6 +37,20 @@ describe("field visibility", () => {
     }
   });
 
+  it("asks which offer only once the offer is on, and styles the chip wherever one is drawn", () => {
+    expect(shown("campaignId", { layout: "card" })).toBe(false);
+    expect(shown("campaignId", { layout: "card", campaignBadge: true })).toBe(true);
+    expect(shown("campaignId", { layout: "open", campaignBadge: true })).toBe(true);
+    expect(shown("campaignId", { layout: "full-bleed", campaignBadge: true })).toBe(false);
+    // No chip, nothing to style.
+    expect(shown("badgeTone", { layout: "card" })).toBe(false);
+    expect(shown("badgeTone", { layout: "card" }, [{ badge: "  " }])).toBe(false);
+    // The running offer, or a slide's own badge text, draws one.
+    expect(shown("badgeTone", { layout: "card", campaignBadge: true })).toBe(true);
+    expect(shown("badgeTone", { layout: "open" }, [{}, { badge: "New in" }])).toBe(true);
+    expect(shown("badgeTone", { layout: "full-bleed", campaignBadge: true })).toBe(false);
+  });
+
   it("offers the promises to the card alone, which is the only hero with a footer", () => {
     expect(shown("promises", { layout: "card" })).toBe(true);
     expect(shown("promises", { layout: "open" })).toBe(false);
@@ -693,7 +707,9 @@ describe("field visibility", () => {
         "content-body.updatedAt",
         "image-banner.align",
         "image-banner.focal",
+        "hero.badgeTone",
         "hero.campaignBadge",
+        "hero.campaignId",
         "hero.dots",
         "hero.focal",
         "hero.interval",

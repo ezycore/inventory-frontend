@@ -226,6 +226,25 @@ export const SECTION_SPECS = {
       storeBanner: { type: "boolean", optional: true },
       storeWords: { type: "boolean", optional: true },
       campaignBadge: { type: "boolean", optional: true },
+      /**
+       * Which running offer `campaignBadge` names. Unset is automatic: the
+       * storewide offer, else the one ending soonest. A picked offer that is not
+       * running (ended, paused, not started) names nothing — never a different
+       * offer the merchant did not choose.
+       */
+      campaignId: { type: "ref", to: "campaign", optional: true },
+      /**
+       * The badge's colour, as a TONE and never a hex — the checkout notices'
+       * rule. Each tone resolves per theme in storefront.css
+       * (`.sf-hero-badge[data-tone]`), so every choice stays readable in light
+       * and dark; a typed colour cannot. Unset is `accent`, the badge's colour
+       * before this setting existed.
+       */
+      badgeTone: {
+        type: "enum",
+        values: ["accent", "brand", "sale", "neutral", "solid"],
+        optional: true,
+      },
       promises: { type: "boolean", optional: true },
     },
     // The limits mirror the home hero's slides (`heroSlidesSchema`), so a

@@ -329,7 +329,7 @@ export function PartsRail({
       ) : part.id === "utility" ? (
         <UtilityBarPart settings={settings} draft={draft} patch={patch} />
       ) : part.id === "header" ? (
-        <HeaderPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
+        <HeaderPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "menu" ? (
         <MenuPart
           draft={draft}

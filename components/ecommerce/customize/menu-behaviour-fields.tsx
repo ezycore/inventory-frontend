@@ -9,9 +9,11 @@ import {
   MENU_OPEN_ON,
   MENU_OVERFLOW,
   MENU_RAIL_OPEN,
+  MENU_TEXT_MAX,
   type MenuOption,
   type ResolvedMenuSettings,
 } from "@/lib/storefront-menu";
+import { Input } from "@/ui/components/input";
 import { SegmentedField } from "@/ui/components/segmented-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import {
@@ -22,6 +24,9 @@ import {
 } from "@/components/ecommerce/customize/part-group";
 
 type Phone = ResolvedMenuSettings["mobile"];
+
+/** What an unset phone-menu title shows, in the admin's own (English) editor. */
+const DEFAULT_TITLE = "Menu";
 type Desktop = ResolvedMenuSettings["desktop"];
 
 const segments = <T extends string>(options: readonly MenuOption<T>[]) =>
@@ -79,6 +84,37 @@ export function PhoneMenuFields({
   const folds = value.layout === "accordion";
   return (
     <PartBlock label="On a phone">
+      <PartField
+        label="Menu title"
+        hint={'Clear it to show no title. "Menu" follows the shopper\'s language.'}
+      >
+        <Input
+          value={value.title ?? DEFAULT_TITLE}
+          // Typing the default back re-links it to the shopper's language
+          // rather than storing the English word for a Bangla shopper.
+          onChange={(e) =>
+            onChange({ title: e.target.value === DEFAULT_TITLE ? null : e.target.value })
+          }
+          maxLength={MENU_TEXT_MAX}
+          className="h-8"
+        />
+      </PartField>
+      <PartSwitch
+        label={'An "All products" row'}
+        detail="First in the menu — your whole catalogue"
+        checked={value.allProducts}
+        onCheckedChange={(allProducts) => onChange({ allProducts })}
+      />
+      {value.allProducts ? (
+        <Input
+          aria-label="All products row label"
+          value={value.allProductsLabel}
+          onChange={(e) => onChange({ allProductsLabel: e.target.value })}
+          maxLength={MENU_TEXT_MAX}
+          placeholder="All products"
+          className="h-8"
+        />
+      ) : null}
       <Choice
         label="Categories with sub-categories"
         value={value.layout}
@@ -106,6 +142,12 @@ export function PhoneMenuFields({
         detail="Beside each category, when it has one"
         checked={value.images}
         onCheckedChange={(images) => onChange({ images })}
+      />
+      <PartSwitch
+        label="Sub-category pictures"
+        detail="Beside each sub-category, when it has one"
+        checked={value.subImages}
+        onCheckedChange={(subImages) => onChange({ subImages })}
       />
       {hasChipsRow ? (
         <Choice
@@ -166,6 +208,19 @@ export function DesktopMenuFields({
             options={MENU_OPEN_ON}
             onChange={(openOn) => onChange({ openOn })}
           />
+          {value.openOn === "click" ? (
+            <PartHint>
+              Opening on click adds an &ldquo;All ‹category›&rdquo; row to every
+              dropdown — the category name no longer goes to its page.
+            </PartHint>
+          ) : (
+            <PartSwitch
+              label={'An "All ‹category›" row'}
+              detail="First in each dropdown — the category's own page"
+              checked={value.viewAll}
+              onCheckedChange={(viewAll) => onChange({ viewAll })}
+            />
+          )}
           <Choice
             label="Too many links"
             value={value.overflow}

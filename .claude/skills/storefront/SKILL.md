@@ -2060,17 +2060,28 @@ menu flattened beneath it. Now:
   the browsed department open, else the first; `drill` (a screen per category, Back row); `expanded`
   (the old list). The "All ‹category›" row keeps the parent page one tap away — when it is off the
   row splits into a link and a chevron, never a toggle alone.
+  Also per-phone (2026-09-25): `title` (the panel heading), `allProducts` + `allProductsLabel` (the
+  top "All products" row), `subImages` (pictures on sub-category rows; `images` is parents only).
+  Text is merchant-typed, capped at `MENU_TEXT_MAX` (40). `allProductsLabel` blank ⇒ `t.allProducts`.
+  `title` is tri-state: unset (`null`) ⇒ `t.menu`, `""` ⇒ **no heading** (merchant cleared it), else
+  the text. The editor shows "Menu" for unset and maps typing "Menu" back to `null` — never store the
+  English default, or a Bangla shopper reads English.
 - **Desktop** (`header-nav.tsx` + `header/nav-dropdown.tsx` + `header/use-nav-menu.ts`):
   `dropdown` list / columns / mega; `openOn` hover / click — and a **touch** always opens on the
   first tap (pointer events, so a hybrid laptop's mouse still hovers); `overflow` wrap / more
   (measures once with every item rendered, then works from cached widths).
+  The dropdown's "All ‹category›" row is `desktop.viewAll` (default off), **forced on** for
+  `openOn: click` and a touch-opened panel (the trigger didn't navigate). Until 2026-09-25 it was also
+  forced by any non-`list` layout, so Columns looked like it "added a row" — the layout has no say now.
+  `columns` only splits past 8 children (`PER_COLUMN`), so on a small tree it looks exactly like List.
 - **Sidebar** (`shells/rail-shell.tsx`): `railOpen` active (the original) / first / all / flyout.
   ⚠ flyout lifts the rail's internal scroll (`data-flyout`), because a scroll container would clip
   the pop-out — it suits the few-departments shop it is for.
 - **Customize → Menu** is its own row under Header (`parts/menu-part.tsx`,
   `menu-links-editor.tsx`, `menu-behaviour-fields.tsx`), opens the preview on a phone, and has a
-  Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout +
-  hover only.
+  Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout
+  only; the hover axes (`navHover`/`navChildHover`, `menu-hover-fields.tsx`) moved to Menu →
+  Computer on 2026-09-25 — still `design` axes, so dirty state counts them under Look.
 
 ### Filters & sort — one layout, three pages (2026-09-24)
 

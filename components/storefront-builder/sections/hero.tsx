@@ -110,22 +110,53 @@ const storeWord = (word: "shopNow" | "browseCats" | "campaignOff") => (
   <Island name="store-word" props={{ word }} />
 );
 
+const endsAtMs = (campaign: StoreCampaign): number => {
+  const ms = campaign.endsAt ? Date.parse(campaign.endsAt) : Number.NaN;
+  return Number.isNaN(ms) ? Number.POSITIVE_INFINITY : ms;
+};
+
+/**
+ * Which running offer the badge names. `campaigns` holds only the RUNNING ones,
+ * so a picked id that is missing from it has ended or not started — and names
+ * nothing, rather than an offer the merchant did not choose. Unpicked, the
+ * storewide offer leads, then the one ending soonest: with several running,
+ * "whichever the API listed first" was a badge nobody could predict.
+ */
+export function pickCampaign(
+  campaigns: readonly StoreCampaign[],
+  campaignId?: string,
+): StoreCampaign | undefined {
+  if (campaignId) return campaigns.find((c) => c._id === campaignId);
+  return [...campaigns].sort(
+    (a, b) =>
+      Number(b.scope === "storewide") - Number(a.scope === "storewide") || endsAtMs(a) - endsAtMs(b),
+  )[0];
+}
+
 /**
  * The running offer as the classic home hero names it, without its last word:
  * "Eid sale · 10%". The word "off" is the shopper's, so a server view cannot
  * hold it — the text and the word are joined by whoever can (`campaignBadge`
  * here, `HeroSlidesView` in the rotating hero, which has the dictionary).
  */
-function campaignLabel(campaigns: StoreCampaign[], currency?: string): string | undefined {
-  const campaign = campaigns.find((c) => c.scope === "storewide") ?? campaigns[0];
+function campaignLabel(
+  campaigns: StoreCampaign[],
+  campaignId: string | undefined,
+  currency?: string,
+): string | undefined {
+  const campaign = pickCampaign(campaigns, campaignId);
   if (!campaign) return undefined;
   const amount = campaign.type === "percentage" ? `${campaign.value}%` : money(campaign.value, currency);
   return `${campaign.name} · ${amount}`;
 }
 
 /** The running offer as a badge: "Eid sale · 10% off". */
-function campaignBadge(campaigns: StoreCampaign[], currency?: string): ReactNode {
-  const label = campaignLabel(campaigns, currency);
+function campaignBadge(
+  campaigns: StoreCampaign[],
+  campaignId: string | undefined,
+  currency?: string,
+): ReactNode {
+  const label = campaignLabel(campaigns, campaignId, currency);
   if (!label) return undefined;
   return (
     <>
@@ -251,8 +282,9 @@ export function HeroSection({
              server → client boundary, and the word "off" belongs to the
              shopper's dictionary, which only the client has. */
           campaignLabel: settings.campaignBadge
-            ? campaignLabel(context.campaigns ?? [], context.currency)
+            ? campaignLabel(context.campaigns ?? [], settings.campaignId, context.currency)
             : undefined,
+          badgeTone: settings.badgeTone,
           promises:
             settings.layout === "card" && settings.promises
               ? (context.trustBadges ?? []).map((badge) => badge.text.trim())
@@ -328,7 +360,10 @@ export function HeroSection({
   const copy = {
     badge:
       slide.badge?.trim() ||
-      (settings.campaignBadge ? campaignBadge(context.campaigns ?? [], context.currency) : undefined),
+      (settings.campaignBadge
+        ? campaignBadge(context.campaigns ?? [], settings.campaignId, context.currency)
+        : undefined),
+    badgeTone: settings.badgeTone,
     title: title || storeName,
     hideTitle: !title && !settings.storeWords,
     subtitle: slide.subtitle?.trim() || undefined,

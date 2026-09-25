@@ -174,6 +174,7 @@ export const publicCollections = (collections: CustomizeDraft["collections"]) =>
     name: c.displayName.trim() || c.name,
     slug: c.slug,
     slugPath: c.slugPath,
+    image: c.image ?? null,
   });
   return linkable
     .filter((c) => !c.parentId)

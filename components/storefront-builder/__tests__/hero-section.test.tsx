@@ -7,7 +7,7 @@ import {
   sectionListNeeds,
   type PageSectionInstance,
 } from "@/components/storefront-builder/page-sections";
-import { heroSlides } from "@/components/storefront-builder/sections/hero";
+import { heroSlides, pickCampaign } from "@/components/storefront-builder/sections/hero";
 
 vi.mock("@/components/storefront-builder/islands/island-map", () => ({
   Island: ({
@@ -76,6 +76,28 @@ const renderPage = (instances: PageSectionInstance[]) =>
       data={{}}
     />,
   );
+
+describe("pickCampaign", () => {
+  const offer = (id: string, scope: string, endsAt?: string) =>
+    ({ _id: id, name: id, type: "percentage", value: 10, scope, endsAt }) as never;
+
+  it("leads with the storewide offer, then the one ending soonest", () => {
+    const running = [
+      offer("late", "category", "2026-10-30T00:00:00Z"),
+      offer("soon", "category", "2026-10-01T00:00:00Z"),
+      offer("open", "category"),
+    ];
+    expect(pickCampaign(running)?._id).toBe("soon");
+    expect(pickCampaign([...running, offer("store", "storewide", "2026-12-01T00:00:00Z")])?._id).toBe("store");
+    expect(pickCampaign([])).toBeUndefined();
+  });
+
+  it("names only the picked offer, and nothing when it is not running", () => {
+    const running = [offer("a", "storewide"), offer("b", "product")];
+    expect(pickCampaign(running, "b")?._id).toBe("b");
+    expect(pickCampaign(running, "gone")).toBeUndefined();
+  });
+});
 
 describe("hero", () => {
   it("draws one card slide as server markup: heading, photo and a complete button", () => {
@@ -377,6 +399,8 @@ describe("hero", () => {
 
   describe("moved from the classic home", () => {
     const banner = { url: "https://cdn.example.com/banner.jpg", mediumUrl: "https://cdn.example.com/banner-md.jpg" };
+    // Real ObjectIds: a `ref` setting that is not one is dropped on read.
+    const EID_SALE = "64b000000000000000000001";
     const storeHero = { layout: "card", storeBanner: true, storeWords: true, campaignBadge: true, promises: true };
     const renderStore = (instances: PageSectionInstance[]) =>
       render(
@@ -388,7 +412,7 @@ describe("hero", () => {
             currency: "BDT",
             banner,
             trustBadges: [{ text: "Cash on delivery" }],
-            campaigns: [{ _id: "c1", name: "Eid sale", type: "percentage", value: 10, scope: "storewide" }] as never,
+            campaigns: [{ _id: EID_SALE, name: "Eid sale", type: "percentage", value: 10, scope: "storewide" }] as never,
           }}
           data={{}}
         />,
@@ -468,6 +492,31 @@ describe("hero", () => {
       const island = wide.container.querySelector("[data-island]") as HTMLElement;
       expect(island.dataset.island).toBe("hero-fullbleed-store");
       expect(island.dataset.count).toBe("3");
+    });
+
+    it("names the offer the merchant picked, and nothing once that offer is not running", () => {
+      const sale = [{ id: "b", settings: {} }];
+      const picked = renderStore([hero({ ...storeHero, campaignId: EID_SALE }, sale)]);
+      expect(picked.container.querySelector(".sf-herocard-badge")?.textContent).toBe("Eid sale · 10% ");
+      picked.unmount();
+      // `campaigns` holds the running offers only — a picked id missing from it
+      // has ended, and must not fall back to one the merchant did not choose.
+      const ended = renderStore([hero({ ...storeHero, campaignId: "64b000000000000000000009" }, sale)]);
+      expect(ended.container.querySelector(".sf-herocard-badge")).toBeNull();
+    });
+
+    it("stamps the badge style on the chip, and leaves it unset for the default", () => {
+      const slide = [{ id: "s", settings: { badge: "New in" } }];
+      const toned = renderStore([hero({ layout: "open", badgeTone: "sale" }, slide)]);
+      const chip = toned.container.querySelector(".sf-hero-badge") as HTMLElement;
+      expect(chip.textContent).toBe("New in");
+      expect(chip.dataset.tone).toBe("sale");
+      // The open hero's chip used to paint itself inline, which no tone could override.
+      expect(chip.style.background).toBe("");
+      expect(chip.style.color).toBe("");
+      toned.unmount();
+      const plain = renderStore([hero({ layout: "card" }, slide)]);
+      expect(plain.container.querySelector(".sf-hero-badge")?.hasAttribute("data-tone")).toBe(false);
     });
 
     it("hands the rotating card its promises and the running offer, as plain data", () => {

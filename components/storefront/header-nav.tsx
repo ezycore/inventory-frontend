@@ -188,9 +188,13 @@ export function HeaderNav({
               <NavDropdown
                 node={node}
                 mode={isMore ? "list" : menu.dropdown}
+                // The merchant's switch, forced on whenever the trigger did
+                // not navigate (click-to-open, a tap) — the row is then the
+                // only way into the parent's page. The dropdown LAYOUT has no
+                // say: Columns once showed it and List did not, which read as
+                // the layout's doing.
                 viewAll={
-                  !isMore &&
-                  (menu.openOn === "click" || menu.dropdown !== "list" || viaTouch)
+                  !isMore && (menu.viewAll || menu.openOn === "click" || viaTouch)
                 }
               />
             ) : null}

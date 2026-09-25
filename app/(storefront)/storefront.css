@@ -3129,14 +3129,89 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-herocard-copy > div {
   align-self: stretch;
 }
-.sf-herocard-badge {
-  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. */
-  background: var(--accent-soft);
-  color: var(--accent);
+/* ---- Hero badge tones (the builder hero's "Badge style") ----
+   A TONE, never a merchant hex — the checkout notices' rule: one typed colour
+   cannot be right on a light page and a near-black one. Each tone names a
+   token pair that already resolves per theme; `--hb-ink` is the tone's colour
+   and the text reads it directly on a light page.
+
+   ⚠ On a dark page the soft tones LIFT their text toward white. The soft
+   ground there is the ink at ~20% over near-black, so the ink itself sat at
+   4.0:1 on the default navy (`#3b82f6` on `#172554`) — under the 4.5 small
+   text needs, at 11.5px uppercase. 70% ink / 30% white keeps the hue and
+   reads ~6.5:1. `solid` and `neutral` carry their own contrast pair and are
+   left alone. Unset tone = `accent`, what the badge always drew. */
+.sf-hero-badge {
+  --hb-ink: var(--accent);
+  --hb-ground: var(--accent-soft);
+  --hb-text: var(--hb-ink);
+  background: var(--hb-ground);
+  color: var(--hb-text);
+  /* ONE chip for every hero layout. The open hero drew its own — uppercase,
+     700, wider tracking and padding — so switching layout restyled the badge
+     for no reason; uppercase also does nothing for Bangla and shouts a
+     60-character badge. `line-height` is set, not inherited: the body's ~1.6
+     made the pill tall and sat the glyphs (the ৳ fallback worst) low. */
   font-size: 11.5px;
   font-weight: 600;
+  line-height: 1.4;
   padding: 5px 11px;
   border-radius: 999px;
+}
+/* Optical centring, for any merchant font. Line-height alone still centres
+   the font's full em box — ascenders AND the descender room — so caps and
+   digits (most of a badge: "MEGA SALE · ৳149") sat ~2px high. Trimming the box
+   to cap height over the baseline makes the box the letters, so even padding
+   centres them. Padding grows by the trimmed half-leading to keep the chip's
+   height. Where unsupported (Firefox today) the block above stands. */
+@supports (text-box: trim-both cap alphabetic) {
+  .sf-hero-badge {
+    text-box: trim-both cap alphabetic;
+    padding: 8px 12px;
+  }
+}
+.sf-hero-badge[data-tone="brand"] {
+  --hb-ink: var(--primary);
+  --hb-ground: var(--primary-soft);
+}
+.sf-hero-badge[data-tone="sale"] {
+  --hb-ink: var(--discount);
+  --hb-ground: var(--discount-soft);
+}
+.sf-hero-badge[data-tone="neutral"] {
+  --hb-ink: var(--text);
+  --hb-ground: var(--surface);
+}
+.sf-hero-badge[data-tone="solid"] {
+  --hb-ground: var(--accent);
+  --hb-text: var(--on-accent);
+}
+/* Soft tones on a LIGHT page darken their text. A merchant accent's soft
+   ground is the ink at 26% (`[data-accent]`), and the ink on it measured
+   3.56:1 for plain blue, 2.3:1 for gold. 55% ink / 45% black keeps the hue
+   and clears 4.5 across the palettes tried (blue, sage, gold, pink, yellow,
+   teal). */
+.sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]) {
+  --hb-text: color-mix(in srgb, var(--hb-ink) 55%, black);
+}
+.sf-root[data-theme="dark"] .sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]),
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]) {
+  --hb-text: color-mix(in srgb, var(--hb-ink) 70%, white);
+}
+/* `solid` on a dark page: the dark accent is LIFTED for visibility on
+   near-black, so white on it fails (3.7:1 default, 4.0:1 on a live store's
+   blue) and black fails the next palette. Sinking the ground to 55% accent /
+   45% black and writing white clears 4.5 for every palette tried, yellow
+   included (4.8:1). */
+.sf-root[data-theme="dark"] .sf-hero-badge[data-tone="solid"],
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-hero-badge[data-tone="solid"] {
+  --hb-ground: color-mix(in srgb, var(--accent) 55%, black);
+  --hb-text: #fff;
+}
+
+.sf-herocard-badge {
+  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. Colour
+     comes from `.sf-hero-badge` above, and so do type, padding and shape. */
   /* One line on a phone. The badge accepts 60 characters — the limit the classic
      banner hero set, where the chip sat on a full-width photograph — and at
      11.5px in a padded card that wraps to three lines stacked above the
