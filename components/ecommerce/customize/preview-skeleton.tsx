@@ -3,7 +3,7 @@
 
 import { Loader2 } from "lucide-react";
 import { cn } from "@/ui/lib/utils";
-import type { PreviewDevice } from "./preview-stage";
+import { phoneShellSize, type PreviewDevice } from "./preview-stage";
 
 const BLOCK = "rounded-md bg-muted";
 
@@ -22,9 +22,12 @@ const BLOCK = "rounded-md bg-muted";
  */
 export function PreviewSkeleton({
   device,
+  scale = 1,
   label = "Loading your page…",
 }: {
   device: PreviewDevice;
+  /** The phone's scale, so the cover is the size of the shell it stands in for. */
+  scale?: number;
   label?: string;
 }) {
   const mobile = device === "mobile";
@@ -40,9 +43,10 @@ export function PreviewSkeleton({
         className={cn(
           "flex flex-none flex-col overflow-hidden bg-card motion-safe:animate-pulse",
           mobile
-            ? "my-5 h-[calc(100%-2.5rem)] w-full max-w-[390px] gap-4 rounded-[2.2rem] border-[10px] border-neutral-800 p-4 shadow-2xl"
+            ? "my-5 gap-4 rounded-[2.2rem] border-[10px] border-neutral-800 p-4 shadow-2xl"
             : "h-full w-full gap-6 p-6",
         )}
+        style={mobile ? phoneShellSize(scale) : undefined}
       >
         <div className="flex items-center gap-3">
           <div className={cn(BLOCK, "h-7 w-24")} />

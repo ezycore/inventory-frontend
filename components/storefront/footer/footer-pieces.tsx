@@ -3,163 +3,73 @@
 
 import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import type {
-  ContentPageLink,
-  StoreFooterContentPages,
-  StoreFooterGroup,
-  StoreFooterPaymentMethods,
-  StorefrontStore,
-} from "@/lib/storefront-client";
-import { storeHref } from "@/lib/storefront-links";
-import { stripVisibilityClass } from "@/lib/storefront-strip-display";
-import { storefrontPaymentMethodLabel } from "@/lib/storefront-payment-methods";
-import { useStorefrontUI } from "@/services/storefront/ui-context";
+import type { StoreFooterStyle } from "@/lib/storefront-client";
+import { footerGroupStartsOpen } from "@/lib/storefront-footer/style";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Brand } from "@/components/storefront/logo-mark";
+import type {
+  FooterColumn,
+  FooterLinkItem,
+  FooterPromise,
+  FooterT,
+} from "@/components/storefront/footer/footer-model";
 
-export type FooterT = ReturnType<typeof useStorefrontUI>["t"];
-
-/** A resolved footer link (external merchant URL or an internal CMS page). */
-export interface FooterLinkItem {
-  key: string;
-  label: string;
-  href: string;
-  external: boolean;
-}
-
-/** One titled footer column (a merchant group or the content-pages block). */
-export interface FooterColumn {
-  key: string;
-  title: string;
-  links: FooterLinkItem[];
-}
-
-/**
- * Shared props built once in `StoreFooter` and passed to each variant.
- *
- * Everything a variant renders arrives here, and **every string in it is either
- * the merchant's or a localized default** — there is no copy baked into a
- * variant body. That is the rule the 2026-08-11 rebuild exists to hold: a footer
- * that prints something the owner cannot change is a footer they will ask us to
- * change for them.
- */
-export interface FooterProps {
-  base: string;
-  /** Needed by the sign-up form — it posts to this store's public endpoint. */
-  slug: string;
-  store?: StorefrontStore;
-  t: FooterT;
-  name: string;
-  logo?: string;
-  phone: string;
-  footerGroups: StoreFooterGroup[];
-  /** Where enabled checkout methods should be advertised in the bottom bar. */
-  footerPaymentMethods?: StoreFooterPaymentMethods;
-  footerContentPages?: StoreFooterContentPages;
-  infoPages: ContentPageLink[];
-  /**
-   * The brand paragraph, **already resolved** — `copy.footerText` if the
-   * merchant wrote one, the localized default otherwise. Resolved in
-   * `StoreFooter` rather than here because the live Customize draft has to win
-   * over the saved value, and only that component sees the draft.
-   */
-  blurb: string;
-  /** `copy.footerNote` — the bottom bar's right side. Blank ⇒ currency only. */
-  note?: string;
-  /** `copy.footerContactHeading` — Contact-first heading. Blank ⇒ localized. */
-  contactHeading?: string;
-  /** `copy.footerNewsletter` — sign-up copy. Blank fields ⇒ localized. */
-  newsletter?: { heading?: string; blurb?: string; buttonLabel?: string };
-}
-
-export const uppercaseLabel: CSSProperties = {
-  fontSize: 11.5,
-  fontWeight: 600,
-  color: "var(--text)",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-};
+/** The centred layout's inline link row. */
 export const footerLink: CSSProperties = {
   fontSize: 13,
   color: "var(--muted)",
   textDecoration: "none",
 };
 
-/* ------------------------------ column model ------------------------------ */
-
-/** Each merchant footer group becomes its own column (external links). */
-export function groupColumns(groups: StoreFooterGroup[]): FooterColumn[] {
-  return groups.map((g, i) => ({
-    key: `g${i}:${g.title}`,
-    title: g.title,
-    links: g.links.map((lk, li) => ({
-      key: `${i}:${li}:${lk.label}`,
-      label: lk.label,
-      href: lk.url || "#",
-      external: true,
-    })),
-  }));
-}
-
 /**
- * The auto content-pages column ("Information"), or `null` when the merchant
- * hid it or no pages are flagged for the footer. Heading override falls back to
- * the built-in localized label.
+ * One resolved link. Internal targets are a client-side `<Link>`; anything that
+ * leaves the shop (or opens on the device — `tel:`, `mailto:`) is a plain `<a>`,
+ * and only an absolute link the merchant marked opens a new tab.
  */
-export function contentPagesColumn(
-  infoPages: ContentPageLink[],
-  cfg: StoreFooterContentPages | undefined,
-  base: string,
-  fallbackTitle: string,
-): FooterColumn | null {
-  if (cfg?.show === false || infoPages.length === 0) return null;
-  return {
-    key: "info",
-    title: cfg?.title?.trim() || fallbackTitle,
-    links: infoPages.map((pg) => ({
-      key: pg._id,
-      label: pg.title,
-      href: storeHref(base, `/pages/${pg.slug}`),
-      external: false,
-    })),
-  };
-}
-
-/** Merchant groups followed by the content-pages column (when shown). */
-export function footerColumns(props: FooterProps): FooterColumn[] {
-  const info = contentPagesColumn(
-    props.infoPages,
-    props.footerContentPages,
-    props.base,
-    props.t.information,
-  );
-  const groups = groupColumns(props.footerGroups);
-  return info ? [...groups, info] : groups;
-}
-
-/* -------------------------------- rendering ------------------------------- */
-
-function FooterAnchor({ item }: { item: FooterLinkItem }) {
-  return item.external ? (
-    <a href={item.href} className="sf-footer-link">
+export function FooterAnchor({
+  item,
+  className = "sf-footer-link",
+  style,
+}: {
+  item: FooterLinkItem;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  if (!item.external) {
+    return (
+      <Link href={item.href} className={className} style={style}>
+        {item.label}
+      </Link>
+    );
+  }
+  return (
+    <a
+      href={item.href}
+      className={className}
+      style={style}
+      {...(item.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
       {item.label}
     </a>
-  ) : (
-    <Link href={item.href} className="sf-footer-link">
-      {item.label}
-    </Link>
   );
 }
 
 /**
- * One link column. Exported because Contact-first lays its columns out in its
- * own three-track grid rather than through `FooterColumns` — but must still get
- * the same accordion behaviour below 680px.
+ * One link column. Below 680px the heading is a real accordion toggle; on
+ * desktop CSS makes it inert and always shows the links.
+ *
+ * `defaultOpen` is the merchant's phone setting (`footerStyle.phoneGroups`).
+ * It is the SAME on the server and the client, so hydration never disagrees,
+ * and desktop ignores it because the stylesheet forces the body open there.
  */
-export function FooterCol({ column }: { column: FooterColumn }) {
-  // Renders open (matches SSR + desktop). Below 680px the heading is a real
-  // accordion toggle; on desktop CSS makes it inert and always shows the links.
-  const [open, setOpen] = useState(true);
+export function FooterCol({
+  column,
+  defaultOpen = true,
+}: {
+  column: FooterColumn;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   const bodyId = `sf-foot-${column.key.replace(/[^a-z0-9]/gi, "")}`;
   return (
     <div className={open ? "sf-footer-col sf-open" : "sf-footer-col"}>
@@ -184,6 +94,27 @@ export function FooterCol({ column }: { column: FooterColumn }) {
   );
 }
 
+/** The link columns in order, each opening per the phone setting. */
+export function FooterCols({
+  columns,
+  footerStyle,
+}: {
+  columns: FooterColumn[];
+  footerStyle?: StoreFooterStyle;
+}) {
+  return (
+    <>
+      {columns.map((c, i) => (
+        <FooterCol
+          key={c.key}
+          column={c}
+          defaultOpen={footerGroupStartsOpen(footerStyle?.phoneGroups, i)}
+        />
+      ))}
+    </>
+  );
+}
+
 /**
  * The columned footer body: an identity block on the left and the link columns
  * **anchored to the right edge**, each sized to its own content.
@@ -197,46 +128,56 @@ export function FooterCol({ column }: { column: FooterColumn }) {
  * deliberate at one group **and** at four, which is what a layout has to do when
  * it cannot know how many it will get.
  *
- * `lead` is the identity side. Each variant fills it differently — brand +
+ * `lead` is the identity side. Each layout fills it differently — brand +
  * contact, brand + sign-up, brand alone — and that is the only structural
  * difference between three of the five layouts.
  */
 export function FooterColumns({
   lead,
   columns,
+  footerStyle,
 }: {
   lead: ReactNode;
   columns: FooterColumn[];
+  footerStyle?: StoreFooterStyle;
 }) {
   return (
     <div className="sf-footer-grid">
       <div className="sf-footer-lead">{lead}</div>
       <div className="sf-footer-cols">
-        {columns.map((c) => (
-          <FooterCol key={c.key} column={c} />
-        ))}
+        <FooterCols columns={columns} footerStyle={footerStyle} />
       </div>
     </div>
   );
 }
 
+/**
+ * The store's mark and its about line. `logoHeight` is the footer-only logo's
+ * own height (Customize → Footer); unset keeps the layout's 31px mark.
+ */
 export function FooterBrand({
   name,
   logo,
+  logoHeight,
   blurb,
 }: {
   name: string;
   logo?: string;
-  blurb: string;
+  logoHeight?: number;
+  blurb?: string;
 }) {
+  // `Brand` draws a logo at `markSize + 4`, so the height is converted back.
+  const markSize = logoHeight ? logoHeight - 4 : 31;
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
-        <Brand name={name} logo={logo} markSize={31} nameSize={16} />
+      <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: blurb ? 12 : 0 }}>
+        <Brand name={name} logo={logo} markSize={markSize} nameSize={16} />
       </div>
-      <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 340 }}>
-        {blurb}
-      </p>
+      {blurb ? (
+        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 340 }}>
+          {blurb}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -265,130 +206,33 @@ export function FooterCallLine({ phone, t }: { phone: string; t: FooterT }) {
   );
 }
 
-export function PaymentBadges({
-  store,
-  t,
-  compact,
-  className,
-}: {
-  store?: StorefrontStore;
-  t: FooterT;
-  /** Bottom-bar sizing — the badges sit beside 12px text there, not on their own. */
-  compact?: boolean;
-  className?: string;
-}) {
-  return (
-    <div className={className} style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-      {(store?.allowedPaymentMethods ?? ["cod", "bank"]).map((m) => (
-        <span
-          key={m}
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            color: "var(--text)",
-            fontSize: compact ? 11 : 11.5,
-            fontWeight: 600,
-            padding: compact ? "4px 9px" : "6px 10px",
-            borderRadius: 7,
-          }}
-        >
-          {storefrontPaymentMethodLabel(m, t, store?.paymentMethods)}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-export function FooterShell({
-  children,
-  pad = "36px var(--pad) 28px",
-}: {
-  children: ReactNode;
-  pad?: string;
-}) {
-  return (
-    <footer
-      style={{ background: "var(--card)", borderTop: "1px solid var(--border)", marginTop: 20 }}
-    >
-      <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: pad }}>{children}</div>
-    </footer>
-  );
-}
+/** The editor's cap on promises, so a full set fits one desktop row. */
+const PROMISES_MAX = 4;
+/** The band's pre-existing desktop track count, kept for one to three promises. */
+const PROMISES_MIN_COLS = 3;
 
 /**
- * The closing line: copyright, the accepted payment methods, and the merchant's
- * own note.
+ * The merchant's store promises as one tinted band. A band rather than three
+ * floating icons: the row is one claim about the shop, and giving it a ground
+ * says so without a heading.
  *
- * **Payments live here, not in a link column.** They are a reassurance, not
- * navigation — and putting them in the columns region is what forced the extra
- * track that left the gap `FooterColumns` describes.
- *
- * The right-hand side is `copy.footerNote`. It used to be the hardcoded string
- * `"Bangladesh · <currency>"`, which is a claim about the merchant's business
- * that the platform has no standing to make; unset, it now prints the store's
- * currency and nothing more.
+ * Desktop keeps its three tracks for one to three promises — where every shop
+ * that has them sits today — and widens to four for a fourth, which used to wrap
+ * 3 + 1. Phones stack them.
  */
-export function BottomBar({
-  name,
-  currency,
-  note,
-  store,
-  t,
-  footerPaymentMethods,
-  center,
-}: {
-  name: string;
-  currency?: string;
-  note?: string;
-  store?: StorefrontStore;
-  t: FooterT;
-  footerPaymentMethods?: StoreFooterPaymentMethods;
-  /** Centered layouts stack this instead of spreading it. */
-  center?: boolean;
-}) {
+export function FooterPromises({ promises }: { promises: FooterPromise[] }) {
+  if (!promises.length) return null;
+  const cols = Math.max(PROMISES_MIN_COLS, Math.min(promises.length, PROMISES_MAX));
   return (
-    <div
-      style={{
-        borderTop: "1px solid var(--border)",
-        paddingTop: 16,
-        width: "100%",
-        fontSize: 12,
-        color: "var(--faint)",
-        display: "flex",
-        justifyContent: center ? "center" : "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        textAlign: center ? "center" : undefined,
-        gap: center ? 10 : "8px 18px",
-      }}
-    >
-      <span>
-        © {new Date().getFullYear()} {name} · {t.poweredBy}{" "}
-        {/* ⚠ **A new tab, deliberately.** This is the one link in the shop that
-            leads away from the merchant's own storefront, and a shopper who
-            follows it in the same tab is a sale they have lost to our marketing
-            site. `rel="noopener"` and nothing more: the referrer is how the
-            visit is attributed, and this is our own domain, not a third
-            party's. */}
-        <a
-          href="https://ezycore.com/"
-          target="_blank"
-          rel="noopener"
-          className="sf-powered-link"
-        >
-          EzyCore
-        </a>
-      </span>
-      <PaymentBadges
-        store={store}
-        t={t}
-        compact
-        className={stripVisibilityClass(
-          footerPaymentMethods?.showOnDesktop,
-          footerPaymentMethods?.showOnMobile,
-        )}
-      />
-      <span>{note?.trim() || currency || ""}</span>
+    <div className="sf-footer-trustbar" style={{ "--ft-trustcols": cols } as CSSProperties}>
+      {promises.map((promise) => (
+        <div key={promise.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
+            <Icon name={promise.icon} size={19} />
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{promise.label}</span>
+        </div>
+      ))}
     </div>
   );
 }

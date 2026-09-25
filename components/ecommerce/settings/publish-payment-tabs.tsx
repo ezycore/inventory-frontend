@@ -48,6 +48,15 @@ function describeEntries(fields: CheckoutField[]): string {
 }
 
 
+// Reads the SAVED flag for "live" — the switch alone is a draft until Save changes lands.
+function publishStatusMessage(locationSet: boolean, savedPublished: boolean, draftPublished: boolean): string {
+  if (!locationSet) return "Set a fulfillment location (General tab) before publishing.";
+  if (savedPublished && draftPublished) return "✓ Your store is live — customers can browse and place orders.";
+  if (savedPublished) return "Your store is still live — save changes to take it offline.";
+  if (draftPublished) return "✓ Fulfillment location is set — save changes to publish.";
+  return "✓ Fulfillment location is set — you're ready to publish.";
+}
+
 export function PublishSettingsTab({ settings }: { settings: StorefrontSettings }) {
   const { save, pending } = useStoreSettingsSave();
   const [published, setPublished] = useState(settings.published);
@@ -66,8 +75,19 @@ export function PublishSettingsTab({ settings }: { settings: StorefrontSettings 
     <div className="space-y-5">
       <Card className="space-y-4 p-5 shadow-none">
         <div className="flex items-center justify-between gap-4"><div><h3 className="text-sm font-semibold">Store status</h3><p className="text-xs text-muted-foreground">When live, customers can browse and place orders.</p></div><Switch checked={published} disabled={!locationSet && !published} onCheckedChange={setPublished} /></div>
-        {liveUrl ? <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted px-3 py-2.5"><span className="text-xs text-muted-foreground">Public URL</span><code className="flex-1 break-all text-xs font-semibold">{liveUrl}</code><Button variant="outline" size="sm" onClick={copy}><Copy className="mr-1.5 h-3.5 w-3.5" /> Copy</Button><Button variant="outline" size="sm" asChild><a href={liveUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Visit</a></Button></div> : null}
-        <div className={locationSet ? "rounded-lg bg-green-50 px-3.5 py-2.5 text-sm font-medium text-green-800 dark:bg-green-500/10 dark:text-green-200" : "rounded-lg bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200"}>{locationSet ? "✓ Fulfillment location is set — you're ready to publish." : "Set a fulfillment location (General tab) before publishing."}</div>
+        {liveUrl ? (
+          <div className="flex flex-col gap-2 rounded-lg bg-muted px-3 py-2.5 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1">
+              <span className="block text-xs text-muted-foreground">Public URL</span>
+              <code className="block break-all text-xs font-semibold">{liveUrl}</code>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={copy}><Copy className="mr-1.5 h-3.5 w-3.5" /> Copy</Button>
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild><a href={liveUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Visit</a></Button>
+            </div>
+          </div>
+        ) : null}
+        <div className={locationSet ? "rounded-lg bg-green-50 px-3.5 py-2.5 text-sm font-medium text-green-800 dark:bg-green-500/10 dark:text-green-200" : "rounded-lg bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200"}>{publishStatusMessage(locationSet, settings.published, published)}</div>
         {!hasFavicon ? <div className="rounded-lg bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">No browser tab icon set — your shop will show the EzyCore icon. Add one under Settings → Organization.</div> : null}
       </Card>
       <SaveBar pending={pending} onSave={() => save({ published }, () => { if (published && !settings.published && liveUrl) setCelebrating(true); })} />

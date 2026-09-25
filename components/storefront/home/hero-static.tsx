@@ -153,9 +153,17 @@ export function HeroActions({
   );
 }
 
+export type HeroBadgeTone = "accent" | "brand" | "sale" | "neutral" | "solid";
+
 interface HeroCopy {
   /** Text, or a builder hero's running-offer badge with its word in the shopper's language. */
   badge?: ReactNode;
+  /**
+   * The badge's colour tone (the builder hero's "Badge style"). Unset is the
+   * accent — what every hero drew before the setting existed. Resolved per
+   * theme by `.sf-hero-badge[data-tone]` in storefront.css.
+   */
+  badgeTone?: HeroBadgeTone;
   title: string;
   /** The title is the store's name standing in for one — kept for the outline, hidden from view. */
   hideTitle?: boolean;
@@ -238,6 +246,7 @@ export const heroHasCopy = ({
  */
 export function HeroCardView({
   badge,
+  badgeTone,
   title,
   hideTitle,
   subtitle,
@@ -280,7 +289,11 @@ export function HeroCardView({
               colour. Painting both in `--primary` was the loudest reason a shop
               read as one hue rather than a palette. Falls back to the brand pair
               when the merchant has set no accent, so nothing changes for them. */}
-          {badge ? <span className="sf-herocard-badge">{badge}</span> : null}
+          {badge ? (
+            <span className="sf-herocard-badge sf-hero-badge" data-tone={badgeTone}>
+              {badge}
+            </span>
+          ) : null}
           <h1 className={hideTitle ? "sf-visually-hidden" : "sf-herocard-title"}>{title}</h1>
           {subtitle ? <p className="sf-herocard-sub">{subtitle}</p> : null}
           {actions}
@@ -350,6 +363,7 @@ export function HeroCardView({
  */
 export function HeroOpenView({
   badge,
+  badgeTone,
   title,
   hideTitle,
   subtitle,
@@ -412,18 +426,9 @@ export function HeroOpenView({
             `HeroCardView`'s badge. */}
         {badge ? (
           <span
-            style={{
-              display: "inline-block",
-              background: "var(--accent-soft)",
-              color: "var(--accent)",
-              fontSize: 11.5,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              padding: "6px 14px",
-              borderRadius: 999,
-              marginBottom: 18,
-            }}
+            className="sf-hero-badge"
+            data-tone={badgeTone}
+            style={{ display: "inline-block", marginBottom: 18 }}
           >
             {badge}
           </span>

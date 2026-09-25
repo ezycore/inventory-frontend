@@ -36,6 +36,11 @@ export function TagChipLinks({
           style={{
             flex: "0 0 auto",
             border: "1px solid var(--border)",
+            /* The chip paints its OWN ground, so it keeps the theme's ink
+               rather than inheriting the section's Text colour — a white chip
+               on a dark band would otherwise take that band's white words and
+               vanish. Same rule as `--sfb-muted` in `storefront-builder.css`:
+               only text drawn directly on the band follows the tone. */
             background: "var(--card)",
             color: "var(--text)",
             borderRadius: 999,

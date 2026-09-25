@@ -4,8 +4,12 @@ import { responsiveVars } from "./responsive";
 import { readImage, type Responsive } from "./settings";
 import {
   ANCHOR_PATTERN,
+  MAX_BORDER_WIDTH,
   MAX_OVERLAY,
+  MIN_BORDER_WIDTH,
   SECTION_ALIGNS,
+  SECTION_BORDER_SIDES,
+  SECTION_BORDER_TONES,
   SECTION_RADII,
   SECTION_TONES,
   SECTION_WIDTHS,
@@ -40,6 +44,8 @@ const SPACING: Record<SpacingStep, string> = {
 export type SectionWidth = (typeof SECTION_WIDTHS)[number];
 export type SectionTone = (typeof SECTION_TONES)[number];
 export type SectionRadius = (typeof SECTION_RADII)[number];
+export type SectionBorderSides = (typeof SECTION_BORDER_SIDES)[number];
+export type SectionBorderTone = (typeof SECTION_BORDER_TONES)[number];
 type Align = (typeof SECTION_ALIGNS)[number];
 
 /** Corner rounding, in the same fluid spirit as the spacing steps. */
@@ -50,6 +56,23 @@ const RADIUS: Record<SectionRadius, string> = {
   lg: "24px",
 };
 
+/**
+ * The Outline's tone, as the theme token it draws in. Every one of these is
+ * redefined per preset and per dark mode in `storefront.css`, which is the whole
+ * reason the control takes a tone rather than a colour — see
+ * `SECTION_BORDER_TONES`.
+ *
+ * Typed as a total `Record`, so adding a tone fails to compile until it is
+ * mapped here rather than silently falling back to the hairline.
+ */
+const BORDER_TONE: Record<SectionBorderTone, string> = {
+  theme: "var(--border)",
+  strong: "var(--border-strong)",
+  brand: "var(--primary)",
+  accent: "var(--accent)",
+  text: "var(--text)",
+};
+
 export interface SectionFrame {
   /** Custom properties for the section element. */
   style: CSSProperties;
@@ -57,6 +80,15 @@ export interface SectionFrame {
   tone: SectionTone;
   /** A hairline around the section's band, when the merchant asked for one. */
   border: boolean;
+  /**
+   * Which edges that line draws on — `all` unless the merchant narrowed it.
+   *
+   * ⚠ Reported rather than emitted as a variable, for `data-overlay`'s reason:
+   * the edges are three CSS rules keyed on an attribute, not a value a single
+   * declaration can take. Meaningless while `border` is false, and
+   * `page-sections.tsx` stamps nothing then.
+   */
+  borderSides: SectionBorderSides;
   /**
    * A shade over a background PICTURE, in percent.
    *
@@ -211,6 +243,25 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
   const radius = oneOf(SECTION_RADII, style.radius);
   if (radius) vars["--sfb-radius"] = RADIUS[radius];
 
+  /* The Outline's colour and thickness. Emitted only while the line is ON —
+     the stored values are kept when the switch goes off (hidden is not erased,
+     `textColor`'s rule), and a variable left behind would paint nothing today
+     but would decide the colour of a line switched back on years later without
+     the merchant seeing why. Each one falls back in CSS to what the switch drew
+     before these existed: a 1px `--border` hairline. */
+  const border = style.border === true;
+  const borderTone = oneOf(SECTION_BORDER_TONES, style.borderTone);
+  if (border && borderTone) vars["--sfb-border-color"] = BORDER_TONE[borderTone];
+  if (
+    border &&
+    typeof style.borderWidth === "number" &&
+    Number.isInteger(style.borderWidth) &&
+    style.borderWidth >= MIN_BORDER_WIDTH &&
+    style.borderWidth <= MAX_BORDER_WIDTH
+  ) {
+    vars["--sfb-border-w"] = `${style.borderWidth}px`;
+  }
+
   const tone = oneOf(SECTION_TONES, style.textTone) ?? "auto";
   // Read only on `custom`, and only when it is a whole colour — but kept in the
   // stored box either way, so switching tone back and forth loses nothing.
@@ -262,7 +313,8 @@ export function sectionFrame(raw: unknown, defaults?: FrameDefaults): SectionFra
       ? (defaults.width ?? "content")
       : (oneOf(SECTION_WIDTHS, style.width) ?? defaults?.width ?? "content"),
     tone,
-    border: style.border === true,
+    border,
+    borderSides: oneOf(SECTION_BORDER_SIDES, style.borderSides) ?? "all",
     overlay: vars["--sfb-overlay"] ? Number(style.overlay) : undefined,
     anchor: typeof style.anchor === "string" && ANCHOR.test(style.anchor) ? style.anchor : undefined,
     // A section that owns its width has no Width control to obey.

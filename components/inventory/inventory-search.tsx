@@ -149,7 +149,7 @@ export function InventorySearch({
         </PopoverAnchor>
 
         <PopoverContent
-          className="w-[--radix-popover-trigger-width] p-0"
+          className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0"
           align="start"
           sideOffset={4}
           onOpenAutoFocus={(e) => e.preventDefault()}

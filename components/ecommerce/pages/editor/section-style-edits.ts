@@ -2,8 +2,12 @@
 import { SPACING_STEPS, type SpacingStep } from "@/lib/storefront-builder/section-style";
 import {
   ANCHOR_PATTERN,
+  MAX_BORDER_WIDTH,
   MAX_OVERLAY,
+  MIN_BORDER_WIDTH,
   SECTION_ALIGNS,
+  SECTION_BORDER_SIDES,
+  SECTION_BORDER_TONES,
   SECTION_RADII,
 } from "@/lib/storefront-builder/style-specs";
 import type { EditorDevice, EditorSection } from "./section-instances";
@@ -151,6 +155,8 @@ export function withAlign(style: SectionStyleBox, value: Align | undefined, devi
 export type StyleWidth = "content" | "wide" | "full";
 export type StyleTone = "light" | "dark" | "custom";
 export type StyleRadius = (typeof SECTION_RADII)[number];
+export type StyleBorderSides = (typeof SECTION_BORDER_SIDES)[number];
+export type StyleBorderTone = (typeof SECTION_BORDER_TONES)[number];
 
 export const widthOf = (style: SectionStyleBox): StyleWidth | undefined =>
   style.width === "content" || style.width === "wide" || style.width === "full" ? style.width : undefined;
@@ -165,6 +171,23 @@ export const radiusOf = (style: SectionStyleBox): StyleRadius | undefined =>
   isOneOf(SECTION_RADII, style.radius);
 
 export const borderOf = (style: SectionStyleBox): boolean => style.border === true;
+
+/* The line's own three keys. Each reads as unset when absent, so the controls
+   show the choice that draws today's hairline rather than inventing a value. */
+
+export const borderSidesOf = (style: SectionStyleBox): StyleBorderSides | undefined =>
+  isOneOf(SECTION_BORDER_SIDES, style.borderSides);
+
+export const borderToneOf = (style: SectionStyleBox): StyleBorderTone | undefined =>
+  isOneOf(SECTION_BORDER_TONES, style.borderTone);
+
+export const borderWidthOf = (style: SectionStyleBox): number | undefined =>
+  typeof style.borderWidth === "number" &&
+  Number.isInteger(style.borderWidth) &&
+  style.borderWidth >= MIN_BORDER_WIDTH &&
+  style.borderWidth <= MAX_BORDER_WIDTH
+    ? style.borderWidth
+    : undefined;
 
 export const overlayOf = (style: SectionStyleBox): number | undefined =>
   typeof style.overlay === "number" && Number.isInteger(style.overlay) && style.overlay >= 0 && style.overlay <= MAX_OVERLAY
@@ -207,8 +230,23 @@ export const withTone = (style: SectionStyleBox, tone: StyleTone | undefined): S
 export const withRadius = (style: SectionStyleBox, radius: StyleRadius | undefined): SectionStyleBox =>
   radius === undefined ? without(style, "radius") : { ...style, radius };
 
+/**
+ * ⚠ Switching the line OFF leaves its sides, tone and thickness alone — the
+ * rule `withTone` follows for `textColor`. `sectionFrame` reads none of them
+ * while `border` is absent, so nothing is drawn meanwhile, and a merchant who
+ * turns the line back on finds the line they had built.
+ */
 export const withBorder = (style: SectionStyleBox, border: boolean): SectionStyleBox =>
   border ? { ...style, border: true } : without(style, "border");
+
+export const withBorderSides = (style: SectionStyleBox, sides: StyleBorderSides | undefined): SectionStyleBox =>
+  sides === undefined ? without(style, "borderSides") : { ...style, borderSides: sides };
+
+export const withBorderTone = (style: SectionStyleBox, tone: StyleBorderTone | undefined): SectionStyleBox =>
+  tone === undefined ? without(style, "borderTone") : { ...style, borderTone: tone };
+
+export const withBorderWidth = (style: SectionStyleBox, width: number | undefined): SectionStyleBox =>
+  width === undefined ? without(style, "borderWidth") : { ...style, borderWidth: width };
 
 export const withOverlay = (style: SectionStyleBox, overlay: number | undefined): SectionStyleBox =>
   overlay === undefined ? without(style, "overlay") : { ...style, overlay };

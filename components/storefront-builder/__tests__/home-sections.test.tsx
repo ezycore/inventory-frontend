@@ -118,6 +118,47 @@ describe("promises-band", () => {
     expect(container.textContent).toContain("Cash on delivery");
   });
 
+  it("draws no disc for a promise whose icon the merchant took off, where an unset one still cycles", () => {
+    /* Unset is NOT "no icon" — it cycles truck/shield/tag by position — so a
+       bare row needs its own stored value (`NO_ICON`). */
+    const { container } = renderPage([
+      section("p1", "promises-band", {}, [
+        { id: "b1", settings: { text: "Cash on delivery" } },
+        { id: "b2", settings: { text: "Made in Bangladesh", icon: "none" } },
+      ]),
+    ]);
+    const rows = container.querySelectorAll(".sf-trust-row");
+    expect(rows[0].querySelectorAll("svg")).toHaveLength(1);
+    expect(rows[1].querySelectorAll("svg")).toHaveLength(0);
+    expect(rows[1].textContent).toContain("Made in Bangladesh");
+    /* The row is a two-column grid with a 34px track for the disc: without this
+       class the text sits IN that track and wraps two words to a line. */
+    expect(rows[0].className).not.toContain("sf-trust-row--bare");
+    expect(rows[1].className).toContain("sf-trust-row--bare");
+  });
+
+  it("lets a promise's words INHERIT their colour, so the section's Text colour reaches them", () => {
+    const { container } = renderPage([
+      section("p1", "promises-band", {}, [{ id: "b1", settings: { text: "Cash on delivery" } }]),
+    ]);
+    const words = container.querySelector(".sf-trust-row span:last-child") as HTMLElement;
+    // Naming `--text` here painted the theme's colour over a merchant's own band.
+    expect(words.style.color).toBe("inherit");
+  });
+
+  it("takes the band's own column count, and leaves an untouched band on the store's ramp", () => {
+    const { container } = renderPage([
+      section("p1", "promises-band", { columns: { base: 2, mobile: 2 } }, [
+        { id: "b1", settings: { text: "Cash on delivery" } },
+      ]),
+      section("p2", "promises-band", {}, [{ id: "b2", settings: { text: "Easy returns" } }]),
+    ]);
+    const [chosen, untouched] = [...container.querySelectorAll(".sf-trust-list")] as HTMLElement[];
+    expect(chosen.style.getPropertyValue("--sfb-trust-track")).toBe("repeat(2, minmax(0, 1fr))");
+    expect(chosen.style.getPropertyValue("--sfb-trust-track-m")).toBe("repeat(2, minmax(0, 1fr))");
+    expect(untouched.style.getPropertyValue("--sfb-trust-track")).toBe("");
+  });
+
   it("draws the store's own promises under storePromises, and nothing when the store has none", () => {
     const store = section("p1", "promises-band", { storePromises: true }, []);
     const drawn = render(
@@ -198,6 +239,24 @@ describe("selected-products", () => {
     expect(sectionDataRequests(prepared)).toEqual([
       { key: "s1", type: "products", source: "manual", limit: 6, productIds: [ID(5)] },
     ]);
+  });
+
+  it("lets a pick's name and price INHERIT, so the section's Text colour reaches them", () => {
+    /* A bare pick has no card of its own — it is drawn straight on the band —
+       so naming `--text` painted the theme's ink over a merchant's own ground.
+       A chip or a card that paints its OWN background keeps `--text` on
+       purpose (`tag-chip-links`, `category-banner-row`). */
+    const { container } = renderPage(
+      [section("s1", "selected-products", { source: "featured", limit: 4 })],
+      { s1: { items } },
+    );
+    // The media's own placeholder word is a span too — the pick's two lines are
+    // the ones carrying a font size.
+    const words = ([...container.querySelectorAll("a > span")] as HTMLElement[]).filter(
+      (w) => w.style.fontSize,
+    );
+    expect(words.map((w) => w.textContent?.trim())).toEqual(["Kurta", "৳1,200"]);
+    expect(words.map((w) => w.style.color)).toEqual(["inherit", "inherit"]);
   });
 
   it("draws the link beside its heading only with both a label and a destination", () => {

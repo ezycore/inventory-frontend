@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
-import type { SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
+import { NO_ICON, type SECTION_SPECS } from "@/lib/storefront-builder/section-specs";
 import { responsiveVars } from "@/lib/storefront-builder/responsive";
 import { TRACK } from "@/lib/storefront-builder/grid-track";
 import type { IconName } from "@/components/storefront/sf-icons";
@@ -24,17 +24,23 @@ export function BenefitsSection({ settings, blocks }: SectionViewProps<Spec, Blo
     <>
       <SectionLede heading={settings.heading} subheading={settings.subheading} gap={16} />
       <div className="sfb-benefits" style={responsiveVars("sfb-benefit-track", columns, TRACK) as CSSProperties}>
-        {blocks.map(({ id, settings: benefit }) => (
-          <div key={id} style={card}>
-            <IconDisc name={(benefit.icon as IconName | undefined) ?? "check"} size={40} />
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "14px 0 0" }}>{benefit.title}</h3>
-            {benefit.text ? (
-              <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--muted)", whiteSpace: "pre-line" }}>
-                {benefit.text}
-              </p>
-            ) : null}
-          </div>
-        ))}
+        {blocks.map(({ id, settings: benefit }) => {
+          /* `check` is what an UNSET icon has always drawn, so a card with no
+             icon at all is a value of its own — see `NO_ICON`. The title's top
+             margin is the gap UNDER the disc, so it goes with it. */
+          const icon = benefit.icon === NO_ICON ? undefined : ((benefit.icon as IconName | undefined) ?? "check");
+          return (
+            <div key={id} style={card}>
+              {icon ? <IconDisc name={icon} size={40} /> : null}
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: icon ? "14px 0 0" : 0 }}>{benefit.title}</h3>
+              {benefit.text ? (
+                <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--muted)", whiteSpace: "pre-line" }}>
+                  {benefit.text}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </>
   );

@@ -4,7 +4,7 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { storefrontApi } from "@/lib/storefront-client";
 import { isSfPreview } from "@/services/storefront/cart-identity";
-import type { FooterT } from "@/components/storefront/footer/footer-pieces";
+import type { FooterT } from "@/components/storefront/footer/footer-model";
 import { brandButton } from "@/lib/storefront-button";
 
 /**

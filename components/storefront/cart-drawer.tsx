@@ -10,6 +10,7 @@ import { useCartUI } from "@/services/stores/use-cart-ui-store";
 import { useStoreContext } from "@/services/storefront/store-context";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { storeHref } from "@/lib/storefront-links";
+import { isPageEditorFrame } from "@/lib/storefront-preview";
 import { storePages } from "@/lib/storefront-page-controls";
 import { shippingRange } from "@/lib/storefront-shipping";
 import { money } from "@/components/storefront/format";
@@ -61,11 +62,14 @@ export function CartDrawer() {
   const amount = (value: number) =>
     estimated ? `${t.fromPrice} ${money(value, currency)}` : money(value, currency);
 
+  // Not inside the page editor's frame, which must stay on the page being edited.
   const goCheckout = () => {
+    if (isPageEditorFrame()) return;
     closeCart();
     router.push(storeHref(base, "/checkout"));
   };
   const goCartPage = () => {
+    if (isPageEditorFrame()) return;
     closeCart();
     router.push(storeHref(base, "/cart"));
   };

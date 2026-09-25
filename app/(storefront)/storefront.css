@@ -76,7 +76,9 @@
   --herocols: 1fr;
   --bandcols: 2;
   --splitcols: 1fr;
-  --trustcols: 1fr;
+  /* A count, not a track: `repeat(1fr, …)` is invalid and only stacked by
+     accident. */
+  --trustcols: 1;
   --promocols: 1fr;
   --mincols: 2;
   --colcols: 2;
@@ -2115,6 +2117,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   gap: 13px;
   text-align: left;
 }
+/* A promise the merchant took the icon off (`NO_ICON`). The 34px track exists
+   for a disc, so a row without one has to drop it: the text landed in that
+   track and wrapped to two words a line beside its full-width neighbours. */
+.sf-trust-row--bare {
+  grid-template-columns: minmax(0, 1fr);
+}
 @media (max-width: 679px) {
   .sf-trust-list {
     grid-template-columns: minmax(0, 420px);
@@ -3129,14 +3137,89 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-herocard-copy > div {
   align-self: stretch;
 }
-.sf-herocard-badge {
-  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. */
-  background: var(--accent-soft);
-  color: var(--accent);
+/* ---- Hero badge tones (the builder hero's "Badge style") ----
+   A TONE, never a merchant hex — the checkout notices' rule: one typed colour
+   cannot be right on a light page and a near-black one. Each tone names a
+   token pair that already resolves per theme; `--hb-ink` is the tone's colour
+   and the text reads it directly on a light page.
+
+   ⚠ On a dark page the soft tones LIFT their text toward white. The soft
+   ground there is the ink at ~20% over near-black, so the ink itself sat at
+   4.0:1 on the default navy (`#3b82f6` on `#172554`) — under the 4.5 small
+   text needs, at 11.5px uppercase. 70% ink / 30% white keeps the hue and
+   reads ~6.5:1. `solid` and `neutral` carry their own contrast pair and are
+   left alone. Unset tone = `accent`, what the badge always drew. */
+.sf-hero-badge {
+  --hb-ink: var(--accent);
+  --hb-ground: var(--accent-soft);
+  --hb-text: var(--hb-ink);
+  background: var(--hb-ground);
+  color: var(--hb-text);
+  /* ONE chip for every hero layout. The open hero drew its own — uppercase,
+     700, wider tracking and padding — so switching layout restyled the badge
+     for no reason; uppercase also does nothing for Bangla and shouts a
+     60-character badge. `line-height` is set, not inherited: the body's ~1.6
+     made the pill tall and sat the glyphs (the ৳ fallback worst) low. */
   font-size: 11.5px;
   font-weight: 600;
+  line-height: 1.4;
   padding: 5px 11px;
   border-radius: 999px;
+}
+/* Optical centring, for any merchant font. Line-height alone still centres
+   the font's full em box — ascenders AND the descender room — so caps and
+   digits (most of a badge: "MEGA SALE · ৳149") sat ~2px high. Trimming the box
+   to cap height over the baseline makes the box the letters, so even padding
+   centres them. Padding grows by the trimmed half-leading to keep the chip's
+   height. Where unsupported (Firefox today) the block above stands. */
+@supports (text-box: trim-both cap alphabetic) {
+  .sf-hero-badge {
+    text-box: trim-both cap alphabetic;
+    padding: 8px 12px;
+  }
+}
+.sf-hero-badge[data-tone="brand"] {
+  --hb-ink: var(--primary);
+  --hb-ground: var(--primary-soft);
+}
+.sf-hero-badge[data-tone="sale"] {
+  --hb-ink: var(--discount);
+  --hb-ground: var(--discount-soft);
+}
+.sf-hero-badge[data-tone="neutral"] {
+  --hb-ink: var(--text);
+  --hb-ground: var(--surface);
+}
+.sf-hero-badge[data-tone="solid"] {
+  --hb-ground: var(--accent);
+  --hb-text: var(--on-accent);
+}
+/* Soft tones on a LIGHT page darken their text. A merchant accent's soft
+   ground is the ink at 26% (`[data-accent]`), and the ink on it measured
+   3.56:1 for plain blue, 2.3:1 for gold. 55% ink / 45% black keeps the hue
+   and clears 4.5 across the palettes tried (blue, sage, gold, pink, yellow,
+   teal). */
+.sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]) {
+  --hb-text: color-mix(in srgb, var(--hb-ink) 55%, black);
+}
+.sf-root[data-theme="dark"] .sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]),
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-hero-badge:not([data-tone="solid"]):not([data-tone="neutral"]) {
+  --hb-text: color-mix(in srgb, var(--hb-ink) 70%, white);
+}
+/* `solid` on a dark page: the dark accent is LIFTED for visibility on
+   near-black, so white on it fails (3.7:1 default, 4.0:1 on a live store's
+   blue) and black fails the next palette. Sinking the ground to 55% accent /
+   45% black and writing white clears 4.5 for every palette tried, yellow
+   included (4.8:1). */
+.sf-root[data-theme="dark"] .sf-hero-badge[data-tone="solid"],
+.sf-root:has(.sf-shell[data-ground="dark"]) .sf-hero-badge[data-tone="solid"] {
+  --hb-ground: color-mix(in srgb, var(--accent) 55%, black);
+  --hb-text: #fff;
+}
+
+.sf-herocard-badge {
+  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. Colour
+     comes from `.sf-hero-badge` above, and so do type, padding and shape. */
   /* One line on a phone. The badge accepts 60 characters — the limit the classic
      banner hero set, where the chip sat on a full-width photograph — and at
      11.5px in a padded card that wraps to three lines stacked above the
@@ -4425,6 +4508,63 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    Mobile is one stacked column for every variant, with each link group a
    tap-to-open accordion. The desktop rules below 680px do the layout work; on
    desktop the accordion heading is inert and the links always show. */
+/* The frame. `--ft-*` come from the merchant's footer style (`footerFrame`,
+   lib/storefront-footer/style.ts); every one falls back to the footer as it was
+   before the style existed. Padding is mobile-first: the `-m` phone override,
+   then the desktop value, then the layout's own. */
+.sf-footer {
+  background-color: var(--ft-bg, var(--card));
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+.sf-footer[data-border="none"] {
+  border-top: 0;
+}
+.sf-footer-in {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--ft-pt-m, var(--ft-pt, 36px)) var(--pad) var(--ft-pb-m, var(--ft-pb, 28px));
+}
+/* A ground the theme did not choose re-points the ink tokens inside the footer,
+   so every layout, block, card and input below is recoloured without knowing. */
+.sf-footer[data-ink] > .sf-footer-in {
+  --text: var(--ft-ink);
+  --muted: color-mix(in srgb, var(--ft-ink) 76%, transparent);
+  --faint: color-mix(in srgb, var(--ft-ink) 62%, transparent);
+  --border: color-mix(in srgb, var(--ft-ink) 20%, transparent);
+  --surface: color-mix(in srgb, var(--ft-ink) 9%, transparent);
+  --card: color-mix(in srgb, var(--ft-ink) 6%, transparent);
+  color: var(--text);
+}
+/* On the brand ground the brand colour IS the background: accents take the ink,
+   and a filled button inverts (ink ground, brand text). `--ft-brand` is read on
+   the outer element, before the inner one re-points `--primary`. */
+.sf-footer[data-ground="brand"] {
+  --ft-brand: var(--primary);
+}
+.sf-footer[data-ground="brand"] > .sf-footer-in {
+  --primary: var(--ft-ink);
+  --on-primary: var(--ft-brand);
+}
+/* The closing line. `data-align-m` is the phone arrangement and `data-align`
+   the desktop one — both always set, so neither device waits for script. */
+.sf-footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  width: 100%;
+  font-size: 12px;
+  color: var(--faint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.sf-footer-bottom[data-align-m="center"] {
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
 .sf-footer-grid {
   display: flex;
   flex-direction: column;
@@ -4447,7 +4587,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    shop rather than three icons floating above the links. */
 .sf-footer-trustbar {
   display: grid;
-  grid-template-columns: repeat(var(--trustcols), minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--gap);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -4540,6 +4680,23 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 
 @media (min-width: 680px) {
+  .sf-footer-in {
+    padding: var(--ft-pt, 36px) var(--pad) var(--ft-pb, 28px);
+  }
+  .sf-footer-bottom[data-align="spread"] {
+    justify-content: space-between;
+    text-align: start;
+    gap: 8px 18px;
+  }
+  .sf-footer-bottom[data-align="center"] {
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+  }
+  /* One row for a full set of promises; the count comes from `FooterPromises`. */
+  .sf-footer-trustbar {
+    grid-template-columns: repeat(var(--ft-trustcols, 3), minmax(0, 1fr));
+  }
   /*
    * The link columns are sized to THEIR CONTENT and anchored to the right edge.
    *
@@ -4602,6 +4759,77 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding-top: 0;
   }
 }
+/* ---- Composed footer (`nav.footerBlocks`) ----
+   Phone: one column in block order; consecutive link blocks join into one
+   accordion list, as the fixed layouts' columns do. Desktop (680px+): a
+   wrapping row where the block's width class decides its track. */
+.sf-fb-row {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.sf-fb {
+  min-width: 0;
+}
+.sf-fb:empty {
+  display: none;
+}
+.sf-fb-links + .sf-fb-links {
+  margin-top: -24px;
+}
+.sf-fb-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-start;
+}
+.sf-fb-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sf-fb-row[data-align="center"] {
+  text-align: center;
+}
+.sf-fb-row[data-align="center"] .sf-fb-stack {
+  align-items: center;
+}
+.sf-fb-row[data-align="center"] .sf-fb-logos {
+  justify-content: center;
+}
+@media (min-width: 680px) {
+  .sf-fb-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 32px 52px;
+  }
+  .sf-fb-links + .sf-fb-links {
+    margin-top: 0;
+  }
+  .sf-fb-wide {
+    flex: 1 1 260px;
+  }
+  .sf-fb-auto {
+    flex: 0 1 auto;
+  }
+  .sf-fb-narrow {
+    flex: 0 1 280px;
+    min-width: 230px;
+  }
+  .sf-fb-full {
+    flex: 1 1 100%;
+  }
+  .sf-fb-row[data-align="center"] {
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sf-footer-chev {
     transition: none;

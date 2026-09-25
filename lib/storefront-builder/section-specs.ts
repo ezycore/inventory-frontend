@@ -92,11 +92,23 @@ const STORE_ROW = {
  */
 const FLOW = { type: "enum", values: ["wrap", "scroll"], responsive: true, optional: true } as const;
 
+/**
+ * A row's or card's glyph, and the ONE value that means there is none.
+ *
+ * Unset is not "no icon" anywhere: every renderer substitutes a fallback — the
+ * promises band cycles truck/shield/tag by position, a benefit card draws
+ * `check` — so a merchant who wanted a bare row had nothing to choose. `none` is
+ * that choice, and it is a stored value rather than the empty one because the
+ * fallbacks are what every band written before it already draws.
+ */
+export const NO_ICON = "none";
+
 const ICON = {
   type: "enum",
   values: [
     "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
     "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
+    NO_ICON,
   ],
   optional: true,
 } as const;
@@ -226,6 +238,25 @@ export const SECTION_SPECS = {
       storeBanner: { type: "boolean", optional: true },
       storeWords: { type: "boolean", optional: true },
       campaignBadge: { type: "boolean", optional: true },
+      /**
+       * Which running offer `campaignBadge` names. Unset is automatic: the
+       * storewide offer, else the one ending soonest. A picked offer that is not
+       * running (ended, paused, not started) names nothing — never a different
+       * offer the merchant did not choose.
+       */
+      campaignId: { type: "ref", to: "campaign", optional: true },
+      /**
+       * The badge's colour, as a TONE and never a hex — the checkout notices'
+       * rule. Each tone resolves per theme in storefront.css
+       * (`.sf-hero-badge[data-tone]`), so every choice stays readable in light
+       * and dark; a typed colour cannot. Unset is `accent`, the badge's colour
+       * before this setting existed.
+       */
+      badgeTone: {
+        type: "enum",
+        values: ["accent", "brand", "sale", "neutral", "solid"],
+        optional: true,
+      },
       promises: { type: "boolean", optional: true },
     },
     // The limits mirror the home hero's slides (`heroSlidesSchema`), so a
@@ -656,6 +687,14 @@ export const SECTION_SPECS = {
       ...SUBHEADING,
       /** The store's own promises (Customize → Footer) in place of the blocks, as the classic home band. */
       storePromises: { type: "boolean", optional: true },
+      /**
+       * Unset keeps the store's own ramp — three past the breakpoint, one on a
+       * phone (`--trustcols`). A band of two long promises and a band of six
+       * short ones are not the same row, and the phone is the screen that ramp
+       * serves worst: one promise per line is a lot of scrolling for "Cash on
+       * delivery".
+       */
+      columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
     },
     blocks: {
       max: 6,

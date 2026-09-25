@@ -303,6 +303,20 @@ describe("category-tiles", () => {
     expect(photo.style.borderRadius).toBe("var(--sfb-tile-radius, var(--radius-md))");
   });
 
+  it("lets a tile's name and sentence follow the section's tone, tint card included", () => {
+    /* Browser QA, 2026-09-25: a `tile` card is `--primary-soft`, a 13% TINT —
+       it composites over the band rather than grounding the text, so the
+       theme's dark ink on it went unreadable the moment a merchant set a dark
+       background. Only an OPAQUE ground (`--card`: the tag chips, the promo
+       cards, the benefit cards) keeps the theme's colours. */
+    const { container } = renderPage([section("t1", "category-tiles", { mode: "tile" })], {}, shot);
+    const card = container.querySelector(".sf-cat-tiles > a") as HTMLElement;
+    expect(card.style.background).toBe("var(--primary-soft)");
+    const [name, sentence] = [...card.querySelectorAll("span > span")] as HTMLElement[];
+    expect(name.style.color).toBe("inherit");
+    expect(sentence.style.color).toBe("var(--sfb-muted, var(--muted))");
+  });
+
   it("draws the collection's own sentence, and drops it when asked", () => {
     const { container } = renderPage([section("t1", "category-tiles", {})], {}, shot);
     expect(container.textContent).toContain("Every handset we carry");

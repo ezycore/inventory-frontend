@@ -41,7 +41,7 @@ export const effectiveChildrenMode = (item: StorefrontMenuItem): ChildrenMode =>
   item.childrenMode ?? (item.children?.length ? "custom" : "auto");
 
 /** Up/down arrows for one row in an ordered list. */
-function MoveButtons({
+export function MoveButtons({
   index,
   count,
   onMove,

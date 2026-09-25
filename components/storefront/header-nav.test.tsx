@@ -113,10 +113,22 @@ describe("HeaderNav — how a dropdown opens (Customize → Menu)", () => {
     expect(screen.queryByText("Serums")).toBeNull();
   });
 
-  it("mega: the panel carries the parent's own page as well", () => {
+  it("mega: pictures, and the layout alone adds no extra row", () => {
     renderNav(desktop({ dropdown: "mega" }));
     fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
-    expect(screen.getByText("All Shop")).toBeInTheDocument();
+    expect(screen.queryByText("All Shop")).toBeNull();
     expect(screen.getByText("Serums").closest("a")).toHaveClass("sf-nav-mega-item");
+  });
+
+  it("columns: the layout alone adds no extra row either", () => {
+    renderNav(desktop({ dropdown: "columns" }));
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
+    expect(screen.queryByText("All Shop")).toBeNull();
+  });
+
+  it("the merchant's switch heads every layout with the parent's page", () => {
+    renderNav(desktop({ dropdown: "list", viewAll: true }));
+    fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
+    expect(screen.getByText("All Shop").closest("a")).toHaveAttribute("href", "/skin-care");
   });
 });
