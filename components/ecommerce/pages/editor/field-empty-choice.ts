@@ -106,6 +106,8 @@ const EMPTY_CHOICES: Record<string, FieldEmptyChoice> = {
      unset promise draws depends on where the row sits — no listed value says
      that, and it is not the same answer as "no icon" (`NO_ICON`). */
   "promises-band.icon": { kind: "meaning", label: "The band decides" },
+  // `PromiseRows` draws unset as a disc.
+  "promises-band.iconStyle": { kind: "value", value: "disc" },
 
   // Built-in fallbacks: the control shows the value the section already draws.
   "hero.align": { kind: "value", value: "left" },

@@ -47,6 +47,19 @@ describe("new sections", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("put a promises band on the store's promises only when the store has some", () => {
+    // With none, switched on, the band would draw nothing and vanish from the preview.
+    expect(newSection("promises-band", []).settings.storePromises).toBeUndefined();
+    expect(newSection("promises-band", [], { hasPromises: false }).settings.storePromises).toBeUndefined();
+    const onStore = newSection("promises-band", [], { hasPromises: true });
+    expect(onStore.settings.storePromises).toBe(true);
+    // The sample rows stay, for the merchant who switches it off.
+    expect(onStore.blocks?.length).toBe(3);
+    expect(isComplete(onStore)).toBe(true);
+    // No other section reads the store's promises.
+    expect(newSection("faq", [], { hasPromises: true }).settings).not.toHaveProperty("storePromises");
+  });
+
   it("picks another id when the first is taken", () => {
     const rolls = [0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
     const random = () => rolls.shift() ?? 0.9;

@@ -11,7 +11,6 @@ import type {
 import { storeHref } from "@/lib/storefront-links";
 import { footerLinkTarget, isFooterLinkComplete } from "@/lib/storefront-footer/links";
 import type { useStorefrontUI } from "@/services/storefront/ui-context";
-import type { IconName } from "@/components/storefront/sf-icons";
 
 export type FooterT = ReturnType<typeof useStorefrontUI>["t"];
 
@@ -32,9 +31,13 @@ export interface FooterColumn {
   links: FooterLinkItem[];
 }
 
-/** One of the merchant's store promises, ready to draw. */
+/**
+ * One of the merchant's store promises, ready to draw. `icon` is as stored —
+ * unset, a glyph, or `NO_ICON` — and resolved by `promiseIcon` with the
+ * block's icon style, the same way the promises band resolves it.
+ */
 export interface FooterPromise {
-  icon: IconName;
+  icon?: string;
   label: string;
 }
 

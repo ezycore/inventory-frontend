@@ -2146,6 +2146,12 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 .sf-trust-row--bare {
   grid-template-columns: minmax(0, 1fr);
 }
+/* `iconStyle: "plain"` — a 19px glyph, not a 34px disc, so a disc-wide track
+   would leave a gap between the mark and its words. */
+.sf-trust-row--plain {
+  grid-template-columns: 19px minmax(0, 1fr);
+  gap: 10px;
+}
 @media (max-width: 679px) {
   .sf-trust-list {
     grid-template-columns: minmax(0, 420px);

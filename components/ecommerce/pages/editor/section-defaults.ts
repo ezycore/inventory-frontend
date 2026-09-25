@@ -47,6 +47,7 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
     settings: { heading: "Your headline", buttonLabel: "Shop now", buttonHref: "/products" },
   },
   "product-grid": { settings: { heading: "New arrivals", source: "newest", limit: 8 } },
+  // Switched onto the store's own promises when it has some — `defaultsForStore`.
   "promises-band": {
     settings: {},
     blocks: [
@@ -92,6 +93,25 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   spacer: { settings: { space: { base: 40 } } },
   countdown: { settings: { endsAt: "" } },
 };
+
+/** What the editor knows about the store a section is added to. */
+export interface StoreFacts {
+  /** The store has written promises (Customize → Footer). */
+  hasPromises: boolean;
+}
+
+/**
+ * Settings a new section takes from its store, over `SECTION_DEFAULTS`.
+ *
+ * A promises band goes onto the store's own promises when there are some: the
+ * footer shows those, and a band with rows of its own is a second list the
+ * merchant has to keep in step by hand. A store with none keeps the sample
+ * rows — switched on, the band would draw nothing and vanish from the preview.
+ */
+export function defaultsForStore(type: SectionType, store?: StoreFacts): Record<string, unknown> {
+  if (type === "promises-band" && store?.hasPromises) return { storePromises: true };
+  return {};
+}
 
 /** A new repeatable item's settings, by section type. */
 export const BLOCK_DEFAULTS: Partial<Record<SectionType, Record<string, unknown>>> = {

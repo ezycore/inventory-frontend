@@ -7,7 +7,7 @@ import type {
 import { SECTION_SPECS, type SectionType } from "@/lib/storefront-builder/section-specs";
 import { readSettings } from "@/lib/storefront-builder/settings";
 import type { StorefrontPage, StorefrontPageSection } from "@/services/api";
-import { BLOCK_DEFAULTS, SECTION_DEFAULTS } from "./section-defaults";
+import { BLOCK_DEFAULTS, SECTION_DEFAULTS, defaultsForStore, type StoreFacts } from "./section-defaults";
 
 /**
  * Pure operations on a page's sections, as the editor holds them.
@@ -57,7 +57,11 @@ export function newBlock(type: SectionType, taken: Iterable<string>): EditorBloc
   return { id: newInstanceId("item", taken), settings: { ...(BLOCK_DEFAULTS[type] ?? {}) } };
 }
 
-export function newSection(type: SectionType, existing: readonly EditorSection[]): EditorSection {
+export function newSection(
+  type: SectionType,
+  existing: readonly EditorSection[],
+  store?: StoreFacts,
+): EditorSection {
   const spec = SECTION_SPECS[type];
   const defaults = SECTION_DEFAULTS[type];
   const taken = allIds(existing);
@@ -73,7 +77,7 @@ export function newSection(type: SectionType, existing: readonly EditorSection[]
     type,
     v: spec.v,
     enabled: true,
-    settings: { ...defaults.settings },
+    settings: { ...defaults.settings, ...defaultsForStore(type, store) },
     ...(blocks ? { blocks } : {}),
   };
 }

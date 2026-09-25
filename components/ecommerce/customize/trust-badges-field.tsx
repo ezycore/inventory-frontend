@@ -8,9 +8,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
+import { Ban } from "lucide-react";
 import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
 import { IconGrid } from "@/components/ecommerce/customize/icon-picker";
+import { ICON_NAMES, NO_ICON } from "@/lib/storefront-builder/section-specs";
 
+/** The icon a NEW promise starts with, by position. The picker offers every one of `ICON_NAMES`. */
 export const BADGE_ICON_CHOICES: IconName[] = [
   "shield",
   "truck",
@@ -46,17 +49,24 @@ function BadgeRow({
             aria-label="Pick badge icon"
             className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border bg-muted/40 text-muted-foreground transition-colors hover:text-primary"
           >
-            <SfIcon name={(badge.icon as IconName) ?? "shield"} size={15} />
+            {badge.icon === NO_ICON ? (
+              <Ban className="size-3.5" />
+            ) : (
+              <SfIcon name={(badge.icon as IconName) ?? "shield"} size={15} />
+            )}
           </button>
         </PopoverTrigger>
-        <PopoverContent side="right" align="start" className="w-48 p-2">
-          {/* No "No icon" here: a badge's glyph is drawn by the header, the
-              footer and the hero card too, and those three substitute a
-              fallback rather than honouring `NO_ICON`. */}
+        <PopoverContent side="right" align="start" className="w-52 p-2">
+          {/* The promises band's own list, "No icon" included, so a promise
+              reads the same wherever it is drawn. Only the footer and the band
+              draw a promise's glyph — the header's delivery pill and the hero
+              card use its words alone — and both honour `NO_ICON`
+              (`promiseIcon`). */}
           <IconGrid
             value={badge.icon}
-            choices={BADGE_ICON_CHOICES}
+            choices={ICON_NAMES}
             columns={4}
+            allowNone
             onPick={(icon) => onChange({ icon })}
           />
         </PopoverContent>

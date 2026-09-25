@@ -309,6 +309,7 @@ const FIELD_LABELS: Record<string, string> = {
   categoryId: "Collection",
   categoryIds: "Collections",
   columns: "Columns",
+  iconStyle: "Icon style",
   coupon: "Coupon box",
   ctaHref: "Link",
   ctaLabel: "Link label",
@@ -547,7 +548,9 @@ const HINTS: Record<string, string> = {
   space: "The room between the sections above and below.",
   storeBanner: "Shows the banner from Customize → Look when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
-  storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",
+  storePromises:
+    "Shows the promises from Customize → Footer instead of the rows below — the same ones your footer shows — and stays in step with them.",
+  iconStyle: "Match it to the footer's promises (Customize → Footer) so both look like one shop. A row's own “No icon” still leaves that row bare.",
   campaignBadge: "Names a running campaign on any slide that has no badge of its own.",
   "hero.campaignId":
     "Empty picks for you: the storewide offer, else the one ending soonest. A chosen offer shows only while it is running.",
@@ -566,6 +569,8 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
      mirror `theme.design`, a different store setting with a different home. */
   cardButtons: { solid: "Solid", outline: "Outline", soft: "Soft" },
   cardCorners: { sharp: "Sharp", soft: "Soft", round: "Round" },
+  // The same three words as the footer's promises block (`footer-block-inspector.tsx`).
+  iconStyle: { disc: "In a circle", plain: "Icon only", none: "No icons" },
   mobileFirst: {
     picture: "The picture",
     text: "The text",

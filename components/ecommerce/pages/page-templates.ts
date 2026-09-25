@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
 import { newSection, type EditorSection } from "@/components/ecommerce/pages/editor/section-instances";
+import type { StoreFacts } from "@/components/ecommerce/pages/editor/section-defaults";
 
 /**
  * The starting points offered by "New landing page" (backend plan
@@ -94,11 +95,15 @@ export const pageTemplate = (id: PageTemplateId): PageTemplate =>
  * The sections a new page starts with. A product template without a product
  * returns nothing rather than sections that cannot be saved.
  */
-export function templateSections(template: PageTemplate, productId?: string): EditorSection[] {
+export function templateSections(
+  template: PageTemplate,
+  productId?: string,
+  store?: StoreFacts,
+): EditorSection[] {
   if (template.needsProduct && !productId) return [];
   const sections: EditorSection[] = [];
   for (const { type, settings } of template.sections) {
-    const section = newSection(type, sections);
+    const section = newSection(type, sections, store);
     section.settings = {
       ...section.settings,
       ...settings,

@@ -16,6 +16,7 @@ import {
   type EditorDevice,
   type EditorSection,
 } from "./section-instances";
+import type { StoreFacts } from "./section-defaults";
 
 /** Edits to one section closer together than this are one undo step. */
 const MERGE_WINDOW_MS = 1000;
@@ -57,7 +58,7 @@ export const loadedSections = (page: StorefrontPage): EditorSection[] =>
  * rail and the preview, so opening one section's settings never discards
  * another's edit.
  */
-export function usePageEditor(page: StorefrontPage): PageEditor {
+export function usePageEditor(page: StorefrontPage, store?: StoreFacts): PageEditor {
   const [history, setHistory] = useState<History<EditorSection[]>>(() =>
     startHistory(loadedSections(page)),
   );
@@ -91,14 +92,14 @@ export function usePageEditor(page: StorefrontPage): PageEditor {
   // one inserted.
   const add = useCallback(
     (type: SectionType) => {
-      const section = newSection(type, sections);
+      const section = newSection(type, sections, store);
       const after = sections.findIndex((item) => item.id === selectedId);
       const at = after < 0 ? sections.length : after + 1;
       const next = [...sections.slice(0, at), section, ...sections.slice(at)];
       change(() => next);
       setSelectedId(section.id);
     },
-    [change, sections, selectedId],
+    [change, sections, selectedId, store],
   );
 
   const update = useCallback(

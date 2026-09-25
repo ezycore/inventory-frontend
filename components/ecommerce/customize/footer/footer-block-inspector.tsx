@@ -7,7 +7,11 @@ import {
   DEFAULT_BLOCK_WIDTH,
   blockWidth,
 } from "@/lib/storefront-footer/blocks";
-import { FOOTER_TEXT_MAX_BYTES, type FooterBlockWidth } from "@/lib/storefront-footer/types";
+import {
+  FOOTER_TEXT_MAX_BYTES,
+  type FooterBlockWidth,
+  type FooterIconStyle,
+} from "@/lib/storefront-footer/types";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
 import { SegmentedField } from "@/ui/components/segmented-field";
@@ -32,6 +36,18 @@ const WIDTH_OPTIONS: { value: FooterBlockWidth; label: string; description: stri
   { value: "wide", label: "Wide", description: "Shares the spare room with other wide blocks" },
   { value: "full", label: "Full row", description: "A line of its own" },
 ];
+
+/**
+ * The promises band's three styles in its own words (`section-catalogue.ts`),
+ * so a merchant matching the two reads one choice on both screens.
+ */
+const ICON_STYLE_OPTIONS: { value: FooterIconStyle; label: string; description: string }[] = [
+  { value: "disc", label: "In a circle", description: "Each icon on a solid circle in your accent colour" },
+  { value: "plain", label: "Icon only", description: "The icon alone, in your brand colour" },
+  { value: "none", label: "No icons", description: "Just the words" },
+];
+/** Unset draws `plain` — what the footer showed before the setting. */
+const DEFAULT_ICON_STYLE: FooterIconStyle = "plain";
 
 export interface LinkOptions {
   categoryOptions: NavOption[];
@@ -154,7 +170,24 @@ function BlockContent({
     case "newsletter":
       return <FooterNewsletterFields draft={draft} patch={patch} />;
     case "promises":
-      return <PartHint>Shows your store promises — edit them under Store promises below.</PartHint>;
+      return (
+        <div className="space-y-2">
+          <PartField label="Icon style">
+            <SegmentedField
+              label="Icon style"
+              value={block.iconStyle ?? DEFAULT_ICON_STYLE}
+              options={ICON_STYLE_OPTIONS}
+              onChange={(style) =>
+                onChange({ iconStyle: style === DEFAULT_ICON_STYLE ? undefined : (style as FooterIconStyle) })
+              }
+            />
+          </PartField>
+          <PartHint>
+            Shows your store promises — edit them under Store promises below. A promises band on a page has the same
+            icon styles; pick the same one there so both match.
+          </PartHint>
+        </div>
+      );
     case "text":
       return (
         <div className="space-y-3">
