@@ -118,6 +118,18 @@ describe("benefits and how-to-order", () => {
     expect([...container.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Pure cotton", "Fast colours"]);
   });
 
+  it("keeps the check fallback on an unset benefit icon and draws none at all on NO_ICON", () => {
+    const { container } = renderPage([
+      section("b1", "benefits", {}, [
+        block("a", { title: "Pure cotton" }),
+        block("b", { title: "Fast colours", icon: "none" }),
+      ]),
+    ]);
+    const cards = [...container.querySelectorAll(".sfb-benefits > div")];
+    expect(cards[0].querySelectorAll("svg")).toHaveLength(1);
+    expect(cards[1].querySelectorAll("svg")).toHaveLength(0);
+  });
+
   it("gives a phone its own column count, which it could not have before", () => {
     // ⚠ `columns` was written into a `min-width: 680px` block, so the one screen
     // the merchant's choice could not reach was the phone — always one column.

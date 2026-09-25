@@ -76,6 +76,10 @@ export function StorePreviewBridge() {
         footerGroups: p.nav?.footer,
         footerPaymentMethods: p.nav?.footerPaymentMethods,
         footerContentPages: p.nav?.footerContentPages,
+        // Both only when the payload carries `nav`. `{}` / `null` are real drafts
+        // ("all defaults" / "no blocks — the fixed layout"), never "not drafted".
+        footerStyle: p.nav ? (p.nav.footerStyle ?? {}) : undefined,
+        footerBlocks: p.nav ? (p.nav.footerBlocks ?? null) : undefined,
         // Footer copy. Sent raw, so `""` reaches the store as a real draft
         // ("cleared → show the localized default") rather than as "not drafted".
         footerText: p.footerText,

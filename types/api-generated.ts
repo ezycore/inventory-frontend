@@ -13241,7 +13241,10 @@ export interface components {
                     title: string;
                     links: {
                         label?: string;
+                        type?: string;
+                        value?: string;
                         url?: string;
+                        newTab?: boolean;
                     }[];
                 }[];
                 footerPaymentMethods?: {
@@ -13252,6 +13255,84 @@ export interface components {
                     show?: boolean;
                     title?: string;
                 };
+                footerStyle?: {
+                    ground?: string;
+                    color?: string;
+                    tone?: string;
+                    spacing?: {
+                        base?: string;
+                        mobile?: string;
+                    };
+                    align?: string;
+                    topBorder?: boolean;
+                    phoneGroups?: string;
+                    bottomAlign?: {
+                        base?: string;
+                        mobile?: string;
+                    };
+                    showPoweredBy?: boolean;
+                    logo?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    logoHeight?: number;
+                    bgImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    bgFocal?: {
+                        x: number;
+                        y: number;
+                    };
+                    overlay?: number;
+                };
+                footerBlocks?: {
+                    id: string;
+                    type: string;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    width?: string;
+                    title?: string;
+                    links?: {
+                        label?: string;
+                        type?: string;
+                        value?: string;
+                        url?: string;
+                        newTab?: boolean;
+                    }[];
+                    showAbout?: boolean;
+                    showPhone?: boolean;
+                    showSocial?: boolean;
+                    body?: string;
+                    image?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    alt?: string;
+                    url?: string;
+                    maxWidth?: number;
+                    logos?: {
+                        image: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        };
+                        alt?: string;
+                        url?: string;
+                    }[];
+                    logoHeight?: number;
+                }[];
                 announcement?: {
                     enabled: boolean;
                     useShippingRule?: boolean;
@@ -13314,7 +13395,11 @@ export interface components {
                         open?: string;
                         viewAll?: boolean;
                         images?: boolean;
+                        subImages?: boolean;
                         chips?: string;
+                        title?: string;
+                        allProducts?: boolean;
+                        allProductsLabel?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -13322,6 +13407,7 @@ export interface components {
                         railOpen?: string;
                         overflow?: string;
                         row?: boolean;
+                        viewAll?: boolean;
                     };
                 };
                 filters?: {
@@ -14912,7 +14998,10 @@ export interface components {
                             title: string;
                             links: {
                                 label?: string;
+                                type?: string;
+                                value?: string;
                                 url?: string;
+                                newTab?: boolean;
                             }[];
                         }[];
                         footerPaymentMethods?: {
@@ -14923,6 +15012,84 @@ export interface components {
                             show?: boolean;
                             title?: string;
                         };
+                        footerStyle?: {
+                            ground?: string;
+                            color?: string;
+                            tone?: string;
+                            spacing?: {
+                                base?: string;
+                                mobile?: string;
+                            };
+                            align?: string;
+                            topBorder?: boolean;
+                            phoneGroups?: string;
+                            bottomAlign?: {
+                                base?: string;
+                                mobile?: string;
+                            };
+                            showPoweredBy?: boolean;
+                            logo?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            logoHeight?: number;
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            bgFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                            overlay?: number;
+                        };
+                        footerBlocks?: {
+                            id: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            width?: string;
+                            title?: string;
+                            links?: {
+                                label?: string;
+                                type?: string;
+                                value?: string;
+                                url?: string;
+                                newTab?: boolean;
+                            }[];
+                            showAbout?: boolean;
+                            showPhone?: boolean;
+                            showSocial?: boolean;
+                            body?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            alt?: string;
+                            url?: string;
+                            maxWidth?: number;
+                            logos?: {
+                                image: {
+                                    url: string;
+                                    mediumUrl: string;
+                                    thumbnailUrl: string;
+                                    publicId: string;
+                                    bytes?: number;
+                                };
+                                alt?: string;
+                                url?: string;
+                            }[];
+                            logoHeight?: number;
+                        }[];
                         announcement?: {
                             enabled: boolean;
                             useShippingRule?: boolean;
@@ -14985,7 +15152,11 @@ export interface components {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -14993,6 +15164,7 @@ export interface components {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -15282,7 +15454,10 @@ export interface components {
                             title: string;
                             links: {
                                 label?: string;
+                                type?: string;
+                                value?: string;
                                 url?: string;
+                                newTab?: boolean;
                             }[];
                         }[];
                         footerPaymentMethods?: {
@@ -15293,6 +15468,84 @@ export interface components {
                             show?: boolean;
                             title?: string;
                         };
+                        footerStyle?: {
+                            ground?: string;
+                            color?: string;
+                            tone?: string;
+                            spacing?: {
+                                base?: string;
+                                mobile?: string;
+                            };
+                            align?: string;
+                            topBorder?: boolean;
+                            phoneGroups?: string;
+                            bottomAlign?: {
+                                base?: string;
+                                mobile?: string;
+                            };
+                            showPoweredBy?: boolean;
+                            logo?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            logoHeight?: number;
+                            bgImage?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            bgFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                            overlay?: number;
+                        };
+                        footerBlocks?: {
+                            id: string;
+                            type: string;
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            width?: string;
+                            title?: string;
+                            links?: {
+                                label?: string;
+                                type?: string;
+                                value?: string;
+                                url?: string;
+                                newTab?: boolean;
+                            }[];
+                            showAbout?: boolean;
+                            showPhone?: boolean;
+                            showSocial?: boolean;
+                            body?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl: string;
+                                thumbnailUrl: string;
+                                publicId: string;
+                                bytes?: number;
+                            } | null;
+                            alt?: string;
+                            url?: string;
+                            maxWidth?: number;
+                            logos?: {
+                                image: {
+                                    url: string;
+                                    mediumUrl: string;
+                                    thumbnailUrl: string;
+                                    publicId: string;
+                                    bytes?: number;
+                                };
+                                alt?: string;
+                                url?: string;
+                            }[];
+                            logoHeight?: number;
+                        }[];
                         announcement?: {
                             enabled: boolean;
                             useShippingRule?: boolean;
@@ -15355,7 +15608,11 @@ export interface components {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15363,6 +15620,7 @@ export interface components {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -22282,7 +22540,11 @@ export interface operations {
                             title: string;
                             links: {
                                 label: string;
-                                url: string;
+                                /** @enum {string} */
+                                type?: "url" | "page" | "category";
+                                value?: string;
+                                url?: string;
+                                newTab?: boolean;
                             }[];
                         }[];
                         footerPaymentMethods?: {
@@ -22293,6 +22555,91 @@ export interface operations {
                             show?: boolean;
                             title?: string;
                         };
+                        footerStyle?: {
+                            /** @enum {string} */
+                            ground?: "card" | "surface" | "brand" | "dark" | "custom";
+                            color?: string;
+                            /** @enum {string} */
+                            tone?: "auto" | "light" | "dark";
+                            spacing?: {
+                                /** @enum {string} */
+                                base?: "compact" | "regular" | "roomy";
+                                /** @enum {string} */
+                                mobile?: "compact" | "regular" | "roomy";
+                            };
+                            /** @enum {string} */
+                            align?: "start" | "center";
+                            topBorder?: boolean;
+                            /** @enum {string} */
+                            phoneGroups?: "open" | "first" | "closed";
+                            bottomAlign?: {
+                                /** @enum {string} */
+                                base?: "spread" | "center";
+                                /** @enum {string} */
+                                mobile?: "spread" | "center";
+                            };
+                            showPoweredBy?: boolean;
+                            logo?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            logoHeight?: number;
+                            bgImage?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            bgFocal?: {
+                                x: number;
+                                y: number;
+                            };
+                            overlay?: number;
+                        };
+                        footerBlocks?: {
+                            id: string;
+                            /** @enum {string} */
+                            type: "brand" | "links" | "pages" | "contact" | "newsletter" | "promises" | "text" | "image" | "logos" | "social";
+                            showOnDesktop?: boolean;
+                            showOnMobile?: boolean;
+                            /** @enum {string} */
+                            width?: "auto" | "narrow" | "wide" | "full";
+                            title?: string;
+                            links?: {
+                                label: string;
+                                /** @enum {string} */
+                                type?: "url" | "page" | "category";
+                                value?: string;
+                                url?: string;
+                                newTab?: boolean;
+                            }[];
+                            showAbout?: boolean;
+                            showPhone?: boolean;
+                            showSocial?: boolean;
+                            body?: string;
+                            image?: {
+                                url: string;
+                                mediumUrl?: string;
+                                thumbnailUrl?: string;
+                                publicId?: string;
+                            } | null;
+                            alt?: string;
+                            url?: string;
+                            maxWidth?: number;
+                            logos?: {
+                                image: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                };
+                                alt: string;
+                                url?: string;
+                            }[];
+                            logoHeight?: number;
+                        }[];
                         announcement?: {
                             enabled?: boolean;
                             useShippingRule?: boolean;
@@ -22354,7 +22701,11 @@ export interface operations {
                                 open?: string;
                                 viewAll?: boolean;
                                 images?: boolean;
+                                subImages?: boolean;
                                 chips?: string;
+                                title?: string;
+                                allProducts?: boolean;
+                                allProductsLabel?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -22362,6 +22713,7 @@ export interface operations {
                                 railOpen?: string;
                                 overflow?: string;
                                 row?: boolean;
+                                viewAll?: boolean;
                             };
                         };
                         filters?: {
@@ -45140,7 +45492,11 @@ export interface operations {
                                 title: string;
                                 links: {
                                     label: string;
-                                    url: string;
+                                    /** @enum {string} */
+                                    type?: "url" | "page" | "category";
+                                    value?: string;
+                                    url?: string;
+                                    newTab?: boolean;
                                 }[];
                             }[];
                             footerPaymentMethods?: {
@@ -45151,6 +45507,91 @@ export interface operations {
                                 show?: boolean;
                                 title?: string;
                             };
+                            footerStyle?: {
+                                /** @enum {string} */
+                                ground?: "card" | "surface" | "brand" | "dark" | "custom";
+                                color?: string;
+                                /** @enum {string} */
+                                tone?: "auto" | "light" | "dark";
+                                spacing?: {
+                                    /** @enum {string} */
+                                    base?: "compact" | "regular" | "roomy";
+                                    /** @enum {string} */
+                                    mobile?: "compact" | "regular" | "roomy";
+                                };
+                                /** @enum {string} */
+                                align?: "start" | "center";
+                                topBorder?: boolean;
+                                /** @enum {string} */
+                                phoneGroups?: "open" | "first" | "closed";
+                                bottomAlign?: {
+                                    /** @enum {string} */
+                                    base?: "spread" | "center";
+                                    /** @enum {string} */
+                                    mobile?: "spread" | "center";
+                                };
+                                showPoweredBy?: boolean;
+                                logo?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                logoHeight?: number;
+                                bgImage?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                bgFocal?: {
+                                    x: number;
+                                    y: number;
+                                };
+                                overlay?: number;
+                            };
+                            footerBlocks?: {
+                                id: string;
+                                /** @enum {string} */
+                                type: "brand" | "links" | "pages" | "contact" | "newsletter" | "promises" | "text" | "image" | "logos" | "social";
+                                showOnDesktop?: boolean;
+                                showOnMobile?: boolean;
+                                /** @enum {string} */
+                                width?: "auto" | "narrow" | "wide" | "full";
+                                title?: string;
+                                links?: {
+                                    label: string;
+                                    /** @enum {string} */
+                                    type?: "url" | "page" | "category";
+                                    value?: string;
+                                    url?: string;
+                                    newTab?: boolean;
+                                }[];
+                                showAbout?: boolean;
+                                showPhone?: boolean;
+                                showSocial?: boolean;
+                                body?: string;
+                                image?: {
+                                    url: string;
+                                    mediumUrl?: string;
+                                    thumbnailUrl?: string;
+                                    publicId?: string;
+                                } | null;
+                                alt?: string;
+                                url?: string;
+                                maxWidth?: number;
+                                logos?: {
+                                    image: {
+                                        url: string;
+                                        mediumUrl?: string;
+                                        thumbnailUrl?: string;
+                                        publicId?: string;
+                                    };
+                                    alt: string;
+                                    url?: string;
+                                }[];
+                                logoHeight?: number;
+                            }[];
                             announcement?: {
                                 enabled?: boolean;
                                 useShippingRule?: boolean;
@@ -45212,7 +45653,11 @@ export interface operations {
                                     open?: string;
                                     viewAll?: boolean;
                                     images?: boolean;
+                                    subImages?: boolean;
                                     chips?: string;
+                                    title?: string;
+                                    allProducts?: boolean;
+                                    allProductsLabel?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;
@@ -45220,6 +45665,7 @@ export interface operations {
                                     railOpen?: string;
                                     overflow?: string;
                                     row?: boolean;
+                                    viewAll?: boolean;
                                 };
                             };
                             filters?: {

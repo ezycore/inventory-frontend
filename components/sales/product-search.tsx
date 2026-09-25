@@ -131,7 +131,7 @@ export function ProductSearch({
         </PopoverAnchor>
 
         <PopoverContent
-          className="w-[--radix-popover-trigger-width] p-0"
+          className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] p-0"
           align="start"
           sideOffset={4}
           // Not portalled, so the results list stays inside whatever dialog is
@@ -170,7 +170,7 @@ export function ProductSearch({
                       <Package className="h-5 w-5 text-muted-foreground/50 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
+                          <span className="min-w-0 font-medium text-sm break-words">
                             {product.label}
                           </span>
                           {product.isCombo && (

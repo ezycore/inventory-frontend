@@ -46,7 +46,9 @@ export function SmsPreviewNote({
           </Badge>
         )}
       </div>
-      <p className="mt-0.5 text-xs text-muted-foreground">{preview.text}</p>
+      <p className="mt-0.5 whitespace-pre-line text-xs text-muted-foreground">
+        {preview.text}
+      </p>
     </div>
   );
 }

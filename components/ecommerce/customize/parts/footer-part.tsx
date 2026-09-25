@@ -1,82 +1,127 @@
 "use client";
 // coding-standard: maintained
 
-import { Input } from "@/ui/components/input";
-import { Label } from "@/ui/components/label";
-import { FooterLinksField } from "@/components/ecommerce/customize/footer-links-field";
+import { useState } from "react";
+import Link from "next/link";
+import type { StorefrontFooterBlock, StorefrontFooterStyle } from "@/types";
+import {
+  blocksFromLayout,
+  groupsFromBlocks,
+  styleForLayout,
+  type FooterLayout,
+} from "@/lib/storefront-footer/blocks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/ui/components/alert-dialog";
 import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
 import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
-import { TrustBadgesField } from "@/components/ecommerce/customize/trust-badges-field";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
+import { TrustBadgesField } from "@/components/ecommerce/customize/trust-badges-field";
+import { useNavLinkOptions } from "@/components/ecommerce/customize/use-nav-link-options";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
+import { FooterBlockList } from "@/components/ecommerce/customize/footer/footer-block-list";
+import { FooterCopyFields } from "@/components/ecommerce/customize/footer/footer-copy-fields";
+import { FooterPictureFields } from "@/components/ecommerce/customize/footer/footer-picture-fields";
+import { FooterStyleFields } from "@/components/ecommerce/customize/footer/footer-style-fields";
 
 /**
- * Footer — the whole of it. This part is the reason the page was re-cut: the
- * layout used to live in Templates, the © line and trust badges in Theme, and
- * the link groups in Navigation, so "fix my footer" meant three tabs and three
- * save buttons.
+ * Footer — the whole of it: a starting layout, the blocks, the wording, the
+ * look and the pictures (plan `docs/plan/storefront-footer-builder.md`).
  *
- * Every field here is optional and every blank falls back to the storefront's
- * own localized wording — so an untouched footer still reads correctly in both
- * languages, and clearing a field restores the default rather than leaving a
- * gap. The layout-specific blocks (trust badges, contact heading, sign-up copy)
- * only appear for the layout that renders them, with a hint pointing at the
- * layout otherwise: a field that edits something you cannot see is worse than
- * no field.
+ * **Layouts are starting points.** A store that has never edited a block keeps
+ * its fixed layout, drawn exactly as before; the list below shows that layout
+ * spelt as blocks. The first block edit saves the list and the store draws its
+ * own blocks from then on. Picking a layout again goes back to the fixed one,
+ * after a confirm — it replaces the blocks — keeping the link groups.
+ *
+ * Wording, look and pictures apply to both, so they never need the switch.
  */
 export function FooterPart({
   draft,
   patch,
   patchTemplate,
-  patchContentPages,
-}: Pick<
-  CustomizeDraftApi,
-  "draft" | "patch" | "patchTemplate" | "patchContentPages"
->) {
-  const layout = draft.templates.footer;
-  const setNewsletter = (p: Partial<typeof draft.footerNewsletter>) =>
-    patch({ footerNewsletter: { ...draft.footerNewsletter, ...p } });
+}: Pick<CustomizeDraftApi, "draft" | "patch" | "patchTemplate">) {
+  const layout = draft.templates.footer as FooterLayout;
+  const composed = draft.footerBlocks !== null;
+  const blocks =
+    draft.footerBlocks ??
+    blocksFromLayout({ layout, groups: draft.footerGroups, contentPages: draft.footerContentPages });
+  const linkOptions = useNavLinkOptions(draft.collections);
+  const [pendingLayout, setPendingLayout] = useState<string | null>(null);
+
+  const setStyle = (next: Partial<StorefrontFooterStyle>) =>
+    patch({ footerStyle: { ...draft.footerStyle, ...next } });
+  // The first edit carries the layout's own frame (the centred one centres) so
+  // the footer does not jump shape the moment it becomes blocks.
+  const setBlocks = (next: StorefrontFooterBlock[]) =>
+    patch(
+      composed
+        ? { footerBlocks: next }
+        : { footerBlocks: next, footerStyle: { ...styleForLayout(layout), ...draft.footerStyle } },
+    );
+  const applyLayout = (value: string) => {
+    patchTemplate("footer", value);
+    if (composed) patch({ footerBlocks: null, footerGroups: groupsFromBlocks(blocks) });
+  };
 
   return (
     <>
-      <PartBlock label="Layout">
+      <PartBlock
+        label="Start from a layout"
+        hint={
+          composed
+            ? "You have built your own footer. Picking a layout replaces your blocks with it."
+            : "Change any block below and the footer becomes your own."
+        }
+      >
         <TemplatePicker
           templateKey="footer"
-          value={layout}
-          onChange={(v) => patchTemplate("footer", v)}
+          value={composed ? "" : layout}
+          onChange={(v) => (composed ? setPendingLayout(v) : applyLayout(v))}
         />
       </PartBlock>
 
-      <FooterLinksField
-        groups={draft.footerGroups}
-        setGroups={(footerGroups) => patch({ footerGroups })}
-        contentPages={draft.footerContentPages}
-        setContentPages={patchContentPages}
-      />
-
-      <div className="space-y-1.5">
-        <Label>About your shop</Label>
-        <Input
-          value={draft.footerText}
-          onChange={(e) => patch({ footerText: e.target.value })}
-          maxLength={280}
-          placeholder="A line or two about what you sell and where you deliver."
+      <PartBlock label="Blocks" hint="On a phone the blocks stack in this order.">
+        <FooterBlockList
+          blocks={blocks}
+          setBlocks={setBlocks}
+          linkOptions={linkOptions}
+          draft={draft}
+          patch={patch}
         />
-      </div>
+      </PartBlock>
 
-      <div className="space-y-1.5">
-        <Label>Bottom line</Label>
-        <Input
-          value={draft.footerNote}
-          onChange={(e) => patch({ footerNote: e.target.value })}
-          maxLength={80}
-          placeholder="Leave empty to show your currency"
+      <PartBlock label="Wording">
+        <FooterCopyFields draft={draft} patch={patch} />
+      </PartBlock>
+
+      <PartBlock label="Look">
+        <FooterStyleFields
+          style={draft.footerStyle}
+          setStyle={setStyle}
+          brandColor={draft.brandColor}
+          composed={composed}
+          defaultBottom={(composed ? draft.footerStyle.align === "center" : layout === "simple") ? "center" : "spread"}
         />
-        <PartHint>
-          Sits on the right of the copyright line — a trade licence number, a city,
-          anything you need there.
-        </PartHint>
-      </div>
+      </PartBlock>
+
+      <PartBlock label="Pictures">
+        <FooterPictureFields style={draft.footerStyle} setStyle={setStyle} />
+      </PartBlock>
+
+      <PartBlock
+        label="Store promises"
+        hint="Up to four promises you stand behind. Shown by a Store promises block and by promise sections on your pages; blank rows are not published."
+      >
+        <TrustBadgesField badges={draft.badges} setBadges={(badges) => patch({ badges })} />
+      </PartBlock>
 
       <PartBlock
         label="Payment methods"
@@ -86,86 +131,42 @@ export function FooterPart({
           showOnDesktop={draft.footerPaymentMethods.showOnDesktop}
           showOnMobile={draft.footerPaymentMethods.showOnMobile}
           onChange={(value) =>
-            patch({
-              footerPaymentMethods: {
-                ...draft.footerPaymentMethods,
-                ...value,
-              },
-            })
+            patch({ footerPaymentMethods: { ...draft.footerPaymentMethods, ...value } })
           }
           what="payment methods"
         />
       </PartBlock>
 
-      <PartBlock
-        label="Store promises"
-        hint="Add up to four merchant-owned promises. They appear in promise sections and footer layouts that support them; blank rows are not published."
-      >
-        <TrustBadgesField
-          badges={draft.badges}
-          setBadges={(badges) => patch({ badges })}
-        />
-      </PartBlock>
+      <PartHint>
+        Your phone number and social links are set in{" "}
+        <Link href="/ecommerce/settings" className="underline underline-offset-2">
+          Store settings
+        </Link>
+        .
+      </PartHint>
 
-      {layout === "contact" ? (
-        <PartBlock
-          label="Contact block"
-          hint="Your phone number comes from Settings → General, and the chat buttons from the WhatsApp button part. This footer shows them; it never stores a second copy."
-        >
-          <div className="space-y-1.5">
-            <Label>Heading</Label>
-            <Input
-              value={draft.footerContactHeading}
-              onChange={(e) => patch({ footerContactHeading: e.target.value })}
-              maxLength={60}
-              placeholder="Order by phone"
-            />
-          </div>
-        </PartBlock>
-      ) : null}
-
-      {layout === "newsletter" ? (
-        <PartBlock
-          label="Sign-up block"
-          hint="Addresses land under Online Store → Storefront Accounts → Subscribers. Leave a field empty to use the default wording."
-        >
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>Heading</Label>
-              <Input
-                value={draft.footerNewsletter.heading}
-                onChange={(e) => setNewsletter({ heading: e.target.value })}
-                maxLength={60}
-                placeholder="Stay in touch"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Input
-                value={draft.footerNewsletter.blurb}
-                onChange={(e) => setNewsletter({ blurb: e.target.value })}
-                maxLength={200}
-                placeholder="Get new arrivals and offers before anyone else."
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Button</Label>
-              <Input
-                value={draft.footerNewsletter.buttonLabel}
-                onChange={(e) => setNewsletter({ buttonLabel: e.target.value })}
-                maxLength={30}
-                placeholder="Subscribe"
-              />
-            </div>
-          </div>
-        </PartBlock>
-      ) : null}
-
-      {layout !== "contact" && layout !== "newsletter" ? (
-        <PartHint>
-          Contact and email sign-up blocks each belong to their own footer layout.
-        </PartHint>
-      ) : null}
+      <AlertDialog open={pendingLayout !== null} onOpenChange={(open) => !open && setPendingLayout(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace your footer blocks?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The footer goes back to this layout. Your link groups are kept; other blocks you
+              added are removed. Nothing changes on your shop until you save.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep my blocks</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingLayout) applyLayout(pendingLayout);
+                setPendingLayout(null);
+              }}
+            >
+              Use this layout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -3,8 +3,6 @@
 
 import Link from "next/link";
 import { storeHref } from "@/lib/storefront-links";
-import { useSfPreview } from "@/services/stores/use-sf-preview-store";
-import { Icon, type IconName } from "@/components/storefront/sf-icons";
 import { SocialLinks } from "@/components/storefront/social-links";
 import { Brand } from "@/components/storefront/logo-mark";
 import {
@@ -12,16 +10,16 @@ import {
   useHasContactSurface,
 } from "@/components/storefront/footer/footer-contact-card";
 import { FooterNewsletter } from "@/components/storefront/footer/footer-newsletter";
+import { BottomBar, FooterShell } from "@/components/storefront/footer/footer-frame";
+import { footerColumns, type FooterProps } from "@/components/storefront/footer/footer-model";
 import {
-  BottomBar,
+  FooterAnchor,
   FooterBrand,
   FooterCallLine,
-  FooterCol,
+  FooterCols,
   FooterColumns,
-  FooterShell,
-  footerColumns,
+  FooterPromises,
   footerLink,
-  type FooterProps,
 } from "@/components/storefront/footer/footer-pieces";
 
 /**
@@ -41,6 +39,7 @@ function BrandLead(props: FooterProps) {
       <FooterBrand
         name={props.name}
         logo={props.logo}
+        logoHeight={props.logoHeight}
         blurb={props.blurb}
       />
       <FooterCallLine phone={props.phone} t={props.t} />
@@ -51,7 +50,13 @@ function BrandLead(props: FooterProps) {
 
 /** Brand + link columns + the closing bar. The shared skeleton of three layouts. */
 function ColumnsBody(props: FooterProps) {
-  return <FooterColumns lead={<BrandLead {...props} />} columns={footerColumns(props)} />;
+  return (
+    <FooterColumns
+      lead={<BrandLead {...props} />}
+      columns={footerColumns(props)}
+      footerStyle={props.footerStyle}
+    />
+  );
 }
 
 function Bottom(props: FooterProps, center?: boolean) {
@@ -63,6 +68,7 @@ function Bottom(props: FooterProps, center?: boolean) {
       store={props.store}
       t={props.t}
       footerPaymentMethods={props.footerPaymentMethods}
+      footerStyle={props.footerStyle}
       center={center}
     />
   );
@@ -74,7 +80,7 @@ function Bottom(props: FooterProps, center?: boolean) {
  */
 export function ColumnsFooter(props: FooterProps) {
   return (
-    <FooterShell>
+    <FooterShell footerStyle={props.footerStyle}>
       <ColumnsBody {...props} />
       {Bottom(props)}
     </FooterShell>
@@ -88,31 +94,9 @@ export function ColumnsFooter(props: FooterProps) {
  * be invented by a visual template.
  */
 export function RichFooter(props: FooterProps) {
-  // Live draft wins so the Customize editor repaints as the merchant types.
-  const previewBadges = useSfPreview((s) => s.badges);
-  const saved = previewBadges ?? props.store?.trustBadges ?? [];
-  const fallbackIcons: IconName[] = ["shield", "truck", "coins"];
-  const trust = saved.flatMap((badge, i) => {
-    const label = badge.text?.trim();
-    return label
-      ? [{ icon: (badge.icon as IconName) || fallbackIcons[i % fallbackIcons.length], label }]
-      : [];
-  });
-
   return (
-    <FooterShell>
-      {/* A tinted band rather than three floating icons: the row is one claim
-          about the shop, and giving it a ground says so without a heading. */}
-      {trust.length ? <div className="sf-footer-trustbar">
-        {trust.map((tr) => (
-          <div key={tr.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
-              <Icon name={tr.icon} size={19} />
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{tr.label}</span>
-          </div>
-        ))}
-      </div> : null}
+    <FooterShell footerStyle={props.footerStyle}>
+      <FooterPromises promises={props.promises} />
 
       <ColumnsBody {...props} />
       {Bottom(props)}
@@ -134,13 +118,14 @@ export function ContactFooter(props: FooterProps) {
   if (!reachable) return <ColumnsFooter {...props} />;
 
   return (
-    <FooterShell>
+    <FooterShell footerStyle={props.footerStyle}>
       <div className="sf-footer-grid sf-footer-grid-3">
         <div className="sf-footer-lead">
           <div style={{ display: "flex", flexDirection: "column", gap: 15, alignItems: "flex-start" }}>
             <FooterBrand
               name={props.name}
               logo={props.logo}
+              logoHeight={props.logoHeight}
               blurb={props.blurb}
             />
             <SocialLinks social={props.store?.social} size={16} />
@@ -156,9 +141,7 @@ export function ContactFooter(props: FooterProps) {
           />
         </div>
         <div className="sf-footer-cols">
-          {footerColumns(props).map((column) => (
-            <FooterCol key={column.key} column={column} />
-          ))}
+          <FooterCols columns={footerColumns(props)} footerStyle={props.footerStyle} />
         </div>
       </div>
       {Bottom(props)}
@@ -183,11 +166,17 @@ export function ContactFooter(props: FooterProps) {
 export function NewsletterFooter(props: FooterProps) {
   const copy = props.newsletter;
   return (
-    <FooterShell>
+    <FooterShell footerStyle={props.footerStyle}>
       <FooterColumns
+        footerStyle={props.footerStyle}
         lead={
           <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start" }}>
-            <FooterBrand name={props.name} logo={props.logo} blurb={props.blurb} />
+            <FooterBrand
+              name={props.name}
+              logo={props.logo}
+              logoHeight={props.logoHeight}
+              blurb={props.blurb}
+            />
             <FooterNewsletter
               slug={props.slug}
               t={props.t}
@@ -215,10 +204,15 @@ export function SimpleFooter(props: FooterProps) {
   const links = footerColumns(props).flatMap((c) => c.links);
 
   return (
-    <FooterShell pad="30px var(--pad) 24px">
+    <FooterShell footerStyle={props.footerStyle} pad={{ top: 30, bottom: 24 }}>
       <div className="sf-footer-centered">
         <Link href={storeHref(props.base)} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <Brand name={props.name} logo={props.logo} markSize={30} nameSize={16} />
+          <Brand
+            name={props.name}
+            logo={props.logo}
+            markSize={props.logoHeight ? props.logoHeight - 4 : 30}
+            nameSize={16}
+          />
         </Link>
 
         <p
@@ -235,17 +229,9 @@ export function SimpleFooter(props: FooterProps) {
 
         {links.length > 0 ? (
           <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 20px" }}>
-            {links.map((l) =>
-              l.external ? (
-                <a key={l.key} href={l.href} style={footerLink}>
-                  {l.label}
-                </a>
-              ) : (
-                <Link key={l.key} href={l.href} style={footerLink}>
-                  {l.label}
-                </Link>
-              ),
-            )}
+            {links.map((l) => (
+              <FooterAnchor key={l.key} item={l} className="" style={footerLink} />
+            ))}
           </nav>
         ) : null}
 

@@ -1264,7 +1264,7 @@
       "title": "Edit customer SMS",
       "description": "Your customers get this text instead of the default. It is always sent as 1 SMS.",
       "bodyLabel": "Message",
-      "bodyHint": "English letters only. You can write Bangla in English letters (Banglish).",
+      "bodyHint": "English letters only. You can write Bangla in English letters (Banglish). Press Enter for a new line — it counts as 1 character.",
       "insert": "Insert",
       "fits": "Fits in 1 SMS",
       "tooLong": "Too long for 1 SMS",

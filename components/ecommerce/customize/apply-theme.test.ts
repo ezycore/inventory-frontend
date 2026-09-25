@@ -65,6 +65,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     footerGroups: [{ title: "Help", links: [] }],
     footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
     footerContentPages: { show: true, title: "Info" },
+    footerStyle: {},
+    footerBlocks: null,
     footerNote: "Dhaka, Bangladesh",
     footerContactHeading: "Order by phone",
     footerNewsletter: { heading: "Stay in touch", blurb: "", buttonLabel: "" },
@@ -239,6 +241,8 @@ describe("applyThemeToDraft", () => {
       "navHeader",
       "footerGroups",
       "footerContentPages",
+      "footerStyle",
+      "footerBlocks",
       "collections",
     ]) {
       expect(patch, key).not.toHaveProperty(key);

@@ -12,9 +12,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  PAGE_EDITOR_ATTR,
   PREVIEW_API_HEADER,
   PREVIEW_COOKIE,
   PREVIEW_SESSION_KEY,
+  isPageEditorFrame,
   isPreviewSession,
   previewApiHeaders,
   setStorefrontPreviewToken,
@@ -149,5 +151,19 @@ describe("previewApiHeaders", () => {
 
   it("names the header the backend middleware reads", () => {
     expect(previewApiHeaders("t.o.k")).toEqual({ [PREVIEW_API_HEADER]: "t.o.k" });
+  });
+});
+
+/**
+ * The header search and the cart drawer navigate with `router.push`, which the
+ * page editor's link capture cannot see — they ask this instead.
+ */
+describe("isPageEditorFrame", () => {
+  afterEach(() => document.documentElement.removeAttribute(PAGE_EDITOR_ATTR));
+
+  it("is false until the page editor has driven the frame, then true", () => {
+    expect(isPageEditorFrame()).toBe(false);
+    document.documentElement.setAttribute(PAGE_EDITOR_ATTR, "");
+    expect(isPageEditorFrame()).toBe(true);
   });
 });

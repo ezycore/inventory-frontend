@@ -140,7 +140,7 @@ export function MenuTreeList({
     initialOpenKeys(nodes, PHONE_OPEN_RULE[settings.open], pathname),
   );
   const [drilled, setDrilled] = useState<string | null>(null);
-  const { layout, viewAll, images } = settings;
+  const { layout, viewAll, images, subImages } = settings;
 
   const toggle = (key: string) =>
     setOpen((prev) => {
@@ -166,6 +166,7 @@ export function MenuTreeList({
         node={child}
         onClose={onClose}
         nested
+        images={subImages}
         current={isNodeActive(child, pathname)}
       />
     ));

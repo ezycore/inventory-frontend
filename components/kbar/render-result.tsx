@@ -1,3 +1,5 @@
+// coding-standard: maintained
+
 import { KBarResults, useMatches } from 'kbar';
 import ResultItem from './result-item';
 
@@ -9,7 +11,10 @@ export default function RenderResults() {
       items={results}
       onRender={({ item, active }) =>
         typeof item === 'string' ? (
-          <div className='text-primary-foreground px-4 py-2 text-sm uppercase opacity-50'>
+          // Section heading. Must be `muted-foreground`: `primary-foreground` is
+          // the color that sits ON the primary swatch, so against the palette's
+          // popover background it is near-invisible in both themes.
+          <div className='text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase'>
             {item}
           </div>
         ) : (

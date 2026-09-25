@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import type { StorefrontStore } from "@/lib/storefront-client";
 import { useContactLink } from "@/components/storefront/use-contact-link";
 import { Icon } from "@/components/storefront/sf-icons";
-import type { FooterT } from "@/components/storefront/footer/footer-pieces";
+import type { FooterT } from "@/components/storefront/footer/footer-model";
 import { brandButton } from "@/lib/storefront-button";
 
 /**

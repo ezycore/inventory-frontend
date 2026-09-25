@@ -886,11 +886,49 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   screenshot (`shownTestimonials`), and a new one starts nameless so a placeholder can't be saved; a
   CSS scroll-snap row on phones (`.sfb-cards`), no island. Benefits use `IconDisc`
   (`components/storefront/icon-disc.tsx`, shared with `PromiseRows`) and the section specs' shared
-  `ICON` enum. **Video embeds only through `parseVideoEmbed`** (`lib/storefront-builder/video-embed.ts`):
+  `ICON` enum — see **Icons in a section** below. **Video embeds only through `parseVideoEmbed`** (`lib/storefront-builder/video-embed.ts`):
   YouTube (watch, youtu.be, shorts, embed, live) and Facebook (videos, watch, reel, fb.watch), any other
   link draws nothing — never add a raw iframe URL path. The `video` island shows a cover (merchant
   picture, else YouTube's `hqdefault`) and loads `youtube-nocookie.com` / Facebook's plugin only on
   press; its accessible name is the merchant's `label`, since the dictionary has no "play" wording.
+- **Icons in a section (`ICON`, 2026-09-25).** Two block settings carry a glyph — a promise's and a
+  benefit card's — and both are the same `ICON` enum in `lib/storefront-builder/section-specs.ts`.
+  - **`NO_ICON` (`"none"`) is a stored value, not the empty one.** Unset is *not* "no icon" anywhere:
+    `PromiseRows` cycles truck/shield/tag **by position** and a benefit card draws `check`. So a
+    merchant who wanted a bare row had nothing to pick, and the fallbacks have to keep drawing for
+    every band written before the control. A renderer that adds an icon setting opts in by handling
+    `NO_ICON` itself — **the trust badges do not offer it**, because the header, the footer and the
+    hero card draw the same badge and substitute their own fallback.
+  - **A bare promise row needs `sf-trust-row--bare`.** `.sf-trust-row` is a two-column grid with a
+    34px track for the disc; drop the disc alone and the text renders *inside* that track, wrapping
+    two words to a line beside its full-width neighbours.
+  - **The control is a grid of the shapes** (`components/ecommerce/customize/icon-picker.tsx`):
+    `IconGrid` is the shared half and each caller owns its trigger — a full-width select-shaped one
+    (`IconPicker`, the section field, routed from `field-control.tsx` on the field **name** `icon`), a
+    9×9 square one (`TrustBadgesField`). A dropdown of names asked the merchant to imagine a shape
+    from a word, one row at a time, and had nowhere to put "No icon".
+  - **What unset says is `fieldEmptyChoice`'s job, as everywhere else:** `"benefits.icon"` is a
+    `value` entry (`check` — one fixed listed glyph, so the control shows it and offers no "Default"),
+    `"promises-band.icon"` is `meaning` ("The band decides" — the cycled glyph depends on position, so
+    no listed value says it).
+  - **Text drawn on a band INHERITS its colour; text on its own ground does not.** `.sfb-sec[data-tone]`
+    sets `color` on the frame, so a line that names `var(--text)` ignores the merchant's Text colour —
+    which is what `SectionTitle`'s `h2`, `PromiseRows`, `PickGrid`, `CollectionTiles` and the round
+    tiles in `CategoryTileRow` all did until 2026-09-25 (browser QA found it: yellow band,
+    theme-coloured words). All now `color: inherit`, which outside a builder section resolves to
+    `--text` — the classic home renders byte for byte as before.
+    **The line is OPAQUE ground vs tint, not "has a background".** Only a solid ground keeps the
+    theme's ink — `--card` in `tag-chip-links`, `category-banner-row`, the benefit/review cards and
+    the sticky bar — because the merchant's own colour on a white chip is what comes out unreadable.
+    A **translucent** tint grounds nothing: `--primary-soft` is 13% alpha, so a `category-tiles`
+    card composites over the band, and keeping the theme's dark ink on it made every label
+    unreadable the moment a merchant set a dark background (browser QA, same day, one fix later).
+    Those labels inherit, and their sentence reads `var(--sfb-muted, var(--muted))` — the token the
+    `--sfb-muted` note in `storefront-builder.css` exists for. Pinned in `catalogue-sections.test.tsx`.
+  - **The band's column count** is `promises-band.columns` (responsive, 1–4) over `--sfb-trust-track`
+    / `-m` on `.sfb-trust-list`; unset keeps the store's `--trustcols` ramp (three past the
+    breakpoint, one centred column on a phone). `PromiseRows` takes `className`/`style` for exactly
+    this — the classic home band passes neither.
 - **Spacer** (Phase 6, every page; `sections/spacer.tsx`). `space` is a required responsive px number
   written to `--sfb-space` / `--sfb-space-m` (`.sfb-spacer`), with a zero-padding registry frame so the
   band is exactly that tall; `line` draws a `::before` in `--border`. **Setting labels are shared by key**
@@ -915,6 +953,28 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   controlled-input parse round-trip rule). A catalogue entry with `pinned: true` gets a note instead of
   controls. The responsive marker is `PhoneNote` / `ResetToDesktop` (`editor/responsive-note.tsx`),
   shared with `SettingsFields` — use it for any new per-device control.
+- **The Outline is four keys, and `border` stays the boolean** (2026-09-25, plan §3 Phase 2b):
+  `border` switches it on, `borderSides` (`all` | `top` | `bottom` | `top-bottom`), `borderTone`
+  (`theme` | `strong` | `brand` | `accent` | `text`) and `borderWidth` (1–6px) describe it. Three rules
+  hold it together and each one is load-bearing:
+  - **Unset renders exactly what the switch alone drew.** `sectionFrame` resolves absent sides to `all`
+    and emits neither variable, so `storefront-builder.css`'s own fallbacks — `var(--sfb-border-w, 1px)`,
+    `var(--sfb-border-color, var(--border))` — apply to every page saved before these existed. Do not
+    widen `border` into an enum; that is a stored-shape change on live stores for nothing.
+  - **Sides are the attribute's VALUE** (`data-border="top-bottom"`), not a variable: no single
+    declaration takes "these edges", so each choice zeroes the widths it does not want.
+    `.sfb-sec[data-border]` still matches, which is what keeps the pre-2026-09-25 pages drawing.
+    ⚠ **The left and right edges sit at the WINDOW** — the border is on `.sfb-sec`, which always spans
+    the viewport, while `width` constrains `.sfb-inner` alone. So `all` is a box on the browser edges and
+    `top-bottom` is the rule between two sections; left/right alone is not offered, and an inset outline
+    would mean moving the border onto an inner element and restyling every page that has one today.
+  - **The colour is a tone, never a hex** — `BORDER_TONE` in `section-style.ts` is a total `Record`, so a
+    new tone fails to compile until it maps to a theme token. Same rule as `badgeTone`: the tokens are
+    redefined per preset and per dark mode, so the line survives a ground the merchant picks later. This
+    is the amended answer to the plan's D2, and the boundary S2 still holds.
+  - The three controls draw **only while the switch is on**, and switching it off **keeps** them
+    (`withBorder` leaves them alone, `textColor`'s rule) — hidden is not erased, and `sectionFrame` reads
+    none of them meanwhile, so nothing draws behind the merchant's back.
 - ⚠ **An optional list does not say "Default" any more** (`editor/field-empty-choice.ts`). Empty meant
   three different things behind one word, so each optional enum declares which it is: `inherit` (a
   Customize panel owns it — "Follow Product cards", "Follow Product page"), `meaning` (empty is its own
@@ -2060,17 +2120,28 @@ menu flattened beneath it. Now:
   the browsed department open, else the first; `drill` (a screen per category, Back row); `expanded`
   (the old list). The "All ‹category›" row keeps the parent page one tap away — when it is off the
   row splits into a link and a chevron, never a toggle alone.
+  Also per-phone (2026-09-25): `title` (the panel heading), `allProducts` + `allProductsLabel` (the
+  top "All products" row), `subImages` (pictures on sub-category rows; `images` is parents only).
+  Text is merchant-typed, capped at `MENU_TEXT_MAX` (40). `allProductsLabel` blank ⇒ `t.allProducts`.
+  `title` is tri-state: unset (`null`) ⇒ `t.menu`, `""` ⇒ **no heading** (merchant cleared it), else
+  the text. The editor shows "Menu" for unset and maps typing "Menu" back to `null` — never store the
+  English default, or a Bangla shopper reads English.
 - **Desktop** (`header-nav.tsx` + `header/nav-dropdown.tsx` + `header/use-nav-menu.ts`):
   `dropdown` list / columns / mega; `openOn` hover / click — and a **touch** always opens on the
   first tap (pointer events, so a hybrid laptop's mouse still hovers); `overflow` wrap / more
   (measures once with every item rendered, then works from cached widths).
+  The dropdown's "All ‹category›" row is `desktop.viewAll` (default off), **forced on** for
+  `openOn: click` and a touch-opened panel (the trigger didn't navigate). Until 2026-09-25 it was also
+  forced by any non-`list` layout, so Columns looked like it "added a row" — the layout has no say now.
+  `columns` only splits past 8 children (`PER_COLUMN`), so on a small tree it looks exactly like List.
 - **Sidebar** (`shells/rail-shell.tsx`): `railOpen` active (the original) / first / all / flyout.
   ⚠ flyout lifts the rail's internal scroll (`data-flyout`), because a scroll container would clip
   the pop-out — it suits the few-departments shop it is for.
 - **Customize → Menu** is its own row under Header (`parts/menu-part.tsx`,
   `menu-links-editor.tsx`, `menu-behaviour-fields.tsx`), opens the preview on a phone, and has a
-  Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout +
-  hover only.
+  Phone / Computer switch that moves the preview with it (`onPreviewDevice`). Header keeps layout
+  only; the hover axes (`navHover`/`navChildHover`, `menu-hover-fields.tsx`) moved to Menu →
+  Computer on 2026-09-25 — still `design` axes, so dirty state counts them under Look.
 
 ### Filters & sort — one layout, three pages (2026-09-24)
 
@@ -3634,11 +3705,45 @@ cached entry on the `/sites` route (see "Cached store pages").
   title/URL/date header-footer; whitespace lives in body padding (left/right — repeats every
   page) and `.doc` padding (top/bottom — repeats per document in bulk `.inv-page` breaks).
   Don't reintroduce `@page` margins, and don't collapse the two paths back into one.
-- **Footer** (rebuilt 2026-08-11 — **five** layouts): `store-footer.tsx` is the slim entry (variant
-  resolve + prop build); the bodies live in `components/storefront/footer/` — `footer-pieces.tsx`
-  (shell/brand/columns/bottom-bar + the `FooterColumn` model helpers
-  `groupColumns`/`contentPagesColumn`/`footerColumns`), `footer-variants.tsx` (the five),
-  `footer-contact-card.tsx` and `footer-newsletter.tsx`.
+- **Footer** (rebuilt 2026-08-11 — **five** layouts; **blocks + frame style** added 2026-09-25,
+  plan `docs/plan/storefront-footer-builder.md`): `store-footer.tsx` is the slim entry (variant
+  resolve + prop build); the bodies live in `components/storefront/footer/` — `footer-model.ts`
+  (`FooterProps` + the column model `groupLinks`/`groupColumns`/`contentPagesColumn`/`footerColumns`),
+  `footer-frame.tsx` (`FooterShell` + `BottomBar` + `PaymentBadges`), `footer-pieces.tsx`
+  (anchor/column/brand/call line/promises band), `footer-variants.tsx` (the five),
+  `footer-blocks.tsx` + `footer-block-views.tsx` (a composed footer), `footer-contact-card.tsx`
+  and `footer-newsletter.tsx`. Pure logic is in `lib/storefront-footer/` — `types.ts` (the ONE
+  declaration of every footer shape; `@/types` re-exports it and `storefront-client.ts` aliases
+  it), `links.ts`, `style.ts`, `blocks.ts`.
+
+  **Two renderers, chosen by data.** `nav.footerBlocks` non-empty ⇒ `BlocksFooter` draws the
+  merchant's blocks; otherwise the `templates.footer` layout draws exactly as before. The Customize
+  editor shows an uncomposed store its layout as blocks (`blocksFromLayout`) and the **first block
+  edit** saves the list — that is when a store moves renderers. Picking a layout again (after a
+  confirm) sets `footerBlocks` back to `null` and keeps the link groups. With blocks, `nav.footer` is
+  **derived** from the link blocks on save (`footerNav`, `customize/footer-payloads.ts`) so the
+  legacy copy never disagrees.
+
+  **Frame style is `nav.footerStyle`, not `theme`.** A ready-made theme replaces `theme`
+  wholesale, and a merchant's uploaded footer logo must not vanish because they tried a look.
+  `footerFrame()` turns it into `data-ground`/`data-ink`/`data-border` + `--ft-*` variables on
+  `.sf-footer`; a non-theme ground re-points `--text`/`--muted`/`--border`/`--surface`/`--card`
+  inside `.sf-footer-in`, and the brand ground swaps `--primary`/`--on-primary` so buttons invert.
+  Spacing and the bottom line are `{ base, mobile? }`, painted as `--ft-p*-m` / `data-align-m`, so
+  the phone state is right in the first byte. **`showPoweredBy: false` hides the "Powered by
+  EzyCore" credit — shown by default, merchant's switch on every plan (owner decision 2026-09-25).**
+  `phoneGroups` (`open`/`first`/`closed`) is the accordions' initial state, identical on server and
+  client; desktop CSS forces the bodies open regardless.
+
+  **Links resolve through `footerLinkTarget`** (`lib/storefront-footer/links.ts`): typed
+  `{ label, type: url|page|category, value, newTab? }`, with legacy `{ label, url }` rows still read
+  as `url`. A bare domain gets `https://` (it used to be a relative 404), `/shop/…` is normalized,
+  `tel:`/`mailto:` stay as typed, other schemes are refused, and a row with no label or no target
+  is dropped (it used to render `href="#"`). Internal targets render `<Link>`.
+
+  **Pictures** (footer logo, background photo, picture and logo-strip blocks) upload through
+  `useUploadStorefrontImage` the moment they are picked and save with the footer; the backend
+  deletes a picture a save dropped (`footerImageIds`, the announcement image's rule).
 
   | `templates.footer` | Layout | Left side | Notes |
   |---|---|---|---|
@@ -3654,7 +3759,8 @@ cached entry on the `/sites` route (see "Cached store pages").
   text — fine at the three-or-four groups it was designed for, and at **zero** groups (the default)
   it left two ~336px stacks with half the footer empty. Do not reintroduce an `fr` ceiling here.
   Below 680px every layout is one stacked column with tap-to-open accordions (per-column
-  `useState(true)` — SSR-safe, desktop heading inert + always-open).
+  `useState(defaultOpen)` from `footerStyle.phoneGroups`, default open — SSR-safe, desktop heading
+  inert + always-open).
 
   **Payments moved to the bottom bar.** They are a reassurance, not navigation, and being a column
   is what forced the extra track that left the gap. `BottomBar` is also where `theme.footerNote`
@@ -3669,9 +3775,10 @@ cached entry on the `/sites` route (see "Cached store pages").
 
   The auto **content-pages column** ("Information", from CMS pages flagged `showInFooter`) is
   controlled by `nav.footerContentPages { show?, title? }` — absent/`show!==false` shows it (legacy
-  default), `title` overrides the heading; Centered honours the toggle too. Edited in Customize →
-  **Footer** (`customize/footer-links-field.tsx` + `parts/footer-part.tsx`, whose per-layout blocks
-  only render for the layout that shows them). Groups, the content-pages toggle/heading, the variant
+  default), `title` overrides the heading; Centered honours the toggle too. In a composed footer
+  the same column is the `pages` block. Edited in Customize → **Footer** (`parts/footer-part.tsx`
+  orchestrating `customize/footer/*`: block list + inspector, link rows reusing the menu's
+  `LinkFields` + `useNavLinkOptions`, style, pictures, wording). Blocks, style, the variant
   **and all four copy fields** are live-previewed — the copy fields stream **raw**, so `""` reaches
   the preview store as "cleared → localized default" rather than falling back to the saved text. Social links
   are edited in admin Store Settings → General → Social

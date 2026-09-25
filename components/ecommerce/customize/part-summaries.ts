@@ -143,25 +143,18 @@ export function partSummary(
       // How the PHONE opens it — the half most shoppers meet, and the one a
       // merchant came here to change.
       const phone = MENU_MOBILE_LAYOUTS.find((o) => o.id === draft.navMenu.mobile.layout);
-      return `${links} · phone: ${phone?.label.toLowerCase() ?? "fold open"}`;
-    }
-    case "header": {
       /* Hover is appended only once it has been moved off `none`, the same
          rule the Look ramps follow: on the shop that never opened the control
          it would report a setting nobody made. */
       const hover = [
         ramp(DESIGN_NAV_HOVERS, draft.design.navHover, DEFAULT_DESIGN.navHover),
-        ramp(
-          DESIGN_NAV_HOVERS,
-          draft.design.navChildHover,
-          DEFAULT_DESIGN.navChildHover,
-        ),
+        ramp(DESIGN_NAV_HOVERS, draft.design.navChildHover, DEFAULT_DESIGN.navChildHover),
       ].filter(Boolean);
-      const hoverNote = hover.length
-        ? ` · ${[...new Set(hover)].join("/")} hover`
-        : "";
-      return `${labelOf("header", draft.templates.header)}${hoverNote}`;
+      const hoverNote = hover.length ? ` · ${[...new Set(hover)].join("/")} hover` : "";
+      return `${links} · phone: ${phone?.label.toLowerCase() ?? "fold open"}${hoverNote}`;
     }
+    case "header":
+      return labelOf("header", draft.templates.header);
     case "utility": {
       const u = draft.utilityBar;
       if (!u.enabled) return "Off";
@@ -193,6 +186,7 @@ export function partSummary(
       return `${number} · ${where} · bottom ${c.position}`;
     }
     case "footer": {
+      if (draft.footerBlocks) return `Your own layout · ${count(draft.footerBlocks.length, "block")}`;
       const groups = draft.footerGroups.filter((g) => g.title.trim()).length;
       const links = groups === 0 ? "no link groups" : count(groups, "link group");
       return `${labelOf("footer", draft.templates.footer)} · ${links}`;

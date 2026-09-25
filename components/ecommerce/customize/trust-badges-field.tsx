@@ -8,8 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/ui/components/popover";
-import { cn } from "@/ui/lib/utils";
 import { Icon as SfIcon, type IconName } from "@/components/storefront/sf-icons";
+import { IconGrid } from "@/components/ecommerce/customize/icon-picker";
 
 export const BADGE_ICON_CHOICES: IconName[] = [
   "shield",
@@ -49,25 +49,16 @@ function BadgeRow({
             <SfIcon name={(badge.icon as IconName) ?? "shield"} size={15} />
           </button>
         </PopoverTrigger>
-        <PopoverContent side="right" align="start" className="w-auto p-1.5">
-          <div className="grid grid-cols-4 gap-1">
-            {BADGE_ICON_CHOICES.map((name) => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => onChange({ icon: name })}
-                aria-label={name}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-md border transition-colors",
-                  badge.icon === name
-                    ? "border-primary text-primary ring-2 ring-primary/30"
-                    : "text-muted-foreground hover:bg-muted/50",
-                )}
-              >
-                <SfIcon name={name} size={15} />
-              </button>
-            ))}
-          </div>
+        <PopoverContent side="right" align="start" className="w-48 p-2">
+          {/* No "No icon" here: a badge's glyph is drawn by the header, the
+              footer and the hero card too, and those three substitute a
+              fallback rather than honouring `NO_ICON`. */}
+          <IconGrid
+            value={badge.icon}
+            choices={BADGE_ICON_CHOICES}
+            columns={4}
+            onPick={(icon) => onChange({ icon })}
+          />
         </PopoverContent>
       </Popover>
       <Input

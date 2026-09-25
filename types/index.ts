@@ -11,6 +11,13 @@ import type {
 } from "./api";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type { StoreFilterSettings, StoreMenuSettings } from "@/lib/storefront-client";
+import type {
+  StorefrontFooterBlock,
+  StorefrontFooterContentPages,
+  StorefrontFooterGroup,
+  StorefrontFooterPaymentMethods,
+  StorefrontFooterStyle,
+} from "@/lib/storefront-footer/types";
 
 // Common enums
 export enum ProductStatus {
@@ -488,33 +495,15 @@ export interface StorefrontMenuItem {
   childrenMode?: "auto" | "custom" | "none";
 }
 
-export interface StorefrontFooterLink {
-  label: string;
-  url: string;
-}
-
-export interface StorefrontFooterGroup {
-  title: string;
-  links: StorefrontFooterLink[];
-}
-
-/**
- * Owner controls for the auto content-pages footer column (published pages
- * flagged "Show in footer"). Absent ⇒ shown with the built-in "Information"
- * heading, so existing stores are unaffected.
- */
-export interface StorefrontFooterContentPages {
-  /** `false` hides the column entirely; absent/`true` ⇒ shown. */
-  show?: boolean;
-  /** Heading override; blank ⇒ the built-in localized "Information" label. */
-  title?: string;
-}
-
-/** Responsive visibility for the enabled payment-method badges in the footer. */
-export interface StorefrontFooterPaymentMethods {
-  showOnDesktop?: boolean;
-  showOnMobile?: boolean;
-}
+// Footer shapes are declared once, beside the storefront's own copy of them.
+export type {
+  StorefrontFooterLink,
+  StorefrontFooterGroup,
+  StorefrontFooterContentPages,
+  StorefrontFooterPaymentMethods,
+  StorefrontFooterStyle,
+  StorefrontFooterBlock,
+} from "@/lib/storefront-footer/types";
 
 export interface StorefrontAnnouncement {
   enabled: boolean;
@@ -598,6 +587,10 @@ export interface StorefrontNav {
   footerPaymentMethods?: StorefrontFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StorefrontFooterContentPages;
+  /** The footer's frame — colours, spacing, pictures, credit line. */
+  footerStyle?: StorefrontFooterStyle;
+  /** A composed footer. Absent ⇒ the `templates.footer` layout draws `footer`. */
+  footerBlocks?: StorefrontFooterBlock[];
   announcement?: StorefrontAnnouncement;
   /** Presentation of the campaign strip; not its schedule. */
   campaignStrip?: StorefrontCampaignStrip;

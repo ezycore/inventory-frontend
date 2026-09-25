@@ -299,6 +299,8 @@ const FIELD_LABELS: Record<string, string> = {
   buttonHref: "Button link",
   buttonLabel: "Button label",
   campaignBadge: "Show the running offer as the badge",
+  "hero.campaignId": "Which offer",
+  badgeTone: "Badge style",
   caption: "Caption",
   cardImageFit: "Card photo fit",
   cardImageRatio: "Card photo shape",
@@ -470,6 +472,7 @@ const HINTS: Record<string, string> = {
   openFirst: "Shows the first answer already open, for a page whose first answer is the one that sells.",
   flow: "Wrap puts what does not fit on another line. Scroll keeps one row a shopper swipes.",
   "testimonials.columns": "How many reviews sit side by side. On a phone this needs the row set to Wrap — a swipe row has no columns.",
+  "promises-band.columns": "How many promises sit side by side. Empty follows your shop — three on a computer, one on a phone; switch the preview to the phone to give it its own count.",
   /* Section-keyed like its neighbours: only the hero has this field today, but a
      bare key is the collision `frame` already walked into — see `"hero.frame"`. */
   "hero.mobileFirst":
@@ -545,7 +548,10 @@ const HINTS: Record<string, string> = {
   storeBanner: "Shows the banner from Customize → Look when the first slide has no picture.",
   storeWords: "Uses your store's name and the storefront's own button words, in the shopper's language, where yours are empty.",
   storePromises: "Shows the promises from Customize → Footer instead of the rows below, and stays in step with them.",
-  campaignBadge: "Names your running campaign when the first slide has no badge.",
+  campaignBadge: "Names a running campaign on any slide that has no badge of its own.",
+  "hero.campaignId":
+    "Empty picks for you: the storewide offer, else the one ending soonest. A chosen offer shows only while it is running.",
+  badgeTone: "Every style stays readable in light and dark. Accent follows Customize → Look.",
   promises: "Lists your promises from Customize → Footer under the hero card.",
   viewAll: "Goes to Link, or else to this row's collection or all products.",
   wholeRows: "Hides the few products a short last row would leave on their own.",
@@ -590,6 +596,20 @@ const FIELD_VALUE_LABELS: Record<string, Record<string, string>> = {
     dots: "Dots",
     arrows: "Arrows",
     both: "Both",
+  },
+  badgeTone: {
+    accent: "Accent (soft)",
+    brand: "Brand (soft)",
+    sale: "Sale red (soft)",
+    neutral: "Neutral",
+    solid: "Solid",
+  },
+  icon: {
+    // The grid shows the shape; these name the few whose word does not.
+    bolt: "Lightning",
+    card: "Payment card",
+    coins: "Money",
+    lock: "Padlock",
   },
   storeHeading: {
     featured: "“Featured products”",

@@ -15,6 +15,13 @@ import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
+import type {
+  StorefrontFooterBlock,
+  StorefrontFooterContentPages,
+  StorefrontFooterGroup,
+  StorefrontFooterPaymentMethods,
+  StorefrontFooterStyle,
+} from "@/lib/storefront-footer/types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -859,7 +866,11 @@ export interface StoreMenuSettings {
     open?: string;
     viewAll?: boolean;
     images?: boolean;
+    subImages?: boolean;
     chips?: string;
+    title?: string;
+    allProducts?: boolean;
+    allProductsLabel?: string;
   };
   desktop?: {
     dropdown?: string;
@@ -867,27 +878,17 @@ export interface StoreMenuSettings {
     railOpen?: string;
     overflow?: string;
     row?: boolean;
+    viewAll?: boolean;
   };
 }
 
-export interface StoreFooterGroup {
-  title: string;
-  links: { label: string; url: string }[];
-}
-
-/** Owner controls for the auto content-pages footer column. */
-export interface StoreFooterContentPages {
-  /** `false` hides the column; absent/`true` ⇒ shown. */
-  show?: boolean;
-  /** Heading override; blank ⇒ the built-in localized "Information" label. */
-  title?: string;
-}
-
-/** Responsive visibility for enabled payment-method badges in the footer. */
-export interface StoreFooterPaymentMethods {
-  showOnDesktop?: boolean;
-  showOnMobile?: boolean;
-}
+// Footer shapes are declared once in `lib/storefront-footer/types.ts`; these
+// are the storefront's names for them.
+export type StoreFooterGroup = StorefrontFooterGroup;
+export type StoreFooterContentPages = StorefrontFooterContentPages;
+export type StoreFooterPaymentMethods = StorefrontFooterPaymentMethods;
+export type StoreFooterStyle = StorefrontFooterStyle;
+export type StoreFooterBlock = StorefrontFooterBlock;
 
 /**
  * Sign-up copy for the Stay-in-touch footer (`theme.footerNewsletter`).
@@ -980,6 +981,10 @@ export interface StoreNav {
   footerPaymentMethods?: StoreFooterPaymentMethods;
   /** Owner controls for the auto content-pages footer column. */
   footerContentPages?: StoreFooterContentPages;
+  /** The footer's frame — colours, spacing, pictures, credit line. */
+  footerStyle?: StoreFooterStyle;
+  /** A composed footer. Absent ⇒ the `templates.footer` layout draws `footer`. */
+  footerBlocks?: StoreFooterBlock[];
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
   utilityBar?: StoreUtilityBar;

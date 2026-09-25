@@ -141,4 +141,22 @@ describe("MenuTreeList — the other layouts", () => {
     expect(screen.getByText("Velvet")).toBeInTheDocument();
     expect(screen.getByText("Cushions").closest("a")).toHaveAttribute("href", "/cushions");
   });
+
+  it("draws sub-category pictures only when that switch is on", () => {
+    state.pathname = "/";
+    const withImages = NODES.map((n) => ({
+      ...n,
+      image: "https://cdn.test/p.webp",
+      children: n.children.map((c) => ({ ...c, image: "https://cdn.test/c.webp" })),
+    }));
+    const { container, rerender } = render(
+      <MenuTreeList nodes={withImages} settings={phone({ layout: "expanded", images: true })} onClose={() => {}} />,
+    );
+    const pics = () => [...container.querySelectorAll("img")].map((i) => i.getAttribute("src") ?? "");
+    expect(pics().some((src) => src.includes("c.webp"))).toBe(false);
+    rerender(
+      <MenuTreeList nodes={withImages} settings={phone({ layout: "expanded", images: true, subImages: true })} onClose={() => {}} />,
+    );
+    expect(pics().some((src) => src.includes("c.webp"))).toBe(true);
+  });
 });

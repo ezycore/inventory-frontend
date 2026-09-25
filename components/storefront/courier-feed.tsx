@@ -30,6 +30,11 @@ export interface CourierFeedEvent {
  * wearing the tone of whichever event came last. The admin timeline shipped
  * exactly that bug, and only a browser caught it.
  *
+ * **Newest first**, matching the admin `CourierTimeline`: on a phone the latest
+ * update is what the shopper came for, and it must not sit below a dozen older
+ * rows. Grouping runs on the stored ascending order, then groups and their events
+ * are flipped for display.
+ *
  * The event sentences are the courier's free text — hub and rider names — so they
  * stay in the provider's English for every reader; the phase heading is a closed
  * vocabulary and IS translated (`courierGroupLabel`).
@@ -47,6 +52,17 @@ export function CourierFeed({ history }: { history: CourierFeedEvent[] }) {
 
   if (!groups.length) return null;
 
+  const display = groups
+    .map((group) => ({
+      name: group.name,
+      // A phase is however it ended up, so the heading takes its tone from the
+      // chronologically LAST event under it — resolved before the flip.
+      tone: courierStatusPresentation(group.events[group.events.length - 1]?.status)
+        .tone,
+      events: [...group.events].reverse(),
+    }))
+    .reverse();
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <span
@@ -61,13 +77,9 @@ export function CourierFeed({ history }: { history: CourierFeedEvent[] }) {
         {t.deliveryUpdates}
       </span>
 
-      {groups.map((group, gi) => {
-        // A phase is however it ended up, so the heading takes its tone from the
-        // LAST event under it.
-        const tone = courierStatusPresentation(
-          group.events[group.events.length - 1]?.status,
-        ).tone;
-        const isLast = gi === groups.length - 1;
+      {display.map((group, gi) => {
+        const tone = group.tone;
+        const isLast = gi === display.length - 1;
 
         return (
           <div key={gi} style={{ display: "flex", gap: 7 }}>

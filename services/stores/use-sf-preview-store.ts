@@ -9,8 +9,10 @@ import type {
   StoreAnnouncement,
   StoreCampaignStrip,
   StoreContactButton,
+  StoreFooterBlock,
   StoreFooterContentPages,
   StoreFooterGroup,
+  StoreFooterStyle,
   StoreFooterPaymentMethods,
   StoreFooterNewsletter,
   StoreHeroBanner,
@@ -140,6 +142,14 @@ interface SfPreviewState {
   footerPaymentMethods: StoreFooterPaymentMethods | null;
   /** Draft controls for the auto content-pages footer column. */
   footerContentPages: StoreFooterContentPages | null;
+  /** Draft footer frame (Customize → Footer). `{}` is a real draft: "all defaults". */
+  footerStyle: StoreFooterStyle | null;
+  /**
+   * Draft composed footer. `undefined` until drafted, and `null` is a real
+   * draft — "no blocks, draw the fixed layout" — so consumers check
+   * `!== undefined`, never `?? saved`.
+   */
+  footerBlocks?: StoreFooterBlock[] | null;
   /**
    * Draft footer copy (Customize → Footer): the brand blurb, the bottom-bar
    * note, the Contact-first heading and the sign-up wording.
@@ -244,6 +254,8 @@ interface SfPreviewState {
     footerGroups?: StoreFooterGroup[];
     footerPaymentMethods?: StoreFooterPaymentMethods;
     footerContentPages?: StoreFooterContentPages;
+    footerStyle?: StoreFooterStyle;
+    footerBlocks?: StoreFooterBlock[] | null;
     footerText?: string;
     footerNote?: string;
     footerContactHeading?: string;
@@ -301,6 +313,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footerGroups: null,
   footerPaymentMethods: null,
   footerContentPages: null,
+  footerStyle: null,
+  footerBlocks: undefined,
   footerText: null,
   footerNote: null,
   footerContactHeading: null,
@@ -382,6 +396,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.footerContentPages !== undefined
           ? patch.footerContentPages
           : s.footerContentPages,
+      footerStyle:
+        patch.footerStyle !== undefined ? patch.footerStyle : s.footerStyle,
+      footerBlocks:
+        patch.footerBlocks !== undefined ? patch.footerBlocks : s.footerBlocks,
       footerText: patch.footerText !== undefined ? patch.footerText : s.footerText,
       footerNote: patch.footerNote !== undefined ? patch.footerNote : s.footerNote,
       footerContactHeading:

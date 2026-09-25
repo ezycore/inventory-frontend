@@ -110,7 +110,18 @@ export interface ResolvedMenuSettings {
     open: MenuOpenGroup;
     viewAll: boolean;
     images: boolean;
+    /** Pictures on the sub-category rows too — separate from `images`, which is the parents'. */
+    subImages: boolean;
     chips: MenuChips;
+    /**
+     * The panel's heading. `null` (never set) ⇒ the shopper's-language "Menu";
+     * `""` ⇒ the merchant cleared it, so no heading at all.
+     */
+    title: string | null;
+    /** The "All products" row at the top of the panel. */
+    allProducts: boolean;
+    /** That row's label; blank ⇒ the shopper's-language "All products". */
+    allProductsLabel: string;
   };
   desktop: {
     dropdown: MenuDropdown;
@@ -118,6 +129,11 @@ export interface ResolvedMenuSettings {
     railOpen: MenuRailOpen;
     overflow: MenuOverflow;
     row: boolean;
+    /**
+     * An "All ‹category›" row heading each dropdown. Forced on whenever the
+     * trigger is not a link (click-to-open, a touch) — see `header-nav.tsx`.
+     */
+    viewAll: boolean;
   };
 }
 
@@ -128,7 +144,11 @@ export const DEFAULT_MENU_SETTINGS: ResolvedMenuSettings = {
     open: "active",
     viewAll: true,
     images: false,
+    subImages: false,
     chips: "parents",
+    title: null,
+    allProducts: true,
+    allProductsLabel: "",
   },
   desktop: {
     dropdown: "list",
@@ -136,6 +156,7 @@ export const DEFAULT_MENU_SETTINGS: ResolvedMenuSettings = {
     railOpen: "active",
     overflow: "wrap",
     row: false,
+    viewAll: false,
   },
 };
 
@@ -145,6 +166,14 @@ function pick<T extends string>(options: readonly MenuOption<T>[], raw: unknown)
 
 const bool = (raw: unknown, fallback: boolean): boolean =>
   typeof raw === "boolean" ? raw : fallback;
+
+/** Merchant-typed text, capped like the backend (`MENU_TEXT_MAX`); blank ⇒ the localized default. */
+export const MENU_TEXT_MAX = 40;
+const text = (raw: unknown): string =>
+  typeof raw === "string" ? raw.trim().slice(0, MENU_TEXT_MAX) : "";
+/** Like `text`, but keeps "never set" (`null`) apart from "cleared" (`""`). */
+const optionalText = (raw: unknown): string | null =>
+  typeof raw === "string" ? text(raw) : null;
 
 /** Narrow a stored `nav.menu` — an unknown or retired id reads as the default. */
 export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMenuSettings {
@@ -156,7 +185,11 @@ export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMen
       open: pick(MENU_OPEN_GROUPS, raw?.mobile?.open),
       viewAll: bool(raw?.mobile?.viewAll, d.mobile.viewAll),
       images: bool(raw?.mobile?.images, d.mobile.images),
+      subImages: bool(raw?.mobile?.subImages, d.mobile.subImages),
       chips: pick(MENU_CHIPS, raw?.mobile?.chips),
+      title: optionalText(raw?.mobile?.title),
+      allProducts: bool(raw?.mobile?.allProducts, d.mobile.allProducts),
+      allProductsLabel: text(raw?.mobile?.allProductsLabel),
     },
     desktop: {
       dropdown: pick(MENU_DROPDOWNS, raw?.desktop?.dropdown),
@@ -164,6 +197,7 @@ export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMen
       railOpen: pick(MENU_RAIL_OPEN, raw?.desktop?.railOpen),
       overflow: pick(MENU_OVERFLOW, raw?.desktop?.overflow),
       row: bool(raw?.desktop?.row, d.desktop.row),
+      viewAll: bool(raw?.desktop?.viewAll, d.desktop.viewAll),
     },
   };
 }
@@ -188,8 +222,17 @@ export function menuSettingsOverrides(
   const d = DEFAULT_MENU_SETTINGS;
   const out: StoreMenuSettings = {};
   if (settings.subcategories !== d.subcategories) out.subcategories = settings.subcategories;
-  const mobile = diff(settings.mobile, d.mobile);
-  if (mobile) out.mobile = mobile;
+  // The editor holds text as typed; store it the way the resolver reads it.
+  const mobile = diff(
+    {
+      ...settings.mobile,
+      title: optionalText(settings.mobile.title),
+      allProductsLabel: text(settings.mobile.allProductsLabel),
+    },
+    d.mobile,
+  );
+  // `title` is only emitted when it differs from the `null` default, so it is a string.
+  if (mobile) out.mobile = mobile as StoreMenuSettings["mobile"];
   const desktop = diff(settings.desktop, d.desktop);
   if (desktop) out.desktop = desktop;
   return Object.keys(out).length ? out : undefined;

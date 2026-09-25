@@ -56,6 +56,8 @@ export function MobileMenuPanel({
   settings: ResolvedMenuSettings["mobile"];
 }) {
   const { t } = useStorefrontUI();
+  // Never set ⇒ the shopper's-language default; cleared ⇒ no heading.
+  const title = settings.title ?? t.menu;
   const body = (
     <MenuBody
       base={base}
@@ -73,14 +75,14 @@ export function MobileMenuPanel({
     // close button — the same shell the cart and the filter panel slide in on,
     // so the shop has one drawer rather than three that drift apart.
     return (
-      <SideDrawer open={open} onClose={onClose} side="left" title={t.menu}>
+      <SideDrawer open={open} onClose={onClose} side="left" title={title}>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0 14px" }}>{body}</div>
       </SideDrawer>
     );
   }
   if (!open) return null;
   return (
-    <MenuSheet onClose={onClose} title={t.menu}>
+    <MenuSheet onClose={onClose} title={title}>
       {body}
     </MenuSheet>
   );
@@ -216,11 +218,17 @@ function MenuBody({
         settings={settings}
         onClose={onClose}
         lead={
-          <SheetLink
-            node={{ href: storeHref(base, "/products"), external: false, label: t.allProducts }}
-            onClose={onClose}
-            strong
-          />
+          settings.allProducts ? (
+            <SheetLink
+              node={{
+                href: storeHref(base, "/products"),
+                external: false,
+                label: settings.allProductsLabel || t.allProducts,
+              }}
+              onClose={onClose}
+              strong
+            />
+          ) : null
         }
       />
 

@@ -6,6 +6,9 @@ import {
   anchorOf,
   backgroundOf,
   borderOf,
+  borderSidesOf,
+  borderToneOf,
+  borderWidthOf,
   overlayOf,
   paddingFor,
   radiusOf,
@@ -17,6 +20,9 @@ import {
   withAnchor,
   withBackground,
   withBorder,
+  withBorderSides,
+  withBorderTone,
+  withBorderWidth,
   withOverlay,
   withPadding,
   withRadius,
@@ -182,6 +188,20 @@ describe("corners, outline, shade, colour and name", () => {
     expect(borderOf(withBorder({}, true))).toBe(true);
     // Off is no key at all, not `false` — "Section's own" means an empty box.
     expect(withBorder(withBorder({}, true), false)).toEqual({});
+
+    expect(borderSidesOf(withBorderSides({}, "top-bottom"))).toBe("top-bottom");
+    expect(borderToneOf(withBorderTone({}, "brand"))).toBe("brand");
+    expect(borderWidthOf(withBorderWidth({}, 3))).toBe(3);
+    // Out of range or fractional is not a value the backend takes, so it reads
+    // as unset and the control shows the hairline.
+    expect(borderWidthOf({ borderWidth: 7 })).toBeUndefined();
+    expect(borderWidthOf({ borderWidth: 2.5 })).toBeUndefined();
+
+    // ⚠ Switching the line off KEEPS its sides, tone and thickness — hidden is
+    // not erased, the rule `withTone` follows for `textColor`. Nothing draws
+    // them meanwhile (`sectionFrame` reads them only while `border` is on).
+    const built = withBorderWidth(withBorderTone(withBorderSides(withBorder({}, true), "top"), "accent"), 2);
+    expect(withBorder(built, false)).toEqual({ borderSides: "top", borderTone: "accent", borderWidth: 2 });
 
     expect(overlayOf(withOverlay({}, 40))).toBe(40);
     expect(withOverlay(withOverlay({}, 40), undefined)).toEqual({});

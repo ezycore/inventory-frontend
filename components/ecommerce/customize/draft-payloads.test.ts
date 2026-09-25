@@ -41,23 +41,27 @@ const payload = publicCollections;
 describe("publicCollections (the preview's category payload)", () => {
   it("nests children under their parent and carries slugPath", () => {
     const out = payload([
-      row({ _id: "lights", name: "Lights", slug: "lights", slugPath: "lights" }),
+      row({ _id: "lights", name: "Lights", slug: "lights", slugPath: "lights", image: { thumbnailUrl: "p.webp" } }),
       row({
         _id: "led",
         name: "Led",
         slug: "led",
         slugPath: "lights/led",
         parentId: "lights",
+        image: { thumbnailUrl: "c.webp" },
       }),
     ]);
+    // Pictures ride along, parents AND children — the phone menu's picture
+    // switches did nothing in the preview while this payload dropped them.
     expect(out).toEqual([
       {
         _id: "lights",
         name: "Lights",
         slug: "lights",
         slugPath: "lights",
+        image: { thumbnailUrl: "p.webp" },
         children: [
-          { _id: "led", name: "Led", slug: "led", slugPath: "lights/led" },
+          { _id: "led", name: "Led", slug: "led", slugPath: "lights/led", image: { thumbnailUrl: "c.webp" } },
         ],
       },
     ]);
@@ -198,6 +202,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   footerGroups: [],
   footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
   footerContentPages: { show: true, title: "" },
+  footerStyle: {},
+  footerBlocks: null,
   footerNote: "",
   footerContactHeading: "",
   footerNewsletter: { heading: "", blurb: "", buttonLabel: "" },

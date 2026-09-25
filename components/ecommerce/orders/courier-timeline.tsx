@@ -17,11 +17,11 @@ type CourierEvent = NonNullable<
  * — hub name, rider name, a weight correction. Before, a merchant saw one line
  * saying "In transit" and had to open the courier's website to learn anything.
  *
- * **Ascending, oldest first.** Both providers order their panels differently
- * (Pathao ascending, Steadfast descending), so neither is "the" convention — but
- * this is the same order the shopper's timeline uses, and the manual-courier panel
- * frames the feed as "progress your customer sees". A merchant comparing the two
- * screens should not have to read them in opposite directions.
+ * **Descending, newest first.** A Pathao feed runs to a dozen events, and the one
+ * a merchant opens the order for is the latest — oldest-first pushed it below the
+ * fold on a phone. The shopper's feed (`CourierFeed`) uses the same order, and the
+ * manual-courier panel frames this as "progress your customer sees", so the two
+ * screens must never read in opposite directions: change both or neither.
  */
 export function CourierTimeline({
   history,
@@ -52,15 +52,24 @@ export function CourierTimeline({
     else groups.push({ name: event.group, events: [event] });
   }
 
+  // Grouped in stored (ascending) order above, then flipped for display: groups
+  // AND the events inside each one, so the newest event is the first row.
+  const display = groups
+    .map((group) => ({
+      name: group.name,
+      // The group's tone follows its chronologically LAST event: a heading is a
+      // phase, and the phase is however it ended up.
+      tone: courierStatusPresentation(group.events[group.events.length - 1]?.status)
+        .tone,
+      events: [...group.events].reverse(),
+    }))
+    .reverse();
+
   return (
     <div className="flex flex-col">
-      {groups.map((group, gi) => {
-        const isLastGroup = gi === groups.length - 1;
-        // The group's tone follows its LAST event: a heading is a phase, and the
-        // phase is however it ended up.
-        const tone = courierStatusPresentation(
-          group.events[group.events.length - 1]?.status,
-        ).tone;
+      {display.map((group, gi) => {
+        const isLastGroup = gi === display.length - 1;
+        const tone = group.tone;
 
         return (
           <div key={gi} className="flex gap-3">

@@ -3,6 +3,9 @@
 
 import dynamic from "next/dynamic";
 import type { SectionFieldSpec } from "@/lib/storefront-builder/field-specs";
+import { NO_ICON } from "@/lib/storefront-builder/section-specs";
+import { IconPicker } from "@/components/ecommerce/customize/icon-picker";
+import type { IconName } from "@/components/storefront/sf-icons";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -22,6 +25,8 @@ const RichTextEditor = dynamic(
 const LONG_TEXT = 200;
 /** An optional list's "not set" choice — what it means is `fieldEmptyChoice`. */
 const DEFAULT_CHOICE = "__default";
+/** The one setting drawn as a grid of glyphs rather than a list of names. */
+const ICON_FIELD = "icon";
 
 /**
  * The input for one setting, chosen by its spec type. Pictures and focus points
@@ -93,11 +98,27 @@ export function FieldControl({
         />
       );
     case "enum": {
+      const empty = spec.optional ? fieldEmptyChoice(sectionType, name) : undefined;
+      /* A glyph is chosen by looking at it, not by reading its name off a list
+         one row at a time — and only a grid has room for the "No icon" choice,
+         which is a stored value here because unset draws a fallback. */
+      if (name === ICON_FIELD) {
+        return (
+          <IconPicker
+            id={id}
+            value={typeof value === "string" ? value : empty?.kind === "value" ? empty.value : undefined}
+            choices={spec.values.filter((option) => option !== NO_ICON) as IconName[]}
+            labelOf={(option) => valueLabel(option, name, sectionType)}
+            emptyLabel={empty?.kind === "value" ? undefined : (empty?.label ?? (spec.optional ? "Default" : undefined))}
+            allowNone={spec.values.includes(NO_ICON)}
+            onChange={onChange}
+          />
+        );
+      }
       const options = spec.values.map((option) => ({
         value: option,
         label: valueLabel(option, name, sectionType),
       }));
-      const empty = spec.optional ? fieldEmptyChoice(sectionType, name) : undefined;
       // A built-in fallback is not a state of its own: the control shows the
       // value the section already draws, so nothing sits behind a "Default".
       if (empty?.kind === "value") {
