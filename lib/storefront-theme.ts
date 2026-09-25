@@ -263,6 +263,50 @@ export const DESIGN_NAV_HOVERS: DesignOption[] = [
 ];
 
 /**
+ * How the menu marks the page the shopper is on — every menu surface at once:
+ * the phone menu, the collection page's sub-category row, the desktop header
+ * row and its dropdowns, and the category sidebar. One answer, so a shop reads
+ * the same on the phone and the computer.
+ *
+ * Unlike hover this DOES reach a phone: "you are here" matters most in the
+ * phone menu, where it is the only sign of where the shopper stands.
+ *
+ * `fill` is the default because it is what the phone menu and the sidebar drew
+ * before this existed (soft fill + leading bar). Where a surface has no room
+ * for a bar — the header row, a chip — each style draws its nearest
+ * equivalent; the stylesheet (`.sf-current`) owns those translations.
+ */
+export const DESIGN_NAV_ACTIVES: DesignOption[] = [
+  { id: "fill", label: "Fill", description: "A soft background in the colour, with a bar at its edge" },
+  { id: "bar", label: "Bar", description: "A bar at its edge and the colour — no background" },
+  { id: "color", label: "Colour", description: "The label alone takes the colour, in bold" },
+  { id: "underline", label: "Underline", description: "The label is underlined in the colour" },
+];
+
+/**
+ * Which colour marks it. Tokens first: `brand` and `accent` follow the
+ * merchant's colours through light and dark. `custom` reads `navActiveCustom`
+ * and gets the same dark-theme lift the brand colour does
+ * (`activeColorStyle` in `lib/storefront-shell-theme.ts`), so a navy picked on
+ * the light theme never vanishes on the dark one.
+ *
+ * `accent` exists because a brand colour can be near-black — every row of the
+ * menu is then already that colour, and the current page does not stand out.
+ */
+export const DESIGN_NAV_ACTIVE_COLORS: DesignOption[] = [
+  { id: "brand", label: "Brand", description: "Your brand colour" },
+  { id: "accent", label: "Accent", description: "Your second colour, from Look" },
+  { id: "custom", label: "Custom", description: "A colour of your own" },
+];
+
+/** A stored custom colour, narrowed to `#rrggbb`; anything else is none. */
+export function navActiveCustomColor(raw: unknown): string {
+  return typeof raw === "string" && /^#[0-9a-f]{6}$/i.test(raw.trim())
+    ? raw.trim().toLowerCase()
+    : "";
+}
+
+/**
  * Buttons — plan §5.1 `buttons { shape, style, size }` (Storefront Builder
  * Phase 6, step 8), kept in `design` beside the other axes until the look is
  * reshaped.
@@ -328,6 +372,10 @@ export interface StoreDesign {
   width: string;
   navHover: string;
   navChildHover: string;
+  navActive: string;
+  navActiveColor: string;
+  /** `#rrggbb`, or `""` — read only while `navActiveColor` is `custom`. */
+  navActiveCustom: string;
   buttonShape: string;
   buttonStyle: string;
   buttonSize: string;
@@ -349,6 +397,9 @@ export const DEFAULT_DESIGN: StoreDesign = {
   width: DESIGN_WIDTHS[0].id,
   navHover: DESIGN_NAV_HOVERS[0].id,
   navChildHover: DESIGN_NAV_HOVERS[0].id,
+  navActive: DESIGN_NAV_ACTIVES[0].id,
+  navActiveColor: DESIGN_NAV_ACTIVE_COLORS[0].id,
+  navActiveCustom: "",
   buttonShape: DESIGN_BUTTON_SHAPES[0].id,
   buttonStyle: DESIGN_BUTTON_STYLES[0].id,
   buttonSize: DESIGN_BUTTON_SIZES[0].id,
@@ -365,6 +416,8 @@ const RADIUS_IDS = idsOf(DESIGN_RADII);
 const WIDTH_IDS = idsOf(DESIGN_WIDTHS);
 // One catalogue, both axes: the two rows offer the same answers.
 const NAV_HOVER_IDS = idsOf(DESIGN_NAV_HOVERS);
+const NAV_ACTIVE_IDS = idsOf(DESIGN_NAV_ACTIVES);
+const NAV_ACTIVE_COLOR_IDS = idsOf(DESIGN_NAV_ACTIVE_COLORS);
 const BUTTON_SHAPE_IDS = idsOf(DESIGN_BUTTON_SHAPES);
 const BUTTON_STYLE_IDS = idsOf(DESIGN_BUTTON_STYLES);
 const BUTTON_SIZE_IDS = idsOf(DESIGN_BUTTON_SIZES);
@@ -390,12 +443,21 @@ export function resolveDesign(design?: {
   width?: string;
   navHover?: string;
   navChildHover?: string;
+  navActive?: string;
+  navActiveColor?: string;
+  navActiveCustom?: string;
   buttonShape?: string;
   buttonStyle?: string;
   buttonSize?: string;
   headingWeight?: string;
   headingCase?: string;
 }): StoreDesign {
+  const navActiveCustom = navActiveCustomColor(design?.navActiveCustom);
+  const navActiveColor = pickId(
+    NAV_ACTIVE_COLOR_IDS,
+    design?.navActiveColor,
+    DEFAULT_DESIGN.navActiveColor,
+  );
   return {
     font: pickId(FONT_IDS, design?.font, DEFAULT_DESIGN.font),
     surface: pickId(SURFACE_IDS, design?.surface, DEFAULT_DESIGN.surface),
@@ -409,6 +471,11 @@ export function resolveDesign(design?: {
       design?.navChildHover,
       DEFAULT_DESIGN.navChildHover,
     ),
+    navActive: pickId(NAV_ACTIVE_IDS, design?.navActive, DEFAULT_DESIGN.navActive),
+    // `custom` with no usable colour is the brand: there is nothing to paint.
+    navActiveColor:
+      navActiveColor === "custom" && !navActiveCustom ? DEFAULT_DESIGN.navActiveColor : navActiveColor,
+    navActiveCustom,
     buttonShape: pickId(BUTTON_SHAPE_IDS, design?.buttonShape, DEFAULT_DESIGN.buttonShape),
     buttonStyle: pickId(BUTTON_STYLE_IDS, design?.buttonStyle, DEFAULT_DESIGN.buttonStyle),
     buttonSize: pickId(BUTTON_SIZE_IDS, design?.buttonSize, DEFAULT_DESIGN.buttonSize),
@@ -443,6 +510,8 @@ export function designAttrs(design: StoreDesign) {
       design.navChildHover,
       DEFAULT_DESIGN.navChildHover,
     ),
+    "data-nav-active": omitDefault(design.navActive, DEFAULT_DESIGN.navActive),
+    "data-nav-active-color": omitDefault(design.navActiveColor, DEFAULT_DESIGN.navActiveColor),
     "data-button-shape": omitDefault(design.buttonShape, DEFAULT_DESIGN.buttonShape),
     "data-button-style": omitDefault(design.buttonStyle, DEFAULT_DESIGN.buttonStyle),
     "data-button-size": omitDefault(design.buttonSize, DEFAULT_DESIGN.buttonSize),

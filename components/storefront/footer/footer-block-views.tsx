@@ -228,7 +228,7 @@ const VIEWS: Record<StoreFooterBlock["type"], (p: BlockViewProps) => ReactNode> 
   pages: PagesBlock,
   contact: ContactBlock,
   newsletter: NewsletterBlock,
-  promises: ({ props }) => <FooterPromises promises={props.promises} />,
+  promises: ({ block, props }) => <FooterPromises promises={props.promises} iconStyle={block.iconStyle} />,
   text: TextBlock,
   image: ImageBlock,
   logos: LogosBlock,

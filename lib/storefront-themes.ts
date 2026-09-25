@@ -143,6 +143,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          left behind. */
       navHover: "none",
       navChildHover: "none",
+      navActive: "fill",
+      navActiveColor: "brand",
+      navActiveCustom: "",
       // Buttons and heading type (Phase 6): a theme stamps them back to
       // Default like every other axis, so applying one is a whole look.
       buttonShape: "auto",
@@ -226,6 +229,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // is the same shape language the rest of the theme already speaks.
       navHover: "highlight",
       navChildHover: "highlight",
+      navActive: "fill",
+      navActiveColor: "brand",
+      navActiveCustom: "",
       buttonShape: "auto",
       buttonStyle: "solid",
       buttonSize: "md",
@@ -362,6 +368,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // ordinary highlighted row in the list of departments beneath it.
       navHover: "color",
       navChildHover: "highlight",
+      navActive: "fill",
+      navActiveColor: "brand",
+      navActiveCustom: "",
       buttonShape: "auto",
       buttonStyle: "solid",
       buttonSize: "md",
@@ -467,6 +476,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
          — an underline is the answer a fashion book would give. */
       navHover: "underline",
       navChildHover: "color",
+      navActive: "fill",
+      navActiveColor: "brand",
+      navActiveCustom: "",
       buttonShape: "auto",
       buttonStyle: "solid",
       buttonSize: "md",
@@ -557,6 +569,9 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // Soft and round throughout — the pill is this theme's whole idiom.
       navHover: "highlight",
       navChildHover: "highlight",
+      navActive: "fill",
+      navActiveColor: "brand",
+      navActiveCustom: "",
       buttonShape: "auto",
       buttonStyle: "solid",
       buttonSize: "md",

@@ -6,6 +6,8 @@ import {
   DESIGN_RADII,
   DESIGN_SCALES,
   DESIGN_SURFACES,
+  DESIGN_NAV_ACTIVE_COLORS,
+  DESIGN_NAV_ACTIVES,
   DESIGN_NAV_HOVERS,
   DESIGN_WIDTHS,
   DESIGN_BUTTON_SHAPES,
@@ -68,6 +70,9 @@ describe("resolveDesign", () => {
       width: DESIGN_WIDTHS[0].id,
       navHover: DESIGN_NAV_HOVERS[0].id,
       navChildHover: DESIGN_NAV_HOVERS[0].id,
+      navActive: DESIGN_NAV_ACTIVES[0].id,
+      navActiveColor: DESIGN_NAV_ACTIVE_COLORS[0].id,
+      navActiveCustom: "",
       buttonShape: DESIGN_BUTTON_SHAPES[0].id,
       buttonStyle: DESIGN_BUTTON_STYLES[0].id,
       buttonSize: DESIGN_BUTTON_SIZES[0].id,
@@ -170,5 +175,27 @@ describe("designAttrs", () => {
       "data-heading-weight": "heavy",
       "data-heading-case": "upper",
     });
+  });
+});
+
+describe("menu current-page axes", () => {
+  it("narrows a custom colour to #rrggbb and falls back to the brand without one", () => {
+    expect(resolveDesign({ navActiveColor: "custom", navActiveCustom: "#1A73E8" })).toMatchObject({
+      navActiveColor: "custom",
+      navActiveCustom: "#1a73e8",
+    });
+    expect(resolveDesign({ navActiveColor: "custom", navActiveCustom: "red" })).toMatchObject({
+      navActiveColor: "brand",
+      navActiveCustom: "",
+    });
+  });
+
+  it("stamps only the non-default answers", () => {
+    const attrs = designAttrs(resolveDesign({ navActive: "underline", navActiveColor: "accent" }));
+    expect(attrs["data-nav-active"]).toBe("underline");
+    expect(attrs["data-nav-active-color"]).toBe("accent");
+    const plain = designAttrs(resolveDesign({}));
+    expect(plain["data-nav-active"]).toBeUndefined();
+    expect(plain["data-nav-active-color"]).toBeUndefined();
   });
 });

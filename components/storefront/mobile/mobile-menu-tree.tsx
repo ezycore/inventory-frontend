@@ -30,6 +30,22 @@ export const rowStyle = (nested?: boolean, strong?: boolean): CSSProperties => (
   color: nested ? "var(--muted)" : "var(--text)",
 });
 
+/**
+ * The page the shopper is on, and the department holding it.
+ *
+ * The look is the merchant's (Customize → Menu → Current page) and lives in
+ * `storefront.css` under `.sf-current` / `.sf-current-trail`, shared with every
+ * other menu surface. The row's own colour and weight are inline, so a marked
+ * row drops those two and lets the stylesheet decide.
+ */
+const marked = (style: CSSProperties): CSSProperties => ({
+  ...style,
+  color: undefined,
+  fontWeight: undefined,
+});
+const rowClass = (state?: "current" | "trail") =>
+  state === "current" ? "sf-menu-row sf-current" : state === "trail" ? "sf-menu-row sf-current-trail" : "sf-menu-row";
+
 const buttonReset: CSSProperties = {
   width: "100%",
   background: "none",
@@ -87,16 +103,23 @@ export function SheetLink({
   current?: boolean;
 }) {
   const body = <Label node={node} images={images} />;
-  const style = { ...rowStyle(nested, strong), ...(current ? { color: "var(--primary)" } : null) };
+  const style = current ? marked(rowStyle(nested, strong)) : rowStyle(nested, strong);
+  const className = rowClass(current ? "current" : undefined);
   if (node.external) {
     return (
-      <a href={node.href} target="_blank" rel="noopener noreferrer" onClick={onClose} style={style}>
+      <a href={node.href} target="_blank" rel="noopener noreferrer" onClick={onClose} style={style} className={className}>
         {body}
       </a>
     );
   }
   return (
-    <Link href={node.href} onClick={onClose} style={style} aria-current={current ? "page" : undefined}>
+    <Link
+      href={node.href}
+      onClick={onClose}
+      style={style}
+      className={className}
+      aria-current={current ? "page" : undefined}
+    >
       {body}
     </Link>
   );
@@ -136,10 +159,19 @@ export function MenuTreeList({
   // Seeded once per opening — the panel unmounts when it closes, so the next
   // opening starts from the merchant's choice again rather than from however
   // the shopper left it.
-  const [open, setOpen] = useState(() =>
-    initialOpenKeys(nodes, PHONE_OPEN_RULE[settings.open], pathname),
-  );
-  const [drilled, setDrilled] = useState<string | null>(null);
+  //
+  // The department holding the current page is ALWAYS open (or, in `drill`,
+  // is the screen the panel opens on), whatever the merchant's "open when the
+  // menu opens" choice: that setting decides what else is open, and a shopper
+  // on Cushion › Cartoon who opens the menu expects to find Cartoon, not a
+  // folded Cushion to hunt through.
+  const activeGroup = nodes.find((n) => n.children.length > 0 && isNodeActive(n, pathname))?.key;
+  const [open, setOpen] = useState(() => {
+    const keys = initialOpenKeys(nodes, PHONE_OPEN_RULE[settings.open], pathname);
+    if (activeGroup) keys.add(activeGroup);
+    return keys;
+  });
+  const [drilled, setDrilled] = useState<string | null>(() => activeGroup ?? null);
   const { layout, viewAll, images, subImages } = settings;
 
   const toggle = (key: string) =>
@@ -150,12 +182,19 @@ export function MenuTreeList({
       return next;
     });
 
+  // "All ‹category›" is the current row when the shopper is on the
+  // department's own page rather than one of its children.
+  const onOwnPage = (node: MenuNode) =>
+    isNodeActive({ ...node, children: [] }, pathname) &&
+    !node.children.some((child) => isNodeActive(child, pathname));
+
   const allRow = (node: MenuNode) => (
     <SheetLink
       node={{ ...node, label: t.menuAllIn.replace("{name}", node.label) }}
       onClose={onClose}
       nested
       strong
+      current={onOwnPage(node)}
     />
   );
 
@@ -175,11 +214,15 @@ export function MenuTreeList({
   if (drillNode) {
     return (
       <div className="sf-menu-step">
-        <button type="button" onClick={() => setDrilled(null)} style={{ ...buttonReset, ...rowStyle(false, true), justifyContent: "flex-start" }}>
+        <button type="button" className="sf-menu-row" onClick={() => setDrilled(null)} style={{ ...buttonReset, ...rowStyle(false, true), justifyContent: "flex-start" }}>
           <Icon name="chevR" size={16} style={{ transform: "rotate(180deg)", color: "var(--faint)" }} />
           {t.menuBack}
         </button>
-        {viewAll ? allRow(drillNode) : <SheetLink node={drillNode} onClose={onClose} strong images={images} />}
+        {viewAll ? (
+          allRow(drillNode)
+        ) : (
+          <SheetLink node={drillNode} onClose={onClose} strong images={images} current={onOwnPage(drillNode)} />
+        )}
         {children(drillNode)}
       </div>
     );
@@ -197,14 +240,14 @@ export function MenuTreeList({
         if (layout === "expanded") {
           return (
             <div key={node.key}>
-              <SheetLink node={node} onClose={onClose} images={images} current={active} />
+              <SheetLink node={node} onClose={onClose} images={images} current={onOwnPage(node)} />
               {children(node)}
             </div>
           );
         }
         if (layout === "drill") {
           return (
-            <button key={node.key} type="button" onClick={() => setDrilled(node.key)} style={{ ...buttonReset, ...rowStyle() }}>
+            <button key={node.key} type="button" className={rowClass(active ? "trail" : undefined)} onClick={() => setDrilled(node.key)} style={{ ...buttonReset, ...(active ? marked(rowStyle()) : rowStyle()) }}>
               <Label node={node} images={images} />
               <Icon name="chevR" size={16} style={{ color: "var(--faint)", flex: "none" }} />
             </button>
@@ -222,16 +265,25 @@ export function MenuTreeList({
         return (
           <div key={node.key}>
             {viewAll ? (
-              <button type="button" onClick={() => toggle(node.key)} aria-expanded={isOpen} style={{ ...buttonReset, ...rowStyle(), ...(active ? { color: "var(--primary)" } : null) }}>
+              <button type="button" className={rowClass(active ? "trail" : undefined)} onClick={() => toggle(node.key)} aria-expanded={isOpen} style={{ ...buttonReset, ...(active ? marked(rowStyle()) : rowStyle()) }}>
                 <Label node={node} images={images} />
                 {chevron}
               </button>
             ) : (
-              <div style={{ display: "flex", alignItems: "stretch" }}>
-                <Link href={node.href} onClick={onClose} style={{ ...rowStyle(), flex: 1, minWidth: 0, paddingInlineEnd: 4, ...(active ? { color: "var(--primary)" } : null) }}>
+              <div
+                className={onOwnPage(node) ? "sf-current" : undefined}
+                style={{ display: "flex", alignItems: "stretch" }}
+              >
+                <Link
+                  href={node.href}
+                  onClick={onClose}
+                  className={rowClass(active && !onOwnPage(node) ? "trail" : undefined)}
+                  aria-current={onOwnPage(node) ? "page" : undefined}
+                  style={{ ...(active ? marked(rowStyle()) : rowStyle()), flex: 1, minWidth: 0, paddingInlineEnd: 4 }}
+                >
                   <Label node={node} images={images} />
                 </Link>
-                <button type="button" onClick={() => toggle(node.key)} aria-expanded={isOpen} aria-label={toggleLabel} style={{ ...buttonReset, width: 52, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button type="button" className="sf-menu-row" onClick={() => toggle(node.key)} aria-expanded={isOpen} aria-label={toggleLabel} style={{ ...buttonReset, width: 52, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {chevron}
                 </button>
               </div>

@@ -40,6 +40,7 @@ export type MenuDropdown = "list" | "columns" | "mega";
 export type MenuOpenOn = "hover" | "click";
 export type MenuRailOpen = "active" | "first" | "all" | "flyout";
 export type MenuOverflow = "wrap" | "more";
+export type MenuCollectionStrip = "scroll" | "wrap" | "tiles" | "hidden";
 
 export interface MenuOption<T extends string> {
   id: T;
@@ -98,6 +99,20 @@ export const MENU_RAIL_OPEN: readonly MenuOption<MenuRailOpen>[] = [
   { id: "flyout", label: "Pop out", description: "Sub-categories pop out beside the sidebar on hover" },
 ];
 
+/**
+ * The sub-collection row on a collection page (All ‹Parent› · Art · Cartoon…),
+ * set per device. It is navigation into the category tree rather than a part of
+ * any one page, so it lives with the rest of the menu — and, unlike a builder
+ * section setting, it reaches every shop whether or not its collection page is
+ * on the builder yet. `scroll` is the row every page had before the setting.
+ */
+export const MENU_COLLECTION_STRIPS: readonly MenuOption<MenuCollectionStrip>[] = [
+  { id: "scroll", label: "Scroll", description: "One row the shopper swipes" },
+  { id: "wrap", label: "Wrap", description: "Every sub-category on screen, on as many lines as it takes" },
+  { id: "tiles", label: "Tiles", description: "Each sub-category's picture with its name under it" },
+  { id: "hidden", label: "Hide", description: "No row — the breadcrumb leads back up" },
+];
+
 export const MENU_OVERFLOW: readonly MenuOption<MenuOverflow>[] = [
   { id: "wrap", label: "Wrap", description: "Links that do not fit move onto a second line" },
   { id: "more", label: "More", description: "Links that do not fit collapse into a More menu" },
@@ -122,6 +137,8 @@ export interface ResolvedMenuSettings {
     allProducts: boolean;
     /** That row's label; blank ⇒ the shopper's-language "All products". */
     allProductsLabel: string;
+    /** The sub-collection row on a collection page. */
+    collectionStrip: MenuCollectionStrip;
   };
   desktop: {
     dropdown: MenuDropdown;
@@ -134,6 +151,8 @@ export interface ResolvedMenuSettings {
      * trigger is not a link (click-to-open, a touch) — see `header-nav.tsx`.
      */
     viewAll: boolean;
+    /** The sub-collection row on a collection page. */
+    collectionStrip: MenuCollectionStrip;
   };
 }
 
@@ -149,6 +168,7 @@ export const DEFAULT_MENU_SETTINGS: ResolvedMenuSettings = {
     title: null,
     allProducts: true,
     allProductsLabel: "",
+    collectionStrip: "scroll",
   },
   desktop: {
     dropdown: "list",
@@ -157,6 +177,7 @@ export const DEFAULT_MENU_SETTINGS: ResolvedMenuSettings = {
     overflow: "wrap",
     row: false,
     viewAll: false,
+    collectionStrip: "scroll",
   },
 };
 
@@ -190,6 +211,7 @@ export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMen
       title: optionalText(raw?.mobile?.title),
       allProducts: bool(raw?.mobile?.allProducts, d.mobile.allProducts),
       allProductsLabel: text(raw?.mobile?.allProductsLabel),
+      collectionStrip: pick(MENU_COLLECTION_STRIPS, raw?.mobile?.collectionStrip),
     },
     desktop: {
       dropdown: pick(MENU_DROPDOWNS, raw?.desktop?.dropdown),
@@ -198,6 +220,7 @@ export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMen
       overflow: pick(MENU_OVERFLOW, raw?.desktop?.overflow),
       row: bool(raw?.desktop?.row, d.desktop.row),
       viewAll: bool(raw?.desktop?.viewAll, d.desktop.viewAll),
+      collectionStrip: pick(MENU_COLLECTION_STRIPS, raw?.desktop?.collectionStrip),
     },
   };
 }

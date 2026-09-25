@@ -276,6 +276,9 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       width: "wide",
       navHover: "underline",
       navChildHover: "highlight",
+      navActive: "bar",
+      navActiveColor: "custom",
+      navActiveCustom: "#1a73e8",
       buttonShape: "pill",
       buttonStyle: "soft",
       buttonSize: "sm",
@@ -283,6 +286,13 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       headingCase: "upper",
     };
     expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
+  });
+
+  // The backend refuses anything but `#rrggbb` or empty; a half-typed hex in
+  // the colour box must not fail the whole save.
+  it("saves a half-typed current-page colour as empty", () => {
+    const design = { ...DEFAULT_DESIGN, navActiveColor: "custom", navActiveCustom: "#1a7" };
+    expect(toSettingsPayload(draft({ design })).theme?.design?.navActiveCustom).toBe("");
   });
 
   // Nothing in the editor writes `appliedThemeId` — a ready-made theme does.

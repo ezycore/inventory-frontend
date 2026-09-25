@@ -18,7 +18,8 @@ by default**, no plan gate. Browser QA not yet done — checklist in backend
   the page builder's upload; the backend deletes a picture a save dropped.
 - "Centre the blocks" (`footerStyle.align`) applies to composed footers only.
 - Store promises stay edited in their own section (home promise sections read them too); the
-  promises block just draws them.
+  promises block just draws them, in an `iconStyle` (disc / plain / none, unset ⇒ plain) that
+  matches the promises band's setting of the same name (2026-09-25).
 - Phase 5 per-landing-page "hide footer" and social icon styles: **not built** (the landing page's
   existing header/footer switch already covers hiding).
 
