@@ -37,7 +37,9 @@ import type {
   ContactButtonPage,
   Image,
   StorefrontContactButton,
+  StorefrontFooterBlock,
   StorefrontFooterGroup,
+  StorefrontFooterStyle,
   StorefrontHeroBanner,
   StorefrontHeroSlide,
   StorefrontHomeCollections,
@@ -226,6 +228,13 @@ export interface CustomizeDraft {
   footerGroups: StorefrontFooterGroup[];
   footerPaymentMethods: FooterPaymentMethodsDraft;
   footerContentPages: FooterContentPagesDraft;
+  /** The footer's frame. `{}` ⇒ the footer as it was before styles existed. */
+  footerStyle: StorefrontFooterStyle;
+  /**
+   * A composed footer, or `null` for "the fixed layout" — the state of every
+   * store until its first block edit. See `lib/storefront-footer/blocks.ts`.
+   */
+  footerBlocks: StorefrontFooterBlock[] | null;
   /** Bottom-bar note; empty ⇒ the storefront prints the store's currency. */
   footerNote: string;
   /** Contact-first heading; empty ⇒ the localized "Order by phone". */
@@ -335,6 +344,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerGroups,
     d.footerPaymentMethods,
     d.footerContentPages,
+    d.footerStyle,
+    d.footerBlocks,
   ],
   shell: (d) => d.templates.shell,
   content: (d) => d.templates.contentLayout,
@@ -504,6 +515,8 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       show: settings.nav?.footerContentPages?.show ?? true,
       title: settings.nav?.footerContentPages?.title ?? "",
     },
+    footerStyle: settings.nav?.footerStyle ?? {},
+    footerBlocks: settings.nav?.footerBlocks?.length ? settings.nav.footerBlocks : null,
     footerNote: c.footerNote ?? "",
     footerContactHeading: c.footerContactHeading ?? "",
     footerNewsletter: {
@@ -684,7 +697,6 @@ export interface CustomizeDraftApi {
   patchAnnouncement: (p: Partial<AnnouncementDraft>) => void;
   patchCampaignStrip: (p: Partial<CampaignStripDraft>) => void;
   patchContactButton: (p: Partial<ContactButtonDraft>) => void;
-  patchContentPages: (p: Partial<FooterContentPagesDraft>) => void;
   /**
    * Stage a ready-made theme as an unsaved edit — the preview repaints, Discard
    * undoes it, Save confirms. Returns false for an unknown id.
@@ -818,11 +830,6 @@ export function useCustomizeDraft(
       setDraft((d) => ({ ...d, contactButton: { ...d.contactButton, ...p } })),
     [],
   );
-  const patchContentPages = useCallback(
-    (p: Partial<FooterContentPagesDraft>) =>
-      setDraft((d) => ({ ...d, footerContentPages: { ...d.footerContentPages, ...p } })),
-    [],
-  );
 
   const discard = useCallback(() => setDraft(baseline), [baseline]);
 
@@ -918,7 +925,6 @@ export function useCustomizeDraft(
     patchAnnouncement,
     patchCampaignStrip,
     patchContactButton,
-    patchContentPages,
     applyTheme,
     dirtyParts,
     isDirty,

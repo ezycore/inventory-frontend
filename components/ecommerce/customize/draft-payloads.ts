@@ -8,7 +8,6 @@ import type {
 import type {
   Image,
   StorefrontContactButton,
-  StorefrontFooterGroup,
   StorefrontHeroSlide,
   StorefrontMenuItem,
   StorefrontNav,
@@ -16,6 +15,7 @@ import type {
   UpdateStorefrontSettingsDto,
 } from "@/types";
 import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
+import { footerNav } from "@/components/ecommerce/customize/footer-payloads";
 import type {
   CustomizeDraft,
   FooterContentPagesDraft,
@@ -114,14 +114,6 @@ const trimHeaderMenu = (items: StorefrontMenuItem[]): StorefrontMenuItem[] =>
       // Only a category item has sub-categories to inherit, so only it carries
       // the choice; unset keeps the rule every existing menu was saved under.
       childrenMode: it.type === "category" ? it.childrenMode : undefined,
-    }));
-
-const trimFooterGroups = (groups: StorefrontFooterGroup[]): StorefrontFooterGroup[] =>
-  groups
-    .filter((g) => g.title.trim())
-    .map((g) => ({
-      title: g.title.trim(),
-      links: g.links.filter((l) => l.label.trim()),
     }));
 
 // A blank heading means "use the storefront's built-in one", so it is omitted
@@ -260,7 +252,7 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
   const cs = draft.campaignStrip;
   return {
     header: trimHeaderMenu(draft.navHeader),
-    footer: trimFooterGroups(draft.footerGroups),
+    ...footerNav(draft),
     footerPaymentMethods: draft.footerPaymentMethods,
     footerContentPages: trimContentPages(draft.footerContentPages),
     announcement: {

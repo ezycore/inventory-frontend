@@ -202,6 +202,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   footerGroups: [],
   footerPaymentMethods: { showOnDesktop: true, showOnMobile: true },
   footerContentPages: { show: true, title: "" },
+  footerStyle: {},
+  footerBlocks: null,
   footerNote: "",
   footerContactHeading: "",
   footerNewsletter: { heading: "", blurb: "", buttonLabel: "" },

@@ -76,7 +76,9 @@
   --herocols: 1fr;
   --bandcols: 2;
   --splitcols: 1fr;
-  --trustcols: 1fr;
+  /* A count, not a track: `repeat(1fr, …)` is invalid and only stacked by
+     accident. */
+  --trustcols: 1;
   --promocols: 1fr;
   --mincols: 2;
   --colcols: 2;
@@ -4506,6 +4508,63 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    Mobile is one stacked column for every variant, with each link group a
    tap-to-open accordion. The desktop rules below 680px do the layout work; on
    desktop the accordion heading is inert and the links always show. */
+/* The frame. `--ft-*` come from the merchant's footer style (`footerFrame`,
+   lib/storefront-footer/style.ts); every one falls back to the footer as it was
+   before the style existed. Padding is mobile-first: the `-m` phone override,
+   then the desktop value, then the layout's own. */
+.sf-footer {
+  background-color: var(--ft-bg, var(--card));
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+.sf-footer[data-border="none"] {
+  border-top: 0;
+}
+.sf-footer-in {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--ft-pt-m, var(--ft-pt, 36px)) var(--pad) var(--ft-pb-m, var(--ft-pb, 28px));
+}
+/* A ground the theme did not choose re-points the ink tokens inside the footer,
+   so every layout, block, card and input below is recoloured without knowing. */
+.sf-footer[data-ink] > .sf-footer-in {
+  --text: var(--ft-ink);
+  --muted: color-mix(in srgb, var(--ft-ink) 76%, transparent);
+  --faint: color-mix(in srgb, var(--ft-ink) 62%, transparent);
+  --border: color-mix(in srgb, var(--ft-ink) 20%, transparent);
+  --surface: color-mix(in srgb, var(--ft-ink) 9%, transparent);
+  --card: color-mix(in srgb, var(--ft-ink) 6%, transparent);
+  color: var(--text);
+}
+/* On the brand ground the brand colour IS the background: accents take the ink,
+   and a filled button inverts (ink ground, brand text). `--ft-brand` is read on
+   the outer element, before the inner one re-points `--primary`. */
+.sf-footer[data-ground="brand"] {
+  --ft-brand: var(--primary);
+}
+.sf-footer[data-ground="brand"] > .sf-footer-in {
+  --primary: var(--ft-ink);
+  --on-primary: var(--ft-brand);
+}
+/* The closing line. `data-align-m` is the phone arrangement and `data-align`
+   the desktop one — both always set, so neither device waits for script. */
+.sf-footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  width: 100%;
+  font-size: 12px;
+  color: var(--faint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.sf-footer-bottom[data-align-m="center"] {
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
 .sf-footer-grid {
   display: flex;
   flex-direction: column;
@@ -4528,7 +4587,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    shop rather than three icons floating above the links. */
 .sf-footer-trustbar {
   display: grid;
-  grid-template-columns: repeat(var(--trustcols), minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--gap);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -4621,6 +4680,23 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 
 @media (min-width: 680px) {
+  .sf-footer-in {
+    padding: var(--ft-pt, 36px) var(--pad) var(--ft-pb, 28px);
+  }
+  .sf-footer-bottom[data-align="spread"] {
+    justify-content: space-between;
+    text-align: start;
+    gap: 8px 18px;
+  }
+  .sf-footer-bottom[data-align="center"] {
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+  }
+  /* One row for a full set of promises; the count comes from `FooterPromises`. */
+  .sf-footer-trustbar {
+    grid-template-columns: repeat(var(--ft-trustcols, 3), minmax(0, 1fr));
+  }
   /*
    * The link columns are sized to THEIR CONTENT and anchored to the right edge.
    *
@@ -4683,6 +4759,77 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     padding-top: 0;
   }
 }
+/* ---- Composed footer (`nav.footerBlocks`) ----
+   Phone: one column in block order; consecutive link blocks join into one
+   accordion list, as the fixed layouts' columns do. Desktop (680px+): a
+   wrapping row where the block's width class decides its track. */
+.sf-fb-row {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.sf-fb {
+  min-width: 0;
+}
+.sf-fb:empty {
+  display: none;
+}
+.sf-fb-links + .sf-fb-links {
+  margin-top: -24px;
+}
+.sf-fb-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-start;
+}
+.sf-fb-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sf-fb-row[data-align="center"] {
+  text-align: center;
+}
+.sf-fb-row[data-align="center"] .sf-fb-stack {
+  align-items: center;
+}
+.sf-fb-row[data-align="center"] .sf-fb-logos {
+  justify-content: center;
+}
+@media (min-width: 680px) {
+  .sf-fb-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 32px 52px;
+  }
+  .sf-fb-links + .sf-fb-links {
+    margin-top: 0;
+  }
+  .sf-fb-wide {
+    flex: 1 1 260px;
+  }
+  .sf-fb-auto {
+    flex: 0 1 auto;
+  }
+  .sf-fb-narrow {
+    flex: 0 1 280px;
+    min-width: 230px;
+  }
+  .sf-fb-full {
+    flex: 1 1 100%;
+  }
+  .sf-fb-row[data-align="center"] {
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sf-footer-chev {
     transition: none;

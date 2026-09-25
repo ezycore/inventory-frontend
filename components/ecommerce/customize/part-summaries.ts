@@ -186,6 +186,7 @@ export function partSummary(
       return `${number} · ${where} · bottom ${c.position}`;
     }
     case "footer": {
+      if (draft.footerBlocks) return `Your own layout · ${count(draft.footerBlocks.length, "block")}`;
       const groups = draft.footerGroups.filter((g) => g.title.trim()).length;
       const links = groups === 0 ? "no link groups" : count(groups, "link group");
       return `${labelOf("footer", draft.templates.footer)} · ${links}`;

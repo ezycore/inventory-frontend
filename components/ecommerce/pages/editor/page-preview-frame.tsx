@@ -78,7 +78,7 @@ export function PagePreviewFrame({
   const [reloadKey, setReloadKey] = useState(0);
   // Needed on a live shop too: a page's draft is not public.
   const { data: preview, isPending: mintingToken } = useStorefrontPreviewToken();
-  const { hostRef, scale, ready, frameHeight } = usePreviewScale(device === "desktop");
+  const { hostRef, scale, ready, frameHeight } = usePreviewScale(device);
   const { theme, setTheme, postTheme } = usePreviewTheme(frameRef);
 
   /* The frame stays hidden behind a skeleton until it has asked for the draft
@@ -200,8 +200,9 @@ export function PagePreviewFrame({
       <PreviewStage
         device={device}
         hostRef={hostRef}
+        scale={scale}
         height={height}
-        overlay={!painted ? <PreviewSkeleton device={device} /> : null}
+        overlay={!painted ? <PreviewSkeleton device={device} scale={scale} /> : null}
       >
         {/* Mounted once the preview credential is in hand — before it, an
             unpublished page is a 404 and the frame would have to reload. */}

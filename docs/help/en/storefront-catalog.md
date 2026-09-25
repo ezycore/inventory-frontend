@@ -399,8 +399,11 @@ your products open on.
 ### Footer
 
 **Footer** is the last thing a shopper reads and the place a hesitant one looks for proof that a real
-business is behind the shop. There are five layouts, and the right one depends on how much you have
-to put in it:
+business is behind the shop. Most of your shoppers read it on a phone, where it is one column, top to
+bottom.
+
+**Start from a layout.** Five are ready to use, and the right one depends on how much you have to put
+in the footer:
 
 - **Columns** — your brand, a line about the shop, your phone and your social links on the left;
   your link groups on the right. The sensible default, and it looks right whether you have one link
@@ -413,6 +416,22 @@ to put in it:
   a WhatsApp button, this quietly falls back to Columns rather than showing an empty box.
 - **Stay in touch** — an email sign-up beside your links. Addresses collect under **Storefront
   Accounts → Subscribers**.
+
+**Blocks** shows the layout you picked as a list of blocks, in the order a phone draws them. Change
+any of them — reorder, add, remove, hide one on phones or on computers — and the footer becomes your
+own. You can add a **Link group** (each link points at a category, one of your pages or any web
+address, and can open in a new tab), **Your pages**, a **Contact card**, an **Email sign-up**,
+**Store promises**, a **Text** block for your address or opening hours, a **Picture**, a **Logo
+strip** for the payment, courier or partner logos you upload yourself, and **Social icons**. On a
+computer each block also has a width. Picking a layout again replaces your blocks with it, after
+asking; your link groups are kept.
+
+**Look** sets the footer's background (your theme's card colour, a soft tone, your brand colour, dark,
+or any colour), the text colour, the spacing on a computer and on a phone, whether link groups start
+open or closed on a phone, the line above the footer, and how the copyright line sits. It also has
+the **“Powered by EzyCore”** switch: the credit is shown until you turn it off. **Pictures** holds a
+footer-only logo — a light logo for a dark footer, say — and an optional background photo, with the
+part that must stay in view on a phone and how strong the shade over it is.
 
 Everything in the footer is yours to write. **About your shop** is the paragraph under your name.
 **Bottom line** is the small text on the right of the copyright — a city, a trade licence number,

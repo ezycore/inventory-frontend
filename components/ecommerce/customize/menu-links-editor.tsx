@@ -2,35 +2,18 @@
 // coding-standard: maintained
 
 import { Plus } from "lucide-react";
-import { useContentPages } from "@/services/api";
 import type { StorefrontMenuItem } from "@/types";
 import { Button } from "@/ui/components/button";
 import { PartHint } from "@/components/ecommerce/customize/part-group";
 import type { CollectionRowValue } from "@/components/ecommerce/collections/collection-row";
-import {
-  MenuItemRow,
-  newMenuItem,
-  type NavOption,
-} from "@/components/ecommerce/customize/menu-item-fields";
-
-/** Swap entry `i` with its neighbour in `dir`; out of range is a no-op. */
-function move<T>(list: T[], i: number, dir: -1 | 1): T[] {
-  const t = i + dir;
-  if (t < 0 || t >= list.length) return list;
-  const next = [...list];
-  [next[i], next[t]] = [next[t], next[i]];
-  return next;
-}
+import { MenuItemRow, newMenuItem } from "@/components/ecommerce/customize/menu-item-fields";
+import { moveItem as move, useNavLinkOptions } from "@/components/ecommerce/customize/use-nav-link-options";
 
 /**
  * The merchant's own menu — a list of links, each with an optional dropdown.
  *
- * Category options are labelled "Parent › Child" and stored by PATH. The bare
- * leaf slug the editor used to store is only unique within its parent, so two
- * sub-categories called "Accessories" were indistinguishable here and the
- * storefront silently linked the first. Old items keep working: the storefront
- * resolves both shapes, and `resolveCategory` shows a leaf-slug item as the
- * option it matches until the merchant next edits it.
+ * Category and page choices come from `useNavLinkOptions`, shared with the
+ * footer's link rows.
  */
 export function MenuLinksEditor({
   items,
@@ -41,31 +24,12 @@ export function MenuLinksEditor({
   collections: CollectionRowValue[];
   onChange: (items: StorefrontMenuItem[]) => void;
 }) {
-  const { data: pages } = useContentPages();
-
-  const nameOf = (c: CollectionRowValue) => c.displayName || c.name;
-  const byId = new Map(collections.map((c) => [c._id, c]));
-  const categoryOptions: NavOption[] = collections.flatMap((c) => {
-    if (!c.slugPath) return [];
-    const parent = c.parentId ? byId.get(c.parentId) : undefined;
-    return [{ label: parent ? `${nameOf(parent)} › ${nameOf(c)}` : nameOf(c), value: c.slugPath }];
-  });
-  // Parents before children, the storefront's own precedence for a bare slug.
-  const ordered = [...collections].sort((a, b) => Number(!!a.parentId) - Number(!!b.parentId));
-  const resolveCategory = (value: string) =>
-    value.includes("/")
-      ? value
-      : (ordered.find((c) => c.slug === value)?.slugPath ?? value);
+  const { categoryOptions, pageOptions, resolveCategory } = useNavLinkOptions(collections);
   const subcategoryCount = (value: string) => {
     const path = resolveCategory(value);
     const node = collections.find((c) => c.slugPath === path);
     return node ? collections.filter((c) => c.parentId === node._id).length : 0;
   };
-  const pageOptions: NavOption[] = (pages ?? []).map((p) => ({
-    label: p.title,
-    value: p.slug,
-  }));
-
   const setItem = (i: number, fn: (it: StorefrontMenuItem) => StorefrontMenuItem) =>
     onChange(items.map((it, idx) => (idx === i ? fn(it) : it)));
   const setChildren = (

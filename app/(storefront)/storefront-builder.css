@@ -24,8 +24,39 @@
   border-radius: 0;
 }
 
+/*
+ * The Outline. Both variables fall back to what the switch drew before the
+ * Style tab could describe the line — a 1px `--border` hairline — so a page
+ * saved with `border: true` and nothing else is unchanged. `section-style.ts`
+ * emits neither while the switch is off.
+ */
 .sfb-sec[data-border] {
-  border: 1px solid var(--border);
+  border: var(--sfb-border-w, 1px) solid var(--sfb-border-color, var(--border));
+}
+
+/*
+ * Which edges it draws on. Keyed on the ATTRIBUTE's value rather than a
+ * variable, because there is no single declaration that can take "these edges":
+ * each choice zeroes the widths it does not want, leaving the colour and
+ * thickness above to one rule.
+ *
+ * The side edges sit at the WINDOW — `.sfb-sec` spans the viewport and
+ * `data-width` constrains `.sfb-inner` alone — so `top-bottom` is the rule
+ * between two sections a merchant usually means, and `all` is a box glued to the
+ * browser edges. See `SECTION_BORDER_SIDES`.
+ */
+.sfb-sec[data-border="top"] {
+  border-block-end-width: 0;
+  border-inline-width: 0;
+}
+
+.sfb-sec[data-border="bottom"] {
+  border-block-start-width: 0;
+  border-inline-width: 0;
+}
+
+.sfb-sec[data-border="top-bottom"] {
+  border-inline-width: 0;
 }
 
 /* A section a link can jump to clears the sticky header, the same offset the

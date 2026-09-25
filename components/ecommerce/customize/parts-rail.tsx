@@ -345,12 +345,7 @@ export function PartsRail({
           patchContactButton={api.patchContactButton}
         />
       ) : part.id === "footer" ? (
-        <FooterPart
-          draft={draft}
-          patch={patch}
-          patchTemplate={patchTemplate}
-          patchContentPages={api.patchContentPages}
-        />
+        <FooterPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
       ) : part.id === "cards" ? (
         <CardsPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "filters" ? (

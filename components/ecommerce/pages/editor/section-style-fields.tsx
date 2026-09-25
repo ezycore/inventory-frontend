@@ -3,7 +3,7 @@
 
 import { useState, type ReactNode } from "react";
 import type { SpacingStep } from "@/lib/storefront-builder/section-style";
-import { MAX_OVERLAY } from "@/lib/storefront-builder/style-specs";
+import { MAX_BORDER_WIDTH, MAX_OVERLAY, MIN_BORDER_WIDTH } from "@/lib/storefront-builder/style-specs";
 import { ColorField, isHexColor } from "@/ui/components/color-field";
 import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
@@ -20,6 +20,9 @@ import {
   anchorOf,
   backgroundOf,
   borderOf,
+  borderSidesOf,
+  borderToneOf,
+  borderWidthOf,
   overlayOf,
   paddingFor,
   radiusOf,
@@ -31,6 +34,9 @@ import {
   withAnchor,
   withBackground,
   withBorder,
+  withBorderSides,
+  withBorderTone,
+  withBorderWidth,
   withOverlay,
   withPadding,
   withRadius,
@@ -40,6 +46,8 @@ import {
   withWidth,
   type BackgroundKind,
   type SectionStyleBox,
+  type StyleBorderSides,
+  type StyleBorderTone,
   type StyleEdge,
   type StyleRadius,
   type StyleTone,
@@ -107,6 +115,35 @@ const RADII = withSectionOwn([
   { value: "md", label: "Rounded" },
   { value: "lg", label: "Very rounded" },
 ]);
+
+/**
+ * The Outline's edges. "All sides" is the UNSET choice, because that is what the
+ * switch drew on its own before this control existed — naming it here rather
+ * than storing `all` keeps a page that only ever had the switch byte-identical.
+ *
+ * Worded as above/below rather than top/bottom to match the Spacing controls
+ * beside it, and the side edges are not offered alone: they sit at the window,
+ * so a merchant asking for "sides" would get two hairlines on the browser edges.
+ */
+const BORDER_SIDES = [
+  { value: DEFAULT, label: "All sides" },
+  { value: "top-bottom", label: "Above and below" },
+  { value: "top", label: "Above only" },
+  { value: "bottom", label: "Below only" },
+];
+
+/**
+ * The Outline's colour, as theme tones — each resolves per preset and per dark
+ * mode, which a typed hex cannot (`SECTION_BORDER_TONES`). Unset is the theme's
+ * own line colour, today's hairline.
+ */
+const BORDER_TONES = [
+  { value: DEFAULT, label: "Theme's line colour" },
+  { value: "strong", label: "Stronger line" },
+  { value: "brand", label: "Brand colour" },
+  { value: "accent", label: "Accent colour" },
+  { value: "text", label: "Text colour" },
+];
 
 const chosen = <T extends string>(value: string): T | undefined => (value === DEFAULT ? undefined : (value as T));
 
@@ -435,16 +472,58 @@ export function SectionStyleFields({
         />
       )}
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <Label htmlFor={id("border")}>Outline</Label>
-          <p className="text-xs text-muted-foreground">A thin line around the section, in the theme&apos;s colour.</p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Label htmlFor={id("border")}>Outline</Label>
+            <p className="text-xs text-muted-foreground">A line around the section, or a rule between two of them.</p>
+          </div>
+          <Switch
+            id={id("border")}
+            checked={borderOf(style)}
+            onCheckedChange={(checked) => set(withBorder(style, checked))}
+          />
         </div>
-        <Switch
-          id={id("border")}
-          checked={borderOf(style)}
-          onCheckedChange={(checked) => set(withBorder(style, checked))}
-        />
+
+        {/* The line's own three controls, drawn only while it is on: three rows
+            under a switch nobody turned on are rail height with no question in
+            it, and `sectionFrame` reads none of them then either. Turning the
+            switch off KEEPS them (`withBorder`), so this is hidden, not erased. */}
+        {borderOf(style) ? (
+          <div className="space-y-3 border-l pl-3">
+            <StyleSelect
+              id={id("border-sides")}
+              label="Which sides"
+              value={borderSidesOf(style)}
+              options={BORDER_SIDES}
+              onChange={(value) => set(withBorderSides(style, chosen<StyleBorderSides>(value)))}
+              hint="A section's left and right edges sit at the page's edges, so Above and below is the usual choice for a line between sections."
+            />
+            <StyleSelect
+              id={id("border-tone")}
+              label="Line colour"
+              value={borderToneOf(style)}
+              options={BORDER_TONES}
+              onChange={(value) => set(withBorderTone(style, chosen<StyleBorderTone>(value)))}
+              hint="Colours from your theme, so the line stays visible in light and dark."
+            />
+            <div className="space-y-1.5">
+              <Label htmlFor={id("border-width")}>Thickness</Label>
+              <NumberField
+                id={id("border-width")}
+                value={borderWidthOf(style) ?? null}
+                min={MIN_BORDER_WIDTH}
+                max={MAX_BORDER_WIDTH}
+                precision={0}
+                showSteppers
+                onChange={(value) => set(withBorderWidth(style, value ?? undefined))}
+              />
+              <p className="text-xs text-muted-foreground">
+                {MIN_BORDER_WIDTH} to {MAX_BORDER_WIDTH} pixels; empty is a hairline.
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <AnchorField
