@@ -444,6 +444,10 @@ disable them at checkout.
 Optional footer wording can stay blank; the store never invents a promise on your behalf.
 Your promises list can contain up to four items. Add, remove or reorder them in **Customize →
 Footer**; the same saved list feeds promise bands and trust-badge footers without inventing defaults.
+Each promise can have its own icon or **No icon**. The footer's **Store promises** block and a
+**Promises band** on a page both have an **Icon style**: **In a circle**, **Icon only** or **No
+icons**. Pick the same one in both places so they match. A new promises band uses your store's
+promises when you have written some, so one edit changes the band and the footer together.
 
 One setting changes how shoppers move through a long list: under **Collections**, the way more
 products load. Numbered pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load

@@ -18,6 +18,7 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { OptionCard } from "@/ui/components/option-card";
 import { RefField } from "@/components/ecommerce/pages/editor/ref-field";
+import { useStoreFacts } from "@/components/ecommerce/pages/editor/use-store-facts";
 import {
   PAGE_TEMPLATES,
   pageTemplate,
@@ -93,6 +94,7 @@ export function NewPageDialog({
 }) {
   const router = useRouter();
   const create = useCreateStorefrontPage();
+  const store = useStoreFacts();
   const [kind, setKind] = useState<PageKind>(start?.kind ?? "content");
   const [templateId, setTemplateId] = useState<PageTemplateId>("single-product");
   const [productId, setProductId] = useState<string | undefined>();
@@ -111,7 +113,7 @@ export function NewPageDialog({
         title: name,
         // A store page's own section is the backend's to add: it is the one
         // section the page must have, and it starts empty.
-        ...(landing ? { sections: templateSections(template, productId) } : {}),
+        ...(landing ? { sections: templateSections(template, productId, store) } : {}),
       },
       {
         onSuccess: (res) => {

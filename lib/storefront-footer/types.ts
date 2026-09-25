@@ -142,6 +142,13 @@ export const FOOTER_BLOCK_WIDTHS = ["auto", "narrow", "wide", "full"] as const;
 /** Desktop track: content-sized, ~280px, flexible, or a whole row. Phones stack. */
 export type FooterBlockWidth = (typeof FOOTER_BLOCK_WIDTHS)[number];
 
+export const FOOTER_ICON_STYLES = ["disc", "plain", "none"] as const;
+/**
+ * How a `promises` block draws its icons — the promises band's own vocabulary
+ * (`PROMISE_ICON_STYLES`), so the footer and a band can be made to match.
+ */
+export type FooterIconStyle = (typeof FOOTER_ICON_STYLES)[number];
+
 export interface FooterLogo {
   image: FooterImage;
   alt: string;
@@ -182,6 +189,8 @@ export interface StorefrontFooterBlock {
   logos?: FooterLogo[];
   /** `logos`: logo height in px, 20–64. */
   logoHeight?: number;
+  /** `promises`: icon style. Unset ⇒ `plain`, the footer's look before the setting. */
+  iconStyle?: FooterIconStyle;
 }
 
 export const FOOTER_BLOCKS_MAX = 12;

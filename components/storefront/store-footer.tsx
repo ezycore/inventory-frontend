@@ -13,7 +13,6 @@ import {
   useSfPreview,
   useSfPreviewImage,
 } from "@/services/stores/use-sf-preview-store";
-import type { IconName } from "@/components/storefront/sf-icons";
 import type { FooterPromise, FooterProps } from "@/components/storefront/footer/footer-model";
 import {
   ColumnsFooter,
@@ -32,9 +31,6 @@ const FOOTER_VARIANTS: readonly string[] = [
   "contact",
   "newsletter",
 ];
-
-/** A promise with no icon of its own takes one of these, in turn. */
-const FALLBACK_PROMISE_ICONS: IconName[] = ["shield", "truck", "coins"];
 
 /**
  * Storefront footer. A store that composed its footer (`nav.footerBlocks`)
@@ -92,14 +88,10 @@ export function StoreFooter({
   // A footer-only logo wins; removing it falls back to the store's own.
   const footerLogo = logoImageUrl(footerStyle?.logo);
 
-  const promises: FooterPromise[] = (previewBadges ?? store?.trustBadges ?? []).flatMap(
-    (badge, i) => {
-      const label = badge.text?.trim();
-      return label
-        ? [{ icon: (badge.icon as IconName) || FALLBACK_PROMISE_ICONS[i % FALLBACK_PROMISE_ICONS.length], label }]
-        : [];
-    },
-  );
+  const promises: FooterPromise[] = (previewBadges ?? store?.trustBadges ?? []).flatMap((badge) => {
+    const label = badge.text?.trim();
+    return label ? [{ icon: badge.icon, label }] : [];
+  });
 
   const props: FooterProps = {
     base,

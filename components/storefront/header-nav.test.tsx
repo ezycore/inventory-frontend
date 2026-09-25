@@ -15,7 +15,7 @@
  * sits in front of it.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HeaderNav } from "@/components/storefront/header-nav";
 import {
@@ -23,6 +23,9 @@ import {
   type MenuNode,
   type ResolvedMenuSettings,
 } from "@/lib/storefront-menu";
+
+const nav = { pathname: "/" };
+vi.mock("next/navigation", () => ({ usePathname: () => nav.pathname }));
 
 const node = (label: string, href: string, children: MenuNode[] = [], external = false): MenuNode => ({
   key: label,
@@ -130,5 +133,30 @@ describe("HeaderNav — how a dropdown opens (Customize → Menu)", () => {
     renderNav(desktop({ dropdown: "list", viewAll: true }));
     fireEvent.pointerEnter(itemOf("Shop"), { pointerType: "mouse" });
     expect(screen.getByText("All Shop").closest("a")).toHaveAttribute("href", "/skin-care");
+  });
+});
+
+describe("HeaderNav — the page the shopper is on", () => {
+  const TREE: MenuNode[] = [
+    { ...node("Shop", "/skin-care", [{ ...node("Serums", "/skin-care/serums"), path: "skin-care/serums" }]), path: "skin-care" },
+    { ...node("Hair", "/hair"), path: "hair" },
+  ];
+
+  it("marks the department holding the page, and no other", () => {
+    nav.pathname = "/skin-care/serums";
+    render(<HeaderNav nodes={TREE} />);
+    expect(screen.getByText("Shop").closest("a")).toHaveClass("sf-current");
+    expect(screen.getByText("Hair").closest("a")).not.toHaveClass("sf-current");
+    nav.pathname = "/";
+  });
+
+  it("marks the current sub-category inside the open dropdown", () => {
+    nav.pathname = "/skin-care/serums";
+    render(<HeaderNav nodes={TREE} menu={{ ...DEFAULT_MENU_SETTINGS.desktop, openOn: "click" }} />);
+    fireEvent.click(screen.getByRole("button", { name: /Shop/ }));
+    const serums = screen.getByText("Serums").closest("a");
+    expect(serums).toHaveClass("sf-current");
+    expect(serums).toHaveAttribute("aria-current", "page");
+    nav.pathname = "/";
   });
 });

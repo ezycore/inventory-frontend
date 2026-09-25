@@ -103,15 +103,26 @@ const FLOW = { type: "enum", values: ["wrap", "scroll"], responsive: true, optio
  */
 export const NO_ICON = "none";
 
+/** Every glyph a row or card may pick — also the store promises' picker (Customize → Footer). */
+export const ICON_NAMES = [
+  "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
+  "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
+] as const;
+
 const ICON = {
   type: "enum",
-  values: [
-    "truck", "shield", "tag", "check", "coins", "box", "clock", "phone",
-    "star", "heart", "lock", "card", "bolt", "mapPin", "receipt", "home",
-    NO_ICON,
-  ],
+  values: [...ICON_NAMES, NO_ICON],
   optional: true,
 } as const;
+
+/**
+ * How a promises list draws its icons: on a solid accent disc, as a bare glyph,
+ * or not at all. One vocabulary for the promises band and the footer's promises
+ * block (`FOOTER_ICON_STYLES`), so the two can be made to match. Each surface
+ * keeps its own unset — `disc` on the band, `plain` in the footer — which is
+ * what each drew before the setting.
+ */
+export const PROMISE_ICON_STYLES = ["disc", "plain", "none"] as const;
 
 export const SECTION_SPECS = {
   hero: {
@@ -685,7 +696,12 @@ export const SECTION_SPECS = {
     settings: {
       heading: { type: "string", max: 120, optional: true },
       ...SUBHEADING,
-      /** The store's own promises (Customize → Footer) in place of the blocks, as the classic home band. */
+      /**
+       * The store's own promises (Customize → Footer) in place of the blocks, as
+       * the classic home band. A new band starts with it on when the store has
+       * promises (`defaultsForStore`), so the band and the footer say the same
+       * thing and one edit changes both.
+       */
       storePromises: { type: "boolean", optional: true },
       /**
        * Unset keeps the store's own ramp — three past the breakpoint, one on a
@@ -695,6 +711,8 @@ export const SECTION_SPECS = {
        * delivery".
        */
       columns: { type: "number", min: 1, max: 4, int: true, responsive: true, optional: true },
+      /** Unset is `disc`. A row's own "No icon" still wins over `disc` and `plain`. */
+      iconStyle: { type: "enum", values: PROMISE_ICON_STYLES, optional: true },
     },
     blocks: {
       max: 6,

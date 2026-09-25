@@ -88,9 +88,32 @@ describe("MenuTreeList — accordion (the default)", () => {
   });
 
   it("'None' starts with every group folded", () => {
-    state.pathname = "/mats";
+    state.pathname = "/";
     renderTree(phone({ open: "none" }));
     expect(screen.queryByText("Round")).toBeNull();
+  });
+
+  it("keeps the current department open whatever the open setting says", () => {
+    // Owner rule: a shopper on Cushions › Velvet who opens the menu finds
+    // Velvet, not a folded Cushions.
+    state.pathname = "/cushions/velvet";
+    renderTree(phone({ open: "none" }));
+    expect(screen.getByText("Velvet")).toBeInTheDocument();
+  });
+
+  it("marks the current sub-category as the page", () => {
+    state.pathname = "/cushions/velvet";
+    renderTree();
+    expect(screen.getByText("Velvet").closest("a")).toHaveAttribute("aria-current", "page");
+    // Floor mats is folded; its department row is only named, not marked.
+    expect(screen.queryByText("Round")).toBeNull();
+  });
+
+  it("marks the All row when the shopper is on the department itself", () => {
+    state.pathname = "/cushions";
+    renderTree();
+    expect(screen.getByText("All Cushions").closest("a")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Velvet").closest("a")).not.toHaveAttribute("aria-current");
   });
 
   it("leaves a link without children a plain link", () => {
@@ -109,6 +132,7 @@ describe("MenuTreeList — accordion (the default)", () => {
 
 describe("MenuTreeList — the other layouts", () => {
   it("step in: a category opens its own screen, and Back returns", () => {
+    state.pathname = "/";
     renderTree(phone({ layout: "drill" }));
     expect(screen.queryByText("Round")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Floor mats/ }));
@@ -119,7 +143,17 @@ describe("MenuTreeList — the other layouts", () => {
     expect(screen.getByText("Cushions")).toBeInTheDocument();
   });
 
+  it("step in: opens on the current department's screen", () => {
+    state.pathname = "/cushions/velvet";
+    renderTree(phone({ layout: "drill" }));
+    expect(screen.getByText("Velvet").closest("a")).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByText("Floor mats")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Back/ }));
+    expect(screen.getByText("Floor mats")).toBeInTheDocument();
+  });
+
   it("step in: the lead row stays on the top screen, never above Back", () => {
+    state.pathname = "/";
     render(
       <MenuTreeList
         nodes={NODES}

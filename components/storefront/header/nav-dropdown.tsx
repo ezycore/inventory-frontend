@@ -3,7 +3,8 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
-import type { MenuDropdown, MenuNode } from "@/lib/storefront-menu";
+import { isNodeActive, type MenuDropdown, type MenuNode } from "@/lib/storefront-menu";
+import { useStorePathname } from "@/services/storefront/use-store-pathname";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import { SfImage } from "@/components/storefront/sf-image";
 
@@ -17,17 +18,26 @@ import { SfImage } from "@/components/storefront/sf-image";
  */
 export function NavLink({
   node,
-  className,
-  style,
+  className: baseClass,
+  style: baseStyle,
   onClick,
+  current,
   children,
 }: {
   node: Pick<MenuNode, "href" | "external">;
   className: string;
   style?: CSSProperties;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  /**
+   * The page the shopper is on. Adds `.sf-current` — the merchant's Current
+   * page style, shared with every menu surface — and drops an inline weight
+   * so the stylesheet can set it.
+   */
+  current?: boolean;
   children: ReactNode;
 }) {
+  const className = current ? `${baseClass} sf-current` : baseClass;
+  const style = current && baseStyle ? { ...baseStyle, fontWeight: undefined } : baseStyle;
   if (node.external) {
     return (
       <a
@@ -43,7 +53,13 @@ export function NavLink({
     );
   }
   return (
-    <Link href={node.href} className={className} style={style} onClick={onClick}>
+    <Link
+      href={node.href}
+      className={className}
+      style={style}
+      onClick={onClick}
+      aria-current={current ? "page" : undefined}
+    >
       {children}
     </Link>
   );
@@ -104,9 +120,14 @@ export function NavDropdown({
   viewAll: boolean;
 }) {
   const { t } = useStorefrontUI();
+  const pathname = useStorePathname();
   const kids = node.children;
+  const on = (child: MenuNode) => isNodeActive(child, pathname);
+  // "All ‹category›" is the page only on the department itself, not beneath it.
+  const onParent =
+    isNodeActive({ ...node, children: [] }, pathname) && !kids.some(on);
   const allRow = viewAll ? (
-    <NavLink node={node} className="sf-nav-child" style={{ fontWeight: 700 }}>
+    <NavLink node={node} className="sf-nav-child" style={{ fontWeight: 700 }} current={onParent}>
       {t.menuAllIn.replace("{name}", node.label)}
     </NavLink>
   ) : null;
@@ -118,7 +139,7 @@ export function NavDropdown({
           {allRow ? <div style={{ marginBottom: 8 }}>{allRow}</div> : null}
           <div className="sf-nav-mega">
             {kids.map((child) => (
-              <NavLink key={child.key} node={child} className="sf-nav-child sf-nav-mega-item">
+              <NavLink key={child.key} node={child} className="sf-nav-child sf-nav-mega-item" current={on(child)}>
                 <SfImage
                   image={child.image}
                   alt=""
@@ -157,7 +178,7 @@ export function NavDropdown({
       >
         {allRow}
         {kids.map((child) => (
-          <NavLink key={child.key} node={child} className="sf-nav-child">
+          <NavLink key={child.key} node={child} className="sf-nav-child" current={on(child)}>
             {child.label}
           </NavLink>
         ))}

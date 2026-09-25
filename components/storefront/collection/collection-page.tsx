@@ -14,7 +14,8 @@ import { SkeletonCard } from "@/components/storefront/sf-skeleton";
 import { CatalogFilters } from "@/components/storefront/filters/catalog-filters";
 import { useCatalogFacets } from "@/components/storefront/use-catalog-facets";
 import { useStoreFilters } from "@/components/storefront/use-store-filters";
-import { useStoreTemplate } from "@/services/stores/use-sf-preview-store";
+import { useSfPreview, useStoreTemplate } from "@/services/stores/use-sf-preview-store";
+import { resolveMenuSettings } from "@/lib/storefront-menu";
 import { Breadcrumb } from "@/components/storefront/breadcrumb";
 import {
   SubcategoryStrip,
@@ -157,6 +158,10 @@ function CollectionInner({
   // Drill-down row for a collection page: this collection's children, or its
   // siblings when it IS a child. See `subcategoriesFor`.
   const subcategories = subcategoriesFor(collection, facets.categories);
+  // How that row draws is a MENU setting (Customize → Menu), per device, with
+  // the Customize draft applied so the preview follows the panel.
+  const previewMenu = useSfPreview((s) => s.navMenu);
+  const menu = resolveMenuSettings(previewMenu ?? store?.nav?.menu);
 
   // A path page is named by its collection; otherwise a brand-only filter turns
   // the page into that brand's landing page.
@@ -239,7 +244,9 @@ function CollectionInner({
         items={subcategories}
         activeId={collection?._id}
         parent={stripParent(collection)}
+        parentImage={facets.categories.find((c) => c._id === stripParent(collection)?._id)?.image}
         allLabel={t.menuAllIn.replace("{name}", stripParent(collection)?.name ?? "")}
+        display={{ base: menu.desktop.collectionStrip, mobile: menu.mobile.collectionStrip }}
       />
 
       <CatalogFilters

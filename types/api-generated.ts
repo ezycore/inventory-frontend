@@ -13133,6 +13133,9 @@ export interface components {
                     width?: string;
                     navHover?: string;
                     navChildHover?: string;
+                    navActive?: string;
+                    navActiveColor?: string;
+                    navActiveCustom?: string;
                     buttonShape?: string;
                     buttonStyle?: string;
                     buttonSize?: string;
@@ -13332,6 +13335,7 @@ export interface components {
                         url?: string;
                     }[];
                     logoHeight?: number;
+                    iconStyle?: string;
                 }[];
                 announcement?: {
                     enabled: boolean;
@@ -13400,6 +13404,7 @@ export interface components {
                         title?: string;
                         allProducts?: boolean;
                         allProductsLabel?: string;
+                        collectionStrip?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -13408,6 +13413,7 @@ export interface components {
                         overflow?: string;
                         row?: boolean;
                         viewAll?: boolean;
+                        collectionStrip?: string;
                     };
                 };
                 filters?: {
@@ -14809,6 +14815,9 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            navActive?: string;
+                            navActiveColor?: string;
+                            navActiveCustom?: string;
                             buttonShape?: string;
                             buttonStyle?: string;
                             buttonSize?: string;
@@ -15089,6 +15098,7 @@ export interface components {
                                 url?: string;
                             }[];
                             logoHeight?: number;
+                            iconStyle?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15157,6 +15167,7 @@ export interface components {
                                 title?: string;
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
+                                collectionStrip?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15165,6 +15176,7 @@ export interface components {
                                 overflow?: string;
                                 row?: boolean;
                                 viewAll?: boolean;
+                                collectionStrip?: string;
                             };
                         };
                         filters?: {
@@ -15265,6 +15277,9 @@ export interface components {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            navActive?: string;
+                            navActiveColor?: string;
+                            navActiveCustom?: string;
                             buttonShape?: string;
                             buttonStyle?: string;
                             buttonSize?: string;
@@ -15545,6 +15560,7 @@ export interface components {
                                 url?: string;
                             }[];
                             logoHeight?: number;
+                            iconStyle?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15613,6 +15629,7 @@ export interface components {
                                 title?: string;
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
+                                collectionStrip?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15621,6 +15638,7 @@ export interface components {
                                 overflow?: string;
                                 row?: boolean;
                                 viewAll?: boolean;
+                                collectionStrip?: string;
                             };
                         };
                         filters?: {
@@ -22447,6 +22465,9 @@ export interface operations {
                             width?: string;
                             navHover?: string;
                             navChildHover?: string;
+                            navActive?: string;
+                            navActiveColor?: string;
+                            navActiveCustom?: string;
                             buttonShape?: string;
                             buttonStyle?: string;
                             buttonSize?: string;
@@ -22639,6 +22660,8 @@ export interface operations {
                                 url?: string;
                             }[];
                             logoHeight?: number;
+                            /** @enum {string} */
+                            iconStyle?: "disc" | "plain" | "none";
                         }[];
                         announcement?: {
                             enabled?: boolean;
@@ -22706,6 +22729,7 @@ export interface operations {
                                 title?: string;
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
+                                collectionStrip?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -22714,6 +22738,7 @@ export interface operations {
                                 overflow?: string;
                                 row?: boolean;
                                 viewAll?: boolean;
+                                collectionStrip?: string;
                             };
                         };
                         filters?: {
@@ -45321,6 +45346,9 @@ export interface operations {
                                 width?: string;
                                 navHover?: string;
                                 navChildHover?: string;
+                                navActive?: string;
+                                navActiveColor?: string;
+                                navActiveCustom?: string;
                                 buttonShape?: string;
                                 buttonStyle?: string;
                                 buttonSize?: string;
@@ -45591,6 +45619,8 @@ export interface operations {
                                     url?: string;
                                 }[];
                                 logoHeight?: number;
+                                /** @enum {string} */
+                                iconStyle?: "disc" | "plain" | "none";
                             }[];
                             announcement?: {
                                 enabled?: boolean;
@@ -45658,6 +45688,7 @@ export interface operations {
                                     title?: string;
                                     allProducts?: boolean;
                                     allProductsLabel?: string;
+                                    collectionStrip?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;
@@ -45666,6 +45697,7 @@ export interface operations {
                                     overflow?: string;
                                     row?: boolean;
                                     viewAll?: boolean;
+                                    collectionStrip?: string;
                                 };
                             };
                             filters?: {

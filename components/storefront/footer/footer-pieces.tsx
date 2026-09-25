@@ -7,6 +7,7 @@ import type { StoreFooterStyle } from "@/lib/storefront-client";
 import { footerGroupStartsOpen } from "@/lib/storefront-footer/style";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Brand } from "@/components/storefront/logo-mark";
+import { PromiseIcon, promiseIcon, type PromiseIconStyle } from "@/components/storefront/home/promise-rows";
 import type {
   FooterColumn,
   FooterLinkItem,
@@ -211,6 +212,9 @@ const PROMISES_MAX = 4;
 /** The band's pre-existing desktop track count, kept for one to three promises. */
 const PROMISES_MIN_COLS = 3;
 
+/** The footer's disc — smaller than the band's 34px, for the footer's 13px words. */
+const PROMISE_DISC = 30;
+
 /**
  * The merchant's store promises as one tinted band. A band rather than three
  * floating icons: the row is one claim about the shop, and giving it a ground
@@ -219,20 +223,31 @@ const PROMISES_MIN_COLS = 3;
  * Desktop keeps its three tracks for one to three promises — where every shop
  * that has them sits today — and widens to four for a fourth, which used to wrap
  * 3 + 1. Phones stack them.
+ *
+ * Icons follow the promises band's rules (`promiseIcon`): the same fallbacks,
+ * a promise's own "No icon" honoured, and the same three styles — unset is
+ * `plain` here, what the footer drew before the block had the setting.
  */
-export function FooterPromises({ promises }: { promises: FooterPromise[] }) {
+export function FooterPromises({
+  promises,
+  iconStyle = "plain",
+}: {
+  promises: FooterPromise[];
+  iconStyle?: PromiseIconStyle;
+}) {
   if (!promises.length) return null;
   const cols = Math.max(PROMISES_MIN_COLS, Math.min(promises.length, PROMISES_MAX));
   return (
     <div className="sf-footer-trustbar" style={{ "--ft-trustcols": cols } as CSSProperties}>
-      {promises.map((promise) => (
-        <div key={promise.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: "var(--primary)", display: "flex", flex: "none" }}>
-            <Icon name={promise.icon} size={19} />
-          </span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{promise.label}</span>
-        </div>
-      ))}
+      {promises.map((promise, i) => {
+        const icon = promiseIcon(promise.icon, i, iconStyle);
+        return (
+          <div key={promise.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {icon && iconStyle !== "none" ? <PromiseIcon name={icon} style={iconStyle} size={PROMISE_DISC} /> : null}
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{promise.label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
