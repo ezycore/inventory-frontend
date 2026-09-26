@@ -1429,9 +1429,11 @@ export interface CustomerLedgerSale {
   invoiceNumber: string;
   totalAmount: number;
   paidAmount: number;
+  /** On an online sale this is COD pending — the courier collects it, never the customer. */
   dueAmount: number;
   createdAt: string;
   status: "draft" | "partial" | "paid" | "cancelled";
+  channel?: "pos" | "online";
 }
 
 export interface CustomerLedgerPayment {

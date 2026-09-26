@@ -137,24 +137,20 @@ describe("EFFECTS", () => {
    * expense rows. Collapsing them into one event costs a full ledger refetch on every filing —
    * and the nightly sweep files in bulk, so that is not a rare path.
    */
-  it("keeps filing a payout cheaper than posting one", () => {
+  it("a recorded courier payment moves the ledger and the payouts screen together", () => {
     const money = new Set(
       [queryKeys.accounts.all(), queryKeys.transactions.all()].map((key) =>
         JSON.stringify(key),
       ),
     );
-    const keysOf = (event: DomainEvent) =>
-      EFFECTS[event].map((key) => JSON.stringify(key));
-
-    const recorded = keysOf("payout.recorded");
-    const posted = keysOf("payout.posted");
-
-    expect(recorded.some((key) => money.has(key))).toBe(false);
+    const posted = EFFECTS["payout.posted"].map((key) => JSON.stringify(key));
     expect(posted.filter((key) => money.has(key))).toHaveLength(money.size);
-    // Both must still name the payouts root, or the list they just changed goes stale.
-    const payoutsRoot = JSON.stringify(queryKeys.courierPayouts.all());
-    expect(recorded).toContain(payoutsRoot);
-    expect(posted).toContain(payoutsRoot);
+    expect(posted).toContain(JSON.stringify(queryKeys.courierPayouts.all()));
+  });
+
+  it("a settled order refreshes the courier balance — delivery settles into clearing", () => {
+    const settled = EFFECTS["order.settled"].map((key) => JSON.stringify(key));
+    expect(settled).toContain(JSON.stringify(queryKeys.courierPayouts.all()));
   });
 
   it("has no duplicate keys within a single event", () => {

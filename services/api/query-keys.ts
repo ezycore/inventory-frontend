@@ -337,12 +337,16 @@ export const queryKeys = {
    * Courier remittance — the payouts a courier pays over days after collecting COD
    * (backend `docs/plan/cod-remittance.md`).
    *
-   * `summary` comes from `resourceKeys` and therefore sits UNDER this root, which is the
-   * point: posting a payout moves the clearing balances the summary is derived from, so one
-   * `invalidateQueries({ queryKey: queryKeys.courierPayouts.all() })` drops the COD-in-transit
-   * figures with the list that produced them.
+   * `summary` and `balances` sit UNDER this root, which is the point: recording a payment
+   * moves the clearing balances both are derived from, so one
+   * `invalidateQueries({ queryKey: queryKeys.courierPayouts.all() })` drops the "courier owes
+   * you" figures with the list that produced them.
    */
-  courierPayouts: resourceKeys("courier-payouts"),
+  courierPayouts: {
+    ...resourceKeys("courier-payouts"),
+    /** "Courier owes you" — under the root, so recording a payment drops it with the list. */
+    balances: () => ["courier-payouts", "balances"] as const,
+  },
 
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {

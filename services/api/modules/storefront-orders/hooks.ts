@@ -402,7 +402,8 @@ export const useSetCourierStatus = () => {
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Delivery status updated");
-      invalidate(qc, "order.changed");
+      // "Delivered" settles the order into the courier's clearing account.
+      invalidate(qc, "order.settled");
     },
     onError: handleMutationError,
   });
@@ -414,7 +415,8 @@ export const useRefreshTracking = () => {
     mutationFn: (id: string) => storefrontOrdersApi.refreshTracking(id),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Tracking refreshed");
-      invalidate(qc, "order.changed");
+      // A refresh that reads "delivered" settles the order into the courier's clearing account.
+      invalidate(qc, "order.settled");
     },
     onError: handleMutationError,
   });

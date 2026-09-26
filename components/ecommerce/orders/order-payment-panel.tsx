@@ -14,7 +14,12 @@ import { OrderCollectionDialog } from "./order-collection-dialog";
 import { codToCollect } from "./order-detail-helpers";
 
 /**
- * Payment card. The "mark paid" affordance only appears once the order is
+ * Payment card. An unpaid COD order out with a courier reads **COD pending**, never "due": the
+ * customer pays the courier at the door, and when the courier reports it delivered the order
+ * settles itself into the courier's account (backend `courier-settlement-manual.md` §4.3 B).
+ * "Mark COD collected" stays for the counter and as a manual override.
+ *
+ * The "mark paid" affordance only appears once the order is
  * **committed to a Sale** (`saleId` set — the sale is created at ship / ready for
  * pickup), because `markPaid` pays that Sale's goods due. A reserved-but-
  * uncommitted order has no Sale to settle, so no button.
@@ -63,7 +68,11 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Status</span>
-        <PaymentBadge status={order.paymentStatus} />
+        <PaymentBadge
+          status={order.paymentStatus}
+          // An unpaid order out with a courier is COD the courier collects — never a debt.
+          codPending={!isPickup && hasSale && order.paymentMethod === "cod"}
+        />
       </div>
 
       {!isPickup && hasPrepayment && (
@@ -142,7 +151,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   );
 }
 
-function PaymentBadge({ status }: { status: string }) {
+function PaymentBadge({ status, codPending }: { status: string; codPending?: boolean }) {
   const map: Record<string, { cls: string; label: string }> = {
     paid: { cls: "border-green-200 bg-green-50 text-green-800", label: "Paid" },
     pending: {
@@ -154,7 +163,10 @@ function PaymentBadge({ status }: { status: string }) {
       label: "Refunded",
     },
   };
-  const m = map[status] ?? map.pending;
+  const m =
+    status === "pending" && codPending
+      ? { ...map.pending, label: "COD pending" }
+      : (map[status] ?? map.pending);
   return (
     <span
       className={cn(

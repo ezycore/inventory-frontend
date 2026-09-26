@@ -39,6 +39,7 @@ export function PayoutHistorySummary({ data }: { data?: PayoutHistory }) {
     { label: "Return charge", amount: summary.returnCharge },
     { label: "Payment charge", amount: summary.paymentCharge },
     { label: "Adjustment", amount: summary.adjustment },
+    { label: "Extra courier charges", amount: summary.extraCharges ?? 0 },
   ].filter((row) => row.amount !== 0);
 
   return (

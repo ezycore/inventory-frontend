@@ -40,7 +40,7 @@ const SOURCE_LABELS: Record<string, string> = {
   manual: "entered by hand",
   webhook: "courier webhook",
   api: "courier API",
-  payout: "payout statement",
+  payout: "payout statement (legacy)",
 };
 
 export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
@@ -55,6 +55,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   if (!courier || (!charges && !remittance)) return null;
 
   const money = (n: number) => formatMoney(n, currency);
+  const courierName = courier.name?.trim() || providerLabel(courier.provider);
   const actual = charges?.actual;
   const quoted = charges?.quoted;
   const variance =
@@ -72,7 +73,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
         <div>
           <h3 className="text-sm font-semibold">Courier charges</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {providerLabel(courier.provider)}
+            {courierName}
             {charges?.source ? ` · ${SOURCE_LABELS[charges.source] ?? charges.source}` : ""}
           </p>
         </div>
@@ -122,7 +123,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
         ) : (
           <p className="text-sm text-muted-foreground">
             The courier has not published a charge for this parcel. The dispatch quote stands
-            until a payout settles it.
+            until they do — it is the figure the courier balance subtracts meanwhile.
           </p>
         )}
 
@@ -164,25 +165,39 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
         </div>
       )}
 
-      {/* Where this parcel's COD is. `not_collected` says nothing — the payment panel
-          already covers an order nobody has collected against. */}
-      {remittance && remittance.status !== "not_collected" && (
-        <div className="mt-4 border-t pt-3 text-sm">
-          {remittance.status === "with_courier" ? (
-            <p className="text-muted-foreground">
+      {/* Where this parcel's money is, per backend courier-settlement-manual §2. Delivered
+          COD is settled into the courier's account automatically; the courier owes it, less
+          their charge, until the merchant records the payment that covers it. */}
+      {remittance?.partialDelivery && order.paymentStatus === "pending" && (
+        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          {courierName} reported a partial delivery. Nothing was settled — record what was
+          actually collected with <b>Collected a different amount…</b>
+        </p>
+      )}
+      {remittance?.status === "with_courier" && (
+        <div className="mt-4 border-t pt-3 text-sm text-muted-foreground">
+          {(remittance.clearingAmount ?? 0) > 0 ? (
+            <p>
               <span className="font-medium text-foreground">
                 {money(remittance.clearingAmount ?? 0)}
               </span>{" "}
-              is with {providerLabel(courier.provider)} — collected, not yet paid over.
+              collected by {courierName} — they owe it to you, less their charge, until you
+              record their payment.
             </p>
           ) : (
-            <p className="text-muted-foreground">
-              Remitted
-              {remittance.remittedAt ? ` on ${longDate(remittance.remittedAt)}` : ""}
-              {remittance.payoutRef ? ` in ${remittance.payoutRef}` : ""}.
+            <p>
+              {courierName} will take its charge
+              {actual ? ` (${money(actual.totalFee)})` : ""} out of a payment for this
+              parcel.
             </p>
           )}
         </div>
+      )}
+      {remittance?.status === "remitted" && (
+        <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
+          Covered by a payment from {courierName}
+          {remittance.remittedAt ? ` on ${longDate(remittance.remittedAt)}` : ""}.
+        </p>
       )}
     </Card>
   );

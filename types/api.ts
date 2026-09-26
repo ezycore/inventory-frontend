@@ -185,15 +185,19 @@ export type CustomCourier = Schemas["CustomCourier"];
 export type CustomCourierRemoved = Schemas["CustomCourierRemoved"];
 
 /**
- * Courier remittance — the money a courier collected at the door and pays over days later, net
- * of their charges (backend `docs/plan/cod-remittance.md`).
+ * Courier settlement — the money a courier collected at the door and pays over days later, net
+ * of their charges. One manual flow for every courier (backend
+ * `docs/plan/courier-settlement-manual.md`).
  *
- * `reconciled`, `residual` and `unrecordedGross` are the server's own reconciliation against the
- * clearing accounts. The client does not have that basis and must never re-derive them.
+ * `reconciled`, `residual`, `unrecordedGross` and a balance's `shortfall` are the server's own
+ * reconciliation against the clearing accounts. The client does not have that basis and must
+ * never re-derive them.
  */
 export type CourierPayout = Schemas["CourierPayout"];
-export type CourierPayoutSync = Schemas["CourierPayoutSync"];
 export type CourierMoneySummary = Schemas["CourierMoneySummary"];
+/** "Courier owes you" per courier, plus the open parcels behind it (oldest first). */
+export type CourierBalances = Schemas["CourierBalances"];
+export type CourierWriteOff = Schemas["CourierWriteOff"];
 /** `supported: false` is Steadfast's honest answer — it publishes no charge anywhere. */
 export type CourierChargeRefresh = Schemas["CourierChargeRefresh"];
 export type FraudScore = Schemas["FraudScore"];
