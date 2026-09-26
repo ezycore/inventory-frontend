@@ -47,7 +47,7 @@ const SOURCES: {
 /** Header layouts with no menu row of their own, which can take one on request. */
 const ROWLESS_HEADERS = new Set(["search-first", "clinical"]);
 
-type Device = "mobile" | "desktop";
+type Device = "mobile" | "desktop"
 
 /**
  * Menu — what is in the shop's menu and how it opens, on each device.
