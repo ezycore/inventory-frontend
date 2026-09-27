@@ -4,6 +4,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import type { StoreFooterStyle } from "@/lib/storefront-client";
+import type { FooterPromiseArrange } from "@/lib/storefront-footer/types";
 import { footerGroupStartsOpen } from "@/lib/storefront-footer/style";
 import { Icon } from "@/components/storefront/sf-icons";
 import { Brand } from "@/components/storefront/logo-mark";
@@ -14,6 +15,18 @@ import type {
   FooterPromise,
   FooterT,
 } from "@/components/storefront/footer/footer-model";
+
+/**
+ * The about paragraph. `pre-line` keeps the line breaks the merchant typed in
+ * the About box (it is a textarea) while still wrapping long lines.
+ */
+export const footerBlurb: CSSProperties = {
+  fontSize: 13,
+  color: "var(--muted)",
+  lineHeight: 1.6,
+  margin: 0,
+  whiteSpace: "pre-line",
+};
 
 /** The centred layout's inline link row. */
 export const footerLink: CSSProperties = {
@@ -155,27 +168,34 @@ export function FooterColumns({
 /**
  * The store's mark and its about line. `logoHeight` is the footer-only logo's
  * own height (Customize → Footer); unset keeps the layout's 31px mark.
+ * `showMark: false` drops the logo and name — the brand block's own switch —
+ * and leaves the about line on its own.
  */
 export function FooterBrand({
   name,
   logo,
   logoHeight,
   blurb,
+  showMark = true,
 }: {
   name: string;
   logo?: string;
   logoHeight?: number;
   blurb?: string;
+  showMark?: boolean;
 }) {
+  if (!showMark && !blurb) return null;
   // `Brand` draws a logo at `markSize + 4`, so the height is converted back.
   const markSize = logoHeight ? logoHeight - 4 : 31;
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: blurb ? 12 : 0 }}>
-        <Brand name={name} logo={logo} markSize={markSize} nameSize={16} />
-      </div>
+      {showMark ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: blurb ? 12 : 0 }}>
+          <Brand name={name} logo={logo} markSize={markSize} nameSize={16} />
+        </div>
+      ) : null}
       {blurb ? (
-        <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0, maxWidth: 340 }}>
+        <p style={{ ...footerBlurb, maxWidth: 340 }}>
           {blurb}
         </p>
       ) : null}
@@ -231,14 +251,21 @@ const PROMISE_DISC = 30;
 export function FooterPromises({
   promises,
   iconStyle = "plain",
+  arrange = "row",
 }: {
   promises: FooterPromise[];
   iconStyle?: PromiseIconStyle;
+  /** `column` stacks them one under another on every screen, for a narrow block beside the links. */
+  arrange?: FooterPromiseArrange;
 }) {
   if (!promises.length) return null;
   const cols = Math.max(PROMISES_MIN_COLS, Math.min(promises.length, PROMISES_MAX));
   return (
-    <div className="sf-footer-trustbar" style={{ "--ft-trustcols": cols } as CSSProperties}>
+    <div
+      className="sf-footer-trustbar"
+      data-arrange={arrange}
+      style={{ "--ft-trustcols": cols } as CSSProperties}
+    >
       {promises.map((promise, i) => {
         const icon = promiseIcon(promise.icon, i, iconStyle);
         return (

@@ -149,6 +149,10 @@ export const FOOTER_ICON_STYLES = ["disc", "plain", "none"] as const;
  */
 export type FooterIconStyle = (typeof FOOTER_ICON_STYLES)[number];
 
+/** How a promises block lays its promises out — side by side, or one under another. */
+export const FOOTER_PROMISE_ARRANGES = ["row", "column"] as const;
+export type FooterPromiseArrange = (typeof FOOTER_PROMISE_ARRANGES)[number];
+
 export interface FooterLogo {
   image: FooterImage;
   alt: string;
@@ -171,6 +175,8 @@ export interface StorefrontFooterBlock {
   title?: string;
   /** `links`. */
   links?: StorefrontFooterLink[];
+  /** `brand`: show the logo and shop name. Unset ⇒ shown. */
+  showLogo?: boolean;
   /** `brand`: show the about text. Unset ⇒ shown. */
   showAbout?: boolean;
   /** `brand`: show the call line. Unset ⇒ shown. */
@@ -191,6 +197,8 @@ export interface StorefrontFooterBlock {
   logoHeight?: number;
   /** `promises`: icon style. Unset ⇒ `plain`, the footer's look before the setting. */
   iconStyle?: FooterIconStyle;
+  /** `promises`: row or column. Unset ⇒ `row`, the footer before the setting. */
+  arrange?: FooterPromiseArrange;
 }
 
 export const FOOTER_BLOCKS_MAX = 12;

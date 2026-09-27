@@ -3745,6 +3745,19 @@ cached entry on the `/sites` route (see "Cached store pages").
   `useUploadStorefrontImage` the moment they are picked and save with the footer; the backend
   deletes a picture a save dropped (`footerImageIds`, the announcement image's rule).
 
+  **The editor (Customize → Footer) is four sections** — layout, Blocks, Bottom line, Look — and
+  **what one block shows is edited inside that block** (2026-09-27): the brand block's
+  `FooterBrandFields` holds the `showLogo`/`showAbout`/`showPhone`/`showSocial` switches with the
+  footer logo and about text under them; the promises block holds `TrustBadgesField`;
+  `FooterPromisesNotice` covers a footer with no promises block (the list is shared with page bands
+  and the hero, so it must stay editable without one). The brand parts and "shows anything" rule
+  live once in `lib/storefront-footer/blocks.ts` (`BRAND_PARTS`, `brandPartsShown`,
+  `brandBlockShowsAnything`), read by both the editor and `BrandBlock`. Don't add a section for a
+  field only one block draws — put it in that block's inspector. The promises block's `arrange`
+  (row / column) is `data-arrange` on `.sf-footer-trustbar`. The about paragraph's style is the one
+  `footerBlurb` (`white-space: pre-line`, so the textarea's line breaks survive) — both the brand
+  block and the centred layout use it; don't hand-roll a third copy.
+
   | `templates.footer` | Layout | Left side | Notes |
   |---|---|---|---|
   | `columns` | Anchored columns (default) | brand + blurb + phone + socials | the repair; every existing store gets it without re-choosing |

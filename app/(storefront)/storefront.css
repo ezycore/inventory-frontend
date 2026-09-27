@@ -4816,6 +4816,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   .sf-footer-trustbar {
     grid-template-columns: repeat(var(--ft-trustcols, 3), minmax(0, 1fr));
   }
+  /* A promises block set to "In a column" stays one track wide on a computer too
+     (the phone already stacks). The attribute out-ranks the rule above. */
+  .sf-footer-trustbar[data-arrange="column"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
   /*
    * The link columns are sized to THEIR CONTENT and anchored to the right edge.
    *
