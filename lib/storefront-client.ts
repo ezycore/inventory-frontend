@@ -875,6 +875,7 @@ export interface StoreMenuSettings {
     allProducts?: boolean;
     allProductsLabel?: string;
     collectionStrip?: string;
+    drawerWidth?: string;
   };
   desktop?: {
     dropdown?: string;

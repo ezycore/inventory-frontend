@@ -1910,7 +1910,14 @@ reserves the 56px. Reserving it unconditionally floats all three above nothing.
 
 ⚠ **The panel and the search takeover are mounted ONCE, by the shell** (`ShellMobileOverlays`), and
 driven by `useMobileNav`. The hamburger in the bar and the Menu *tab* open the same panel; a copy per
-surface is two drawers racing one body-scroll lock. `HeaderSearchMobile` is controlled for the same
+surface is two drawers racing one body-scroll lock. The drawer form is `SideDrawer side="left"` —
+the only left drawer in the shop — sized on `.sf-drawer-left` by the merchant's **Menu width**
+(`nav.menu.mobile.drawerWidth` → `SideDrawer width` → `data-width`: narrow `min(280px, 100% − 96px)`,
+regular (unset) `min(340px, 100% − 64px)`, wide `min(400px, 100% − 32px)`; 2026-09-27), so a strip
+of the shop always shows beside it to tap closed; the shared 94% width it used before covered a
+phone. `MENU_DRAWER_WIDTHS` is listed narrow → wide (an ordinal ramp), so its resolver falls back to
+`regular` explicitly rather than the list's first. Customize shows it only when `menuStyle` is
+`drawer` — the bottom sheet is full width by design. `HeaderSearchMobile` is controlled for the same
 reason — search is an action a merchant can place in either slot, in a tab, or on the row under the
 brand, and those four entry points open one sheet.
 

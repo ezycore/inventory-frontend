@@ -13407,6 +13407,7 @@ export interface components {
                         allProducts?: boolean;
                         allProductsLabel?: string;
                         collectionStrip?: string;
+                        drawerWidth?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -15172,6 +15173,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15636,6 +15638,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -22739,6 +22742,7 @@ export interface operations {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -45701,6 +45705,7 @@ export interface operations {
                                     allProducts?: boolean;
                                     allProductsLabel?: string;
                                     collectionStrip?: string;
+                                    drawerWidth?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;

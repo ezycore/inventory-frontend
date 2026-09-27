@@ -200,6 +200,7 @@ export function MenuPart({
           value={menu.mobile}
           onChange={(p) => setMenu({ mobile: { ...menu.mobile, ...p } })}
           hasChipsRow={draft.mobile.row === "chips"}
+          slidesIn={draft.mobile.menuStyle === "drawer"}
         />
       ) : (
         <>

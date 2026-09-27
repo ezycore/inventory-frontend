@@ -139,6 +139,12 @@ items** is the row across your header, and **Dropdown items** is the list that o
 Each offers None, Colour, Underline or a soft Highlight. Phones are unaffected either way — there a
 menu is a panel and a tap opens it.
 
+On a phone with a menu button (☰), that panel slides in from the side. **Menu width**, under
+**Menu → Phone**, sets how much of the screen it takes: **Narrow**, **Regular** (the default) or
+**Wide**. Every width leaves a strip of your shop showing beside it, which shoppers tap to close the
+menu. A shop whose menu opens from the bottom tab bar does not show this setting — that menu always
+spans the screen.
+
 ### Hero
 
 The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
