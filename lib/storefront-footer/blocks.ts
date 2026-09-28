@@ -40,6 +40,24 @@ export const LINK_BLOCK_TYPES: readonly FooterBlockType[] = ["links", "pages"];
 export const blockWidth = (block: StorefrontFooterBlock): FooterBlockWidth =>
   block.width ?? DEFAULT_BLOCK_WIDTH[block.type];
 
+/**
+ * The brand block's four parts, in the order it draws them. Each is shown
+ * unless switched off, so a block saved before a part's switch existed keeps it.
+ */
+export const BRAND_PARTS = [
+  { key: "showLogo", label: "Logo" },
+  { key: "showAbout", label: "About" },
+  { key: "showPhone", label: "Phone" },
+  { key: "showSocial", label: "Social" },
+] as const;
+
+/** The brand parts still switched on — the storefront draws nothing when none are. */
+export const brandPartsShown = (block: StorefrontFooterBlock) =>
+  BRAND_PARTS.filter((part) => block[part.key] !== false);
+
+export const brandBlockShowsAnything = (block: StorefrontFooterBlock) =>
+  brandPartsShown(block).length > 0;
+
 /** Types that may appear once — a second brand or sign-up form is never wanted. */
 export const SINGLE_USE_BLOCKS: readonly FooterBlockType[] = [
   "brand",

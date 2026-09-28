@@ -13346,6 +13346,7 @@ export interface components {
                         url?: string;
                         newTab?: boolean;
                     }[];
+                    showLogo?: boolean;
                     showAbout?: boolean;
                     showPhone?: boolean;
                     showSocial?: boolean;
@@ -13373,6 +13374,7 @@ export interface components {
                     }[];
                     logoHeight?: number;
                     iconStyle?: string;
+                    arrange?: string;
                 }[];
                 announcement?: {
                     enabled: boolean;
@@ -13442,6 +13444,7 @@ export interface components {
                         allProducts?: boolean;
                         allProductsLabel?: string;
                         collectionStrip?: string;
+                        drawerWidth?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -15109,6 +15112,7 @@ export interface components {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -15136,6 +15140,7 @@ export interface components {
                             }[];
                             logoHeight?: number;
                             iconStyle?: string;
+                            arrange?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15205,6 +15210,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15571,6 +15577,7 @@ export interface components {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -15598,6 +15605,7 @@ export interface components {
                             }[];
                             logoHeight?: number;
                             iconStyle?: string;
+                            arrange?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15667,6 +15675,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -22699,6 +22708,7 @@ export interface operations {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -22725,6 +22735,8 @@ export interface operations {
                             logoHeight?: number;
                             /** @enum {string} */
                             iconStyle?: "disc" | "plain" | "none";
+                            /** @enum {string} */
+                            arrange?: "row" | "column";
                         }[];
                         announcement?: {
                             enabled?: boolean;
@@ -22793,6 +22805,7 @@ export interface operations {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -45621,6 +45634,7 @@ export interface operations {
                                     url?: string;
                                     newTab?: boolean;
                                 }[];
+                                showLogo?: boolean;
                                 showAbout?: boolean;
                                 showPhone?: boolean;
                                 showSocial?: boolean;
@@ -45647,6 +45661,8 @@ export interface operations {
                                 logoHeight?: number;
                                 /** @enum {string} */
                                 iconStyle?: "disc" | "plain" | "none";
+                                /** @enum {string} */
+                                arrange?: "row" | "column";
                             }[];
                             announcement?: {
                                 enabled?: boolean;
@@ -45715,6 +45731,7 @@ export interface operations {
                                     allProducts?: boolean;
                                     allProductsLabel?: string;
                                     collectionStrip?: string;
+                                    drawerWidth?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;

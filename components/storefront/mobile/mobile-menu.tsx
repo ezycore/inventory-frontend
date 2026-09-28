@@ -75,7 +75,7 @@ export function MobileMenuPanel({
     // close button — the same shell the cart and the filter panel slide in on,
     // so the shop has one drawer rather than three that drift apart.
     return (
-      <SideDrawer open={open} onClose={onClose} side="left" title={title}>
+      <SideDrawer open={open} onClose={onClose} side="left" title={title} width={settings.drawerWidth}>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0 14px" }}>{body}</div>
       </SideDrawer>
     );

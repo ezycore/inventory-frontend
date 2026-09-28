@@ -10,26 +10,24 @@ import { FooterImageField } from "@/components/ecommerce/customize/footer/footer
 /** Readability overlay a new background starts with — see `footerFrame`. */
 const DEFAULT_OVERLAY = 55;
 
-/**
- * The footer's own pictures: a footer-only logo (a light mark on a dark footer
- * is the usual reason) and a background photo. Neither is required — without
- * them the footer draws the store logo on its plain ground, as before.
- */
-export function FooterPictureFields({
-  style,
-  setStyle,
-}: {
+interface PictureProps {
   style: StorefrontFooterStyle;
   setStyle: (next: Partial<StorefrontFooterStyle>) => void;
-}) {
-  const bgUrl = style.bgImage?.mediumUrl || style.bgImage?.url;
+}
+
+/**
+ * A footer-only logo (a light mark on a dark footer is the usual reason). Lives
+ * inside the brand block, under its Logo switch, because that block is the only
+ * thing that draws it. Without one the footer uses the store logo, as before.
+ */
+export function FooterLogoFields({ style, setStyle }: PictureProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <FooterImageField
         label="Footer logo"
         image={style.logo}
         onChange={(logo) => setStyle({ logo })}
-        hint="Optional. Shown in the footer instead of your store logo — useful for a light logo on a dark footer."
+        hint="Optional. Your store logo is used until you pick one — a light version reads better on a dark footer."
       />
       {style.logo ? (
         <PartField label="Logo height (px)">
@@ -42,7 +40,15 @@ export function FooterPictureFields({
           />
         </PartField>
       ) : null}
+    </div>
+  );
+}
 
+/** A photo behind the whole footer, with its focal point and readability shade. Part of Look. */
+export function FooterBackgroundFields({ style, setStyle }: PictureProps) {
+  const bgUrl = style.bgImage?.mediumUrl || style.bgImage?.url;
+  return (
+    <div className="space-y-4">
       <FooterImageField
         label="Background photo"
         image={style.bgImage}
