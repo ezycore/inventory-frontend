@@ -222,7 +222,8 @@ those rows embed the name and the rate. The mutation declares the **event**, and
 createResourceHooks(api, queryKeys.brands, { events: ["catalog.changed"] })
 ```
 
-`catalog.changed` covers products, variants, categories, inventory and the derived read models.
+`catalog.changed` covers products, variants, categories, **tags** (each tag row carries its product
+count), inventory and the derived read models.
 Never hand-list keys at the call site — fix the event's entry instead, and every call site is fixed
 with it. See the `api-module` skill.
 
@@ -233,6 +234,18 @@ In:
 - [services/api/modules/units/hooks.ts](../../../services/api/modules/units/hooks.ts)
 
 Variant-attribute create/update/delete hooks also invalidate `queryKeys.products.all()` directly in their `onSuccess`.
+
+### Bulk tag / category edits (2026-09-28)
+
+All in `components/products/bulk/`, wired into the products page by `useProductBulkTools`:
+table selection bar (Add tag / Remove tag / Move to category, "select all N matching" sends the
+filter via `toBulkTarget`), **Select from list** (`paste-list-dialog.tsx`, `POST /products/match-list`)
+and the **Tags & categories sheet** (`taxonomy-sheet-dialog.tsx` + `sheet-preview.tsx`, preview then
+commit). One confirm dialog (`bulk-edit-dialog.tsx`) and one set of fields (`bulk-action-fields.tsx`)
+serve all of them and the Categories page's **Move products…**; the Tags page's **Remove from all
+products** is `components/tags/remove-from-products-dialog.tsx`. Hooks: `useBulkUpdateProducts`,
+`useMatchProductList` (read-only), `useCommitTaxonomySheet` — both writers fire `catalog.changed`.
+Backend rules (strict filter, 5,000 cap, only-changed writes): backend `products` skill §2b.
 
 ---
 

@@ -175,6 +175,13 @@ point, just under where you upload it. The **Image fit** setting under Product c
 *product* photos behave and has no say over the hero, so you can crop your product grid tidily and
 still show a banner whole.
 
+**Badges** under Product cards decide what sits on top of each product photo:
+
+- **Tag badges** — two, one or none. Which tags fill them is set on each tag (Products → Tags).
+- **Discount badge** — the saving as a percentage (-25%), as money (-৳150), or **Off**. Off hides the
+  badge only; the crossed-out old price still shows next to the new one. A campaign with its own
+  **Card badge** text shows that text instead.
+
 When a slide is cropped, each frame starts from the middle unless you say otherwise — that is what
 **Focus point** is for. Tap the part that must stay visible — a face, the product, your logo — and
 the small **Phone crop** preview beside it shows the mobile frame. Leave it untouched and the photo

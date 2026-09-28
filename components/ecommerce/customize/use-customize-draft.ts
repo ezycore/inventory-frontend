@@ -329,6 +329,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
+    d.templates.cardTagBadges,
+    d.templates.discountBadge,
     d.templates.imageFit,
     d.templates.imageRatio,
   ],

@@ -161,6 +161,25 @@ Notes:
 - **DON'T** call `res.json()` styled access in `cell`; use `row.getValue("field")` or `row.original.field`.
 - **DON'T** use `enableSorting` to enable server sort; that's `sortingConfig`. `enableSorting={false}` only disables client headers' sort UI.
 
+## Row selection and bulk actions
+
+- **Selection is keyed by `_id`** (`getRowId` in `base-data-table .tsx`), not row position. Keyed by
+  index, a server-paginated table carried "row 3" from page 1 onto page 2 — a different row showed
+  ticked, and a bulk delete removed it. Ticks now survive paging and add up across pages;
+  `onSelectionChange` and `onBulkDelete` receive every selected row, on any page (a `rowCache` ref
+  keeps rows no longer on screen). Rows without `_id` fall back to the index key.
+- **A filter change clears the selection** (`selectionResetKey`, which `DataTable` sets to its
+  filters). Acting on rows the new filter hides is not something a merchant expects.
+- **`bulkActions={(selection) => <buttons/>}`** turns on the selection bar
+  (`ui/components/dataTable/selection-bar.tsx`): the count, "Select all N matching" (shown when the
+  whole page is ticked and the filter matches more), Clear, and the page's buttons. `selection` is a
+  `BulkSelection`: explicit `ids`, or `allMatching: true` with the current `filters` — then `ids` is
+  empty and the action must send the filter to the server. `allMatching` drops on any tick, page turn
+  or filter change. While it is on, the toolbar's "Delete N" hides (N would be the ticked page only).
+- **`onFiltersChange`** reports the table's filters to the page (e.g. so a download matches the view).
+- Reference use: the products page (`components/products/bulk/use-product-bulk-tools.tsx`).
+- The card grid (`DataCard`) has no selection; bulk tools there are header actions only.
+
 ## Pagination Indexing (CRITICAL)
 
 ```
@@ -183,6 +202,7 @@ TanStack Table (0-based pageIndex) ⇄ DataTable state (1-based page) ⇄ Backen
 - **Sort header not clickable** — column has `enableSorting: false`, or `sortingConfig` is set but the column's `accessorKey`/`id` isn't in `sortOptions[].field`.
 - **Custom Add button + auto Add button both show** — they don't; `type: "create"` + `placement: "header"` replaces the auto button. If you see two, you also passed `toolbarAction` plus a non-create header customAction.
 - **Bulk delete deletes one-by-one** — `bulkDeleteMutation` not provided; `BaseDataTable` falls back to looping `onDelete`.
+- **"Filters" button hidden under the header buttons** — the toolbar's `FilterBar` is `flex-1 basis-0`; it carries `sm:min-w-min` so a long row of header actions wraps instead of squeezing it to zero. Keep that class if you touch the toolbar.
 - **Server sort field has no effect** — `enableSorting={true}` is required AND the column's identifier must match `SortOption.field` exactly (TanStack uses `accessorKey` or `id`).
 - **Filter not respected by backend** — `FilterField.name` must match the query param the backend reads. Date-range arrives as JSON string, not as `from`/`to` keys.
 - **`manageColumns` button does nothing** — also pass `module: "<key>"` AND remember the page is responsible for filtering visible columns via that module's settings (see [components/shared/column-settings-manager.tsx](components/shared/column-settings-manager.tsx)).

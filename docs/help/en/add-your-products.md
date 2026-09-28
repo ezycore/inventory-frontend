@@ -15,6 +15,15 @@ ui_labels:
   - products:products.page.subtitle
   - products:products.filters.statusActive
   - products:products.page.exportNote
+  - products:products.bulk.addTags
+  - products:products.bulk.removeTags
+  - products:products.bulk.setCategory
+  - products:products.bulk.fromList
+  - products:products.bulk.sheetButton
+  - products:tags.removeFromProducts.menuItem
+  - products:tags.form.showOnCard
+  - products:tags.form.cardPriority
+  - products:categories.moveProducts.menuItem
 ---
 
 # Add your products
@@ -70,7 +79,20 @@ instead.
 Give a tag a **Filter group** — "Fabric", "Occasion" — and your online shop lists it under that
 heading in its filters instead of under a plain "Tags", so shoppers read it in their own words.
 
-You cannot delete a tag that is still on a product — take it off those products first.
+### Tags on your shop's product cards
+
+Your online shop puts up to two tags as badges on each product photo. Two settings on the tag decide
+which ones:
+
+- **Show on product cards** — turn it off for tags that are only there for filtering, like a
+  character name or a fabric. The tag still works as a filter and still shows on the product page.
+- **Card priority** — when a product has more tags than fit, lower numbers show first. Give
+  "Clearance Sale" a 1 and it always makes the photo. Leave it empty and tags show in the order you
+  added them.
+
+How many badges a card shows (two, one or none) is set in **Customize → Product cards → Badges**.
+
+You cannot delete a tag that is still on a product. Take it off first — **Remove from all products** on the tag does that in one step.
 
 ## Add a product
 
@@ -132,6 +154,34 @@ to load an existing catalogue.
 One limitation to know: *Only single products are exported — variant & combo products aren't
 supported in CSV export; manage them in the product form.* Variant and combo products have to be
 created in the app.
+
+## Changing many products at once
+
+Running a campaign usually means labelling a batch of products, then taking the label off when it
+ends. You never have to open products one by one for that.
+
+**Tick them in the list.** Switch the product list to the table view and tick the products. A bar
+appears above the list with **Add tag**, **Remove tag** and **Move to category**. Tick the box in
+the header to take the whole page; if your filter matches more products than one page shows, the bar
+offers to select all of them. Filter to "Cushion", tick the header, choose all, **Add tag** — 200
+products tagged in one step.
+
+**Paste a list.** Already have the names in WhatsApp or Excel? **Select from list**, paste one name
+or barcode per line, and see which were found, which were not, and which you listed twice before
+you change anything. Spelling has to match the product name (capital letters and extra spaces don't
+matter); a name that doesn't match is shown as not found, never guessed.
+
+**Use a spreadsheet.** **Tags & categories sheet** downloads the products in your current filter with
+their Category, Subcategory and Tags. Edit those columns in Excel or Google Sheets and upload the file.
+You see every product that would change before you apply it. An empty Tags or Category cell removes
+it; a column you delete from the sheet is left as it is.
+
+**When the campaign ends**, open **Tags**, and on that tag choose **Remove from all products**. The tag
+stays for next time. To empty a category, use **Move products…** on it in **Categories**.
+
+Use a **tag**, not a category, for a campaign or a sale. A product has one category, so moving it into
+"Stock Clearance" forgets that it was a cushion. A product can carry many tags, so adding one and
+later removing it changes nothing else.
 
 ## Next
 

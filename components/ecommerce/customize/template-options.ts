@@ -62,6 +62,18 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "reveal", label: "Show on hover", description: "Buttons appear over the photo; always shown on phones" },
     { value: "icon-only", label: "Single + button", description: "One small add button in the corner" },
   ],
+  // Card badges. The first option of each is today's card (and so the seed a
+  // store that never touched them gets) — see docs/plan/product-card-badges.md.
+  cardTagBadges: [
+    { value: "2", label: "Two", description: "Up to two tag badges on each photo" },
+    { value: "1", label: "One", description: "Only the most important tag badge" },
+    { value: "0", label: "None", description: "No tag badges on cards; tags still show on the product page" },
+  ],
+  discountBadge: [
+    { value: "percent", label: "-25%", description: "The saving as a percentage" },
+    { value: "amount", label: "-৳150", description: "The saving as an amount of money" },
+    { value: "off", label: "Off", description: "No badge; the crossed-out price still shows the saving" },
+  ],
   header: [
     { value: "classic", label: "Classic", description: "Logo left, menu beside it" },
     { value: "minimal", label: "Minimal", description: "Logo and icons only — no menu row" },

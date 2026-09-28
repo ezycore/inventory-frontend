@@ -180,9 +180,9 @@ const StatCardItem = ({
         : "text-muted-foreground";
 
   return (
-    <Card className="p-5 hover:shadow-md transition-shadow gap-2">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
+    <Card className="min-w-0 p-4 sm:p-5 hover:shadow-md transition-shadow gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 space-y-1 break-words">
           <p className="text-sm font-medium text-muted-foreground">
             {stat.label}
           </p>
@@ -193,20 +193,27 @@ const StatCardItem = ({
           )}
         </div>
         {Icon && (
-          <div className={cn("p-2.5 rounded-lg", styles.bg)}>
-            <Icon className={cn("h-5 w-5", styles.icon)} />
+          <div className={cn("shrink-0 p-2 sm:p-2.5 rounded-lg", styles.bg)}>
+            <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", styles.icon)} />
           </div>
         )}
       </div>
 
-      <div className="space-y-1">
+      {/* The value scales with the card, not the viewport: a two-up phone grid leaves ~140px,
+          which a lakh-grouped amount like ৳2,01,750.00 overran at text-2xl. */}
+      <div className="@container min-w-0 space-y-1">
         <div className="flex items-baseline gap-1">
           {stat.prefix && (
             <span className="text-lg font-semibold text-muted-foreground">
               {stat.prefix}
             </span>
           )}
-          <h3 className={cn("text-2xl font-bold tracking-tight", styles.text)}>
+          <h3
+            className={cn(
+              "min-w-0 text-lg @[10rem]:text-xl @[13rem]:text-2xl font-bold tracking-tight tabular-nums [overflow-wrap:anywhere]",
+              styles.text,
+            )}
+          >
             {stat.value.toLocaleString()}
           </h3>
           {stat.suffix && (
@@ -217,11 +224,18 @@ const StatCardItem = ({
         </div>
 
         {stat.trend && (
-          <div className={cn("flex items-center gap-1 text-sm", trendColor)}>
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-x-1 text-sm",
+              trendColor,
+            )}
+          >
             <TrendIcon direction={stat.trend.direction} />
             <span className="font-medium">{stat.trend.value}</span>
             {stat.trend.label && (
-              <span className="text-muted-foreground">{stat.trend.label}</span>
+              <span className="whitespace-nowrap text-muted-foreground">
+                {stat.trend.label}
+              </span>
             )}
           </div>
         )}

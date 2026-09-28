@@ -18,6 +18,7 @@ import { getProductColumns } from '@/components/products/columns'
 import { getProductFilterConfig } from '@/components/products/filters'
 import { getProductStats, makePrepareSubmitData } from '@/components/products/helpers'
 import { useCategoryVatPrefill } from '@/components/products/use-category-vat-prefill'
+import { useProductBulkTools } from '@/components/products/bulk/use-product-bulk-tools'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/services/api'
 import { Sheet, SheetContent } from '@ui/components/sheet'
 import { ProductDetail } from '@/components/products/product-detail'
@@ -99,6 +100,10 @@ export default function ProductsPage() {
   }, [taxGatedFormConfig, comboEnabled]);
 
   const barcodeEnabled = user?.organization?.features?.barcodeSystem;
+
+  // Bulk tag / category edits (selection bar, "Select from list", the sheet).
+  // `products.edit` is what every one of them writes with.
+  const bulk = useProductBulkTools(user?.permissions?.includes('products.edit') ?? false)
 
   // The Online tab manages a decision some tiers do not have.
   //
@@ -227,6 +232,10 @@ export default function ProductsPage() {
         },
       ]
     : undefined;
+
+  // Row actions plus the bulk header tools — ONE list, handed to both views for
+  // the same reason `rowActions` is hoisted above.
+  const pageActions = [...(rowActions ?? []), ...bulk.headerActions]
 
   // Shared operations config
   const sharedOperations = {
@@ -359,7 +368,9 @@ export default function ProductsPage() {
             preview: productsApi.importPreview,
             commit: productsApi.importCommit,
           }}
-          {...(rowActions ? { customActions: rowActions } : {})}
+          customActions={pageActions}
+          bulkActions={bulk.bulkActions}
+          onFiltersChange={bulk.onFiltersChange}
         />
       )}
 
@@ -388,7 +399,9 @@ export default function ProductsPage() {
             preview: productsApi.importPreview,
             commit: productsApi.importCommit,
           }}
-          {...(rowActions ? { customActions: rowActions } : {})}
+          // The card grid has no row selection, so it carries only the header
+          // tools; ticking products to bulk-edit them is a table-view action.
+          customActions={pageActions}
           renderCard={(row: any, actions) => (
             <ProductCard
               product={row}
@@ -418,6 +431,8 @@ export default function ProductsPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {bulk.dialogs}
 
       <BarcodeLabelSheet
         open={labelSheet.open}

@@ -31,6 +31,9 @@ export type ProductDetail = Schemas["ProductDetail"];
 export type ProductListItem = Schemas["ProductListItem"];
 export type ProductLookup = Schemas["ProductLookup"];
 export type ProductStats = Schemas["ProductStats"];
+export type ProductBulkUpdateResult = Schemas["ProductBulkUpdateResult"];
+export type ProductMatchList = Schemas["ProductMatchList"];
+export type ProductTaxonomySheet = Schemas["ProductTaxonomySheet"];
 export type ProductAnalytics = Schemas["ProductAnalytics"];
 export type ApiVariant = Schemas["Variant"];
 // `GET /variants` returns attribute *templates* (name + values[]), NOT variant instances — the

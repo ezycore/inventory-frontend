@@ -24,7 +24,8 @@ import { getCategoryStats, prepareSubmitData } from '@/components/categories/hel
 import { isVatActive } from '@/lib/feature-utils'
 import { useAuthStore } from '@/services/stores'
 import { useState } from 'react'
-import { Percent } from 'lucide-react'
+import { FolderInput, Percent } from 'lucide-react'
+import { BulkEditDialog } from '@/components/products/bulk/bulk-edit-dialog'
 import { ApplyVatDialog, type ApplyVatTarget } from '@/components/categories/apply-vat-dialog'
 import type { AppLocale } from '@/i18n/config'
 // NOTE: the legacy hand-written `Category` in types/index.ts, not the generated
@@ -92,6 +93,25 @@ export default function CategoriesPage() {
       ]
     : []
 
+  // "Move products…": re-file every product in this category at once (a
+  // category being retired, or a campaign category ending). A product edit, so
+  // `products.edit`. A sub-category's products are matched on `subcategoryId`
+  // — the pair is denormalized, and its `categoryId` is the parent's.
+  const canMoveProducts = user?.permissions?.includes('products.edit') ?? false
+  const [moveSource, setMoveSource] = useState<Category | null>(null)
+  const moveAction = canMoveProducts
+    ? [
+        {
+          type: 'move-products',
+          placement: 'cell' as const,
+          icon: <FolderInput className="h-4 w-4" />,
+          tooltip: t('moveProducts.menuItem'),
+          onClick: (row: Category) => setMoveSource(row),
+          hidden: (row: Category) => !row.productCount,
+        },
+      ]
+    : []
+
   const sortingConfig = {
     sortOptions: [
       { field: "name", label: "Name" },
@@ -144,7 +164,7 @@ export default function CategoriesPage() {
           enableRowHover={true}
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           operations={sharedOperations}
-          customActions={vatAction}
+          customActions={[...vatAction, ...moveAction]}
         />
       )}
 
@@ -169,12 +189,33 @@ export default function CategoriesPage() {
                 ...(canApplyVat && hasRateToApply(item)
                   ? { onApplyVat: () => setVatTarget(item as ApplyVatTarget) }
                   : {}),
+                ...(canMoveProducts ? { onMoveProducts: () => setMoveSource(item) } : {}),
               },
               { t, locale },
             )
           }
           loadingRenderCard={CategoryCardLoading}
           operations={sharedOperations}
+        />
+      )}
+
+      {moveSource && (
+        <BulkEditDialog
+          open
+          onOpenChange={(open) => !open && setMoveSource(null)}
+          target={{
+            filter: moveSource.parentId
+              ? { subcategoryId: moveSource._id }
+              : { categoryId: moveSource._id },
+          }}
+          count={moveSource.productCount ?? 0}
+          initialOp="setCategory"
+          lockOp
+          title={t('moveProducts.title', {
+            name: moveSource.name,
+            count: moveSource.productCount ?? 0,
+          })}
+          description={t('moveProducts.description')}
         />
       )}
 

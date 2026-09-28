@@ -71,6 +71,18 @@ export const campaignFormConfig: DynamicFormConfig = {
       validation: { maxLength: 200 },
     },
     {
+      // Replaces "-25%" on the product cards this campaign prices. Short
+      // because it sits in a pill over a ~166px phone card.
+      name: "cardBadgeLabel",
+      type: "input",
+      label: "Card badge",
+      placeholder: "e.g. Eid Sale",
+      helperText:
+        "Shown on product cards instead of the discount (like -25%). Leave empty to keep the discount. Up to 16 characters.",
+      columnSpan: 12,
+      validation: { maxLength: 16 },
+    },
+    {
       name: "scope",
       type: "select",
       label: "Scope",
@@ -233,6 +245,7 @@ export const campaignFormConfig: DynamicFormConfig = {
 export const campaignDefaultValues = {
   name: "",
   subtitle: "",
+  cardBadgeLabel: "",
   createPage: false,
   scope: "storewide" as const,
   type: "percentage" as const,

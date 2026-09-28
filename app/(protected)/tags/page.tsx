@@ -28,13 +28,35 @@ import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
 import MountingHandler from "@/components/MountingHandler";
 import type { TagListItem } from "@/types/api";
+import { useState } from "react";
+import { TagsIcon } from "lucide-react";
+import { useAuthStore } from "@/services/stores";
+import {
+  RemoveFromProductsDialog,
+  type RemoveTagTarget,
+} from "@/components/tags/remove-from-products-dialog";
 
 const defaultValues = {
   name: "",
   description: "",
   color: "",
+  // A new tag is a card badge unless the merchant says otherwise — the same
+  // as an old tag with the field unset.
+  showOnCard: true,
+  cardPriority: null,
   status: "active" as const,
 };
+
+/**
+ * Row → form. An old tag carries no `showOnCard`, which means "shown"; the
+ * switch must open ON for it, or the first unrelated edit would save `false`
+ * and silently pull the tag off every product card.
+ */
+const toEditValues = (tag: TagListItem) => ({
+  ...tag,
+  showOnCard: tag.showOnCard !== false,
+  cardPriority: tag.cardPriority ?? null,
+});
 
 export default function TagsPage() {
   const t = useTranslations("products.tags");
@@ -44,10 +66,29 @@ export default function TagsPage() {
   const filteredColumns = useFilteredColumns(getTagColumns(t), "tag");
   const tagFilterConfig = getTagFilterConfig(t);
   const { data, isLoading } = useTagStats();
+  const { user } = useAuthStore();
+
+  // "Campaign over": strip this tag from every product in one step. The write is
+  // a product edit, so it needs `products.edit`, not a tag permission.
+  const canEditProducts = user?.permissions?.includes("products.edit") ?? false;
+  const [removeTarget, setRemoveTarget] = useState<RemoveTagTarget | null>(null);
+  const removeAction = canEditProducts
+    ? [
+        {
+          type: "remove-from-products",
+          placement: "cell" as const,
+          icon: <TagsIcon className="h-4 w-4" />,
+          tooltip: t("removeFromProducts.menuItem"),
+          onClick: (row: TagListItem) => setRemoveTarget(row),
+          hidden: (row: TagListItem) => !row.productCount,
+        },
+      ]
+    : [];
 
   const sharedOperations = {
     formConfig: filteredFormConfig,
     defaultValues,
+    transformEditData: toEditValues,
     getAllData: tagsApi.getAll,
     createMutation: useCreateTag(),
     updateMutation: useUpdateTag(),
@@ -108,6 +149,7 @@ export default function TagsPage() {
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           enableRowHover={true}
           operations={sharedOperations}
+          customActions={removeAction}
         />
       )}
 
@@ -123,11 +165,25 @@ export default function TagsPage() {
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
-          renderCard={(item, actions) => TagCardView(item, actions, { t, locale })}
+          renderCard={(item, actions) =>
+            TagCardView(
+              item,
+              {
+                ...actions,
+                ...(canEditProducts ? { onRemoveFromProducts: () => setRemoveTarget(item) } : {}),
+              },
+              { t, locale },
+            )
+          }
           loadingRenderCard={TagCardLoading}
           operations={sharedOperations}
         />
       )}
+
+      <RemoveFromProductsDialog
+        tag={removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      />
     </div>
   );
 }
