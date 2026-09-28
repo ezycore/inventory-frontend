@@ -17,10 +17,14 @@ type DesktopMenu = ResolvedMenuSettings["desktop"];
 
 const GAP = 22;
 
+/* Classic's row sits flush under the brand bar and borrows that bar's bottom
+   padding as its top, so it pads only below. Centered's sits under its own
+   hairline rule, where the same padding left the links touching the line —
+   so the centred row pads both sides. */
 const defaultRow = (center?: boolean): CSSProperties => ({
   maxWidth: "var(--maxw)",
   margin: "0 auto",
-  padding: "0 var(--pad) 11px",
+  padding: center ? "11px var(--pad)" : "0 var(--pad) 11px",
   display: "flex",
   gap: GAP,
   alignItems: "center",
