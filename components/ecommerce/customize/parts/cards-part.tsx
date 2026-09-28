@@ -26,7 +26,9 @@ import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-cus
  * sketch as "a card with buttons on it" and are told apart only by what they
  * do — a list, where each option's sentence gets the popover's full width. The
  * two photo settings are one question in two halves (a frame, and what happens
- * to a photo that doesn't match it), so they share a block and are ramps.
+ * to a photo that doesn't match it), so they share a block and are ramps. The
+ * two badge settings share a block the same way: both are "what sits on the
+ * photo", both are short ramps (docs/plan/product-card-badges.md).
  */
 export function CardsPart({
   draft,
@@ -54,6 +56,32 @@ export function CardsPart({
           value={draft.templates.cardActions}
           onChange={(v) => patchTemplate("cardActions", v)}
         />
+      </PartBlock>
+
+      <PartBlock label="Badges">
+        <PartField
+          label="Tag badges"
+          hint="Which tags appear is set on each tag — Products → Tags."
+        >
+          <TemplateSegmented
+            templateKey="cardTagBadges"
+            label="Tag badges"
+            value={draft.templates.cardTagBadges}
+            onChange={(v) => patchTemplate("cardTagBadges", v)}
+          />
+        </PartField>
+
+        <PartField
+          label="Discount badge"
+          hint="A campaign with its own badge label shows that instead."
+        >
+          <TemplateSegmented
+            templateKey="discountBadge"
+            label="Discount badge"
+            value={draft.templates.discountBadge}
+            onChange={(v) => patchTemplate("discountBadge", v)}
+          />
+        </PartField>
       </PartBlock>
 
       <PartBlock label="Product photos">

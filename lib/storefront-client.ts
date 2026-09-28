@@ -752,6 +752,10 @@ export interface StoreTemplatesRaw {
   header?: string;
   productCard?: string;
   cardActions?: string;
+  /** "0" | "1" | "2" — tag chips per card. Unset = "2". */
+  cardTagBadges?: string;
+  /** "percent" | "amount" | "off" — the card's discount badge. Unset = "percent". */
+  discountBadge?: string;
   hero?: string;
   headerMenu?: string;
   pagination?: string;
@@ -797,6 +801,14 @@ export interface StoreTemplates {
    * has no hover, so it falls back to `addBuy` below 680px.
    */
   cardActions: "add" | "addBuy" | "icons" | "buyFirst" | "reveal" | "iconOnly";
+  /**
+   * How many tag chips a product card may show over its photo. Which tags fill
+   * the slots is per tag (`ProductTag.showOnCard` / `cardPriority`) — see
+   * `cardBadgeTags` in `components/storefront/card-badges.ts`.
+   */
+  cardTagBadges: "0" | "1" | "2";
+  /** The card's discount badge: `-25%`, `Save ৳149`, or none. The struck price stays either way. */
+  discountBadge: "percent" | "amount" | "off";
   /** Home hero source: carousel (when slides exist) vs the static banner hero. */
   hero: "slides" | "banner";
   /**
@@ -1029,6 +1041,13 @@ export interface ProductTag {
   /** The facet value (`/products?tags=eid-sale`). */
   slug?: string;
   color?: string | null;
+  /**
+   * May this chip sit over a product CARD photo? Absent = yes. The product page
+   * shows every tag whatever this says.
+   */
+  showOnCard?: boolean;
+  /** Card chip priority 1–99, lower first; null/absent = after every set one. */
+  cardPriority?: number | null;
 }
 
 export interface CatalogProduct {
@@ -1039,6 +1058,11 @@ export interface CatalogProduct {
   price: number | null;
   /** Original price when an active campaign has discounted this product. */
   compareAtPrice?: number | null;
+  /**
+   * The pricing campaign's card badge text ("Eid Sale"), shown in place of the
+   * store's `-N%` / amount badge. Null or absent = the store's own badge.
+   */
+  discountLabel?: string | null;
   basePrice: number | null;
   images: StorefrontImage[];
   description: string;

@@ -68,6 +68,10 @@ interface SfPreviewState {
   cardStyle: string | null;
   /** Raw card CTA layout (add | add-buy | icons | buy-first | reveal | icon-only). */
   cardActions: string | null;
+  /** Raw tag chips per card ("0" | "1" | "2") the editor is drafting. */
+  cardTagBadges: string | null;
+  /** Raw card discount badge (percent | amount | off) the editor is drafting. */
+  discountBadge: string | null;
   /** Raw image fit (fit | crop) the editor is drafting. */
   imageFit: string | null;
   /** Raw product-photo frame (square | portrait | landscape | tall). */
@@ -224,6 +228,8 @@ interface SfPreviewState {
     heroAlign?: string;
     cardStyle?: string;
     cardActions?: string;
+    cardTagBadges?: string;
+    discountBadge?: string;
     imageFit?: string;
     imageRatio?: string;
     categoryTiles?: string;
@@ -284,6 +290,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   heroAlign: null,
   cardStyle: null,
   cardActions: null,
+  cardTagBadges: null,
+  discountBadge: null,
   imageFit: null,
   imageRatio: null,
   categoryTiles: null,
@@ -346,6 +354,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
+      cardTagBadges:
+        patch.cardTagBadges !== undefined ? patch.cardTagBadges : s.cardTagBadges,
+      discountBadge:
+        patch.discountBadge !== undefined ? patch.discountBadge : s.discountBadge,
       imageFit: patch.imageFit !== undefined ? patch.imageFit : s.imageFit,
       imageRatio:
         patch.imageRatio !== undefined ? patch.imageRatio : s.imageRatio,

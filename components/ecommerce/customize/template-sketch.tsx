@@ -427,6 +427,60 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
+  /* ----------------------------------------------------------- card badges */
+  /* Drawn as a photo with pills across its top — the row the storefront card
+     renders (discount left, tag chips right). Rendered today as segmented
+     glyph-less ramps; kept for the reason the header of the test gives. */
+  "cardTagBadges:2": (
+    <Frame className="p-2">
+      <span className="relative h-full w-full">
+        <span className={cn(IMG, "absolute inset-0")} />
+        <span className="absolute right-1 top-1 flex gap-0.5">
+          <span className={cn(CTA, "h-1.5 w-3 rounded-full")} />
+          <span className={cn(CTA, "h-1.5 w-3 rounded-full")} />
+        </span>
+      </span>
+    </Frame>
+  ),
+  "cardTagBadges:1": (
+    <Frame className="p-2">
+      <span className="relative h-full w-full">
+        <span className={cn(IMG, "absolute inset-0")} />
+        <span className={cn(CTA, "absolute right-1 top-1 h-1.5 w-3 rounded-full")} />
+      </span>
+    </Frame>
+  ),
+  "cardTagBadges:0": (
+    <Frame className="p-2">
+      <span className={cn(IMG, "h-full w-full")} />
+    </Frame>
+  ),
+  "discountBadge:percent": (
+    <Frame className="p-2">
+      <span className="relative h-full w-full">
+        <span className={cn(IMG, "absolute inset-0")} />
+        <span className="absolute left-1 top-1 rounded-full bg-destructive/20 px-0.5 text-[6px] leading-[8px] text-destructive">
+          %
+        </span>
+      </span>
+    </Frame>
+  ),
+  "discountBadge:amount": (
+    <Frame className="p-2">
+      <span className="relative h-full w-full">
+        <span className={cn(IMG, "absolute inset-0")} />
+        <span className="absolute left-1 top-1 rounded-full bg-destructive/20 px-0.5 text-[6px] leading-[8px] text-destructive">
+          ৳
+        </span>
+      </span>
+    </Frame>
+  ),
+  "discountBadge:off": (
+    <Frame className="p-2">
+      <span className={cn(IMG, "h-full w-full")} />
+    </Frame>
+  ),
+
   /* -------------------------------------------------------------- image fit */
   "imageFit:fit": (
     <Frame className="items-center justify-center p-2">

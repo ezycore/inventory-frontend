@@ -40,8 +40,23 @@ const defaultValues = {
   name: "",
   description: "",
   color: "",
+  // A new tag is a card badge unless the merchant says otherwise — the same
+  // as an old tag with the field unset.
+  showOnCard: true,
+  cardPriority: null,
   status: "active" as const,
 };
+
+/**
+ * Row → form. An old tag carries no `showOnCard`, which means "shown"; the
+ * switch must open ON for it, or the first unrelated edit would save `false`
+ * and silently pull the tag off every product card.
+ */
+const toEditValues = (tag: TagListItem) => ({
+  ...tag,
+  showOnCard: tag.showOnCard !== false,
+  cardPriority: tag.cardPriority ?? null,
+});
 
 export default function TagsPage() {
   const t = useTranslations("products.tags");
@@ -73,6 +88,7 @@ export default function TagsPage() {
   const sharedOperations = {
     formConfig: filteredFormConfig,
     defaultValues,
+    transformEditData: toEditValues,
     getAllData: tagsApi.getAll,
     createMutation: useCreateTag(),
     updateMutation: useUpdateTag(),

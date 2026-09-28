@@ -21,6 +21,8 @@ ui_labels:
   - products:products.bulk.fromList
   - products:products.bulk.sheetButton
   - products:tags.removeFromProducts.menuItem
+  - products:tags.form.showOnCard
+  - products:tags.form.cardPriority
   - products:categories.moveProducts.menuItem
 ---
 
@@ -76,6 +78,19 @@ instead.
 
 Give a tag a **Filter group** — "Fabric", "Occasion" — and your online shop lists it under that
 heading in its filters instead of under a plain "Tags", so shoppers read it in their own words.
+
+### Tags on your shop's product cards
+
+Your online shop puts up to two tags as badges on each product photo. Two settings on the tag decide
+which ones:
+
+- **Show on product cards** — turn it off for tags that are only there for filtering, like a
+  character name or a fabric. The tag still works as a filter and still shows on the product page.
+- **Card priority** — when a product has more tags than fit, lower numbers show first. Give
+  "Clearance Sale" a 1 and it always makes the photo. Leave it empty and tags show in the order you
+  added them.
+
+How many badges a card shows (two, one or none) is set in **Customize → Product cards → Badges**.
 
 You cannot delete a tag that is still on a product. Take it off first — **Remove from all products** on the tag does that in one step.
 

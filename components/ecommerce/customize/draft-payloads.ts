@@ -569,6 +569,8 @@ export function toPreviewPayload(
       header: draft.templates.header,
       productCard: draft.templates.productCard,
       cardActions: draft.templates.cardActions,
+      cardTagBadges: draft.templates.cardTagBadges,
+      discountBadge: draft.templates.discountBadge,
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
       imageRatio: draft.templates.imageRatio,

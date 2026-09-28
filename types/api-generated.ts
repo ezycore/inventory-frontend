@@ -8641,6 +8641,8 @@ export interface components {
             description?: string;
             color?: string;
             group?: string;
+            showOnCard?: boolean;
+            cardPriority?: number | null;
             /** @enum {string} */
             status: "active" | "inactive";
         };
@@ -8656,6 +8658,8 @@ export interface components {
             description?: string;
             color?: string;
             group?: string;
+            showOnCard?: boolean;
+            cardPriority?: number | null;
             /** @enum {string} */
             status: "active" | "inactive";
             productCount: number;
@@ -10942,6 +10946,7 @@ export interface components {
             name: string;
             slug?: string | null;
             subtitle?: string | null;
+            cardBadgeLabel?: string | null;
             pageId?: string | null;
             /** @enum {string} */
             scope: "storewide" | "category" | "subcategory" | "product" | "tag";
@@ -13654,6 +13659,8 @@ export interface components {
                 header?: string;
                 productCard?: string;
                 cardActions?: string;
+                cardTagBadges?: string;
+                discountBadge?: string;
                 hero?: string;
                 headerMenu?: string;
                 pagination?: string;
@@ -14224,6 +14231,7 @@ export interface components {
             slug?: string;
             price: number | null;
             compareAtPrice: number | null;
+            discountLabel: string | null;
             basePrice: number | null;
             images: {
                 url: string;
@@ -14240,6 +14248,8 @@ export interface components {
                 name: string;
                 slug?: string;
                 color: string | null;
+                showOnCard: boolean;
+                cardPriority: number | null;
             }[];
             subcategoryId?: string | null;
             productType: string;
@@ -14279,6 +14289,7 @@ export interface components {
                 slug?: string;
                 price: number | null;
                 compareAtPrice: number | null;
+                discountLabel: string | null;
                 basePrice: number | null;
                 images: {
                     url: string;
@@ -14295,6 +14306,8 @@ export interface components {
                     name: string;
                     slug?: string;
                     color: string | null;
+                    showOnCard: boolean;
+                    cardPriority: number | null;
                 }[];
                 subcategoryId?: string | null;
                 productType: string;
@@ -14864,6 +14877,7 @@ export interface components {
                         slug?: string;
                         price: number | null;
                         compareAtPrice: number | null;
+                        discountLabel: string | null;
                         basePrice: number | null;
                         images: {
                             url: string;
@@ -14880,6 +14894,8 @@ export interface components {
                             name: string;
                             slug?: string;
                             color: string | null;
+                            showOnCard: boolean;
+                            cardPriority: number | null;
                         }[];
                         subcategoryId?: string | null;
                         productType: string;
@@ -15139,6 +15155,8 @@ export interface components {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -15604,6 +15622,8 @@ export interface components {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -23015,6 +23035,10 @@ export interface operations {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        /** @enum {string} */
+                        cardTagBadges?: "0" | "1" | "2";
+                        /** @enum {string} */
+                        discountBadge?: "percent" | "amount" | "off";
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -25992,6 +26016,8 @@ export interface operations {
                     description?: string;
                     color?: string;
                     group?: string;
+                    showOnCard?: boolean;
+                    cardPriority?: number | null;
                     /**
                      * @default active
                      * @enum {string}
@@ -26300,6 +26326,8 @@ export interface operations {
                     description?: string;
                     color?: string;
                     group?: string;
+                    showOnCard?: boolean;
+                    cardPriority?: number | null;
                     /**
                      * @default active
                      * @enum {string}
@@ -43952,6 +43980,7 @@ export interface operations {
                 "application/json": {
                     name: string;
                     subtitle?: string;
+                    cardBadgeLabel?: string;
                     /** @enum {string} */
                     scope: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
@@ -44087,6 +44116,7 @@ export interface operations {
                 "application/json": {
                     name?: string;
                     subtitle?: string;
+                    cardBadgeLabel?: string;
                     /** @enum {string} */
                     scope?: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
@@ -45903,6 +45933,10 @@ export interface operations {
                             header?: string;
                             productCard?: string;
                             cardActions?: string;
+                            /** @enum {string} */
+                            cardTagBadges?: "0" | "1" | "2";
+                            /** @enum {string} */
+                            discountBadge?: "percent" | "amount" | "off";
                             hero?: string;
                             headerMenu?: string;
                             pagination?: string;

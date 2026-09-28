@@ -3476,8 +3476,18 @@ cached entry on the `/sites` route (see "Cached store pages").
     ⚠ **The check is `base != null`, never truthiness** — a custom-domain store has `base === ""`,
     so a falsy test silently unlinks every chip on exactly the half of the estate you are least
     likely to have open in dev.
-  - On the card it is capped at **2** and pinned **top-right**: top-left is the discount badge and
-    the image bottom belongs to `CardRevealActions`/`CardVariantFlyout`. Colour follows `StatusPill`
+  - On the card it shares **one flex row** with the discount badge (badge left, chips right, chips
+    truncate in whatever width the badge leaves) — two absolute corners overlapped on a ~166px phone
+    card (fixed 2026-09-28). The image bottom belongs to `CardRevealActions`/`CardVariantFlyout`.
+  - **Which chips and which badge the card draws are merchant settings** (2026-09-28,
+    `inventory-backend/docs/plan/product-card-badges.md`). `cardBadgeTags(tags, max)` and
+    `discountBadgeText(...)` in `components/storefront/card-badges.ts` own the rules (pure, tested):
+    per tag `showOnCard` (false ⇒ never on a card) + `cardPriority` (lower first, unset last, ties
+    keep attach order); per store `templates.cardTagBadges` (`"0"|"1"|"2"`, unset `"2"`) and
+    `templates.discountBadge` (`percent|amount|off`, unset `percent`), read draft-first through
+    `useStoreCardBadges()`; per campaign `discountLabel` replaces the text (never shown with `off`
+    or without a real saving). **Only the card filters** — the PDP renders every tag, and the struck
+    compare-at price stays whatever the badge says. Unset everything = the card before the controls. Colour follows `StatusPill`
     (`color-mix(… 72%, var(--text))`, never the raw hue) so a merchant colour survives both themes
     with no JS branch. A tag with no `slug` is dropped, not rendered inert.
   - **`?q=` matches more than the product name** (BE `listProducts`): name,

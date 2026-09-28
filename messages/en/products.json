@@ -497,7 +497,11 @@
       "products": "Products",
       "productsCount": "{count} Products",
       "status": "Status",
-      "createdDate": "Created Date"
+      "createdDate": "Created Date",
+      "card": "On cards",
+      "cardShown": "Yes",
+      "cardHidden": "No",
+      "cardPriority": "Yes · #{priority}"
     },
     "filters": {
       "searchLabel": "Search tag",
@@ -519,6 +523,11 @@
       "group": "Filter group",
       "groupPlaceholder": "e.g. Fabric, Occasion",
       "groupHint": "Tags sharing a group get their own heading in the shop's filters. Leave empty to list it under Tags.",
+      "showOnCard": "Show on product cards",
+      "showOnCardHint": "Turn off for tags that are only for filtering (a character or fabric). The product page shows every tag either way.",
+      "cardPriority": "Card priority",
+      "cardPriorityPlaceholder": "1–99",
+      "cardPriorityHint": "When a product has more tags than fit on its card, lower numbers show first. Leave empty to follow the order the tags were added.",
       "status": "Status",
       "statusActive": "Active",
       "statusInactive": "Inactive"
