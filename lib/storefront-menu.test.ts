@@ -290,3 +290,18 @@ describe("collection page sub-category row setting", () => {
     expect(menuSettingsOverrides(s)).toEqual({ mobile: { collectionStrip: "wrap" } });
   });
 });
+
+describe("phone menu drawer width", () => {
+  // Every shop saved before the setting has no key — it must land on Regular, not Narrow (the list's first).
+  it("reads an unset or unknown width as regular", () => {
+    expect(resolveMenuSettings(undefined).mobile.drawerWidth).toBe("regular");
+    expect(resolveMenuSettings({ mobile: { drawerWidth: "huge" } }).mobile.drawerWidth).toBe("regular");
+  });
+
+  it("keeps a chosen width and stores only a change from regular", () => {
+    const wide = resolveMenuSettings({ mobile: { drawerWidth: "wide" } });
+    expect(wide.mobile.drawerWidth).toBe("wide");
+    expect(menuSettingsOverrides(wide)).toEqual({ mobile: { drawerWidth: "wide" } });
+    expect(menuSettingsOverrides(resolveMenuSettings({ mobile: { drawerWidth: "regular" } }))).toBeUndefined();
+  });
+});

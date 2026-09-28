@@ -17,11 +17,17 @@ import {
 import { Skeleton } from "@/ui/components/skeleton";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { cn } from "@/ui/lib/utils";
-import { PayoutPostDialog } from "./payout-post-dialog";
-import { isUnmatchedLine, presentDeductions, providerLabel } from "./helpers";
+import {
+  isUnmatchedLine,
+  payoutShortfall,
+  presentDeductions,
+  providerLabel,
+} from "./helpers";
 
 /**
- * One remittance, parcel by parcel.
+ * One payment received from a courier, parcel by parcel. New payments are recorded by hand
+ * and posted at once; a `pending` row is legacy — the retired automatic ingest — and has no
+ * action here (backend `courier-settlement-manual.md` D2).
  *
  * What this sheet is for is reading a statement against reality, so two shapes that look like
  * errors are rendered as ordinary facts:
@@ -44,17 +50,18 @@ export function PayoutDetailSheet({
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { data: payout, isLoading } = useCourierPayout(payoutId ?? "");
   const money = (n: number) => formatMoney(n, currency);
+  const { open: shortfallOpen, badge: shortfallBadge } = payout
+    ? payoutShortfall(payout)
+    : { open: 0, badge: undefined };
 
   return (
     <Sheet open={!!payoutId} onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="flex h-full w-full flex-col gap-0 sm:max-w-[620px]">
         <SheetHeader>
-          <SheetTitle>
-            {payout ? payout.statementRef : "Payout"}
-          </SheetTitle>
+          <SheetTitle>{payout ? payout.statementRef : "Payout"}</SheetTitle>
           <SheetDescription>
             {payout
-              ? `${providerLabel(payout.provider)}${payout.paymentMode ? ` · ${payout.paymentMode}` : ""}`
+              ? `${payout.courierName || providerLabel(payout.provider)}${payout.paymentMode ? ` · ${payout.paymentMode}` : ""}`
               : "Loading the statement…"}
           </SheetDescription>
         </SheetHeader>
@@ -72,13 +79,15 @@ export function PayoutDetailSheet({
                   status={payout.status === "posted" ? "completed" : "pending"}
                   label={payout.status === "posted" ? "Posted" : "Pending"}
                 />
-                {!payout.reconciled && (
-                  <StatusBadge status="warning" label="Unreconciled" />
-                )}
-                {payout.status === "pending" && (
-                  <div className="ml-auto">
-                    <PayoutPostDialog payout={payout} onPosted={onClose} />
-                  </div>
+                {shortfallBadge && (
+                  <StatusBadge
+                    status={
+                      shortfallBadge === "Unreconciled"
+                        ? "warning"
+                        : "completed"
+                    }
+                    label={shortfallBadge}
+                  />
                 )}
               </div>
 
@@ -93,32 +102,63 @@ export function PayoutDetailSheet({
                     muted
                   />
                 ))}
+                {!!payout.extraCharges && (
+                  <Row
+                    label="Extra courier charges"
+                    value={`−${money(payout.extraCharges)}`}
+                    muted
+                  />
+                )}
+                {payout.expected !== undefined && (
+                  <Row label="Expected" value={money(payout.expected)} muted />
+                )}
                 <div className="flex items-center justify-between border-t pt-2 font-semibold">
-                  <span>Paid over (net)</span>
+                  <span>Received</span>
                   <span className="tabular-nums">{money(payout.net)}</span>
                 </div>
+                {payout.note && (
+                  <p className="pt-1 text-xs text-muted-foreground">
+                    {payout.note}
+                  </p>
+                )}
               </div>
 
               {/* Where the statement and this workspace disagree. Both figures are the
                   server's, and both are left visible rather than absorbed. */}
-              {(payout.residual > 0 || payout.unrecordedGross > 0) && (
+              {payout.residual > 0 && shortfallOpen === 0 && (
+                <p className="rounded-lg border p-3 text-sm text-muted-foreground">
+                  Came up {money(payout.residual)} short — since{" "}
+                  {shortfallBadge === "Written off"
+                    ? "written off"
+                    : "paid by a later payment"}
+                  .
+                  {payout.writeOffNote ? ` Reason: ${payout.writeOffNote}` : ""}
+                </p>
+              )}
+              {(shortfallOpen > 0 || payout.unrecordedGross > 0) && (
                 <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950/30">
                   <div className="flex items-center gap-2 font-medium text-amber-900 dark:text-amber-200">
                     <AlertTriangle className="h-4 w-4" />
                     Left to account for
                   </div>
-                  {payout.residual > 0 && (
+                  {shortfallOpen > 0 && (
                     <p className="text-amber-900/90 dark:text-amber-200/90">
-                      {money(payout.residual)} is still sitting with this courier: the
-                      parcels in this payout were holding more than the statement accounts
-                      for. It stays in the clearing account rather than being written off.
+                      Short by {money(payout.residual)}, {money(shortfallOpen)}{" "}
+                      still owed by this courier.
+                      {(payout.residualSettled ?? 0) > 0
+                        ? ` ${money(payout.residualSettled ?? 0)} of it has since been ${
+                            (payout.residualWrittenOff ?? 0) > 0
+                              ? "paid or written off"
+                              : "paid"
+                          }.`
+                        : " It stays on their card until a later payment covers it or you write it off."}
                     </p>
                   )}
                   {payout.unrecordedGross > 0 && (
                     <p className="text-amber-900/90 dark:text-amber-200/90">
-                      {money(payout.unrecordedGross)} of this payout never passed through a
-                      clearing account — parcels collected outside this workspace, booked as
-                      an adjustment so the net still balances.
+                      {money(payout.unrecordedGross)} more than the ticked
+                      parcels — usually parcels shipped outside this workspace,
+                      booked as an adjustment.
                     </p>
                   )}
                 </div>
@@ -131,8 +171,8 @@ export function PayoutDetailSheet({
                 <div className="divide-y rounded-lg border">
                   {(payout.lines ?? []).length === 0 && (
                     <p className="p-4 text-sm text-muted-foreground">
-                      The courier sent no parcel breakdown with this statement — only the
-                      totals above.
+                      No parcels were ticked on this payment — only the totals
+                      above.
                     </p>
                   )}
                   {(payout.lines ?? []).map((line, index) => (
@@ -167,7 +207,9 @@ export function PayoutDetailSheet({
                             " · shipped from the courier's own panel"}
                         </p>
                         {line.note && (
-                          <p className="text-xs text-muted-foreground">{line.note}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {line.note}
+                          </p>
                         )}
                       </div>
                       <div className="shrink-0 space-y-0.5 text-right">

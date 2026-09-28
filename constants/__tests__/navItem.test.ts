@@ -49,18 +49,18 @@ const withFeatures = (
 ): OrganizationFeatures => ({ ...DEFAULT_ORGANIZATION_FEATURES, ...overrides });
 
 /** navGroups as AppSidebar renders them: filtered, empty groups dropped. */
-function visibleGroups(features: OrganizationFeatures) {
+function visibleGroups(features: OrganizationFeatures, posUsed = false) {
   return navGroups
     .map((group) => ({
       ...group,
-      items: filterNavItems(group.items, "admin", ALL_PERMISSIONS, features),
+      items: filterNavItems(group.items, "admin", ALL_PERMISSIONS, features, posUsed),
     }))
     .filter((group) => group.items.length > 0);
 }
 
 /** Every visible nav title for a given feature set, flattened. */
-function visibleTitles(features: OrganizationFeatures): string[] {
-  return flattenNavItems(visibleGroups(features).flatMap((g) => g.items)).map(
+function visibleTitles(features: OrganizationFeatures, posUsed = false): string[] {
+  return flattenNavItems(visibleGroups(features, posUsed).flatMap((g) => g.items)).map(
     (i) => i.title
   );
 }
@@ -73,8 +73,12 @@ function topLevelTitles(features: OrganizationFeatures): string[] {
 }
 
 /** Child titles of a top-level nav item, wherever it sits. */
-function childrenOf(features: OrganizationFeatures, title: string): string[] {
-  const parent = visibleGroups(features)
+function childrenOf(
+  features: OrganizationFeatures,
+  title: string,
+  posUsed = false,
+): string[] {
+  const parent = visibleGroups(features, posUsed)
     .flatMap((g) => g.items)
     .find((item) => item.title === title);
   return (parent?.items ?? []).map((child) => child.title);
@@ -108,32 +112,42 @@ describe("navGroups — shop-only merchant", () => {
   });
 });
 
+/**
+ * "Sale" is POS vocabulary (docs/plan/orders-first-storefront.md, 2026-09-28).
+ * With POS off the group is the seller's orders; the dispatch records listed as
+ * "Sales History" confused them, so it goes — unless the shop has counter
+ * history from when POS was on (`posUsedAt`).
+ */
 describe("navGroups — online-only merchant", () => {
-  it("keeps the Sales group even though the POS is off", () => {
-    // The regression this guards: `sales: false` used to hide the Sales parent
-    // and its history, but committing a storefront order writes a Sale — so an
-    // online seller would have lost sight of their own revenue.
+  it("keeps the group as Orders, without Sales History", () => {
     const titles = visibleTitles(ONLINE_ONLY);
 
-    expect(titles).toContain("Sales");
-    expect(titles).toContain("Sales History");
+    expect(titles).toContain("Orders");
+    expect(titles).not.toContain("Sales");
+    expect(titles).not.toContain("Sales History");
+  });
+
+  it("keeps Sales History for a shop that used POS before", () => {
+    expect(visibleTitles(ONLINE_ONLY, true)).toContain("Sales History");
   });
 
   it("hides the POS screen itself", () => {
     expect(visibleTitles(ONLINE_ONLY)).not.toContain("New Sale");
   });
 
-  it("keeps Sales Returns, which returns online orders too", () => {
-    expect(visibleTitles(ONLINE_ONLY)).toContain("Sales Returns");
+  it("keeps returns, titled Returns, which returns online orders too", () => {
+    expect(visibleTitles(ONLINE_ONLY)).toContain("Returns");
+    expect(visibleTitles(ONLINE_ONLY)).not.toContain("Sales Returns");
+    expect(visibleTitles(BOTH)).toContain("Sales Returns");
   });
 
-  it("drops Sales Returns when returns are off, keeping the rest", () => {
+  it("drops Returns when returns are off, keeping the rest", () => {
     const titles = visibleTitles(
       withFeatures({ sales: false, storefront: true, returns: false })
     );
 
-    expect(titles).not.toContain("Sales Returns");
-    expect(titles).toContain("Sales History");
+    expect(titles).not.toContain("Returns");
+    expect(titles).toContain("Online Orders");
   });
 
   it("still shows Online Store", () => {
@@ -141,10 +155,10 @@ describe("navGroups — online-only merchant", () => {
     expect(visibleTitles(ONLINE_ONLY)).toContain("Store Overview");
   });
 
-  it("lists Online Orders under Sales, not under Online Store", () => {
-    // Online orders are sales: they belong with the ledger the merchant reads,
-    // while Online Store keeps only the channel's own screens.
-    expect(childrenOf(ONLINE_ONLY, "Sales")).toContain("Online Orders");
+  it("lists Online Orders under Orders, not under Online Store", () => {
+    // They belong with the records the merchant reads, while Online Store
+    // keeps only the channel's own screens.
+    expect(childrenOf(ONLINE_ONLY, "Orders")).toContain("Online Orders");
     expect(childrenOf(ONLINE_ONLY, "Online Store")).not.toContain(
       "Online Orders"
     );
@@ -378,10 +392,16 @@ describe("report gates follow the ledger rule, not the counter", () => {
     storefront: true,
   });
 
-  it("keeps Sales Report for a storefront-only merchant", () => {
-    // The workspace that found this had booked real online sales. A report over
-    // them cannot be gated on the counter that did not ring them up.
-    expect(childrenOf(storefrontOnly, "Reports")).toContain("Sales Report");
+  it("drops Sales Report for a storefront-only merchant", () => {
+    // Since 2026-09-28 the Sales Report is POS-only (orders-first-storefront
+    // D1): the Orders Report covers online sales on the order clock. QA-L1 had
+    // opened it here when it was the only report over online sales.
+    expect(childrenOf(storefrontOnly, "Reports")).not.toContain("Sales Report");
+    expect(childrenOf(storefrontOnly, "Reports")).toContain("Orders Report");
+  });
+
+  it("keeps Sales Report for a storefront shop with counter history", () => {
+    expect(childrenOf(storefrontOnly, "Reports", true)).toContain("Sales Report");
   });
 
   it("keeps Sales Report for a counter-only merchant", () => {

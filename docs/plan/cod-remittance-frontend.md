@@ -3,6 +3,14 @@
 **Status:** **COMPLETE — F0 through F4 shipped 2026-09-12**, the day it was written and the day the
 backend half shipped. What landed matches this plan; §10 records the three places reality argued back.
 
+> **Superseded in part, 2026-09-26.** The automatic-payout screens this plan built — "Check for
+> payouts" (`payout-sync-button`), the statement-shaped record form and the "Confirm & post" step
+> (`payout-post-dialog`), and the "COD held by couriers" panel (`cod-in-transit`) — were removed when
+> courier settlement became one manual flow for every courier: backend
+> [`courier-settlement-manual.md`](../../../inventory-backend/docs/plan/courier-settlement-manual.md).
+> The payouts screen is now per-courier balance cards with **Record payment received**; the
+> `storefront` skill describes the current screens. The rest of this file is history.
+
 **Backend plan:** [`cod-remittance.md`](../../../inventory-backend/docs/plan/cod-remittance.md) — read
 its **§12 "What the implementation changed"** before touching anything here. This file does not
 restate the business problem or the ledger design; it owns only what the merchant sees.

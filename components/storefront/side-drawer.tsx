@@ -30,11 +30,14 @@ export function SideDrawer({
   title,
   headerAccessory,
   footer,
+  width,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   side?: "left" | "right" | "sheet";
+  /** A size step for `.sf-drawer[data-width]` — the phone menu's `drawerWidth`. Unset ⇒ the side's own width. */
+  width?: string;
   title: ReactNode;
   /** Rendered between the title and the close button (e.g. a Reset link). */
   headerAccessory?: ReactNode;
@@ -66,6 +69,7 @@ export function SideDrawer({
       <div
         role="dialog"
         aria-modal="true"
+        data-width={width}
         className={`sf-drawer ${side === "sheet" ? "sf-drawer-right sf-drawer-sheet" : `sf-drawer-${side}`}${openCls}`}
       >
         <div

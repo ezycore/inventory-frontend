@@ -1910,7 +1910,14 @@ reserves the 56px. Reserving it unconditionally floats all three above nothing.
 
 ⚠ **The panel and the search takeover are mounted ONCE, by the shell** (`ShellMobileOverlays`), and
 driven by `useMobileNav`. The hamburger in the bar and the Menu *tab* open the same panel; a copy per
-surface is two drawers racing one body-scroll lock. `HeaderSearchMobile` is controlled for the same
+surface is two drawers racing one body-scroll lock. The drawer form is `SideDrawer side="left"` —
+the only left drawer in the shop — sized on `.sf-drawer-left` by the merchant's **Menu width**
+(`nav.menu.mobile.drawerWidth` → `SideDrawer width` → `data-width`: narrow `min(280px, 100% − 96px)`,
+regular (unset) `min(340px, 100% − 64px)`, wide `min(400px, 100% − 32px)`; 2026-09-27), so a strip
+of the shop always shows beside it to tap closed; the shared 94% width it used before covered a
+phone. `MENU_DRAWER_WIDTHS` is listed narrow → wide (an ordinal ramp), so its resolver falls back to
+`regular` explicitly rather than the list's first. Customize shows it only when `menuStyle` is
+`drawer` — the bottom sheet is full width by design. `HeaderSearchMobile` is controlled for the same
 reason — search is an action a merchant can place in either slot, in a tab, or on the row under the
 brand, and those four entry points open one sheet.
 
@@ -3745,6 +3752,19 @@ cached entry on the `/sites` route (see "Cached store pages").
   `useUploadStorefrontImage` the moment they are picked and save with the footer; the backend
   deletes a picture a save dropped (`footerImageIds`, the announcement image's rule).
 
+  **The editor (Customize → Footer) is four sections** — layout, Blocks, Bottom line, Look — and
+  **what one block shows is edited inside that block** (2026-09-27): the brand block's
+  `FooterBrandFields` holds the `showLogo`/`showAbout`/`showPhone`/`showSocial` switches with the
+  footer logo and about text under them; the promises block holds `TrustBadgesField`;
+  `FooterPromisesNotice` covers a footer with no promises block (the list is shared with page bands
+  and the hero, so it must stay editable without one). The brand parts and "shows anything" rule
+  live once in `lib/storefront-footer/blocks.ts` (`BRAND_PARTS`, `brandPartsShown`,
+  `brandBlockShowsAnything`), read by both the editor and `BrandBlock`. Don't add a section for a
+  field only one block draws — put it in that block's inspector. The promises block's `arrange`
+  (row / column) is `data-arrange` on `.sf-footer-trustbar`. The about paragraph's style is the one
+  `footerBlurb` (`white-space: pre-line`, so the textarea's line breaks survive) — both the brand
+  block and the centred layout use it; don't hand-roll a third copy.
+
   | `templates.footer` | Layout | Left side | Notes |
   |---|---|---|---|
   | `columns` | Anchored columns (default) | brand + blurb + phone + socials | the repair; every existing store gets it without re-choosing |
@@ -3836,45 +3856,51 @@ when Clarity or GA4 is on. GA4's consent default is set by an inline boot script
 (`components/ecommerce/settings/marketing-settings-tab.tsx`). Behaviour and money rules: backend
 `docs/features/storefront-ga4.md`.
 
-## Courier remittance — the money screens (2026-09-12)
+## Courier settlement — the money screens (2026-09-12, reworked 2026-09-26)
 
 A BD courier collects COD at the door, holds it 2–7 days, and remits it **net of their charges** in
-one transfer covering many parcels. Two admin surfaces exist for that, and the reasoning behind both
-is in [`docs/plan/cod-remittance-frontend.md`](../../../docs/plan/cod-remittance-frontend.md) (the
-backend half, worth reading first, is `inventory-backend/docs/plan/cod-remittance.md` §12).
+one transfer covering many parcels. Since 2026-09-26 there is **one manual flow for every courier**
+(backend `inventory-backend/docs/plan/courier-settlement-manual.md`): the system follows no courier's
+payout mechanism — it calculates what each courier owes and the merchant records what arrived. The
+earlier automatic flow (provider sync, "Confirm & post") is history in
+[`docs/plan/cod-remittance-frontend.md`](../../../docs/plan/cod-remittance-frontend.md).
 
 **`/ecommerce/payouts`** — `app/(protected)/ecommerce/payouts/page.tsx` +
-`components/ecommerce/payouts/`: the list (`payout-list.tsx`, `payout-row.tsx`), the statement form
-(`payout-record-dialog.tsx`), the parcel breakdown (`payout-detail-sheet.tsx`), the posting step
-(`payout-post-dialog.tsx`), the provider pull (`payout-sync-button.tsx`), and the three summary
-panels (`cod-in-transit.tsx`, `charge-variance.tsx`, `payout-history.tsx`). API module:
-`services/api/modules/courier-payouts/`.
+`components/ecommerce/payouts/`: one card per courier (`courier-balance-cards.tsx`, "courier owes
+you"), each with **Record payment received** (`payment-record-dialog.tsx` + the parcel checklist
+`payment-parcel-list.tsx`) and, when a payment came up short, **Write off shortfall**
+(`shortfall-write-off-dialog.tsx`); then `charge-variance.tsx`, `payout-history.tsx`, and the payment
+history (`payout-list.tsx`, `payout-row.tsx`, `payout-detail-sheet.tsx`). Pure helpers — `autoTick`
+(oldest-first pre-ticks), `expectedFor`, `courierParams` — are in `helpers.ts`. API module:
+`services/api/modules/courier-payouts/` (`useCourierBalances`, `useRecordCourierPayment`,
+`useWriteOffCourierShortfall`).
 
 **On the order page** — `components/ecommerce/orders/order-courier-money.tsx`: quoted vs the
-courier's real bill with its provenance, and where this parcel's COD is.
+courier's real bill with its provenance, and where the parcel's money is (owed by the courier /
+charge to be deducted / covered by a payment / partial delivery to resolve). An unpaid COD order out
+with a courier reads **COD pending** (`order-payment-panel.tsx`), never "due"; the customer ledger
+shows an online sale's unpaid part as COD pending with no "Pay due" (`customer-ledger-entries.tsx`).
 
-Six things not to re-derive:
+Things not to re-derive:
 
 1. **The URL decides the feature gate.** `featuresForPath` (`lib/nav-utils.ts`) matches by URL
    **prefix** and accumulates, so `/accounts/payouts` would demand the `accounts` feature — and these
    endpoints are gated on `storefront` precisely so a merchant with the ledger off can still see what
-   a courier holds. `/ecommerce/payouts` inherits the right gate for free. Pinned in
-   `lib/__tests__/nav-utils.test.ts`.
+   a courier owes. Pinned in `lib/__tests__/nav-utils.test.ts`.
 2. **A nav row is still needed for the permission.** `/ecommerce` alone grants `storefront.view`; the
-   endpoints want `storefront.orders.view` / `.manage`. The row in `constants/navItem.ts` is what
-   closes that gap.
-3. **Posting is the whole feature.** The nightly sweep records payouts `pending` and posts nothing —
-   no poller can know which account the money hit. Without `payout-post-dialog`, clearing balances
-   only grow and the delivery expense dispatch deferred is never booked at all.
-4. **Two events, not one** (`services/api/invalidation.ts`): `payout.recorded` moves no money;
-   `payout.posted` carries the whole `MONEY` group. A test pins the difference.
-5. **The client computes no money.** `reconciled`, `residual` and `unrecordedGross` are the server's
-   answers, derived from clearing balances this app never sees. The record form's net arithmetic is a
-   *hint* beside the merchant's typed figure — the server refuses `PAYOUT_UNRECONCILED` and is right to.
-6. **Three shapes that look wrong and are not:** a payout line with no matching order (shipped from
-   the courier's own panel), a return leg collecting nothing while still charged a delivery fee, and
-   `supported: false` from a charge refresh (Steadfast publishes no charge anywhere — an invented
-   number would be worse than an unknown one). Absent is never rendered as zero.
+   endpoints want `storefront.orders.view` / `.manage`. The row in `constants/navItem.ts` closes it.
+3. **Delivery settles the order.** A courier's "delivered" (or the merchant's own, for a manual
+   partner) settles the sale into the courier's clearing account server-side. So a courier status
+   update and a tracking refresh invalidate `order.settled`, and `order.settled` names the payouts
+   root — the balance moves with it.
+4. **One write event:** recording a payment posts it in the same call, so it (and a write-off) is
+   `payout.posted`, carrying the whole `MONEY` group.
+5. **The client decides no money.** `owed`, `shortfall`, `reconciled`, `residual`, `unrecordedGross`
+   are the server's. The form's expected/difference is a preview; a difference never blocks saving.
+6. **Shapes that look wrong and are not:** a negative owed (returned parcels' charges — the merchant
+   owes the courier), a payment with no parcels ticked (it recovers an earlier shortfall first), and
+   `supported: false` from a charge refresh (Steadfast publishes no charge anywhere). Absent is never
+   rendered as zero.
 
 The clearing accounts themselves — the fifth `AccountType`, and the rule that `withCourier` is never
 summed into cash — are the [`accounting-ledger`](../accounting-ledger/SKILL.md) skill's §2b.

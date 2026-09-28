@@ -57,6 +57,12 @@ interface StatsCardProps {
    * width is actually left beside the sidebar). Ignored if `columns` is set.
    */
   minCardWidth?: number;
+  /**
+   * With a 2-wide `columns.default` track and an odd number of cards, the last
+   * card spans the whole phone row instead of sitting beside an empty cell.
+   * Reset at `lg`, whose track the caller sizes to fit. Opt-in.
+   */
+  stretchPhoneOrphan?: boolean;
 }
 
 const variantStyles: Record<StatVariant, { bg: string; text: string; icon: string }> = {
@@ -270,7 +276,13 @@ const xlColsMap: Record<number, string> = {
   6: "xl:grid-cols-6",
 };
 
-const StatsCard = ({ data, isLoading, columns, minCardWidth }: StatsCardProps) => {
+const StatsCard = ({
+  data,
+  isLoading,
+  columns,
+  minCardWidth,
+  stretchPhoneOrphan,
+}: StatsCardProps) => {
   if (!data) return null;
 
   if (!columns && minCardWidth) {
@@ -299,15 +311,29 @@ const StatsCard = ({ data, isLoading, columns, minCardWidth }: StatsCardProps) =
     gridCols.xl && (xlColsMap[gridCols.xl] || ""),
   );
 
+  const orphanIndex =
+    stretchPhoneOrphan && gridCols.default === 2 && data.length % 2 === 1
+      ? data.length - 1
+      : -1;
+
   return (
     <div className={gridClass}>
-      {data.map((stat, index) => (
-        <StatCardItem
-          key={stat.label + index}
-          stat={stat}
-          isLoading={isLoading}
-        />
-      ))}
+      {data.map((stat, index) =>
+        index === orphanIndex ? (
+          <div
+            key={stat.label + index}
+            className="col-span-2 lg:col-span-1 [&>*]:h-full"
+          >
+            <StatCardItem stat={stat} isLoading={isLoading} />
+          </div>
+        ) : (
+          <StatCardItem
+            key={stat.label + index}
+            stat={stat}
+            isLoading={isLoading}
+          />
+        ),
+      )}
     </div>
   );
 };

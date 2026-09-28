@@ -1312,7 +1312,6 @@
         "SMS_TEMPLATE_EXTENDED_CHAR": "\"{char}\" can't be used in an SMS. Use {braces} only through the Insert buttons.",
         "SMS_TEMPLATE_UNKNOWN_VAR": "{placeholder} doesn't exist for this message.",
         "SMS_TEMPLATE_UNKNOWN_VAR_SUGGEST": "{placeholder} doesn't exist for this message. Did you mean {suggestion}?",
-        "SMS_TEMPLATE_STORE_NAME_REQUIRED": "Add the store name, so your customer knows who sent the SMS.",
         "SMS_TEMPLATE_URL": "Links can't be sent in SMS.",
         "SMS_TEMPLATE_EMPTY": "Write a message, or reset to the default.",
         "SMS_TEMPLATE_TOO_LONG": "Too long for 1 SMS when names and amounts are long. Shorten the text.",

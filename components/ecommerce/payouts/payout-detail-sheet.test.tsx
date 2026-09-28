@@ -31,10 +31,6 @@ vi.mock("@/services/api", () => ({
   useCourierPayout: () => ({ data: detail.current, isLoading: false }),
 }));
 
-vi.mock("./payout-post-dialog", () => ({
-  PayoutPostDialog: () => <button>Confirm &amp; post</button>,
-}));
-
 const payout = {
   _id: "payout-1",
   statementRef: "SFC-26926554",
@@ -92,12 +88,22 @@ describe("PayoutDetailSheet", () => {
     expect(screen.getByText("ORD-20260906-00001")).toBeInTheDocument();
   });
 
-  it("shows the residual and the unrecorded gross, with what each means", () => {
+  it("offers no post action on a legacy pending row", () => {
+    detail.current = payout;
+    render(<PayoutDetailSheet payoutId="payout-1" onClose={() => {}} />);
+    expect(
+      screen.queryByRole("button", { name: /post/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the shortfall and the extra, with what each means", () => {
     detail.current = payout;
     render(<PayoutDetailSheet payoutId="payout-1" onClose={() => {}} />);
 
-    expect(screen.getByText(/still sitting with this courier/i)).toBeInTheDocument();
-    expect(screen.getByText(/never passed through a clearing account/i)).toBeInTheDocument();
+    expect(screen.getByText(/still owed by this courier/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/more than the ticked parcels/i),
+    ).toBeInTheDocument();
     expect(screen.getByText("Unreconciled")).toBeInTheDocument();
   });
 

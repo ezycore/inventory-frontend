@@ -1,6 +1,8 @@
 "use client";
 // coding-standard: maintained
 
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import type { StorefrontFooterStyle } from "@/types";
 import { FOOTER_DARK_GROUND } from "@/lib/storefront-footer/style";
 import type {
@@ -11,9 +13,13 @@ import type {
   FooterTone,
 } from "@/lib/storefront-footer/types";
 import { ColorField } from "@/ui/components/color-field";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/ui/components/collapsible";
 import { SegmentedField } from "@/ui/components/segmented-field";
 import { SwatchField } from "@/ui/components/swatch-field";
+import { cn } from "@/ui/lib/utils";
 import { PartSwitch } from "@/components/ecommerce/customize/part-group";
+import { BOTTOM_ALIGN_OPTIONS } from "@/components/ecommerce/customize/footer/footer-bottom-line-fields";
+import { FooterBackgroundFields } from "@/components/ecommerce/customize/footer/footer-picture-fields";
 
 /** "Same as on a computer" — the phone value is simply left unset. */
 const SAME = "same";
@@ -23,31 +29,30 @@ const SPACING = [
   { value: "regular", label: "Regular" },
   { value: "roomy", label: "Roomy" },
 ];
-const BOTTOM = [
-  { value: "spread", label: "Spread", description: "Copyright left, your note right" },
-  { value: "center", label: "Centred", description: "Everything on one centred line" },
-];
+
+const labelOf = (options: { value: string; label: string }[], value: string) =>
+  options.find((option) => option.value === value)?.label ?? value;
 
 /**
- * The footer's frame: its ground and ink, spacing, how link groups start on a
- * phone, the closing line, and the platform credit. Phone settings sit beside
- * their computer twin rather than on a separate screen, and "Same" is the
- * default — most merchants want one answer for both.
+ * The footer's frame: its ground (colour or photo) and ink, spacing, how link
+ * groups start on a phone, and the lines around it. The closing © line has its
+ * own section (`FooterBottomLineFields`).
+ *
+ * The two phone-only overrides — spacing and the bottom line's alignment —
+ * fold under one "Phone adjustments" row, since "Same" is the default and most
+ * merchants never open it.
  */
 export function FooterStyleFields({
   style,
   setStyle,
   brandColor,
   composed,
-  defaultBottom,
 }: {
   style: StorefrontFooterStyle;
   setStyle: (next: Partial<StorefrontFooterStyle>) => void;
   brandColor: string;
   /** The footer is built from blocks — centring applies only there. */
   composed: boolean;
-  /** What the bottom line does when unset — the centred layout centres it. */
-  defaultBottom: FooterBottomAlign;
 }) {
   const ground = style.ground ?? "card";
   const inkMatters = ground !== "card" && ground !== "surface";
@@ -76,6 +81,7 @@ export function FooterStyleFields({
           fallback={customColor}
         />
       ) : null}
+      <FooterBackgroundFields style={style} setStyle={setStyle} />
       {inkMatters || style.bgImage ? (
         <SegmentedField
           label="Text colour"
@@ -90,19 +96,10 @@ export function FooterStyleFields({
       ) : null}
 
       <SegmentedField
-        label="Spacing on a computer"
+        label="Spacing"
         value={style.spacing?.base ?? "regular"}
         onChange={(v) => setStyle({ spacing: { ...style.spacing, base: v as FooterSpacing } })}
         options={SPACING}
-        caption={false}
-      />
-      <SegmentedField
-        label="Spacing on a phone"
-        value={style.spacing?.mobile ?? SAME}
-        onChange={(v) =>
-          setStyle({ spacing: { ...style.spacing, mobile: v === SAME ? undefined : (v as FooterSpacing) } })
-        }
-        options={[{ value: SAME, label: "Same" }, ...SPACING]}
         caption={false}
       />
       <SegmentedField
@@ -115,6 +112,11 @@ export function FooterStyleFields({
           { value: "closed", label: "Closed", description: "Each group is a heading shoppers tap to open" },
         ]}
       />
+      <PartSwitch
+        label="Line above the footer"
+        checked={style.topBorder !== false}
+        onCheckedChange={(on) => setStyle({ topBorder: on ? undefined : false })}
+      />
       {composed ? (
         <PartSwitch
           label="Centre the blocks"
@@ -122,36 +124,63 @@ export function FooterStyleFields({
           onCheckedChange={(on) => setStyle({ align: on ? "center" : undefined })}
         />
       ) : null}
-      <PartSwitch
-        label="Line above the footer"
-        checked={style.topBorder !== false}
-        onCheckedChange={(on) => setStyle({ topBorder: on ? undefined : false })}
-      />
 
-      <SegmentedField
-        label="Bottom line on a computer"
-        value={style.bottomAlign?.base ?? defaultBottom}
-        onChange={(v) => setStyle({ bottomAlign: { ...style.bottomAlign, base: v as FooterBottomAlign } })}
-        options={BOTTOM}
-      />
-      <SegmentedField
-        label="Bottom line on a phone"
-        value={style.bottomAlign?.mobile ?? SAME}
-        onChange={(v) =>
-          setStyle({
-            bottomAlign: { ...style.bottomAlign, mobile: v === SAME ? undefined : (v as FooterBottomAlign) },
-          })
-        }
-        options={[{ value: SAME, label: "Same" }, ...BOTTOM.map(({ value, label }) => ({ value, label }))]}
-        caption={false}
-      />
-      <PartSwitch
-        label="“Powered by EzyCore”"
-        detail="The credit in the bottom line"
-        ariaLabel="Show “Powered by EzyCore” in the footer"
-        checked={style.showPoweredBy !== false}
-        onCheckedChange={(on) => setStyle({ showPoweredBy: on ? undefined : false })}
-      />
+      <PhoneAdjustments style={style} setStyle={setStyle} />
     </div>
+  );
+}
+
+function PhoneAdjustments({
+  style,
+  setStyle,
+}: {
+  style: StorefrontFooterStyle;
+  setStyle: (next: Partial<StorefrontFooterStyle>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const spacing = style.spacing?.mobile;
+  const bottom = style.bottomAlign?.mobile;
+  const summary =
+    spacing || bottom
+      ? [
+          spacing ? `Spacing: ${labelOf(SPACING, spacing)}` : null,
+          bottom ? `Bottom line: ${labelOf(BOTTOM_ALIGN_OPTIONS, bottom)}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "Spacing and bottom line · same as computer";
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 p-3 text-left">
+        <span className="min-w-0">
+          <span className="block text-sm font-medium">Phone adjustments</span>
+          <span className="block truncate text-xs text-muted-foreground">{summary}</span>
+        </span>
+        <ChevronRight className={cn("h-4 w-4 flex-none text-muted-foreground transition-transform", open && "rotate-90")} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-4 border-t p-3">
+        <SegmentedField
+          label="Spacing on a phone"
+          value={spacing ?? SAME}
+          onChange={(v) =>
+            setStyle({ spacing: { ...style.spacing, mobile: v === SAME ? undefined : (v as FooterSpacing) } })
+          }
+          options={[{ value: SAME, label: "Same" }, ...SPACING]}
+          caption={false}
+        />
+        <SegmentedField
+          label="Bottom line on a phone"
+          value={bottom ?? SAME}
+          onChange={(v) =>
+            setStyle({
+              bottomAlign: { ...style.bottomAlign, mobile: v === SAME ? undefined : (v as FooterBottomAlign) },
+            })
+          }
+          options={[{ value: SAME, label: "Same" }, ...BOTTOM_ALIGN_OPTIONS.map(({ value, label }) => ({ value, label }))]}
+          caption={false}
+        />
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

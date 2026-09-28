@@ -121,6 +121,7 @@ Split Customize → Site frame → **Header** into:
 | `viewAll` | bool | `true` | Adds "All ‹Parent›" as first child row so the parent listing stays one tap away (solves M4). |
 | `images` | bool | `false` | Small round category thumbnail on parent rows when the category has an image. |
 | `chips` | `parents` · `parents+subs` · `active-subs` | `parents` | For the chips row. `active-subs`: on a collection page, chips show that department's sub-categories — solves the 2-parent case. |
+| `drawerWidth` *(added 2026-09-27)* | `narrow` · `regular` · `wide` | `regular` | The slide-in (`menuStyle: drawer`) panel only; the sheet is full width. Owner report: the shared 94% drawer covered a phone. Every step leaves a strip of the shop to tap closed (`.sf-drawer-left[data-width]`). |
 
 Rendering rules (fixes M1/M3): the panel prints **the resolved menu** — the same list the desktop
 uses (collections → tree, custom → merchant's items with their children/auto children), indented

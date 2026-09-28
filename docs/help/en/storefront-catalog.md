@@ -139,6 +139,12 @@ items** is the row across your header, and **Dropdown items** is the list that o
 Each offers None, Colour, Underline or a soft Highlight. Phones are unaffected either way — there a
 menu is a panel and a tap opens it.
 
+On a phone with a menu button (☰), that panel slides in from the side. **Menu width**, under
+**Menu → Phone**, sets how much of the screen it takes: **Narrow**, **Regular** (the default) or
+**Wide**. Every width leaves a strip of your shop showing beside it, which shoppers tap to close the
+menu. A shop whose menu opens from the bottom tab bar does not show this setting — that menu always
+spans the screen.
+
 ### Hero
 
 The **Hero** is the first thing a shopper sees. It shows either your rotating **slides** or one
@@ -426,28 +432,40 @@ strip** for the payment, courier or partner logos you upload yourself, and **Soc
 computer each block also has a width. Picking a layout again replaces your blocks with it, after
 asking; your link groups are kept.
 
-**Look** sets the footer's background (your theme's card colour, a soft tone, your brand colour, dark,
-or any colour), the text colour, the spacing on a computer and on a phone, whether link groups start
-open or closed on a phone, the line above the footer, and how the copyright line sits. It also has
-the **“Powered by EzyCore”** switch: the credit is shown until you turn it off. **Pictures** holds a
-footer-only logo — a light logo for a dark footer, say — and an optional background photo, with the
-part that must stay in view on a phone and how strong the shade over it is.
+What a block shows is set inside that block. Open **Shop name & about** and you can switch each of
+its four parts on or off: **Logo & shop name**, **About your shop**, **Phone number** and **Social
+icons**. Turn the logo off to keep just your about line, phone and social links. Under the logo
+switch you can upload a **Footer logo** used only in the footer — a light logo for a dark footer,
+say; without one the footer uses your store logo. Under **About your shop** you type the paragraph
+itself — press Enter to start a new line; leave it empty for the default line. Your phone comes from Settings → General and your chat
+buttons from the **WhatsApp button** part, so there is only ever one copy of your number to keep
+correct.
 
-Everything in the footer is yours to write. **About your shop** is the paragraph under your name.
-**Bottom line** is the small text on the right of the copyright — a city, a trade licence number,
-whatever you need there; leave it empty and it shows your currency. Your phone comes from
-Settings → General and your chat buttons from the **WhatsApp button** part, so there is only ever one
-copy of your number to keep correct. **Payment methods** controls whether the checkout methods you
-accept are advertised in the desktop footer, mobile footer, both or neither; hiding them does not
-disable them at checkout.
+**Bottom line** is everything on the small copyright line: the **Text on the right** (a city, a trade
+licence number, whatever you need there; leave it empty and it shows your currency), whether your
+**Payment methods** show on computers, phones, both or neither (hiding them does not turn them off
+at checkout), the **“Powered by EzyCore”** switch (the credit is shown until you turn it off), and
+the line's **Alignment**.
+
+**Look** sets the footer's background (your theme's card colour, a soft tone, your brand colour, dark,
+or any colour), an optional **Background photo** with the part that must stay in view on a phone and
+how strong the shade over it is, the text colour, the spacing, whether link groups start open or
+closed on a phone, and the line above the footer. **Phone adjustments** holds the two settings a
+phone can have its own way — spacing and the bottom line's alignment; both follow the computer until
+you change them.
 
 Optional footer wording can stay blank; the store never invents a promise on your behalf.
-Your promises list can contain up to four items. Add, remove or reorder them in **Customize →
-Footer**; the same saved list feeds promise bands and trust-badge footers without inventing defaults.
-Each promise can have its own icon or **No icon**. The footer's **Store promises** block and a
-**Promises band** on a page both have an **Icon style**: **In a circle**, **Icon only** or **No
-icons**. Pick the same one in both places so they match. A new promises band uses your store's
-promises when you have written some, so one edit changes the band and the footer together.
+Your promises list can contain up to four items. Add, remove or reorder them inside the footer's
+**Store promises** block. If your footer has no such block, **Blocks** says so: **Add to footer** adds
+it, and **Edit promises** lets you change them without adding it. The same saved list feeds promise
+bands on your pages without inventing defaults. Each promise can have its own icon or **No icon**.
+The footer's **Store promises** block and a **Promises band** on a page both have an **Icon style**:
+**In a circle**, **Icon only** or **No icons**. Pick the same one in both places so they match. The
+footer block also has **Arrange**: **In a row** puts the promises side by side across the footer,
+**In a column** stacks them one under another — it sets the block to a narrow width so it can sit
+beside your links. A new
+promises band uses your store's promises when you have written some, so one edit changes the band
+and the footer together.
 
 One setting changes how shoppers move through a long list: under **Collections**, the way more
 products load. Numbered pages give a shopper a sense of how much is left and a place to stop. Infinite scroll and the load

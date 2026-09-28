@@ -2,12 +2,18 @@
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type {
+  CourierBalances,
   CourierMoneySummary,
   CourierPayout,
-  CourierPayoutSync,
+  CourierWriteOff,
 } from "@/types/api";
 
-export type { CourierMoneySummary, CourierPayout, CourierPayoutSync };
+export type { CourierBalances, CourierMoneySummary, CourierPayout, CourierWriteOff };
+
+/** One courier's "owes you" card. */
+export type CourierBalance = CourierBalances["couriers"][number];
+/** One open parcel on a courier's account. */
+export type CourierParcel = CourierBalances["parcels"][number];
 
 /** One parcel inside a payout, derived from the parent so it cannot drift from it. */
 export type CourierPayoutLine = CourierPayout["lines"][number];
@@ -27,38 +33,35 @@ export interface CourierPayoutListParams {
 }
 
 /**
- * Body of `POST /api/ecommerce/payouts` — a courier's statement as the courier states it.
- *
- * The figures are sent verbatim. The server re-derives the reconciliation against the clearing
- * accounts and refuses `gross − deductions ≠ net` with `PAYOUT_UNRECONCILED`, so a client that
- * "helpfully" substituted its own net would be filing a statement the courier never sent.
+ * Body of `POST /api/ecommerce/payouts` — a payment received from a courier. One form for every
+ * courier: what arrived, when, into which account, and the open parcels it covers. The server
+ * compares what arrived with what those parcels should net and flags any difference; it never
+ * refuses one (backend `docs/plan/courier-settlement-manual.md` D3).
  */
-export interface RecordCourierPayoutInput {
+export interface RecordCourierPaymentInput {
   provider?: "pathao" | "steadfast" | "ecourier";
   customCourierId?: string;
-  statementRef: string;
+  amount: number;
+  /** `YYYY-MM-DD` on the org's calendar. Defaults to today server-side. */
   receivedAt?: string;
-  gross: number;
-  deductions?: Partial<CourierPayoutDeductions>;
-  net: number;
-  paymentMode?: string;
-  lines?: {
-    consignmentRef?: string;
-    trackingCode?: string;
-    orderNumber?: string;
-    collected: number;
-    legType?: "forward" | "return";
-    deliveryFee?: number;
-    codFee?: number;
-    returnCharge?: number;
-    otherCharge?: number;
-    note?: string;
-  }[];
-  /** Where the net landed. Required when `post` is true — the transfer needs a destination. */
+  /** Required with the accounts feature on. */
   accountId?: string;
+  orderIds: string[];
+  /** Courier statement id or bKash TrxID. The server generates `PAY-YYYYMMDD-NNN` otherwise. */
+  reference?: string;
+  /** Why a short payment is short: extra courier charges, or still owed (default). */
+  shortReason?: "courier_charges" | "still_owed";
+  note?: string;
   idempotencyKey?: string;
-  /** Record and post in one request. The UI posts from its own dialog instead (D6). */
-  post?: boolean;
+}
+
+/** Body of `POST /api/ecommerce/payouts/write-off` — give up on a courier's shortfall. */
+export interface WriteOffCourierShortfallInput {
+  provider?: "pathao" | "steadfast" | "ecourier";
+  customCourierId?: string;
+  /** Defaults to the whole shortfall. */
+  amount?: number;
+  note?: string;
 }
 
 const base = "/ecommerce/payouts";
@@ -84,30 +87,15 @@ export const courierPayoutsApi = {
     apiClient.get(`${base}/${id}`),
 
   create: (
-    data: RecordCourierPayoutInput,
+    data: RecordCourierPaymentInput,
   ): Promise<ApiResponse<CourierPayout>> => apiClient.post(base, data),
 
-  /**
-   * Book the statement into the ledger: net out of clearing into `accountId`, each deduction
-   * expensed out of clearing. Together they are exactly gross, so a payout that reconciles
-   * leaves the clearing account at zero.
-   */
-  post: (
-    id: string,
-    data: { accountId: string },
-  ): Promise<ApiResponse<CourierPayout>> =>
-    apiClient.post(`${base}/${id}/post`, data),
+  writeOff: (
+    data: WriteOffCourierShortfallInput,
+  ): Promise<ApiResponse<CourierWriteOff>> => apiClient.post(`${base}/write-off`, data),
 
-  /**
-   * Ask each configured courier for its remittances. Records what they report and **posts
-   * nothing** — only Steadfast publishes a payout feed; Pathao and eCourier are assembled from
-   * the parcels themselves.
-   */
-  sync: (data?: {
-    provider?: string;
-    since?: string;
-  }): Promise<ApiResponse<CourierPayoutSync>> =>
-    apiClient.post(`${base}/sync`, data ?? {}),
+  getBalances: (): Promise<ApiResponse<CourierBalances>> =>
+    apiClient.get(`${base}/balances`),
 
   getSummary: (
     filters: { startDate?: string; endDate?: string } = {},

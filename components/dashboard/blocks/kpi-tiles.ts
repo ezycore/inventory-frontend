@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import {
+  ArrowDownLeft,
   ArrowDownToLine,
   Clock,
   DollarSign,
@@ -73,6 +74,25 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
       }),
       icon: Truck,
       variant: margin >= 0 ? 'success' : 'warning',
+    }
+  },
+
+  /**
+   * The receivable as a tile — used only when it is the lone card of the
+   * balance row and sits beside the money tiles (see `toRuns`), so a
+   * storefront shop gets one row of three instead of a full-width strip.
+   * Same figure and sub-line as `ReceivablesCard`.
+   */
+  receivables: ({ overview, formatCurrency }, t) => {
+    if (!overview) return null
+    // Customers only: the server counts counter-sale dues alone, and courier
+    // money is on the COD tile (orders-first-storefront, 2026-09-28).
+    return {
+      label: t('receivable'),
+      value: formatCurrency(overview.outstanding?.receivable ?? 0),
+      description: t('owedByCustomers'),
+      icon: ArrowDownLeft,
+      variant: 'info',
     }
   },
 
@@ -153,21 +173,30 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
    * They were both called "with couriers" and a merchant reading ৳82,375 here and
    * ৳28,040 there had no way to tell they were two different questions.
    */
+  /**
+   * Everything the couriers will hand over: COD on parcels still out, plus COD a
+   * rider already collected that the courier has not paid yet (the clearing
+   * balance). For a storefront seller this IS the receivable — a customer never
+   * owes; they pay at the door or refuse the parcel.
+   */
   'orders.cod': ({ overview, formatCurrency }, t) => {
     if (!overview?.ordersCod) return null
-    const { inTransit, orders, rtoRate } = overview.ordersCod
+    const { inTransit, orders, rtoRate, heldByCouriers } = overview.ordersCod
+    const held = heldByCouriers ?? 0
     return {
-      label: t('codInTransit'),
-      value: formatCurrency(inTransit),
+      label: t('codFromCouriers'),
+      value: formatCurrency(inTransit + held),
       // `rtoRate` is null until a parcel has reached a door — a shop with no
       // outcomes has no rate, and printing 0% would report a flawless week.
       description:
-        rtoRate == null
-          ? t('codOrders', { count: orders })
-          : t('codOrdersWithRto', {
-              count: orders,
-              rate: Math.round(rtoRate * 100),
-            }),
+        held > 0
+          ? t('codOutAndHeld', { count: orders, held: formatCurrency(held) })
+          : rtoRate == null
+            ? t('codOrders', { count: orders })
+            : t('codOrdersWithRto', {
+                count: orders,
+                rate: Math.round(rtoRate * 100),
+              }),
       icon: Truck,
       variant: 'info',
     }
@@ -183,28 +212,30 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
    * cash-on-delivery trade a refused parcel is a KPI, and a merchant whose
    * revenue halved needs the page to say why.
    */
-  'revenue.summary': ({ overview, formatCurrency }, t) => {
+  /**
+   * POS only — the server admits this block only where the counter is on. With
+   * the storefront also on it is the COUNTER half (online orders have their own
+   * tile); it used to add the two and read "Counter sales + orders placed",
+   * including to shops with no counter at all.
+   */
+  'revenue.summary': ({ overview, formatCurrency, blocks }, t) => {
     if (!overview) return null
     const returned = overview.returns?.refund ?? 0
-    // Both channels, each on its own clock: counter sales when they rang, online
-    // orders on the day they were placed. Named in the subtitle, because a
-    // merchant who can see both tiles must be able to see why they differ.
-    const combined = !!overview.orders
+    const counterOnly = blocks.includes('orders.summary')
+    const current = counterOnly
+      ? (overview.counterNetRevenue ?? 0)
+      : (overview.netRevenue ?? 0)
+    const previous = counterOnly
+      ? (overview.previousCounterNetRevenue ?? 0)
+      : (overview.previousNetRevenue ?? 0)
     return {
-      label: t('salesRevenue'),
-      value: formatCurrency(overview.netRevenue ?? 0),
+      label: counterOnly ? t('counterSales') : t('salesRevenue'),
+      value: formatCurrency(current),
       description:
-        returned > 0
-          ? t('afterReturns', { amount: formatCurrency(returned) })
-          : combined
-            ? t('bothChannels')
-            : undefined,
+        returned > 0 ? t('afterReturns', { amount: formatCurrency(returned) }) : undefined,
       icon: DollarSign,
       variant: 'success',
-      trend: trend(
-        calcPeriodChange(overview.netRevenue ?? 0, overview.previousNetRevenue ?? 0),
-        t,
-      ),
+      trend: trend(calcPeriodChange(current, previous), t),
     }
   },
 
@@ -247,28 +278,27 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
      * margin reads a confident 100%. Say what is missing instead.
      */
     if (coverage && known <= 0) {
+      // Orders not dispatched yet are not a missing cost price — telling that
+      // merchant to "set cost prices" sends them to fix nothing.
+      const onlyUndispatched = coverage.unknownLines === 0 && coverage.uncommittedOrders > 0
       return {
         label: t('grossProfit'),
         value: '—',
         icon: TrendingUp,
         variant: 'warning',
-        description: t('costsMissing'),
+        description: t(onlyUndispatched ? 'costsPending' : 'costsMissing'),
       }
     }
 
-    const grossProfit = overview.grossProfit ?? 0
     /**
-     * Margin is of the KNOWN slice, so the numerator has to be that slice's
-     * profit too — not the page headline.
-     *
-     * `grossProfit` is `netRevenue - COGS - carriage` over the WHOLE period, and
-     * revenue with no cost behind it enters it at full value. Dividing that by
-     * `known` mixes scopes and prints a margin above 100% (a sample workspace
-     * read 133%). `grossProfit - unknown` is exactly
-     * `known - COGS - carriage`, which is what this denominator is a margin of.
+     * `grossProfit` is already the KNOWN slice's profit — the server takes
+     * revenue with no cost behind it (undispatched orders, uncosted lines) and
+     * the carriage of those orders out before it sends the number. So the
+     * headline and the margin share one scope, and the copy names what was left
+     * out rather than folding it in at full value.
      */
-    const knownProfit = grossProfit - unknown
-    const margin = known > 0 ? Math.round((knownProfit / known) * 100) : 0
+    const grossProfit = overview.grossProfit ?? 0
+    const margin = known > 0 ? Math.round((grossProfit / known) * 100) : 0
     return {
       label: t('grossProfit'),
       value: formatCurrency(grossProfit),
@@ -279,7 +309,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
           ? t('marginOfKnown', {
               margin,
               known: formatCurrency(known),
-              total: formatCurrency(overview.netRevenue ?? 0),
+              unknown: formatCurrency(unknown),
             })
           : t('marginOfSales', { margin }),
     }

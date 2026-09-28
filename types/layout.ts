@@ -28,6 +28,18 @@ export type NavItem = {
    * rather than "this is not part of your plan".
    */
   readOnly?: boolean;
+  /**
+   * Stays in the menu for a shop that has COUNTER history (`posUsedAt`) even
+   * after its POS module is switched off, although its feature gate is closed —
+   * losing a module never hides records already made
+   * (docs/plan/orders-first-storefront.md D1/D4). Pair with `readOnly`.
+   */
+  keepWithPosHistory?: boolean;
+  /**
+   * The title to show when the POS (`sales`) module is off. "Sale" is POS
+   * vocabulary: a storefront-only seller's "Sales" menu is their orders.
+   */
+  titleWithoutPos?: string;
 };
 
 // A labeled sidebar section (e.g. "Operations") holding top-level nav items.

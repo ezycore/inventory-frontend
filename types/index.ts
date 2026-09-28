@@ -482,6 +482,10 @@ export interface StorefrontDesign {
   scale?: string;
   density?: string;
   radius?: string;
+  /** Menu current-page mark: shape, colour token, and the `#rrggbb` for `custom`. */
+  navActive?: string;
+  navActiveColor?: string;
+  navActiveCustom?: string;
 }
 
 export type NavLinkType = "category" | "page" | "url" | "collections";
@@ -1429,9 +1433,11 @@ export interface CustomerLedgerSale {
   invoiceNumber: string;
   totalAmount: number;
   paidAmount: number;
+  /** On an online sale this is COD pending — the courier collects it, never the customer. */
   dueAmount: number;
   createdAt: string;
   status: "draft" | "partial" | "paid" | "cancelled";
+  channel?: "pos" | "online";
 }
 
 export interface CustomerLedgerPayment {

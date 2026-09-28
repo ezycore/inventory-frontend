@@ -169,11 +169,16 @@ export function QuickActions() {
             LG_COLUMNS[Math.min(actions.length, 5)] ?? "lg:grid-cols-5",
           )}
         >
-          {actions.map((action) => (
+          {actions.map((action, i) => (
             <Button
               key={action.labelKey}
               variant="outline"
-              className="h-auto py-3 px-3 flex flex-col items-center gap-1.5 hover:shadow-sm transition-shadow"
+              className={cn(
+                "h-auto py-3 px-3 flex flex-col items-center gap-1.5 hover:shadow-sm transition-shadow",
+                // Phone track is 2 wide: an odd last action takes the whole
+                // row rather than sitting alone beside an empty cell.
+                actions.length % 2 === 1 && i === actions.length - 1 && "col-span-2 sm:col-span-1",
+              )}
               onClick={() => router.push(action.path)}
             >
               <action.icon className={`h-5 w-5 ${action.color}`} />

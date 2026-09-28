@@ -4,6 +4,7 @@
 import {
   MENU_CHIPS,
   MENU_COLLECTION_STRIPS,
+  MENU_DRAWER_WIDTHS,
   MENU_DROPDOWNS,
   MENU_MOBILE_LAYOUTS,
   MENU_OPEN_GROUPS,
@@ -80,11 +81,14 @@ export function PhoneMenuFields({
   value,
   onChange,
   hasChipsRow,
+  slidesIn,
 }: {
   value: Phone;
   onChange: (patch: Partial<Phone>) => void;
   /** Whether the Phone bar shows the category strip at all. */
   hasChipsRow: boolean;
+  /** The menu slides in from the side (hamburger layouts), rather than rising as a full-width sheet. */
+  slidesIn: boolean;
 }) {
   const folds = value.layout === "accordion";
   return (
@@ -104,6 +108,14 @@ export function PhoneMenuFields({
           className="h-8"
         />
       </PartField>
+      {slidesIn ? (
+        <Choice
+          label="Menu width"
+          value={value.drawerWidth}
+          options={MENU_DRAWER_WIDTHS}
+          onChange={(drawerWidth) => onChange({ drawerWidth })}
+        />
+      ) : null}
       <PartSwitch
         label={'An "All products" row'}
         detail="First in the menu — your whole catalogue"

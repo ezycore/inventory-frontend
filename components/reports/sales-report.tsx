@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useSalesReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
+import { isFeatureOn } from '@/lib/feature-utils'
+import { useAuthStore } from '@/services/stores/use-auth-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { calcPeriodChange } from '@/utils/period-change'
@@ -24,6 +26,10 @@ import {
 
 export function SalesReport() {
   const t = useTranslations('reports.sales')
+  const hasStorefront = isFeatureOn(
+    useAuthStore((state) => state.user?.organization?.features),
+    'storefront',
+  )
   const tCommon = useTranslations('reports')
   const tEmpty = useTranslations('common.empty')
   const tPaymentStatus = useTranslations('common.paymentStatus')
@@ -49,22 +55,22 @@ export function SalesReport() {
         </div>
       </div>
 
-      {/* Which clock this page is on.
-          An online order becomes a Sale only at DISPATCH, so this page dates it
-          to the day the parcel left while the Orders Report dates it to the day
-          the shopper placed it. The two totals differ for the same week and both
-          are right — a live workspace read 26 sales / ৳20,700 here against 23
-          orders / ৳20,910 there, and it was read as the software disagreeing
-          with itself. */}
-      <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          {t('clockNote')}{' '}
-          <Link href="/reports/orders" className="font-medium underline underline-offset-2">
-            {t('clockLink')}
-          </Link>
-        </p>
-      </div>
+      {/* With the storefront on, this page is counter sales only (2026-09-28,
+          orders-first-storefront D2) — online orders are reported on the day
+          they were placed by the Orders Report. It used to mix them in, dated
+          to dispatch, and had to explain why its totals disagreed with that
+          page (26 sales / ৳20,700 here against 23 orders / ৳20,910 there). */}
+      {hasStorefront && (
+        <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            {t('counterOnlyNote')}{' '}
+            <Link href="/reports/orders" className="font-medium underline underline-offset-2">
+              {t('clockLink')}
+            </Link>
+          </p>
+        </div>
+      )}
 
       <PeriodFilter
         period={period}
