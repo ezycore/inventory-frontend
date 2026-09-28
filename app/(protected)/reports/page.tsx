@@ -32,6 +32,7 @@ export default function ReportsPage() {
       user.role,
       user.permissions || [],
       user.organization?.features,
+      !!user.organization?.posUsedAt,
     );
   }, [user]);
 

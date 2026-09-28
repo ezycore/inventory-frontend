@@ -77,7 +77,11 @@ export const navGroups: NavGroup[] = [
         // ledger is gated on `anyFeatures`, and only New Sale — the POS screen
         // itself — requires `sales`. Gating this parent on `sales` alone would
         // hide an online seller's entire sales history.
+        //
+        // "Sale" is POS vocabulary (docs/plan/orders-first-storefront.md): with
+        // the POS module off this group is the seller's orders, and says so.
         title: "Sales",
+        titleWithoutPos: "Orders",
         url: "/sales",
         permissions: [
           "sales.view",
@@ -120,19 +124,25 @@ export const navGroups: NavGroup[] = [
             permissions: ["storefront.orders.view"],
           },
           {
+            // POS only since 2026-09-28 (orders-first-storefront D4): a
+            // storefront seller's history is the order list, and the dispatch
+            // records listed here as "sales" confused them. A shop that used POS
+            // keeps it (`keepWithPosHistory`) after switching POS off.
             title: "Sales History",
             url: "/sales/history",
             // Read-only: `sales.routes.ts` gates writes alone, so this data stays
             // reachable after the capability is switched off.
             readOnly: true,
+            keepWithPosHistory: true,
             permissions: ["sales.view"],
             icon: "clock",
-            anyFeatures: ["sales", "storefront"],
+            features: ["sales"],
           },
           {
             // Needs returns AND (sales OR storefront): `features` is all-of,
             // `anyFeatures` is any-of, and filterNavItems applies both.
             title: "Sales Returns",
+            titleWithoutPos: "Returns",
             url: "/sales/returns",
             permissions: ["returns.view"],
             icon: "corner-up-left",
@@ -470,16 +480,19 @@ export const navGroups: NavGroup[] = [
             features: ["inventoryTracking"],
           },
           {
-            // Reads the sales LEDGER, so it follows the same any-of rule as
-            // Sales History and the Sales group itself — see the note at the top
-            // of this file. `features: ["sales"]` gated it on the POS counter
-            // instead, which hid an online seller's sales report on a workspace
-            // that had booked real online sales (QA-L1).
+            // POS only since 2026-09-28 (orders-first-storefront D1/D2). It was
+            // opened to storefront sellers in QA-L1 because it was then the only
+            // place online sales were reported; the Orders Report now covers
+            // them on the order clock, with the same category/brand/tag
+            // breakdown, and with the storefront on this report is the
+            // counter's alone. A shop that used POS keeps it read-only.
             title: "Sales Report",
             url: "/reports/sales",
             permissions: ["reports.view"],
             icon: "bar-chart-2",
-            anyFeatures: ["sales", "storefront"],
+            features: ["sales"],
+            readOnly: true,
+            keepWithPosHistory: true,
           },
           {
             // The ORDER clock. Feature-gated on the storefront because without

@@ -32,7 +32,8 @@ export default function KBar({ children }: { children: React.ReactNode }) {
           navItems,
           user.role,
           user.permissions || [],
-          user.organization?.features
+          user.organization?.features,
+          !!user.organization?.posUsedAt,
         )
       : navItems;
 

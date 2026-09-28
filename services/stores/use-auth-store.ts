@@ -68,6 +68,13 @@ export interface User {
      * arrives undefined and every lock degrades to the upsell.
      */
     planFeatures?: OrganizationFeatures;
+    /**
+     * When the org first rang a counter (POS) sale. Keeps Sales History and the
+     * Sales Report in the menu after POS is switched off
+     * (docs/plan/orders-first-storefront.md D1/D4). In the backend populate
+     * select, like `planFeatures`.
+     */
+    posUsedAt?: string | null;
     /** Admin-configurable VAT settings (BIN, default rate, price semantics). */
     vatSettings?: VatSettings;
     /**

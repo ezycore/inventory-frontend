@@ -6,6 +6,8 @@ import { AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react'
 
 import { useProfitLossReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
+import { isFeatureOn } from '@/lib/feature-utils'
+import { useAuthStore } from '@/services/stores/use-auth-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { cn } from '@/ui/lib/utils'
@@ -63,6 +65,12 @@ function calcChange(current: number, previous: number) {
 
 export function ProfitLossReport() {
   const t = useTranslations('reports.profitLoss')
+  // "Sale" is POS vocabulary (orders-first-storefront): without POS, revenue is
+  // dispatched orders and the returns are order returns.
+  const posOn = isFeatureOn(
+    useAuthStore((state) => state.user?.organization?.features),
+    'sales',
+  )
   const tCategories = useTranslations('accounts.transactions.categories')
   const tEmpty = useTranslations('common.empty')
   const {
@@ -124,7 +132,7 @@ export function ProfitLossReport() {
                 {data.summary.revenue.returns > 0 && (
                   <StatementLine
                     row={{
-                      label: t('returns'),
+                      label: t(posOn ? 'returns' : 'returnsNoPos'),
                       value: data.summary.revenue.returns,
                       negate: true,
                       muted: true,
@@ -218,7 +226,7 @@ export function ProfitLossReport() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {t('basisNote')}
+            {t(posOn ? 'basisNote' : 'basisNoteOrders')}
             {data.basis.vatExcluded ? ` ${t('vatExcludedNote')}` : ''}
           </p>
         </>

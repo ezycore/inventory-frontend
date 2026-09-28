@@ -199,6 +199,7 @@ export default function AppSidebar() {
           user.role,
           user.permissions || [],
           features,
+          !!user.organization?.posUsedAt,
         ),
       }))
       .filter((group) => group.items.length > 0);

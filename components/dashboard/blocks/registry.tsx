@@ -62,6 +62,7 @@ export const DASHBOARD_BLOCK_VIEWS: Partial<
         formatCurrency={formatCurrency}
         showPurchases={blocks.includes('purchases.summary')}
         showOrders={blocks.includes('orders.summary')}
+        showSales={blocks.includes('revenue.summary')}
       />
     ),
   },
@@ -74,11 +75,30 @@ export const DASHBOARD_BLOCK_VIEWS: Partial<
   'orders.fulfillment': { layout: 'half', Component: OrderFulfillment },
   topSold: {
     layout: 'half',
-    Component: ({ overview, isLoading, formatCurrency }) => (
+    Component: ({ overview, isLoading, formatCurrency, blocks }) => (
       <TopSoldItems
         items={overview?.topSoldItems}
         isLoading={isLoading}
         formatCurrency={formatCurrency}
+        // Beside the orders panel this list is the counter half.
+        variant={blocks.includes('orders.topProducts') ? 'counter' : 'sales'}
+      />
+    ),
+  },
+  'orders.topProducts': {
+    layout: 'half',
+    Component: ({ overview, isLoading, formatCurrency }) => (
+      <TopSoldItems
+        items={overview?.ordersTopProducts?.map((row) => ({
+          productName: row.productName,
+          variantName: null,
+          totalQuantity: row.units,
+          totalRevenue: row.revenue,
+          profit: row.profit,
+        }))}
+        isLoading={isLoading}
+        formatCurrency={formatCurrency}
+        variant="orders"
       />
     ),
   },

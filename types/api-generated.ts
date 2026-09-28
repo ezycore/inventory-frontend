@@ -15842,7 +15842,7 @@ export interface components {
             };
         };
         DashboardBlocks: {
-            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "orders.fulfillment" | "topSold" | "stock.alerts" | "stock.movements" | "financial.insights" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
         };
         DashboardOverview: {
             period: {
@@ -15895,12 +15895,15 @@ export interface components {
             };
             ordersCod?: {
                 inTransit: number;
+                heldByCouriers: number;
                 orders: number;
                 rtoRate: number | null;
                 returned: number;
                 delivered: number;
             };
             ordersFulfillment?: {
+                confirmed: number;
+                shipped: number;
                 delivered: number;
                 returned: number;
                 cancelled: number;
@@ -15915,6 +15918,14 @@ export interface components {
                 sales: number;
                 purchases: number;
                 orders: number;
+            }[];
+            ordersTopProducts?: {
+                productId: string | null;
+                productName: string;
+                units: number;
+                revenue: number;
+                cost?: number;
+                profit?: number;
             }[];
             topSoldItems?: {
                 productName: string;
@@ -15964,6 +15975,8 @@ export interface components {
             };
             netRevenue?: number;
             previousNetRevenue?: number;
+            counterNetRevenue?: number;
+            previousCounterNetRevenue?: number;
             returns?: {
                 refund: number;
                 cogs: number;
@@ -16693,6 +16706,8 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                /** Format: date-time */
+                posUsedAt?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -16849,6 +16864,8 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                /** Format: date-time */
+                posUsedAt?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -17009,6 +17026,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17166,6 +17185,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17361,6 +17382,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17541,6 +17564,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;

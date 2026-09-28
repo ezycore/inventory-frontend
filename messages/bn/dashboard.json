@@ -28,13 +28,19 @@
     "codOrdersWithRto": "{count}টি পার্সেল পথে · {rate}% ফেরত",
     "bothChannels": "কাউন্টার বিক্রি + অনলাইন অর্ডার",
     "costsMissing": "লাভ দেখতে ক্রয়মূল্য দিন",
-    "marginOfKnown": "{total} এর মধ্যে {known} এ {margin}% মার্জিন",
+    "costsPending": "অর্ডার পাঠানোর পর লাভ দেখা যাবে",
+    "receivable": "পাওনা",
+    "owedByCustomers": "ক্রেতাদের কাছে পাওনা · সর্বমোট",
+    "marginOfKnown": "{known} এ {margin}% মার্জিন · {unknown} এর খরচ এখনো জানা নেই",
     "cashOnHand": "হাতে নগদ",
     "acrossAccounts": "{count}টি হিসাবে",
     "deliveryMargin": "ডেলিভারি মার্জিন",
     "deliveryChargedCost": "{charged} নেওয়া · {cost} খরচ",
     "expiringSoon": "মেয়াদ শেষ হচ্ছে",
-    "expiryBreakdown": "{expired}টি মেয়াদোত্তীর্ণ · পরের {days} দিন"
+    "expiryBreakdown": "{expired}টি মেয়াদোত্তীর্ণ · পরের {days} দিন",
+    "counterSales": "কাউন্টার বিক্রি",
+    "codFromCouriers": "কুরিয়ার থেকে আসবে",
+    "codOutAndHeld": "{count}টি পার্সেল পথে · {held} সংগ্রহ হয়েছে, এখনো দেওয়া হয়নি"
   },
   "chart": {
     "title": "বিক্রয় বনাম ক্রয়",
@@ -49,7 +55,9 @@
     "emptyDescription": "লেনদেন রেকর্ড করলে বিক্রয় ও ক্রয়ের প্রবণতা এখানে দেখা যাবে",
     "salesTitle": "বিক্রয়",
     "orders": "অর্ডার",
-    "ordersTitle": "বিক্রি ও অর্ডার"
+    "ordersTitle": "বিক্রি ও অর্ডার",
+    "counterSales": "কাউন্টার বিক্রি",
+    "onlyOrdersTitle": "অর্ডার"
   },
   "summary": {
     "receivable": "পাওনা",
@@ -60,15 +68,15 @@
     "itemsInStock": "{count}টি আইটেম স্টকে আছে",
     "salesChannels": "অনলাইন বনাম দোকান",
     "shareOnline": "{share}% অনলাইন",
-    "onlineCounterSplit": "অনলাইন {online} · দোকান {counter}",
-    "owedIncludingCouriers": "ক্রেতা ও কুরিয়ারের কাছে"
+    "onlineCounterSplit": "অনলাইন {online} · দোকান {counter}"
   },
   "topSold": {
     "title": "সর্বাধিক বিক্রিত আইটেম",
     "subtitle": "এই সময়ের সেরা বিক্রি",
     "soldProfit": "{count} বিক্রি · মুনাফা {amount}",
     "emptyTitle": "এখনও কোনো বিক্রয় নেই",
-    "emptyDescription": "বিক্রয় করলে সর্বাধিক বিক্রিত আইটেম এখানে দেখা যাবে"
+    "emptyDescription": "বিক্রয় করলে সর্বাধিক বিক্রিত আইটেম এখানে দেখা যাবে",
+    "soldCount": "{count}টি বিক্রি"
   },
   "lowStock": {
     "title": "কম স্টকের সতর্কতা",
@@ -126,12 +134,14 @@
   "fulfillment": {
     "title": "ডেলিভারি",
     "viewAll": "সব দেখুন",
-    "nothingSettled": "এখনও কোনো অর্ডার ক্রেতার কাছে পৌঁছায়নি।",
     "delivered": "ডেলিভারি হয়েছে",
     "returned": "ফেরত এসেছে",
     "cancelled": "বাতিল",
     "arrivalRate": "দরজায় পৌঁছেছে",
-    "byCourier": "কুরিয়ার অনুযায়ী"
+    "byCourier": "কুরিয়ার অনুযায়ী",
+    "confirmed": "কনফার্মড",
+    "shipped": "পাঠানো হয়েছে",
+    "nothingMoved": "এই সময়ে কোনো অর্ডারের অবস্থা বদলায়নি।"
   },
   "storeHealth": {
     "title": "আপনার দোকান",
@@ -155,5 +165,21 @@
     "tradeTitle": "আজকের অর্ডার আর বিক্রি খুঁজছেন?",
     "tradeBody": "অর্ডার সংখ্যা, বিক্রি, নিশ্চিতকরণের সারি, সংগ্রহের অপেক্ষায় থাকা ক্যাশ আর ডেলিভারির ফলাফল — সবই আপনার ড্যাশবোর্ডে, ব্যবসার বাকি সবকিছুর পাশে।",
     "tradeLink": "ড্যাশবোর্ডে যান"
+  },
+  "topCounter": {
+    "title": "কাউন্টারে সেরা",
+    "subtitle": "এই সময়ে POS-এ সবচেয়ে বেশি বিক্রি",
+    "soldProfit": "{count}টি বিক্রি · লাভ {amount}",
+    "soldCount": "{count}টি বিক্রি",
+    "emptyTitle": "এখনো কাউন্টারে বিক্রি নেই",
+    "emptyDescription": "POS-এর সেরা পণ্য এখানে দেখা যাবে"
+  },
+  "topOrdered": {
+    "title": "সবচেয়ে বেশি অর্ডার",
+    "subtitle": "এই সময়ে সবচেয়ে বেশি অর্ডার হওয়া পণ্য",
+    "soldProfit": "{count}টি অর্ডার · লাভ {amount}",
+    "soldCount": "{count}টি অর্ডার",
+    "emptyTitle": "এখনো কোনো অর্ডার নেই",
+    "emptyDescription": "সবচেয়ে বেশি অর্ডার হওয়া পণ্য এখানে দেখা যাবে"
   }
 }
