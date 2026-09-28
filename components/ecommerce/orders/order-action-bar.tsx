@@ -154,15 +154,18 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           </Button>
         )}
 
-      {/* RTO / post-delivery return of the WHOLE parcel — only for a committed
-          delivery order that has shipped or delivered (matches the backend guard).
-          Named for its scope: a part of the parcel coming back is a collection,
-          recorded through `OrderCollectionDialog`, and a merchant who reads this
-          as "the return button" reverses the entire sale to handle one refused
-          item. */}
+      {/* RTO / post-delivery return of the WHOLE parcel — for a committed
+          delivery order that has shipped or delivered, or one still `processing`
+          whose courier booking failed after the sale was booked (no consignment;
+          matches the backend guard). Named for its scope: a part of the parcel
+          coming back is a collection, recorded through `OrderCollectionDialog`,
+          and a merchant who reads this as "the return button" reverses the
+          entire sale to handle one refused item. */}
       {!isPickup &&
         !!order.saleId &&
-        (order.status === "shipped" || order.status === "delivered") && (
+        (order.status === "shipped" ||
+          order.status === "delivered" ||
+          (order.status === "processing" && !order.courier?.consignmentId)) && (
           <OrderReturnDialog
             order={order}
             trigger={

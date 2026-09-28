@@ -75,6 +75,10 @@ export function OrderReturnDialog({
   // not a proxy for it.
   const needsRefundMode = !!preview?.refundModeRequired;
   const money = (n: number) => formatMoney(n, currency);
+  // Sale booked, courier booking failed: no parcel left, so there is no return
+  // charge and nothing collected at a door — the server refuses both.
+  const neverDispatched = order.status === "processing";
+  const showLegs = accountsEnabled && !neverDispatched;
   const hasLegs = !!returnCharge || !!collectedAmount;
 
   const submit = () => {
@@ -84,10 +88,8 @@ export function OrderReturnDialog({
         // Guarded, not merely hidden: state can hold a value typed before the
         // feature was switched off mid-session, and the API accepts and drops
         // it silently rather than rejecting it.
-        returnCharge: accountsEnabled ? returnCharge ?? undefined : undefined,
-        collectedAmount: accountsEnabled
-          ? collectedAmount ?? undefined
-          : undefined,
+        returnCharge: showLegs ? returnCharge ?? undefined : undefined,
+        collectedAmount: showLegs ? collectedAmount ?? undefined : undefined,
         accountId: accountId || undefined,
         // Sent when the SERVER says money needs a destination, which is the
         // same test it will apply. Keyed off `paymentStatus` it was absent on
@@ -122,7 +124,9 @@ export function OrderReturnDialog({
             {/* Only where that button exists: it is offered on an unpaid COD
                 order, because a part-refused parcel is a collection, not a
                 return of everything. */}
-            {order.paymentMethod === "cod" && order.paymentStatus !== "paid" ? (
+            {!neverDispatched &&
+            order.paymentMethod === "cod" &&
+            order.paymentStatus !== "paid" ? (
               <>
                 {" "}
                 If only part of the parcel came back, use{" "}
@@ -218,7 +222,7 @@ export function OrderReturnDialog({
             warning. The refund-account picker below was already gated for the
             same reason; these two were simply missed.
           */}
-          {accountsEnabled && (
+          {showLegs && (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Return courier charge</Label>
@@ -243,7 +247,7 @@ export function OrderReturnDialog({
           </div>
           )}
 
-          {accountsEnabled && accountOptions.length > 0 && hasLegs ? (
+          {showLegs && accountOptions.length > 0 && hasLegs ? (
             <div className="space-y-1.5">
               <Label>Account for the return charge / collection</Label>
               <SimpleSelect
