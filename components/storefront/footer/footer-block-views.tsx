@@ -4,6 +4,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import type { StoreFooterBlock } from "@/lib/storefront-client";
+import { brandBlockShowsAnything } from "@/lib/storefront-footer/blocks";
 import { footerLinkTarget } from "@/lib/storefront-footer/links";
 import type { FooterImage } from "@/lib/storefront-footer/types";
 import { parseRichDoc } from "@/lib/storefront-rich-doc";
@@ -93,6 +94,7 @@ function MaybeLink({
 }
 
 function BrandBlock({ block, props }: BlockViewProps) {
+  if (!brandBlockShowsAnything(block)) return null;
   return (
     <div className="sf-fb-stack">
       <FooterBrand
@@ -100,6 +102,7 @@ function BrandBlock({ block, props }: BlockViewProps) {
         logo={props.logo}
         logoHeight={props.logoHeight}
         blurb={block.showAbout === false ? undefined : props.blurb}
+        showMark={block.showLogo !== false}
       />
       {block.showPhone === false ? null : <FooterCallLine phone={props.phone} t={props.t} />}
       {block.showSocial === false ? null : <SocialLinks social={props.store?.social} size={16} />}
@@ -228,7 +231,9 @@ const VIEWS: Record<StoreFooterBlock["type"], (p: BlockViewProps) => ReactNode> 
   pages: PagesBlock,
   contact: ContactBlock,
   newsletter: NewsletterBlock,
-  promises: ({ block, props }) => <FooterPromises promises={props.promises} iconStyle={block.iconStyle} />,
+  promises: ({ block, props }) => (
+    <FooterPromises promises={props.promises} iconStyle={block.iconStyle} arrange={block.arrange} />
+  ),
   text: TextBlock,
   image: ImageBlock,
   logos: LogosBlock,

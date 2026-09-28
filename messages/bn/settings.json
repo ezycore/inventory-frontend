@@ -1312,7 +1312,6 @@
         "SMS_TEMPLATE_EXTENDED_CHAR": "\"{char}\" এসএমএসে ব্যবহার করা যায় না। {braces} শুধু 'যোগ করুন' বোতাম দিয়ে দিন।",
         "SMS_TEMPLATE_UNKNOWN_VAR": "{placeholder} এই বার্তার জন্য নেই।",
         "SMS_TEMPLATE_UNKNOWN_VAR_SUGGEST": "{placeholder} এই বার্তার জন্য নেই। আপনি কি {suggestion} বোঝাতে চেয়েছেন?",
-        "SMS_TEMPLATE_STORE_NAME_REQUIRED": "স্টোরের নাম যোগ করুন, যাতে ক্রেতা বুঝতে পারেন এসএমএসটি কে পাঠিয়েছে।",
         "SMS_TEMPLATE_URL": "এসএমএসে লিংক পাঠানো যায় না।",
         "SMS_TEMPLATE_EMPTY": "একটি বার্তা লিখুন, অথবা ডিফল্টে ফিরুন।",
         "SMS_TEMPLATE_TOO_LONG": "নাম ও টাকার অঙ্ক লম্বা হলে ১টি এসএমএসে হবে না। লেখা ছোট করুন।",

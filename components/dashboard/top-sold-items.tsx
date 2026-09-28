@@ -14,14 +14,37 @@ import EmptyState from '@ui/components/EmptyState'
 import { ShoppingCart, Trophy } from 'lucide-react'
 import type { DashboardOverview } from '@/services/api'
 
+type TopSoldRow = Pick<
+  NonNullable<DashboardOverview['topSoldItems']>[number],
+  'productName' | 'variantName' | 'totalQuantity' | 'totalRevenue' | 'profit'
+>
+
 interface TopSoldItemsProps {
-  items?: DashboardOverview['topSoldItems']
+  items?: TopSoldRow[]
   isLoading: boolean
   formatCurrency: (v: number) => string
+  /**
+   * Whose best sellers these are, which decides the words: `sales` for a POS
+   * shop, `counter` for the POS half of a shop that also takes orders, `orders`
+   * for the list counted from orders — no "sale" wording for a storefront
+   * seller (docs/plan/orders-first-storefront.md).
+   */
+  variant?: 'sales' | 'counter' | 'orders'
 }
 
-export function TopSoldItems({ items, isLoading, formatCurrency }: TopSoldItemsProps) {
-  const t = useTranslations('dashboard.topSold')
+const NAMESPACE = {
+  sales: 'dashboard.topSold',
+  counter: 'dashboard.topCounter',
+  orders: 'dashboard.topOrdered',
+} as const
+
+export function TopSoldItems({
+  items,
+  isLoading,
+  formatCurrency,
+  variant = 'sales',
+}: TopSoldItemsProps) {
+  const t = useTranslations(NAMESPACE[variant])
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -60,7 +83,14 @@ export function TopSoldItems({ items, isLoading, formatCurrency }: TopSoldItemsP
                       {item.variantName ? ` — ${item.variantName}` : ''}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {t('soldProfit', { count: item.totalQuantity, amount: formatCurrency(item.profit) })}
+                      {/* No profit without `costs.view` or a known cost — absent,
+                          never printed as ৳0. */}
+                      {item.profit === undefined || item.profit === null
+                        ? t('soldCount', { count: item.totalQuantity })
+                        : t('soldProfit', {
+                            count: item.totalQuantity,
+                            amount: formatCurrency(item.profit),
+                          })}
                     </p>
                   </div>
                 </div>

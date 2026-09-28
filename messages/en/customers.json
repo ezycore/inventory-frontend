@@ -98,6 +98,7 @@
     "paid": "Paid:",
     "due": "Due:",
     "payDue": "Pay Due",
+    "codPending": "COD pending:",
     "creditApplied": "Credit Applied",
     "fromReturn": "From return:",
     "saleOpenParen": "(sale",

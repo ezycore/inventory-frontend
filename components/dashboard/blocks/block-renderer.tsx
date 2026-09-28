@@ -49,14 +49,44 @@ const toRuns = (blocks: readonly DashboardBlockId[]): BlockRun[] => {
     if (last && last.layout === view.layout) last.ids.push(id)
     else runs.push({ layout: view.layout, ids: [id] })
   }
-  return runs
+  return foldLoneStats(runs)
+}
+
+/**
+ * A `stat` run of ONE card, next to a `kpi` run, joins that run as a tile.
+ *
+ * A storefront shop's balance row is the receivable alone, and a single card
+ * on its own row stretched into a full-width strip on desktop. Folding it into
+ * the neighbouring money tiles keeps the server's order — it only changes
+ * which row the card is drawn in — and needs a `KPI_TILES` builder for the id,
+ * so a stat card with no tile form stays a card.
+ */
+const foldLoneStats = (runs: BlockRun[]): BlockRun[] => {
+  const out: BlockRun[] = []
+  for (let i = 0; i < runs.length; i += 1) {
+    const run = runs[i]
+    const lone = run.layout === 'stat' && run.ids.length === 1 && KPI_TILES[run.ids[0]]
+    const prev = out[out.length - 1]
+    const next = runs[i + 1]
+    if (lone && prev?.layout === 'kpi') {
+      prev.ids.push(run.ids[0])
+    } else if (lone && next?.layout === 'kpi') {
+      out.push({ layout: 'kpi', ids: [run.ids[0], ...next.ids] })
+      i += 1
+    } else {
+      out.push({ ...run, ids: [...run.ids] })
+    }
+  }
+  return out
 }
 
 /**
  * Tailwind needs whole class names in the source to emit them, so these are
  * lookups rather than `lg:grid-cols-${n}` templates.
  */
-const KPI_COLUMNS: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
+// Six is 3 + 3, not 4 + 2: a 4-wide track left two empty slots under the
+// second row on a storefront shop's desktop.
+const KPI_COLUMNS: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 3 }
 const STAT_LG_COLUMNS: Record<number, string> = {
   1: 'lg:grid-cols-1',
   2: 'lg:grid-cols-2',
@@ -88,6 +118,7 @@ export function DashboardBlockList({ blocks, ctx }: DashboardBlockListProps) {
               data={tiles}
               isLoading={ctx.isLoading}
               columns={{ default: 2, lg: KPI_COLUMNS[tiles.length] ?? 4 }}
+              stretchPhoneOrphan
             />
           )
         }
@@ -117,9 +148,18 @@ export function DashboardBlockList({ blocks, ctx }: DashboardBlockListProps) {
                 run.ids.length > 1 && 'lg:grid-cols-2',
               )}
             >
-              {run.ids.map((id) => (
-                <BlockView key={id} id={id} ctx={ctx} />
-              ))}
+              {run.ids.map((id, i) => {
+                // An odd block out spans both columns on desktop instead of
+                // leaving the right half of its row empty.
+                const orphan = run.ids.length > 1 && run.ids.length % 2 === 1 && i === run.ids.length - 1
+                return orphan ? (
+                  <div key={id} className="lg:col-span-2">
+                    <BlockView id={id} ctx={ctx} />
+                  </div>
+                ) : (
+                  <BlockView key={id} id={id} ctx={ctx} />
+                )
+              })}
             </div>
           )
         }

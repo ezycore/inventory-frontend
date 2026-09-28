@@ -7036,6 +7036,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ecommerce/payouts/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/payouts/balances
+         * @description Defined in `src/routes/courier-payouts.routes.ts:41`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_payouts_balances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ecommerce/payouts/summary": {
         parameters: {
             query?: never;
@@ -7045,7 +7065,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts/summary
-         * @description Defined in `src/routes/courier-payouts.routes.ts:42`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:49`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts_summary"];
         put?: never;
@@ -7056,7 +7076,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ecommerce/payouts/sync": {
+    "/api/ecommerce/payouts/write-off": {
         parameters: {
             query?: never;
             header?: never;
@@ -7066,10 +7086,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * POST /api/ecommerce/payouts/sync
+         * POST /api/ecommerce/payouts/write-off
          * @description Defined in `src/routes/courier-payouts.routes.ts:57`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
-        post: operations["post_api_ecommerce_payouts_sync"];
+        post: operations["post_api_ecommerce_payouts_write_off"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7091,7 +7111,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/payouts
-         * @description Defined in `src/routes/courier-payouts.routes.ts:72`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:75`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_payouts"];
         delete?: never;
@@ -7109,31 +7129,11 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts/:id
-         * @description Defined in `src/routes/courier-payouts.routes.ts:79`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:82`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts_id"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/ecommerce/payouts/{id}/post": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * POST /api/ecommerce/payouts/:id/post
-         * @description Defined in `src/routes/courier-payouts.routes.ts:91`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        post: operations["post_api_ecommerce_payouts_id_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9115,6 +9115,7 @@ export interface components {
                 dueDate?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
+                closedReason?: string;
                 isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
@@ -9132,6 +9133,8 @@ export interface components {
                 dueAmount: number;
                 /** @enum {string} */
                 status: "draft" | "due" | "partial" | "paid" | "cancelled";
+                /** @enum {string} */
+                channel?: "pos" | "online";
                 /** Format: date-time */
                 createdAt: string;
             }[];
@@ -9860,6 +9863,7 @@ export interface components {
                 dueDate?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
+                closedReason?: string;
                 isDemoData?: boolean;
                 /** Format: date-time */
                 createdAt: string;
@@ -11182,6 +11186,7 @@ export interface components {
             appliedToDue: number;
             refundRemainder: number;
             refundModeRequired: boolean;
+            refundToClearing?: boolean;
             shippingRetained: number;
         };
         OrderStats: {
@@ -11418,6 +11423,7 @@ export interface components {
                 }[];
                 rtoChargeTxnId?: string | null;
                 rtoCollectedTxnId?: string | null;
+                shippingIncomeReversalTxnId?: string | null;
                 /** Format: date-time */
                 returnedAt?: string | null;
                 courier?: {
@@ -11480,6 +11486,9 @@ export interface components {
                         clearingAccountId?: string | null;
                         clearingAmount?: number;
                         clearingTxnId?: string | null;
+                        /** Format: date-time */
+                        openedAt?: string | null;
+                        partialDelivery?: boolean;
                     };
                 };
                 statusHistory?: {
@@ -11638,6 +11647,7 @@ export interface components {
             }[];
             rtoChargeTxnId?: string | null;
             rtoCollectedTxnId?: string | null;
+            shippingIncomeReversalTxnId?: string | null;
             /** Format: date-time */
             returnedAt?: string | null;
             courier?: {
@@ -11700,6 +11710,9 @@ export interface components {
                     clearingAccountId?: string | null;
                     clearingAmount?: number;
                     clearingTxnId?: string | null;
+                    /** Format: date-time */
+                    openedAt?: string | null;
+                    partialDelivery?: boolean;
                 };
             };
             statusHistory?: {
@@ -11848,6 +11861,7 @@ export interface components {
                 }[];
                 rtoChargeTxnId?: string | null;
                 rtoCollectedTxnId?: string | null;
+                shippingIncomeReversalTxnId?: string | null;
                 /** Format: date-time */
                 returnedAt?: string | null;
                 courier?: {
@@ -11910,6 +11924,9 @@ export interface components {
                         clearingAccountId?: string | null;
                         clearingAmount?: number;
                         clearingTxnId?: string | null;
+                        /** Format: date-time */
+                        openedAt?: string | null;
+                        partialDelivery?: boolean;
                     };
                 };
                 statusHistory?: {
@@ -11961,6 +11978,44 @@ export interface components {
                 totalPages: number;
             };
         };
+        CourierBalances: {
+            summary: {
+                couriers: number;
+                parcels: number;
+                owed: number;
+            };
+            couriers: {
+                courierKey: string;
+                label: string;
+                /** @enum {string} */
+                provider?: "pathao" | "steadfast" | "ecourier";
+                customCourierId?: string;
+                parcels: number;
+                collected: number;
+                charges: number;
+                shortfall: number;
+                owed: number;
+                oldestDays: number;
+            }[];
+            parcels: {
+                orderId: string;
+                orderNumber: string;
+                courierKey: string;
+                courierLabel: string;
+                consignmentId?: string;
+                trackingCode?: string;
+                /** @enum {string} */
+                kind: "delivered" | "prepaid" | "returned";
+                settled: boolean;
+                collected: number;
+                charge: number;
+                chargeSource?: string;
+                owed: number;
+                /** Format: date-time */
+                openedAt?: string;
+                ageDays: number;
+            }[];
+        };
         CourierChargeRefresh: {
             supported: boolean;
             applied: boolean;
@@ -11969,33 +12024,6 @@ export interface components {
             reason?: string;
         };
         CourierMoneySummary: {
-            codInTransit: {
-                summary: {
-                    withCourier: number;
-                    parcels: number;
-                    courierCount: number;
-                };
-                byCourier: {
-                    provider: string;
-                    label: string;
-                    amount: number;
-                    parcels: number;
-                    oldestDays: number;
-                    ageing: {
-                        [key: string]: {
-                            amount: number;
-                            parcels: number;
-                        };
-                    };
-                }[];
-                clearingAccounts: {
-                    accountId: string;
-                    name: string;
-                    locationId: string;
-                    balance: number;
-                }[];
-                ageingBuckets: string[];
-            };
             variance: {
                 summary: {
                     parcels: number;
@@ -12025,6 +12053,7 @@ export interface components {
                     paymentCharge: number;
                     returnCharge: number;
                     adjustment: number;
+                    extraCharges: number;
                     net: number;
                     unreconciled: number;
                     pending: number;
@@ -12034,6 +12063,7 @@ export interface components {
                     statementRef: string;
                     /** @enum {string} */
                     provider?: "pathao" | "steadfast" | "ecourier";
+                    courierName?: string;
                     /** Format: date-time */
                     receivedAt: string;
                     gross: number;
@@ -12044,6 +12074,7 @@ export interface components {
                         returnCharge: number;
                         adjustment: number;
                     };
+                    extraCharges?: number;
                     net: number;
                     paymentMode?: string;
                     parcels: number;
@@ -12062,6 +12093,7 @@ export interface components {
             /** @enum {string} */
             provider?: "pathao" | "steadfast" | "ecourier";
             customCourierId?: string | null;
+            courierName?: string;
             statementRef: string;
             /** Format: date-time */
             receivedAt: string;
@@ -12076,6 +12108,7 @@ export interface components {
                 adjustment: number;
             };
             net: number;
+            expected?: number;
             paymentMode?: string;
             lines: {
                 orderId?: string | null;
@@ -12096,6 +12129,11 @@ export interface components {
             reconciled: boolean;
             residual: number;
             unrecordedGross: number;
+            shortfallRecovered?: number;
+            residualSettled?: number;
+            residualWrittenOff?: number;
+            writeOffNote?: string;
+            extraCharges?: number;
             /** @enum {string} */
             status: "pending" | "posted";
             /** Format: date-time */
@@ -12103,6 +12141,8 @@ export interface components {
             transferTxnId?: string | null;
             expenseTxnIds?: string[];
             adjustmentTxnId?: string | null;
+            reimburseTxnIds?: string[];
+            note?: string;
             /** @enum {string} */
             source: "api" | "import" | "manual";
             idempotencyKey?: string;
@@ -12112,14 +12152,11 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
-        CourierPayoutSync: {
-            results: {
-                /** @enum {string} */
-                provider: "pathao" | "steadfast" | "ecourier";
-                found: number;
-                recorded: number;
-                error?: string;
-            }[];
+        CourierWriteOff: {
+            courierKey: string;
+            amount: number;
+            transactionId?: string;
+            shortfall: number;
         };
         EmailWebhookAck: {
             received: boolean;
@@ -12345,7 +12382,7 @@ export interface components {
             normalizedBody: string;
             errors: {
                 /** @enum {string} */
-                code: "SMS_TEMPLATE_NON_GSM" | "SMS_TEMPLATE_EXTENDED_CHAR" | "SMS_TEMPLATE_UNKNOWN_VAR" | "SMS_TEMPLATE_STORE_NAME_REQUIRED" | "SMS_TEMPLATE_URL" | "SMS_TEMPLATE_EMPTY" | "SMS_TEMPLATE_TOO_LONG" | "SMS_TEMPLATE_FALLBACK_INVALID";
+                code: "SMS_TEMPLATE_NON_GSM" | "SMS_TEMPLATE_EXTENDED_CHAR" | "SMS_TEMPLATE_UNKNOWN_VAR" | "SMS_TEMPLATE_URL" | "SMS_TEMPLATE_EMPTY" | "SMS_TEMPLATE_TOO_LONG" | "SMS_TEMPLATE_FALLBACK_INVALID";
                 message: string;
                 char?: string;
                 placeholder?: string;
@@ -13309,6 +13346,7 @@ export interface components {
                         url?: string;
                         newTab?: boolean;
                     }[];
+                    showLogo?: boolean;
                     showAbout?: boolean;
                     showPhone?: boolean;
                     showSocial?: boolean;
@@ -13336,6 +13374,7 @@ export interface components {
                     }[];
                     logoHeight?: number;
                     iconStyle?: string;
+                    arrange?: string;
                 }[];
                 announcement?: {
                     enabled: boolean;
@@ -13405,6 +13444,7 @@ export interface components {
                         allProducts?: boolean;
                         allProductsLabel?: string;
                         collectionStrip?: string;
+                        drawerWidth?: string;
                     };
                     desktop?: {
                         dropdown?: string;
@@ -15072,6 +15112,7 @@ export interface components {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -15099,6 +15140,7 @@ export interface components {
                             }[];
                             logoHeight?: number;
                             iconStyle?: string;
+                            arrange?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15168,6 +15210,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15534,6 +15577,7 @@ export interface components {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -15561,6 +15605,7 @@ export interface components {
                             }[];
                             logoHeight?: number;
                             iconStyle?: string;
+                            arrange?: string;
                         }[];
                         announcement?: {
                             enabled: boolean;
@@ -15630,6 +15675,7 @@ export interface components {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -15805,7 +15851,7 @@ export interface components {
             };
         };
         DashboardBlocks: {
-            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "orders.fulfillment" | "topSold" | "stock.alerts" | "stock.movements" | "financial.insights" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
         };
         DashboardOverview: {
             period: {
@@ -15858,12 +15904,15 @@ export interface components {
             };
             ordersCod?: {
                 inTransit: number;
+                heldByCouriers: number;
                 orders: number;
                 rtoRate: number | null;
                 returned: number;
                 delivered: number;
             };
             ordersFulfillment?: {
+                confirmed: number;
+                shipped: number;
                 delivered: number;
                 returned: number;
                 cancelled: number;
@@ -15878,6 +15927,14 @@ export interface components {
                 sales: number;
                 purchases: number;
                 orders: number;
+            }[];
+            ordersTopProducts?: {
+                productId: string | null;
+                productName: string;
+                units: number;
+                revenue: number;
+                cost?: number;
+                profit?: number;
             }[];
             topSoldItems?: {
                 productName: string;
@@ -15927,6 +15984,8 @@ export interface components {
             };
             netRevenue?: number;
             previousNetRevenue?: number;
+            counterNetRevenue?: number;
+            previousCounterNetRevenue?: number;
             returns?: {
                 refund: number;
                 cogs: number;
@@ -16404,6 +16463,7 @@ export interface components {
                 netSales: number;
                 totalPaid: number;
                 totalDue: number;
+                codPending: number;
                 totalCost: number;
                 grossProfit: number;
                 count: number;
@@ -16655,6 +16715,8 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                /** Format: date-time */
+                posUsedAt?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -16811,6 +16873,8 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                 };
+                /** Format: date-time */
+                posUsedAt?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -16971,6 +17035,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17128,6 +17194,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17323,6 +17391,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -17503,6 +17573,8 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                     };
+                    /** Format: date-time */
+                    posUsedAt?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -22636,6 +22708,7 @@ export interface operations {
                                 url?: string;
                                 newTab?: boolean;
                             }[];
+                            showLogo?: boolean;
                             showAbout?: boolean;
                             showPhone?: boolean;
                             showSocial?: boolean;
@@ -22662,6 +22735,8 @@ export interface operations {
                             logoHeight?: number;
                             /** @enum {string} */
                             iconStyle?: "disc" | "plain" | "none";
+                            /** @enum {string} */
+                            arrange?: "row" | "column";
                         }[];
                         announcement?: {
                             enabled?: boolean;
@@ -22730,6 +22805,7 @@ export interface operations {
                                 allProducts?: boolean;
                                 allProductsLabel?: string;
                                 collectionStrip?: string;
+                                drawerWidth?: string;
                             };
                             desktop?: {
                                 dropdown?: string;
@@ -42547,6 +42623,58 @@ export interface operations {
             };
         };
     };
+    get_api_ecommerce_payouts_balances: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["CourierBalances"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_api_ecommerce_payouts_summary: {
         parameters: {
             query?: {
@@ -42603,7 +42731,7 @@ export interface operations {
             };
         };
     };
-    post_api_ecommerce_payouts_sync: {
+    post_api_ecommerce_payouts_write_off: {
         parameters: {
             query?: never;
             header?: {
@@ -42618,8 +42746,9 @@ export interface operations {
                 "application/json": {
                     /** @enum {string} */
                     provider?: "pathao" | "steadfast" | "ecourier";
-                    /** Format: date-time */
-                    since?: string;
+                    customCourierId?: string;
+                    amount?: number;
+                    note?: string;
                 };
             };
         };
@@ -42631,7 +42760,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["CourierPayoutSync"];
+                        data?: components["schemas"]["CourierWriteOff"];
                     };
                 };
             };
@@ -42678,6 +42807,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 provider?: "pathao" | "steadfast" | "ecourier";
+                reconciled?: "true" | "false";
                 locationId?: string;
             };
             header?: {
@@ -42753,37 +42883,15 @@ export interface operations {
                     /** @enum {string} */
                     provider?: "pathao" | "steadfast" | "ecourier";
                     customCourierId?: string;
-                    statementRef: string;
-                    /** Format: date-time */
+                    amount: number;
                     receivedAt?: string;
                     accountId?: string;
-                    gross?: number;
-                    deductions?: {
-                        delivery?: number;
-                        codFee?: number;
-                        paymentCharge?: number;
-                        returnCharge?: number;
-                        adjustment?: number;
-                    };
-                    net?: number;
-                    paymentMode?: string;
-                    lines?: {
-                        orderId?: string;
-                        consignmentRef?: string;
-                        trackingCode?: string;
-                        /** @enum {string} */
-                        legType?: "forward" | "return";
-                        collected?: number;
-                        deliveryFee?: number;
-                        codFee?: number;
-                        returnCharge?: number;
-                        otherCharge?: number;
-                        note?: string;
-                    }[];
+                    orderIds?: string[];
+                    reference?: string;
                     /** @enum {string} */
-                    source?: "api" | "import" | "manual";
+                    shortReason?: "courier_charges" | "still_owed";
+                    note?: string;
                     idempotencyKey?: string;
-                    post?: boolean;
                 };
             };
         };
@@ -42841,75 +42949,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["CourierPayout"];
-                    };
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    post_api_ecommerce_payouts_id_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    accountId?: string;
-                };
-            };
-        };
         responses: {
             /** @description Success */
             200: {
@@ -45595,6 +45634,7 @@ export interface operations {
                                     url?: string;
                                     newTab?: boolean;
                                 }[];
+                                showLogo?: boolean;
                                 showAbout?: boolean;
                                 showPhone?: boolean;
                                 showSocial?: boolean;
@@ -45621,6 +45661,8 @@ export interface operations {
                                 logoHeight?: number;
                                 /** @enum {string} */
                                 iconStyle?: "disc" | "plain" | "none";
+                                /** @enum {string} */
+                                arrange?: "row" | "column";
                             }[];
                             announcement?: {
                                 enabled?: boolean;
@@ -45689,6 +45731,7 @@ export interface operations {
                                     allProducts?: boolean;
                                     allProductsLabel?: string;
                                     collectionStrip?: string;
+                                    drawerWidth?: string;
                                 };
                                 desktop?: {
                                     dropdown?: string;

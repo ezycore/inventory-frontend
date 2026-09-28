@@ -2705,7 +2705,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
-/* ---- Slide-over drawers (components/storefront/side-drawer.tsx: cart + filters) ----
+/* ---- Slide-over drawers (components/storefront/side-drawer.tsx: cart, filters, the phone menu) ----
    The component mounts closed, adds .sf-open a frame later (slide/fade in) and
    removes it before unmounting (slide/fade out). */
 .sf-drawer-scrim {
@@ -2736,10 +2736,26 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   transform: translateX(102%);
   box-shadow: -20px 0 50px -20px rgba(0, 0, 0, 0.4);
 }
+/* The left drawer is only ever the phone menu (`mobile-menu.tsx`). At the shared
+   94% it covered a 390px phone but for a 24px sliver, so it read as a new page
+   rather than a panel over the shop. Every width keeps a strip of the shop
+   showing — the scrim there is the obvious place to tap to close — and never
+   grows past a list's comfortable width. The merchant picks the step
+   (Customize → Menu → Menu width, `nav.menu.mobile.drawerWidth`); unset or
+   `regular` is the base rule. The cart and filters keep the wider rule above:
+   they carry line items and price inputs, not a list of names.
+   On a 390px phone: narrow 280px, regular 326px, wide 358px. */
 .sf-drawer-left {
   left: 0;
+  width: min(340px, calc(100% - 64px));
   transform: translateX(-102%);
   box-shadow: 20px 0 50px -20px rgba(0, 0, 0, 0.4);
+}
+.sf-drawer-left[data-width="narrow"] {
+  width: min(280px, calc(100% - 96px));
+}
+.sf-drawer-left[data-width="wide"] {
+  width: min(400px, calc(100% - 32px));
 }
 .sf-drawer.sf-open {
   transform: translateX(0);
@@ -4815,6 +4831,11 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   /* One row for a full set of promises; the count comes from `FooterPromises`. */
   .sf-footer-trustbar {
     grid-template-columns: repeat(var(--ft-trustcols, 3), minmax(0, 1fr));
+  }
+  /* A promises block set to "In a column" stays one track wide on a computer too
+     (the phone already stacks). The attribute out-ranks the rule above. */
+  .sf-footer-trustbar[data-arrange="column"] {
+    grid-template-columns: minmax(0, 1fr);
   }
   /*
    * The link columns are sized to THEIR CONTENT and anchored to the right edge.

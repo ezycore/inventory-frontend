@@ -19,6 +19,7 @@ import {
   FooterCols,
   FooterColumns,
   FooterPromises,
+  footerBlurb,
   footerLink,
 } from "@/components/storefront/footer/footer-pieces";
 
@@ -215,17 +216,7 @@ export function SimpleFooter(props: FooterProps) {
           />
         </Link>
 
-        <p
-          style={{
-            fontSize: 13,
-            color: "var(--muted)",
-            lineHeight: 1.6,
-            margin: 0,
-            maxWidth: 460,
-          }}
-        >
-          {props.blurb}
-        </p>
+        <p style={{ ...footerBlurb, maxWidth: 460 }}>{props.blurb}</p>
 
         {links.length > 0 ? (
           <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 20px" }}>

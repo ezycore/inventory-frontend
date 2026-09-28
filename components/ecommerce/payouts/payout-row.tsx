@@ -4,7 +4,7 @@ import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import type { CourierPayout } from "@/services/api";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { cn } from "@/ui/lib/utils";
-import { deductionsTotal, providerLabel } from "./helpers";
+import { payoutCharges, payoutShortfall, providerLabel } from "./helpers";
 
 const shortDate = (value?: string | null) =>
   value
@@ -19,11 +19,11 @@ const shortDate = (value?: string | null) =>
 /**
  * One remittance row.
  *
- * Two flags earn a badge and nothing else does. **Pending** is the one that needs an action —
- * the money has not reached an account yet and the deductions are not in the books.
- * **Unreconciled** is the one that needs a look: the courier kept money they did not explain,
- * or paid for parcels this workspace never shipped. Both come from the server; neither is
- * re-derived here.
+ * Two flags earn a badge. **Pending** only appears on legacy rows from the retired automatic
+ * ingest — a payment recorded by hand posts at once. **Unreconciled** is the one that needs a
+ * look: the payment was short of what its parcels should net, or more than them. A shortfall
+ * later recovered or written off reads **Recovered** / **Written off** instead
+ * (`payoutShortfall`).
  */
 export function PayoutRow({
   payout,
@@ -34,7 +34,8 @@ export function PayoutRow({
   currency?: string;
   onOpen: () => void;
 }) {
-  const deductions = deductionsTotal(payout.deductions);
+  const deductions = payoutCharges(payout);
+  const shortfall = payoutShortfall(payout);
   const parcels = payout.lines?.length ?? 0;
 
   return (
@@ -46,7 +47,7 @@ export function PayoutRow({
         <div className="flex flex-col gap-0.5">
           <span className="font-semibold">{payout.statementRef}</span>
           <span className="text-xs text-muted-foreground">
-            {providerLabel(payout.provider)}
+            {payout.courierName || providerLabel(payout.provider)}
             {payout.paymentMode ? ` · ${payout.paymentMode}` : ""}
           </span>
         </div>
@@ -65,27 +66,39 @@ export function PayoutRow({
       <td className="px-3 py-3 font-semibold tabular-nums">
         {formatMoney(payout.net, currency)}
       </td>
-      <td className="px-3 py-3 text-muted-foreground tabular-nums">{parcels}</td>
+      <td className="px-3 py-3 text-muted-foreground tabular-nums">
+        {parcels}
+      </td>
       <td className="px-3 py-3">
         <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge
             status={payout.status === "posted" ? "completed" : "pending"}
             label={payout.status === "posted" ? "Posted" : "Pending"}
           />
-          {!payout.reconciled && (
-            <StatusBadge status="warning" label="Unreconciled" />
+          {shortfall.badge && (
+            <StatusBadge
+              status={
+                shortfall.badge === "Unreconciled" ? "warning" : "completed"
+              }
+              label={shortfall.badge}
+            />
           )}
         </div>
       </td>
-      {/* Residual is money still sitting in the clearing account because the payout did
-          not cover it. Shown on the row because it is the number a merchant chases. */}
+      {/* What the payment still leaves owed — the number a merchant chases. Once recovered
+          or written off it reads as settled, struck through, not as money still missing. */}
       <td
         className={cn(
           "px-3 py-3 tabular-nums",
-          payout.residual > 0 ? "text-amber-700 dark:text-amber-500" : "text-muted-foreground",
+          shortfall.open > 0
+            ? "text-amber-700 dark:text-amber-500"
+            : "text-muted-foreground",
+          shortfall.open === 0 && payout.residual > 0 && "line-through",
         )}
       >
-        {payout.residual > 0 ? formatMoney(payout.residual, currency) : "—"}
+        {payout.residual > 0
+          ? formatMoney(shortfall.open || payout.residual, currency)
+          : "—"}
       </td>
     </tr>
   );

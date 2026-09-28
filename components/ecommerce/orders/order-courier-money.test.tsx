@@ -82,7 +82,7 @@ describe("OrderCourierMoney", () => {
     expect(screen.queryByText("COD fee")).not.toBeInTheDocument();
   });
 
-  it("says where the money is while the courier still holds it", () => {
+  it("says the courier owes a settled delivery's COD, less their charge", () => {
     render(
       <OrderCourierMoney
         order={order({
@@ -92,11 +92,44 @@ describe("OrderCourierMoney", () => {
         })}
       />,
     );
-    expect(screen.getByText(/is with Steadfast/)).toBeInTheDocument();
+    expect(screen.getByText(/collected by Steadfast/)).toBeInTheDocument();
     expect(screen.getByText("৳570")).toBeInTheDocument();
   });
 
-  it("names the payout once the money has arrived", () => {
+  it("says a returned parcel's charge comes out of a payment", () => {
+    render(
+      <OrderCourierMoney
+        order={order({
+          provider: "steadfast",
+          integration: "api",
+          charges: { actual: { deliveryFee: 60, totalFee: 60 }, source: "webhook" },
+          remittance: { status: "with_courier", clearingAmount: 0 },
+        })}
+      />,
+    );
+    expect(screen.getByText(/will take its charge \(৳60\)/)).toBeInTheDocument();
+  });
+
+  it("flags a partial delivery for the merchant to resolve", () => {
+    render(
+      <OrderCourierMoney
+        order={
+          {
+            _id: "order-1",
+            paymentStatus: "pending",
+            courier: {
+              provider: "pathao",
+              integration: "api",
+              remittance: { status: "not_collected", partialDelivery: true },
+            },
+          } as unknown as AdminStorefrontOrder
+        }
+      />,
+    );
+    expect(screen.getByText(/reported a partial delivery/)).toBeInTheDocument();
+  });
+
+  it("says a payment covered it, without the retired payout reference", () => {
     render(
       <OrderCourierMoney
         order={order({
@@ -110,7 +143,8 @@ describe("OrderCourierMoney", () => {
         })}
       />,
     );
-    expect(screen.getByText(/SFC-26926554/)).toBeInTheDocument();
+    expect(screen.getByText(/Covered by a payment from Steadfast/)).toBeInTheDocument();
+    expect(screen.queryByText(/SFC-26926554/)).not.toBeInTheDocument();
   });
 
   it("renders nothing for a parcel with no courier money at all", () => {
@@ -133,7 +167,7 @@ describe("OrderCourierMoney", () => {
         })}
       />,
     );
-    expect(screen.queryByText(/is with Steadfast/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Remitted/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/collected by Steadfast/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Covered by a payment/)).not.toBeInTheDocument();
   });
 });

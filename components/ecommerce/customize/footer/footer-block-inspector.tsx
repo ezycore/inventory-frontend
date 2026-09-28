@@ -11,11 +11,12 @@ import {
   FOOTER_TEXT_MAX_BYTES,
   type FooterBlockWidth,
   type FooterIconStyle,
+  type FooterPromiseArrange,
 } from "@/lib/storefront-footer/types";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
 import { SegmentedField } from "@/ui/components/segmented-field";
-import { PartField, PartHint, PartSwitch } from "@/components/ecommerce/customize/part-group";
+import { PartField, PartHint } from "@/components/ecommerce/customize/part-group";
 import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
 import type { NavOption } from "@/components/ecommerce/customize/menu-item-fields";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
@@ -23,6 +24,8 @@ import { FooterLinkRows } from "@/components/ecommerce/customize/footer/footer-l
 import { FooterImageField } from "@/components/ecommerce/customize/footer/footer-image-field";
 import { FooterLogosField } from "@/components/ecommerce/customize/footer/footer-logos-field";
 import { FooterNewsletterFields } from "@/components/ecommerce/customize/footer/footer-copy-fields";
+import { FooterBrandFields } from "@/components/ecommerce/customize/footer/footer-brand-fields";
+import { TrustBadgesField } from "@/components/ecommerce/customize/trust-badges-field";
 
 // TipTap is heavy: only a merchant who opens a text block pays for it.
 const RichTextEditor = dynamic(
@@ -46,6 +49,11 @@ const ICON_STYLE_OPTIONS: { value: FooterIconStyle; label: string; description: 
   { value: "plain", label: "Icon only", description: "The icon alone, in your brand colour" },
   { value: "none", label: "No icons", description: "Just the words" },
 ];
+const ARRANGE_OPTIONS: { value: FooterPromiseArrange; label: string; description: string }[] = [
+  { value: "row", label: "In a row", description: "Side by side across the footer; a phone stacks them" },
+  { value: "column", label: "In a column", description: "One under another on every screen" },
+];
+
 /** Unset draws `plain` — what the footer showed before the setting. */
 const DEFAULT_ICON_STYLE: FooterIconStyle = "plain";
 
@@ -60,10 +68,11 @@ export interface LinkOptions {
  * — its width on a computer and which screens show it. Phones always stack the
  * blocks in order, so width is a desktop-only question and says so.
  *
- * Blocks that draw the shop's shared wording (contact heading, sign-up copy)
- * edit that one copy here rather than a second one per block: the fixed
- * layouts read the same fields, and two sources would disagree. Promises are
- * edited in their own section, since page sections draw them too.
+ * Blocks that draw the shop's shared wording and pictures (about line, footer
+ * logo, contact heading, sign-up copy, promises) edit that one copy here rather
+ * than a second one per block: the fixed layouts and page sections read the
+ * same fields, and two sources would disagree. A shop with no promises block
+ * still reaches its promises through `FooterPromisesNotice`.
  */
 export function FooterBlockInspector({
   block,
@@ -131,14 +140,7 @@ function BlockContent({
 } & Pick<CustomizeDraftApi, "draft" | "patch">) {
   switch (block.type) {
     case "brand":
-      return (
-        <div className="space-y-3">
-          <PartSwitch label="About your shop" checked={block.showAbout !== false} onCheckedChange={(v) => onChange({ showAbout: v })} />
-          <PartSwitch label="Phone number" checked={block.showPhone !== false} onCheckedChange={(v) => onChange({ showPhone: v })} />
-          <PartSwitch label="Social icons" checked={block.showSocial !== false} onCheckedChange={(v) => onChange({ showSocial: v })} />
-          <PartHint>The about text is under Wording below; the phone number and social links come from Settings → General.</PartHint>
-        </div>
-      );
+      return <FooterBrandFields block={block} onChange={onChange} draft={draft} patch={patch} />;
     case "links":
       return (
         <div className="space-y-3">
@@ -171,21 +173,36 @@ function BlockContent({
       return <FooterNewsletterFields draft={draft} patch={patch} />;
     case "promises":
       return (
-        <div className="space-y-2">
-          <PartField label="Icon style">
-            <SegmentedField
-              label="Icon style"
-              value={block.iconStyle ?? DEFAULT_ICON_STYLE}
-              options={ICON_STYLE_OPTIONS}
-              onChange={(style) =>
-                onChange({ iconStyle: style === DEFAULT_ICON_STYLE ? undefined : (style as FooterIconStyle) })
-              }
-            />
+        <div className="space-y-4">
+          <PartField
+            label="Your promises"
+            hint="Up to four promises you stand behind. The same list shows in promise sections on your pages, so an edit here changes both; blank rows are not published."
+          >
+            <TrustBadgesField badges={draft.badges} setBadges={(badges) => patch({ badges })} />
           </PartField>
-          <PartHint>
-            Shows your store promises — edit them under Store promises below. A promises band on a page has the same
-            icon styles; pick the same one there so both match.
-          </PartHint>
+          <SegmentedField
+            label="Icon style"
+            value={block.iconStyle ?? DEFAULT_ICON_STYLE}
+            options={ICON_STYLE_OPTIONS}
+            onChange={(style) =>
+              onChange({ iconStyle: style === DEFAULT_ICON_STYLE ? undefined : (style as FooterIconStyle) })
+            }
+          />
+          <PartHint>A promises band on a page has the same icon styles; pick the same one there so both match.</PartHint>
+          <SegmentedField
+            label="Arrange"
+            value={block.arrange ?? "row"}
+            options={ARRANGE_OPTIONS}
+            onChange={(value) =>
+              onChange(
+                value === "column"
+                  ? // A stack in a full-width row leaves the rest of the row empty, so an
+                    // unset width moves to Narrow — beside the links, where a column belongs.
+                    { arrange: "column", ...(block.width ? {} : { width: "narrow" as const }) }
+                  : { arrange: undefined },
+              )
+            }
+          />
         </div>
       );
     case "text":

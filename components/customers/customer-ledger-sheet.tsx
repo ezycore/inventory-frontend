@@ -138,7 +138,11 @@ export function CustomerLedgerSheet({
   const accounts = accountsData ?? [];
 
   const totalPaid = sales.reduce((sum, sale) => sum + sale.paidAmount, 0);
-  const totalDue = sales.reduce((sum, sale) => sum + sale.dueAmount, 0);
+  // Online sales are COD the courier collects — never this customer's debt.
+  const totalDue = sales.reduce(
+    (sum, sale) => sum + (sale.channel === "online" ? 0 : sale.dueAmount),
+    0,
+  );
   const totalRefunded = returns.reduce((sum, r) => sum + (r.refundedAmount ?? 0), 0);
   const totalRefundCredit = returns.reduce(
     (sum, r) => sum + Math.max(0, (r.totalRefundAmount ?? 0) - (r.refundedAmount ?? 0)),
