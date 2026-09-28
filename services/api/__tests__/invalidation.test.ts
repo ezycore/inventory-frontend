@@ -57,6 +57,7 @@ const READ_ONLY_MUTATIONS: Record<string, string> = {
   useMe: "re-reads the session into the auth store; the store is not query state",
   useLogout: "clears auth; the cache is cleared by the logout flow itself",
   useImportPreview: "dry run — nothing is committed",
+  useMatchProductList: "resolves pasted names/barcodes to product ids; writes nothing",
 
   // Pre-login flows. Nothing is cached before there is a session to cache it against.
   useVerifyEmail: "pre-login; no cached state exists yet",

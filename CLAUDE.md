@@ -478,7 +478,7 @@ fire-and-forget and toast success unconditionally, which claimed a copy that nev
 on the 2FA backup codes).
 
 **Tables — pick by use site, never hand-roll raw `Table*` primitives:**
-- **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog.
+- **`DataTable`** (`ui/components/dataTable`) for full list pages — needs pagination, search/toolbar, column adapter, row selection, delete dialog. Bulk actions go through its `bulkActions` prop (selection bar + "select all N matching"), never a hand-built bar — see the `data-table` skill.
 - **`SimpleTable`** (`ui/components/simple-table.tsx`) for the small tables embedded in cards / detail panels. Column-driven: `<SimpleTable columns rows getRowKey />`, where each `SimpleColumn` has `header`, `cell: (row) => node`, optional `align`/`headClassName`/`cellClassName`; plus `rowClassName`/`headerRowClassName` for per-row styling. Cells can hold inputs/checkboxes, so lightly interactive grids fit too (see `variant-manager.tsx`).
 - Only drop to the raw `ui/components/table` primitives inside `SimpleTable` itself.
 - **Paging UI is one component: `<PaginationControls>`** (`ui/components/pagination-controls.tsx`) —

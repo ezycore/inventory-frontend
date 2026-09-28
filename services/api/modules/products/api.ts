@@ -1,11 +1,81 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
 import type { ApiResponse, PaginatedResponse, CreateProductDto, UpdateProductDto, ProductFilters } from "@/types";
-import type { ProductDetail, ProductListItem, ApiVariant, ApiImage } from "@/types/api";
+import type {
+  ProductDetail,
+  ProductListItem,
+  ApiVariant,
+  ApiImage,
+  ProductBulkUpdateResult,
+  ProductMatchList,
+  ProductTaxonomySheet,
+} from "@/types/api";
 import { buildQueryParams } from "../../utils";
 import { createImportApi } from "../import-api";
 
+/**
+ * Which products a bulk edit touches: explicit ids, or every product matching
+ * the list filter (the table's "select all N matching").
+ */
+export type ProductBulkTarget =
+  | { ids: string[] }
+  | { filter: ProductBulkFilter };
+
+/** The product list's filters, in the strict shape `/products/bulk-update` accepts. */
+export interface ProductBulkFilter {
+  search?: string;
+  categoryId?: string;
+  subcategoryId?: string;
+  brandId?: string;
+  status?: string;
+  tags?: string[];
+}
+
+export type ProductBulkAction =
+  | { op: "addTags"; tagIds: string[] }
+  | { op: "removeTags"; tagIds: string[] }
+  | { op: "setCategory"; categoryId: string | null; subcategoryId?: string | null };
+
+const taxonomySheetForm = (file: File) => {
+  const body = new FormData();
+  body.append("file", file);
+  return body;
+};
+
 export const productsApi = {
+  /** Add/remove tags or move the category of many products at once. */
+  bulkUpdate: (body: {
+    target: ProductBulkTarget;
+    action: ProductBulkAction;
+  }): Promise<ApiResponse<ProductBulkUpdateResult>> =>
+    apiClient.post("/products/bulk-update", body),
+
+  /** Resolve a pasted list of product names / barcodes to products. */
+  matchList: (lines: string[]): Promise<ApiResponse<ProductMatchList>> =>
+    apiClient.post("/products/match-list", { lines }),
+
+  /** Download Name / Barcode / Category / Subcategory / Tags for the filtered products. */
+  exportTaxonomy: (filters: Record<string, unknown> = {}): Promise<void> =>
+    apiClient.download(`/products/taxonomy/export${buildQueryParams(filters)}`, {
+      filename: "product-tags-categories.csv",
+    }),
+
+  /** Dry run of the tags-and-categories sheet — the per-product diff, no writes. */
+  taxonomyPreview: (file: File): Promise<ProductTaxonomySheet> =>
+    apiClient
+      .post<ApiResponse<ProductTaxonomySheet>>(
+        "/products/taxonomy/import?mode=preview",
+        taxonomySheetForm(file),
+      )
+      .then((res) => res.data),
+
+  taxonomyCommit: (file: File): Promise<ProductTaxonomySheet> =>
+    apiClient
+      .post<ApiResponse<ProductTaxonomySheet>>(
+        "/products/taxonomy/import?mode=commit",
+        taxonomySheetForm(file),
+      )
+      .then((res) => res.data),
 
   /**
    * Upload one image for embedding in a product's rich-text description.

@@ -442,6 +442,13 @@ export interface DataTableProps<TData, TValue = any> {
   module?: string;
   /** Callback when row selection changes */
   onSelectionChange?: (selectedRows: TData[]) => void;
+  /**
+   * Bulk actions for the selected rows. When set, ticking rows shows a bar with
+   * the count, a "select all N matching" offer, and whatever this renders.
+   */
+  bulkActions?: (selection: BulkSelection) => React.ReactNode;
+  /** Told the table's filters whenever they change (and once on mount). */
+  onFiltersChange?: (filters: Record<string, unknown>) => void;
 }
 
 export interface BaseDataTableProps<TData, TValue = any> {
@@ -505,6 +512,39 @@ export interface BaseDataTableProps<TData, TValue = any> {
   module?: string;
   /** Full column definitions for settings modal */
   fullColumns?: ColumnDef<TData, TValue>[];
+  /** Hide the toolbar's "Delete N" — e.g. while "all matching" is selected, where N would mislead. */
+  suppressBulkDelete?: boolean;
+  /** Selection is cleared whenever this value changes (DataTable passes its filters). */
+  selectionResetKey?: string;
+  /** Rendered between the toolbar and the rows, with the live selection. */
+  renderSelectionBar?: (selection: TableSelection) => React.ReactNode;
+}
+
+/** The table's current row selection, as handed to `renderSelectionBar`. */
+export interface TableSelection {
+  /** Selected row ids — across every page visited, not just this one. */
+  ids: string[];
+  count: number;
+  /** Rows on the current page. */
+  pageRowCount: number;
+  /** Every row on the current page is ticked. */
+  pageAllSelected: boolean;
+  clear: () => void;
+}
+
+/**
+ * What a bulk action receives. Either explicit `ids`, or `allMatching` — every
+ * row the current `filters` match, including pages never loaded — in which case
+ * `ids` is empty and the action must send the filters to the server instead.
+ */
+export interface BulkSelection {
+  ids: string[];
+  allMatching: boolean;
+  /** Rows the action will touch: `ids.length`, or the server's total. */
+  count: number;
+  filters: Record<string, unknown>;
+  /** Clear the selection — call after the action succeeds. */
+  clear: () => void;
 }
 /**
  * Example usage:

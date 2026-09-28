@@ -351,6 +351,75 @@
         "balance": "Balance",
         "noActivity": "No stock activity yet"
       }
+    },
+    "bulk": {
+      "addTags": "Add tag",
+      "removeTags": "Remove tag",
+      "setCategory": "Move to category",
+      "actionLabel": "What to change",
+      "fromList": "Select from list",
+      "sheetButton": "Tags & categories sheet",
+      "title": {
+        "addTags": "Add tags to {count, plural, one {# product} other {# products}}",
+        "removeTags": "Remove tags from {count, plural, one {# product} other {# products}}",
+        "setCategory": "Move {count, plural, one {# product} other {# products}} to a category"
+      },
+      "tagsLabel": "Tags",
+      "tagsSearch": "Search tags",
+      "noTags": "No tags yet. Create one on the Tags page first.",
+      "addNote": "Tags the products already have are kept.",
+      "removeNote": "Only the tags you tick are removed. Other tags stay.",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Pick a category",
+      "noCategory": "No category",
+      "subcategoryLabel": "Sub-category (optional)",
+      "subcategoryNone": "None",
+      "categoryWarning": "This replaces each product's current category. For a campaign or a sale, use a tag instead: when it ends you can remove the tag from every product in one step.",
+      "apply": "Apply to {count, plural, one {# product} other {# products}}",
+      "cancel": "Cancel",
+      "done": "Updated {modified} of {matched} products",
+      "doneNone": "Nothing to change: every product already had that",
+      "failed": "Could not update the products",
+      "list": {
+        "title": "Select products from a list",
+        "description": "Paste product names or barcodes, one per line. Copy them from WhatsApp, Excel or anywhere.",
+        "placeholder": "Cushion - Colorful Cars\nFloor Mat - Red Car\n8901234567890",
+        "lineCount": "{count, plural, one {# line} other {# lines}}",
+        "tooMany": "At most {max} lines at once",
+        "match": "Find products",
+        "matched": "{count, plural, one {# product found} other {# products found}}",
+        "notFound": "{count} not found",
+        "repeated": "{count} listed twice",
+        "matchedTitle": "Found",
+        "notFoundTitle": "Not found: check the spelling, or use the barcode",
+        "repeatedTitle": "Listed twice: used once",
+        "back": "Edit list",
+        "continue": "Continue with {count, plural, one {# product} other {# products}}"
+      },
+      "sheet": {
+        "title": "Update tags & categories from a sheet",
+        "description": "Change the tags and categories of many products in Excel or Google Sheets, then upload the file.",
+        "step1": "Download the sheet. It lists the products in your current filter.",
+        "step2": "Edit the Category, Subcategory and Tags columns. Separate several tags with |. Leave Name and Barcode as they are.",
+        "step3": "Upload it and check the changes before applying.",
+        "rules": "An empty Category or Tags cell removes it from that product. A column you delete from the sheet is left alone.",
+        "download": "Download sheet",
+        "downloadFailed": "Download failed",
+        "choose": "Upload CSV",
+        "chooseAnother": "Choose another file",
+        "checking": "Checking…",
+        "changed": "{count, plural, one {# product will change} other {# products will change}}",
+        "unchanged": "{count} unchanged",
+        "invalid": "{count, plural, one {# row has a problem} other {# rows have problems}}",
+        "row": "Row {row}:",
+        "more": "…and {count} more",
+        "none": "none",
+        "categoryChange": "Category: {from} → {to}",
+        "subcategoryChange": "Sub-category: {from} → {to}",
+        "apply": "Apply {count, plural, one {# change} other {# changes}}",
+        "cancel": "Cancel",
+        "done": "{count, plural, one {# product updated} other {# products updated}}"
+      }
     }
   },
   "brands": {
@@ -471,6 +540,13 @@
       "delete": "Delete",
       "createdOn": "Created {date}",
       "updatedOn": "Updated {date}"
+    },
+    "removeFromProducts": {
+      "menuItem": "Remove from all products",
+      "title": "Remove “{name}” from {count, plural, one {# product} other {# products}}?",
+      "description": "The tag stays in your list; only the products stop carrying it. Use this when a campaign or sale ends.",
+      "confirm": "Remove from all",
+      "done": "Removed “{name}” from {count, plural, one {# product} other {# products}}"
     }
   },
   "categories": {
@@ -561,6 +637,11 @@
       "apply": "Apply",
       "applying": "Applying…",
       "cancel": "Cancel"
+    },
+    "moveProducts": {
+      "menuItem": "Move products…",
+      "title": "Move {count, plural, one {# product} other {# products}} out of “{name}”",
+      "description": "Pick where these products should go. Choose “No category” to leave them without one."
     }
   },
   "units": {

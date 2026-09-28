@@ -28,6 +28,13 @@ import StatsCard from "@/ui/components/StatsCard";
 import ViewToggle from "@/ui/components/ViewToggle";
 import MountingHandler from "@/components/MountingHandler";
 import type { TagListItem } from "@/types/api";
+import { useState } from "react";
+import { TagsIcon } from "lucide-react";
+import { useAuthStore } from "@/services/stores";
+import {
+  RemoveFromProductsDialog,
+  type RemoveTagTarget,
+} from "@/components/tags/remove-from-products-dialog";
 
 const defaultValues = {
   name: "",
@@ -44,6 +51,24 @@ export default function TagsPage() {
   const filteredColumns = useFilteredColumns(getTagColumns(t), "tag");
   const tagFilterConfig = getTagFilterConfig(t);
   const { data, isLoading } = useTagStats();
+  const { user } = useAuthStore();
+
+  // "Campaign over": strip this tag from every product in one step. The write is
+  // a product edit, so it needs `products.edit`, not a tag permission.
+  const canEditProducts = user?.permissions?.includes("products.edit") ?? false;
+  const [removeTarget, setRemoveTarget] = useState<RemoveTagTarget | null>(null);
+  const removeAction = canEditProducts
+    ? [
+        {
+          type: "remove-from-products",
+          placement: "cell" as const,
+          icon: <TagsIcon className="h-4 w-4" />,
+          tooltip: t("removeFromProducts.menuItem"),
+          onClick: (row: TagListItem) => setRemoveTarget(row),
+          hidden: (row: TagListItem) => !row.productCount,
+        },
+      ]
+    : [];
 
   const sharedOperations = {
     formConfig: filteredFormConfig,
@@ -108,6 +133,7 @@ export default function TagsPage() {
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           enableRowHover={true}
           operations={sharedOperations}
+          customActions={removeAction}
         />
       )}
 
@@ -123,11 +149,25 @@ export default function TagsPage() {
             columns: { default: 1, sm: 2, lg: 3 },
             gap: "md",
           }}
-          renderCard={(item, actions) => TagCardView(item, actions, { t, locale })}
+          renderCard={(item, actions) =>
+            TagCardView(
+              item,
+              {
+                ...actions,
+                ...(canEditProducts ? { onRemoveFromProducts: () => setRemoveTarget(item) } : {}),
+              },
+              { t, locale },
+            )
+          }
           loadingRenderCard={TagCardLoading}
           operations={sharedOperations}
         />
       )}
+
+      <RemoveFromProductsDialog
+        tag={removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      />
     </div>
   );
 }

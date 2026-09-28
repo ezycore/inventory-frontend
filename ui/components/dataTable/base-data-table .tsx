@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
   ColumnFiltersState,
@@ -60,6 +60,9 @@ export function BaseDataTable<TData, TValue>({
   roundedRows = false,
   stickyHeader = false,
   rowBgColor,
+  selectionResetKey,
+  renderSelectionBar,
+  suppressBulkDelete = false,
 }: BaseDataTableProps<TData, TValue>) {
   const t = useTranslations("common");
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
@@ -92,8 +95,33 @@ export function BaseDataTable<TData, TValue>({
     serverSortableFields: manualSorting ? serverSortableFields : undefined,
   });
 
+  // Selection is keyed by the row's `_id`, not its position. Keyed by index
+  // (TanStack's default) a server-paginated table carried "row 3" from page 1
+  // onto page 2 — ticking one product and paging on showed a different product
+  // ticked, and a bulk delete removed THAT one. Rows without an `_id` keep the
+  // index key, which is all a client-side table ever had.
+  //
+  // Keyed by id, a tick also survives paging, so selections can be built up
+  // across pages. `rowCache` remembers every row seen so far, which is what lets
+  // `onSelectionChange` and the per-row delete fallback reach rows that are no
+  // longer on screen.
+  const rowCache = useRef(new Map<string, TData>());
+  const getRowId = (row: TData, index: number) => {
+    const id = (row as { _id?: unknown })?._id;
+    return id ? String(id) : String(index);
+  };
+  for (const [index, row] of data.entries()) rowCache.current.set(getRowId(row, index), row);
+
+  // A new filter is a new question: rows picked under the old one may not even
+  // match it, and acting on invisible rows is exactly what a merchant would not
+  // expect. So a change of `selectionResetKey` clears the selection.
+  useEffect(() => {
+    setRowSelection({});
+  }, [selectionResetKey]);
+
   const table = useReactTable({
     data,
+    getRowId,
     columns: enhancedColumns,
     onSortingChange: (updater) => {
       const newSorting = typeof updater === "function" ? updater(sorting) : updater;
@@ -119,27 +147,36 @@ export function BaseDataTable<TData, TValue>({
     },
   });
 
-  // Notify parent of selection changes
-  useEffect(() => {
-    if (onSelectionChange) {
-      const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-      onSelectionChange(selectedRows);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowSelection]);
+  const selectedIds = useMemo(
+    () =>
+      Object.entries(rowSelection as Record<string, boolean>)
+        .filter(([, picked]) => picked)
+        .map(([id]) => id),
+    [rowSelection],
+  );
+  const selectedRows = useMemo(
+    () =>
+      selectedIds
+        .map((id) => rowCache.current.get(id))
+        .filter((row): row is TData => row !== undefined),
+    [selectedIds],
+  );
 
-  const selectedRowsCount = table.getFilteredSelectedRowModel().rows.length;
+  // Notify parent of selection changes — every selected row, on any page.
+  useEffect(() => {
+    onSelectionChange?.(selectedRows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRows]);
+
+  const selectedRowsCount = selectedIds.length;
   const hasSelection = selectedRowsCount > 0;
 
   const handleBulkDelete = async () => {
     if (!hasSelection) return;
 
-    const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
-    
     // Use bulk delete API if available
     if (onBulkDelete) {
-      const ids = selectedRows.map((row: any) => row._id);
-      await onBulkDelete(ids);
+      await onBulkDelete(selectedIds);
     } else {
       // Fallback: delete one by one
       for (const row of selectedRows) {
@@ -160,13 +197,21 @@ export function BaseDataTable<TData, TValue>({
         selectable={selectable}
         hasSelection={hasSelection}
         selectedRowsCount={selectedRowsCount}
-        deletable={!!actions?.deletable}
+        deletable={!!actions?.deletable && !suppressBulkDelete}
         onBulkDelete={handleBulkDelete}
         isDeleting={isDeleting}
         enableColumnVisibility={enableColumnVisibility}
         actionButton={toolbarAction}
         customActions={customActions}        manageColumns={manageColumns}
         onColumnSettingsClick={() => setColumnSettingsOpen(true)}      />
+
+      {renderSelectionBar?.({
+        ids: selectedIds,
+        count: selectedRowsCount,
+        pageRowCount: data.length,
+        pageAllSelected: data.length > 0 && table.getIsAllPageRowsSelected(),
+        clear: () => table.resetRowSelection(),
+      })}
 
       {/* Table */}
       <DataTableBody

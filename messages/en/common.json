@@ -69,7 +69,11 @@
     "goToPage": "Go to page {page}",
     "exportCsv": "Export CSV",
     "print": "Print",
-    "popupBlocked": "Please allow pop-ups to print."
+    "popupBlocked": "Please allow pop-ups to print.",
+    "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+    "allMatchingSelected": "All {count} matching selected",
+    "selectAllMatching": "Select all {count} matching",
+    "clearSelection": "Clear selection"
   },
   "confirm": {
     "title": "Are you sure?",
