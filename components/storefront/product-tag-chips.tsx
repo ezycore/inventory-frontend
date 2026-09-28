@@ -92,8 +92,9 @@ function chipStyle(tag: ProductTag, tone: "soft" | "solid"): CSSProperties {
     borderRadius: 999,
     lineHeight: 1.35,
     // Cards are ~130px wide in the 2-column mobile grid and clip their overflow,
-    // so a long label truncates instead of pushing the chip off the image.
-    maxWidth: tone === "solid" ? 104 : undefined,
+    // so a long label truncates instead of pushing the chip off the image — and
+    // never past its row, which on a card also holds the discount badge.
+    maxWidth: tone === "solid" ? "min(104px, 100%)" : undefined,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

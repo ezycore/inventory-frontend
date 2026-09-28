@@ -92,7 +92,13 @@ export function DataTableToolbar<TData>({
       )}
 
       {/* Inline filter bar — search + inline filters, overflow folds to panel */}
-      {hasInlineFilters && filterConfig && <FilterBar config={filterConfig} />}
+      {/* `sm:min-w-min`: the bar is `flex-1 basis-0`, so with a long row of
+          header buttons it could be squeezed to zero width and its Filters
+          button drawn underneath them. A min-content floor makes the buttons
+          wrap to their own row instead. */}
+      {hasInlineFilters && filterConfig && (
+        <FilterBar config={filterConfig} className="sm:min-w-min" />
+      )}
 
       {/* Right-side actions */}
       {hasRightActions && (

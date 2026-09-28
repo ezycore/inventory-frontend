@@ -137,7 +137,9 @@ const filterConfig: FilterConfig = {
 | `filterConfig` | `FilterConfig` | No | `undefined` | Filter fields configuration |
 | `defaultPageSize` | `number` | No | `10` | Initial page size |
 | `pageSizes` | `number[]` | No | `[5,10,20,30,50,100]` | Available page size options |
-| `selectable` | `boolean` | No | `false` | Enable row selection checkboxes |
+| `selectable` | `boolean` | No | `false` | Enable row selection checkboxes (keyed by `_id`, kept across pages, cleared on filter change) |
+| `bulkActions` | `(selection: BulkSelection) => ReactNode` | No | `undefined` | Selection bar with count, "Select all N matching" and these buttons |
+| `onFiltersChange` | `(filters) => void` | No | `undefined` | Told the table's filters whenever they change |
 | `searchConfig` | `DataTableSearchConfig` | No | `undefined` | Search configuration (global or column-specific) |
 | `enableSorting` | `boolean` | No | `true` | Enable column sorting |
 | `enableColumnVisibility` | `boolean` | No | `false` | Show column visibility dropdown |

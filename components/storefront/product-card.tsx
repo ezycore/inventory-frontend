@@ -14,6 +14,8 @@ import { money, discountPct } from "@/components/storefront/format";
 import { Media } from "@/components/storefront/sf-bits";
 import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { useStoreImageRatio } from "@/services/storefront/use-image-ratio";
+import { useStoreCardBadges } from "@/services/storefront/use-card-badges";
+import { cardBadgeTags, discountBadgeText } from "@/components/storefront/card-badges";
 import { ProductTagChips } from "@/components/storefront/product-tag-chips";
 import { useCardQuickBuy } from "@/components/storefront/use-card-quick-buy";
 import {
@@ -65,6 +67,7 @@ export function ProductCard({
   const previewCardActions = useSfPreview((s) => s.cardActions);
   const storeFit = useStoreImageFit();
   const storeRatio = useStoreImageRatio();
+  const badges = useStoreCardBadges();
   const imageFit = sectionFit ?? storeFit;
   const imageRatio = sectionRatio ?? storeRatio;
 
@@ -111,6 +114,17 @@ export function ProductCard({
   const compareAt = chosen ? chosen.compareAtPrice : product.compareAtPrice;
   const pct = discountPct(price, compareAt);
   const showFrom = hasVariants && !chosen;
+  // Merchant-controlled (Customize → Product cards → Badges, and each tag's
+  // own card switch + priority). Unset everything = the first two tags and
+  // "-N%", which is the card before those controls existed.
+  const discountBadge = discountBadgeText({
+    price,
+    compareAt,
+    currency,
+    mode: badges.discountBadge,
+    label: product.discountLabel,
+  });
+  const badgeTags = cardBadgeTags(product.tags, badges.tagBadges);
 
   /* Wraps between the parts, never inside one: a 2-column mobile grid leaves
      ~130px here, and "From" + price + struck compare-at is wider than that —
@@ -183,40 +197,54 @@ export function ProductCard({
       <div style={{ position: "relative" }}>
         <Link href={href} style={{ position: "relative", display: "block" }}>
           <Media src={thumb} alt={product.name} label="product" radius={0} fit={imageFit} ratio={imageRatio} />
-          {pct > 0 ? (
-            <span
-              style={{
-                position: "absolute",
-                top: 9,
-                left: 9,
-                background: "var(--discount-soft)",
-                color: "var(--discount)",
-                fontSize: 11.5,
-                fontWeight: 600,
-                padding: "3px 7px",
-                borderRadius: 999,
-              }}
-            >
-              -{pct}%
-            </span>
-          ) : null}
-          {/* Top-RIGHT, because the three other corners are spoken for: the
-              discount badge owns top-left, and the image bottom belongs to
-              whichever of `CardRevealActions` / `CardVariantFlyout` this layout
-              renders. Two chips max — a third turns a 130px mobile card into a
-              wall of pills and hides the product it is labelling. */}
-          <ProductTagChips
-            tags={product.tags}
-            tone="solid"
-            max={2}
+          {/* One row across the top: discount badge left, tag chips right.
+              They share a flex row rather than two absolute corners because a
+              ~150px mobile card has no room for both — positioned separately,
+              the chips (72% wide) slid over the "-25%". Here the chips get only
+              the width the badge leaves and truncate inside it. The image bottom
+              belongs to `CardRevealActions` / `CardVariantFlyout`. Two chips at
+              most (Customize → Badges) — a third turns a mobile card into a wall
+              of pills — and which two is each tag's own card switch + priority. */}
+          <span
             style={{
               position: "absolute",
               top: 9,
+              left: 9,
               right: 9,
-              maxWidth: "72%",
-              justifyContent: "flex-end",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 6,
+              minWidth: 0,
             }}
-          />
+          >
+            {discountBadge ? (
+              <span
+                style={{
+                  // A campaign label ("Eid Sale", ≤16 chars) is wider than "-25%":
+                  // it keeps its size but truncates past 60% of the row, so the
+                  // chips beside it always keep some room.
+                  flexShrink: 0,
+                  maxWidth: "60%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  background: "var(--discount-soft)",
+                  color: "var(--discount)",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  padding: "3px 7px",
+                  borderRadius: 999,
+                }}
+              >
+                {discountBadge}
+              </span>
+            ) : null}
+            <ProductTagChips
+              tags={badgeTags}
+              tone="solid"
+              style={{ flex: "1 1 0", justifyContent: "flex-end" }}
+            />
+          </span>
           {/* Last child, so the scrim fades the discount badge and tag chips
               along with the image — a "-30%" burning bright over a product
               nobody can buy is the wrong thing to draw the eye. */}

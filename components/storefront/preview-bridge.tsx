@@ -46,6 +46,8 @@ export function StorePreviewBridge() {
         header: p.templates?.header,
         cardStyle: p.templates?.productCard,
         cardActions: p.templates?.cardActions,
+        cardTagBadges: p.templates?.cardTagBadges,
+        discountBadge: p.templates?.discountBadge,
         pagination: p.templates?.pagination,
         imageFit: p.templates?.imageFit,
         imageRatio: p.templates?.imageRatio,

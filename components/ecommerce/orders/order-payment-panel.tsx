@@ -39,6 +39,15 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   const isPaid = order.paymentStatus === "paid";
   const hasSale = !!order.saleId;
   const isPickup = order.fulfillmentType === "pickup";
+  // Something to collect only once the goods are out: a returned or closed order
+  // has nothing owed, and a Sale that never left the shop (courier booking failed)
+  // has nothing collected. Mirrors the backend `ORDER_NOT_COLLECTABLE` guard —
+  // `partially_returned` stays in, the kept goods are still owed for.
+  const collectable =
+    hasSale &&
+    ["shipped", "delivered", "partially_returned", "ready_for_pickup", "picked_up"].includes(
+      order.status,
+    );
   const money = (n: number) => formatMoney(n, currency);
 
   const prepaid = order.prepaidAmount ?? 0;
@@ -71,7 +80,8 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
         <PaymentBadge
           status={order.paymentStatus}
           // An unpaid order out with a courier is COD the courier collects — never a debt.
-          codPending={!isPickup && hasSale && order.paymentMethod === "cod"}
+          codPending={!isPickup && collectable && order.paymentMethod === "cod"}
+          closed={["returned", "cancelled", "rejected"].includes(order.status)}
         />
       </div>
 
@@ -107,7 +117,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
         </div>
       )}
 
-      {hasSale && !isPaid && (
+      {collectable && !isPaid && (
         <div className="mt-4 space-y-2 border-t pt-4">
           {accountsEnabled && accountOptions.length > 0 && (
             <SimpleSelect
@@ -151,7 +161,16 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   );
 }
 
-function PaymentBadge({ status, codPending }: { status: string; codPending?: boolean }) {
+function PaymentBadge({
+  status,
+  codPending,
+  closed,
+}: {
+  status: string;
+  codPending?: boolean;
+  /** Returned / cancelled / rejected: an unpaid order owes nothing. */
+  closed?: boolean;
+}) {
   const map: Record<string, { cls: string; label: string }> = {
     paid: { cls: "border-green-200 bg-green-50 text-green-800", label: "Paid" },
     pending: {
@@ -164,9 +183,11 @@ function PaymentBadge({ status, codPending }: { status: string; codPending?: boo
     },
   };
   const m =
-    status === "pending" && codPending
-      ? { ...map.pending, label: "COD pending" }
-      : (map[status] ?? map.pending);
+    status === "pending" && closed
+      ? { ...map.refunded, label: "Nothing due" }
+      : status === "pending" && codPending
+        ? { ...map.pending, label: "COD pending" }
+        : (map[status] ?? map.pending);
   return (
     <span
       className={cn(

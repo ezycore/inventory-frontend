@@ -61,6 +61,22 @@ export const tagFormConfig: DynamicFormConfig = {
       validation: { maxLength: 40 },
     },
     {
+      name: "showOnCard",
+      type: "switch",
+      label: "Show on product cards",
+      columnSpan: 12,
+      defaultValue: true,
+    },
+    {
+      name: "cardPriority",
+      type: "number",
+      precision: 0,
+      label: "Card priority",
+      placeholder: "1–99",
+      columnSpan: 12,
+      validation: { min: 1, max: 99 },
+    },
+    {
       name: "status",
       type: "select",
       label: "Status",
@@ -112,6 +128,26 @@ export const getTagFormConfig = (t: Translator): DynamicFormConfig => ({
       helperText: t("form.groupHint"),
       columnSpan: 12,
       validation: { maxLength: 40 },
+    },
+    {
+      // Card chip controls (docs/plan/product-card-badges.md). The product page
+      // shows every tag whatever these say — they only decide the card.
+      name: "showOnCard",
+      type: "switch",
+      label: t("form.showOnCard"),
+      helperText: t("form.showOnCardHint"),
+      columnSpan: 12,
+      defaultValue: true,
+    },
+    {
+      name: "cardPriority",
+      type: "number",
+      precision: 0,
+      label: t("form.cardPriority"),
+      placeholder: t("form.cardPriorityPlaceholder"),
+      helperText: t("form.cardPriorityHint"),
+      columnSpan: 12,
+      validation: { min: 1, max: 99 },
     },
     {
       name: "status",

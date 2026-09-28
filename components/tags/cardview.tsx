@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Package, Trash2 } from "lucide-react";
+import { Edit2, MoreVertical, Package, TagsIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import { formatDate } from "@/lib/format";
@@ -27,7 +27,16 @@ import type { TagListItem } from "@/types/api";
  */
 const TagCardView = (
   tag: TagListItem,
-  { onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void },
+  {
+    onEdit,
+    onDelete,
+    onRemoveFromProducts,
+  }: {
+    onEdit?: () => void;
+    onDelete?: () => void;
+    /** Take this tag off every product — passed only when the user may edit products. */
+    onRemoveFromProducts?: () => void;
+  },
   options: { t: Translator; locale: AppLocale },
 ) => {
   const { t, locale } = options;
@@ -80,6 +89,12 @@ const TagCardView = (
               <Edit2 className="h-4 w-4 mr-2" />
               {t("card.edit")}
             </DropdownMenuItem>
+            {onRemoveFromProducts && count > 0 && (
+              <DropdownMenuItem onClick={onRemoveFromProducts}>
+                <TagsIcon className="h-4 w-4 mr-2" />
+                {t("removeFromProducts.menuItem")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 className="h-4 w-4 mr-2" />

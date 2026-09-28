@@ -22,6 +22,9 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   header: "classic",
   productCard: "standard",
   cardActions: "addBuy",
+  // Both are what every card rendered before the settings existed.
+  cardTagBadges: "2",
+  discountBadge: "percent",
   hero: "slides",
   pagination: "pages",
   imageFit: "fit",
@@ -89,6 +92,9 @@ const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // paginated crawl path in the HTML without help.
 const PAGINATION = { pages: "pages", infinite: "infinite", "load-more": "loadMore" } as const;
 const IMAGEFIT = { fit: "fit", crop: "crop" } as const;
+// Card badges — the stored ids ARE the variant names, so these maps only narrow.
+const CARDTAGBADGES = { "0": "0", "1": "1", "2": "2" } as const;
+const DISCOUNTBADGE = { percent: "percent", amount: "amount", off: "off" } as const;
 // The FRAME a product photo sits in, orthogonal to IMAGEFIT (which decides what
 // happens to a photo that doesn't match the frame). `square` stays the default:
 // it is what every store rendered before this existed.
@@ -177,6 +183,8 @@ export function resolveTemplates(
     header: pick(HEADER, t.header, DEFAULT_TEMPLATES.header),
     productCard,
     cardActions: resolveCardActions(t.cardActions, productCard),
+    cardTagBadges: pick(CARDTAGBADGES, t.cardTagBadges, DEFAULT_TEMPLATES.cardTagBadges),
+    discountBadge: pick(DISCOUNTBADGE, t.discountBadge, DEFAULT_TEMPLATES.discountBadge),
     hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
     imageFit: pick(IMAGEFIT, t.imageFit, DEFAULT_TEMPLATES.imageFit),

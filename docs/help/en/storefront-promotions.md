@@ -65,6 +65,9 @@ Two smaller things worth knowing:
 - **The Tagline field** on the campaign is the line printed under the name on that page. One short
   sentence — "Three days only, on every cushion" — is enough.
 - **Renaming a campaign does not change its link.** Anything you have already shared keeps working.
+- **Card badge** puts your own words — "Eid Sale" — on the product cards this campaign discounts, in
+  place of the -25% badge. Up to 16 characters. Leave it empty to keep the discount badge. If the
+  shop's discount badge is switched off in Customize, this is hidden too.
 
 ### The strip that announces it
 

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { CornerDownRight, Edit2, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
+import { CornerDownRight, Edit2, FolderInput, MoreVertical, Package, Percent, Tag, Trash2 } from "lucide-react";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import { categoryProductsHref } from "./helper";
 import Link from "next/link";
@@ -40,6 +40,7 @@ const CategoryCardView = (
     onEdit,
     onDelete,
     onApplyVat,
+    onMoveProducts,
   }: {
     onEdit?: () => void;
     onDelete?: () => void;
@@ -50,6 +51,8 @@ const CategoryCardView = (
      * it would hide the feature from most users.
      */
     onApplyVat?: () => void;
+    /** Move every product out of this category — passed only when the user may edit products. */
+    onMoveProducts?: () => void;
   },
   options: { t: Translator; locale: AppLocale },
 ) => {
@@ -125,6 +128,12 @@ const CategoryCardView = (
               <DropdownMenuItem onClick={onApplyVat}>
                 <Percent className="h-4 w-4 mr-2" />
                 {t("applyVat.menuItem")}
+              </DropdownMenuItem>
+            )}
+            {onMoveProducts && productCount > 0 && (
+              <DropdownMenuItem onClick={onMoveProducts}>
+                <FolderInput className="h-4 w-4 mr-2" />
+                {t("moveProducts.menuItem")}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />

@@ -48,6 +48,8 @@ function cleanCampaign(data: Record<string, any>, isEdit: boolean) {
   return {
     name: String(data.name ?? "").trim(),
     subtitle: String(data.subtitle ?? "").trim(),
+    // Blank is sent, not omitted: it is how an edit clears a label.
+    cardBadgeLabel: String(data.cardBadgeLabel ?? "").trim(),
     scope,
     type: data.type,
     value: Number(data.value) || 0,
@@ -159,6 +161,7 @@ export default function CampaignsPage() {
           transformEditData: (c: Campaign) => ({
             name: c.name,
             subtitle: c.subtitle ?? "",
+            cardBadgeLabel: c.cardBadgeLabel ?? "",
             scope: c.scope,
             type: c.type,
             value: c.value ?? 0,

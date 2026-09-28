@@ -248,6 +248,9 @@ export const EFFECTS = {
     k.products.all(),
     k.variants.all(),
     k.categories.all(),
+    // A tag's row carries its product count, and a product's tags can change
+    // without the tag itself being edited (a bulk add/remove, a sheet upload).
+    k.tags.all(),
     k.inventory.all(),
     ...DERIVED,
   ],

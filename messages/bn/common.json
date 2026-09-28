@@ -69,7 +69,11 @@
     "goToPage": "পৃষ্ঠা {page}-এ যান",
     "exportCsv": "CSV এক্সপোর্ট",
     "print": "প্রিন্ট",
-    "popupBlocked": "প্রিন্ট করতে পপ-আপ অনুমতি দিন।"
+    "popupBlocked": "প্রিন্ট করতে পপ-আপ অনুমতি দিন।",
+    "selectedCount": "{count}টি নির্বাচিত",
+    "allMatchingSelected": "মিলে যাওয়া সব {count}টি নির্বাচিত",
+    "selectAllMatching": "মিলে যাওয়া সব {count}টি নির্বাচন করুন",
+    "clearSelection": "নির্বাচন বাতিল"
   },
   "confirm": {
     "title": "আপনি কি নিশ্চিত?",
