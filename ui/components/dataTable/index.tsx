@@ -14,11 +14,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
 import { Download, Plus, Printer, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "../card";
 import { ErrorBoundaryFallback } from "../error-boundary-fallback";
 import { BaseDataTable } from "./base-data-table ";
+import { SelectionBar } from "./selection-bar";
 import { stripHiddenValues } from "../form/type";
 
 export function DataTable<TData extends { _id: string }, TValue = any>(
@@ -50,6 +51,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     roundedRows,
     stickyHeader,
     rowBgColor,
+    bulkActions,
+    onFiltersChange,
     ...restProps
   } = props;
 
@@ -84,7 +87,16 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
   const [limit, setLimit] = useState(defaultPageSize || 10);
   const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
   const [importOpen, setImportOpen] = useState(false);
+  // "Select all N matching": the selection is the filter, not a list of ids.
+  // Dropped the moment the rows or the question change — a tick, a page turn, a
+  // new filter — so it can never silently outlive what the merchant saw.
+  const [allMatching, setAllMatching] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+
+  useEffect(() => {
+    onFiltersChange?.(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- report filter changes, not a new callback
+  }, [filters]);
 
   // Server-side sorting state — only active when sortOptions has entries
   const sortableFields = useMemo(
@@ -164,6 +176,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         }) => {
           setPage(pageIndex + 1);
           limit !== pageSize && setLimit(pageSize);
+          setAllMatching(false);
         },
       };
     }
@@ -178,10 +191,12 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
       onApply: (newFilters: Record<string, any>) => {
         setFilters(newFilters);
         setPage(1); // Reset to first page when filters change
+        setAllMatching(false);
       },
       onReset: () => {
         setFilters({});
         setPage(1); // Reset to first page when filters are cleared
+        setAllMatching(false);
       },
     };
   }, [filterConfig, urlFilters]);
@@ -384,6 +399,30 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           rowBgColor={rowBgColor}
           module={module}
           fullColumns={props.fullColumns || props.columns}
+          selectionResetKey={JSON.stringify(filters)}
+          suppressBulkDelete={allMatching}
+          onSelectionChange={(rows) => {
+            setAllMatching(false);
+            restProps.onSelectionChange?.(rows);
+          }}
+          renderSelectionBar={
+            bulkActions
+              ? (selection) => (
+                  <SelectionBar
+                    selection={selection}
+                    total={queryData?.data?.total ?? data.length}
+                    allMatching={allMatching}
+                    onSelectAllMatching={() => setAllMatching(true)}
+                    onClear={() => {
+                      setAllMatching(false);
+                      selection.clear();
+                    }}
+                    filters={filters}
+                    actions={bulkActions}
+                  />
+                )
+              : undefined
+          }
         />
 
         {/* Integrated CRUD Form Modal */}

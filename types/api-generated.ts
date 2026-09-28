@@ -3265,13 +3265,13 @@ export interface paths {
         };
         /**
          * GET /api/products
-         * @description Defined in `src/routes/products.routes.ts:24`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:26`. Requires permission `products.view`.
          */
         get: operations["get_api_products"];
         put?: never;
         /**
          * POST /api/products
-         * @description Defined in `src/routes/products.routes.ts:136`. Requires permission `products.create`.
+         * @description Defined in `src/routes/products.routes.ts:174`. Requires permission `products.create`.
          */
         post: operations["post_api_products"];
         delete?: never;
@@ -3289,7 +3289,7 @@ export interface paths {
         };
         /**
          * GET /api/products/lookup
-         * @description Defined in `src/routes/products.routes.ts:32`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:34`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_lookup"];
         put?: never;
@@ -3309,7 +3309,7 @@ export interface paths {
         };
         /**
          * GET /api/products/labels/image
-         * @description Defined in `src/routes/products.routes.ts:40`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:42`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_labels_image"];
         put?: never;
@@ -3329,7 +3329,7 @@ export interface paths {
         };
         /**
          * GET /api/products/export
-         * @description Defined in `src/routes/products.routes.ts:48`. Requires permission `products.export`.
+         * @description Defined in `src/routes/products.routes.ts:50`. Requires permission `products.export`.
          */
         get: operations["get_api_products_export"];
         put?: never;
@@ -3349,7 +3349,7 @@ export interface paths {
         };
         /**
          * GET /api/products/import/template
-         * @description Defined in `src/routes/products.routes.ts:55`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:57`. Requires permission `products.import`.
          */
         get: operations["get_api_products_import_template"];
         put?: never;
@@ -3371,9 +3371,89 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/description-image
-         * @description Defined in `src/routes/products.routes.ts:81`.
+         * @description Defined in `src/routes/products.routes.ts:83`.
          */
         post: operations["post_api_products_description_image"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/bulk-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/products/bulk-update
+         * @description Defined in `src/routes/products.routes.ts:96`. Requires permission `products.edit`.
+         */
+        post: operations["post_api_products_bulk_update"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/match-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/products/match-list
+         * @description Defined in `src/routes/products.routes.ts:104`. Requires permission `products.view`.
+         */
+        post: operations["post_api_products_match_list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/taxonomy/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/products/taxonomy/export
+         * @description Defined in `src/routes/products.routes.ts:112`. Requires permission `products.export`.
+         */
+        get: operations["get_api_products_taxonomy_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/taxonomy/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/products/taxonomy/import
+         * @description Defined in `src/routes/products.routes.ts:119`. Requires permission `products.edit`.
+         */
+        post: operations["post_api_products_taxonomy_import"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3391,7 +3471,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/import
-         * @description Defined in `src/routes/products.routes.ts:89`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:127`. Requires permission `products.import`.
          */
         post: operations["post_api_products_import"];
         delete?: never;
@@ -3409,7 +3489,7 @@ export interface paths {
         };
         /**
          * GET /api/products/stats
-         * @description Defined in `src/routes/products.routes.ts:97`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:135`. Requires permission `products.view`.
          */
         get: operations["get_api_products_stats"];
         put?: never;
@@ -3429,7 +3509,7 @@ export interface paths {
         };
         /**
          * GET /api/products/active
-         * @description Defined in `src/routes/products.routes.ts:104`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:142`. Requires permission `products.view`.
          */
         get: operations["get_api_products_active"];
         put?: never;
@@ -3449,7 +3529,7 @@ export interface paths {
         };
         /**
          * GET /api/products/slug/:slug
-         * @description Defined in `src/routes/products.routes.ts:112`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:150`. Requires permission `products.view`.
          */
         get: operations["get_api_products_slug_slug"];
         put?: never;
@@ -3469,7 +3549,7 @@ export interface paths {
         };
         /**
          * GET /api/products/:id/variants
-         * @description Defined in `src/routes/products.routes.ts:120`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:158`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id_variants"];
         put?: never;
@@ -3489,18 +3569,18 @@ export interface paths {
         };
         /**
          * GET /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:127`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:165`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id"];
         /**
          * PUT /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:146`. Requires permission `products.edit`.
+         * @description Defined in `src/routes/products.routes.ts:184`. Requires permission `products.edit`.
          */
         put: operations["put_api_products_id"];
         post?: never;
         /**
          * DELETE /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:155`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:193`. Requires permission `products.delete`.
          */
         delete: operations["delete_api_products_id"];
         options?: never;
@@ -3519,7 +3599,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/bulk-delete
-         * @description Defined in `src/routes/products.routes.ts:163`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:201`. Requires permission `products.delete`.
          */
         post: operations["post_api_products_bulk_delete"];
         delete?: never;
@@ -7905,6 +7985,10 @@ export interface components {
             }[];
             warnings: string[];
         };
+        ProductBulkUpdateResult: {
+            matched: number;
+            modified: number;
+        };
         ProductDetail: {
             _id: string;
             name: string;
@@ -8191,11 +8275,50 @@ export interface components {
             /** @enum {unknown|null} */
             inventoryId?: "null" | null;
         };
+        ProductMatchList: {
+            matched: {
+                line: string;
+                productId: string;
+                name: string;
+                /** @enum {string} */
+                via: "barcode" | "name";
+            }[];
+            notFound: string[];
+            repeated: string[];
+        };
         ProductStats: {
             total: number;
             active: number;
             inactive: number;
             variantProducts: number;
+        };
+        ProductTaxonomySheet: {
+            total: number;
+            changed: number;
+            unchanged: number;
+            invalid: number;
+            updated: number;
+            committed: boolean;
+            changes: {
+                row: number;
+                productId: string;
+                name: string;
+                category?: {
+                    from: string | null;
+                    to: string | null;
+                };
+                subcategory?: {
+                    from: string | null;
+                    to: string | null;
+                };
+                tagsAdded?: string[];
+                tagsRemoved?: string[];
+            }[];
+            errors: {
+                row: number;
+                errors: string[];
+            }[];
+            warnings: string[];
         };
         Variant: {
             _id: string;
@@ -8518,6 +8641,8 @@ export interface components {
             description?: string;
             color?: string;
             group?: string;
+            showOnCard?: boolean;
+            cardPriority?: number | null;
             /** @enum {string} */
             status: "active" | "inactive";
         };
@@ -8533,6 +8658,8 @@ export interface components {
             description?: string;
             color?: string;
             group?: string;
+            showOnCard?: boolean;
+            cardPriority?: number | null;
             /** @enum {string} */
             status: "active" | "inactive";
             productCount: number;
@@ -10819,6 +10946,7 @@ export interface components {
             name: string;
             slug?: string | null;
             subtitle?: string | null;
+            cardBadgeLabel?: string | null;
             pageId?: string | null;
             /** @enum {string} */
             scope: "storewide" | "category" | "subcategory" | "product" | "tag";
@@ -13531,6 +13659,8 @@ export interface components {
                 header?: string;
                 productCard?: string;
                 cardActions?: string;
+                cardTagBadges?: string;
+                discountBadge?: string;
                 hero?: string;
                 headerMenu?: string;
                 pagination?: string;
@@ -14101,6 +14231,7 @@ export interface components {
             slug?: string;
             price: number | null;
             compareAtPrice: number | null;
+            discountLabel: string | null;
             basePrice: number | null;
             images: {
                 url: string;
@@ -14117,6 +14248,8 @@ export interface components {
                 name: string;
                 slug?: string;
                 color: string | null;
+                showOnCard: boolean;
+                cardPriority: number | null;
             }[];
             subcategoryId?: string | null;
             productType: string;
@@ -14156,6 +14289,7 @@ export interface components {
                 slug?: string;
                 price: number | null;
                 compareAtPrice: number | null;
+                discountLabel: string | null;
                 basePrice: number | null;
                 images: {
                     url: string;
@@ -14172,6 +14306,8 @@ export interface components {
                     name: string;
                     slug?: string;
                     color: string | null;
+                    showOnCard: boolean;
+                    cardPriority: number | null;
                 }[];
                 subcategoryId?: string | null;
                 productType: string;
@@ -14741,6 +14877,7 @@ export interface components {
                         slug?: string;
                         price: number | null;
                         compareAtPrice: number | null;
+                        discountLabel: string | null;
                         basePrice: number | null;
                         images: {
                             url: string;
@@ -14757,6 +14894,8 @@ export interface components {
                             name: string;
                             slug?: string;
                             color: string | null;
+                            showOnCard: boolean;
+                            cardPriority: number | null;
                         }[];
                         subcategoryId?: string | null;
                         productType: string;
@@ -15016,6 +15155,8 @@ export interface components {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -15481,6 +15622,8 @@ export interface components {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -22892,6 +23035,10 @@ export interface operations {
                         header?: string;
                         productCard?: string;
                         cardActions?: string;
+                        /** @enum {string} */
+                        cardTagBadges?: "0" | "1" | "2";
+                        /** @enum {string} */
+                        discountBadge?: "percent" | "amount" | "off";
                         hero?: string;
                         headerMenu?: string;
                         pagination?: string;
@@ -25869,6 +26016,8 @@ export interface operations {
                     description?: string;
                     color?: string;
                     group?: string;
+                    showOnCard?: boolean;
+                    cardPriority?: number | null;
                     /**
                      * @default active
                      * @enum {string}
@@ -26177,6 +26326,8 @@ export interface operations {
                     description?: string;
                     color?: string;
                     group?: string;
+                    showOnCard?: boolean;
+                    cardPriority?: number | null;
                     /**
                      * @default active
                      * @enum {string}
@@ -28891,6 +29042,258 @@ export interface operations {
             };
             /** @description Missing or invalid credentials */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_products_bulk_update: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    target: {
+                        ids: string[];
+                    } | {
+                        filter: {
+                            search?: string;
+                            categoryId?: string;
+                            subcategoryId?: string;
+                            brandId?: string;
+                            /** @enum {string} */
+                            status?: "active" | "inactive" | "archived";
+                            tags?: string[];
+                        };
+                    };
+                    action: {
+                        /** @enum {string} */
+                        op: "addTags";
+                        tagIds: string[];
+                    } | {
+                        /** @enum {string} */
+                        op: "removeTags";
+                        tagIds: string[];
+                    } | {
+                        /** @enum {string} */
+                        op: "setCategory";
+                        categoryId: string | null;
+                        subcategoryId?: string | null;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductBulkUpdateResult"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_products_match_list: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    lines: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductMatchList"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_products_taxonomy_export: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: "active" | "inactive" | "archived";
+                start_date?: string;
+                end_date?: string;
+                categoryId?: string;
+                subcategoryId?: string;
+                brandId?: string;
+                tags?: string | string[];
+                ids?: string | string[];
+                inventory?: string | boolean;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_products_taxonomy_import: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductTaxonomySheet"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -43577,6 +43980,7 @@ export interface operations {
                 "application/json": {
                     name: string;
                     subtitle?: string;
+                    cardBadgeLabel?: string;
                     /** @enum {string} */
                     scope: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
@@ -43712,6 +44116,7 @@ export interface operations {
                 "application/json": {
                     name?: string;
                     subtitle?: string;
+                    cardBadgeLabel?: string;
                     /** @enum {string} */
                     scope?: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
@@ -45528,6 +45933,10 @@ export interface operations {
                             header?: string;
                             productCard?: string;
                             cardActions?: string;
+                            /** @enum {string} */
+                            cardTagBadges?: "0" | "1" | "2";
+                            /** @enum {string} */
+                            discountBadge?: "percent" | "amount" | "off";
                             hero?: string;
                             headerMenu?: string;
                             pagination?: string;

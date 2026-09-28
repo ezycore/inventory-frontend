@@ -60,6 +60,25 @@ export const getTagColumns = (t: Translator): ColumnDef<TagListItem>[] => [
     },
   },
   {
+    // Whether the tag may sit on a storefront product card, and its priority
+    // there — so a merchant can see which tags are badges without opening each.
+    id: "card",
+    header: t("columns.card"),
+    cell: ({ row }) => {
+      const { showOnCard, cardPriority } = row.original;
+      if (showOnCard === false) {
+        return <span className="text-sm text-muted-foreground">{t("columns.cardHidden")}</span>;
+      }
+      return (
+        <span className="text-sm">
+          {cardPriority != null
+            ? t("columns.cardPriority", { priority: cardPriority })
+            : t("columns.cardShown")}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "status",
     header: t("columns.status"),
   },

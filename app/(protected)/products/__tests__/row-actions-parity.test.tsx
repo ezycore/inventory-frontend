@@ -36,12 +36,11 @@ describe("products page — row actions reach both views", () => {
     expect(source).toContain("const rowActions =");
   });
 
-  it("spreads them into both branches", () => {
-    const spreads = source.match(
-      /\{\.\.\.\(rowActions \? \{ customActions: rowActions \} : \{\}\)\}/g,
-    );
-
-    expect(spreads).toHaveLength(2);
+  it("hands them to both branches", () => {
+    // Folded once, with the bulk header tools, into `pageActions`; both views
+    // must take that one list rather than a literal of their own.
+    expect(source).toContain("const pageActions = [...(rowActions ?? []), ...bulk.headerActions]");
+    expect(source.match(/customActions=\{pageActions\}/g)).toHaveLength(2);
   });
 
   it("hands the bound actions on to the card that renders them", () => {
