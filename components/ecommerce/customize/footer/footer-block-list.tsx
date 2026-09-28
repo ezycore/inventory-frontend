@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { ChevronDown, EyeOff, Plus, Trash2 } from "lucide-react";
 import type { StorefrontFooterBlock } from "@/types";
-import { SINGLE_USE_BLOCKS, newBlock } from "@/lib/storefront-footer/blocks";
+import { SINGLE_USE_BLOCKS, brandPartsShown, newBlock } from "@/lib/storefront-footer/blocks";
 import { FOOTER_BLOCKS_MAX, FOOTER_BLOCK_TYPES, type FooterBlockType } from "@/lib/storefront-footer/types";
 import { Button } from "@/ui/components/button";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -17,6 +17,7 @@ import {
   FooterBlockInspector,
   type LinkOptions,
 } from "@/components/ecommerce/customize/footer/footer-block-inspector";
+import { FooterPromisesNotice } from "@/components/ecommerce/customize/footer/footer-promises-notice";
 
 export const BLOCK_LABELS: Record<FooterBlockType, { label: string; description: string }> = {
   brand: { label: "Shop name & about", description: "Logo, about text, phone and social icons" },
@@ -32,12 +33,20 @@ export const BLOCK_LABELS: Record<FooterBlockType, { label: string; description:
 };
 
 /** A line under the block's name, so a closed list still says what each one holds. */
-function blockSummary(block: StorefrontFooterBlock): string {
+function blockSummary(block: StorefrontFooterBlock, promises: number): string {
   if (block.type === "links") {
     const n = block.links?.length ?? 0;
     return `${block.title?.trim() || "Untitled"} · ${n} link${n === 1 ? "" : "s"}`;
   }
   if (block.type === "logos") return `${block.logos?.length ?? 0} logos`;
+  if (block.type === "brand") {
+    const parts = brandPartsShown(block);
+    return parts.length ? parts.map((part) => part.label).join(" · ") : "Nothing shown";
+  }
+  if (block.type === "promises") {
+    if (!promises) return "No promises yet";
+    return `${promises} promise${promises === 1 ? "" : "s"} · ${block.arrange === "column" ? "in a column" : "in a row"}`;
+  }
   return block.title?.trim() || BLOCK_LABELS[block.type].description;
 }
 
@@ -66,17 +75,25 @@ export function FooterBlockList({
   );
   const addType = addable.includes(adding) ? adding : addable[0];
 
+  const promises = draft.badges.filter((badge) => badge.text?.trim()).length;
+
   const patchBlock = (id: string, next: Partial<StorefrontFooterBlock>) =>
     setBlocks(blocks.map((b) => (b.id === id ? { ...b, ...next } : b)));
-  const add = () => {
-    if (!addType) return;
-    const block = newBlock(addType);
+  const add = (type: FooterBlockType) => {
+    const block = newBlock(type);
     setBlocks([...blocks, block]);
     setOpenId(block.id);
   };
 
   return (
     <div className="space-y-2">
+      {present.has("promises") || blocks.length >= FOOTER_BLOCKS_MAX ? null : (
+        <FooterPromisesNotice
+          badges={draft.badges}
+          setBadges={(badges) => patch({ badges })}
+          onAdd={() => add("promises")}
+        />
+      )}
       {blocks.length === 0 ? <PartHint>No blocks — the footer shows its bottom line only.</PartHint> : null}
       {blocks.map((block, i) => {
         const open = openId === block.id;
@@ -101,7 +118,7 @@ export function FooterBlockList({
                     {BLOCK_LABELS[block.type].label}
                     {hidden ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" aria-label="Hidden on one screen" /> : null}
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">{blockSummary(block)}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{blockSummary(block, promises)}</span>
                 </span>
                 <ChevronDown className={cn("mt-0.5 h-4 w-4 flex-none transition-transform", open && "rotate-180")} />
               </button>
@@ -137,7 +154,7 @@ export function FooterBlockList({
             options={addable.map((type) => ({ value: type, ...BLOCK_LABELS[type] }))}
             className="h-9 flex-1"
           />
-          <Button size="sm" variant="outline" onClick={add}>
+          <Button size="sm" variant="outline" onClick={() => add(addType)}>
             <Plus className="mr-1.5 h-4 w-4" /> Add
           </Button>
         </div>

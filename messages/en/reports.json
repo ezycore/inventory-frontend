@@ -72,7 +72,7 @@
       "overlapNote": "A product with more than one tag counts under each of its tags, so these figures add up to more than your total sales.",
       "basisNote": "Item sales after returns. Order discounts and delivery charges are not split by item, so this can differ from Total Sales above."
     },
-    "clockNote": "This page counts invoices on the day they were issued. For an online order that is the day it shipped, so the Orders Report — which counts the day it was placed — will differ. Both are correct.",
+    "counterOnlyNote": "Counter (POS) sales only. Online orders are counted in their own report.",
     "clockLink": "Open the Orders Report"
   },
   "purchases": {
@@ -299,6 +299,8 @@
     "netProfitChange": "vs previous period",
     "expensesNotTracked": "The Accounts module is off, so operating expenses are not being tracked. Net profit below equals gross profit — it does not mean you had no expenses.",
     "basisNote": "Revenue is recognised at the time of sale (including unpaid credit sales); expenses are recognised when paid. This is not an audited financial statement.",
+    "basisNoteOrders": "Revenue is recognised when an order is dispatched (cash on delivery included, before the courier pays you); expenses are recognised when paid. This is not an audited financial statement.",
+    "returnsNoPos": "Returns",
     "vatExcludedNote": "Revenue excludes VAT."
   },
   "position": {
@@ -322,7 +324,7 @@
   "orders": {
     "title": "Orders Report",
     "subtitle": "Storefront orders, counted on the day they were placed.",
-    "clockNote": "This page counts orders on the day they were placed. The Sales Report counts invoices on the day they shipped, so the two will not match — both are correct.",
+    "counterNote": "Counter (POS) sales are not on this page — they have their own report.",
     "clockLink": "Open the Sales Report",
     "placed": "Orders placed",
     "ofCohort": "of {total} including cancelled and rejected",

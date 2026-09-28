@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import { useOrdersReport } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
+import { isFeatureOn } from '@/lib/feature-utils'
+import { useAuthStore } from '@/services/stores/use-auth-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
 import { Skeleton } from '@ui/components/skeleton'
 import { PeriodFilter } from '@/components/shared/period-filter'
@@ -42,6 +44,9 @@ import {
  */
 export function OrdersReport() {
   const t = useTranslations('reports.orders')
+  const organization = useAuthStore((state) => state.user?.organization)
+  const hasCounter =
+    isFeatureOn(organization?.features, 'sales') || !!organization?.posUsedAt
   const { period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd, params } =
     useReportPeriod()
   const { data, isLoading } = useOrdersReport(params)
@@ -50,16 +55,16 @@ export function OrdersReport() {
   /**
    * The margin a client may honestly print.
    *
-   * Taken over the known-cost slice only, and the numerator is that same slice —
-   * `grossProfit` counts revenue with no cost behind it at full value, so
-   * dividing the whole of it by `knownRevenue` mixes scopes. **Any figure over
-   * 100% is that mistake coming back.** No known revenue means no number at all.
+   * Taken over the known-cost slice only. Since 2026-09-28 the server sends
+   * `grossProfit` as that slice's profit already, so the two share one scope.
+   * **Any figure over 100% is a scope mix coming back.** No known revenue means
+   * no number at all.
    */
   const margin = (() => {
     if (!data?.profit) return null
     const { grossProfit, costCoverage } = data.profit
     if (costCoverage.knownRevenue <= 0) return null
-    return ((grossProfit - costCoverage.unknownRevenue) / costCoverage.knownRevenue) * 100
+    return (grossProfit / costCoverage.knownRevenue) * 100
   })()
 
   return (
@@ -71,15 +76,20 @@ export function OrdersReport() {
 
       {/* The clock. Says what this page counts and links to the page that counts
           the other thing, so the two totals are a choice rather than a puzzle. */}
-      <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          {t('clockNote')}{' '}
-          <Link href="/reports/sales" className="font-medium underline underline-offset-2">
-            {t('clockLink')}
-          </Link>
-        </p>
-      </div>
+      {/* Only where there IS a counter: since 2026-09-28 the Sales Report is
+          counter sales alone (orders-first-storefront D2), so the two pages
+          no longer overlap — a storefront-only seller has nothing to find there. */}
+      {hasCounter && (
+        <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            {t('counterNote')}{' '}
+            <Link href="/reports/sales" className="font-medium underline underline-offset-2">
+              {t('clockLink')}
+            </Link>
+          </p>
+        </div>
+      )}
 
       <PeriodFilter
         period={period}

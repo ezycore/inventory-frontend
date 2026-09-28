@@ -122,11 +122,13 @@ editor where you write the message in your own words — the COD amount to keep 
 number, a thank-you in your own voice.
 
 - **English letters only.** The editor says so: *English letters only. You can write Bangla in English
-  letters (Banglish).* "Apnar order confirm hoyeche" works; Bangla script is refused, because one
+  letters (Banglish). Press Enter for a new line — it counts as 1 character.* "Apnar order confirm
+  hoyeche" works; Bangla script is refused, because one
   Bangla letter turns the whole message into two SMS.
 - **Insert, don't type, the details.** The buttons under the message add the customer's name, the order
   number, the COD amount and so on, exactly where your cursor is.
-- **Your store name must be in it**, so the customer knows who wrote.
+- **Say who you are.** The SMS comes from a number, not your name, so write your store name in the
+  message — type it, or use the **Store name** button.
 - **It is always one SMS.** The editor checks your text against long names and big amounts as you type,
   and won't save it until it fits.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogCategory } from "@/lib/storefront-client";
-import { blocksFromLayout, groupsFromBlocks } from "./blocks";
+import { blocksFromLayout, brandBlockShowsAnything, brandPartsShown, groupsFromBlocks } from "./blocks";
 import { footerLinkTarget, isFooterLinkComplete } from "./links";
 import { footerFrame, footerGroupStartsOpen } from "./style";
 
@@ -127,5 +127,24 @@ describe("blocksFromLayout", () => {
 
   it("round-trips link groups", () => {
     expect(groupsFromBlocks(blocksFromLayout({ layout: "columns", groups }))).toEqual(groups);
+  });
+});
+
+describe("brand block parts", () => {
+  const brand = { id: "brand-0", type: "brand" } as const;
+
+  // A block saved before `showLogo` existed has no such key — it must keep its logo.
+  it("shows every part a block has not switched off", () => {
+    expect(brandPartsShown(brand).map((p) => p.label)).toEqual(["Logo", "About", "Phone", "Social"]);
+  });
+
+  it("drops the logo and keeps the rest when only the logo is off", () => {
+    expect(brandPartsShown({ ...brand, showLogo: false }).map((p) => p.label)).toEqual(["About", "Phone", "Social"]);
+  });
+
+  it("shows nothing once all four are off", () => {
+    const off = { ...brand, showLogo: false, showAbout: false, showPhone: false, showSocial: false };
+    expect(brandBlockShowsAnything(off)).toBe(false);
+    expect(brandBlockShowsAnything({ ...off, showSocial: true })).toBe(true);
   });
 });

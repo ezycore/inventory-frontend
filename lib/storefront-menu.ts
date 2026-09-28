@@ -41,6 +41,7 @@ export type MenuOpenOn = "hover" | "click";
 export type MenuRailOpen = "active" | "first" | "all" | "flyout";
 export type MenuOverflow = "wrap" | "more";
 export type MenuCollectionStrip = "scroll" | "wrap" | "tiles" | "hidden";
+export type MenuDrawerWidth = "narrow" | "regular" | "wide";
 
 export interface MenuOption<T extends string> {
   id: T;
@@ -113,6 +114,20 @@ export const MENU_COLLECTION_STRIPS: readonly MenuOption<MenuCollectionStrip>[] 
   { id: "hidden", label: "Hide", description: "No row — the breadcrumb leads back up" },
 ];
 
+/**
+ * How wide the slide-in phone menu is. Every width leaves a strip of the shop
+ * showing beside it — the scrim there is where a shopper taps to close — so
+ * none of them can cover the phone the way the shared 94% drawer did. Listed
+ * narrow → wide, NOT default first: it is an ordinal ramp, and the resolver
+ * falls back to `regular` explicitly. Sizes live in storefront.css
+ * (`.sf-drawer-left[data-width]`).
+ */
+export const MENU_DRAWER_WIDTHS: readonly MenuOption<MenuDrawerWidth>[] = [
+  { id: "narrow", label: "Narrow", description: "Leaves more of the shop showing beside it" },
+  { id: "regular", label: "Regular", description: "Room for long category names, with the shop still in view" },
+  { id: "wide", label: "Wide", description: "Almost the whole screen, with a thin strip of the shop left" },
+];
+
 export const MENU_OVERFLOW: readonly MenuOption<MenuOverflow>[] = [
   { id: "wrap", label: "Wrap", description: "Links that do not fit move onto a second line" },
   { id: "more", label: "More", description: "Links that do not fit collapse into a More menu" },
@@ -139,6 +154,8 @@ export interface ResolvedMenuSettings {
     allProductsLabel: string;
     /** The sub-collection row on a collection page. */
     collectionStrip: MenuCollectionStrip;
+    /** The slide-in menu's width (the bottom-sheet menu is always full width). */
+    drawerWidth: MenuDrawerWidth;
   };
   desktop: {
     dropdown: MenuDropdown;
@@ -169,6 +186,7 @@ export const DEFAULT_MENU_SETTINGS: ResolvedMenuSettings = {
     allProducts: true,
     allProductsLabel: "",
     collectionStrip: "scroll",
+    drawerWidth: "regular",
   },
   desktop: {
     dropdown: "list",
@@ -212,6 +230,8 @@ export function resolveMenuSettings(raw?: StoreMenuSettings | null): ResolvedMen
       allProducts: bool(raw?.mobile?.allProducts, d.mobile.allProducts),
       allProductsLabel: text(raw?.mobile?.allProductsLabel),
       collectionStrip: pick(MENU_COLLECTION_STRIPS, raw?.mobile?.collectionStrip),
+      drawerWidth:
+        MENU_DRAWER_WIDTHS.find((o) => o.id === raw?.mobile?.drawerWidth)?.id ?? d.mobile.drawerWidth,
     },
     desktop: {
       dropdown: pick(MENU_DROPDOWNS, raw?.desktop?.dropdown),

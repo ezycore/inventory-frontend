@@ -166,7 +166,11 @@ export function OrderReturnDialog({
                     // the case that needs this most: a COD order with an advance
                     // is not paid, and the advance is exactly what needs routing.
                     `${money(preview?.refundRemainder ?? 0)} of this is money the shopper has already parted with — choose where it goes below.`
-                  : "This clears the outstanding due; no cash moves."}
+                  : preview?.refundToClearing
+                    ? // Settled into the courier's account at delivery, then reported
+                      // returned: the courier never collected it, so it comes back out.
+                      "The courier reported this parcel returned, so this comes back out of their account — no shopper paid it and no cash moves."
+                    : "This cancels what was unpaid; no cash moves."}
             </p>
           </div>
 

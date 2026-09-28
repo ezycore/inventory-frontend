@@ -13,11 +13,12 @@ import { CheckCircle2, ExternalLink, PackageX, Store } from 'lucide-react'
 import type { DashboardBlockContext } from './context'
 
 /**
- * How the period's orders ended, and which carrier took them.
+ * What happened to orders in the period, and which carrier took them.
  *
- * Windowed on the ORDER date like the revenue beside it, so the panel answers
- * "of the orders I took that week, how many arrived" rather than mixing this
- * week's deliveries against last week's dispatches.
+ * EVENT clock (2026-09-28): "Delivered 4" on Today means four orders reached a
+ * door today, whenever they were placed. It used to count the orders PLACED in
+ * the period by their current status, so Today almost always read "Delivered 0"
+ * — an order taken this morning has not arrived yet.
  */
 export function OrderFulfillment({ overview, isLoading }: DashboardBlockContext) {
   const t = useTranslations('dashboard.fulfillment')
@@ -31,8 +32,10 @@ export function OrderFulfillment({ overview, isLoading }: DashboardBlockContext)
     )
   }
 
-  const { delivered, returned, cancelled, byCourier } = overview.ordersFulfillment
+  const { confirmed, shipped, delivered, returned, cancelled, byCourier } =
+    overview.ordersFulfillment
   const settled = delivered + returned
+  const moved = confirmed + shipped + settled + cancelled
   // Of the parcels that reached a door. An order still in the queue has not had
   // its chance to be refused, so counting it as a success reports a rate that
   // only improves while a shop is busy.
@@ -50,11 +53,13 @@ export function OrderFulfillment({ overview, isLoading }: DashboardBlockContext)
         </Link>
       </div>
 
-      {settled === 0 && cancelled === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('nothingSettled')}</p>
+      {moved === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('nothingMoved')}</p>
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3 text-center">
+            <Outcome label={t('confirmed')} value={confirmed} tone="text-primary" />
+            <Outcome label={t('shipped')} value={shipped} tone="text-chart-1" />
             <Outcome label={t('delivered')} value={delivered} tone="text-chart-2" />
             <Outcome label={t('returned')} value={returned} tone="text-destructive" />
             <Outcome

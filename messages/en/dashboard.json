@@ -28,13 +28,19 @@
     "codOrdersWithRto": "{count} parcels out · {rate}% returned",
     "bothChannels": "Counter sales + orders placed",
     "costsMissing": "Set cost prices to see profit",
-    "marginOfKnown": "{margin}% margin on {known} of {total}",
+    "costsPending": "Shows once orders are dispatched",
+    "receivable": "Receivable",
+    "owedByCustomers": "Owed by customers · all time",
+    "marginOfKnown": "{margin}% margin on {known} · {unknown} not costed yet",
     "cashOnHand": "Cash on hand",
     "acrossAccounts": "across {count} accounts",
     "deliveryMargin": "Delivery margin",
     "deliveryChargedCost": "{charged} charged · {cost} to carry",
     "expiringSoon": "Expiring soon",
-    "expiryBreakdown": "{expired} expired · next {days} days"
+    "expiryBreakdown": "{expired} expired · next {days} days",
+    "counterSales": "Counter sales",
+    "codFromCouriers": "Coming from couriers",
+    "codOutAndHeld": "{count} parcels out · {held} collected, not paid yet"
   },
   "chart": {
     "title": "Sales vs Purchases",
@@ -49,7 +55,9 @@
     "emptyDescription": "Sales and purchase trends will appear here as you record transactions",
     "salesTitle": "Sales",
     "orders": "Orders",
-    "ordersTitle": "Sales & orders"
+    "ordersTitle": "Sales & orders",
+    "counterSales": "Counter sales",
+    "onlyOrdersTitle": "Orders"
   },
   "summary": {
     "receivable": "Receivable",
@@ -60,15 +68,15 @@
     "itemsInStock": "{count} items in stock",
     "salesChannels": "Online vs Counter",
     "shareOnline": "{share}% online",
-    "onlineCounterSplit": "Online {online} · Counter {counter}",
-    "owedIncludingCouriers": "With customers and couriers"
+    "onlineCounterSplit": "Online {online} · Counter {counter}"
   },
   "topSold": {
     "title": "Top Sold Items",
     "subtitle": "Best sellers for this period",
     "soldProfit": "{count} sold · Profit {amount}",
     "emptyTitle": "No sales yet",
-    "emptyDescription": "Top sold items will appear here once you make sales"
+    "emptyDescription": "Top sold items will appear here once you make sales",
+    "soldCount": "{count} sold"
   },
   "lowStock": {
     "title": "Low Stock Alerts",
@@ -126,12 +134,14 @@
   "fulfillment": {
     "title": "Fulfillment",
     "viewAll": "View all",
-    "nothingSettled": "No orders have reached a customer yet.",
     "delivered": "Delivered",
     "returned": "Returned",
     "cancelled": "Cancelled",
     "arrivalRate": "Arrived at the door",
-    "byCourier": "By courier"
+    "byCourier": "By courier",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "nothingMoved": "No order changed status in this period."
   },
   "storeHealth": {
     "title": "Your store",
@@ -155,5 +165,21 @@
     "tradeTitle": "Looking for today’s orders and revenue?",
     "tradeBody": "Order counts, revenue, the confirmation queue, COD awaiting collection and delivery outcomes are all on your dashboard, beside the rest of your business.",
     "tradeLink": "Go to dashboard"
+  },
+  "topCounter": {
+    "title": "Top at the counter",
+    "subtitle": "Best sellers at your POS this period",
+    "soldProfit": "{count} sold · Profit {amount}",
+    "soldCount": "{count} sold",
+    "emptyTitle": "No counter sales yet",
+    "emptyDescription": "Your POS best sellers will appear here"
+  },
+  "topOrdered": {
+    "title": "Top ordered products",
+    "subtitle": "Most ordered this period",
+    "soldProfit": "{count} ordered · Profit {amount}",
+    "soldCount": "{count} ordered",
+    "emptyTitle": "No orders yet",
+    "emptyDescription": "Your most ordered products will appear here"
   }
 }

@@ -17,9 +17,27 @@ by default**, no plan gate. Browser QA not yet done — checklist in backend
 - Pictures upload through `useUploadStorefrontImage` (the announcement background's uploader), not
   the page builder's upload; the backend deletes a picture a save dropped.
 - "Centre the blocks" (`footerStyle.align`) applies to composed footers only.
-- Store promises stay edited in their own section (home promise sections read them too); the
-  promises block just draws them, in an `iconStyle` (disc / plain / none, unset ⇒ plain) that
+- ~~Store promises stay edited in their own section~~ — superseded 2026-09-27 (panel regroup, below).
+  The promises block draws them in an `iconStyle` (disc / plain / none, unset ⇒ plain) that
   matches the promises band's setting of the same name (2026-09-25).
+- **Panel regroup (2026-09-27): what one block shows is edited inside that block.** The Footer panel
+  is four sections — Start from a layout, Blocks, Bottom line, Look. The brand block carries a
+  **Logo & shop name** switch (`showLogo`, unset ⇒ shown; backend field added the same day) plus the
+  footer-logo upload and the about text under their switches; the promises block carries the
+  promises editor. With no promises block, `FooterPromisesNotice` sits at the top of Blocks — **Add
+  to footer**, or **Edit promises** in place, because page promise bands and the hero read the same
+  list and a shop may want them there only. **Bottom line** gathers the right-side note, payment
+  badges, the credit switch and alignment (they were in Wording, Look and Payment methods). The
+  background photo joined **Look**; the two phone overrides (spacing, bottom-line alignment) fold
+  under **Phone adjustments**. The switches write the block (so the first one moves a fixed layout
+  onto blocks); the about text, footer logo and promises are shop-wide copy and never do. A brand
+  block with all four parts off renders nothing on the shop and warns in the editor.
+- **Same day, after owner review:** the promises block gained **Arrange** (`arrange`: row / column,
+  unset ⇒ row; backend field added). Column is one grid track on every screen
+  (`.sf-footer-trustbar[data-arrange="column"]`); choosing it on a block with no width set also sets
+  `width: "narrow"`, because a single stack in a full row leaves the row empty. The about text is a
+  textarea and the storefront draws its line breaks (`footerBlurb`, `white-space: pre-line`) — the
+  backend already kept them.
 - Phase 5 per-landing-page "hide footer" and social icon styles: **not built** (the landing page's
   existing header/footer switch already covers hiding).
 

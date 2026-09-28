@@ -2,7 +2,6 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import Link from "next/link";
 import type { StorefrontFooterBlock, StorefrontFooterStyle } from "@/types";
 import {
   blocksFromLayout,
@@ -20,20 +19,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/components/alert-dialog";
-import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
-import { ResponsiveVisibilityField } from "@/components/ecommerce/customize/parts/responsive-visibility-field";
+import { PartBlock } from "@/components/ecommerce/customize/part-group";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
-import { TrustBadgesField } from "@/components/ecommerce/customize/trust-badges-field";
 import { useNavLinkOptions } from "@/components/ecommerce/customize/use-nav-link-options";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 import { FooterBlockList } from "@/components/ecommerce/customize/footer/footer-block-list";
-import { FooterCopyFields } from "@/components/ecommerce/customize/footer/footer-copy-fields";
-import { FooterPictureFields } from "@/components/ecommerce/customize/footer/footer-picture-fields";
+import { FooterBottomLineFields } from "@/components/ecommerce/customize/footer/footer-bottom-line-fields";
 import { FooterStyleFields } from "@/components/ecommerce/customize/footer/footer-style-fields";
 
 /**
- * Footer — the whole of it: a starting layout, the blocks, the wording, the
- * look and the pictures (plan `docs/plan/storefront-footer-builder.md`).
+ * Footer — the whole of it, in four sections: a starting layout, the blocks,
+ * the closing bottom line and the look (plan
+ * `docs/plan/storefront-footer-builder.md`).
  *
  * **Layouts are starting points.** A store that has never edited a block keeps
  * its fixed layout, drawn exactly as before; the list below shows that layout
@@ -41,7 +38,10 @@ import { FooterStyleFields } from "@/components/ecommerce/customize/footer/foote
  * own blocks from then on. Picking a layout again goes back to the fixed one,
  * after a confirm — it replaces the blocks — keeping the link groups.
  *
- * Wording, look and pictures apply to both, so they never need the switch.
+ * **What one block shows is edited inside that block** — the about line and
+ * footer logo in the brand block, the promises in the promises block — so the
+ * panel has no separate Wording, Pictures or Store promises sections. Bottom
+ * line and Look apply to both kinds of footer, so they never need the switch.
  */
 export function FooterPart({
   draft,
@@ -66,6 +66,8 @@ export function FooterPart({
         ? { footerBlocks: next }
         : { footerBlocks: next, footerStyle: { ...styleForLayout(layout), ...draft.footerStyle } },
     );
+  // The fixed centred layout centres its bottom line; a composed footer does when its blocks are centred.
+  const defaultBottom = (composed ? draft.footerStyle.align === "center" : layout === "simple") ? "center" : "spread";
   const applyLayout = (value: string) => {
     patchTemplate("footer", value);
     if (composed) patch({ footerBlocks: null, footerGroups: groupsFromBlocks(blocks) });
@@ -98,8 +100,8 @@ export function FooterPart({
         />
       </PartBlock>
 
-      <PartBlock label="Wording">
-        <FooterCopyFields draft={draft} patch={patch} />
+      <PartBlock label="Bottom line">
+        <FooterBottomLineFields draft={draft} patch={patch} defaultAlign={defaultBottom} />
       </PartBlock>
 
       <PartBlock label="Look">
@@ -108,42 +110,8 @@ export function FooterPart({
           setStyle={setStyle}
           brandColor={draft.brandColor}
           composed={composed}
-          defaultBottom={(composed ? draft.footerStyle.align === "center" : layout === "simple") ? "center" : "spread"}
         />
       </PartBlock>
-
-      <PartBlock label="Pictures">
-        <FooterPictureFields style={draft.footerStyle} setStyle={setStyle} />
-      </PartBlock>
-
-      <PartBlock
-        label="Store promises"
-        hint="Up to four promises you stand behind. Shown by a Store promises block and by promise sections on your pages; blank rows are not published."
-      >
-        <TrustBadgesField badges={draft.badges} setBadges={(badges) => patch({ badges })} />
-      </PartBlock>
-
-      <PartBlock
-        label="Payment methods"
-        hint="Choose where your enabled checkout methods appear in the footer. This does not disable them at checkout."
-      >
-        <ResponsiveVisibilityField
-          showOnDesktop={draft.footerPaymentMethods.showOnDesktop}
-          showOnMobile={draft.footerPaymentMethods.showOnMobile}
-          onChange={(value) =>
-            patch({ footerPaymentMethods: { ...draft.footerPaymentMethods, ...value } })
-          }
-          what="payment methods"
-        />
-      </PartBlock>
-
-      <PartHint>
-        Your phone number and social links are set in{" "}
-        <Link href="/ecommerce/settings" className="underline underline-offset-2">
-          Store settings
-        </Link>
-        .
-      </PartHint>
 
       <AlertDialog open={pendingLayout !== null} onOpenChange={(open) => !open && setPendingLayout(null)}>
         <AlertDialogContent>

@@ -28,6 +28,12 @@ interface ChartSectionProps {
    * so adding them into one line would draw a shape neither channel had.
    */
   showOrders: boolean
+  /**
+   * Whether this business sells at a POS counter. A storefront-only seller has
+   * no "sales" line to draw — their trade is the orders line
+   * (docs/plan/orders-first-storefront.md).
+   */
+  showSales: boolean
 }
 
 export function ChartSection({
@@ -36,6 +42,7 @@ export function ChartSection({
   formatCurrency,
   showPurchases: purchasesTracked,
   showOrders,
+  showSales,
 }: ChartSectionProps) {
   const t = useTranslations('dashboard.chart')
   if (isLoading) {
@@ -66,11 +73,16 @@ export function ChartSection({
         // Same degrade the Purchase Cost KPI already applies off the same flag —
         // the data still ships, this decides whether it is drawn.
         series={[
-          {
-            dataKey: 'sales',
-            name: t('sales'),
-            color: 'var(--color-primary)',
-          },
+          ...(showSales
+            ? [
+                {
+                  dataKey: 'sales',
+                  // Beside an orders line it is the counter half, and says so.
+                  name: showOrders ? t('counterSales') : t('sales'),
+                  color: 'var(--color-primary)',
+                },
+              ]
+            : []),
           ...(showOrders
             ? [
                 {
@@ -91,11 +103,13 @@ export function ChartSection({
             : []),
         ]}
         title={
-          purchasesTracked
-            ? t('title')
-            : showOrders
-              ? t('ordersTitle')
-              : t('salesTitle')
+          !showSales
+            ? t('onlyOrdersTitle')
+            : purchasesTracked
+              ? t('title')
+              : showOrders
+                ? t('ordersTitle')
+                : t('salesTitle')
         }
         subtitle={t('breakdownSuffix', { grouping: groupingLabel })}
         height={260}

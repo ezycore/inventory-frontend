@@ -8,11 +8,11 @@ import { KPI_TILES } from './kpi-tiles'
 /**
  * The profit tile's margin, which browser QA caught reading **133%**.
  *
- * `grossProfit` is the whole period's `netRevenue - COGS - carriage`, and
- * revenue whose cost was never entered enters it at full value. The tile divides
- * by `costCoverage.knownRevenue` on purpose — a margin over the whole would
- * flatter it — but the numerator has to be the same slice, or the two scopes mix
- * and the percentage runs past 100 on any workspace with uncosted revenue.
+ * Since 2026-09-28 the server sends `grossProfit` as the KNOWN slice's profit
+ * (revenue with no cost behind it, and those orders' carriage, left out), so the
+ * headline and the margin share one scope. Before, uncosted revenue entered the
+ * headline at full value and the ratio could run past 100 — or, with all the
+ * period's carriage charged to a small known slice, below zero.
  *
  * `t` echoes its key and interpolations rather than rendering copy, so these
  * assert the NUMBER fed into the string; a prose assertion would pass on the
@@ -38,7 +38,7 @@ describe('gross profit tile', () => {
     // cost behind it; ৳45,630 of goods and ৳3,840 of carriage against the rest.
     const tile = profitTile({
       netRevenue: 444463.52,
-      grossProfit: 394993.52,
+      grossProfit: 248345.82,
       costCoverage: {
         knownRevenue: 297815.82,
         unknownRevenue: 146647.7,
@@ -49,9 +49,10 @@ describe('gross profit tile', () => {
 
     // 297,815.82 - 45,630 - 3,840 = 248,345.82 → 83%, not 133%.
     expect(tile?.description).toContain('"margin":83')
-    // The headline stays the whole business's profit — only the ratio is of the
-    // known slice, and the copy names both figures.
-    expect(tile?.value).toBe('৳394993.52')
+    // The headline is that same slice's profit, and the copy names what was
+    // left out instead of counting it as free goods.
+    expect(tile?.value).toBe('৳248345.82')
+    expect(tile?.description).toContain('"unknown":"৳146647.7"')
   })
 
   it('is a plain margin of net revenue when every line has a cost', () => {
@@ -85,5 +86,23 @@ describe('gross profit tile', () => {
 
     expect(tile?.value).toBe('—')
     expect(tile?.description).toBe('costsMissing')
+  })
+
+  it('says profit waits for dispatch when only undispatched orders are uncosted', () => {
+    // A storefront day where nothing has shipped yet: no cost price is missing,
+    // so "set cost prices" would send the merchant to fix nothing.
+    const tile = profitTile({
+      netRevenue: 14520,
+      grossProfit: 0,
+      costCoverage: {
+        knownRevenue: 0,
+        unknownRevenue: 14520,
+        unknownLines: 0,
+        uncommittedOrders: 10,
+      },
+    } as never)
+
+    expect(tile?.value).toBe('—')
+    expect(tile?.description).toBe('costsPending')
   })
 })

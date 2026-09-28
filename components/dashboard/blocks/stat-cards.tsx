@@ -52,30 +52,22 @@ function StatCardShell({ icon: Icon, tone, label, value, hint }: StatCardShellPr
   )
 }
 
-export function ReceivablesCard({
-  overview,
-  formatCurrency,
-  blocks,
-}: DashboardBlockContext) {
+export function ReceivablesCard({ overview, formatCurrency }: DashboardBlockContext) {
   const t = useTranslations('dashboard.summary')
   if (!overview) return null
   /**
-   * "Owed by customers" is the counter shop's answer. For a shop whose trade is
-   * cash-on-delivery, most of this balance is money a COURIER is holding, not a
-   * customer who has been extended credit — so the sub-line says so when there
-   * is no counter to owe against.
+   * Customers only. The server counts dues on counter sales alone and admits
+   * this block only with POS (or POS history); what a COURIER is holding is on
+   * the COD tile ("Coming from couriers"). It used to read "With customers and
+   * couriers" and double-count that money on storefront shops.
    */
-  // `revenue.channelMix` is on the page only where BOTH channels exist, so its
-  // absence beside a COD block means this shop has no counter to owe against.
-  const codOnly =
-    blocks.includes('orders.cod') && !blocks.includes('revenue.channelMix')
   return (
     <StatCardShell
       icon={ArrowDownLeft}
       tone="bg-primary/10 text-primary"
       label={t('receivable')}
       value={formatCurrency(overview.outstanding?.receivable ?? 0)}
-      hint={codOnly ? t('owedIncludingCouriers') : t('owedByCustomers')}
+      hint={t('owedByCustomers')}
     />
   )
 }

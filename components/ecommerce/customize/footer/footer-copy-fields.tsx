@@ -8,38 +8,14 @@ import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-cus
 type CopyProps = Pick<CustomizeDraftApi, "draft" | "patch">;
 
 /**
- * The footer's shared wording. Every field is optional and every blank falls
- * back to the storefront's own localized wording, so an untouched footer still
- * reads correctly in both languages and clearing a field restores the default
- * rather than leaving a gap.
+ * The sign-up block's wording. Addresses land in Storefront Accounts → Subscribers.
+ *
+ * Every field is optional and every blank falls back to the storefront's own
+ * localized wording, so clearing a field restores the default rather than
+ * leaving a gap. The footer's other words are edited where they show: the about
+ * line in the brand block (`FooterBrandFields`), the right-side note in Bottom
+ * line (`FooterBottomLineFields`).
  */
-export function FooterCopyFields({ draft, patch }: CopyProps) {
-  return (
-    <div className="space-y-3">
-      <PartField label="About your shop">
-        <Input
-          value={draft.footerText}
-          onChange={(e) => patch({ footerText: e.target.value })}
-          maxLength={280}
-          placeholder="A line or two about what you sell and where you deliver."
-        />
-      </PartField>
-      <PartField
-        label="Bottom line"
-        hint="Sits on the right of the copyright line — a trade licence number, a city, anything you need there."
-      >
-        <Input
-          value={draft.footerNote}
-          onChange={(e) => patch({ footerNote: e.target.value })}
-          maxLength={80}
-          placeholder="Leave empty to show your currency"
-        />
-      </PartField>
-    </div>
-  );
-}
-
-/** The sign-up block's wording. Addresses land in Storefront Accounts → Subscribers. */
 export function FooterNewsletterFields({ draft, patch }: CopyProps) {
   const setNewsletter = (p: Partial<typeof draft.footerNewsletter>) =>
     patch({ footerNewsletter: { ...draft.footerNewsletter, ...p } });

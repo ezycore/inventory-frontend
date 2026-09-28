@@ -18,14 +18,21 @@ export function navLabelKey(title: string): string {
 }
 
 /**
- * Filter navigation items based on user role, permissions, and enabled features
+ * Filter navigation items based on user role, permissions, and enabled features.
+ *
+ * `posUsed` — the org has rung counter sales (`organization.posUsedAt`). It
+ * keeps `keepWithPosHistory` items in the menu with the POS module off. Titles
+ * swap to `titleWithoutPos` while the POS module is off.
  */
 export function filterNavItems(
   items: NavItem[],
   userRole: string,
   userPermissions: string[],
-  features: OrganizationFeatures | undefined
+  features: OrganizationFeatures | undefined,
+  posUsed = false,
 ): NavItem[] {
+  // Unloaded map: keep the default titles rather than flash the POS-off ones.
+  const posOff = !!features && !isFeatureOn(features, "sales");
   return items
     .filter((item) => {
       // Check role restrictions
@@ -45,22 +52,28 @@ export function filterNavItems(
         }
       }
 
+      // Counter history keeps these reachable with the module off.
+      const keptByHistory = !!item.keepWithPosHistory && posUsed;
+
       // Check feature restrictions (all features must be enabled)
       if (item.features && item.features.length > 0) {
-        if (!areAllFeaturesEnabled(features, item.features)) {
+        if (!areAllFeaturesEnabled(features, item.features) && !keptByHistory) {
           return false;
         }
       }
 
       // Check anyFeatures restrictions (at least one feature must be enabled)
       if (item.anyFeatures && item.anyFeatures.length > 0) {
-        if (!isAnyFeatureEnabled(features, item.anyFeatures)) {
+        if (!isAnyFeatureEnabled(features, item.anyFeatures) && !keptByHistory) {
           return false;
         }
       }
 
       return true;
     })
+    .map((item) =>
+      posOff && item.titleWithoutPos ? { ...item, title: item.titleWithoutPos } : item,
+    )
     .flatMap((item) => {
       // Leaves pass through untouched. `items: []` in the source means "leaf"
       // (Dashboard, Customers, Suppliers all declare it) — only a list that
@@ -71,7 +84,8 @@ export function filterNavItems(
         item.items,
         userRole,
         userPermissions,
-        features
+        features,
+        posUsed,
       );
 
       // Every child denied → the parent is a row leading somewhere the user

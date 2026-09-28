@@ -149,6 +149,7 @@ function SaleEntry({
   onStartPayment: (sale: CustomerLedgerSale) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const online = sale.channel === "online";
   return (
     <>
       <div className="flex justify-between items-start">
@@ -174,12 +175,20 @@ function SaleEntry({
                 {formatCurrency(sale.paidAmount)}
               </span>
             </div>
+            {/* An online sale's unpaid part is the courier's to collect — never a debt
+                this customer owes, so it is not red and offers no "pay due". */}
             <div>
-              <span className="text-muted-foreground">{t("due")}</span>{" "}
+              <span className="text-muted-foreground">
+                {online ? t("codPending") : t("due")}
+              </span>{" "}
               <span
                 className={cn(
                   "font-medium",
-                  sale.dueAmount > 0 ? "text-red-600" : "text-green-600",
+                  online
+                    ? "text-muted-foreground"
+                    : sale.dueAmount > 0
+                      ? "text-red-600"
+                      : "text-green-600",
                 )}
               >
                 {formatCurrency(sale.dueAmount)}
@@ -188,7 +197,7 @@ function SaleEntry({
           </>
         )}
       </div>
-      {isAccountsEnabled && sale.dueAmount > 0 && sale.status !== "cancelled" && (
+      {isAccountsEnabled && !online && sale.dueAmount > 0 && sale.status !== "cancelled" && (
         <div className="flex justify-end pt-1">
           <Button
             size="sm"
