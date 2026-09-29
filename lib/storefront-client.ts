@@ -427,7 +427,7 @@ export interface StorefrontStore {
   canonicalHost?: string | null;
   /**
    * The landing page the merchant uses as the homepage, or null for the
-   * Customize home. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
+   * store's `home` builder page. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
    * by the proxy (`storeHomePageExists`); this only tells that page's own
    * address it is not the one to index.
    */

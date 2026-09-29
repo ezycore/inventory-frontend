@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { READY_MADE_THEMES, getReadyMadeTheme } from "@/lib/storefront-themes";
 import {
-  applyHomeTemplateToDraft,
+  READY_MADE_THEMES,
+  getReadyMadeTheme,
+  themeLookTemplates,
+} from "@/lib/storefront-themes";
+import {
   applyThemeToDraft,
   haveCollectionRowsChanged,
   isThemeModified,
@@ -209,22 +212,28 @@ describe("applyThemeToDraft", () => {
     expect(patch.brandColor).toBe(theme.brandColor);
     expect(patch.accentColor).toBe(theme.accentColor);
     expect(patch.design).toEqual(theme.design);
-    expect(patch.homeCollections).toEqual(theme.homeCollections);
     expect(patch.appliedThemeId).toBe("muslin");
-    expect(patch.templates).toMatchObject(theme.templates);
-    // The bundle stays a list of TYPES; the patch is a list of instances. A
-    // theme has no business inventing instance identity — minting is one place.
-    expect(patch.homepageSections?.map((s) => s.type)).toEqual(theme.sections);
+    expect(patch.templates).toMatchObject(themeLookTemplates(theme));
   });
 
-  // Deterministic minting, and it matters twice over: per-section config joins
-  // on `key`, so a re-key detaches a merchant's configured row from its section;
-  // and `isThemeModified` compares against a freshly applied patch, so a random
-  // key would badge an untouched theme as "Edited" the instant it was applied.
-  it("mints the same section keys every time it is applied", () => {
-    expect(applyThemeToDraft(draft(), theme).homepageSections).toEqual(
-      applyThemeToDraft(draft(), theme).homepageSections,
-    );
+  /* Look only since 2026-09-29. Every live home is a builder page (Pages →
+     Home) that reads none of the classic home's shape, so a theme writing it
+     changed nothing shoppers see — and a builder page is the merchant's own
+     work, which a theme must not rearrange. */
+  it("leaves the home page to Pages", () => {
+    const own = draft({
+      templates: { home: "minimal" },
+      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
+      sectionConfig: [{ key: "r1", source: "category", categoryId: "cat-skin" }],
+      heroAlign: "center",
+      homeCollections: { layout: "strip", columns: 5, align: "left" },
+    });
+    const applied = applyThemeToDraft(own, theme);
+
+    for (const key of ["homepageSections", "sectionConfig", "heroAlign", "homeCollections"]) {
+      expect(applied, key).not.toHaveProperty(key);
+    }
+    expect(applied.templates?.home).toBe("minimal");
   });
 
   // The reason `copy` was split out of `theme` in the first place. Applying a
@@ -269,18 +278,6 @@ describe("applyThemeToDraft", () => {
     for (const bundle of READY_MADE_THEMES) {
       expect(bundle.templates.checkout, bundle.id).toBeTruthy();
     }
-  });
-
-  it("does not carry Classic's category strip into tile-led themes", () => {
-    const classicRow = draft({
-      homeCollections: { layout: "strip", columns: 5, align: "left" },
-    });
-    const fresh = getReadyMadeTheme("fresh-market")!;
-
-    expect(applyThemeToDraft(classicRow, fresh).homeCollections).toEqual({
-      layout: "grid",
-      align: "center",
-    });
   });
 });
 
@@ -357,12 +354,6 @@ describe("isThemeModified", () => {
     expect(
       isThemeModified({ ...applied, design: { ...applied.design, font: "serif" } }),
     ).toBe(true);
-    expect(
-      isThemeModified({
-        ...applied,
-        homeCollections: { ...applied.homeCollections, columns: 3 },
-      }),
-    ).toBe(true);
   });
 
   // Rewriting the footer is not "modifying the theme" — a theme cannot write it,
@@ -370,163 +361,5 @@ describe("isThemeModified", () => {
   it("ignores merchant wording", () => {
     expect(isThemeModified({ ...applied, footerText: "Something else" })).toBe(false);
     expect(isThemeModified({ ...applied, footerNote: "Chittagong" })).toBe(false);
-  });
-});
-
-/**
- * The regression this whole split exists to prevent.
- *
- * `applyThemeToDraft` replaces `homepageSections` outright — a theme's page is
- * an ordered whole. If per-row config lived inside those entries, applying a
- * theme would delete every collection the merchant pointed a row at. It lives
- * in a sibling block instead, so the rule is structural rather than remembered.
- *
- * The patch DOES carry `sectionConfig` now, because a theme's own rows may
- * arrive configured. So the assertion is the guarantee rather than the
- * mechanism: the merchant's entries come through untouched, and a theme may
- * only ADD to them.
- */
-describe("applyThemeToDraft — sectionConfig", () => {
-  const theme = getReadyMadeTheme("muslin")!;
-
-  it("does not touch a merchant's per-section config", () => {
-    const own = [
-      { key: "r1", source: "category" as const, categoryId: "cat-skin", title: "Skin care", limit: 6 },
-    ];
-    const patch = applyThemeToDraft(draft({ sectionConfig: own }), theme);
-
-    // Byte-identical, and the whole of it: this theme implies no config, so
-    // there is nothing for the merchant's entries to sit beside.
-    expect(patch.sectionConfig).toEqual(own);
-  });
-
-  it("leaves the config intact through three applies in a row", () => {
-    // A merchant trying themes must still have every collection they chose.
-    const own = { key: "r1", source: "category" as const, categoryId: "cat-skin" };
-    let current = draft({ sectionConfig: [own] });
-    for (const id of ["classic", "muslin", "classic"]) {
-      current = { ...current, ...applyThemeToDraft(current, getReadyMadeTheme(id)!) };
-    }
-    expect(current.sectionConfig).toContainEqual(own);
-    // Classic implies ONE row of its own (its new-arrivals grid) and applying
-    // it twice must not stack a second copy — the merge is keyed, not appended.
-    expect(current.sectionConfig).toHaveLength(2);
-  });
-});
-
-/**
- * The Home page → "Starting layout" picker.
- *
- * It was inert until 2026-08-17: it wrote `templates.home` and nothing else, and
- * `resolveSections` only consults the preset when `homepageSections` is EMPTY —
- * which it never is, because applying a theme fills it. So every option marked
- * the part dirty, saved, and left the shop exactly as it was. These tests pin
- * the seeding rather than the template key, because the key alone is the bug.
- */
-describe("applyHomeTemplateToDraft — the starting-layout picker", () => {
-  it("seeds the section list, not just the template key", () => {
-    // A page already composed — the state every real store is in.
-    const composed = draft({
-      templates: { home: "classic" },
-      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
-    });
-    const patch = applyHomeTemplateToDraft(composed, "hero-split");
-
-    expect(patch.templates?.home).toBe("hero-split");
-    expect(patch.homepageSections?.map((s) => s.type)).toEqual(
-      HOME_PRESET_SECTIONS["hero-split"],
-    );
-  });
-
-  it("gives each preset its own page", () => {
-    const types = (value: string) =>
-      applyHomeTemplateToDraft(draft(), value).homepageSections?.map((s) => s.type);
-
-    // If two presets ever produced the same list the picker would be back to
-    // being a control that changes nothing.
-    expect(types("classic")).not.toEqual(types("hero-split"));
-    expect(types("hero-split")).not.toEqual(types("minimal"));
-    expect(types("classic")).not.toEqual(types("minimal"));
-  });
-
-  it("covers every option the picker offers", () => {
-    for (const option of TEMPLATE_OPTIONS.home) {
-      const patch = applyHomeTemplateToDraft(draft(), option.value);
-      expect(
-        patch.homepageSections?.length,
-        `home template "${option.value}" seeds no sections`,
-      ).toBeGreaterThan(0);
-    }
-  });
-
-  it("mints the same keys twice, so per-section config stays attached", () => {
-    const a = applyHomeTemplateToDraft(draft(), "classic").homepageSections;
-    const b = applyHomeTemplateToDraft(draft(), "classic").homepageSections;
-    expect(a).toEqual(b);
-  });
-
-  it("keeps the merchant's other templates and their wording", () => {
-    const composed = draft({ templates: { home: "classic", header: "boutique" } });
-    const patch = applyHomeTemplateToDraft(composed, "minimal");
-
-    expect(patch.templates?.header).toBe("boutique");
-    // Same rule as a theme apply: the config outlives the composition. The
-    // patch carries it because a preset's rows may arrive configured — what
-    // must hold is that the merchant's own entries are all still there.
-    expect(patch.sectionConfig).toEqual(composed.sectionConfig);
-    expect(patch).not.toHaveProperty("footerText");
-  });
-
-  /**
-   * REGRESSION — re-picking the active layout wiped the merchant's page (QA,
-   * 2026-08-18). The picker highlights the current tile, so clicking it again is
-   * the obvious way to ask "what is this one?" — and it replaced a composed
-   * section list with the preset's, silently, with no undo. Seeding is for
-   * CHANGING layout.
-   */
-  it("is a NO-OP when the shop is already on that layout", () => {
-    const composed = draft({
-      templates: { home: "classic", header: "boutique" },
-      homepageSections: [
-        { key: "hero-card-0", type: "hero-card" },
-        { key: "collections-1", type: "collections" },
-      ],
-    });
-    const patch = applyHomeTemplateToDraft(composed, "classic");
-
-    // Nothing at all — not even a same-value template write, which would still
-    // mark the part dirty and offer a Save that changes nothing.
-    expect(patch).toEqual({});
-    expect(patch).not.toHaveProperty("homepageSections");
-  });
-
-  it("still reseeds when the layout genuinely changes from the same base", () => {
-    const composed = draft({
-      templates: { home: "classic" },
-      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
-    });
-    const patch = applyHomeTemplateToDraft(composed, "minimal");
-    expect(patch.homepageSections?.map((s) => s.type)).toEqual(
-      HOME_PRESET_SECTIONS["minimal"],
-    );
-  });
-
-  // A shop that has never picked one must still get seeded on its first click.
-  it("seeds on the first pick, when no home template is set yet", () => {
-    const patch = applyHomeTemplateToDraft(draft(), "classic");
-    expect(patch.templates?.home).toBe("classic");
-    expect(patch.homepageSections?.length).toBeGreaterThan(0);
-  });
-
-  it("sets the template but never blanks the page for an unknown id", () => {
-    // A retired id, or one from a newer build. An empty list would mean "this
-    // shop shows no sections at all" and render a blank homepage.
-    const composed = draft({
-      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
-    });
-    const patch = applyHomeTemplateToDraft(composed, "no-such-layout");
-
-    expect(patch.templates?.home).toBe("no-such-layout");
-    expect(patch).not.toHaveProperty("homepageSections");
   });
 });

@@ -636,6 +636,20 @@ export const getReadyMadeTheme = (id?: string | null): ReadyMadeTheme | undefine
   READY_MADE_THEMES.find((t) => t.id === id);
 
 /**
+ * The templates applying a theme writes: all of its own but `home`.
+ *
+ * A theme is LOOK only since 2026-09-29. `home`, like the bundle's `sections`,
+ * `homeCollections` and `heroAlign`, shapes the classic home page, and every
+ * live store's home is a builder page (Pages → Home) that reads none of them —
+ * writing them changed nothing a shopper could see, while the theme preview
+ * promised a home the merchant would never get.
+ */
+export function themeLookTemplates(theme: ReadyMadeTheme): Omit<ReadyMadeTheme["templates"], "home"> {
+  const { home: _home, ...look } = theme.templates;
+  return look;
+}
+
+/**
  * The theme drawn for a trade, keyed by the `industry` the merchant picked at
  * signup (`INDUSTRY_TYPES` on the backend organization model).
  *

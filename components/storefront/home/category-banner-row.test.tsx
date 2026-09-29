@@ -1,14 +1,8 @@
 // coding-standard: maintained
 /**
- * `category-banners` — which collections it advertises, in what order, and what
- * it does when a pick has gone.
- *
- * The rules pinned here are the ones a reader cannot recover from the markup:
- * the merchant's ORDER is the block's order (a promo block is a merchandising
- * decision and which department leads it is the decision), an unpicked block
- * shows the first two rather than nothing (a section that renders blank looks
- * broken in the preview the merchant is staring at), and a collection that no
- * longer resolves is skipped without taking the rest of the block with it.
+ * `CategoryBannerRow` — the promo cards row the builder's `category-promo-cards`
+ * draws (it was the classic home's `category-banners` until that home was
+ * deleted, 2026-09-29): how each card is composed, sized, worded and linked.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -17,8 +11,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { CategoryBanners } from "@/components/storefront/home/sections/category-banners";
+import {
+  CategoryBannerRow,
+  type BannerRowConfig,
+} from "@/components/storefront/home/category-banner-row";
+import { CategoryStrip } from "@/components/storefront/home/category-strip";
 import type { CatalogCategory } from "@/lib/storefront-client";
+import { useStoreImageFit } from "@/services/storefront/use-image-fit";
 import { I18N } from "@/lib/storefront-i18n";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 
@@ -53,7 +52,31 @@ const withClient = (ui: React.ReactElement) =>
     </QueryClientProvider>,
   );
 
-/** Only the props `CategoryBanners` reads; the rest of `SectionProps` is unused. */
+/** The row as a section draws it: the picks resolved, the shop's image fit, the strip. */
+function Banners({
+  categories,
+  config,
+}: {
+  categories: CatalogCategory[];
+  config?: BannerRowConfig & { categoryIds?: string[] };
+}) {
+  const imageFit = useStoreImageFit();
+  // The cards under test: the ids asked for, or the first two.
+  const picked = config?.categoryIds?.length
+    ? config.categoryIds.flatMap((id) => categories.find((c) => c._id === id) ?? [])
+    : categories.slice(0, 2);
+  return (
+    <CategoryBannerRow
+      base=""
+      categories={picked}
+      config={config}
+      imageFit={imageFit}
+      defaultButtonLabel={I18N.en.shopNow}
+      renderStrip={(strip) => <CategoryStrip {...strip} />}
+    />
+  );
+}
+
 const renderBanners = (
   config?: {
     key: string;
@@ -90,60 +113,12 @@ const renderBanners = (
   },
   categories: CatalogCategory[] = CATEGORIES,
 ) =>
-  withClient(
-    <CategoryBanners
-      base=""
-      featured={[]}
-      latest={[]}
-      categories={categories}
-      campaigns={[]}
-      t={I18N.en}
-      store={{ name: "Shop" } as never}
-      config={config}
-    />,
-  );
+  withClient(<Banners categories={categories} config={config} />);
 
 const cardNames = () =>
   screen.getAllByRole("link").map((a) => a.textContent?.split("Shop now")[0]?.trim());
 
-describe("CategoryBanners", () => {
-  it("shows the first two collections before the merchant picks any", () => {
-    renderBanners();
-    expect(cardNames()).toEqual(["Skin careCleansers and serums", "Devices"]);
-  });
-
-  it("renders the merchant's picks in the merchant's order", () => {
-    renderBanners({ key: "k", categoryIds: ["b", "a"] });
-    expect(cardNames()).toEqual(["Devices", "Skin careCleansers and serums"]);
-  });
-
-  // The tree is two levels deep and a sub-collection is a legitimate thing to
-  // advertise — a flat `categories.find` would silently drop it.
-  it("resolves a sub-collection", () => {
-    renderBanners({ key: "k", categoryIds: ["c1"] });
-    expect(cardNames()).toEqual(["Hampers"]);
-  });
-
-  // Skipped, never pruned: a collection hidden for a week must come back when
-  // it returns, and the rest of the block must not vanish with it meanwhile.
-  it("skips a pick that no longer resolves and keeps the rest", () => {
-    renderBanners({ key: "k", categoryIds: ["gone", "b"] });
-    expect(cardNames()).toEqual(["Devices"]);
-  });
-
-  it("renders nothing at all when the shop has no collections", () => {
-    const { container } = renderBanners(undefined, []);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  // Four is the API's cap. Honoured on READ as well, so a document written
-  // before the cap — or by something other than the editor — cannot render a
-  // fifth card that wraps onto a row of its own.
-  it("draws at most four cards", () => {
-    renderBanners({ key: "k", categoryIds: ["a", "b", "c", "c1", "a"] });
-    expect(screen.getAllByRole("link")).toHaveLength(4);
-  });
-
+describe("CategoryBannerRow", () => {
   it("links each card at its own collection", () => {
     renderBanners({ key: "k", categoryIds: ["b"] });
     expect(screen.getByRole("link")).toHaveAttribute("href", "/devices");
@@ -356,7 +331,7 @@ describe("CategoryBanners", () => {
  * reads the half it wants. That is the thing worth pinning here: not that a
  * class exists, but that BOTH exist and that they can disagree.
  */
-describe("CategoryBanners — per-device composition", () => {
+describe("CategoryBannerRow — per-device composition", () => {
   const row = () => document.querySelector(".sf-banner-row")?.className ?? "";
   const card = () =>
     document.querySelector(".sf-banner-card") as HTMLElement | null;
@@ -442,7 +417,7 @@ describe("CategoryBanners — per-device composition", () => {
  * heading in the document, and labelling the link as well would have a desktop
  * screen reader announce the collection twice.
  */
-describe("CategoryBanners — words off", () => {
+describe("CategoryBannerRow — words off", () => {
   it("drops the copy and names the link instead", () => {
     renderBanners({ key: "k", categoryIds: ["a"], cardHideText: true, mobile: { cardHideText: true } });
     expect(document.querySelector(".sf-banner-body")).toBeNull();
@@ -472,7 +447,7 @@ describe("CategoryBanners — words off", () => {
  * The whole card has always been the anchor — the button was only ever its
  * visible half — so a picture-only card loses nothing but the pill.
  */
-describe("CategoryBanners — the button", () => {
+describe("CategoryBannerRow — the button", () => {
   it("still links the whole card with the button switched off", () => {
     renderBanners({ key: "k", categoryIds: ["a"], showCta: false });
     expect(screen.queryByText("Shop now")).toBeNull();
@@ -489,7 +464,7 @@ describe("CategoryBanners — the button", () => {
  * `storeLinkHref` is the helper the hero slides, the announcement bar and the
  * product rows all already use.
  */
-describe("CategoryBanners — where a card's own link goes", () => {
+describe("CategoryBannerRow — where a card's own link goes", () => {
   const hrefFor = (buttonHref: string, base = "") => {
     renderBanners({
       key: "k",
@@ -528,7 +503,7 @@ describe("CategoryBanners — where a card's own link goes", () => {
  * shrinks to a column instead of running the card's width — so the component
  * emits `--sf-bc-ratio: auto` alongside the height.
  */
-describe("CategoryBanners — card height", () => {
+describe("CategoryBannerRow — card height", () => {
   const card = () => document.querySelector(".sf-banner-card") as HTMLElement;
 
   /* The height fills its screen's SLOT and the card wears a `--fixedh-*` class;
@@ -580,7 +555,7 @@ describe("CategoryBanners — card height", () => {
  * When neither screen scrolls, none of that machinery is mounted at all — which
  * is the half worth pinning, because it is invisible.
  */
-describe("CategoryBanners — row style", () => {
+describe("CategoryBannerRow — row style", () => {
   const row = () => document.querySelector(".sf-banner-row") as HTMLElement;
 
   it("mounts no scroller for a plain grid row", () => {
@@ -628,7 +603,7 @@ describe("CategoryBanners — row style", () => {
  * Corners are a BRAND decision made once in Design → Corners, so an untouched
  * row has to keep reading the theme token rather than a number baked in here.
  */
-describe("CategoryBanners — corners", () => {
+describe("CategoryBannerRow — corners", () => {
   const card = () => document.querySelector(".sf-banner-card") as HTMLElement;
 
   it("follows the shop's own corner setting by default", () => {
@@ -663,7 +638,7 @@ describe("CategoryBanners — corners", () => {
  * generates the box, and the rules select by that class rather than by
  * position.
  */
-describe("CategoryBanners — the stylesheet's handle on the picture", () => {
+describe("CategoryBannerRow — the stylesheet's handle on the picture", () => {
   const media = () => document.querySelector(".sf-banner-media");
 
   /* Both photo branches, because they produce DIFFERENT elements and only one

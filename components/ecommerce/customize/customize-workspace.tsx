@@ -194,7 +194,6 @@ export function CustomizeWorkspace({
           // While the panel is open, force-preview its own subject even if the
           // saved setting points elsewhere — otherwise reordering collections
           // changes nothing on screen.
-          forceHeroSlides={false}
           forceCollectionsMenu={collectionsPanel}
           // The contact button's number lives in Settings → General, not in this
           // draft, so the preview needs it to mirror the blank-number fallback.
@@ -203,7 +202,6 @@ export function CustomizeWorkspace({
           // straight off `settings` (already refreshed by the mutation) rather
           // than from the draft.
           logo={settings.logo ?? orgLogo ?? null}
-          banner={settings.banner ?? null}
           // Raw, with no fallback chain: the storefront falls back from this to
           // the desktop logo itself, so resolving it here would make removing
           // the phone mark preview as though nothing had changed.

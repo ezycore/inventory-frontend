@@ -271,10 +271,9 @@ The **style box** every section shares is declared beside them in
   `hero-static.tsx`, `hero-links.tsx`, plus the client `deal-strip.tsx` and `hero-fullbleed.tsx` (loaded
   through islands). **A server view must not render a component from `home-shared.tsx`**: that client
   module imports `ProductCard`, and its chunk would ship on every builder page (why the hero links and
-  `wrap` moved out; `home-shared.tsx` re-exports them). A shared row takes its scrolling track as
-  `renderStrip`: `CategoryStrip` on the home page, the `category-strip` island on a builder page. The
-  category-row layout helpers (`category-row-layout.ts`) are directive-free; the Customize-aware hook is
-  `use-category-row-layout.ts`. Merchant-typed links resolve through `merchantLinkHref` (`lib/storefront-links.ts`,
+  `wrap` live in their own files). A shared row takes its scrolling track as `renderStrip`, drawn by the
+  `category-strip` island on a builder page. The category-row layout helpers (`category-row-layout.ts`)
+  are directive-free. Merchant-typed links resolve through `merchantLinkHref` (`lib/storefront-links.ts`,
   which keeps `tel:` and `mailto:`), via `section-link.tsx` or `hero-links.tsx`; references to tags and
   categories through `lib/storefront-builder/store-lists.ts`. **A function a server view calls must
   not be exported from a `"use client"` module** — it is a client reference there and fails at render,
@@ -1003,9 +1002,12 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
   admin: the Pages row actions and `components/ecommerce/pages/homepage-dialog.tsx`). `proxy.ts` rewrites
   the store's front door (`isStoreHomePath`) to `sites/[slug]/[mode]/home`, or `preview-home` under a
   preview token, only when `storeHomePageExists` (`lib/storefront-page-lookup.ts`, over
-  `GET /page?path=/`) says so — and never under `?preview=1`, so Customize's frame keeps editing the
-  Customize home while `LandingHomeNotice` tells the merchant shoppers don't see it. The front door keeps
-  the store's own metadata (`buildStoreHomeMetadata`, shared with `shop/page.tsx`, plus
+  `GET /page?path=/`) says so. The same rewrite serves the store's builder `home` system page, and it
+  applies inside Customize's frame (`?preview=1`) too, so Customize previews the home shoppers get.
+  A store with neither falls through to `shop/page.tsx`, which answers 404 — the classic home it drew
+  was deleted on 2026-09-29 — and a failed lookup answers "exists" for 10s, so a backend blip keeps the
+  cached home rather than 404ing it. The front door keeps
+  the store's own metadata (`buildStoreHomeMetadata`, plus
   `StoreHomeJsonLd`); the page's own address goes noindex while it is home. `storefront.home.changed`
   flushes `site` and `content`, and the revalidate route calls `forgetStoreLookups`, so the proxy's
   remembered answers go with the flush. **A new internal `/sites` segment must map back in
@@ -1038,7 +1040,8 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     backend's `SYSTEM_PATHS`. The shared product page is previewed around the store's first product
     (`usePreviewProductSlug`).
   - **The builder flag.** At `/` and at a system route, the frame adds `builder=1`
-    (`PREVIEW_BUILDER_PARAM`), because plain `?preview=1` there is the Customize frame. `proxy.ts` turns
+    (`PREVIEW_BUILDER_PARAM`), because plain `?preview=1` there is the Customize frame, which shows the
+    SAVED page and streams only the look. `proxy.ts` turns
     it into `x-ezy-store-preview-builder`, only beside a preview token.
   - **Drawing the draft.** `SystemPage` then draws through `BuilderPagePreview` (`isBuilderPreviewFrame()`).
   - ⚠ **Pass the page context through.** `SystemPage` hands `pageContext`/`product` to
@@ -1213,8 +1216,9 @@ classic behaviour back — `storeHeading`, `viewAll`, `storeWords`, `storeBanner
 `promises`, `storePromises`, `slideshow`, `wholeRows`. Dictionary words go through the `store-word` island
 (`lib/storefront-builder/store-words.ts`), never baked into a cached server view, so a Bangla shopper still
 sees Bangla. A section type's classic padding and band is its `frame` in `section-registry.tsx`. The backend's
-`convertClassicHome` mirrors `HOME_PRESET_SECTIONS`, `resolveSections`, `sectionRow`/`sectionQuery` and
-`resolveHomeCollections` — change a classic home rule and you change that converter too.
+`convertClassicHome` mirrored `HOME_PRESET_SECTIONS`, `resolveSections`, `sectionRow`/`sectionQuery` and
+`resolveHomeCollections`; since the classic home was deleted (2026-09-29) only the backend converter
+holds those rules.
 
 **Rules, each of which was a real defect:**
 
@@ -1335,6 +1339,16 @@ Do not restate the gate table here.
 
 ### The homepage is a SECTION LIST, not a template (2026-08-12)
 
+> ⚠ **HISTORY — the classic home is DELETED (2026-09-29).** Every store's `/` is its `home` builder
+> page (Pages → Home); a store without one answers 404 (`app/(storefront)/shop/page.tsx`). Gone with it:
+> the section registry, `store-home.tsx`, the `home/sections/*` wrappers, `home-collections.tsx`,
+> `use-category-row-layout.ts`, `resolveSections` / `sectionInstances` / `mergeSectionConfig`,
+> `configuredSections` / `sectionQuery` / `sectionSignature` / `orderByIds` / `sectionTitle`,
+> `resolveHomePrimaryHeading`, `isSectionId`, the product/offer/promise preview samples, and the preview
+> store's home-only draft fields. The shared views the builder draws (heroes, promise rows, deal strip,
+> promo cards, tiles, strips, `Grid`) remain in `components/storefront/home/`. What follows, down to the
+> theme catalogue, is kept as the record of why those views behave as they do.
+
 `components/storefront/home/home-sections.tsx` is the id → component registry; `StoreHome` is a loop
 over `resolveSections(store, { draft, sectionConfig, isSectionId, presets })`. **`templates.home` now
 selects a *default section list* (`HOME_PRESET_SECTIONS`), not a component.**
@@ -1351,14 +1365,11 @@ decision on 2026-08-16 after being re-added once (`a7e2553`) and re-deleted. The
 `HOME_PRESET_SECTIONS` keys, so `templates.home: "classic"` still resolves; it just names a starting
 section list now instead of a component.
 
-⚠ **The Customize picker must SEED the list — `api.patchHomeTemplate`, never
-`patchTemplate("home", …)`** (browser QA, 2026-08-17). `resolveSections` reads the preset only as the
-fallback for an *empty* `homepageSections`, and no store has one (applying any theme fills it via
-`sectionInstances(theme.sections)`). So the plain template write marked the part dirty, saved, and
-changed nothing a shopper could see — the whole "Starting layout" picker was inert on every theme.
-`patchHomeTemplate` writes the key *and* reseeds the list from `HOME_PRESET_SECTIONS`, exactly the
-way `applyThemeToDraft` does. It leaves `sectionConfig` alone, for the same reason a theme apply
-does.
+Nothing in the admin writes the classic home's shape any more (2026-09-29): the "Starting layout"
+picker left Customize with the other home rows on 2026-09-20, and `patchHomeTemplate` /
+`applyHomeTemplateToDraft` went with it; a theme apply no longer writes `templates.home`,
+`homepageSections`, `sectionConfig`, `heroAlign` or `homeCollections` either (see "applyThemeToDraft"
+below). The classic renderers themselves were deleted the same day.
 
 ### Three heroes, one collections row, one tag row (2026-09-06)
 
@@ -2576,18 +2587,16 @@ with no live campaign, `trust-band` with no `trustBadges`. So the themes rendere
 near-identical empty shells at exactly the moment the choice is made, and Meridian Care lost the
 department rail that is the whole reason to pick it.
 
-`lib/storefront-preview-samples.ts` fills those gaps, and `lib/storefront-theme-samples.ts` decides
-**with what** — a `ThemeSample` (categories, products, promises, campaign) carried by each bundle, so
-Meridian previews as a pharmacy, Fresh Market as a grocery and Little Steps as a baby shop.
-Illustrations live in `public/samples/`.
-The campaign's `endsAt` is computed at render, never stored: a date baked into a bundle would preview
-an offer that expired months ago.
+`lib/storefront-preview-samples.ts` fills that gap (`padCategoriesForPreview`), and
+`lib/storefront-theme-samples.ts` decides **with what** — a `ThemeSample` of departments carried by each
+bundle, so Meridian previews over pharmacy departments. Until 2026-09-29 it also carried products,
+promises and a campaign for the classic home's sections, with illustrations in `public/samples/`;
+those went with that home.
 
 Four rules, none of them optional:
 
 - **Preview only.** Gated on the preview store's `active` flag, which is set only under `?preview=1`.
-- **Fills gaps, never replaces.** Real products, categories, campaigns and badges always win, and
-  padding is appended AFTER the merchant's own so nothing is displaced or reordered.
+- **Fills gaps, never replaces.** A shop's real categories always win.
 - **Only the Themes page sends samples.** `toPreviewPayload` takes them as an option and Customize
   omits it — that page previews a *real* shop being edited, and padding it would show a merchant
   stock they do not have.
@@ -2595,8 +2604,7 @@ Four rules, none of them optional:
   exactly as `badges` and `collections` do. A fifth theme adds a fifth sample set and changes no
   component.
 
-Sample product names are prefixed "Sample", which is what lets the rest of the content be realistic;
-departments and promises are not, because prefixing every rail entry would wreck the layout being
+Sample departments are not labelled, because prefixing every rail entry would wreck the layout being
 judged. The disclosure is made once, in `ThemeStage`'s admin chrome — **not** as a banner inside the
 preview, which would paint over the very thing the merchant is trying to look at.
 
@@ -2957,7 +2965,12 @@ the URL in an effect so a reload after Discard cannot silently re-stage a reject
 
 **`applyThemeToDraft` is the one place that decides what a theme may write** — it returns only look
 fields, and `apply-theme.test.ts` asserts that none of `footerText`/`footerNote`/`badges`/
-`heroSlides`/`navHeader`/`footerGroups`/`collections` appear in the patch. `templates` is **spread**,
+`heroSlides`/`navHeader`/`footerGroups`/`collections` appear in the patch. **Nor the home page**
+(2026-09-29): every live store's home is a builder page (Pages → Home) that reads none of the classic
+home's shape, so a theme is look only — `themeLookTemplates` (`lib/storefront-themes.ts`) drops
+`templates.home`, and the patch carries no `homepageSections`/`sectionConfig`/`heroAlign`/
+`homeCollections`. The Themes page's "Edited" badge compares through the same helper. A bundle's
+`sections`, `homeCollections` and `heroAlign` remain as catalogue data only. `templates` is **spread**,
 never replaced: the bundles deliberately omit `hero`, `headerMenu` and `checkout` because those
 depend on what content a shop actually has (forcing `hero: "slides"` on a shop with no slides shows
 the placeholder hero), and a wholesale replace would blank them.

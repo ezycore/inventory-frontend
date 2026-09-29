@@ -1,187 +1,66 @@
+// coding-standard: maintained
+/**
+ * The hero views the builder's hero section and its full-bleed islands draw.
+ *
+ * Moved from the classic home's `hero-sections.test.tsx` when that home was
+ * deleted (2026-09-29). Its section wrappers went with it; the harnesses below
+ * pass the views exactly what those wrappers did, so every assertion still
+ * reads the shared renderer.
+ */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import {
-  HeroCard,
-  HeroFullBleed,
-  HeroOpen,
-} from "@/components/storefront/home/sections/hero-sections";
-import type { SectionProps } from "@/components/storefront/home/home-shared";
+import type { Dict } from "@/lib/storefront-i18n";
+import type { StoreHeroBanner, StoreHeroSlide, StorefrontStore } from "@/lib/storefront-client";
+import { focalPosition } from "@/lib/storefront-focal";
+import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
+import { HeroSlidesView } from "@/components/storefront/hero-slides";
+import { HeroFullBleedView } from "@/components/storefront/home/hero-fullbleed";
+
+/** What the classic home's hero sections were handed. */
+interface SectionProps {
+  base: string;
+  t: Dict;
+  banner?: string;
+  heroSlides?: StoreHeroSlide[];
+  heroBanner?: StoreHeroBanner;
+  store: StorefrontStore;
+}
 
 const props = {
   base: "/shop",
-  featured: [],
-  latest: [],
-  categories: [],
-  campaigns: [],
   t: {
     shopNow: "Shop now",
   },
   store: { name: "My Store", trustBadges: [] },
 } as SectionProps;
 
-/**
- * ⚠ **The classic home is what LIVE shops render**, and it shares every hero
- * renderer with the Storefront Builder (plan §0.3 of
- * `storefront-hero-shape-controls.md`). The builder's shape and placement
- * settings reach those views as props these callers do not pass, and every one
- * of them is inert when unset — the stylesheet's rules are all gated on a
- * `data-` attribute the builder alone emits.
- *
- * This asserts the ABSENCE, because absence is the whole promise: an attribute
- * that leaked here would hand a live shop a shape, a placement or a phone-copy
- * rule its owner never chose, and no other test in this file would notice.
- */
-describe("the classic home stays untouched by the builder's hero settings", () => {
-  const BUILDER_ONLY = [
-    "data-frame",
-    "data-frame-m",
-    "data-media-side",
-    "data-mobile-first",
-    "data-mobile-copy",
-  ];
+/** A full-bleed hero, fed the way a section feeds it. */
+function HeroFullBleed({ base, t, banner, heroSlides, heroBanner: hb, store }: SectionProps) {
+  return (
+    <HeroFullBleedView
+      base={base}
+      slides={heroSlides ?? []}
+      storeName={store.name}
+      fallback={{
+        image: banner || hb?.mobileImage,
+        mobileImage: hb?.mobileImage,
+        fit: isImageFit(hb?.imageFit) ? mediaFitFor(hb.imageFit) : "cover",
+        focal: focalPosition(hb?.focal),
+        mobileFocal: focalPosition(hb?.mobileFocal || hb?.focal),
+        badge: hb?.badge?.trim(),
+        title: hb?.title?.trim() || store.name,
+        subtitle: hb?.subtitle?.trim(),
+        ctaLabel: hb?.primaryLabel?.trim() || t.startShopping,
+        link: hb?.primaryLink,
+      }}
+    />
+  );
+}
 
-  it.each([
-    ["HeroCard", HeroCard],
-    ["HeroOpen", HeroOpen],
-    ["HeroFullBleed", HeroFullBleed],
-  ])("%s emits no builder-only attribute and no shape variable", (_name, Hero) => {
-    const { container } = render(<Hero {...props} />);
-    for (const attr of BUILDER_ONLY) {
-      expect(container.querySelector(`[${attr}]`)).toBeNull();
-    }
-    // The variables travel with the attributes; neither may appear here.
-    expect(container.innerHTML).not.toContain("--sfb-hero-frame");
-    expect(container.innerHTML).not.toContain("--sfb-hero-pad");
-  });
-});
-
-describe("HeroCard", () => {
-  it("uses merchant identity without inventing a sale or promise", () => {
-    render(<HeroCard {...props} />);
-
-    expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toBeInTheDocument();
-    expect(screen.queryByText(/sale|discount|authentic|delivery/i)).not.toBeInTheDocument();
-  });
-
-  it("renders a promise only when the merchant supplied it", () => {
-    render(
-      <HeroCard
-        {...props}
-        store={{ ...props.store, trustBadges: [{ text: "Pickup available" }] }}
-      />,
-    );
-
-    expect(screen.getByText("Pickup available")).toBeInTheDocument();
-  });
-
-  it("renders an image-only slide as a card, without an invented copy overlay", () => {
-    const { container } = render(
-      <HeroCard
-        {...props}
-        heroSlides={[{ image: { url: "/artwork.jpg" } }]}
-      />,
-    );
-
-    /* Decision D1: a shop that chose the framed card keeps it once slides
-       exist. This used to render `HeroCarousel` — `.sf-hero-media` over a dark
-       scrim, edge to edge — which is a different section from the one the
-       merchant picked. */
-    expect(container.querySelector(".sf-herocard")).toBeInTheDocument();
-    expect(container.querySelector(".sf-hero-media")).not.toBeInTheDocument();
-    expect(container.querySelector(".sf-hero-scrim")).not.toBeInTheDocument();
-    expect(container.querySelector("img")?.getAttribute("src")).toContain("artwork.jpg");
-    expect(screen.getByRole("heading", { level: 1, name: "My Store" })).toHaveClass(
-      "sf-visually-hidden",
-    );
-
-    /* ⚠ The assertion this test was missing until 2026-09-21, which is why the
-       void column reached production. The card is a `grid-template-areas`
-       layout: an EMPTY copy child still holds its track, so the photograph
-       renders in half a card. The collapse rule beside `.sf-herocard` keys off
-       the child's absence, so absence is what has to be asserted — "the copy is
-       empty" is not the same promise and is the one that shipped. */
-    expect(container.querySelector(".sf-herocard-copy")).toBeNull();
-    expect(container.querySelector(".sf-herocard-media")).toBeInTheDocument();
-
-    /* ⚠ And the TRUST child's absence, for the same reason and a second rule.
-       Collapsing the copy took the column back but left the card's two rows and
-       the 24px `row-gap` between them, so an image-only card rendered 25px
-       taller than its picture and the extra showed as a white strip under the
-       photograph. The gap rule keys off BOTH children being absent; asserting
-       only the copy is the same half-promise that let the first one ship.
-       Found on the UriiBaba clone at desktop width — jsdom does no layout, so
-       no test can see the strip itself, only the DOM the selector reads. */
-    expect(container.querySelector(".sf-herocard-trust")).toBeNull();
-  });
-
-  it("keeps the open hero open, and the store's promises under the card, once slides exist", () => {
-    const slides = [{ title: "First" }, { title: "Second" }];
-    const card = render(
-      <HeroCard
-        {...props}
-        store={{ ...props.store, trustBadges: [{ text: "Pickup available" }] }}
-        heroSlides={slides}
-      />,
-    );
-    expect(card.container.querySelector(".sf-herocard-trust")?.textContent).toContain(
-      "Pickup available",
-    );
-    // Two slides rotate: one dot each, under the card rather than on it.
-    expect(card.container.querySelectorAll(".sf-heroslides-dots button")).toHaveLength(2);
-
-    const open = render(<HeroOpen {...props} heroSlides={slides} />);
-    expect(open.container.querySelector(".sf-heroopen")).toBeInTheDocument();
-    expect(open.container.querySelector(".sf-herocard")).toBeNull();
-  });
-
-  it("uses mobile artwork when no desktop banner exists", () => {
-    const { container } = render(
-      <HeroCard
-        {...props}
-        heroBanner={{ mobileImage: { url: "/mobile-banner.jpg" } }}
-      />,
-    );
-
-    expect(container.querySelector('.sf-herocard-media img[src="/mobile-banner.jpg"]'))
-      .toBeInTheDocument();
-  });
-});
-
-/**
- * The alignment that replaced the `hero-manifesto` SECTION.
- *
- * The failure to watch for is a half-centred hero: a centred headline over a
- * button row still pinned hard left, which reads as a layout bug rather than a
- * choice. The buttons are flex children, so `textAlign` alone does not move
- * them — `heroBtns` takes the alignment and sets `justifyContent`.
- */
-describe("HeroOpen alignment", () => {
-  const banner = { title: "Handmade in Dhaka", subtitle: "Small batches." };
-
-  it("is left-aligned when the merchant has never chosen", () => {
-    const { container } = render(<HeroOpen {...props} heroBanner={banner} />);
-    expect(container.querySelector('[style*="text-align: center"]')).toBeNull();
-  });
-
-  it("centres the copy AND the buttons under it", () => {
-    const { container } = render(
-      <HeroOpen {...props} heroBanner={banner} heroAlign="center" />,
-    );
-    expect(container.querySelector('[style*="text-align: center"]')).toBeInTheDocument();
-    expect(
-      container.querySelector('[style*="justify-content: center"]'),
-    ).toBeInTheDocument();
-  });
-
-  // What `hero-manifesto` was: centred, no picture, one column. The merchant
-  // keeps the banner they uploaded instead of the section discarding it.
-  it("still shows the banner when centred", () => {
-    const { container } = render(
-      <HeroOpen {...props} heroBanner={banner} heroAlign="center" banner="/banner.jpg" />,
-    );
-    expect(container.querySelector("img")).toBeInTheDocument();
-  });
-});
+/** A card or open hero with slides. */
+const Slides = ({ layout, slides }: { layout: "card" | "open"; slides: SectionProps["heroSlides"] }) => (
+  <HeroSlidesView base="/shop" slides={slides ?? []} storeName="My Store" layout={layout} promises={[]} />
+);
 
 describe("HeroFullBleed", () => {
   /* Moved here from `HeroSplit` when that section retired: this is the only
@@ -387,7 +266,7 @@ describe("a hero with a picture and nothing to say", () => {
   const imageOnly = [{ image: { url: "/banner.jpg" } }] as SectionProps["heroSlides"];
 
   it("gives the card's whole width to the picture", () => {
-    const { container } = render(<HeroCard {...props} heroSlides={imageOnly} />);
+    const { container } = render(<Slides layout="card" slides={imageOnly} />);
     expect(container.querySelector(".sf-herocard-copy")).toBeNull();
     expect(container.querySelector(".sf-herocard-media")).toBeInTheDocument();
     // The page keeps a heading; it is simply not a column.
@@ -395,7 +274,7 @@ describe("a hero with a picture and nothing to say", () => {
   });
 
   it("gives the open hero's whole width to the picture", () => {
-    const { container } = render(<HeroOpen {...props} heroSlides={imageOnly} />);
+    const { container } = render(<Slides layout="open" slides={imageOnly} />);
     expect(container.querySelector(".sf-heroopen-copy")).toBeNull();
     /* The open hero's columns are INLINE — a stylesheet cannot reach them — so
        the collapse has to be in the style attribute, not in a rule. */
@@ -408,10 +287,10 @@ describe("a hero with a picture and nothing to say", () => {
     const withCopy = [
       { image: { url: "/banner.jpg" }, title: "Winter sale" },
     ] as SectionProps["heroSlides"];
-    const card = render(<HeroCard {...props} heroSlides={withCopy} />);
+    const card = render(<Slides layout="card" slides={withCopy} />);
     expect(card.container.querySelector(".sf-herocard-copy")).toBeInTheDocument();
 
-    const open = render(<HeroOpen {...props} heroSlides={withCopy} />);
+    const open = render(<Slides layout="open" slides={withCopy} />);
     expect(open.container.querySelector(".sf-heroopen-copy")).toBeInTheDocument();
     expect(
       open.container.querySelector<HTMLElement>(".sf-heroopen")?.style.gridTemplateColumns,
@@ -425,7 +304,7 @@ describe("a hero with a picture and nothing to say", () => {
       { image: { url: "/b.jpg" }, buttonLabel: "Shop" },
     ]) {
       const { container, unmount } = render(
-        <HeroCard {...props} heroSlides={[slide] as SectionProps["heroSlides"]} />,
+        <Slides layout="card" slides={[slide] as SectionProps["heroSlides"]} />,
       );
       expect(container.querySelector(".sf-herocard-copy")).toBeInTheDocument();
       unmount();

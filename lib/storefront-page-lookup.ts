@@ -2,7 +2,7 @@
 /**
  * What `proxy.ts` asks before it sends a store request to a cached `/sites`
  * route: does this store serve a page at `/pages/<slug>` (`storePageExists`), and
- * does it draw a landing page at its `/` (`storeHomePageExists`)?
+ * does it have a home page to draw at its `/` (`storeHomePageExists`)?
  *
  * **Why the proxy has to know.** A cached (ISR) render that calls `notFound()`
  * cannot draw the storefront's own 404: Next 16.1 answers it with its bare error
@@ -12,9 +12,10 @@
  * renders the real 404 inside the store's chrome, so only pages that exist are
  * sent to the cache and everything else stays where a 404 looks like the shop.
  *
- * The homepage is the same question about `/`: it is the Customize home, drawn
- * by the request-reading `shop` route, unless the merchant chose a landing page
- * (backend `settings.homePageId`, answered by `GET /page?path=/`).
+ * The homepage is the same question about `/`: the store's `home` builder page,
+ * or the landing page the merchant chose (backend `settings.homePageId`), both
+ * answered by `GET /page?path=/`. A store with neither falls through to the
+ * `shop` route, which answers 404.
  *
  * Asks the public endpoints the cached routes render from: the builder page (a
  * rename redirect counts — the cached route answers it with a 308), then the
@@ -25,11 +26,12 @@
  *    for at most a minute.
  *  - **A missing page is never cached,** so a page published a second ago is
  *    served at once, and a dead link always gets the shop's 404.
- *  - **"No landing homepage" for 15s.** Unlike a page address, every visit to a
- *    shop's front door asks, so the usual answer has to be remembered.
- *  - **An API failure** answers "exists" for a page, for 10s: the cached route can
- *    still serve the HTML it has while the backend blips. For the homepage it
- *    answers "no", for 10s — the Customize home is the route that needs no page.
+ *  - **"No homepage" for 15s.** Unlike a page address, every visit to a shop's
+ *    front door asks, so a store without one is remembered too.
+ *  - **An API failure** answers "exists", for 10s, for a page and the homepage
+ *    alike: the cached route can still serve the HTML it has while the backend
+ *    blips. The homepage answered "no" until 2026-09-29, when the classic home
+ *    it fell back to was deleted — "no" is a 404 now.
  *  - **An owner preview is never cached.** It asks with the owner's token, which
  *    can see a shop the public cannot.
  *
@@ -104,14 +106,14 @@ export async function storePageExists(slug: string, pageSlug: string): Promise<b
   return answer !== "missing" || builder === "error";
 }
 
-/** Does this store draw a landing page at its `/`? Pass the owner's preview token to ask as them. */
+/** Does this store have a home page at its `/`? Pass the owner's preview token to ask as them. */
 export async function storeHomePageExists(
   slug: string,
   previewToken?: string | null,
 ): Promise<boolean> {
   const url = builderPageUrl(slug, "/");
   if (previewToken) {
-    return (await probe(url, { [PREVIEW_API_HEADER]: previewToken })) === "found";
+    return (await probe(url, { [PREVIEW_API_HEADER]: previewToken })) !== "missing";
   }
 
   // No page slug is empty, so this key can only ever mean the homepage.
@@ -121,8 +123,8 @@ export async function storeHomePageExists(
 
   const answer = await probe(url);
   const ttl = answer === "found" ? HIT_TTL_MS : answer === "missing" ? NO_HOME_TTL_MS : ERROR_TTL_MS;
-  remember(key, answer === "found", ttl);
-  return answer === "found";
+  remember(key, answer !== "missing", ttl);
+  return answer !== "missing";
 }
 
 /** Forget every answer about one store — its pages and its homepage. */

@@ -70,7 +70,7 @@ describe("storeHomePageExists", () => {
   beforeEach(() => vi.useRealTimers());
   afterEach(() => vi.unstubAllGlobals());
 
-  it("asks the page read for / and remembers a landing homepage", async () => {
+  it("asks the page read for / and remembers the homepage", async () => {
     const { storeHomePageExists, fetchMock } = await load({ home: 200 });
     expect(await storeHomePageExists("rafi5")).toBe(true);
     expect(await storeHomePageExists("rafi5")).toBe(true);
@@ -89,11 +89,15 @@ describe("storeHomePageExists", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("falls back to the Customize home while the API fails", async () => {
+  // There is no classic home to fall back to any more: "no" is a 404, so a
+  // backend blip keeps the cached home route serving what it already has.
+  it("keeps the home while the API fails", async () => {
     const down = await load({ home: 503 });
-    expect(await down.storeHomePageExists("rafi5")).toBe(false);
+    expect(await down.storeHomePageExists("rafi5")).toBe(true);
     const unreachable = await load({ home: new Error("ECONNREFUSED") });
-    expect(await unreachable.storeHomePageExists("rafi5")).toBe(false);
+    expect(await unreachable.storeHomePageExists("rafi5")).toBe(true);
+    const preview = await load({ home: 503 });
+    expect(await preview.storeHomePageExists("rafi5", "token-1")).toBe(true);
   });
 
   it("asks as the owner under preview, and never remembers that answer", async () => {

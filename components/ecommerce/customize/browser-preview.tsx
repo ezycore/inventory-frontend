@@ -60,12 +60,10 @@ export function BrowserPreview({
   published,
   draft,
   logo,
-  banner,
   mobileLogo = null,
   page,
   onPageChange,
-  /** Force the preview to show slides / collections while their panel is open. */
-  forceHeroSlides,
+  /** Force the preview to show the collections menu while its panel is open. */
   forceCollectionsMenu,
   socialWhatsapp,
   hasCollections = true,
@@ -83,7 +81,6 @@ export function BrowserPreview({
   draft: CustomizeDraft;
   /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
   logo: Image | null;
-  banner: Image | null;
   /**
    * The merchant's phone artwork, raw — deliberately NOT resolved to the desktop
    * logo. The storefront owns that fallback, so resolving it here would make
@@ -92,7 +89,6 @@ export function BrowserPreview({
   mobileLogo?: Image | null;
   page: PreviewPage;
   onPageChange: (page: PreviewPage) => void;
-  forceHeroSlides: boolean;
   forceCollectionsMenu: boolean;
   /** Settings → General number, so the preview mirrors the blank-number fallback. */
   socialWhatsapp?: string;
@@ -219,8 +215,6 @@ export function BrowserPreview({
     () =>
       toPreviewPayload(draft, {
         logo,
-        banner,
-        forceHeroSlides,
         forceCollectionsMenu,
         socialWhatsapp,
         hasCollections,
@@ -230,9 +224,7 @@ export function BrowserPreview({
     [
       draft,
       logo,
-      banner,
       mobileLogo,
-      forceHeroSlides,
       forceCollectionsMenu,
       socialWhatsapp,
       hasCollections,

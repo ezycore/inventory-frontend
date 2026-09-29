@@ -3,7 +3,11 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { READY_MADE_THEMES, recommendedThemeFor } from "@/lib/storefront-themes";
+import {
+  READY_MADE_THEMES,
+  recommendedThemeFor,
+  themeLookTemplates,
+} from "@/lib/storefront-themes";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { resolveDesign } from "@/lib/storefront-theme";
 import { ThemeList } from "@/components/ecommerce/themes/theme-list";
@@ -111,7 +115,7 @@ function useThemeModified(settings: StorefrontSettings | undefined): boolean {
   if (JSON.stringify(resolveDesign(saved.design)) !== JSON.stringify(resolveDesign(theme.design))) {
     return true;
   }
-  return Object.entries(theme.templates).some(
+  return Object.entries(themeLookTemplates(theme)).some(
     ([key, value]) => savedTemplates[key] !== value,
   );
 }

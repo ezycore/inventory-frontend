@@ -237,28 +237,23 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    // ---- A landing page as the homepage ----
+    // ---- The homepage ----
     //
-    // The store's front door is the Customize home, drawn by the request-reading
-    // `shop` route, unless the merchant chose a landing page for it (backend
-    // `settings.homePageId`). Then it goes to the home routes beside the page
-    // routes: the cached one, or under owner preview the one that reads the token
-    // — and the question is asked with that token, since an unpublished shop
-    // answers only its owner.
+    // A store's front door is its `home` builder page, or the landing page the
+    // merchant chose for it (backend `settings.homePageId`) — the backend answers
+    // `/` with whichever applies. Both draw on the home routes beside the page
+    // routes: the cached one, or under owner preview the one that reads the
+    // token — and the question is asked with that token, since an unpublished
+    // shop answers only its owner. A store with neither falls through to the
+    // `shop` route, which answers 404: the classic home it used to draw was
+    // deleted on 2026-09-29.
     //
-    // The same routes draw the store's `home` system page, once its classic home has
-    // moved onto the builder (the backend answers `/` with whichever applies).
-    //
-    // Never inside the Customize editor's frame (`?preview=1`): that frame edits
-    // the Customize home, which the shop draws again once the choice is cleared.
-    // The page editor's frame of a builder home says so (`builder=1`) and is let
-    // through, since it streams that page's unsaved sections.
-    const search = request.nextUrl.searchParams;
-    const customizeFrame = search.get("preview") === "1" && search.get(PREVIEW_BUILDER_PARAM) !== "1";
+    // The Customize editor's frame (`?preview=1`) takes this path too, so it
+    // shows the home shoppers get. Its look draft streams in through the
+    // shell's `StorePreviewBridge`.
     if (
       (request.method === "GET" || request.method === "HEAD") &&
       isStoreHomePath(store, pathname) &&
-      !customizeFrame &&
       (await storeHomePageExists(store.slug, previewToken))
     ) {
       const url = request.nextUrl.clone();

@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { READY_MADE_THEMES } from "@/lib/storefront-themes";
-import {
-  HOME_PRESET_SECTIONS,
-  SECTION_IDS,
-  resolveHomePrimaryHeading,
-} from "@/lib/storefront-section-ids";
-import { sectionInstances } from "@/lib/storefront-templates";
+import { HOME_PRESET_SECTIONS, SECTION_IDS } from "@/lib/storefront-section-ids";
 
 describe("storefront section availability", () => {
   it("does not expose sections backed by invented promotional claims", () => {
@@ -16,47 +10,5 @@ describe("storefront section availability", () => {
       expect(sections).not.toContain("trust-row");
       expect(sections).not.toContain("promo-tiles");
     }
-  });
-});
-
-describe("resolveHomePrimaryHeading", () => {
-  const sectionsFor = (themeId: string) => {
-    const theme = READY_MADE_THEMES.find((candidate) => candidate.id === themeId);
-    if (!theme) throw new Error(`Missing theme: ${themeId}`);
-    // Minted the way the storefront mints them — a theme entry may be an
-    // object carrying config, where a template literal would key the section
-    // "[object Object]-3".
-    return sectionInstances(theme.sections).sections;
-  };
-
-  it("keeps the built-in hero heading for Classic and Fresh Market", () => {
-    expect(resolveHomePrimaryHeading(sectionsFor("classic"))).toEqual({
-      useHiddenStoreName: false,
-    });
-    expect(resolveHomePrimaryHeading(sectionsFor("fresh-market"))).toEqual({
-      useHiddenStoreName: false,
-    });
-  });
-
-  it("promotes Muslin's editorial headline", () => {
-    expect(resolveHomePrimaryHeading(sectionsFor("muslin"))).toEqual({
-      editorialKey: "editorial-split-0",
-      useHiddenStoreName: false,
-    });
-  });
-
-  it("gives Meridian Care a hidden store-name heading", () => {
-    expect(resolveHomePrimaryHeading(sectionsFor("meridian-care"))).toEqual({
-      useHiddenStoreName: true,
-    });
-  });
-
-  it("does not promote editorial copy when a hero already owns the heading", () => {
-    expect(
-      resolveHomePrimaryHeading([
-        { key: "editorial", type: "editorial-split" },
-        { key: "hero", type: "hero-card" },
-      ]),
-    ).toEqual({ useHiddenStoreName: false });
   });
 });

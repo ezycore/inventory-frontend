@@ -11,13 +11,15 @@ import {
   type StorefrontSite,
 } from "@/services/api";
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
-import { getReadyMadeTheme, type ReadyMadeTheme } from "@/lib/storefront-themes";
+import {
+  getReadyMadeTheme,
+  themeLookTemplates,
+  type ReadyMadeTheme,
+} from "@/lib/storefront-themes";
 import {
   resolveHeaderMenu,
   resolveHeroAlign,
-  sectionInstances,
 } from "@/lib/storefront-templates";
-import { mergeSectionConfig } from "@/lib/storefront-sections";
 import {
   resolveMenuSettings,
   type ResolvedMenuSettings,
@@ -31,7 +33,6 @@ import {
   resolveMobileChrome,
   type MobileChrome,
 } from "@/lib/storefront-mobile";
-import { HOME_PRESET_SECTIONS } from "@/lib/storefront-section-ids";
 import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
@@ -537,10 +538,6 @@ export const haveCollectionRowsChanged = (
   baseline: Pick<CustomizeDraft, "collections">,
 ): boolean => !same(draft.collections, baseline.collections);
 
-/** A section list reduced to what a theme actually decides — its composition. */
-const sectionTypes = (sections: StoreHomeSection[] | undefined) =>
-  (sections ?? []).map((s) => s.type);
-
 /**
  * Stamp a ready-made theme into a draft — **the one place that decides what a
  * theme is allowed to write.**
@@ -557,6 +554,11 @@ const sectionTypes = (sections: StoreHomeSection[] | undefined) =>
  * split (see `StorefrontCopy`) expressed as code. A merchant who tries three
  * themes must still have every word they wrote.
  *
+ * The classic home's shape is absent too — `homepageSections`,
+ * `sectionConfig`, `heroAlign`, `homeCollections` and `templates.home` (see
+ * `themeLookTemplates`). Every live home is a builder page that reads none of
+ * them, so a theme leaves the home to Pages.
+ *
  * `templates` is SPREAD over the current ones, never replaced: the bundle
  * deliberately omits `hero`, `headerMenu` and `checkout` (they depend on what
  * content a shop actually has), and a wholesale replace would blank them.
@@ -565,93 +567,21 @@ export function applyThemeToDraft(
   draft: CustomizeDraft,
   theme: ReadyMadeTheme,
 ): Partial<CustomizeDraft> {
-  const composition = sectionInstances(theme.sections);
   return {
     preset: "default",
     brandColor: theme.brandColor,
     accentColor: theme.accentColor,
     design: resolveDesign(theme.design),
-    // Part of the LOOK, so a theme owns it and Classic resets it — a merchant
-    // who centred their hero and then applied a theme built around a left one
-    // must get the theme they picked, not a half of it.
-    heroAlign: resolveHeroAlign(theme.heroAlign),
-    // Category-row geometry is part of the look. Without resetting it here,
-    // Fresh Market inherits Classic's saved strip and stops looking like its
-    // own theme in both the picker preview and the applied storefront.
-    homeCollections: { ...theme.homeCollections },
-    templates: { ...draft.templates, ...theme.templates },
+    // No `home`: see `themeLookTemplates`. The home page is built in Pages,
+    // and a theme does not rearrange it.
+    templates: { ...draft.templates, ...themeLookTemplates(theme) },
     // The phone chrome follows the template the theme just stamped, arrangement
     // and all. Without this a merchant who had rearranged their bar would apply
     // a theme, get its mobile template, and see it wearing the previous one's
-    // slots — the same half-applied theme `homeCollections` above exists to
-    // prevent, on the surface most of their shoppers actually use.
+    // slots — a half-applied theme on the surface most of their shoppers
+    // actually use.
     mobile: resolveMobileChrome({ mobile: theme.templates.mobile }, undefined),
-    // The homepage composition — the half that makes themes structurally
-    // different rather than repainted. Replaced outright, not merged: a theme's
-    // page is an ordered whole, and spreading the previous list over it would
-    // leave a grocery shop's search hero sitting above a fashion editorial.
-    //
-    // Instances are minted DETERMINISTICALLY (`sectionInstances`) so applying
-    // the same theme twice produces the same keys. Random keys would detach any
-    // per-section config from its section on every apply, and would make
-    // `isThemeModified` below report a theme as edited the instant it was
-    // applied. A theme bundle stays a list of TYPES — it has no business
-    // inventing instance identity.
-    homepageSections: composition.sections,
-    // A theme's own rows may arrive configured ("a grid, sourced newest"), and
-    // that config has to land in the draft or the row renders as its bare
-    // default. Folded UNDER the merchant's own entries, never over them: a
-    // collection someone pointed a row at survives trying three themes, which
-    // is the whole reason `sectionConfig` sits outside `theme` to begin with.
-    sectionConfig: mergeSectionConfig(composition.config, draft.sectionConfig),
     appliedThemeId: theme.id,
-  };
-}
-
-/**
- * The home template, which is a STARTING layout: it seeds the section list the
- * Sections editor then owns.
- *
- * **This is why the picker cannot be a plain `patchTemplate("home", …)`.**
- * `templates.home` reaches the shop only through `resolveSections`, which uses
- * the preset as the fallback for an EMPTY `homepageSections` — and no store has
- * one, because applying any theme fills it via `sectionInstances(theme.sections)`.
- * So the bare template write marked the part dirty, saved, and changed nothing a
- * shopper could see: the picker was inert on every theme (found in browser QA,
- * 2026-08-17).
- *
- * Seeded the way `applyThemeToDraft` does, and for the same reasons: replaced
- * outright rather than merged (a homepage is an ordered whole), with instances
- * minted deterministically so picking a layout twice yields the same keys.
- * The merchant's `sectionConfig` is preserved entry for entry and only ADDED to
- * — orphans are dropped in `toSettingsPayload`, a row the merchant pointed at a
- * collection keeps it when the same key comes back, and the new layout's own
- * implied config fills whatever it does not already cover.
- */
-export function applyHomeTemplateToDraft(
-  draft: CustomizeDraft,
-  value: string,
-): Partial<CustomizeDraft> {
-  // ⚠ Re-picking the layout the shop is ALREADY on is a NO-OP, never a reseed.
-  // The picker highlights the active tile, so clicking it again is the most
-  // natural way to ask "what does this one look like?" — and that click used to
-  // replace the merchant's whole composed section list with the preset's, with
-  // no confirmation, no undo, and nothing in the UI to suggest a destructive
-  // write. Seeding is for CHANGING layout; staying put changes nothing.
-  if (value === draft.templates.home) return {};
-
-  const preset = HOME_PRESET_SECTIONS[value];
-  const composition = preset ? sectionInstances(preset) : null;
-  return {
-    templates: { ...draft.templates, home: value },
-    // An id with no preset (retired, or from a newer build) still sets the
-    // template — but must not blank the page, which an empty list would mean.
-    ...(composition
-      ? {
-          homepageSections: composition.sections,
-          sectionConfig: mergeSectionConfig(composition.config, draft.sectionConfig),
-        }
-      : {}),
   };
 }
 
@@ -667,16 +597,8 @@ export function isThemeModified(draft: CustomizeDraft): boolean {
   return (
     draft.brandColor !== applied.brandColor ||
     draft.accentColor !== applied.accentColor ||
-    draft.heroAlign !== applied.heroAlign ||
     !same(draft.design, applied.design) ||
-    !same(draft.homeCollections, applied.homeCollections) ||
-    !same(draft.templates, applied.templates) ||
-    // TYPE sequence, not the instances: a key is identity plumbing, not look.
-    // Two pages composed of the same sections in the same order ARE the theme,
-    // even if a key was minted at a different index because the merchant added
-    // a section and removed it again. Comparing keys would light the "Edited"
-    // badge on a page that is visually identical to the theme.
-    !same(sectionTypes(draft.homepageSections), sectionTypes(applied.homepageSections))
+    !same(draft.templates, applied.templates)
   );
 }
 
@@ -684,12 +606,9 @@ export interface CustomizeDraftApi {
   draft: CustomizeDraft;
   patch: (p: Partial<CustomizeDraft>) => void;
   patchTemplate: (key: string, value: string) => void;
-  /** `templates.home` + the section list it seeds — never `patchTemplate("home")`. */
-  patchHomeTemplate: (value: string) => void;
   /**
    * `templates.mobile` + the arrangement it seeds — never
-   * `patchTemplate("mobile")`, for the same reason `patchHomeTemplate` exists:
-   * switching template has to RESET the slots, or a merchant who moved the cart
+   * `patchTemplate("mobile")`: switching template has to RESET the slots, or a merchant who moved the cart
    * on one template and then picked another would get the new bar wearing the
    * old one's arrangement and no way back to what the tile showed them.
    */
@@ -790,10 +709,6 @@ export function useCustomizeDraft(
   const patchTemplate = useCallback(
     (key: string, value: string) =>
       setDraft((d) => ({ ...d, templates: { ...d.templates, [key]: value } })),
-    [],
-  );
-  const patchHomeTemplate = useCallback(
-    (value: string) => setDraft((d) => ({ ...d, ...applyHomeTemplateToDraft(d, value) })),
     [],
   );
   const patchMobileTemplate = useCallback((value: string) => {
@@ -921,7 +836,6 @@ export function useCustomizeDraft(
     draft,
     patch,
     patchTemplate,
-    patchHomeTemplate,
     patchMobileTemplate,
     patchMobile,
     patchAnnouncement,

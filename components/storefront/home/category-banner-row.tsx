@@ -5,11 +5,8 @@ import type { CatalogCategory, StoreSectionConfig } from "@/lib/storefront-clien
 import { collectionHref, storeLinkHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import {
-  DEFAULT_BANNER_COUNT,
-  MAX_BANNER_COUNT,
   cardRatioValue,
   cardSplitValue,
-  findSectionCategory,
   resolveBannerLayout,
   resolveCardRadius,
   resolveCardRatio,
@@ -424,29 +421,4 @@ export function CategoryBannerRow({
     arrows: config?.cardArrows !== false,
     children: cards,
   });
-}
-
-/**
- * The collections a home-page promo block advertises, in the merchant's order.
- *
- * Falls back to the first two so a freshly added section shows something: a row
- * blank until configured looks broken in the Customize preview at the exact
- * moment the merchant has just added it and is looking for it — the same reason
- * every product row has a built-in source. Two, not four: the block is the
- * merchant's own choice of what to push, and filling it to the brim with
- * whatever sorted first makes it look decided.
- *
- * A pick that no longer resolves is skipped rather than pruned, matching a
- * hand-picked product row: a collection hidden for a week must come back when
- * it returns.
- */
-export function pickedCategories(
-  categories: CatalogCategory[],
-  ids: string[] | undefined,
-): CatalogCategory[] {
-  if (!ids?.length) return categories.slice(0, DEFAULT_BANNER_COUNT);
-  return ids
-    .map((id) => findSectionCategory(categories, id)?.category)
-    .filter((c): c is CatalogCategory => !!c)
-    .slice(0, MAX_BANNER_COUNT);
 }

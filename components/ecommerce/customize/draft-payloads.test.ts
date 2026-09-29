@@ -519,9 +519,7 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
 describe("toPreviewPayload — sample content reaches the storefront", () => {
   const wire = {
     logo: null,
-    banner: null,
     mobileLogo: null,
-    forceHeroSlides: false,
     forceCollectionsMenu: false,
   };
 

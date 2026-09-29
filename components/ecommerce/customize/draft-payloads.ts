@@ -489,8 +489,6 @@ export function toPreviewPayload(
   draft: CustomizeDraft,
   {
     logo,
-    banner,
-    forceHeroSlides,
     forceCollectionsMenu,
     socialWhatsapp,
     hasCollections = true,
@@ -499,7 +497,6 @@ export function toPreviewPayload(
   }: {
     /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
     logo: Image | null;
-    banner: Image | null;
     /**
      * The merchant's phone artwork. **Not** org-fallback-resolved like `logo`:
      * the storefront falls back from this to the desktop logo itself, and
@@ -507,8 +504,7 @@ export function toPreviewPayload(
      * happened — the shop would keep showing a mark this field no longer names.
      */
     mobileLogo: Image | null;
-    /** Preview slides / collections while their panel is open, whatever is saved. */
-    forceHeroSlides: boolean;
+    /** Preview the collections menu while its panel is open, whatever is saved. */
     forceCollectionsMenu: boolean;
     /** Settings → General's number, so the preview can mirror the blank-number fallback. */
     socialWhatsapp?: string;
@@ -557,14 +553,9 @@ export function toPreviewPayload(
          An empty object is not undefined, so it replaces; `resolveMobileChrome`
          already treats `{}` as "no overrides". */
       mobile: mobileOverrides(draft.templates.mobile, draft.mobile) ?? {},
-      homeCollections: draft.homeCollections,
       design: savedDesign(draft.design),
-      heroAlign: draft.heroAlign,
-      homepageSections: draft.homepageSections,
     },
-    sectionConfig: draft.sectionConfig,
     templates: {
-      home: draft.templates.home,
       footer: draft.templates.footer,
       header: draft.templates.header,
       productCard: draft.templates.productCard,
@@ -574,7 +565,6 @@ export function toPreviewPayload(
       pagination: draft.templates.pagination,
       imageFit: draft.templates.imageFit,
       imageRatio: draft.templates.imageRatio,
-      categoryTiles: draft.templates.categoryTiles,
       accountLayout: draft.templates.accountLayout,
       contentLayout: draft.templates.contentLayout,
       cartLayout: draft.templates.cartLayout,
@@ -585,14 +575,11 @@ export function toPreviewPayload(
       collection: draft.templates.collection,
       product: draft.templates.product,
       checkout: draft.templates.checkout,
-      hero: forceHeroSlides ? "slides" : draft.templates.hero,
       headerMenu: (forceCollectionsMenu
         ? "collections"
         : draft.templates.headerMenu) as HeaderMenuSource,
     },
     trustBadges: trimBadges(draft.badges),
-    heroSlides: trimSlides(draft.heroSlides),
-    heroBanner: cleanHeroBanner(draft.heroBanner),
     // Footer copy streams RAW (not `|| undefined`): an empty string is a real
     // draft here — "cleared, so show the localized default" — and collapsing it
     // to undefined would make the preview fall back to the SAVED text instead,
@@ -614,7 +601,6 @@ export function toPreviewPayload(
     // `null` (not undefined) is what tells the preview store "removed" apart
     // from "not sent yet".
     logo,
-    banner,
     mobileLogo,
   };
 }
