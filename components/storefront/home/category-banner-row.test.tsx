@@ -1,8 +1,7 @@
 // coding-standard: maintained
 /**
  * `CategoryBannerRow` — the promo cards row the builder's `category-promo-cards`
- * draws (it was the classic home's `category-banners` until that home was
- * deleted, 2026-09-29): how each card is composed, sized, worded and linked.
+ * draws: how each card is composed, sized, worded and linked.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";

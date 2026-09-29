@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import type { CatalogCategory, StoreTemplates } from "@/lib/storefront-client";
+import type { CatalogCategory } from "@/lib/storefront-client";
 import { collectionHref } from "@/lib/storefront-links";
 import { cardImageUrl } from "@/lib/storefront-image";
 import { categoryLabelsVisible } from "@/lib/storefront-templates";
@@ -11,6 +11,9 @@ import {
   type CategoryRowLayout,
   type StripRenderer,
 } from "@/components/storefront/home/category-row-layout";
+
+/** How a department tile is drawn: name below, name over the photo, a lettered disc, or a round photo. */
+export type CategoryTileMode = "tile" | "overlay" | "disc" | "circle";
 
 /**
  * Image tiles — a picture per category, in a grid or a scrolling strip. Pure
@@ -46,13 +49,11 @@ export function CategoryTileRow({
 }: {
   base: string;
   categories: CatalogCategory[];
-  mode: StoreTemplates["categoryTiles"];
+  mode: CategoryTileMode;
   row: CategoryRowLayout;
   imageFit: "cover" | "canvas";
   /**
-   * Drop the merchant's one-liner and keep the name alone. Unset DRAWS it,
-   * which is what the classic home row has always done — so the home page
-   * caller, which passes nothing, is unchanged.
+   * Drop the merchant's one-liner and keep the name alone. Unset DRAWS it.
    *
    * It is read where `described` is computed rather than only at the tile,
    * because the sentence is what turns a compact tile into a row and what sets
@@ -174,8 +175,7 @@ export function CategoryTileRow({
  * floating on a rounded card.
  *
  * Unset keeps the theme's own tokens, which is what every row drew before the
- * control existed — and what the classic home, which emits no variable, still
- * draws.
+ * control existed.
  */
 const TILE_RADIUS = "var(--sfb-tile-radius, var(--radius-md))";
 const CARD_RADIUS = "var(--sfb-tile-radius, var(--radius-lg))";
@@ -242,7 +242,7 @@ function CategoryTile({
   /** No category in this section has a photo — see `CategoryTileRow`. */
   compact?: boolean;
   /**
-   * The merchant CHOSE the disc row (`categoryTiles: "disc"`), rather than it
+   * The merchant CHOSE the disc row (`mode: "disc"`), rather than it
    * being the fallback for an unphotographed catalogue. Same disc, quieter
    * dress: no card behind it, and the circle takes the neutral panel tint
    * instead of full brand — eight saturated brand pills in a row above the
@@ -250,7 +250,7 @@ function CategoryTile({
    */
   disc?: boolean;
   /**
-   * `categoryTiles: "circle"` — the photograph cropped round, name beneath. The
+   * `mode: "circle"` — the photograph cropped round, name beneath. The
    * section only sets it when SOMETHING is photographed; a category that has no
    * picture of its own still falls through to the lettered disc below, which is
    * the same circle at the same size, so the row stays one shape.
@@ -391,9 +391,8 @@ function CategoryTile({
 
   /* The tile's shape, and the merchant's own answer ahead of it.
      ⚠ The fallback behind the variable is the mode's ORIGINAL shape, not one
-     shared default: `CategoryTileRow` is drawn by the CLASSIC home too and that
-     page sets nothing, so an unset control has to leave each mode exactly as it
-     drew before the control existed — square tiles, 3:4 overlays. The variable
+     shared default: an unset control has to leave each mode exactly as it drew
+     before the control existed — square tiles, 3:4 overlays. The variable
      is emitted by the builder sections (`responsiveVars("sfb-tile-ratio", …)`),
      which is also where the phone override lands. */
   const ratio = overlay ? "var(--sfb-tile-ratio, 3 / 4)" : "var(--sfb-tile-ratio, 1 / 1)";

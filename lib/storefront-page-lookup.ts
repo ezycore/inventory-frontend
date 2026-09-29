@@ -30,8 +30,7 @@
  *    front door asks, so a store without one is remembered too.
  *  - **An API failure** answers "exists", for 10s, for a page and the homepage
  *    alike: the cached route can still serve the HTML it has while the backend
- *    blips. The homepage answered "no" until 2026-09-29, when the classic home
- *    it fell back to was deleted — "no" is a 404 now.
+ *    blips — "no" is a 404.
  *  - **An owner preview is never cached.** It asks with the owner's token, which
  *    can see a shop the public cannot.
  *
@@ -98,12 +97,10 @@ export async function storePageExists(slug: string, pageSlug: string): Promise<b
   const key = `${slug}/${pageSlug}`;
   if (remembered(key)) return true;
 
-  const builder = await probe(builderPageUrl(slug, `/pages/${pageSlug}`));
-  const answer = builder === "found" ? builder : await probe(`${storeApi(slug)}/pages/${pageSlug}`);
-
+  const answer = await probe(builderPageUrl(slug, `/pages/${pageSlug}`));
   if (answer === "found") remember(key, true, HIT_TTL_MS);
-  else if (answer === "error" || builder === "error") remember(key, true, ERROR_TTL_MS);
-  return answer !== "missing" || builder === "error";
+  else if (answer === "error") remember(key, true, ERROR_TTL_MS);
+  return answer !== "missing";
 }
 
 /** Does this store have a home page at its `/`? Pass the owner's preview token to ask as them. */

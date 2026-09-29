@@ -27,10 +27,9 @@ type Settings = SettingsOf<Spec["settings"]>;
 type SlideBlock = { id: string; settings: SettingsOf<Spec["blocks"]["settings"]> };
 
 /**
- * A hero moved from the classic home draws its banner hero from the first slide
- * even when that slide is empty — the home page showed the store's name and
- * banner there — so an empty slide counts only when the hero keeps the store's
- * banner or wording.
+ * A hero that keeps the store's banner or wording draws its banner hero from the
+ * first slide even when that slide is empty — the store's name and banner fill
+ * it — so only then does an empty slide count.
  */
 export const keepsEmptySlides = (settings: Pick<Settings, "storeBanner" | "storeWords">): boolean =>
   !!(settings.storeBanner || settings.storeWords);
@@ -134,7 +133,7 @@ export function pickCampaign(
 }
 
 /**
- * The running offer as the classic home hero names it, without its last word:
+ * The running offer as the store-worded hero names it, without its last word:
  * "Eid sale · 10%". The word "off" is the shopper's, so a server view cannot
  * hold it — the text and the word are joined by whoever can (`campaignBadge`
  * here, `HeroSlidesView` in the rotating hero, which has the dictionary).
@@ -179,8 +178,8 @@ function campaignBadge(
  * By default every word is the merchant's: a slide without a title keeps the
  * store's name as a hidden heading, and a button needs only a label — an empty
  * link is the catalogue, which is `HeroCtaLink`'s own rule.
- * A hero moved from the classic home keeps that page's banner hero instead —
- * see the `hero` settings in `section-specs.ts`.
+ * A store-worded hero draws the store's banner hero instead — see the `hero`
+ * settings in `section-specs.ts`.
  */
 export function HeroSection({
   settings,
@@ -197,7 +196,7 @@ export function HeroSection({
   const align = settings.align ?? "left";
   /* Full-bleed only — the other two layouts show every word on a phone already,
      and `field-visibility.ts` hides the control there. Passed as the merchant's
-     value or not at all, so the classic home's own callers stay attribute-free. */
+     value or not at all, so an unset hero stays attribute-free. */
   const mobileCopy = settings.mobileCopy;
   const frame = heroFrame(settings);
   /* Card and open only — a full-bleed hero's picture is its background, and
@@ -305,7 +304,7 @@ export function HeroSection({
   const secondaryLink = first?.secondaryLink;
   let actions: ReactNode = null;
   if (settings.storeWords) {
-    // The classic banner hero's pair: both buttons always, the catalogue where no link is set.
+    // The store's banner-hero pair: both buttons always, the catalogue where no link is set.
     actions = (
       <HeroActions align={align}>
         <HeroCtaLink base={context.base} link={slide.link} style={heroPrimaryButton}>

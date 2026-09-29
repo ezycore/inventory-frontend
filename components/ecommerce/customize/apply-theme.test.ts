@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   READY_MADE_THEMES,
   getReadyMadeTheme,
-  themeLookTemplates,
 } from "@/lib/storefront-themes";
 import {
   applyThemeToDraft,
@@ -13,11 +12,9 @@ import {
 import { DEFAULT_DESIGN, resolveThemeColors } from "@/lib/storefront-theme";
 import {
   DEFAULT_TEMPLATES,
-  resolveHomeCollections,
   resolveTemplates,
 } from "@/lib/storefront-templates";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
-import { HOME_PRESET_SECTIONS, SECTION_IDS } from "@/lib/storefront-section-ids";
 import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
 
 /** A draft carrying merchant-written content a theme must never reach. */
@@ -28,14 +25,9 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft =>
     accentColor: "#2563eb",
     footerText: "Family run since 1998",
     logoStyle: { height: 44 },
-    homeCollections: { layout: "grid" },
     design: DEFAULT_DESIGN,
-    homepageSections: [],
-    sectionConfig: [],
-    templates: { hero: "banner", headerMenu: "custom", checkout: "multi-step" },
+    templates: { headerMenu: "custom", checkout: "multi-step" },
     badges: [{ text: "Free delivery over ৳1000", icon: "truck" }],
-    heroSlides: [{ title: "Eid sale" }],
-    heroBanner: { title: "Our banner" },
     navHeader: [{ label: "Offers", type: "url", value: "/offers" }],
     utilityBar: {
       enabled: true,
@@ -108,36 +100,9 @@ describe("the theme catalogue", () => {
     }
   });
 
-  // A section id the registry does not know would be silently dropped by
-  // `resolveSections`, so the theme would quietly render a shorter page than it
-  // was designed as — a failure with no error anywhere.
-  it("only composes sections the registry can render", () => {
+  it("gives every theme a header anatomy", () => {
     for (const theme of READY_MADE_THEMES) {
-      for (const entry of theme.sections) {
-        // An entry is a bare id, or an id carrying the config its default
-        // composition implies.
-        const id = typeof entry === "string" ? entry : entry.type;
-        expect(SECTION_IDS, `${theme.id} → ${id}`).toContain(id);
-      }
-    }
-  });
-
-  // The whole point of the rebuild. Three themes that share a page shape are
-  // three palettes, which is exactly the complaint this replaced.
-  it("gives every theme a structurally different homepage", () => {
-    const shapes = READY_MADE_THEMES.map((t) => t.sections.join(">"));
-    expect(new Set(shapes).size).toBe(READY_MADE_THEMES.length);
-    // …and they must not merely be reorderings of one section set.
-    const sets = READY_MADE_THEMES.map((t) => [...t.sections].sort().join(","));
-    expect(new Set(sets).size).toBe(READY_MADE_THEMES.length);
-  });
-
-  it("gives every theme its own header anatomy or card", () => {
-    for (const theme of READY_MADE_THEMES) {
-      expect(theme.sections.length).toBeGreaterThanOrEqual(3);
       expect(theme.templates.header).toBeTruthy();
-      expect(theme.sections).not.toContain("trust-row");
-      expect(theme.sections).not.toContain("promo-tiles");
     }
   });
 
@@ -164,16 +129,6 @@ describe("the theme catalogue", () => {
         brandColor: classic.brandColor,
         accentColor: classic.accentColor,
       }).toEqual(resolveThemeColors({ preset: "default" }));
-    });
-
-    it("carries the default homepage composition", () => {
-      expect(classic.sections).toEqual(HOME_PRESET_SECTIONS.classic);
-    });
-
-    it("carries the default category-row layout", () => {
-      expect(resolveHomeCollections(classic.homeCollections)).toEqual(
-        resolveHomeCollections(undefined),
-      );
     });
 
     /* The bundle stores RAW admin ids ("grid-4"), the storefront consumes
@@ -213,27 +168,7 @@ describe("applyThemeToDraft", () => {
     expect(patch.accentColor).toBe(theme.accentColor);
     expect(patch.design).toEqual(theme.design);
     expect(patch.appliedThemeId).toBe("muslin");
-    expect(patch.templates).toMatchObject(themeLookTemplates(theme));
-  });
-
-  /* Look only since 2026-09-29. Every live home is a builder page (Pages →
-     Home) that reads none of the classic home's shape, so a theme writing it
-     changed nothing shoppers see — and a builder page is the merchant's own
-     work, which a theme must not rearrange. */
-  it("leaves the home page to Pages", () => {
-    const own = draft({
-      templates: { home: "minimal" },
-      homepageSections: [{ key: "hero-card-0", type: "hero-card" }],
-      sectionConfig: [{ key: "r1", source: "category", categoryId: "cat-skin" }],
-      heroAlign: "center",
-      homeCollections: { layout: "strip", columns: 5, align: "left" },
-    });
-    const applied = applyThemeToDraft(own, theme);
-
-    for (const key of ["homepageSections", "sectionConfig", "heroAlign", "homeCollections"]) {
-      expect(applied, key).not.toHaveProperty(key);
-    }
-    expect(applied.templates?.home).toBe("minimal");
+    expect(patch.templates).toMatchObject(theme.templates);
   });
 
   // The reason `copy` was split out of `theme` in the first place. Applying a
@@ -245,8 +180,6 @@ describe("applyThemeToDraft", () => {
       "footerContactHeading",
       "footerNewsletter",
       "badges",
-      "heroSlides",
-      "heroBanner",
       "navHeader",
       "footerGroups",
       "footerContentPages",
@@ -258,14 +191,10 @@ describe("applyThemeToDraft", () => {
     }
   });
 
-  /* The bundles still omit `hero` and `headerMenu`, because those depend on what
-     content a shop HAS — forcing `hero: slides` on a shop with no slides shows
-     the placeholder hero, and forcing `headerMenu: collections` hides a menu its
-     owner built by hand. Both are content questions wearing a layout key's
-     clothes. Spreading (rather than replacing) `templates` is what preserves
-     them. */
-  it("spreads over templates so hero/headerMenu survive", () => {
-    expect(patch.templates?.hero).toBe("banner");
+  /* The bundles omit `headerMenu`: forcing `collections` would hide a menu its
+     owner built by hand. Spreading (rather than replacing) `templates` is what
+     preserves it. */
+  it("spreads over templates so headerMenu survives", () => {
     expect(patch.templates?.headerMenu).toBe("custom");
   });
 

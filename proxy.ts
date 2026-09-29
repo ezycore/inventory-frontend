@@ -245,8 +245,7 @@ export async function proxy(request: NextRequest) {
     // routes: the cached one, or under owner preview the one that reads the
     // token — and the question is asked with that token, since an unpublished
     // shop answers only its owner. A store with neither falls through to the
-    // `shop` route, which answers 404: the classic home it used to draw was
-    // deleted on 2026-09-29.
+    // `shop` route, which answers 404.
     //
     // The Customize editor's frame (`?preview=1`) takes this path too, so it
     // shows the home shoppers get. Its look draft streams in through the

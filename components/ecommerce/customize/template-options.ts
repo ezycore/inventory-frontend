@@ -28,11 +28,6 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
    * components, not data.)
    */
   mobile: [...MOBILE_TEMPLATE_OPTIONS],
-  home: [
-    { value: "classic", label: "Classic", description: "Hero card, category chips, product rails" },
-    { value: "hero-split", label: "Hero Split", description: "Split hero and weekly picks" },
-    { value: "minimal", label: "Minimal", description: "Centered manifesto, quiet product grid" },
-  ],
   collection: [
     { value: "grid-3", label: "3 per row", description: "Bigger pictures, fewer products in view" },
     { value: "grid-4", label: "4 per row", description: "More products before scrolling" },
@@ -109,24 +104,6 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "portrait", label: "Portrait", description: "Taller than wide — clothing, shoes, bottles" },
     { value: "landscape", label: "Landscape", description: "Wider than tall — furniture, electronics" },
     { value: "tall", label: "Extra tall", description: "Full-length shots — dresses, sarees" },
-  ],
-  // How the homepage's Category tiles section presents one department. `tile`
-  // stays first (and so the default) — `overlay` needs a real photograph on
-  // every category, and on a half-photographed catalogue it puts a scrim over a
-  // grid of letters.
-  categoryTiles: [
-    { value: "tile", label: "Name below", description: "Photo on a tinted card with the name underneath" },
-    { value: "overlay", label: "Name over photo", description: "Taller photo with the name across the bottom of it" },
-    // `tile` already falls back to this shape when NO category has a photo. As
-    // an option it is the same row chosen on purpose — a department is a
-    // wayfinding target, and a shop with a hundred of them wants a scannable
-    // strip of discs above the products rather than seven photographs competing
-    // with them.
-    { value: "disc", label: "Round icons", description: "A lettered disc per department, name underneath — no photos" },
-    // The photo modes above are both rectangles. This is the round one: same
-    // pictures, corners gone — which is what a soft catalogue (baby, gifts,
-    // beauty) wants, and what `disc` cannot give because it refuses photos.
-    { value: "circle", label: "Round photos", description: "Your department photo cropped round, name underneath" },
   ],
   /* The four keys below are WHOLE PAGE LAYOUTS, not variations within one page:
      each id selects a different component. The first option of each is its

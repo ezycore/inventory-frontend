@@ -2,11 +2,7 @@
 /**
  * Per-section config (`StoreSectionConfig`) turned into something renderable:
  * the promo-card shapes, sizes and layouts, and the category lookup the
- * builder's sections share.
- *
- * It held the classic home's product-row queries too — which products a row
- * asks for, its heading, its "View all" — until that home was deleted
- * (2026-09-29). The builder answers those in `lib/storefront-builder`.
+ * builder's sections share. Product-row queries live in `lib/storefront-builder`.
  */
 
 import type {
@@ -24,9 +20,8 @@ export type SectionCardShape = "stacked" | "split";
  * Only an explicit `split` moves the picture beside the copy. Anything else —
  * unset, null, a value from an older payload — is a shop that has never been
  * asked, and it draws the stacked card every row drew before the choice
- * existed. The same rule `resolveHomeCollections` follows, for the same reason:
- * flipping the fallback would restyle every existing homepage without its owner
- * touching anything.
+ * existed: flipping the fallback would restyle every existing homepage without
+ * its owner touching anything.
  *
  * Shared because the storefront and the editor must not disagree about what
  * "unset" looks like — the editor's selected pill and the rendered card are the

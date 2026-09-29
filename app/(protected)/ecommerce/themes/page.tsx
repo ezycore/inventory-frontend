@@ -6,14 +6,13 @@ import { Loader2 } from "lucide-react";
 import {
   READY_MADE_THEMES,
   recommendedThemeFor,
-  themeLookTemplates,
 } from "@/lib/storefront-themes";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { resolveDesign } from "@/lib/storefront-theme";
 import { ThemeList } from "@/components/ecommerce/themes/theme-list";
 import { ThemeStage } from "@/components/ecommerce/themes/theme-stage";
 import { useLiveStoreSettings } from "@/components/ecommerce/use-live-store-settings";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontWithLook } from "@/types";
 
 /**
  * Online Store → Themes. A whole look in one click, instead of asking a shop
@@ -102,7 +101,7 @@ export default function ThemesPage() {
  * draft's `isThemeModified` — this page has no draft, and building one just to
  * answer a badge would run the whole seeding path for nothing.
  */
-function useThemeModified(settings: StorefrontSettings | undefined): boolean {
+function useThemeModified(settings: StorefrontWithLook | undefined): boolean {
   const applied = settings?.theme?.appliedThemeId;
   if (!applied) return false;
   const theme = READY_MADE_THEMES.find((t) => t.id === applied);
@@ -115,7 +114,7 @@ function useThemeModified(settings: StorefrontSettings | undefined): boolean {
   if (JSON.stringify(resolveDesign(saved.design)) !== JSON.stringify(resolveDesign(theme.design))) {
     return true;
   }
-  return Object.entries(themeLookTemplates(theme)).some(
+  return Object.entries(theme.templates).some(
     ([key, value]) => savedTemplates[key] !== value,
   );
 }

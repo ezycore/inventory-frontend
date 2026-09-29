@@ -4,13 +4,12 @@ import Link from "next/link";
 import type { CatalogCategory } from "@/lib/storefront-client";
 import { collectionHref } from "@/lib/storefront-links";
 import { thumbImageUrl } from "@/lib/storefront-image";
-import { categoryLabelsVisible, type ResolvedHomeCollections } from "@/lib/storefront-templates";
+import { categoryLabelsVisible, type CategoryRowOptions } from "@/lib/storefront-templates";
 
 /**
  * The collections row's pieces — the tile, the grid that holds tiles, the chip
- * strip's sizing and the plain text-link treatment. Shared by the home page's
- * row (`home-collections.tsx`, `sections/category-sections.tsx`) and the
- * Storefront Builder's collections-row section.
+ * strip's sizing and the plain text-link treatment, drawn by the Storefront
+ * Builder's collections-row and category-tiles sections.
  *
  * Pure markup with no hooks, so a server component can render it. The strip's
  * arrows are the one client part: each caller brings its own `CategoryStrip`
@@ -77,7 +76,7 @@ export function CollectionsGrid({
   bare,
   children,
 }: {
-  align: ResolvedHomeCollections["align"];
+  align: CategoryRowOptions["align"];
   columns?: number;
   /** The phone's own count — independent of the desktop one, because the two divide very different widths. */
   mobileColumns?: number;
@@ -132,7 +131,7 @@ export function CollectionTile({
      percentage below — a shop that asked for square corners means square on
      every screen, and a percentage cannot express 0 without also expressing
      "18% of whatever this box turns out to be". Unset keeps each branch's own
-     value, which is what the classic home (no variable) still draws. */
+     value. */
   const thumbSize: CSSProperties = strip
     ? {
         width: "var(--sf-chip-thumb)",

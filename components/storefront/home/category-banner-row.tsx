@@ -17,9 +17,8 @@ import type { StripRenderer } from "@/components/storefront/home/category-row-la
 import { brandButton } from "@/lib/storefront-button";
 
 /**
- * The promo-card settings the row reads: the merchant's `sectionConfig` on the
- * home page, or a Storefront Builder section's settings mapped onto the same
- * names.
+ * The promo-card settings the row reads: a Storefront Builder section's
+ * settings mapped onto these names.
  */
 export type BannerRowConfig = Pick<
   StoreSectionConfig,

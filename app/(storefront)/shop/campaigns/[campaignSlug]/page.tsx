@@ -114,15 +114,15 @@ export default async function Page({
   return (
     <CollectionDataProvider value={data}>
       {/* The campaign's OWN builder page when the merchant made one — its core
-          section draws exactly the view below, so opting in changes nothing
-          until they edit it. Most campaigns have no page, and `SystemPage` then
-          renders these children, which is the normal answer rather than an
-          error. Deliberately NOT the collection system page: a sale page is not
-          a collection, and a merchant's collection sections (a size guide, a
+          section draws exactly the default view, so opting in changes nothing
+          until they edit it. Most campaigns have no page and draw the default.
+          Deliberately NOT the collection system page: a sale page is not a
+          collection, and a merchant's collection sections (a size guide, a
           delivery promise) do not belong on every campaign by default. */}
-      <SystemPage path={`/campaigns/${campaign.slug}`}>
-        <CollectionPageView {...data} />
-      </SystemPage>
+      <SystemPage
+        path={`/campaigns/${campaign.slug}`}
+        withoutPage={<CollectionPageView {...data} />}
+      />
     </CollectionDataProvider>
   );
 }

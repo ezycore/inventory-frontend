@@ -115,8 +115,8 @@ interface SectionOptions<S extends Record<string, SectionFieldSpec>, B extends R
   /** The view pins itself to the screen, so its frame's padding and background never show. */
   floating?: boolean;
   /**
-   * The padding, band and width this section has on the classic home page, so a
-   * home moved onto the builder keeps its spacing. Unset is the common `md` frame.
+   * The padding, band and width this section type has when its style box sets
+   * nothing. Unset is the common `md` frame.
    */
   frame?:
     | FrameDefaults
@@ -169,8 +169,8 @@ const productRowNeeds = (settings: ProductRowWording): readonly StoreListNeed[] 
   productRowNeedsCategories(settings) ? ["categories"] : [];
 
 /**
- * The classic home sections' own vertical padding (`components/storefront/home/sections`).
- * Their side padding is the frame's `--pad` already.
+ * The home-page section types' own vertical padding. Their side padding is the
+ * frame's `--pad` already.
  */
 const even = (padding: string): FrameDefaults => ({ top: padding, bottom: padding });
 const HOME_FRAMES = {

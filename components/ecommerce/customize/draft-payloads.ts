@@ -1,20 +1,14 @@
 // coding-standard: maintained
 
-import type {
-  HeaderMenuSource,
-  StoreContactButton,
-  StoreSectionConfig,
-} from "@/lib/storefront-client";
+import type { HeaderMenuSource, StoreContactButton } from "@/lib/storefront-client";
 import type {
   Image,
   StorefrontContactButton,
-  StorefrontHeroSlide,
+  StorefrontLook,
   StorefrontMenuItem,
   StorefrontNav,
   StorefrontTheme,
-  UpdateStorefrontSettingsDto,
 } from "@/types";
-import { cleanHeroBanner } from "@/components/ecommerce/customize/banner-hero-fields";
 import { footerNav } from "@/components/ecommerce/customize/footer-payloads";
 import type {
   CustomizeDraft,
@@ -24,7 +18,6 @@ import type {
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import { navActiveCustomColor, type StoreDesign } from "@/lib/storefront-theme";
 import { normalizeStoreLink } from "@/lib/storefront-links";
-import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import { mobileOverrides } from "@/lib/storefront-mobile";
 import { menuSettingsOverrides } from "@/lib/storefront-menu";
 import { filterSettingsOverrides } from "@/lib/storefront-filters";
@@ -50,58 +43,6 @@ function savedDesign(design: StoreDesign): StoreDesign {
  * exists to prevent.
  * Change a trimming rule and both sides move at once.
  */
-
-/**
- * Normalize the merchant-typed links inside a row's per-card overrides.
- *
- * ⚠ **Normalized on the way OUT, exactly like a hero slide's link.** A card's
- * `buttonHref` is a string somebody typed, and the storefront resolves it
- * through `storeLinkHref` — so a `/shop/products` pasted from the address bar
- * would otherwise be stored as-is and resolve to `/shop/shop/products`, and a
- * scheme nobody supports would be stored at all. Doing it here rather than in
- * the panel means it is the SAVED value that is clean, so the card, the panel's
- * destination hint and the database cannot drift apart.
- *
- * Blank stays blank: `normalizeStoreLink` falls back to `/products`, which
- * would turn "no link, use the collection page" into "link to the catalogue".
- */
-const cleanSectionConfig = (
-  rows: StoreSectionConfig[],
-): StoreSectionConfig[] =>
-  rows.map((row) =>
-    row.cards?.length
-      ? {
-          ...row,
-          cards: row.cards.map((card) => ({
-            ...card,
-            buttonHref: card.buttonHref?.trim()
-              ? normalizeStoreLink(card.buttonHref)
-              : undefined,
-          })),
-        }
-      : row,
-  );
-
-const trimSlides = (slides: StorefrontHeroSlide[]): StorefrontHeroSlide[] =>
-  // Completely blank rows are drafts. Artwork-only slides are intentional.
-  slides
-    .filter(hasHeroSlideContent)
-    // ⚠ Field-by-field, so a NEW slide field must be added here or it is
-    // silently dropped from both the PATCH and the live preview — the draft
-    // keeps it, the shop never sees it, and nothing fails.
-    .map((s) => ({
-      image: s.image ?? null,
-      mobileImage: s.mobileImage ?? null,
-      focal: s.focal,
-      mobileFocal: s.mobileFocal,
-      imageFit: s.imageFit,
-      badge: s.badge?.trim() || undefined,
-      title: s.title?.trim() || undefined,
-      subtitle: s.subtitle?.trim() || undefined,
-      buttonLabel: s.buttonLabel?.trim() || undefined,
-      link: s.link?.trim() ? normalizeStoreLink(s.link) : undefined,
-      hideTextOnMobile: s.hideTextOnMobile || undefined,
-    }));
 
 const trimHeaderMenu = (items: StorefrontMenuItem[]): StorefrontMenuItem[] =>
   items
@@ -318,12 +259,11 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
 /**
  * A `theme` with **every** key present — values may still be `undefined`.
  *
- * `StorefrontTheme` is all-optional, and `UpdateStorefrontSettingsDto` wraps it
- * in `Partial`, so nothing stopped this builder from quietly omitting a key. It
- * had to be right by memory, and the failure mode was silent and permanent:
- * because the PATCH replaces `theme` wholesale, a field added to the interface
- * and forgotten HERE would be deleted from every merchant's shop on their next
- * Save, with no error anywhere.
+ * `StorefrontTheme` is all-optional, so nothing would stop this builder from
+ * quietly omitting a key, and the failure mode is silent and permanent: because
+ * the save replaces `theme` wholesale, a field added to the interface and
+ * forgotten HERE would be deleted from every merchant's shop on their next Save,
+ * with no error anywhere.
  *
  * Mapping over `keyof Required<…>` makes the key list mandatory while leaving
  * each value's own optionality intact — so adding a field to `StorefrontTheme`
@@ -332,89 +272,34 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
  */
 type CompleteTheme = { [K in keyof Required<StorefrontTheme>]: StorefrontTheme[K] };
 
-/** One PATCH carrying theme, templates and nav — the page's whole Save. */
-export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettingsDto {
+/** Every look block the draft describes — the page's whole Save. */
+export function toLookPayload(draft: CustomizeDraft): StorefrontLook {
   const theme: CompleteTheme = {
-      preset: draft.preset,
-      brandColor: draft.brandColor,
-      accentColor: draft.accentColor,
-      logo: draft.logoStyle,
-      /* Only what the merchant CHANGED about their phone chrome.
-         The draft holds the resolved value (every field concrete, so the slot
-         editor's inputs stay controlled); this diffs it back against the
-         template they picked, so a shop that took a template and left it alone
-         stores nothing at all. `undefined` here is not a forgotten key — see the
-         `CompleteTheme` note below — it is the correct value for "no
-         overrides", and it keeps a config object off a hundred thousand
-         documents that would all hold the same constant. */
-      mobile: mobileOverrides(draft.templates.mobile, draft.mobile),
-      homeCollections: draft.homeCollections,
-      design: savedDesign(draft.design),
-      heroAlign: draft.heroAlign,
-      // Empty ⇒ `undefined`, never `[]`. An empty array would persist as "this
-      // shop shows no sections at all", where unset means "use the default the
-      // home template implies" — the difference between a blank page and a
-      // normal one for any merchant who switches every section off.
-      homepageSections: draft.homepageSections.length
-        ? draft.homepageSections
-        : undefined,
-      // ⚠ Not editable here, and listed anyway — because this literal MUST be
-      // the whole `theme`. The server does a shallow `Object.assign(settings,
-      // dto)`, and assigning a POJO to a Mongoose nested path REPLACES it: the
-      // stored `theme` becomes exactly the keys sent, and every key omitted here
-      // is DELETED from the document — or, where the schema declares a default,
-      // silently reset to it on the next read, which is worse because nothing
-      // looks missing afterwards. Sending a partial `theme` is how a save of one
-      // colour wipes the merchant's design and homepage layout. `CompleteTheme`
-      // above is what now stops a forgotten key compiling.
-      //
-      // Verified against the driver, not assumed — an earlier version of this
-      // note claimed the opposite ("nested paths MERGE, an omitted key keeps its
-      // stored value, an explicit `undefined` is a no-op"). Both halves were
-      // wrong in both directions: omitted keys are dropped, and an explicit
-      // `undefined` DOES clear the field, because the whole subdocument is
-      // rewritten from this literal.
-      //
-      // Since 2026-08-19 the validator catches the two shapes a wire format can
-      // catch (QA-094): `themeSchema.preset` is REQUIRED, so the one-key PATCH
-      // that erased a live tenant's look now 400s, and `theme`/`templates` are
-      // `.strict()`, so a misspelt key is rejected instead of being stripped and
-      // then deleted by the replace. It cannot demand a COMPLETE block —
-      // `JSON.stringify` drops `undefined`, so this literal legitimately arrives
-      // carrying only the keys the merchant has set. That half is still on us:
-      // always send the whole block you touch.
-      //
-      // The same rule governs `templates` below, and the storefront skill's
-      // gotcha list carries it as the repo-wide statement ("the settings PATCH
-      // replaces `templates` … WHOLESALE"). The one true exception is
-      // `shippingZones`: clearing the whole block needs an explicit `null`,
-      // which `storefront-settings.service.ts` turns into
-      // `settings.set(path, undefined)` because assigning `null` to a nested
-      // path is not a replace.
+    preset: draft.preset,
+    brandColor: draft.brandColor,
+    accentColor: draft.accentColor,
+    logo: draft.logoStyle,
+    /* Only what the merchant CHANGED about their phone chrome. The draft holds
+       the resolved value (every field concrete, so the slot editor's inputs stay
+       controlled); this diffs it back against the template they picked, so a
+       shop that took a template and left it alone stores nothing at all. */
+    mobile: mobileOverrides(draft.templates.mobile, draft.mobile),
+    design: savedDesign(draft.design),
+    // ⚠ Not editable here, and listed anyway — because this literal MUST be the
+    // whole `theme`. The Site draft replaces each block it is sent wholesale, so
+    // every key omitted here is DELETED from the look. `CompleteTheme` above is
+    // what stops a forgotten key compiling; the backend's validator requires
+    // `preset` and refuses an unknown key. The same rule governs `templates`
+    // below: always send the whole block you touch.
     appliedThemeId: draft.appliedThemeId,
   };
 
   return {
     theme,
-    // Merchant-written wording, sent as its OWN block. Keeping it out of `theme`
-    // is what lets a ready-made theme replace the look wholesale without
-    // touching a word the merchant typed. Each field is `undefined`, never `""`:
-    // empty means "use the storefront's localized wording", and an empty string
-    // would print a blank line.
-    // Per-section config, sent as its OWN block for the same reason `copy` is:
-    // a ready-made theme replaces `theme` wholesale, and the collection a
-    // merchant pointed a row at must survive that.
-    //
-    // Entries whose section has been removed are dropped here rather than left
-    // to the server — the API keeps orphans deliberately (a PATCH may carry one
-    // array without the other), but this payload always carries BOTH, so an
-    // orphan reaching it means the merchant deleted the section and there is
-    // nothing to preserve.
-    sectionConfig: cleanSectionConfig(
-      draft.sectionConfig.filter((c) =>
-        draft.homepageSections.some((s) => s.key === c.key),
-      ),
-    ),
+    // Merchant-written wording, sent as its OWN block, so a ready-made theme can
+    // replace the look without touching a word the merchant typed. Each field is
+    // `undefined`, never `""`: empty means "use the storefront's localized
+    // wording", and an empty string would print a blank line.
     copy: {
       footerText: draft.footerText.trim() || undefined,
       footerNote: draft.footerNote.trim() || undefined,
@@ -422,8 +307,6 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
       footerNewsletter: trimNewsletter(draft.footerNewsletter),
     },
     trustBadges: trimBadges(draft.badges),
-    heroBanner: cleanHeroBanner(draft.heroBanner),
-    heroSlides: trimSlides(draft.heroSlides),
     templates: draft.templates,
     nav: toNav(draft),
     contactButton: toContactButton(draft),
@@ -431,9 +314,9 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
 }
 
 /**
- * Parts that write a `templates.*` id. Every page part left this set on
- * 2026-09-20 with its row; `templates` still carries their keys (`seedTemplates`
- * keeps the ones no picker owns) so the wholesale PATCH cannot drop them.
+ * Parts that write a `templates.*` id. `templates` also carries the keys the
+ * page editor owns (`seedTemplates` keeps the ones no picker here owns), so the
+ * wholesale save cannot drop them.
  */
 const TEMPLATE_PARTS = new Set<PartId>([
   "header",
@@ -447,23 +330,23 @@ const TEMPLATE_PARTS = new Set<PartId>([
 ]);
 
 /**
- * Convert dirty visual parts into the smallest safe settings PATCH. Selected
- * nested blocks remain complete because the backend replaces them wholesale.
+ * Convert dirty visual parts into the smallest safe draft save. Selected blocks
+ * remain complete because the Site replaces each one wholesale.
  */
-export function toSettingsPatch(
+export function toLookPatch(
   draft: CustomizeDraft,
   dirtyParts: readonly PartId[],
-): UpdateStorefrontSettingsDto {
-  const full = toSettingsPayload(draft);
+): StorefrontLook {
+  const full = toLookPayload(draft);
   const dirty = new Set(dirtyParts);
-  const patch: UpdateStorefrontSettingsDto = {};
-  const take = <K extends keyof UpdateStorefrontSettingsDto>(key: K) => {
-    (patch as Record<keyof UpdateStorefrontSettingsDto, unknown>)[key] = full[key];
+  const patch: StorefrontLook = {};
+  const take = <K extends keyof StorefrontLook>(key: K) => {
+    (patch as Record<keyof StorefrontLook, unknown>)[key] = full[key];
   };
 
   /* `mobile` is in BOTH lists on purpose: the part writes `templates.mobile`
      (the template id) and `theme.mobile` (the arrangement over it), and the
-     PATCH replaces each block wholesale. Taking only `templates` would save the
+     save replaces each block wholesale. Taking only `templates` would save the
      merchant's new template and silently drop every slot they had just moved. */
   if (["look", "mobile"].some((part) => dirty.has(part as PartId))) {
     take("theme");

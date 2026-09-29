@@ -210,9 +210,7 @@ describe("navGroups — Online Store as its own group", () => {
       // staged as an unsaved edit).
       "Themes",
       "Customize",
-      // No "Content" row: a store page is made and edited in Pages now, and
-      // `/ecommerce/content` is a redirect there (2026-09-22). It kept its
-      // route, so nothing in the sidebar should point at it.
+      // Every store page — written, landing, system — is made and edited here.
       "Pages",
       "Abandoned Carts",
       "Meta Ad Reporting",

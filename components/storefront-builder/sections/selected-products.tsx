@@ -30,8 +30,7 @@ export function SelectedProductsSection({ settings, context, data }: SectionView
     // The home page's 980px column, measured the way its own box was: padding inside it.
     <div className="sfb-own-column" style={{ "--sfb-own-column": "calc(980px - 2 * var(--pad))" } as CSSProperties}>
       {heading || link ? (
-        // Its own baseline and 28px gap are the classic picks row's, kept so a
-        // migrated home is unchanged; only the alignment is shared with
+        // Its own baseline and 28px gap; only the alignment is shared with
         // `SectionTitle`, through `.sfb-title-row`.
         <div className="sfb-title-row" style={{ display: "flex", alignItems: "baseline", marginBottom: 28 }}>
           {heading ? (

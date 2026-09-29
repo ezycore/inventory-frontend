@@ -353,12 +353,11 @@ export function CollectionPageView({
 
 /**
  * What the `collection-grid` section says about the cards, resolved to values
- * the page can use. Absent on the classic collection route and on a campaign
- * page, both of which keep following the store.
+ * the page can use. Absent on a campaign page, which keeps following the store.
  */
 /**
- * The `collection-grid` section's words above the grid. Absent on the classic
- * route and on a campaign page, which draws its banner instead.
+ * The `collection-grid` section's words above the grid. Absent on a campaign
+ * page, which draws its banner instead.
  */
 export interface CollectionHeader {
   /** Replaces the collection's own name — on every collection page. */

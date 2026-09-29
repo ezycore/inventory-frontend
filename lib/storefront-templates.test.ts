@@ -3,8 +3,6 @@ import {
   isImageRatio,
   mediaRatioFor,
   resolveHeaderMenu,
-  resolveHeroAlign,
-  resolveHomeCollections,
   resolveTemplates,
 } from "@/lib/storefront-templates";
 
@@ -45,18 +43,14 @@ describe("resolveHeaderMenu", () => {
 describe("resolveTemplates", () => {
   it("maps admin ids to storefront variants", () => {
     expect(
-      resolveTemplates({ templates: { home: "hero-split", collection: "grid-3" } })
-        .home,
-    ).toBe("hero-split");
-    expect(
       resolveTemplates({ templates: { collection: "grid-3" } }).collection,
     ).toBe("grid3");
   });
 
   it("falls back to defaults for unset or unknown ids", () => {
-    expect(resolveTemplates(undefined).home).toBe("classic");
-    expect(resolveTemplates({ templates: { home: "nope" } }).home).toBe("classic");
-    expect(resolveTemplates({ templates: {} }).hero).toBe("slides");
+    expect(resolveTemplates(undefined).header).toBe("classic");
+    expect(resolveTemplates({ templates: { header: "nope" } }).header).toBe("classic");
+    expect(resolveTemplates({ templates: {} }).collection).toBe("grid4");
   });
 
   // The admin id is kebab-case ("load-more"); the storefront consumes a camel
@@ -202,14 +196,14 @@ describe("resolveTemplates — prototype keys are not variants", () => {
     it(`ignores ${key}`, () => {
       const t = resolveTemplates({
         templates: {
-          home: key,
+          header: key,
           productCard: key,
           imageFit: key,
           imageRatio: key,
           accountLayout: key,
         },
       });
-      expect(t.home).toBe("classic");
+      expect(t.header).toBe("classic");
       expect(t.productCard).toBe("standard");
       expect(t.imageFit).toBe("fit");
       expect(t.imageRatio).toBe("square");
@@ -218,44 +212,3 @@ describe("resolveTemplates — prototype keys are not variants", () => {
   }
 });
 
-/* The two settings that absorbed a retired SECTION each. Both default to what
-   every shop already rendered, because an unset value means "never asked". */
-describe("resolveHeroAlign", () => {
-  it("is left for anything unset or unrecognised", () => {
-    expect(resolveHeroAlign(undefined)).toBe("left");
-    expect(resolveHeroAlign(null)).toBe("left");
-    expect(resolveHeroAlign("")).toBe("left");
-    // A stored id from a newer build must not centre a shop nobody centred.
-    expect(resolveHeroAlign("justify")).toBe("left");
-  });
-
-  it("centres only on an explicit center", () => {
-    expect(resolveHeroAlign("center")).toBe("center");
-  });
-});
-
-describe("resolveHomeCollections — style", () => {
-  it("is card for anything unset or unrecognised", () => {
-    expect(resolveHomeCollections(undefined).style).toBe("card");
-    expect(resolveHomeCollections({}).style).toBe("card");
-    expect(resolveHomeCollections({ style: "cards" as never }).style).toBe("card");
-  });
-
-  // What `category-links` used to be.
-  it("goes plain only on an explicit plain", () => {
-    expect(resolveHomeCollections({ style: "plain" }).style).toBe("plain");
-  });
-
-  // The other three keep working under `plain` — the storefront ignores them
-  // rather than the setting dropping them, so switching back restores the row
-  // the merchant had built.
-  it("keeps the rest of the row's settings under plain", () => {
-    const row = resolveHomeCollections({
-      style: "plain",
-      layout: "grid",
-      columns: 5,
-      align: "center",
-    });
-    expect(row).toMatchObject({ layout: "grid", columns: 5, align: "center" });
-  });
-});

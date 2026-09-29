@@ -34,9 +34,6 @@ import type { ThemeSample } from "@/lib/storefront-theme-samples";
  * ⚠ **Fills gaps, never replaces.** It returns the merchant's own categories
  * untouched the moment they have any.
  *
- * It padded products, offers, tags and promises too, for the classic home's
- * sections; those went with that home (2026-09-29).
- *
  * Every sample name begins with "Sample" on purpose, and that is doing real
  * work: it is what lets the content otherwise be realistic. A merchant judging a
  * layout needs a row that looks like a shop, but must never come away believing

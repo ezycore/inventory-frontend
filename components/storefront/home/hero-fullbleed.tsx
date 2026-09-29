@@ -69,8 +69,7 @@ export function HeroFullBleedView({
   /**
    * Where the type sits over the photograph. The scrim here runs top to bottom
    * rather than diagonally, so unlike the dark carousel this hero can be
-   * centred without the gradient pointing the wrong way. Left by default — the
-   * classic home passes nothing.
+   * centred without the gradient pointing the wrong way. Left by default.
    */
   align?: "left" | "center";
   /**
@@ -80,9 +79,8 @@ export function HeroFullBleedView({
    * `full` brings both back, sized for a phone rather than inherited from the
    * desktop; the rules are beside `.sf-hero-fullbleed` in storefront.css.
    *
-   * Undefined, not `"title-only"`, is what the **classic home** passes: it sets
-   * no attribute at all, so the stylesheet's `:not([data-mobile-copy="full"])`
-   * keeps drawing that page exactly as it did.
+   * Undefined sets no attribute at all, and the stylesheet's
+   * `:not([data-mobile-copy="full"])` draws it as `title-only`.
    */
   mobileCopy?: "full" | "title-only";
   /**

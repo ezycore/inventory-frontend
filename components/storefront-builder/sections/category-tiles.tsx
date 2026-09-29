@@ -24,9 +24,8 @@ export function CategoryTilesSection({ settings, context }: SectionViewProps<Spe
   const categories = sectionCategories(context.categories ?? [], settings.categoryIds);
   if (categories.length === 0) return null;
   return (
-    /* The tile's shape as a variable with `1 / 1` behind it, because
-       `collection-tiles.tsx` is drawn by the CLASSIC home too and that page sets
-       nothing — so it keeps the square it has always drawn. This is the size
+    /* The tile's shape as a variable with `1 / 1` behind it, so a section that
+       sets nothing keeps the square it has always drawn. This is the size
        question the design register declined on 2026-09-07 and the owner's
        2026-09-14 direction reopened. */
     <div

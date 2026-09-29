@@ -4,9 +4,6 @@
 /**
  * The product grid the builder's product sections draw, and the whole-row trim
  * they apply to it.
- *
- * This file held every classic home section's shared props and helpers until
- * that home was deleted (2026-09-29); these two are what the builder still uses.
  */
 import type { CatalogProduct } from "@/lib/storefront-client";
 import { ProductCard } from "@/components/storefront/product-card";

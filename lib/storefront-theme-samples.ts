@@ -8,9 +8,6 @@
  * nothing without one). Per theme, so a pharmacy theme previews over pharmacy
  * departments rather than a grocer's.
  *
- * It carried sample products, offers, tags and promises too, for the classic
- * home's sections; those went with that home (2026-09-29).
- *
  * ⚠ **Preview only, and never a replacement** — see `padCategoriesForPreview`.
  */
 

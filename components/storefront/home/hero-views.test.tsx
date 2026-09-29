@@ -1,28 +1,38 @@
 // coding-standard: maintained
 /**
  * The hero views the builder's hero section and its full-bleed islands draw.
- *
- * Moved from the classic home's `hero-sections.test.tsx` when that home was
- * deleted (2026-09-29). Its section wrappers went with it; the harnesses below
- * pass the views exactly what those wrappers did, so every assertion still
+ * The harnesses below pass the views what a section passes, so every assertion
  * reads the shared renderer.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Dict } from "@/lib/storefront-i18n";
-import type { StoreHeroBanner, StoreHeroSlide, StorefrontStore } from "@/lib/storefront-client";
+import type { StoreHeroSlide, StorefrontStore, StorefrontImage } from "@/lib/storefront-client";
 import { focalPosition } from "@/lib/storefront-focal";
 import { isImageFit, mediaFitFor } from "@/lib/storefront-templates";
 import { HeroSlidesView } from "@/components/storefront/hero-slides";
 import { HeroFullBleedView } from "@/components/storefront/home/hero-fullbleed";
 
-/** What the classic home's hero sections were handed. */
+/** The static banner's words and phone picture, as the harness below reads them. */
+interface HeroBannerFixture {
+  title?: string;
+  badge?: string;
+  subtitle?: string;
+  primaryLabel?: string;
+  primaryLink?: string;
+  imageFit?: string;
+  focal?: { x: number; y: number };
+  mobileFocal?: { x: number; y: number };
+  mobileImage?: StorefrontImage | null;
+}
+
+/** What a hero is handed in these tests. */
 interface SectionProps {
   base: string;
   t: Dict;
   banner?: string;
   heroSlides?: StoreHeroSlide[];
-  heroBanner?: StoreHeroBanner;
+  heroBanner?: HeroBannerFixture;
   store: StorefrontStore;
 }
 

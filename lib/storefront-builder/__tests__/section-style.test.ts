@@ -123,7 +123,7 @@ describe("sectionFrame", () => {
 
   it("emits no heading justification for a section with no alignment, or one that owns it", () => {
     // ⚠ The ABSENCE is the point, twice over. An unstyled section must emit
-    // nothing, so every classic caller of `SectionTitle` and every section
+    // nothing, so every caller of `SectionTitle` outside a section and every section
     // nobody has aligned keeps `space-between`; and a section that aligns its
     // own text must not emit a second answer.
     expect(sectionFrame(undefined).style).not.toHaveProperty("--sfb-title-justify");

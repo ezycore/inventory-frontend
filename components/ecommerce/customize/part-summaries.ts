@@ -13,8 +13,7 @@ import {
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
 import { MENU_MOBILE_LAYOUTS } from "@/lib/storefront-menu";
 import { FILTER_ENTRIES, FILTER_PLACEMENTS } from "@/lib/storefront-filters";
-import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontWithLook } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
   CustomizeDraft,
@@ -64,7 +63,7 @@ function stripWhere(showOnDesktop: boolean, showOnMobile: boolean): string {
 export function partSummary(
   id: PartId,
   draft: CustomizeDraft,
-  settings: StorefrontSettings,
+  settings: StorefrontWithLook,
   orgHasLogo: boolean,
 ): string {
   const listed = draft.collections.filter((c) => c.isListed).length;

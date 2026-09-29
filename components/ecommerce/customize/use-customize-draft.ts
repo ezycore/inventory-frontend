@@ -7,18 +7,15 @@ import {
   useSaveStorefrontSiteDraft,
   useStorefrontCollections,
   useUpdateCollection,
-  useUpdateStorefrontSettings,
   type StorefrontSite,
 } from "@/services/api";
 import { getPreset, resolveDesign, type StoreDesign } from "@/lib/storefront-theme";
 import {
   getReadyMadeTheme,
-  themeLookTemplates,
   type ReadyMadeTheme,
 } from "@/lib/storefront-themes";
 import {
   resolveHeaderMenu,
-  resolveHeroAlign,
 } from "@/lib/storefront-templates";
 import {
   resolveMenuSettings,
@@ -33,7 +30,6 @@ import {
   resolveMobileChrome,
   type MobileChrome,
 } from "@/lib/storefront-mobile";
-import type { StoreHomeSection, StoreSectionConfig } from "@/lib/storefront-client";
 import type {
   ContactButtonPage,
   Image,
@@ -41,17 +37,14 @@ import type {
   StorefrontFooterBlock,
   StorefrontFooterGroup,
   StorefrontFooterStyle,
-  StorefrontHeroBanner,
-  StorefrontHeroSlide,
-  StorefrontHomeCollections,
   StorefrontLogoStyle,
   StorefrontMenuItem,
-  StorefrontSettings,
+  StorefrontWithLook,
   StorefrontStripScope,
   StorefrontStripSpace,
   StorefrontTrustBadge,
 } from "@/types";
-import { toSettingsPatch } from "@/components/ecommerce/customize/draft-payloads";
+import { toLookPatch } from "@/components/ecommerce/customize/draft-payloads";
 import { settingsWithSiteLook } from "@/components/ecommerce/customize/site-look";
 import {
   RETIRED_TEMPLATE_KEYS,
@@ -176,9 +169,8 @@ export type UtilityBarDraft = ResolvedUtilityBar;
  * moment the merchant opened another one — while the live preview, fed from
  * here, went on showing the edit that had just been thrown away.
  *
- * Media (logo, banner, slide and announcement images) is NOT here: uploads
- * persist immediately through their own multipart PATCH, so they read off
- * `settings` and can't be "unsaved".
+ * Media (logo, banner) is NOT here: uploads persist immediately through their
+ * own multipart PATCH, so they read off `settings` and can't be "unsaved".
  */
 export interface CustomizeDraft {
   preset: string;
@@ -191,16 +183,13 @@ export interface CustomizeDraft {
    * single Save — it is settings, not media.
    */
   logoStyle: StorefrontLogoStyle;
-  /** Homepage category-row layout (Customize → Home page). */
-  homeCollections: StorefrontHomeCollections;
-  /** Every `templates.*` id, including `hero` and `headerMenu`. */
+  /** Every `templates.*` id, including `headerMenu`. */
   templates: Record<string, string>;
   /**
    * The phone chrome, **complete** — the merchant's overrides already merged
    * onto the template in `templates.mobile`.
    *
-   * Held resolved rather than as a diff for the same reason `design` and
-   * `heroAlign` are: the slot editor is a set of controlled inputs, and a
+   * Held resolved rather than as a diff for the same reason `design` is: the slot editor is a set of controlled inputs, and a
    * partial value would leave a toggle showing nothing while the storefront
    * happily rendered the template's answer. The diff is computed back on the way
    * out (`mobileOverrides` in `draft-payloads.ts`), so what gets STORED is still
@@ -208,8 +197,6 @@ export interface CustomizeDraft {
    */
   mobile: MobileChrome;
   badges: StorefrontTrustBadge[];
-  heroSlides: StorefrontHeroSlide[];
-  heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
   /**
    * How the menu behaves per device (Customize → Menu). RESOLVED, like
@@ -243,27 +230,6 @@ export interface CustomizeDraft {
   footerNewsletter: FooterNewsletterDraft;
   /** Type family + spatial rhythm (Customize → Design). Always complete. */
   design: StoreDesign;
-  /**
-   * Where the open hero's copy sits (Customize → Hero). Always concrete, never
-   * unset — the picker is a controlled input, so an absent value would show
-   * nothing selected while the storefront happily renders left.
-   */
-  heroAlign: "left" | "center";
-  /**
-   * The homepage as an ordered section list (Customize → Home page → Sections).
-   * Empty means "the merchant switched everything off", which the storefront
-   * resolver treats as unset rather than rendering a blank page.
-   */
-  homepageSections: StoreHomeSection[];
-  /**
-   * Per-section config, joined to `homepageSections[].key`.
-   *
-   * A sibling of the section list, not a field on it, and NOT touched by
-   * `applyThemeToDraft` — that is the whole reason it lives outside `theme` on
-   * the wire. A merchant who tries three themes must still have the collections
-   * they pointed their rows at.
-   */
-  sectionConfig: StoreSectionConfig[];
   /**
    * Carried, never edited. The Save payload rebuilds `theme` as a whole object
    * and the backend replaces the sub-document with it, so a field the draft does
@@ -308,8 +274,7 @@ export type PartId =
  * to forget.
  *
  * **Only site-wide parts have a slice** (2026-09-20). The draft still CARRIES
- * every page key it ever did — `heroSlides`, `heroBanner`, `homepageSections`,
- * `templates.product` and the rest — because a look save replaces each block it
+ * every page template id — `templates.product` and the rest — because a look save replaces each block it
  * sends wholesale, so a block dropped from the payload would be erased rather
  * than left alone (`seedTemplates` states the same rule for template ids). They
  * simply have no editor here any more: their pages own them.
@@ -365,13 +330,12 @@ export const PART_IDS = Object.keys(PART_SLICE) as PartId[];
  * Seed every template id from the saved object, keeping keys no picker owns so
  * the wholesale PATCH can't drop them.
  */
-function seedTemplates(settings: StorefrontSettings): Record<string, string> {
+function seedTemplates(settings: StorefrontWithLook): Record<string, string> {
   const t = (settings.templates ?? {}) as Record<string, string>;
   const seed: Record<string, string> = { ...t };
   for (const [key, options] of Object.entries(TEMPLATE_OPTIONS)) {
     seed[key] = t[key] || options[0].value;
   }
-  seed.hero = t.hero || "slides";
   seed.headerMenu = resolveHeaderMenu(
     settings.templates,
     (settings.nav?.header ?? []).length > 0,
@@ -393,7 +357,7 @@ function seedTemplates(settings: StorefrontSettings): Record<string, string> {
  * Legacy channel overrides are not editable, but remain in the draft so an
  * explicit Contact Button edit cannot erase data the backend still supports.
  */
-function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
+function seedContactButton(settings: StorefrontWithLook): ContactButtonDraft {
   const c = settings.contactButton;
   const h = c?.hours;
   const n = c?.nudge;
@@ -424,7 +388,7 @@ function seedContactButton(settings: StorefrontSettings): ContactButtonDraft {
  * "what does a draft look like"; the whole point of the live preview is that it
  * runs the same path the Customize page does.
  */
-export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "collections"> {
+export function seedDraft(settings: StorefrontWithLook): Omit<CustomizeDraft, "collections"> {
   const t = settings.theme ?? {};
   // Merchant-written wording is a SIBLING of theme now — see StorefrontCopy.
   const c = settings.copy ?? {};
@@ -440,16 +404,10 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     // Seeded as the saved object, empty when unset — an absent field means
     // "leave it as it was", which is exactly what the resolvers default to.
     logoStyle: t.logo ?? {},
-    homeCollections: t.homeCollections ?? {},
     // Resolved, not raw: the pickers are controlled inputs, so an unset (or
     // retired) axis has to arrive as a concrete id or its tile shows nothing
     // selected while the storefront happily renders the default.
     design: resolveDesign(t.design),
-    heroAlign: resolveHeroAlign(t.heroAlign),
-    // Seeded from the saved list, else empty so the storefront falls back to the
-    // section list implied by the home template.
-    homepageSections: t.homepageSections ?? [],
-    sectionConfig: settings.sectionConfig ?? [],
     appliedThemeId: t.appliedThemeId,
     templates,
     // Resolved, like `design` above and for the same reason — the slot editor's
@@ -457,8 +415,6 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     mobile: resolveMobileChrome(settings.templates, t.mobile),
     // The API supports zero to four; preserve the complete ordered list.
     badges: settings.trustBadges ?? [],
-    heroSlides: settings.heroSlides ?? [],
-    heroBanner: settings.heroBanner ?? {},
     navHeader: settings.nav?.header ?? [],
     navMenu: resolveMenuSettings(settings.nav?.menu),
     // The collection layout's legacy `sidebar` reads as a sidebar placement —
@@ -549,18 +505,15 @@ export const haveCollectionRowsChanged = (
  * persist something the preview never showed.
  *
  * Everything it touches is look. `footerText`, `footerNote`, the newsletter
- * copy, `navHeader`, `footerGroups`, `badges`, `heroSlides`, `heroBanner` and
- * the collections are **absent on purpose** — that is the `theme`-vs-`copy`
+ * copy, `navHeader`, `footerGroups`, `badges` and the collections are **absent on purpose** — that is the `theme`-vs-`copy`
  * split (see `StorefrontCopy`) expressed as code. A merchant who tries three
  * themes must still have every word they wrote.
  *
- * The classic home's shape is absent too — `homepageSections`,
- * `sectionConfig`, `heroAlign`, `homeCollections` and `templates.home` (see
- * `themeLookTemplates`). Every live home is a builder page that reads none of
- * them, so a theme leaves the home to Pages.
+ * The home page is absent too: it is built in Pages, and a theme does not
+ * rearrange it.
  *
  * `templates` is SPREAD over the current ones, never replaced: the bundle
- * deliberately omits `hero`, `headerMenu` and `checkout` (they depend on what
+ * deliberately omits `headerMenu` (it depends on what
  * content a shop actually has), and a wholesale replace would blank them.
  */
 export function applyThemeToDraft(
@@ -572,9 +525,7 @@ export function applyThemeToDraft(
     brandColor: theme.brandColor,
     accentColor: theme.accentColor,
     design: resolveDesign(theme.design),
-    // No `home`: see `themeLookTemplates`. The home page is built in Pages,
-    // and a theme does not rearrange it.
-    templates: { ...draft.templates, ...themeLookTemplates(theme) },
+    templates: { ...draft.templates, ...theme.templates },
     // The phone chrome follows the template the theme just stamped, arrangement
     // and all. Without this a merchant who had rearranged their bar would apply
     // a theme, get its mobile template, and see it wearing the previous one's
@@ -632,8 +583,6 @@ export interface CustomizeDraftApi {
   discard: () => void;
   save: () => void;
   saving: boolean;
-  /** Save writes the Site's draft, not the live store — the store publishes its look. */
-  savesDraft: boolean;
 }
 
 /**
@@ -642,11 +591,10 @@ export interface CustomizeDraftApi {
  * buttons — a merchant now presses Save once and everything they touched ships.
  */
 export function useCustomizeDraft(
-  settings: StorefrontSettings,
-  /** Present once the store publishes its look through the Site; `settings` then already carries the Site's look. */
-  site?: StorefrontSite,
+  /** The settings with the Site's draft look already laid over them (`settingsWithSiteLook`). */
+  settings: StorefrontWithLook,
+  site: StorefrontSite,
 ): CustomizeDraftApi {
-  const saveSettings = useUpdateStorefrontSettings();
   const saveSiteDraft = useSaveStorefrontSiteDraft();
   const updateCollection = useUpdateCollection();
   const reorderCollections = useReorderCollections();
@@ -674,7 +622,7 @@ export function useCustomizeDraft(
   // PATCHes immediately and invalidates the query, and the page can sit open for
   // a long time. Re-seed a CLEAN draft from the newer document, exactly as the
   // collections block below does: without this the page holds an increasingly
-  // old copy of `templates`/`nav`/`heroSlides` and its wholesale PATCH pushes it
+  // old copy of `templates`/`nav` and its wholesale save pushes it
   // back over whatever landed since. A dirty part is never touched — the
   // merchant's unsaved work outranks a background refetch.
   const [seededSettings, setSeededSettings] = useState(settings);
@@ -786,23 +734,18 @@ export function useCustomizeDraft(
         await reorderCollections.mutateAsync(d.collections.map((c) => c._id));
       }
 
-      // Only dirty top-level settings blocks are sent. Nested blocks replace
-      // wholesale on the backend, so the builder still sends each selected
-      // block completely; untouched blocks never cross the wire at all.
-      const settingsPatch = toSettingsPatch(d, dirtyParts);
-      const hasPatch = Object.keys(settingsPatch).length > 0;
-      // A store that publishes its look saves into the Site's draft, and shoppers
-      // see it once the merchant publishes (`SitePublishBar`). Every other store
-      // saves straight to shoppers.
-      let saved: StorefrontSettings | undefined = settings;
-      if (hasPatch && site) {
+      // Only dirty look blocks are sent. Each block replaces the draft's block
+      // wholesale, so each selected block is sent completely; untouched blocks
+      // never cross the wire at all. Shoppers see the draft once the merchant
+      // publishes it (`SitePublishBar`).
+      const lookPatch = toLookPatch(d, dirtyParts);
+      let saved: StorefrontWithLook | undefined = settings;
+      if (Object.keys(lookPatch).length > 0) {
         const res = await saveSiteDraft.mutateAsync({
-          look: settingsPatch,
+          look: lookPatch,
           draftVersion: site.draftVersion,
         });
         saved = res.data ? settingsWithSiteLook(settings, res.data) : undefined;
-      } else if (hasPatch) {
-        saved = (await saveSettings.mutateAsync(settingsPatch)).data;
       }
 
       // Re-seed from the saved response rather than from the draft, so the rail
@@ -824,7 +767,6 @@ export function useCustomizeDraft(
     dirtyParts,
     baseline.collections,
     reorderCollections,
-    saveSettings,
     saveSiteDraft,
     settings,
     site,
@@ -849,11 +791,9 @@ export function useCustomizeDraft(
     discard,
     save: () => void save(),
     saving:
-      saveSettings.isPending ||
       saveSiteDraft.isPending ||
       updateCollection.isPending ||
       reorderCollections.isPending,
-    savesDraft: !!site,
   };
 }
 

@@ -1,9 +1,7 @@
 // coding-standard: maintained
 import type {
   HeaderMenuSource,
-  StoreHomeCollections,
   StoreLogoStyle,
-  StoreSectionConfig,
   StoreTemplates,
   StoreTemplatesRaw,
   StorefrontStore,
@@ -12,7 +10,6 @@ import { DEFAULT_MOBILE_TEMPLATE, mobileTemplate } from "@/lib/storefront-mobile
 
 /** Default page variants when the store hasn't selected one (or backend omits it). */
 export const DEFAULT_TEMPLATES: StoreTemplates = {
-  home: "classic",
   collection: "grid4",
   product: "left",
   checkout: "single",
@@ -23,11 +20,9 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   // Both are what every card rendered before the settings existed.
   cardTagBadges: "2",
   discountBadge: "percent",
-  hero: "slides",
   pagination: "pages",
   imageFit: "fit",
   imageRatio: "square",
-  categoryTiles: "tile",
   accountLayout: "sidebar",
   contentLayout: "centered",
   cartLayout: "panel",
@@ -35,9 +30,6 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   mobile: DEFAULT_MOBILE_TEMPLATE,
 };
 
-// The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
-// the storefront pages consume short variant names. These maps bridge the two.
-const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal" } as const;
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
 // Whole checkout layouts. The first two ids predate the layout registry and are
@@ -83,7 +75,6 @@ const CARDACTIONS = {
   reveal: "reveal",
   "icon-only": "iconOnly",
 } as const;
-const HERO = { slides: "slides", banner: "banner" } as const;
 const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // How product listings advance past page 1. `pages` stays the default: it is what
 // every existing store already renders, and it is the only mode that puts a real
@@ -101,22 +92,6 @@ const IMAGERATIO = {
   portrait: "portrait",
   landscape: "landscape",
   tall: "tall",
-} as const;
-// How `category-tiles` presents one department. `tile` is the default because it
-// is what the section has always rendered; `overlay` needs real photographs on
-// every category, so making it the fallback would put a scrim over a grid of
-// letter placeholders.
-// `circle` is `disc`'s shape with `tile`'s content: the merchant's photograph
-// cropped round, the name beneath. The two existing photo modes are both
-// rectangles, so a soft catalogue (baby, gifts, beauty) had no way to lose the
-// corners without also losing the pictures — `disc` refuses photographs by
-// design. A category with no photo falls back to the lettered disc, which is
-// the same circle, so a half-photographed catalogue stays one consistent row.
-const CATEGORYTILES = {
-  tile: "tile",
-  overlay: "overlay",
-  disc: "disc",
-  circle: "circle",
 } as const;
 // Whole account-area layouts. `sidebar` is the default because it is what the
 // account area has always been; the other three are separate page components,
@@ -173,7 +148,6 @@ export function resolveTemplates(
     DEFAULT_TEMPLATES.productCard,
   );
   return {
-    home: pick(HOME, t.home, DEFAULT_TEMPLATES.home),
     collection: pick(COLLECTION, t.collection, DEFAULT_TEMPLATES.collection),
     product: pick(PRODUCT, t.product, DEFAULT_TEMPLATES.product),
     checkout: pick(CHECKOUT, t.checkout, DEFAULT_TEMPLATES.checkout),
@@ -183,15 +157,9 @@ export function resolveTemplates(
     cardActions: resolveCardActions(t.cardActions, productCard),
     cardTagBadges: pick(CARDTAGBADGES, t.cardTagBadges, DEFAULT_TEMPLATES.cardTagBadges),
     discountBadge: pick(DISCOUNTBADGE, t.discountBadge, DEFAULT_TEMPLATES.discountBadge),
-    hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
     imageFit: pick(IMAGEFIT, t.imageFit, DEFAULT_TEMPLATES.imageFit),
     imageRatio: pick(IMAGERATIO, t.imageRatio, DEFAULT_TEMPLATES.imageRatio),
-    categoryTiles: pick(
-      CATEGORYTILES,
-      t.categoryTiles,
-      DEFAULT_TEMPLATES.categoryTiles,
-    ),
     accountLayout: pick(
       ACCOUNTLAYOUT,
       t.accountLayout,
@@ -229,20 +197,6 @@ export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "ca
 export function isImageFit(value: unknown): value is StoreTemplates["imageFit"] {
   return typeof value === "string" && Object.hasOwn(IMAGEFIT, value);
 }
-
-/**
- * One entry in a DEFAULT composition — a home preset's list, or a ready-made
- * theme's.
- *
- * A bare id is a section with nothing more to say, which is most of them. The
- * object form is for a section whose default is a *configured* one: "a product
- * grid, sourced newest" is something a composition has to be able to express,
- * and a flat id list cannot — which is the only reason `latest-grid` ever had
- * to exist as a section type of its own.
- */
-export type HomeSectionEntry =
-  | string
-  | { type: string; config?: Omit<StoreSectionConfig, "key"> };
 
 /** Narrows a raw/draft id to a known ratio — the guard `useStoreImageRatio` uses. */
 export function isImageRatio(value: unknown): value is StoreTemplates["imageRatio"] {
@@ -361,26 +315,8 @@ export function resolveLogoStyle(
   };
 }
 
-/**
- * Where the OPEN hero's copy sits — `theme.heroAlign` narrowed to something the
- * DOM may see.
- *
- * `left` is the fallback for anything unset or unrecognised, because that is
- * what every hero rendered before this control existed: an unknown stored id
- * must not centre a shop nobody asked to centre.
- *
- * This is the whole of what the retired `hero-manifesto` section contributed.
- * It was `hero-open` with no picture and centred type, and `hero-open` already
- * collapses to one column when no banner is set — so a merchant who wanted
- * centred copy had to choose a different SECTION, and doing so silently
- * discarded the banner they had uploaded.
- */
-export function resolveHeroAlign(raw: string | null | undefined): "left" | "center" {
-  return raw === "center" ? "center" : "left";
-}
-
-/** Homepage collections row layout with the owner's overrides applied. */
-export interface ResolvedHomeCollections {
+/** A category row's layout: tiles or names, strip or grid, and how many across. */
+export interface CategoryRowOptions {
   /** `plain` draws names only; `card` is the picture tile. */
   style: "card" | "plain";
   layout: "strip" | "grid";
@@ -399,36 +335,6 @@ export interface ResolvedHomeCollections {
 }
 
 /**
- * Resolve `theme.homeCollections` (Customize → Home page → Collections row).
- *
- * `strip` is the default because it is what the row has always been; switching
- * the fallback to `grid` would restyle every existing homepage without its
- * owner asking, which is the same trap `resolveHeaderMenu` documents.
- */
-export function resolveHomeCollections(
-  raw: StoreHomeCollections | null | undefined,
-): ResolvedHomeCollections {
-  return {
-    // Only an explicit `plain` drops the pictures. This is what the retired
-    // `category-links` section drew, and `card` is every shop that never asked.
-    style: raw?.style === "plain" ? "plain" : "card",
-    layout: raw?.layout === "grid" ? "grid" : "strip",
-    columns: clampInt(raw?.columns, 2, 6, 4),
-    /* Two, the count every phone drew before this setting existed — so a shop
-       that never opens the control is unchanged. The ceiling is four rather
-       than six: a 360px screen minus padding is ~336px, and six tracks of 48px
-       are below the size a tile has to be to be tapped. */
-    mobileColumns: clampInt(raw?.mobileColumns, 2, 4, 2),
-    align:
-      raw?.align === "center" || raw?.align === "right" ? raw.align : "left",
-    // Only an explicit `false` hides the names. Anything else — unset, null, a
-    // string that survived an old payload — is the shop that has never been
-    // asked, and that shop shows its category names.
-    showLabels: raw?.showLabels !== false,
-  };
-}
-
-/**
  * Does this row draw its category NAMES?
  *
  * Two inputs, and the second is the one that matters: a merchant can ask for a
@@ -443,9 +349,9 @@ export function resolveHomeCollections(
  * whole section rather than tile by tile. One shape used consistently beats a
  * ragged row, even when the consistent one is not what was asked for.
  *
- * Lives here rather than beside `useCategoryRowLayout` because that module is
- * `"use client"`, and the Storefront Builder's server views ask this too — a
- * server component cannot call a function exported from a client module.
+ * Lives here, in a module with no `"use client"`, because the Storefront
+ * Builder's server views ask this too — a server component cannot call a
+ * function exported from a client module.
  */
 export function categoryLabelsVisible(
   showLabels: boolean,
