@@ -503,6 +503,86 @@ export function keptSlot(
   );
 }
 
+/* ================================= search ================================= */
+
+/**
+ * Where search sits on a phone, as the ONE answer Customize offers.
+ *
+ * Stored, it is three fields — a `search` glyph in a slot or tab, `searchInline`,
+ * and `row === "search"` — and the editor used to hand the merchant two of them
+ * as separate controls plus the slot list, so "where is my search box?" had
+ * three places to look and combinations nobody asked for. The fields stay as
+ * they are (live shops store them); only the question is collapsed.
+ */
+export type MobileSearchMode = "none" | "icon" | "bar" | "under";
+
+/** Read the one answer off the three fields. A field in the bar wins, then the row. */
+export function mobileSearchMode(chrome: MobileChrome): MobileSearchMode {
+  if (chrome.searchInline) return "bar";
+  if (chrome.row === "search") return "under";
+  return chromeHas(chrome, "search") ? "icon" : "none";
+}
+
+const withoutSearch = (ids: MobileActionId[]) => ids.filter((id) => id !== "search");
+
+/**
+ * The fields to write for a chosen search mode.
+ *
+ * The glyph comes out of the top bar for every mode but `icon`, so the bar
+ * never carries a magnifier beside a search box. A Search TAB is a destination
+ * the merchant placed deliberately, so only `none` removes it.
+ */
+export function withSearchMode(
+  chrome: MobileChrome,
+  mode: MobileSearchMode,
+): Partial<MobileChrome> {
+  const row: MobileRow =
+    mode === "under" ? "search" : chrome.row === "search" ? "none" : chrome.row;
+  if (mode === "icon") {
+    const base = { searchInline: false, row };
+    if (chromeHas(chrome, "search")) return base;
+    // Beside the cart on the right, where every shipped template puts it; the
+    // left only when the right is full. Both full is a bar with no room, and
+    // the magnifier replaces the right slot's last action rather than
+    // overflowing a 390px phone.
+    if (chrome.right.length < MAX_SLOT_ACTIONS) {
+      return { ...base, right: ["search", ...chrome.right] };
+    }
+    if (chrome.left.length < MAX_SLOT_ACTIONS) {
+      return { ...base, left: [...chrome.left, "search"] };
+    }
+    return {
+      ...base,
+      right: ["search", ...chrome.right.slice(0, MAX_SLOT_ACTIONS - 1)],
+    };
+  }
+  return {
+    searchInline: mode === "bar",
+    row,
+    left: withoutSearch(chrome.left),
+    right: withoutSearch(chrome.right),
+    ...(mode === "none"
+      ? { tabs: chrome.tabs.filter((id) => id !== "search") }
+      : {}),
+    // A field in the bar needs the logo out of the middle.
+    ...(mode === "bar" ? { brand: "left" as const } : {}),
+  };
+}
+
+/**
+ * The fields to write for the category strip under the bar. Only one row fits
+ * there, so switching the strip on over a search row moves search up to the
+ * top bar as a magnifier — the merchant keeps a way to search.
+ */
+export function withCategoryStrip(
+  chrome: MobileChrome,
+  on: boolean,
+): Partial<MobileChrome> {
+  if (!on) return chrome.row === "chips" ? { row: "none" } : {};
+  const moved = chrome.row === "search" ? withSearchMode(chrome, "icon") : {};
+  return { ...moved, row: "chips" };
+}
+
 /**
  * Can a shopper on a phone reach the catalogue at all?
  *

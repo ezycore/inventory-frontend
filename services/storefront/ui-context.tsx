@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import {
   createContext,
@@ -8,6 +9,12 @@ import {
   type ReactNode,
 } from "react";
 import { I18N, type Dict, type Lang } from "@/lib/storefront-i18n";
+import {
+  DEFAULT_LANGUAGE_THEME,
+  effectiveLang,
+  effectiveTheme,
+  type ResolvedLanguageTheme,
+} from "@/lib/storefront-language-theme";
 
 type Theme = "light" | "dark";
 
@@ -65,9 +72,37 @@ export function setPreviewTheme(theme: Theme | null): void {
   emit();
 }
 
+/**
+ * The shop's own answer — which languages and schemes it offers — set by the
+ * shop frame (`useApplyLanguageTheme`). Client-only module state, like
+ * `previewTheme`: this provider sits in the root layout, above anything that
+ * knows which store it is rendering, and the root layout must not read the
+ * request to find out.
+ */
+let shopPolicy: ResolvedLanguageTheme = DEFAULT_LANGUAGE_THEME;
+
+/** Hand the provider the shop's policy. A no-op when nothing changed. */
+export function setShopLanguageTheme(policy: ResolvedLanguageTheme): void {
+  if (
+    policy.languages === shopPolicy.languages &&
+    policy.defaultLanguage === shopPolicy.defaultLanguage &&
+    policy.darkMode === shopPolicy.darkMode
+  ) {
+    return;
+  }
+  shopPolicy = policy;
+  emit();
+}
+
 const storedTheme = (): Theme => (read(THEME_KEY) === "dark" ? "dark" : "light");
-const getTheme = (): Theme => previewTheme ?? storedTheme();
-const getLang = (): Lang => (read(LANG_KEY) === "bn" ? "bn" : "en");
+const storedLang = (): Lang | null => {
+  const v = read(LANG_KEY);
+  return v === "bn" || v === "en" ? v : null;
+};
+// The shop's policy outranks even the preview override: an always-light shop
+// previewed in dark would show the merchant a shop no shopper can see.
+const getTheme = (): Theme => effectiveTheme(shopPolicy, previewTheme ?? storedTheme());
+const getLang = (): Lang => effectiveLang(shopPolicy, storedLang());
 
 /** A theme chosen in the page itself: the shopper's, so it drops any override. */
 function pickTheme(next: Theme) {
@@ -101,6 +136,12 @@ const Ctx = createContext<StorefrontUI>({
  * anonymous, SEO-facing first paint — then the stored preference hydrates in. A
  * tiny inline script in the storefront layout flips `data-theme` before paint so
  * dark-mode users don't see a light flash.
+ *
+ * The shop's policy (`setShopLanguageTheme`) decides what a stored preference
+ * may do: a one-language shop is that language, an always-light shop is light,
+ * and a first visit opens in the merchant's chosen language. A shop that opens
+ * in Bangla still server-renders English for that first paint — the same flash
+ * a shopper who picked Bangla has always had, since SSR cannot see the shop.
  *
  * Inside an admin preview frame the theme comes from the editor's toggle
  * instead (`setPreviewTheme`), which is an override and is never stored.

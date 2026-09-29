@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { describe, expect, it } from "vitest";
 import {
   publicCollections,
@@ -10,8 +11,11 @@ import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
 import { DEFAULT_DESIGN } from "@/lib/storefront-theme";
 import { DEFAULT_FILTER_SETTINGS } from "@/lib/storefront-filters";
 import { DEFAULT_MENU_SETTINGS } from "@/lib/storefront-menu";
-import type { CustomizeDraft } from "@/components/ecommerce/customize/use-customize-draft";
-import { seedDraft } from "@/components/ecommerce/customize/use-customize-draft";
+import { DEFAULT_LANGUAGE_THEME } from "@/lib/storefront-language-theme";
+import {
+  seedDraft,
+  type CustomizeDraft,
+} from "@/components/ecommerce/customize/use-customize-draft";
 
 /**
  * The collections half of the preview payload.
@@ -151,6 +155,8 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
     showTheme: true,
     trackOrderLabel: "",
   },
+  languageTheme: DEFAULT_LANGUAGE_THEME,
+  desktopHeader: { sticky: true },
   announcement: {
     enabled: false,
     useShippingRule: false,
@@ -372,7 +378,8 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
     });
   });
 
-  it("persists the utility bar as one responsive section", () => {
+  // The info strip (`nav.utilityBar`) is edited under Header → Computer.
+  it("persists the info strip as one responsive section", () => {
     const value = draft({
       utilityBar: {
         enabled: true,
@@ -386,7 +393,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
       },
     });
 
-    const patch = toSettingsPatch(value, ["utility"]);
+    const patch = toSettingsPatch(value, ["header"]);
 
     expect(patch.nav?.utilityBar).toEqual({
       ...value.utilityBar,
@@ -607,6 +614,57 @@ describe("the Menu part", () => {
       sort: { default: "newest" },
     });
     expect(toSettingsPatch(draft({}), ["filters"]).nav?.filters).toBeUndefined();
+  });
+
+  /* Header absorbed Phone bar and Utility bar (2026-09-29). It writes the phone
+     template AND the arrangement over it AND the info strip and menu-opening
+     settings — three blocks the PATCH replaces wholesale, so dropping any one
+     would save the template and silently lose the slots or the strip. */
+  it("saves theme, templates and nav for the Header part", () => {
+    const value = draft({
+      templates: { mobile: "drawer" },
+      mobile: { ...resolveMobileChrome({ mobile: "drawer" }, undefined), sticky: false },
+      navMenu: {
+        ...DEFAULT_MENU_SETTINGS,
+        desktop: { ...DEFAULT_MENU_SETTINGS.desktop, dropdown: "mega" },
+      },
+    });
+    const patch = toSettingsPatch(value, ["header"]);
+    expect(patch.templates?.mobile).toBe("drawer");
+    expect(patch.theme?.mobile).toEqual({ sticky: false });
+    expect(patch.nav?.menu).toEqual({ desktop: { dropdown: "mega" } });
+  });
+
+  it("saves only the language and theme choices off their defaults", () => {
+    const patch = toSettingsPatch(
+      draft({ languageTheme: { ...DEFAULT_LANGUAGE_THEME, languages: "bn" } }),
+      ["language"],
+    );
+    expect(patch.nav?.languageTheme).toEqual({ languages: "bn" });
+    // A live shop that never opens the part must store nothing new.
+    expect(toSettingsPatch(draft({}), ["language"]).nav?.languageTheme).toBeUndefined();
+  });
+
+  it("saves the computer header only once it stops following the page", () => {
+    expect(
+      toSettingsPatch(draft({ desktopHeader: { sticky: false } }), ["header"]).nav
+        ?.desktopHeader,
+    ).toEqual({ sticky: false });
+    expect(toSettingsPatch(draft({}), ["header"]).nav?.desktopHeader).toBeUndefined();
+  });
+
+  // The category sidebar's opening moved under Page layout with the sidebar.
+  it("saves nav for the Page layout part", () => {
+    const patch = toSettingsPatch(
+      draft({
+        navMenu: {
+          ...DEFAULT_MENU_SETTINGS,
+          desktop: { ...DEFAULT_MENU_SETTINGS.desktop, railOpen: "flyout" },
+        },
+      }),
+      ["shell"],
+    );
+    expect(patch.nav?.menu).toEqual({ desktop: { railOpen: "flyout" } });
   });
 
   it("stores no menu block for a shop left on the defaults", () => {

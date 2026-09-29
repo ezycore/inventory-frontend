@@ -11,8 +11,12 @@ import {
   keptSlot,
   mobileIcon,
   mobileOverrides,
+  mobileSearchMode,
   mobileTemplate,
   resolveMobileChrome,
+  withCategoryStrip,
+  withSearchMode,
+  type MobileChrome,
 } from "@/lib/storefront-mobile";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import { SKETCH_KEYS } from "@/components/ecommerce/customize/template-sketch";
@@ -262,5 +266,72 @@ describe("ready-made themes", () => {
   it("Classic resets to the storefront's own chrome", () => {
     const classic = READY_MADE_THEMES.find((t) => t.id === "classic");
     expect(classic?.templates.mobile).toBe("tabs");
+  });
+});
+
+describe("search is one answer in Customize", () => {
+  const chromeOf = (id: string): MobileChrome =>
+    resolveMobileChrome({ mobile: id }, undefined);
+  const apply = (chrome: MobileChrome, patch: Partial<MobileChrome>): MobileChrome => ({
+    ...chrome,
+    ...patch,
+  });
+
+  it.each([
+    ["tabs", "under"],
+    ["drawer", "icon"],
+    ["search", "bar"],
+    ["minimal", "none"],
+    ["browse", "icon"],
+  ])("reads the %s template as %s", (id, mode) => {
+    expect(mobileSearchMode(chromeOf(id))).toBe(mode);
+  });
+
+  it.each(["none", "icon", "bar", "under"] as const)(
+    "round-trips %s on every template",
+    (mode) => {
+      for (const t of MOBILE_TEMPLATES) {
+        const chrome = chromeOf(t.id);
+        expect(mobileSearchMode(apply(chrome, withSearchMode(chrome, mode)))).toBe(mode);
+      }
+    },
+  );
+
+  it("never leaves a magnifier beside a search box", () => {
+    const chrome = chromeOf("drawer");
+    const next = apply(chrome, withSearchMode(chrome, "bar"));
+    expect(next.left).not.toContain("search");
+    expect(next.right).not.toContain("search");
+    expect(next.brand).toBe("left");
+  });
+
+  it("puts the magnifier on the right, and never past the slot cap", () => {
+    const full: MobileChrome = {
+      ...chromeOf("minimal"),
+      left: ["menu", "home", "account"],
+      right: ["cart", "call", "track"],
+    };
+    const next = apply(full, withSearchMode(full, "icon"));
+    expect(next.right[0]).toBe("search");
+    expect(next.right).toHaveLength(MAX_SLOT_ACTIONS);
+    expect(next.left).toHaveLength(MAX_SLOT_ACTIONS);
+  });
+
+  it("keeps a Search tab unless search is switched off", () => {
+    const tabbed: MobileChrome = { ...chromeOf("tabs"), tabs: ["home", "search", "cart"] };
+    expect(apply(tabbed, withSearchMode(tabbed, "bar")).tabs).toContain("search");
+    expect(apply(tabbed, withSearchMode(tabbed, "none")).tabs).not.toContain("search");
+  });
+
+  it("moves search up to an icon when the category strip takes its row", () => {
+    const chrome = chromeOf("tabs");
+    const next = apply(chrome, withCategoryStrip(chrome, true));
+    expect(next.row).toBe("chips");
+    expect(mobileSearchMode(next)).toBe("icon");
+  });
+
+  it("switching the strip off only clears a strip", () => {
+    expect(withCategoryStrip(chromeOf("tabs"), false)).toEqual({});
+    expect(withCategoryStrip(chromeOf("browse"), false)).toEqual({ row: "none" });
   });
 });

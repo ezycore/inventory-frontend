@@ -66,6 +66,12 @@ import {
   resolveUtilityBar,
   type ResolvedUtilityBar,
 } from "@/lib/storefront-utility-bar";
+import {
+  resolveDesktopHeader,
+  resolveLanguageTheme,
+  type ResolvedDesktopHeader,
+  type ResolvedLanguageTheme,
+} from "@/lib/storefront-language-theme";
 
 /** Announcement-bar draft — every field always defined, so inputs stay controlled. */
 export interface AnnouncementDraft {
@@ -211,9 +217,11 @@ export interface CustomizeDraft {
   heroBanner: StorefrontHeroBanner;
   navHeader: StorefrontMenuItem[];
   /**
-   * How the menu behaves per device (Customize → Menu). RESOLVED, like
-   * `mobile`, so every control is concrete; `menuSettingsOverrides` diffs it
-   * back down on save, so only what the merchant changed is stored.
+   * How the menu behaves per device. Edited in three parts — how it opens under
+   * Header, what it lists under Menu, the category sidebar under Page layout —
+   * and `PART_SLICE` splits it field by field to match. RESOLVED, like `mobile`,
+   * so every control is concrete; `menuSettingsOverrides` diffs it back down on
+   * save, so only what the merchant changed is stored.
    */
   navMenu: ResolvedMenuSettings;
   /**
@@ -224,6 +232,10 @@ export interface CustomizeDraft {
   announcement: AnnouncementDraft;
   campaignStrip: CampaignStripDraft;
   utilityBar: UtilityBarDraft;
+  /** Languages and colour schemes on offer (Customize → Language & theme). */
+  languageTheme: ResolvedLanguageTheme;
+  /** The computer header's behaviour (Customize → Header → Computer). */
+  desktopHeader: ResolvedDesktopHeader;
   contactButton: ContactButtonDraft;
   footerGroups: StorefrontFooterGroup[];
   footerPaymentMethods: FooterPaymentMethodsDraft;
@@ -291,8 +303,7 @@ export type PartId =
   | "campaign"
   | "header"
   | "menu"
-  | "utility"
-  | "mobile"
+  | "language"
   | "cards"
   | "filters"
   | "contact"
@@ -313,19 +324,42 @@ export type PartId =
  * than left alone (`seedTemplates` states the same rule for template ids). They
  * simply have no editor here any more: their pages own them.
  */
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
 const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
   look: (d) => [d.preset, d.brandColor, d.accentColor, d.logoStyle, d.design],
   announcement: (d) => d.announcement,
   campaign: (d) => d.campaignStrip,
-  header: (d) => d.templates.header,
-  // Where the links come from, the links, and how they open — one thing to a
-  // merchant ("my menu"), and it drives the phone as much as the header.
-  menu: (d) => [d.templates.headerMenu, d.navHeader, d.navMenu],
-  utility: (d) => d.utilityBar,
-  // The template id and the arrangement over it are one visible thing to a
-  // merchant — their phone header — so they share a slice. Splitting them would
-  // let the save bar name a part the merchant never opened.
-  mobile: (d) => [d.templates.mobile, d.mobile],
+  // The top of the shop on both screens (2026-09-29): both layouts, the phone
+  // chrome over its template, the info strip, and how the menu OPENS — the
+  // phone panel and the computer dropdown row. It absorbed the Phone bar and
+  // Utility bar rows, so the save bar names the one row a merchant edited.
+  header: (d) => {
+    const { mobile, desktop } = d.navMenu;
+    return [
+      d.templates.header,
+      d.templates.mobile,
+      d.mobile,
+      d.utilityBar,
+      d.desktopHeader,
+      [mobile.layout, mobile.open, mobile.images, mobile.subImages, mobile.chips, mobile.title, mobile.drawerWidth],
+      [desktop.row, desktop.dropdown, desktop.openOn, desktop.overflow],
+    ];
+  },
+  // WHAT is in the menu, on every device — the source, the links, and the
+  // answers about its contents that `nav.menu` stores per device.
+  menu: (d) => {
+    const { mobile, desktop } = d.navMenu;
+    return [
+      d.templates.headerMenu,
+      d.navHeader,
+      d.navMenu.subcategories,
+      [mobile.allProducts, mobile.allProductsLabel, mobile.viewAll, mobile.collectionStrip],
+      [desktop.viewAll, desktop.collectionStrip],
+    ];
+  },
+  // Which languages and colour schemes shoppers get (2026-09-29).
+  language: (d) => d.languageTheme,
   cards: (d) => [
     d.templates.productCard,
     d.templates.cardActions,
@@ -349,7 +383,8 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
     d.footerStyle,
     d.footerBlocks,
   ],
-  shell: (d) => d.templates.shell,
+  // The frame, and how the category sidebar opens when the frame is one.
+  shell: (d) => [d.templates.shell, d.navMenu.desktop.railOpen],
   content: (d) => d.templates.contentLayout,
 };
 
@@ -359,6 +394,15 @@ const PART_SLICE: Record<PartId, (d: CustomizeDraft) => unknown> = {
  * a setting a merchant cannot reach, and nothing else would notice.
  */
 export const PART_IDS = Object.keys(PART_SLICE) as PartId[];
+
+/**
+ * The parts whose slice differs between two drafts — what the save bar names
+ * and what `toSettingsPatch` sends. A field no slice covers is a field whose
+ * edit is never saved, which is why `nav.menu`'s split is pinned field by field
+ * in the tests.
+ */
+export const changedParts = (draft: CustomizeDraft, baseline: CustomizeDraft): PartId[] =>
+  PART_IDS.filter((id) => !same(PART_SLICE[id](draft), PART_SLICE[id](baseline)));
 
 /**
  * Seed every template id from the saved object, keeping keys no picker owns so
@@ -504,6 +548,8 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
       dismissible: cs?.dismissible ?? false,
     },
     utilityBar: resolveUtilityBar(settings.nav?.utilityBar, templates.header),
+    languageTheme: resolveLanguageTheme(settings.nav?.languageTheme),
+    desktopHeader: resolveDesktopHeader(settings.nav?.desktopHeader),
     contactButton: seedContactButton(settings),
     footerGroups: settings.nav?.footer ?? [],
     footerPaymentMethods: {
@@ -528,8 +574,6 @@ export function seedDraft(settings: StorefrontSettings): Omit<CustomizeDraft, "c
     },
   };
 }
-
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /** Category rows are independent from the collection page's layout templates. */
 export const haveCollectionRowsChanged = (
@@ -739,10 +783,7 @@ export function useCustomizeDraft(
   }));
   const [baseline, setBaseline] = useState<CustomizeDraft>(draft);
 
-  const dirtyParts = useMemo(
-    () => PART_IDS.filter((id) => !same(PART_SLICE[id](draft), PART_SLICE[id](baseline))),
-    [draft, baseline],
-  );
+  const dirtyParts = useMemo(() => changedParts(draft, baseline), [draft, baseline]);
   const isDirty = dirtyParts.length > 0;
   const validationErrors = useMemo(() => validateCustomizeDraft(draft), [draft]);
   const isValid = validationErrors.length === 0;

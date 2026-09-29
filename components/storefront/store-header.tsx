@@ -29,11 +29,13 @@ import {
 } from "@/components/storefront/header/desktop-variants";
 import { logoImageUrl } from "@/lib/storefront-image";
 import { storePages } from "@/lib/storefront-page-controls";
-import { headerNeeds, showsOn } from "@/lib/storefront-utility-bar";
+import { showsOn } from "@/lib/storefront-utility-bar";
 import {
+  useHeaderNeeds,
   useHeaderVariant,
   useResolvedUtilityBar,
 } from "@/components/storefront/use-utility-bar";
+import { useDesktopHeader } from "@/components/storefront/use-language-theme";
 
 const DESKTOP_VARIANTS: Record<string, (props: { ctx: HeaderCtx }) => React.ReactNode> = {
   classic: ClassicDesktop,
@@ -96,7 +98,9 @@ export function StoreHeader({
      because this is the only place that knows both halves — which bar is
      showing and which anatomy is about to render. */
   const desktopBarShows = showsOn(utilityBar, "desktop");
-  const { needsTheme, needsLang } = headerNeeds(utilityBar, "desktop");
+  const { needsTheme, needsLang } = useHeaderNeeds(store, "desktop");
+  // Absent ⇒ it follows the page, as every header always has.
+  const { sticky } = useDesktopHeader(store);
 
   const ctx: HeaderCtx = {
     base,
@@ -141,7 +145,7 @@ export function StoreHeader({
 
   // Publishes `--sf-header-h` so a top-sticky panel elsewhere on the page can
   // clear this bar instead of sliding under it (checkout's order rail).
-  useHeaderHeight(mobileRef, desktopRef);
+  useHeaderHeight(mobileRef, desktopRef, sticky);
 
   return (
     <>
@@ -160,7 +164,11 @@ export function StoreHeader({
         categories={categories ?? []}
         barRef={mobileRef}
       />
-      <div ref={desktopRef} className="sf-desktop-only" style={headerBar}>
+      <div
+        ref={desktopRef}
+        className="sf-desktop-only"
+        style={sticky ? headerBar : { ...headerBar, position: "relative" }}
+      >
         {desktopBarShows ? <UtilityBar ctx={ctx} config={utilityBar} /> : null}
         <Desktop ctx={ctx} />
       </div>

@@ -12,8 +12,10 @@ import "./storefront.css";
 // imports it, and this sheet is small enough to ride on every shop page.
 import "./storefront-builder.css";
 
-// Set the stored theme before paint so dark-mode users don't flash light.
-const NO_FLASH = `(function(){try{var t=localStorage.getItem('ezy-sf-theme');var r=document.querySelector('.sf-root');if(r){if(t==='dark')r.setAttribute('data-theme','dark');var l=localStorage.getItem('ezy-sf-lang');if(l==='bn')r.setAttribute('lang','bn');}}catch(e){}})();`;
+// Set the stored theme before paint so dark-mode users don't flash light —
+// unless the shop is always light (`data-scheme` on `.sf-shell`, stamped by
+// `useApplyLanguageTheme`), where a stored dark choice must not paint at all.
+const NO_FLASH = `(function(){try{var t=localStorage.getItem('ezy-sf-theme');var r=document.querySelector('.sf-root');if(r){if(t==='dark'&&!r.querySelector('.sf-shell[data-scheme="light"]'))r.setAttribute('data-theme','dark');var l=localStorage.getItem('ezy-sf-lang');if(l==='bn')r.setAttribute('lang','bn');}}catch(e){}})();`;
 
 /**
  * Root layout for the public storefront — its own `<html>` document, separate
