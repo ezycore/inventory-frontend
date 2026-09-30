@@ -5,6 +5,10 @@ import type { StoreDesign } from "@/lib/storefront-theme";
 import type { ThemeSample } from "@/lib/storefront-theme-samples";
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type {
+  DesktopHeaderConfig,
+  LanguageThemeConfig,
+} from "@/lib/storefront-language-theme";
+import type {
   CatalogCategory,
   StoreAnnouncement,
   StoreCampaignStrip,
@@ -89,7 +93,7 @@ interface SfPreviewState {
   navHeader: StoreMenuItem[] | null;
   /** Draft announcement bar (Customize → Announcement bar). */
   announcement: StoreAnnouncement | null;
-  /** Draft utility bar (Customize → Utility bar). */
+  /** Draft utility bar (Customize → Header → Computer → Info strip). */
   utilityBar: StoreUtilityBar | null;
   /**
    * Draft menu behaviour (Customize → Menu). A stored-shape override, so
@@ -98,6 +102,13 @@ interface SfPreviewState {
   navMenu: StoreMenuSettings | null;
   /** Draft filters & sort (Customize → Filters & sort) — same `null` vs `{}` rule. */
   navFilters: StoreFilterSettings | null;
+  /**
+   * Draft languages and colour schemes (Customize → Language & theme) and the
+   * computer header's behaviour (Header → Computer). Stored-shape overrides, so
+   * `null` ("not drafted") and `{}` ("drafted back to every default") differ.
+   */
+  languageTheme: LanguageThemeConfig | null;
+  desktopHeader: DesktopHeaderConfig | null;
   /** Draft campaign strip (Customize → Campaign strip). */
   campaignStrip: StoreCampaignStrip | null;
   /**
@@ -212,6 +223,8 @@ interface SfPreviewState {
     utilityBar?: StoreUtilityBar;
     navMenu?: StoreMenuSettings;
     navFilters?: StoreFilterSettings;
+    languageTheme?: LanguageThemeConfig;
+    desktopHeader?: DesktopHeaderConfig;
     campaignStrip?: StoreCampaignStrip;
     // `null` is meaningful (launcher switched off), so nullable in the patch.
     contactButton?: StoreContactButton | null;
@@ -264,6 +277,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   utilityBar: null,
   navMenu: null,
   navFilters: null,
+  languageTheme: null,
+  desktopHeader: null,
   campaignStrip: null,
   contactButton: undefined,
   collections: null,
@@ -324,6 +339,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.utilityBar !== undefined ? patch.utilityBar : s.utilityBar,
       navMenu: patch.navMenu !== undefined ? patch.navMenu : s.navMenu,
       navFilters: patch.navFilters !== undefined ? patch.navFilters : s.navFilters,
+      languageTheme:
+        patch.languageTheme !== undefined ? patch.languageTheme : s.languageTheme,
+      desktopHeader:
+        patch.desktopHeader !== undefined ? patch.desktopHeader : s.desktopHeader,
       campaignStrip:
         patch.campaignStrip !== undefined ? patch.campaignStrip : s.campaignStrip,
       contactButton:

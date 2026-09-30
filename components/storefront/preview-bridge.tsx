@@ -61,6 +61,8 @@ export function StorePreviewBridge() {
         // Only when the payload carries `nav` at all, like every slot here.
         navMenu: p.nav ? (p.nav.menu ?? {}) : undefined,
         navFilters: p.nav ? (p.nav.filters ?? {}) : undefined,
+        languageTheme: p.nav ? (p.nav.languageTheme ?? {}) : undefined,
+        desktopHeader: p.nav ? (p.nav.desktopHeader ?? {}) : undefined,
         campaignStrip: p.nav?.campaignStrip,
         collections: p.collections,
         footerGroups: p.nav?.footer,

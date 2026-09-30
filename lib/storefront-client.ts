@@ -14,6 +14,10 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type {
+  DesktopHeaderConfig,
+  LanguageThemeConfig,
+} from "@/lib/storefront-language-theme";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import type {
   StorefrontFooterBlock,
@@ -879,6 +883,10 @@ export interface StoreNav {
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
   utilityBar?: StoreUtilityBar;
+  /** Languages and colour schemes on offer (Customize → Language & theme). */
+  languageTheme?: LanguageThemeConfig;
+  /** The computer header's behaviour (Customize → Header → Computer). */
+  desktopHeader?: DesktopHeaderConfig;
   /** How the menu behaves per device (Customize → Menu). */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort). */

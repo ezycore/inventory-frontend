@@ -18,6 +18,7 @@ import {
   MOVED_TO_PAGES,
   PartsRail,
   asPartId,
+  previewDeviceForParam,
   previewDeviceForPart,
   previewPageForPart,
 } from "@/components/ecommerce/customize/parts-rail";
@@ -50,7 +51,7 @@ export function CustomizeWorkspace({
   const orgLogo = useAuthStore((s) => s.user?.organization?.logo);
   // Customize is a `storefront.design` page, but collections are catalog
   // records behind `storefront.manage` — a designer can arrange the look, not
-  // rename or hide the shop's collections. Reached from the Header part, which
+  // rename or hide the shop's collections. Reached from the Menu part, which
   // is the one site-wide part that lists them.
   const canManageCollections = useHasPermission(PERMISSIONS.storefrontManage);
   // Memoised: `useCustomizeDraft` re-seeds when this object changes, so it must
@@ -97,11 +98,12 @@ export function CustomizeWorkspace({
     openPart ? previewPageForPart(openPart) : "home",
   );
   /* Which device the preview should jump to, and a token so re-opening the same
-     part jumps again. The Phone bar and Menu parts ask for one on opening (see
-     `previewDeviceForPart`), and the Menu part's own Phone / Desktop switch
-     asks again. */
+     part jumps again. Header, Menu and Filters ask for one on opening (see
+     `previewDeviceForPart`), and Header's and Filters' own Phone / Computer
+     switches ask again. A retired `?part=utility` link opens on Computer, where
+     the strip it names now lives. */
   const [deviceRequest, setDeviceRequest] = useState(() => ({
-    device: previewDeviceForPart(openPart),
+    device: previewDeviceForParam(partParam),
     token: 0,
   }));
 
@@ -166,6 +168,7 @@ export function CustomizeWorkspace({
             onManageCollections={
               canManageCollections ? () => setCollectionsPanel(true) : undefined
             }
+            device={deviceRequest.device}
             onPreviewDevice={(device) =>
               setDeviceRequest((r) => ({ device, token: r.token + 1 }))
             }

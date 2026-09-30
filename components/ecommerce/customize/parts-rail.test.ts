@@ -6,6 +6,7 @@ import {
   asPartId,
   LOOK,
   MOVED_TO_PAGES,
+  previewDeviceForParam,
   RAIL_GROUPS,
 } from "@/components/ecommerce/customize/parts-rail";
 import { PART_IDS } from "@/components/ecommerce/customize/use-customize-draft";
@@ -72,5 +73,28 @@ describe("asPartId", () => {
   // rather than silently landing on a collapsed rail.
   it.each(["brand", "design"])("maps the retired %s id onto Look", (retired) => {
     expect(asPartId(retired)).toBe("look");
+  });
+
+  // Phone bar and Utility bar folded into Header on 2026-09-29.
+  it.each(["mobile", "utility"])("maps the retired %s id onto Header", (retired) => {
+    expect(asPartId(retired)).toBe("header");
+  });
+});
+
+describe("previewDeviceForParam", () => {
+  // Header opens on Phone, but an old Utility bar link is about the strip above
+  // the computer header — landing on Phone would be the wrong half of the switch.
+  it("opens each retired header row on its own device", () => {
+    expect(previewDeviceForParam("mobile")).toBe("mobile");
+    expect(previewDeviceForParam("utility")).toBe("desktop");
+  });
+
+  it("opens Header on the phone, phone first", () => {
+    expect(previewDeviceForParam("header")).toBe("mobile");
+  });
+
+  it("falls back to desktop for a part with no phone view", () => {
+    expect(previewDeviceForParam("footer")).toBe("desktop");
+    expect(previewDeviceForParam(null)).toBe("desktop");
   });
 });

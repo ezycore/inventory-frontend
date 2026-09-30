@@ -17,6 +17,7 @@ import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartSync } from "@/components/storefront/cart-sync";
 import { VisitSourceCapture } from "@/components/storefront/visit-source-capture";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
+import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
 
 /**
  * The frame for a Storefront Builder page with `chrome: "minimal"` or `"none"` —
@@ -53,6 +54,8 @@ export function BareStoreFrame({
   useFaviconOverride(faviconHref(store.favicon));
   const theme = shellTheme(store.theme?.brandColor, store.theme?.accentColor);
   const design = resolveDesign(store.theme?.design);
+  // A landing page is the shop too: a Bangla-only shop opens it in Bangla.
+  const schemeAttr = useApplyLanguageTheme(store);
 
   return (
     <StoreContextProvider slug={slug} base={base}>
@@ -62,6 +65,7 @@ export function BareStoreFrame({
         data-accent={theme.accent ? "" : undefined}
         /* No phone tab bar in this frame, so none of the 56px reserved for one. */
         data-sf-tabs="0"
+        {...schemeAttr}
         {...designAttrs(design)}
         style={{
           ...theme.style,

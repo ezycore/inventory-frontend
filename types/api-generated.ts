@@ -7419,7 +7419,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/images
-         * @description Defined in `src/routes/storefront-pages.routes.ts:56`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:55`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_images"];
         delete?: never;
@@ -7438,7 +7438,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/home
-         * @description Defined in `src/routes/storefront-pages.routes.ts:66`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:65`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_home"];
         post?: never;
@@ -7457,21 +7457,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:72`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:71`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:84`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:83`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:78`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:77`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_pages_id"];
         trace?: never;
@@ -7486,13 +7486,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:91`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:90`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_id_draft"];
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:97`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:96`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id_draft"];
         options?: never;
@@ -7511,7 +7511,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/publish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:103`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:102`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_publish"];
         delete?: never;
@@ -7531,7 +7531,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/unpublish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:110`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:109`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_unpublish"];
         delete?: never;
@@ -7551,7 +7551,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/duplicate
-         * @description Defined in `src/routes/storefront-pages.routes.ts:116`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:115`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_duplicate"];
         delete?: never;
@@ -7569,7 +7569,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id/revisions
-         * @description Defined in `src/routes/storefront-pages.routes.ts:123`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:122`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id_revisions"];
         put?: never;
@@ -7591,7 +7591,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/revisions/:version/restore
-         * @description Defined in `src/routes/storefront-pages.routes.ts:129`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:128`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_revisions_version_restore"];
         delete?: never;
@@ -14593,6 +14593,17 @@ export interface components {
                             showTheme?: boolean;
                             trackOrderLabel?: string;
                         };
+                        languageTheme?: {
+                            /** @enum {string} */
+                            languages?: "both" | "en" | "bn";
+                            /** @enum {string} */
+                            defaultLanguage?: "en" | "bn";
+                            /** @enum {string} */
+                            darkMode?: "switch" | "light";
+                        };
+                        desktopHeader?: {
+                            sticky?: boolean;
+                        };
                         menu?: {
                             subcategories?: string;
                             mobile?: {
@@ -14926,6 +14937,17 @@ export interface components {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        languageTheme?: {
+                            /** @enum {string} */
+                            languages?: "both" | "en" | "bn";
+                            /** @enum {string} */
+                            defaultLanguage?: "en" | "bn";
+                            /** @enum {string} */
+                            darkMode?: "switch" | "light";
+                        };
+                        desktopHeader?: {
+                            sticky?: boolean;
                         };
                         menu?: {
                             subcategories?: string;
@@ -15265,6 +15287,17 @@ export interface components {
                     showLanguage?: boolean;
                     showTheme?: boolean;
                     trackOrderLabel?: string;
+                };
+                languageTheme?: {
+                    /** @enum {string} */
+                    languages?: "both" | "en" | "bn";
+                    /** @enum {string} */
+                    defaultLanguage?: "en" | "bn";
+                    /** @enum {string} */
+                    darkMode?: "switch" | "light";
+                };
+                desktopHeader?: {
+                    sticky?: boolean;
                 };
                 menu?: {
                     subcategories?: string;
@@ -44587,6 +44620,17 @@ export interface operations {
                                 showLanguage?: boolean;
                                 showTheme?: boolean;
                                 trackOrderLabel?: string;
+                            };
+                            languageTheme?: {
+                                /** @enum {string} */
+                                languages?: "both" | "en" | "bn";
+                                /** @enum {string} */
+                                defaultLanguage?: "en" | "bn";
+                                /** @enum {string} */
+                                darkMode?: "switch" | "light";
+                            };
+                            desktopHeader?: {
+                                sticky?: boolean;
                             };
                             menu?: {
                                 subcategories?: string;
