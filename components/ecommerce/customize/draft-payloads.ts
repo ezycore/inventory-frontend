@@ -28,6 +28,10 @@ import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
 import { mobileOverrides } from "@/lib/storefront-mobile";
 import { menuSettingsOverrides } from "@/lib/storefront-menu";
 import { filterSettingsOverrides } from "@/lib/storefront-filters";
+import {
+  desktopHeaderOverrides,
+  languageThemeOverrides,
+} from "@/lib/storefront-language-theme";
 
 /**
  * The design as it is stored. The custom "current page" colour is typed into a
@@ -312,6 +316,10 @@ function toNav(draft: CustomizeDraft): StorefrontNav {
     menu: menuSettingsOverrides(draft.navMenu),
     // Same discipline: only what differs from the defaults.
     filters: filterSettingsOverrides(draft.navFilters),
+    // And again: a shop left on both languages, a dark switch and a header
+    // that follows the page stores nothing.
+    languageTheme: languageThemeOverrides(draft.languageTheme),
+    desktopHeader: desktopHeaderOverrides(draft.desktopHeader),
   };
 }
 
@@ -436,10 +444,10 @@ export function toSettingsPayload(draft: CustomizeDraft): UpdateStorefrontSettin
  * keeps the ones no picker owns) so the wholesale PATCH cannot drop them.
  */
 const TEMPLATE_PARTS = new Set<PartId>([
+  // `templates.header` and `templates.mobile` — both screens' layouts.
   "header",
   // `templates.headerMenu` — where the menu's links come from.
   "menu",
-  "mobile",
   "cards",
   "footer",
   "shell",
@@ -461,17 +469,19 @@ export function toSettingsPatch(
     (patch as Record<keyof UpdateStorefrontSettingsDto, unknown>)[key] = full[key];
   };
 
-  /* `mobile` is in BOTH lists on purpose: the part writes `templates.mobile`
-     (the template id) and `theme.mobile` (the arrangement over it), and the
-     PATCH replaces each block wholesale. Taking only `templates` would save the
-     merchant's new template and silently drop every slot they had just moved. */
-  if (["look", "mobile"].some((part) => dirty.has(part as PartId))) {
+  /* `header` is in all three lists on purpose: it writes `templates.mobile`
+     (the phone template), `theme.mobile` (the arrangement over it) and
+     `nav.utilityBar` / `nav.menu`, and the PATCH replaces each block wholesale.
+     Taking only `templates` would save the merchant's new phone template and
+     silently drop every slot they had just moved. */
+  if (["look", "header"].some((part) => dirty.has(part as PartId))) {
     take("theme");
   }
   if (dirtyParts.some((part) => TEMPLATE_PARTS.has(part))) take("templates");
   if (
-    ["announcement", "campaign", "menu", "filters", "utility", "footer"].some((part) =>
-      dirty.has(part as PartId),
+    // `shell` for `nav.menu.desktop.railOpen` — the category sidebar.
+    ["announcement", "campaign", "header", "menu", "language", "filters", "shell", "footer"].some(
+      (part) => dirty.has(part as PartId),
     )
   ) {
     take("nav");

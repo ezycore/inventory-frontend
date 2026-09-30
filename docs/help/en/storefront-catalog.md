@@ -87,11 +87,14 @@ changed something it set — which is normal, and a good sign you have made it y
 
 ## Customize
 
-**Customize** controls how the store looks. The left side lists every part of your store in the
-order a shopper meets it — Brand, Design, Announcement bar, Header, Hero, Home page, Product cards,
-Collections, Product page, Footer, Account area, Cart, Content pages, Checkout — and the right side is your real shop,
-updating as you type. Open a part and everything about it is in one place: **Footer**, for example,
-holds its layout, its link groups, its copyright line and its trust badges together.
+**Customize** controls how the whole store looks. The left side lists the parts every page shares —
+**Look** on top, then the site frame (Header, Menu, Language & theme, Footer, Page layout, WhatsApp
+button) and the
+parts that appear across the site (Announcement bar, Campaign strip, Product cards, Filters & sort,
+Content & tracking) — and the right side is your real shop, updating as you type. A single page's
+own layout, such as the home page or the product page, is edited from **Pages**. Open a part and
+everything about it is in one place: **Footer**, for example, holds its layout, its link groups, its
+copyright line and its trust badges together.
 
 **Account area** picks how the signed-in customer's own pages are laid out, and these are four
 genuinely different pages rather than four colour schemes:
@@ -123,27 +126,48 @@ not change the speed you chose. It stops while a shopper is pointing at it, so a
 message stays clickable, and it never moves for someone whose device is set to reduce motion — they
 see the same words standing still.
 
-**Header** holds the menu shoppers use to move around. Keep it short: a menu listing every category
-you have is harder to use than one listing the six that sell.
+**Header** is the top of your shop on both screens. A **Phone / Computer** switch at the top picks
+which one you are editing, and the preview turns with it. Most of your shoppers are on a phone, so it
+opens on Phone.
 
-**Utility bar** controls the slim information row above the header. Turn the whole row on or off,
-show it everywhere or only on computers or phones, and choose its contents individually: your saved
-phone number, Track order link, language control and light/dark control. You can also rename Track
-order; leave its label blank to translate it automatically for each shopper. The language and
-light/dark controls are never shown twice: put them in this bar and your header hands them over,
-take them out and your header takes them back, so a shopper always has exactly one of each.
+On **Phone** you pick a layout, then arrange it: the buttons left and right of your logo, where
+**Search** goes (none, an icon, a box in the bar, or a box under it), whether your **categories**
+scroll under the bar, the **bottom tabs**, and the **menu panel** that opens when a shopper taps
+Menu. Picking a new layout replaces your arrangement with the layout's own, and an **Undo** appears
+straight away in case you did not mean to. The phone logo, its size, whether the bar follows the page
+and the button icons are under **More phone settings**.
 
-**Hover** sits under the same part and decides what a menu link does when someone points at it on a
-computer. Nothing happens by default. You answer twice, because the two rows are different: **Menu
-items** is the row across your header, and **Dropdown items** is the list that opens underneath one.
-Each offers None, Colour, Underline or a soft Highlight. Phones are unaffected either way — there a
-menu is a panel and a tap opens it.
+The menu panel either slides in from the side or rises from the bottom. When it slides in, **Width**
+sets how much of the screen it takes: **Narrow**, **Regular** (the default) or **Wide**. Every width
+leaves a strip of your shop showing beside it, which shoppers tap to close the menu.
 
-On a phone with a menu button (☰), that panel slides in from the side. **Menu width**, under
-**Menu → Phone**, sets how much of the screen it takes: **Narrow**, **Regular** (the default) or
-**Wide**. Every width leaves a strip of your shop showing beside it, which shoppers tap to close the
-menu. A shop whose menu opens from the bottom tab bar does not show this setting — that menu always
-spans the screen.
+On **Computer** you pick a layout, set up the **Info strip** — the slim line above the header — and
+decide how the menu row opens. The info strip can show your saved phone number and a Track order link,
+on computers, phones or both. You can rename Track order; leave its label blank to translate it
+automatically for each shopper. The language and light/dark switches can move into the strip too.
+They are never shown twice: move one into the strip and your header hands it over, move it back and
+your header takes it again, so a shopper always has exactly one of each.
+
+**Hover effect**, also on Computer, decides what a menu link does when someone points at it. Nothing
+happens by default. You answer twice, because the two rows are different: **Menu items** is the row
+across your header, and **Dropdown items** is the list that opens underneath one. Each offers None,
+Colour, Underline or a soft Highlight. Phones are unaffected either way — there a menu is a panel and
+a tap opens it. **Header follows the page**, at the bottom of Computer, keeps your header on screen
+while shoppers scroll; switch it off and the header scrolls away with the page.
+
+**Language & theme** decides whether there is anything to switch. **Languages shoppers can use** is
+English and Bangla with a switch between them, English only, or Bangla only. With both, **Shop opens
+in** picks the language a first-time shopper sees; anyone who switches keeps their own choice. Bangla
+translates your shop's buttons and labels — product names and descriptions show exactly as you wrote
+them, so a catalogue written in English stays English. **Dark mode** is either **Shoppers can
+switch** or **Always light**; always light removes the switch, and shoppers who chose dark before see
+your shop light again. Turning a language or dark mode off removes its switch everywhere — header,
+info strip and phone — and turning it back on puts each switch back where you had it.
+
+**Menu** is what your menu lists, on every screen: your collections or a menu you build, whether
+sub-categories show, the "All products" and "All ‹category›" rows, and how the current page is
+marked. Keep it short: a menu listing every category you have is harder to use than one listing the
+six that sell.
 
 ### Hero
 

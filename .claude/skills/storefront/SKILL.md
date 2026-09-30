@@ -523,7 +523,8 @@ reads as two filters at once.
     own toggle to the configurable utility bar — which put the DEFAULT template one merchant switch
     away from the same dead end.
     **"Or via `<UtilityBar>`" is not good enough, and that is the lesson:** the bar is merchant
-    configurable now (Customize → Utility bar), so anything drawing its toggle only from there can be
+    configurable now (Customize → Header → Computer → Info strip; it was the "Utility bar" row until
+    2026-09-29 — the code still calls it `utilityBar`), so anything drawing its toggle only from there can be
     switched off. `headerNeeds(bar, breakpoint)` (`lib/storefront-utility-bar.ts`) is the single
     arbiter — false ONLY while the bar is on that breakpoint AND still carrying that item. Asked per
     item, not per bar, because the merchant switches the four utility items independently.
@@ -661,9 +662,42 @@ reads as two filters at once.
     2026-08-04 from a pagination-only hook, when the other three were found to be unpreviewable;
     `accountLayout` joined on 2026-09-20 when the account area stopped hand-rolling the same
     overlay with its own value guard.
+  - **Header is one row with a Phone / Computer switch; Menu is what the menu lists** (2026-09-29).
+    Header absorbed the Phone bar and Utility bar rows and the half of Menu that decided how the
+    menu OPENS: Header → Phone holds the phone template + arrangement (`parts/header-phone.tsx`,
+    finer settings folded into `header-phone-extras.tsx`) and the menu panel
+    (`PhoneMenuPanelFields`); Header → Computer holds the layout, the info strip
+    (`info-strip-fields.tsx`, stored as `nav.utilityBar`) and the menu row + hover
+    (`DesktopMenuRowFields`, `MenuHoverFields`). Menu keeps the source, links, sub-categories,
+    shortcut rows, current-page style and the collection-page strip. The category sidebar's
+    `railOpen` moved to Page layout (`parts/shell-part.tsx`). The switch's device is the
+    WORKSPACE's (`deviceRequest`), so the preview turns with it; `?part=mobile` / `?part=utility`
+    map onto Header via `RETIRED_PART_IDS`, and `previewDeviceForParam` opens `utility` on
+    Computer. Phone search is ONE control over three stored fields — `mobileSearchMode` /
+    `withSearchMode` / `withCategoryStrip` in `lib/storefront-mobile.ts`; never write
+    `searchInline` / `row` / a `search` slot separately from the editor.
+    ⚠ **`nav.menu` is split across three dirty slices field by field** (`PART_SLICE` in
+    `use-customize-draft.ts`). A new `ResolvedMenuSettings` field must be added to exactly one, or
+    its edit is never saved — `use-customize-draft.test.ts` fails until you do.
+  - **Language & theme decides whether a switch EXISTS; Header decides where it sits** (2026-09-29).
+    `nav.languageTheme` (`languages` both/en/bn, `defaultLanguage`, `darkMode` switch/light) and
+    `nav.desktopHeader.sticky` are resolved in `lib/storefront-language-theme.ts`; absent = the shop
+    as it always was, and only non-defaults are stored. Three rules:
+    - **Offered-ness lives in `headerNeeds(bar, at, offers)`** via `useHeaderNeeds(store, at)`, and
+      `useResolvedUtilityBar` drops an un-offered item from the bar. That is the one arbitration the
+      desktop anatomies, the phone slots (`keptSlot`) and the phone drawer already share — never
+      gate a `LangBtn`/`ThemeBtn` at its call site. Offers are read from the STORE, not from
+      `useStorefrontUI`, so SSR draws no switch the shop lacks.
+    - **What the shopper sees comes from `StorefrontUIProvider`**, whose policy is set by
+      `useApplyLanguageTheme` in BOTH shop frames (`StoreShell`, `BareStoreFrame`); `effectiveLang` /
+      `effectiveTheme` decide. The policy outranks the admin preview's theme override.
+    - **Always light is also enforced before paint:** the frame stamps `data-scheme="light"` on
+      `.sf-shell`, and the layout's `NO_FLASH` script skips a stored dark choice when it sees it.
+    Known gap: a shop that OPENS in Bangla still server-renders English for its first paint — SSR
+    runs in the root layout, which cannot read the store.
   - **Customize is the SITE editor; a page's settings belong to its page.** Since 2026-09-20 the
-    rail holds only site-wide rows — Look, Header, Utility bar, Phone bar, Footer, Page layout,
-    WhatsApp button, Announcement bar, Campaign strip, Product cards, Content & tracking. Hero, Home
+    rail holds only site-wide rows — Look, Header, Menu, Language & theme, Footer, Page layout, WhatsApp button,
+    Announcement bar, Campaign strip, Product cards, Filters & sort, Content & tracking. Hero, Home
     page, Product page, Collections, Cart, Checkout and Account area are gone; each is its page's
     core-section setting in the page editor. **Do not add a per-page control here** — the preview
     can only point at home/collection/product, so a control for any other page renders against a
@@ -1263,8 +1297,8 @@ sees Bangla. A section type's classic padding and band is its `frame` in `sectio
 - **Everything in Customize streams.** If you add a control there and skip this wiring, you have
   re-created the exact inconsistency that nearly got the whole feature deleted.
 - **A control also belongs to the part whose preview DEVICE renders it** (2026-09-06). The same
-  argument as the page rule below, one axis over: the Phone bar part's controls change nothing
-  against a desktop frame, so opening it nudges the preview to mobile (`previewDeviceForPart` in
+  argument as the page rule below, one axis over: Header → Phone's controls change nothing
+  against a desktop frame, so opening Header nudges the preview to mobile (`previewDeviceForPart` in
   `parts-rail.tsx`, applied during render in `BrowserPreview` so the desktop frame is never painted
   first). A nudge, not a lock — the toggle stays live.
 - **A control belongs to the part whose PREVIEW PAGE renders it** (browser QA, 2026-08-18).
@@ -1929,8 +1963,9 @@ optimize a component whose manual deps it cannot preserve (`react-hooks/preserve
 an **error**, not a warning): the callback is a prop, so it is not stable by construction and cannot
 be omitted from the deps the way a `useState` setter can.
 
-Opening the Phone bar part in Customize nudges the preview onto its 390px frame
-(`previewDeviceForPart`) — its controls change nothing visible against a desktop, which is the same
+Opening the Header part in Customize nudges the preview onto its 390px frame
+(`previewDeviceForPart`), and its Phone / Computer switch moves it again — the phone controls change
+nothing visible against a desktop, which is the same
 broken-control problem `PART_PAGE` solves one axis over. A nudge, not a lock: the device toggle stays
 live.
 
@@ -3606,7 +3641,8 @@ cached entry on the `/sites` route (see "Cached store pages").
     rendered it in full, because the storefront asked for `url` first and the previews asked for
     `thumbnailUrl` first. The helper exists so that ordering is decided once. (The backend learned the
     same rule on the write side: the 96×96 favicon rendition is generated `fit:"contain"`.)
-  - ⚠ **That sweep missed a fourth site, found 2026-09-08: Customize → Phone bar → Phone logo.**
+  - ⚠ **That sweep missed a fourth site, found 2026-09-08: Customize → Phone bar → Phone logo**
+    (now Header → Phone → More phone settings).
     `mobileLogo` is a *second* logo field, so a fix that went call-site by call-site walked straight
     past it. **When you add a logo field, route it through `logoImageUrl` on its first render** —
     and when you fix one of these, grep the FIELD (`mobileLogo`, `logo`, `favicon`) across the repo,
@@ -3616,7 +3652,7 @@ cached entry on the `/sites` route (see "Cached store pages").
     Debugging note: `MediaField`'s `object-contain` was blamed first and is innocent — measure the
     served variant (`_thumb.webp` is 200×200 whatever the source was) before touching the CSS.
   - **It is used by the ADMIN too** — `app-title.tsx`, `organization-tab.tsx`, `parts/look-part.tsx`,
-    `parts/mobile-part.tsx` —
+    `parts/header-phone-extras.tsx` —
     which is why the module's doc says so. The variants are the backend's, not a storefront concept,
     and a second module answering the same question is how a call site ends up on the wrong one.
   - **`<Media fit>`** (`components/storefront/sf-bits.tsx`) is the shared "don't crop it" box:

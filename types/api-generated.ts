@@ -13559,6 +13559,17 @@ export interface components {
                     showTheme?: boolean;
                     trackOrderLabel?: string;
                 };
+                languageTheme?: {
+                    /** @enum {string} */
+                    languages?: "both" | "en" | "bn";
+                    /** @enum {string} */
+                    defaultLanguage?: "en" | "bn";
+                    /** @enum {string} */
+                    darkMode?: "switch" | "light";
+                };
+                desktopHeader?: {
+                    sticky?: boolean;
+                };
                 menu?: {
                     subcategories?: string;
                     mobile?: {
@@ -15338,6 +15349,17 @@ export interface components {
                             showTheme?: boolean;
                             trackOrderLabel?: string;
                         };
+                        languageTheme?: {
+                            /** @enum {string} */
+                            languages?: "both" | "en" | "bn";
+                            /** @enum {string} */
+                            defaultLanguage?: "en" | "bn";
+                            /** @enum {string} */
+                            darkMode?: "switch" | "light";
+                        };
+                        desktopHeader?: {
+                            sticky?: boolean;
+                        };
                         menu?: {
                             subcategories?: string;
                             mobile?: {
@@ -15804,6 +15826,17 @@ export interface components {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        languageTheme?: {
+                            /** @enum {string} */
+                            languages?: "both" | "en" | "bn";
+                            /** @enum {string} */
+                            defaultLanguage?: "en" | "bn";
+                            /** @enum {string} */
+                            darkMode?: "switch" | "light";
+                        };
+                        desktopHeader?: {
+                            sticky?: boolean;
                         };
                         menu?: {
                             subcategories?: string;
@@ -22934,6 +22967,17 @@ export interface operations {
                             showLanguage?: boolean;
                             showTheme?: boolean;
                             trackOrderLabel?: string;
+                        };
+                        languageTheme?: {
+                            /** @enum {string} */
+                            languages?: "both" | "en" | "bn";
+                            /** @enum {string} */
+                            defaultLanguage?: "en" | "bn";
+                            /** @enum {string} */
+                            darkMode?: "switch" | "light";
+                        };
+                        desktopHeader?: {
+                            sticky?: boolean;
                         };
                         menu?: {
                             subcategories?: string;
@@ -46126,6 +46170,17 @@ export interface operations {
                                 showLanguage?: boolean;
                                 showTheme?: boolean;
                                 trackOrderLabel?: string;
+                            };
+                            languageTheme?: {
+                                /** @enum {string} */
+                                languages?: "both" | "en" | "bn";
+                                /** @enum {string} */
+                                defaultLanguage?: "en" | "bn";
+                                /** @enum {string} */
+                                darkMode?: "switch" | "light";
+                            };
+                            desktopHeader?: {
+                                sticky?: boolean;
                             };
                             menu?: {
                                 subcategories?: string;

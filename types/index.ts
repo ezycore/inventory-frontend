@@ -12,6 +12,10 @@ import type {
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type { StoreFilterSettings, StoreMenuSettings } from "@/lib/storefront-client";
 import type {
+  DesktopHeaderConfig,
+  LanguageThemeConfig,
+} from "@/lib/storefront-language-theme";
+import type {
   StorefrontFooterBlock,
   StorefrontFooterContentPages,
   StorefrontFooterGroup,
@@ -600,6 +604,10 @@ export interface StorefrontNav {
   campaignStrip?: StorefrontCampaignStrip;
   /** Optional information strip above the main header. */
   utilityBar?: StorefrontUtilityBar;
+  /** Languages and colour schemes on offer; see `lib/storefront-language-theme.ts`. */
+  languageTheme?: LanguageThemeConfig;
+  /** The computer header's behaviour (Customize → Header → Computer). */
+  desktopHeader?: DesktopHeaderConfig;
   /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort); see `lib/storefront-filters.ts`. */

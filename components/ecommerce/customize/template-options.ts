@@ -75,8 +75,8 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOption[]> = {
     { value: "off", label: "Off", description: "No badge; the crossed-out price still shows the saving" },
   ],
   header: [
-    { value: "classic", label: "Classic", description: "Logo left, menu beside it" },
-    { value: "minimal", label: "Minimal", description: "Logo and icons only — no menu row" },
+    { value: "classic", label: "Classic", description: "Logo, search box and cart on one line, menu underneath" },
+    { value: "minimal", label: "Minimal", description: "Logo, menu links and icons on one line — no search box" },
     { value: "centered", label: "Centered", description: "Logo centred, menu underneath" },
     { value: "search-first", label: "Search first", description: "White bar built around a big search box — for large everyday catalogues" },
     { value: "clinical", label: "Search led", description: "A wide plain search field and nothing else — no menu row, no top strip" },

@@ -107,9 +107,9 @@ export function BrowserPreview({
    */
   viewportHeight?: string;
   /**
-   * Nudge the frame onto a device when the merchant opens a part that only
-   * exists there — the Phone bar panel is the case, and its controls change
-   * nothing visible while the preview is showing a desktop.
+   * Nudge the frame onto a device when the merchant opens a part, or flips a
+   * part's own Phone / Computer switch — Header → Phone is the case, and its
+   * controls change nothing visible while the preview is showing a desktop.
    *
    * A NUDGE, not a lock: the toggle stays live afterwards, so a merchant who
    * wants to see how their phone choices leave the desktop can just switch back
@@ -125,8 +125,8 @@ export function BrowserPreview({
 
      `-1`, not `0`, and that is the whole of a shipped bug: the workspace mints
      its FIRST request as `token: 0`, so a marker starting at `0` read the
-     opening request as one it had already applied. Clicking the Phone bar row
-     worked (that increments to 1) while `?part=mobile` — the documented deep
+     opening request as one it had already applied. Clicking the (then) Phone
+     bar row worked (that increments to 1) while `?part=mobile` — the documented deep
      link, and what a reload restores — silently left the merchant on the desktop
      frame, looking at a panel of controls that change nothing on screen. No
      token is ever negative, so this cannot collide with a real one.

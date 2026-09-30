@@ -32,6 +32,7 @@ import {
 import { StackedShell } from "@/components/storefront/shells/stacked-shell";
 import { RailShell } from "@/components/storefront/shells/rail-shell";
 import { useHasMobileTabs } from "@/components/storefront/mobile/mobile-chrome";
+import { useApplyLanguageTheme } from "@/components/storefront/use-language-theme";
 import { OwnerAdminBar } from "@/components/storefront/owner-admin-bar";
 import { ContactLauncher } from "@/components/storefront/contact-launcher";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -87,6 +88,9 @@ export function StoreShell({
      `isError` early return below is a conditional, and a hook after it would not
      run on every render. */
   const hasMobileTabs = useHasMobileTabs(store);
+  // The shop's languages and colour schemes, handed to the UI provider — above
+  // the `isError` return with the other hooks.
+  const schemeAttr = useApplyLanguageTheme(store);
 
   /* The admin's Collections panel streams its unsaved draft; prefer it so
      reordering/hiding previews live instead of waiting on a save + refetch.
@@ -186,6 +190,7 @@ export function StoreShell({
            media query, and an inline style would outrank it and freeze the
            reservation on at desktop widths too. */
         data-sf-tabs={hasMobileTabs ? "1" : "0"}
+        {...schemeAttr}
         {...designAttributes}
         style={{
           ...theme.style,
