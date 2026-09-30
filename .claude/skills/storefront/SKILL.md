@@ -3245,10 +3245,10 @@ cached entry on the `/sites` route (see "Cached store pages").
     `CharacterCount` has no `limit` — a hard stop would fire at a number that is not the one being
     enforced.
   - **Images are opt-in per field and the field names a SCOPE** — `FormFieldConfig.imageUpload`
-    is `"content"`, `"page"` or `"product"`, not a boolean, because the surfaces post to different
-    endpoints behind different permissions: `POST /ecommerce/content/images`
-    (`storefront.manage`), `POST /ecommerce/pages/images` (`storefront.design`, the Storefront
-    Builder) and `POST /products/description-image` (`products.create` OR `products.edit`). A field that can reach neither omits the scope and gets no button rather
+    is `"page"` or `"product"`, not a boolean, because the surfaces post to different
+    endpoints behind different permissions: `POST /ecommerce/pages/images` (`storefront.design`,
+    the Storefront Builder) and `POST /products/description-image` (`products.create` OR
+    `products.edit`). A field that can reach neither omits the scope and gets no button rather
     than one that always 403s. `data:` URIs are refused twice — `allowBase64: false` in the
     editor, and `SAFE_RICH_IMAGE_SRC` in the renderer, which is the real boundary because the
     stored tree is writable through the raw API.
