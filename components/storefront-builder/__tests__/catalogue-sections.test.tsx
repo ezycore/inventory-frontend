@@ -141,7 +141,7 @@ describe("product-carousel", () => {
   });
 });
 
-describe("product rows moved from the classic home", () => {
+describe("product rows that keep the store's wording", () => {
   const items = [{ _id: "p1" }, { _id: "p2" }] as CatalogProduct[];
   const cards = (root: ParentNode) => root.querySelector('[data-island="product-cards"]') as HTMLElement;
 

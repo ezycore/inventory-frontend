@@ -279,11 +279,10 @@ export function StatusPill({
  * Section heading used across storefront pages.
  *
  * The row follows the section's Text alignment through `.sfb-title-row`, which
- * reads `--sfb-title-justify` from the builder's section frame. **A classic page
- * emits no such variable**, so the rule's own `space-between` keeps those four
- * callers (`product-sections`, `category-banners`, `product-page`,
- * `product-overview`) rendering exactly as before — asserted in
- * `sf-bits.test.tsx`, not left to care.
+ * reads `--sfb-title-justify` from the builder's section frame. **A caller
+ * outside a section frame emits no such variable**, so the rule's own
+ * `space-between` keeps `product-page` and `product-overview` rendering as they
+ * always have — asserted in `sf-bits.test.tsx`, not left to care.
  */
 export function SectionTitle({
   children,
@@ -293,7 +292,7 @@ export function SectionTitle({
   children: ReactNode;
   action?: ReactNode;
   /**
-   * A line under the title. **The four classic callers pass none**, so their
+   * A line under the title. **Callers outside a section pass none**, so their
    * markup is unchanged — the wrapper is only added when there is something to
    * put in it.
    */

@@ -19,11 +19,6 @@ import type {
   StoreFooterStyle,
   StoreFooterPaymentMethods,
   StoreFooterNewsletter,
-  StoreHeroBanner,
-  StoreHeroSlide,
-  StoreHomeCollections,
-  StoreHomeSection,
-  StoreSectionConfig,
   StoreLogoStyle,
   StoreMenuItem,
   StoreMenuSettings,
@@ -47,27 +42,10 @@ interface SfPreviewState {
   previewDevice: "desktop" | "mobile" | null;
   brand: string | null;
   accent: string | null;
-  /** Raw home-template id (classic | hero-split | minimal) the editor is drafting. */
-  home: string | null;
-  /**
-   * Draft homepage SECTION list (Customize → Home page → Sections). Empty
-   * array is NOT a draft — it means "the merchant turned everything off", which
-   * the resolver treats as unset so the page never goes blank mid-edit.
-   */
-  homepageSections: StoreHomeSection[] | null;
-  /**
-   * Draft per-section config (Customize → Home page → Sections) — CONFIG only,
-   * never products. A row the merchant just re-pointed has never been
-   * server-rendered, so the homepage matches these back to the renders it
-   * already has by signature; see `components/storefront/store-home.tsx`.
-   */
-  sectionConfig: StoreSectionConfig[] | null;
   /** Raw footer-template id (columns | simple | rich) the editor is drafting. */
   footer: string | null;
   /** Raw header-template id (classic | minimal | centered) the editor is drafting. */
   header: string | null;
-  /** Raw open-hero alignment (left | center) the editor is drafting. */
-  heroAlign: string | null;
   /** Raw product-card style (standard | compact | bold) the editor is drafting. */
   cardStyle: string | null;
   /** Raw card CTA layout (add | add-buy | icons | buy-first | reveal | icon-only). */
@@ -80,8 +58,6 @@ interface SfPreviewState {
   imageFit: string | null;
   /** Raw product-photo frame (square | portrait | landscape | tall). */
   imageRatio: string | null;
-  /** Raw category-tiles presentation (tile | overlay) the editor is drafting. */
-  categoryTiles: string | null;
   /** Raw account-area layout (sidebar | tabs | panel | editorial). */
   accountLayout: string | null;
   /** Raw content frame (centered | banner | panel | editorial) for CMS + tracking. */
@@ -111,12 +87,6 @@ interface SfPreviewState {
   checkout: string | null;
   /** Draft footer trust badges (Rich footer strip). */
   badges: { text: string; icon?: string }[] | null;
-  /** Draft home hero carousel slides. */
-  heroSlides: StoreHeroSlide[] | null;
-  /** Draft home hero source ("slides" | "banner") the editor is drafting. */
-  heroSrc: string | null;
-  /** Draft static banner-hero copy overrides. */
-  heroBanner: StoreHeroBanner | null;
   /** Draft header menu source ("collections" | "custom"). */
   headerMenuSrc: string | null;
   /** Draft custom header menu items (Customize → Header). */
@@ -145,7 +115,7 @@ interface SfPreviewState {
    * Draft contact launcher (Customize → WhatsApp button), already resolved by
    * the editor into the PUBLIC shape the storefront renders.
    *
-   * Starts `undefined`, not `null`, and for the same reason `logo`/`banner` do:
+   * Starts `undefined`, not `null`, and for the same reason `logo` does:
    * `null` is a real value here — "the merchant has it switched off" — so a
    * consumer cannot `?? saved`. Turning the switch off in the editor has to
    * remove the button from the preview, not fall back to showing the saved one.
@@ -178,9 +148,9 @@ interface SfPreviewState {
   footerContactHeading: string | null;
   footerNewsletter: StoreFooterNewsletter | null;
   /**
-   * Draft store logo and banner.
+   * Draft store logo.
    *
-   * These two are `undefined` until the editor has sent one, where every other field starts `null`,
+   * It is `undefined` until the editor has sent one, where every other field starts `null`,
    * and the distinction is load-bearing: `null` is a *real* value here — "no image" — so a consumer
    * cannot use `?? saved` to fall back. It must check `!== undefined`, or removing a logo would
    * silently show the saved one again and the removal would look broken.
@@ -190,7 +160,6 @@ interface SfPreviewState {
    * header the moment a merchant removed the store-specific override.
    */
   logo?: StorefrontImage | null;
-  banner?: StorefrontImage | null;
   /**
    * Draft phone artwork. `undefined`/`null` carry the same distinction the two
    * above do — `null` means the merchant removed it, so a consumer must fall
@@ -206,8 +175,6 @@ interface SfPreviewState {
   collections: CatalogCategory[] | null;
   /** Draft logo chrome (Customize → Brand): backdrop, height, padding, radius. */
   logoStyle: StoreLogoStyle | null;
-  /** Draft homepage collections layout (Customize → Collections). */
-  homeCollections: StoreHomeCollections | null;
   /**
    * Draft type family + rhythm (Customize → Design). Complete rather than
    * partial: the editor seeds every axis from `DEFAULT_DESIGN`, so a half-filled
@@ -231,19 +198,14 @@ interface SfPreviewState {
     previewDevice?: "desktop" | "mobile";
     brand?: string;
     accent?: string;
-    home?: string;
-    homepageSections?: StoreHomeSection[];
-    sectionConfig?: StoreSectionConfig[];
     footer?: string;
     header?: string;
-    heroAlign?: string;
     cardStyle?: string;
     cardActions?: string;
     cardTagBadges?: string;
     discountBadge?: string;
     imageFit?: string;
     imageRatio?: string;
-    categoryTiles?: string;
     accountLayout?: string;
     contentLayout?: string;
     cartLayout?: string;
@@ -255,9 +217,6 @@ interface SfPreviewState {
     product?: string;
     checkout?: string;
     badges?: { text: string; icon?: string }[];
-    heroSlides?: StoreHeroSlide[];
-    heroSrc?: string;
-    heroBanner?: StoreHeroBanner;
     headerMenuSrc?: string;
     navHeader?: StoreMenuItem[];
     announcement?: StoreAnnouncement;
@@ -281,10 +240,8 @@ interface SfPreviewState {
     footerNewsletter?: StoreFooterNewsletter;
     // `null` is meaningful (image removed), so these are nullable in the patch too.
     logo?: StorefrontImage | null;
-    banner?: StorefrontImage | null;
     mobileLogo?: StorefrontImage | null;
     logoStyle?: StoreLogoStyle;
-    homeCollections?: StoreHomeCollections;
     design?: StoreDesign;
     samples?: ThemeSample;
   }) => void;
@@ -295,19 +252,14 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   previewDevice: null,
   brand: null,
   accent: null,
-  home: null,
-  homepageSections: null,
-  sectionConfig: null,
   footer: null,
   header: null,
-  heroAlign: null,
   cardStyle: null,
   cardActions: null,
   cardTagBadges: null,
   discountBadge: null,
   imageFit: null,
   imageRatio: null,
-  categoryTiles: null,
   accountLayout: null,
   contentLayout: null,
   cartLayout: null,
@@ -319,9 +271,6 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   product: null,
   checkout: null,
   badges: null,
-  heroSlides: null,
-  heroSrc: null,
-  heroBanner: null,
   headerMenuSrc: null,
   navHeader: null,
   announcement: null,
@@ -343,10 +292,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
   footerContactHeading: null,
   footerNewsletter: null,
   logo: undefined,
-  banner: undefined,
   mobileLogo: undefined,
   logoStyle: null,
-  homeCollections: null,
   design: null,
   samples: null,
   activate: () => set({ active: true }),
@@ -356,16 +303,8 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
         patch.previewDevice !== undefined ? patch.previewDevice : s.previewDevice,
       brand: patch.brand !== undefined ? patch.brand : s.brand,
       accent: patch.accent !== undefined ? patch.accent : s.accent,
-      home: patch.home !== undefined ? patch.home : s.home,
-      homepageSections:
-        patch.homepageSections !== undefined
-          ? patch.homepageSections
-          : s.homepageSections,
-      sectionConfig:
-        patch.sectionConfig !== undefined ? patch.sectionConfig : s.sectionConfig,
       footer: patch.footer !== undefined ? patch.footer : s.footer,
       header: patch.header !== undefined ? patch.header : s.header,
-      heroAlign: patch.heroAlign !== undefined ? patch.heroAlign : s.heroAlign,
       cardStyle: patch.cardStyle !== undefined ? patch.cardStyle : s.cardStyle,
       cardActions:
         patch.cardActions !== undefined ? patch.cardActions : s.cardActions,
@@ -376,8 +315,6 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       imageFit: patch.imageFit !== undefined ? patch.imageFit : s.imageFit,
       imageRatio:
         patch.imageRatio !== undefined ? patch.imageRatio : s.imageRatio,
-      categoryTiles:
-        patch.categoryTiles !== undefined ? patch.categoryTiles : s.categoryTiles,
       accountLayout:
         patch.accountLayout !== undefined ? patch.accountLayout : s.accountLayout,
       contentLayout:
@@ -393,11 +330,6 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
       product: patch.product !== undefined ? patch.product : s.product,
       checkout: patch.checkout !== undefined ? patch.checkout : s.checkout,
       badges: patch.badges !== undefined ? patch.badges : s.badges,
-      heroSlides:
-        patch.heroSlides !== undefined ? patch.heroSlides : s.heroSlides,
-      heroSrc: patch.heroSrc !== undefined ? patch.heroSrc : s.heroSrc,
-      heroBanner:
-        patch.heroBanner !== undefined ? patch.heroBanner : s.heroBanner,
       headerMenuSrc:
         patch.headerMenuSrc !== undefined ? patch.headerMenuSrc : s.headerMenuSrc,
       navHeader: patch.navHeader !== undefined ? patch.navHeader : s.navHeader,
@@ -442,14 +374,9 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
           ? patch.footerNewsletter
           : s.footerNewsletter,
       logo: patch.logo !== undefined ? patch.logo : s.logo,
-      banner: patch.banner !== undefined ? patch.banner : s.banner,
       mobileLogo:
         patch.mobileLogo !== undefined ? patch.mobileLogo : s.mobileLogo,
       logoStyle: patch.logoStyle !== undefined ? patch.logoStyle : s.logoStyle,
-      homeCollections:
-        patch.homeCollections !== undefined
-          ? patch.homeCollections
-          : s.homeCollections,
       design: patch.design !== undefined ? patch.design : s.design,
       samples: patch.samples !== undefined ? patch.samples : s.samples,
     })),
@@ -461,10 +388,10 @@ export const useSfPreview = create<SfPreviewState>((set) => ({
  * Every other override can use `draft ?? saved`, because `null` means "nothing drafted". Images
  * can't: `null` is a legitimate draft meaning "removed", so the sentinel for "the editor hasn't
  * sent one" has to be `undefined`. Three components need that distinction (header, footer, favicon)
- * plus the home banner — one helper so the rule is stated once and can't be half-remembered.
+ * — one helper so the rule is stated once and can't be half-remembered.
  */
 export const useSfPreviewImage = (
-  field: "logo" | "banner" | "mobileLogo",
+  field: "logo" | "mobileLogo",
   saved?: StorefrontImage | null,
 ): StorefrontImage | null | undefined => {
   const draft = useSfPreview((s) => s[field]);

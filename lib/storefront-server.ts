@@ -46,7 +46,6 @@ import type {
   CatalogCategory,
   CatalogProduct,
   ContentPageLink,
-  ContentPageView,
   CatalogCategoryDetail,
   ProductListResult,
   StoreCampaign,
@@ -193,9 +192,6 @@ function fetchersFor(read: StorefrontRead) {
 
     getStorePages: (slug: string) => read<ContentPageLink[]>(slug, "/pages", 300, CONTENT),
 
-    getStorePage: (slug: string, pageSlug: string) =>
-      read<ContentPageView>(slug, `/pages/${pageSlug}`, 300, CONTENT),
-
     /**
      * One Storefront Builder page by its public path (`/pages/<slug>`). The
      * response carries either the page or, for a renamed page, the redirect to
@@ -262,7 +258,6 @@ export const {
   getStoreCampaigns,
   getStoreCampaign,
   getStorePages,
-  getStorePage,
   getStorefrontPage,
   getSectionData,
   getStoreSitemap,

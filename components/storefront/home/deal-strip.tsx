@@ -38,7 +38,7 @@ export function DealStripView({
   currency?: string;
   t: Dict;
   heading?: string;
-  /** A line under the heading, from a builder section. The classic home passes none. */
+  /** A line under the heading, from a builder section. */
   subheading?: string;
   style?: CSSProperties;
 }) {

@@ -1,7 +1,6 @@
 // coding-standard: maintained
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { CheckoutPageView } from "@/components/storefront/checkout/checkout-page";
 
 export async function generateMetadata() {
   return storePageMetadata({ title: "Checkout", index: false });
@@ -14,8 +13,6 @@ export async function generateMetadata() {
  */
 export default function Page() {
   return (
-    <SystemPage path="/checkout">
-      <CheckoutPageView />
-    </SystemPage>
+    <SystemPage path="/checkout" />
   );
 }

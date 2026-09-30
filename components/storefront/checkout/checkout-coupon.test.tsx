@@ -78,7 +78,7 @@ describe("the coupon field's per-screen hiding", () => {
     expect(classesOf(container)).toBe("sf-nocoupon-d sf-nocoupon-m");
   });
 
-  /** The classic `/checkout` route passes nothing — it has no section to ask. */
+  /** A checkout with no coupon setting passes nothing. */
   it("is inert without the prop", () => {
     const { container } = render(<CheckoutPageView />);
     expect(classesOf(container)).toBe("");

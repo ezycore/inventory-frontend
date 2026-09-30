@@ -273,7 +273,7 @@ describe("a module's mutations refresh the lists that module reads", () => {
     ]),
   );
 
-  /** `queryKeys.contentPages` → the root string `"content-pages"`. */
+  /** `queryKeys.storefrontPages` → its root string. */
   const rootOf = (property: string): string | undefined => {
     const resource = (queryKeys as Record<string, unknown>)[property] as
       | { all?: () => readonly unknown[] }

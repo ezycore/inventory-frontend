@@ -8,7 +8,7 @@ import { DealStripView } from "@/components/storefront/home/deal-strip";
 /**
  * The offer strip on a builder page. The storefront's own `DealStripView`, with
  * its interface wording in the shopper's chosen language — the heading too when
- * the section keeps the classic home's "Current offers" (`headingWord`) and the
+ * the section keeps the store's "Current offers" (`headingWord`) and the
  * merchant typed none. Loaded only through the island map.
  */
 export function CampaignOffersIsland({

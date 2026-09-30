@@ -59,8 +59,8 @@ export function CollectionsRowSection({ settings, context }: SectionViewProps<Sp
   ));
 
   return (
-    /* The tile's shape as a variable with `1 / 1` behind it — `collection-tiles.tsx`
-       is drawn by the CLASSIC home too, and that page sets nothing. */
+    /* The tile's shape as a variable with `1 / 1` behind it, so a row that sets
+       nothing keeps its square. */
     <div
       style={
         {

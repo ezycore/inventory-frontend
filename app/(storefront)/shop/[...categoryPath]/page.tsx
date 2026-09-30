@@ -19,7 +19,6 @@ import {
   isIndexableCatalogUrl,
 } from "@/lib/storefront-catalog-params";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { CollectionPageView } from "@/components/storefront/collection/collection-page";
 import { CollectionDataProvider } from "@/components/storefront/collection/collection-data";
 
 /**
@@ -150,9 +149,7 @@ export default async function Page({
       {/* The same collection system page as `/products`: one page for every
           collection, so a section a merchant adds appears on all of them. */}
       <CollectionDataProvider value={data}>
-        <SystemPage path="/products">
-          <CollectionPageView {...data} />
-        </SystemPage>
+        <SystemPage path="/products" />
       </CollectionDataProvider>
     </>
   );

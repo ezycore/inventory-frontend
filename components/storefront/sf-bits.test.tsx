@@ -4,21 +4,20 @@ import { describe, expect, it } from "vitest";
 import { SectionTitle } from "@/components/storefront/sf-bits";
 
 /**
- * `SectionTitle` draws the heading row on both storefronts — the builder's
- * sections and the four CLASSIC callers (`home/sections/product-sections.tsx`,
- * `home/sections/category-banners.tsx`, `product/product-page.tsx`,
+ * `SectionTitle` draws the heading row for the builder's sections and for two
+ * views outside a section frame (`product/product-page.tsx`,
  * `product-detail/product-overview.tsx`). Since 2026-09-21 it follows the
  * section's Text alignment, which it could not before: the row is a flex
  * container and `text-align` cannot move a flex item.
  */
 describe("SectionTitle", () => {
-  it("sets no alignment of its own, so a classic page renders as it always did", () => {
+  it("sets no alignment of its own outside a section frame", () => {
     const { container } = render(<SectionTitle action={<a href="/all">View all</a>}>Our picks</SectionTitle>);
     const row = container.firstElementChild as HTMLElement;
 
     expect(row.className).toBe("sfb-title-row");
 
-    // ⚠ **The assertion is the ABSENCE.** A classic caller sits in no `.sfb-sec`
+    // ⚠ **The assertion is the ABSENCE.** A caller outside a section sits in no `.sfb-sec`
     // and so sets no `--sfb-title-justify`; the stylesheet's own `space-between`
     // then decides, which is byte for byte what the inline style used to say.
     // Asserting that the row merely "renders" would pass whatever this does —
@@ -53,8 +52,8 @@ describe("SectionTitle", () => {
   });
 
   it("adds no wrapper for a section that was given no line", () => {
-    // ⚠ The ABSENCE again. Thirteen sections grew a subheading; the four classic
-    // callers pass none, and their markup has to be what it was.
+    // ⚠ The ABSENCE again. Thirteen sections grew a subheading; callers outside
+    // a section pass none, and their markup has to be what it was.
     const { container } = render(<SectionTitle>Our picks</SectionTitle>);
     expect((container.firstElementChild as HTMLElement).className).toBe("sfb-title-row");
     expect(container.querySelectorAll("p")).toHaveLength(0);

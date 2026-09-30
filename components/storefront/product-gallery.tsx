@@ -89,8 +89,8 @@ export function ProductGallery({
   onSelect: (index: number) => void;
   /**
    * The `product-main` section's own fit, where the merchant set one. Unset
-   * follows the store, which is every classic product page and every landing
-   * page's Single product section — so this prop is absent on both.
+   * follows the store, as every landing page's Single product section does —
+   * so this prop is absent there.
    *
    * Its twin, the SHAPE, does not travel as a prop: it has to differ per screen
    * and an inline `aspect-ratio` cannot carry a media query, so the section
@@ -137,8 +137,8 @@ export function ProductGallery({
         ratio={
           // `--sf-pdp-ratio` is the product page section's own shape, per screen
           // (`.sfb-pdp` in storefront-builder.css). It is absent everywhere else
-          // — the classic page, a landing page's Single product — and then the
-          // fallback is what has always drawn:
+          // — a landing page's Single product — and then the fallback is what
+          // has always drawn:
           //
           // `top` keeps its own 16/11 letterbox, because that layout runs the
           // photo the full width of the page where a 3:4 portrait would stand

@@ -23,7 +23,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontWithLook } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
 import { PartGroup } from "@/components/ecommerce/customize/part-group";
@@ -224,7 +224,7 @@ export function PartsRail({
   device,
   onPreviewDevice,
 }: {
-  settings: StorefrontSettings;
+  settings: StorefrontWithLook;
   api: CustomizeDraftApi;
   /** Owned by the workspace so it survives a panel taking the rail over. */
   open: PartId | null;
@@ -252,7 +252,6 @@ export function PartsRail({
     discard,
     save,
     saving,
-    savesDraft,
   } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
@@ -414,7 +413,7 @@ export function PartsRail({
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">
-            {savesDraft ? "Draft saved" : "All changes saved"}
+            Draft saved
           </span>
         )}
         <span className="ml-auto flex flex-none gap-2">
@@ -427,7 +426,7 @@ export function PartsRail({
             Discard
           </Button>
           <Button size="sm" onClick={save} disabled={!isDirty || !isValid || saving}>
-            {saving ? "Saving…" : savesDraft ? "Save draft" : "Save changes"}
+            {saving ? "Saving…" : "Save draft"}
           </Button>
         </span>
       </div>

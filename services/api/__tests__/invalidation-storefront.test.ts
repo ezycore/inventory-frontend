@@ -20,13 +20,13 @@ describe("invalidate — the storefront's server cache", () => {
     expect(revalidateStorefront).toHaveBeenCalledWith(["catalog"]);
   });
 
-  it("flushes the content scope for a content page edit", async () => {
-    await invalidate(qc, "storefront.content.changed");
+  it("flushes the content scope for a published page", async () => {
+    await invalidate(qc, "storefront.page.published");
     expect(revalidateStorefront).toHaveBeenCalledWith(["content"]);
   });
 
   it("flushes each scope once when several events are composed", async () => {
-    await invalidate(qc, "catalog.changed", "storefront.catalog.changed", "storefront.content.changed");
+    await invalidate(qc, "catalog.changed", "storefront.catalog.changed", "storefront.page.published");
     expect(revalidateStorefront).toHaveBeenCalledTimes(1);
     expect(revalidateStorefront).toHaveBeenCalledWith(["catalog", "content"]);
   });

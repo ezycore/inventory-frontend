@@ -624,26 +624,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/storefront/{slug}/pages/{pageSlug}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /api/storefront/:slug/pages/:pageSlug
-         * @description Defined in `src/routes/storefront.routes.ts:120`.
-         */
-        get: operations["get_api_storefront_slug_pages_pageSlug"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/storefront/{slug}/page": {
         parameters: {
             query?: never;
@@ -653,7 +633,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/page
-         * @description Defined in `src/routes/storefront.routes.ts:123`.
+         * @description Defined in `src/routes/storefront.routes.ts:122`.
          */
         get: operations["get_api_storefront_slug_page"];
         put?: never;
@@ -673,7 +653,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/section-data
-         * @description Defined in `src/routes/storefront.routes.ts:128`.
+         * @description Defined in `src/routes/storefront.routes.ts:127`.
          */
         get: operations["get_api_storefront_slug_section_data"];
         put?: never;
@@ -693,7 +673,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/sitemap
-         * @description Defined in `src/routes/storefront.routes.ts:134`.
+         * @description Defined in `src/routes/storefront.routes.ts:133`.
          */
         get: operations["get_api_storefront_slug_sitemap"];
         put?: never;
@@ -715,7 +695,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/register
-         * @description Defined in `src/routes/storefront.routes.ts:142`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:141`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_register"];
         delete?: never;
@@ -735,7 +715,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/login
-         * @description Defined in `src/routes/storefront.routes.ts:148`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:147`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_login"];
         delete?: never;
@@ -755,7 +735,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/verify-email
-         * @description Defined in `src/routes/storefront.routes.ts:154`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:153`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_verify_email"];
         delete?: never;
@@ -775,7 +755,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/forgot-password
-         * @description Defined in `src/routes/storefront.routes.ts:160`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:159`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_forgot_password"];
         delete?: never;
@@ -795,7 +775,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/reset-password
-         * @description Defined in `src/routes/storefront.routes.ts:166`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:165`. Rate limited to 5 requests / 15 minutes per IP (`passwordResetLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_reset_password"];
         delete?: never;
@@ -815,7 +795,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/resend-verification
-         * @description Defined in `src/routes/storefront.routes.ts:172`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:171`. Rate limited to 10 requests / 1 hour per IP (`emailVerificationLimiter`).
          */
         post: operations["post_api_storefront_slug_auth_resend_verification"];
         delete?: never;
@@ -833,7 +813,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/oauth/:provider/start
-         * @description Defined in `src/routes/storefront.routes.ts:179`.
+         * @description Defined in `src/routes/storefront.routes.ts:178`.
          */
         get: operations["get_api_storefront_slug_auth_oauth_provider_start"];
         put?: never;
@@ -853,7 +833,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:180`.
+         * @description Defined in `src/routes/storefront.routes.ts:179`.
          */
         get: operations["get_api_storefront_slug_auth_me"];
         put?: never;
@@ -863,7 +843,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me
-         * @description Defined in `src/routes/storefront.routes.ts:183`.
+         * @description Defined in `src/routes/storefront.routes.ts:182`.
          */
         patch: operations["patch_api_storefront_slug_auth_me"];
         trace?: never;
@@ -878,7 +858,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/password
-         * @description Defined in `src/routes/storefront.routes.ts:190`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:189`. Rate limited to 10 requests / 15 minutes per IP (`authLimiter`).
          */
         put: operations["put_api_storefront_slug_auth_me_password"];
         post?: never;
@@ -898,7 +878,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/auth/me/prefs
-         * @description Defined in `src/routes/storefront.routes.ts:197`.
+         * @description Defined in `src/routes/storefront.routes.ts:196`.
          */
         put: operations["put_api_storefront_slug_auth_me_prefs"];
         post?: never;
@@ -919,7 +899,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/auth/me/addresses
-         * @description Defined in `src/routes/storefront.routes.ts:203`.
+         * @description Defined in `src/routes/storefront.routes.ts:202`.
          */
         post: operations["post_api_storefront_slug_auth_me_addresses"];
         delete?: never;
@@ -940,14 +920,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:215`.
+         * @description Defined in `src/routes/storefront.routes.ts:214`.
          */
         delete: operations["delete_api_storefront_slug_auth_me_addresses_addressId"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/storefront/:slug/auth/me/addresses/:addressId
-         * @description Defined in `src/routes/storefront.routes.ts:209`.
+         * @description Defined in `src/routes/storefront.routes.ts:208`.
          */
         patch: operations["patch_api_storefront_slug_auth_me_addresses_addressId"];
         trace?: never;
@@ -962,7 +942,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/storefront/:slug/cart
-         * @description Defined in `src/routes/storefront.routes.ts:228`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:227`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         put: operations["put_api_storefront_slug_cart"];
         post?: never;
@@ -983,7 +963,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/checkout-started
-         * @description Defined in `src/routes/storefront.routes.ts:234`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:233`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_checkout_started"];
         delete?: never;
@@ -1003,7 +983,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/contact
-         * @description Defined in `src/routes/storefront.routes.ts:243`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:242`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_contact"];
         delete?: never;
@@ -1023,7 +1003,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/cart/claim
-         * @description Defined in `src/routes/storefront.routes.ts:249`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:248`. Rate limited to 300 requests / 15 minutes per IP (`cartSyncLimiter`).
          */
         post: operations["post_api_storefront_slug_cart_claim"];
         delete?: never;
@@ -1043,7 +1023,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/subscribe
-         * @description Defined in `src/routes/storefront.routes.ts:260`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:259`. Rate limited to 5 requests / 15 minutes per IP (`subscribeLimiter`).
          */
         post: operations["post_api_storefront_slug_subscribe"];
         delete?: never;
@@ -1061,7 +1041,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/cart/restore/:token
-         * @description Defined in `src/routes/storefront.routes.ts:271`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:270`. Rate limited to 10 requests / 15 minutes per IP (`cartRestoreLimiter`).
          */
         get: operations["get_api_storefront_slug_cart_restore_token"];
         put?: never;
@@ -1081,13 +1061,13 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:325`.
+         * @description Defined in `src/routes/storefront.routes.ts:324`.
          */
         get: operations["get_api_storefront_slug_orders"];
         put?: never;
         /**
          * POST /api/storefront/:slug/orders
-         * @description Defined in `src/routes/storefront.routes.ts:285`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:284`. Rate limited to 5 requests / 10 minutes per IP (`guestOrderLimiter`).
          */
         post: operations["post_api_storefront_slug_orders"];
         delete?: never;
@@ -1105,7 +1085,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/track
-         * @description Defined in `src/routes/storefront.routes.ts:305`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:304`. Rate limited to 10 requests / 15 minutes per IP (`orderLookupLimiter`).
          */
         get: operations["get_api_storefront_slug_orders_track"];
         put?: never;
@@ -1125,7 +1105,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/t/:token
-         * @description Defined in `src/routes/storefront.routes.ts:311`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
+         * @description Defined in `src/routes/storefront.routes.ts:310`. Rate limited to 60 requests / 15 minutes per IP (`orderTrackLimiter`).
          */
         get: operations["get_api_storefront_slug_t_token"];
         put?: never;
@@ -1145,7 +1125,7 @@ export interface paths {
         };
         /**
          * GET /api/storefront/:slug/orders/:orderNumber
-         * @description Defined in `src/routes/storefront.routes.ts:331`.
+         * @description Defined in `src/routes/storefront.routes.ts:330`.
          */
         get: operations["get_api_storefront_slug_orders_orderNumber"];
         put?: never;
@@ -1167,7 +1147,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/orders/:orderNumber/cancel
-         * @description Defined in `src/routes/storefront.routes.ts:339`.
+         * @description Defined in `src/routes/storefront.routes.ts:338`.
          */
         post: operations["post_api_storefront_slug_orders_orderNumber_cancel"];
         delete?: never;
@@ -1187,7 +1167,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/storefront/:slug/coupon/validate
-         * @description Defined in `src/routes/storefront.routes.ts:349`.
+         * @description Defined in `src/routes/storefront.routes.ts:348`.
          */
         post: operations["post_api_storefront_slug_coupon_validate"];
         delete?: never;
@@ -1772,7 +1752,7 @@ export interface paths {
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
     };
-    "/api/organization/storefront/media/hero-slide": {
+    "/api/organization/storefront/media/image": {
         parameters: {
             query?: never;
             header?: never;
@@ -1782,10 +1762,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * POST /api/organization/storefront/media/hero-slide
+         * POST /api/organization/storefront/media/image
          * @description Defined in `src/routes/organization.routes.ts:324`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
-        post: operations["post_api_organization_storefront_media_hero_slide"];
+        post: operations["post_api_organization_storefront_media_image"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7404,78 +7384,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ecommerce/content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /api/ecommerce/content
-         * @description Defined in `src/routes/content-pages.routes.ts:18`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        get: operations["get_api_ecommerce_content"];
-        put?: never;
-        /**
-         * POST /api/ecommerce/content
-         * @description Defined in `src/routes/content-pages.routes.ts:19`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        post: operations["post_api_ecommerce_content"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/ecommerce/content/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * POST /api/ecommerce/content/images
-         * @description Defined in `src/routes/content-pages.routes.ts:38`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        post: operations["post_api_ecommerce_content_images"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/ecommerce/content/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * GET /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:45`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        get: operations["get_api_ecommerce_content_id"];
-        /**
-         * PUT /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:51`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        put: operations["put_api_ecommerce_content_id"];
-        post?: never;
-        /**
-         * DELETE /api/ecommerce/content/:id
-         * @description Defined in `src/routes/content-pages.routes.ts:57`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
-         */
-        delete: operations["delete_api_ecommerce_content_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/ecommerce/pages": {
         parameters: {
             query?: never;
@@ -7511,7 +7419,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/images
-         * @description Defined in `src/routes/storefront-pages.routes.ts:56`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:55`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_images"];
         delete?: never;
@@ -7530,7 +7438,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/home
-         * @description Defined in `src/routes/storefront-pages.routes.ts:66`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:65`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_home"];
         post?: never;
@@ -7549,21 +7457,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:72`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:71`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:84`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:83`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/pages/:id
-         * @description Defined in `src/routes/storefront-pages.routes.ts:78`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:77`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_pages_id"];
         trace?: never;
@@ -7578,13 +7486,13 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:91`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:90`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         put: operations["put_api_ecommerce_pages_id_draft"];
         post?: never;
         /**
          * DELETE /api/ecommerce/pages/:id/draft
-         * @description Defined in `src/routes/storefront-pages.routes.ts:97`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:96`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_pages_id_draft"];
         options?: never;
@@ -7603,7 +7511,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/publish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:103`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:102`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_publish"];
         delete?: never;
@@ -7623,7 +7531,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/unpublish
-         * @description Defined in `src/routes/storefront-pages.routes.ts:110`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:109`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_unpublish"];
         delete?: never;
@@ -7643,7 +7551,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/duplicate
-         * @description Defined in `src/routes/storefront-pages.routes.ts:116`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
+         * @description Defined in `src/routes/storefront-pages.routes.ts:115`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 1 hour per IP (`storefrontPageCreateLimiter`).
          */
         post: operations["post_api_ecommerce_pages_id_duplicate"];
         delete?: never;
@@ -7661,7 +7569,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/pages/:id/revisions
-         * @description Defined in `src/routes/storefront-pages.routes.ts:123`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:122`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_pages_id_revisions"];
         put?: never;
@@ -7683,7 +7591,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/pages/:id/revisions/:version/restore
-         * @description Defined in `src/routes/storefront-pages.routes.ts:129`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-pages.routes.ts:128`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_pages_id_revisions_version_restore"];
         delete?: never;
@@ -7701,7 +7609,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/site
-         * @description Defined in `src/routes/storefront-site.routes.ts:26`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-site.routes.ts:23`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_site"];
         put?: never;
@@ -7724,14 +7632,14 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/storefront/site/draft
-         * @description Defined in `src/routes/storefront-site.routes.ts:33`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-site.routes.ts:30`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_organization_storefront_site_draft"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/organization/storefront/site/draft
-         * @description Defined in `src/routes/storefront-site.routes.ts:27`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-site.routes.ts:24`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_site_draft"];
         trace?: never;
@@ -7747,7 +7655,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/site/publish
-         * @description Defined in `src/routes/storefront-site.routes.ts:34`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
+         * @description Defined in `src/routes/storefront-site.routes.ts:31`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 60 requests / 15 minutes per IP (`storefrontPagePublishLimiter`).
          */
         post: operations["post_api_organization_storefront_site_publish"];
         delete?: never;
@@ -7765,7 +7673,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/site/revisions
-         * @description Defined in `src/routes/storefront-site.routes.ts:40`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-site.routes.ts:37`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_site_revisions"];
         put?: never;
@@ -7787,7 +7695,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/site/revisions/:version/restore
-         * @description Defined in `src/routes/storefront-site.routes.ts:45`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-site.routes.ts:42`. Requires permission `storefront.design`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_site_revisions_version_restore"];
         delete?: never;
@@ -11118,24 +11026,6 @@ export interface components {
                 };
             };
         };
-        ContentPage: {
-            _id: string;
-            organizationId: string;
-            slug: string;
-            title: string;
-            body: string;
-            published: boolean;
-            showInFooter: boolean;
-            sortOrder: number;
-            seo?: {
-                title?: string;
-                description?: string;
-            };
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
         Coupon: {
             _id: string;
             organizationId: string;
@@ -12738,13 +12628,6 @@ export interface components {
                 purchaseReturns: number;
             };
         };
-        HeroSlideImage: {
-            url: string;
-            mediumUrl: string;
-            thumbnailUrl: string;
-            publicId: string;
-            bytes?: number;
-        };
         OnboardingState: {
             /** Format: date-time */
             completedAt: string | null;
@@ -13137,6 +13020,13 @@ export interface components {
             slug?: string;
             canonicalHost?: string | null;
         };
+        StorefrontImageUpload: {
+            url: string;
+            mediumUrl: string;
+            thumbnailUrl: string;
+            publicId: string;
+            bytes?: number;
+        };
         StorefrontPreviewToken: {
             token: string;
             /** Format: date-time */
@@ -13147,8 +13037,6 @@ export interface components {
             organizationId: string;
             published: boolean;
             homePageId?: string;
-            /** Format: date-time */
-            siteCutoverAt?: string;
             displayName?: string;
             logo?: {
                 url: string;
@@ -13204,32 +13092,6 @@ export interface components {
             } & {
                 [key: string]: unknown;
             };
-            contactButton?: {
-                enabled?: boolean;
-                label?: string;
-                greeting?: string;
-                /** @enum {string} */
-                position?: "right" | "left";
-                showOn?: string[];
-                channels?: {
-                    kind: string;
-                    value: string;
-                    label?: string;
-                    enabled?: boolean;
-                }[];
-                hours?: {
-                    enabled?: boolean;
-                    days?: number[];
-                    from?: string;
-                    to?: string;
-                    offlineNote?: string;
-                };
-                nudge?: {
-                    enabled?: boolean;
-                    delaySeconds?: number;
-                    text?: string;
-                };
-            };
             seo?: {
                 title?: string;
                 description?: string;
@@ -13261,368 +13123,6 @@ export interface components {
             };
             paymentAccountMap?: {
                 [key: string]: string;
-            };
-            theme: {
-                preset: string;
-                brandColor?: string;
-                accentColor?: string;
-                homepageSections?: {
-                    key: string;
-                    type: string;
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                }[];
-                logo?: {
-                    background?: string;
-                    height?: number;
-                    padding?: number;
-                    radius?: number;
-                };
-                homeCollections?: {
-                    /** @enum {string} */
-                    style?: "card" | "plain";
-                    /** @enum {string} */
-                    layout?: "strip" | "grid";
-                    columns?: number;
-                    mobileColumns?: number;
-                    /** @enum {string} */
-                    align?: "left" | "center" | "right";
-                    showLabels?: boolean;
-                };
-                design?: {
-                    font?: string;
-                    surface?: string;
-                    scale?: string;
-                    density?: string;
-                    radius?: string;
-                    width?: string;
-                    navHover?: string;
-                    navChildHover?: string;
-                    navActive?: string;
-                    navActiveColor?: string;
-                    navActiveCustom?: string;
-                    buttonShape?: string;
-                    buttonStyle?: string;
-                    buttonSize?: string;
-                    headingWeight?: string;
-                    headingCase?: string;
-                };
-                mobile?: {
-                    left?: string[];
-                    right?: string[];
-                    brand?: string;
-                    row?: string;
-                    searchInline?: boolean;
-                    tabs?: string[];
-                    menuStyle?: string;
-                    icons?: {
-                        [key: string]: string;
-                    };
-                    logoHeight?: number;
-                    sticky?: boolean;
-                };
-                appliedThemeId?: string;
-                /** @enum {string} */
-                heroAlign?: "left" | "center";
-            };
-            sectionConfig?: {
-                key: string;
-                /** @enum {string} */
-                source?: "featured" | "newest" | "category" | "manual";
-                categoryId?: string;
-                categoryIds?: string[];
-                /** @enum {string} */
-                cardShape?: "stacked" | "split";
-                /** @enum {string} */
-                cardSide?: "left" | "right" | "alternate";
-                cardSplit?: number;
-                cardHideText?: boolean;
-                cardHeight?: number;
-                /** @enum {string} */
-                cardFlow?: "wrap" | "scroll";
-                cardPerRow?: number;
-                cardRadius?: number;
-                cardArrows?: boolean;
-                /** @enum {string} */
-                cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-                fullWidth?: boolean;
-                mobile?: {
-                    /** @enum {string} */
-                    cardFlow?: "wrap" | "scroll";
-                    cardPerRow?: number;
-                    /** @enum {string} */
-                    cardShape?: "stacked" | "split";
-                    /** @enum {string} */
-                    cardSide?: "left" | "right" | "alternate";
-                    cardSplit?: number;
-                    cardHideText?: boolean;
-                    cardHeight?: number;
-                };
-                cards?: {
-                    categoryId: string;
-                    title?: string;
-                    description?: string;
-                    image?: {
-                        url: string;
-                        mediumUrl: string;
-                        thumbnailUrl: string;
-                        publicId: string;
-                        bytes?: number;
-                    } | null;
-                    buttonLabel?: string;
-                    buttonHref?: string;
-                }[];
-                title?: string;
-                limit?: number;
-                tagIds?: string[];
-                productIds?: string[];
-                ctaLabel?: string;
-                ctaHref?: string;
-                showCta?: boolean;
-            }[];
-            copy?: {
-                footerText?: string;
-                footerNote?: string;
-                footerContactHeading?: string;
-                footerNewsletter?: {
-                    heading?: string;
-                    blurb?: string;
-                    buttonLabel?: string;
-                };
-            };
-            nav?: {
-                header?: {
-                    label: string;
-                    /** @enum {string} */
-                    type: "category" | "page" | "url" | "collections";
-                    value?: string;
-                    children?: {
-                        label: string;
-                        /** @enum {string} */
-                        type: "category" | "page" | "url" | "collections";
-                        value?: string;
-                    }[];
-                    /** @enum {string} */
-                    childrenMode?: "auto" | "custom" | "none";
-                }[];
-                footer?: {
-                    title: string;
-                    links: {
-                        label?: string;
-                        type?: string;
-                        value?: string;
-                        url?: string;
-                        newTab?: boolean;
-                    }[];
-                }[];
-                footerPaymentMethods?: {
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                };
-                footerContentPages?: {
-                    show?: boolean;
-                    title?: string;
-                };
-                footerStyle?: {
-                    ground?: string;
-                    color?: string;
-                    tone?: string;
-                    spacing?: {
-                        base?: string;
-                        mobile?: string;
-                    };
-                    align?: string;
-                    topBorder?: boolean;
-                    phoneGroups?: string;
-                    bottomAlign?: {
-                        base?: string;
-                        mobile?: string;
-                    };
-                    showPoweredBy?: boolean;
-                    logo?: {
-                        url: string;
-                        mediumUrl: string;
-                        thumbnailUrl: string;
-                        publicId: string;
-                        bytes?: number;
-                    } | null;
-                    logoHeight?: number;
-                    bgImage?: {
-                        url: string;
-                        mediumUrl: string;
-                        thumbnailUrl: string;
-                        publicId: string;
-                        bytes?: number;
-                    } | null;
-                    bgFocal?: {
-                        x: number;
-                        y: number;
-                    };
-                    overlay?: number;
-                };
-                footerBlocks?: {
-                    id: string;
-                    type: string;
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                    width?: string;
-                    title?: string;
-                    links?: {
-                        label?: string;
-                        type?: string;
-                        value?: string;
-                        url?: string;
-                        newTab?: boolean;
-                    }[];
-                    showLogo?: boolean;
-                    showAbout?: boolean;
-                    showPhone?: boolean;
-                    showSocial?: boolean;
-                    body?: string;
-                    image?: {
-                        url: string;
-                        mediumUrl: string;
-                        thumbnailUrl: string;
-                        publicId: string;
-                        bytes?: number;
-                    } | null;
-                    alt?: string;
-                    url?: string;
-                    maxWidth?: number;
-                    logos?: {
-                        image: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        };
-                        alt?: string;
-                        url?: string;
-                    }[];
-                    logoHeight?: number;
-                    iconStyle?: string;
-                    arrange?: string;
-                }[];
-                announcement?: {
-                    enabled: boolean;
-                    useShippingRule?: boolean;
-                    text?: string;
-                    link?: string;
-                    bgColor?: string;
-                    textColor?: string;
-                    icon?: string;
-                    ctaLabel?: string;
-                    dismissible?: boolean;
-                    /** @enum {string} */
-                    size?: "sm" | "md" | "lg";
-                    marquee?: boolean;
-                    /** @enum {string} */
-                    marqueeSpeed?: "slow" | "normal" | "fast";
-                    bgImage?: {
-                        url: string;
-                        mediumUrl: string;
-                        thumbnailUrl: string;
-                        publicId: string;
-                        bytes?: number;
-                    } | null;
-                    overlay?: string;
-                    overlayOpacity?: number;
-                    /** @enum {string} */
-                    bgFit?: "cover" | "tile";
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                };
-                campaignStrip?: {
-                    enabled?: boolean;
-                    /** @enum {string} */
-                    showOn?: "all" | "home";
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                    bgColor?: string;
-                    textColor?: string;
-                    /** @enum {string} */
-                    size?: "sm" | "md" | "lg";
-                    /** @enum {string} */
-                    paddingY?: "sm" | "md" | "lg";
-                    /** @enum {string} */
-                    paddingX?: "sm" | "md" | "lg";
-                    dismissible?: boolean;
-                };
-                utilityBar?: {
-                    enabled?: boolean;
-                    showOnDesktop?: boolean;
-                    showOnMobile?: boolean;
-                    showPhone?: boolean;
-                    showTrackOrder?: boolean;
-                    showLanguage?: boolean;
-                    showTheme?: boolean;
-                    trackOrderLabel?: string;
-                };
-                languageTheme?: {
-                    /** @enum {string} */
-                    languages?: "both" | "en" | "bn";
-                    /** @enum {string} */
-                    defaultLanguage?: "en" | "bn";
-                    /** @enum {string} */
-                    darkMode?: "switch" | "light";
-                };
-                desktopHeader?: {
-                    sticky?: boolean;
-                };
-                menu?: {
-                    subcategories?: string;
-                    mobile?: {
-                        layout?: string;
-                        open?: string;
-                        viewAll?: boolean;
-                        images?: boolean;
-                        subImages?: boolean;
-                        chips?: string;
-                        title?: string;
-                        allProducts?: boolean;
-                        allProductsLabel?: string;
-                        collectionStrip?: string;
-                        drawerWidth?: string;
-                    };
-                    desktop?: {
-                        dropdown?: string;
-                        openOn?: string;
-                        railOpen?: string;
-                        overflow?: string;
-                        row?: boolean;
-                        viewAll?: boolean;
-                        collectionStrip?: string;
-                    };
-                };
-                filters?: {
-                    enabled?: boolean;
-                    groups?: {
-                        id: string;
-                        label?: string;
-                        hidden?: boolean;
-                        open?: boolean;
-                    }[];
-                    mobile?: {
-                        entry?: string;
-                        stickyBar?: boolean;
-                        quickChips?: string[];
-                    };
-                    desktop?: {
-                        placement?: string;
-                    };
-                    priceMode?: string;
-                    pricePresets?: {
-                        min?: number;
-                        max?: number;
-                    }[];
-                    brandMulti?: boolean;
-                    showCounts?: boolean;
-                    sort?: {
-                        default?: string;
-                        hidden?: string[];
-                    };
-                };
             };
             checkout?: {
                 requiredFields?: string[];
@@ -13661,29 +13161,6 @@ export interface components {
                 pausedMessage?: string;
                 pausedWhatsApp?: boolean;
             };
-            templates?: {
-                home?: string;
-                collection?: string;
-                product?: string;
-                checkout?: string;
-                footer?: string;
-                header?: string;
-                productCard?: string;
-                cardActions?: string;
-                cardTagBadges?: string;
-                discountBadge?: string;
-                hero?: string;
-                headerMenu?: string;
-                pagination?: string;
-                imageFit?: string;
-                imageRatio?: string;
-                categoryTiles?: string;
-                accountLayout?: string;
-                contentLayout?: string;
-                cartLayout?: string;
-                shell?: string;
-                mobile?: string;
-            };
             customersConfig?: {
                 allowAccounts?: boolean;
             };
@@ -13699,66 +13176,6 @@ export interface components {
                 delivered?: string;
                 ready_for_pickup?: string;
                 picked_up?: string;
-            };
-            trustBadges?: {
-                text?: string;
-                icon?: string;
-            }[];
-            heroSlides?: {
-                image?: {
-                    url: string;
-                    mediumUrl: string;
-                    thumbnailUrl: string;
-                    publicId: string;
-                    bytes?: number;
-                } | null;
-                mobileImage?: {
-                    url: string;
-                    mediumUrl: string;
-                    thumbnailUrl: string;
-                    publicId: string;
-                    bytes?: number;
-                } | null;
-                focal?: {
-                    x: number;
-                    y: number;
-                };
-                mobileFocal?: {
-                    x: number;
-                    y: number;
-                };
-                imageFit?: string;
-                badge?: string;
-                title?: string;
-                subtitle?: string;
-                buttonLabel?: string;
-                link?: string;
-                hideTextOnMobile?: boolean;
-            }[];
-            heroBanner?: {
-                badge?: string;
-                title?: string;
-                subtitle?: string;
-                primaryLabel?: string;
-                primaryLink?: string;
-                secondaryLabel?: string;
-                secondaryLink?: string;
-                imageFit?: string;
-                mobileImage?: {
-                    url: string;
-                    mediumUrl: string;
-                    thumbnailUrl: string;
-                    publicId: string;
-                    bytes?: number;
-                } | null;
-                focal?: {
-                    x: number;
-                    y: number;
-                };
-                mobileFocal?: {
-                    x: number;
-                    y: number;
-                };
             };
             couriers: {
                 /** @enum {string} */
@@ -13901,19 +13318,6 @@ export interface components {
             sortOrder?: number;
             footer?: boolean;
         };
-        ContentPagePublic: {
-            _id: string;
-            slug: string;
-            title: string;
-            body?: string;
-            seo?: {
-                title?: string;
-                description?: string;
-            };
-            published?: boolean;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
         CouponPreview: {
             code: string;
             discountAmount: number;
@@ -14046,9 +13450,6 @@ export interface components {
             seo?: unknown;
             theme?: unknown;
             copy?: unknown;
-            sectionConfig?: unknown;
-            heroSlides?: unknown;
-            heroBanner?: unknown;
             printable?: unknown;
             oauthProviders: string[];
             allowedPaymentMethods: string[];
@@ -14973,28 +14374,11 @@ export interface components {
                         preset: string;
                         brandColor?: string;
                         accentColor?: string;
-                        homepageSections?: {
-                            key: string;
-                            type: string;
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                        }[];
                         logo?: {
                             background?: string;
                             height?: number;
                             padding?: number;
                             radius?: number;
-                        };
-                        homeCollections?: {
-                            /** @enum {string} */
-                            style?: "card" | "plain";
-                            /** @enum {string} */
-                            layout?: "strip" | "grid";
-                            columns?: number;
-                            mobileColumns?: number;
-                            /** @enum {string} */
-                            align?: "left" | "center" | "right";
-                            showLabels?: boolean;
                         };
                         design?: {
                             font?: string;
@@ -15029,8 +14413,6 @@ export interface components {
                             sticky?: boolean;
                         };
                         appliedThemeId?: string;
-                        /** @enum {string} */
-                        heroAlign?: "left" | "center";
                     };
                     copy?: {
                         footerText?: string;
@@ -15041,144 +14423,6 @@ export interface components {
                             blurb?: string;
                             buttonLabel?: string;
                         };
-                    };
-                    sectionConfig?: {
-                        key: string;
-                        /** @enum {string} */
-                        source?: "featured" | "newest" | "category" | "manual";
-                        categoryId?: string;
-                        categoryIds?: string[];
-                        /** @enum {string} */
-                        cardShape?: "stacked" | "split";
-                        /** @enum {string} */
-                        cardSide?: "left" | "right" | "alternate";
-                        cardSplit?: number;
-                        cardHideText?: boolean;
-                        cardHeight?: number;
-                        /** @enum {string} */
-                        cardFlow?: "wrap" | "scroll";
-                        cardPerRow?: number;
-                        cardRadius?: number;
-                        cardArrows?: boolean;
-                        /** @enum {string} */
-                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-                        fullWidth?: boolean;
-                        mobile?: {
-                            /** @enum {string} */
-                            cardFlow?: "wrap" | "scroll";
-                            cardPerRow?: number;
-                            /** @enum {string} */
-                            cardShape?: "stacked" | "split";
-                            /** @enum {string} */
-                            cardSide?: "left" | "right" | "alternate";
-                            cardSplit?: number;
-                            cardHideText?: boolean;
-                            cardHeight?: number;
-                        };
-                        cards?: {
-                            categoryId: string;
-                            title?: string;
-                            description?: string;
-                            image?: {
-                                url: string;
-                                mediumUrl: string;
-                                thumbnailUrl: string;
-                                publicId: string;
-                                bytes?: number;
-                            } | null;
-                            buttonLabel?: string;
-                            buttonHref?: string;
-                        }[];
-                        title?: string;
-                        limit?: number;
-                        tagIds?: string[];
-                        productIds?: string[];
-                        ctaLabel?: string;
-                        ctaHref?: string;
-                        showCta?: boolean;
-                    }[];
-                    trustBadges?: {
-                        text?: string;
-                        icon?: string;
-                    }[];
-                    heroBanner?: {
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        primaryLabel?: string;
-                        primaryLink?: string;
-                        secondaryLabel?: string;
-                        secondaryLink?: string;
-                        imageFit?: string;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
-                    };
-                    heroSlides?: {
-                        image?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
-                        imageFit?: string;
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        buttonLabel?: string;
-                        link?: string;
-                        hideTextOnMobile?: boolean;
-                    }[];
-                    templates?: {
-                        home?: string;
-                        collection?: string;
-                        product?: string;
-                        checkout?: string;
-                        footer?: string;
-                        header?: string;
-                        productCard?: string;
-                        cardActions?: string;
-                        cardTagBadges?: string;
-                        discountBadge?: string;
-                        hero?: string;
-                        headerMenu?: string;
-                        pagination?: string;
-                        imageFit?: string;
-                        imageRatio?: string;
-                        categoryTiles?: string;
-                        accountLayout?: string;
-                        contentLayout?: string;
-                        cartLayout?: string;
-                        shell?: string;
-                        mobile?: string;
                     };
                     nav?: {
                         header?: {
@@ -15414,6 +14658,30 @@ export interface components {
                             };
                         };
                     };
+                    templates?: {
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
                     contactButton?: {
                         enabled?: boolean;
                         label?: string;
@@ -15451,28 +14719,11 @@ export interface components {
                         preset: string;
                         brandColor?: string;
                         accentColor?: string;
-                        homepageSections?: {
-                            key: string;
-                            type: string;
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                        }[];
                         logo?: {
                             background?: string;
                             height?: number;
                             padding?: number;
                             radius?: number;
-                        };
-                        homeCollections?: {
-                            /** @enum {string} */
-                            style?: "card" | "plain";
-                            /** @enum {string} */
-                            layout?: "strip" | "grid";
-                            columns?: number;
-                            mobileColumns?: number;
-                            /** @enum {string} */
-                            align?: "left" | "center" | "right";
-                            showLabels?: boolean;
                         };
                         design?: {
                             font?: string;
@@ -15507,8 +14758,6 @@ export interface components {
                             sticky?: boolean;
                         };
                         appliedThemeId?: string;
-                        /** @enum {string} */
-                        heroAlign?: "left" | "center";
                     };
                     copy?: {
                         footerText?: string;
@@ -15519,144 +14768,6 @@ export interface components {
                             blurb?: string;
                             buttonLabel?: string;
                         };
-                    };
-                    sectionConfig?: {
-                        key: string;
-                        /** @enum {string} */
-                        source?: "featured" | "newest" | "category" | "manual";
-                        categoryId?: string;
-                        categoryIds?: string[];
-                        /** @enum {string} */
-                        cardShape?: "stacked" | "split";
-                        /** @enum {string} */
-                        cardSide?: "left" | "right" | "alternate";
-                        cardSplit?: number;
-                        cardHideText?: boolean;
-                        cardHeight?: number;
-                        /** @enum {string} */
-                        cardFlow?: "wrap" | "scroll";
-                        cardPerRow?: number;
-                        cardRadius?: number;
-                        cardArrows?: boolean;
-                        /** @enum {string} */
-                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-                        fullWidth?: boolean;
-                        mobile?: {
-                            /** @enum {string} */
-                            cardFlow?: "wrap" | "scroll";
-                            cardPerRow?: number;
-                            /** @enum {string} */
-                            cardShape?: "stacked" | "split";
-                            /** @enum {string} */
-                            cardSide?: "left" | "right" | "alternate";
-                            cardSplit?: number;
-                            cardHideText?: boolean;
-                            cardHeight?: number;
-                        };
-                        cards?: {
-                            categoryId: string;
-                            title?: string;
-                            description?: string;
-                            image?: {
-                                url: string;
-                                mediumUrl: string;
-                                thumbnailUrl: string;
-                                publicId: string;
-                                bytes?: number;
-                            } | null;
-                            buttonLabel?: string;
-                            buttonHref?: string;
-                        }[];
-                        title?: string;
-                        limit?: number;
-                        tagIds?: string[];
-                        productIds?: string[];
-                        ctaLabel?: string;
-                        ctaHref?: string;
-                        showCta?: boolean;
-                    }[];
-                    trustBadges?: {
-                        text?: string;
-                        icon?: string;
-                    }[];
-                    heroBanner?: {
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        primaryLabel?: string;
-                        primaryLink?: string;
-                        secondaryLabel?: string;
-                        secondaryLink?: string;
-                        imageFit?: string;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
-                    };
-                    heroSlides?: {
-                        image?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl: string;
-                            thumbnailUrl: string;
-                            publicId: string;
-                            bytes?: number;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
-                        imageFit?: string;
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        buttonLabel?: string;
-                        link?: string;
-                        hideTextOnMobile?: boolean;
-                    }[];
-                    templates?: {
-                        home?: string;
-                        collection?: string;
-                        product?: string;
-                        checkout?: string;
-                        footer?: string;
-                        header?: string;
-                        productCard?: string;
-                        cardActions?: string;
-                        cardTagBadges?: string;
-                        discountBadge?: string;
-                        hero?: string;
-                        headerMenu?: string;
-                        pagination?: string;
-                        imageFit?: string;
-                        imageRatio?: string;
-                        categoryTiles?: string;
-                        accountLayout?: string;
-                        contentLayout?: string;
-                        cartLayout?: string;
-                        shell?: string;
-                        mobile?: string;
                     };
                     nav?: {
                         header?: {
@@ -15892,6 +15003,30 @@ export interface components {
                             };
                         };
                     };
+                    templates?: {
+                        collection?: string;
+                        product?: string;
+                        checkout?: string;
+                        footer?: string;
+                        header?: string;
+                        productCard?: string;
+                        cardActions?: string;
+                        cardTagBadges?: string;
+                        discountBadge?: string;
+                        headerMenu?: string;
+                        pagination?: string;
+                        imageFit?: string;
+                        imageRatio?: string;
+                        accountLayout?: string;
+                        contentLayout?: string;
+                        cartLayout?: string;
+                        shell?: string;
+                        mobile?: string;
+                    };
+                    trustBadges?: {
+                        text?: string;
+                        icon?: string;
+                    }[];
                     contactButton?: {
                         enabled?: boolean;
                         label?: string;
@@ -15928,6 +15063,346 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        StorefrontSiteLook: {
+            theme?: {
+                preset: string;
+                brandColor?: string;
+                accentColor?: string;
+                logo?: {
+                    background?: string;
+                    height?: number;
+                    padding?: number;
+                    radius?: number;
+                };
+                design?: {
+                    font?: string;
+                    surface?: string;
+                    scale?: string;
+                    density?: string;
+                    radius?: string;
+                    width?: string;
+                    navHover?: string;
+                    navChildHover?: string;
+                    navActive?: string;
+                    navActiveColor?: string;
+                    navActiveCustom?: string;
+                    buttonShape?: string;
+                    buttonStyle?: string;
+                    buttonSize?: string;
+                    headingWeight?: string;
+                    headingCase?: string;
+                };
+                mobile?: {
+                    left?: string[];
+                    right?: string[];
+                    brand?: string;
+                    row?: string;
+                    searchInline?: boolean;
+                    tabs?: string[];
+                    menuStyle?: string;
+                    icons?: {
+                        [key: string]: string;
+                    };
+                    logoHeight?: number;
+                    sticky?: boolean;
+                };
+                appliedThemeId?: string;
+            };
+            copy?: {
+                footerText?: string;
+                footerNote?: string;
+                footerContactHeading?: string;
+                footerNewsletter?: {
+                    heading?: string;
+                    blurb?: string;
+                    buttonLabel?: string;
+                };
+            };
+            nav?: {
+                header?: {
+                    label: string;
+                    /** @enum {string} */
+                    type: "category" | "page" | "url" | "collections";
+                    value?: string;
+                    children?: {
+                        label: string;
+                        /** @enum {string} */
+                        type: "category" | "page" | "url" | "collections";
+                        value?: string;
+                    }[];
+                    /** @enum {string} */
+                    childrenMode?: "auto" | "custom" | "none";
+                }[];
+                footer?: {
+                    title: string;
+                    links: {
+                        label?: string;
+                        type?: string;
+                        value?: string;
+                        url?: string;
+                        newTab?: boolean;
+                    }[];
+                }[];
+                footerPaymentMethods?: {
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
+                footerContentPages?: {
+                    show?: boolean;
+                    title?: string;
+                };
+                footerStyle?: {
+                    ground?: string;
+                    color?: string;
+                    tone?: string;
+                    spacing?: {
+                        base?: string;
+                        mobile?: string;
+                    };
+                    align?: string;
+                    topBorder?: boolean;
+                    phoneGroups?: string;
+                    bottomAlign?: {
+                        base?: string;
+                        mobile?: string;
+                    };
+                    showPoweredBy?: boolean;
+                    logo?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    logoHeight?: number;
+                    bgImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    bgFocal?: {
+                        x: number;
+                        y: number;
+                    };
+                    overlay?: number;
+                };
+                footerBlocks?: {
+                    id: string;
+                    type: string;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    width?: string;
+                    title?: string;
+                    links?: {
+                        label?: string;
+                        type?: string;
+                        value?: string;
+                        url?: string;
+                        newTab?: boolean;
+                    }[];
+                    showLogo?: boolean;
+                    showAbout?: boolean;
+                    showPhone?: boolean;
+                    showSocial?: boolean;
+                    body?: string;
+                    image?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    alt?: string;
+                    url?: string;
+                    maxWidth?: number;
+                    logos?: {
+                        image: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                        };
+                        alt?: string;
+                        url?: string;
+                    }[];
+                    logoHeight?: number;
+                    iconStyle?: string;
+                    arrange?: string;
+                }[];
+                announcement?: {
+                    enabled: boolean;
+                    useShippingRule?: boolean;
+                    text?: string;
+                    link?: string;
+                    bgColor?: string;
+                    textColor?: string;
+                    icon?: string;
+                    ctaLabel?: string;
+                    dismissible?: boolean;
+                    /** @enum {string} */
+                    size?: "sm" | "md" | "lg";
+                    marquee?: boolean;
+                    /** @enum {string} */
+                    marqueeSpeed?: "slow" | "normal" | "fast";
+                    bgImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                    } | null;
+                    overlay?: string;
+                    overlayOpacity?: number;
+                    /** @enum {string} */
+                    bgFit?: "cover" | "tile";
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                };
+                campaignStrip?: {
+                    enabled?: boolean;
+                    /** @enum {string} */
+                    showOn?: "all" | "home";
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    bgColor?: string;
+                    textColor?: string;
+                    /** @enum {string} */
+                    size?: "sm" | "md" | "lg";
+                    /** @enum {string} */
+                    paddingY?: "sm" | "md" | "lg";
+                    /** @enum {string} */
+                    paddingX?: "sm" | "md" | "lg";
+                    dismissible?: boolean;
+                };
+                utilityBar?: {
+                    enabled?: boolean;
+                    showOnDesktop?: boolean;
+                    showOnMobile?: boolean;
+                    showPhone?: boolean;
+                    showTrackOrder?: boolean;
+                    showLanguage?: boolean;
+                    showTheme?: boolean;
+                    trackOrderLabel?: string;
+                };
+                languageTheme?: {
+                    /** @enum {string} */
+                    languages?: "both" | "en" | "bn";
+                    /** @enum {string} */
+                    defaultLanguage?: "en" | "bn";
+                    /** @enum {string} */
+                    darkMode?: "switch" | "light";
+                };
+                desktopHeader?: {
+                    sticky?: boolean;
+                };
+                menu?: {
+                    subcategories?: string;
+                    mobile?: {
+                        layout?: string;
+                        open?: string;
+                        viewAll?: boolean;
+                        images?: boolean;
+                        subImages?: boolean;
+                        chips?: string;
+                        title?: string;
+                        allProducts?: boolean;
+                        allProductsLabel?: string;
+                        collectionStrip?: string;
+                        drawerWidth?: string;
+                    };
+                    desktop?: {
+                        dropdown?: string;
+                        openOn?: string;
+                        railOpen?: string;
+                        overflow?: string;
+                        row?: boolean;
+                        viewAll?: boolean;
+                        collectionStrip?: string;
+                    };
+                };
+                filters?: {
+                    enabled?: boolean;
+                    groups?: {
+                        id: string;
+                        label?: string;
+                        hidden?: boolean;
+                        open?: boolean;
+                    }[];
+                    mobile?: {
+                        entry?: string;
+                        stickyBar?: boolean;
+                        quickChips?: string[];
+                    };
+                    desktop?: {
+                        placement?: string;
+                    };
+                    priceMode?: string;
+                    pricePresets?: {
+                        min?: number;
+                        max?: number;
+                    }[];
+                    brandMulti?: boolean;
+                    showCounts?: boolean;
+                    sort?: {
+                        default?: string;
+                        hidden?: string[];
+                    };
+                };
+            };
+            templates?: {
+                collection?: string;
+                product?: string;
+                checkout?: string;
+                footer?: string;
+                header?: string;
+                productCard?: string;
+                cardActions?: string;
+                cardTagBadges?: string;
+                discountBadge?: string;
+                headerMenu?: string;
+                pagination?: string;
+                imageFit?: string;
+                imageRatio?: string;
+                accountLayout?: string;
+                contentLayout?: string;
+                cartLayout?: string;
+                shell?: string;
+                mobile?: string;
+            };
+            trustBadges?: {
+                text?: string;
+                icon?: string;
+            }[];
+            contactButton?: {
+                enabled?: boolean;
+                label?: string;
+                greeting?: string;
+                /** @enum {string} */
+                position?: "right" | "left";
+                showOn?: string[];
+                channels?: {
+                    kind: string;
+                    value: string;
+                    label?: string;
+                    enabled?: boolean;
+                }[];
+                hours?: {
+                    enabled?: boolean;
+                    days?: number[];
+                    from?: string;
+                    to?: string;
+                    offlineNote?: string;
+                };
+                nudge?: {
+                    enabled?: boolean;
+                    delaySeconds?: number;
+                    text?: string;
+                };
+            };
         };
         StorefrontSiteRevision: {
             _id: string;
@@ -19507,40 +18982,6 @@ export interface operations {
             };
         };
     };
-    get_api_storefront_slug_pages_pageSlug: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-                pageSlug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ContentPagePublic"];
-                    };
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     get_api_storefront_slug_page: {
         parameters: {
             query: {
@@ -22607,33 +22048,6 @@ export interface operations {
                     } & {
                         [key: string]: unknown;
                     };
-                    contactButton?: {
-                        enabled?: boolean;
-                        label?: string;
-                        greeting?: string;
-                        /** @enum {string} */
-                        position?: "right" | "left";
-                        showOn?: ("home" | "collection" | "product" | "cart" | "checkout" | "order" | "page" | "account")[];
-                        channels?: {
-                            /** @enum {string} */
-                            kind: "whatsapp";
-                            value: string;
-                            label?: string;
-                            enabled?: boolean;
-                        }[];
-                        hours?: {
-                            enabled?: boolean;
-                            days?: number[];
-                            from?: (unknown | string) | "";
-                            to?: (unknown | string) | "";
-                            offlineNote?: string;
-                        };
-                        nudge?: {
-                            enabled?: boolean;
-                            delaySeconds?: number;
-                            text?: string;
-                        };
-                    };
                     seo?: {
                         title?: string;
                         description?: string;
@@ -22662,376 +22076,6 @@ export interface operations {
                     cartRecovery?: {
                         enabled?: boolean;
                         delaysMinutes?: number[];
-                    };
-                    theme?: {
-                        preset: string;
-                        brandColor?: string;
-                        accentColor?: string;
-                        homepageSections?: {
-                            key: string;
-                            type: string;
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                        }[];
-                        logo?: {
-                            background?: "" | string;
-                            height?: number;
-                            padding?: number;
-                            radius?: number;
-                        };
-                        mobile?: {
-                            left?: string[];
-                            right?: string[];
-                            brand?: string;
-                            row?: string;
-                            searchInline?: boolean;
-                            tabs?: string[];
-                            menuStyle?: string;
-                            icons?: {
-                                [key: string]: string;
-                            };
-                            logoHeight?: number;
-                            sticky?: boolean;
-                        };
-                        homeCollections?: {
-                            /** @enum {string} */
-                            style?: "card" | "plain";
-                            /** @enum {string} */
-                            layout?: "strip" | "grid";
-                            columns?: number;
-                            mobileColumns?: number;
-                            /** @enum {string} */
-                            align?: "left" | "center" | "right";
-                            showLabels?: boolean;
-                        };
-                        design?: {
-                            font?: string;
-                            surface?: string;
-                            scale?: string;
-                            density?: string;
-                            radius?: string;
-                            width?: string;
-                            navHover?: string;
-                            navChildHover?: string;
-                            navActive?: string;
-                            navActiveColor?: string;
-                            navActiveCustom?: string;
-                            buttonShape?: string;
-                            buttonStyle?: string;
-                            buttonSize?: string;
-                            headingWeight?: string;
-                            headingCase?: string;
-                        };
-                        /** @enum {string} */
-                        heroAlign?: "left" | "center";
-                        appliedThemeId?: string;
-                    };
-                    copy?: {
-                        footerText?: string;
-                        footerNote?: string;
-                        footerContactHeading?: string;
-                        footerNewsletter?: {
-                            heading?: string;
-                            blurb?: string;
-                            buttonLabel?: string;
-                        };
-                    };
-                    sectionConfig?: {
-                        key: string;
-                        /** @enum {string} */
-                        source?: "featured" | "newest" | "category" | "manual";
-                        categoryId?: string;
-                        categoryIds?: string[];
-                        /** @enum {string} */
-                        cardShape?: "stacked" | "split";
-                        /** @enum {string} */
-                        cardSide?: "left" | "right" | "alternate";
-                        cardSplit?: number;
-                        cardHideText?: boolean;
-                        mobile?: {
-                            /** @enum {string} */
-                            cardFlow?: "wrap" | "scroll";
-                            cardPerRow?: number;
-                            /** @enum {string} */
-                            cardShape?: "stacked" | "split";
-                            /** @enum {string} */
-                            cardSide?: "left" | "right" | "alternate";
-                            cardSplit?: number;
-                            cardHideText?: boolean;
-                            cardHeight?: number;
-                        };
-                        /** @enum {string} */
-                        cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-                        cardHeight?: number;
-                        /** @enum {string} */
-                        cardFlow?: "wrap" | "scroll";
-                        cardPerRow?: number;
-                        cardRadius?: number;
-                        cardArrows?: boolean;
-                        fullWidth?: boolean;
-                        cards?: {
-                            categoryId: string;
-                            title?: string;
-                            description?: string;
-                            image?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            buttonLabel?: string;
-                            buttonHref?: string;
-                        }[];
-                        title?: string;
-                        limit?: number;
-                        tagIds?: string[];
-                        productIds?: string[];
-                        ctaLabel?: string;
-                        ctaHref?: string;
-                        showCta?: boolean;
-                    }[];
-                    nav?: {
-                        header?: {
-                            label: string;
-                            /** @enum {string} */
-                            type: "category" | "page" | "url" | "collections";
-                            value: string;
-                            children?: {
-                                label: string;
-                                /** @enum {string} */
-                                type: "category" | "page" | "url" | "collections";
-                                value: string;
-                            }[];
-                            /** @enum {string} */
-                            childrenMode?: "auto" | "custom" | "none";
-                        }[];
-                        footer?: {
-                            title: string;
-                            links: {
-                                label: string;
-                                /** @enum {string} */
-                                type?: "url" | "page" | "category";
-                                value?: string;
-                                url?: string;
-                                newTab?: boolean;
-                            }[];
-                        }[];
-                        footerPaymentMethods?: {
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                        };
-                        footerContentPages?: {
-                            show?: boolean;
-                            title?: string;
-                        };
-                        footerStyle?: {
-                            /** @enum {string} */
-                            ground?: "card" | "surface" | "brand" | "dark" | "custom";
-                            color?: string;
-                            /** @enum {string} */
-                            tone?: "auto" | "light" | "dark";
-                            spacing?: {
-                                /** @enum {string} */
-                                base?: "compact" | "regular" | "roomy";
-                                /** @enum {string} */
-                                mobile?: "compact" | "regular" | "roomy";
-                            };
-                            /** @enum {string} */
-                            align?: "start" | "center";
-                            topBorder?: boolean;
-                            /** @enum {string} */
-                            phoneGroups?: "open" | "first" | "closed";
-                            bottomAlign?: {
-                                /** @enum {string} */
-                                base?: "spread" | "center";
-                                /** @enum {string} */
-                                mobile?: "spread" | "center";
-                            };
-                            showPoweredBy?: boolean;
-                            logo?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            logoHeight?: number;
-                            bgImage?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            bgFocal?: {
-                                x: number;
-                                y: number;
-                            };
-                            overlay?: number;
-                        };
-                        footerBlocks?: {
-                            id: string;
-                            /** @enum {string} */
-                            type: "brand" | "links" | "pages" | "contact" | "newsletter" | "promises" | "text" | "image" | "logos" | "social";
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                            /** @enum {string} */
-                            width?: "auto" | "narrow" | "wide" | "full";
-                            title?: string;
-                            links?: {
-                                label: string;
-                                /** @enum {string} */
-                                type?: "url" | "page" | "category";
-                                value?: string;
-                                url?: string;
-                                newTab?: boolean;
-                            }[];
-                            showLogo?: boolean;
-                            showAbout?: boolean;
-                            showPhone?: boolean;
-                            showSocial?: boolean;
-                            body?: string;
-                            image?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            alt?: string;
-                            url?: string;
-                            maxWidth?: number;
-                            logos?: {
-                                image: {
-                                    url: string;
-                                    mediumUrl?: string;
-                                    thumbnailUrl?: string;
-                                    publicId?: string;
-                                };
-                                alt: string;
-                                url?: string;
-                            }[];
-                            logoHeight?: number;
-                            /** @enum {string} */
-                            iconStyle?: "disc" | "plain" | "none";
-                            /** @enum {string} */
-                            arrange?: "row" | "column";
-                        }[];
-                        announcement?: {
-                            enabled?: boolean;
-                            useShippingRule?: boolean;
-                            text?: string;
-                            link?: string;
-                            bgColor?: "" | string;
-                            textColor?: "" | string;
-                            icon?: string;
-                            ctaLabel?: string;
-                            dismissible?: boolean;
-                            /** @enum {string} */
-                            size?: "sm" | "md" | "lg";
-                            marquee?: boolean;
-                            /** @enum {string} */
-                            marqueeSpeed?: "slow" | "normal" | "fast";
-                            bgImage?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            overlay?: "" | string;
-                            overlayOpacity?: number;
-                            /** @enum {string} */
-                            bgFit?: "cover" | "tile";
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                        };
-                        campaignStrip?: {
-                            enabled?: boolean;
-                            /** @enum {string} */
-                            showOn?: "all" | "home";
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                            bgColor?: "" | string;
-                            textColor?: "" | string;
-                            /** @enum {string} */
-                            size?: "sm" | "md" | "lg";
-                            /** @enum {string} */
-                            paddingY?: "sm" | "md" | "lg";
-                            /** @enum {string} */
-                            paddingX?: "sm" | "md" | "lg";
-                            dismissible?: boolean;
-                        };
-                        utilityBar?: {
-                            enabled?: boolean;
-                            showOnDesktop?: boolean;
-                            showOnMobile?: boolean;
-                            showPhone?: boolean;
-                            showTrackOrder?: boolean;
-                            showLanguage?: boolean;
-                            showTheme?: boolean;
-                            trackOrderLabel?: string;
-                        };
-                        languageTheme?: {
-                            /** @enum {string} */
-                            languages?: "both" | "en" | "bn";
-                            /** @enum {string} */
-                            defaultLanguage?: "en" | "bn";
-                            /** @enum {string} */
-                            darkMode?: "switch" | "light";
-                        };
-                        desktopHeader?: {
-                            sticky?: boolean;
-                        };
-                        menu?: {
-                            subcategories?: string;
-                            mobile?: {
-                                layout?: string;
-                                open?: string;
-                                viewAll?: boolean;
-                                images?: boolean;
-                                subImages?: boolean;
-                                chips?: string;
-                                title?: string;
-                                allProducts?: boolean;
-                                allProductsLabel?: string;
-                                collectionStrip?: string;
-                                drawerWidth?: string;
-                            };
-                            desktop?: {
-                                dropdown?: string;
-                                openOn?: string;
-                                railOpen?: string;
-                                overflow?: string;
-                                row?: boolean;
-                                viewAll?: boolean;
-                                collectionStrip?: string;
-                            };
-                        };
-                        filters?: {
-                            enabled?: boolean;
-                            groups?: {
-                                id: string;
-                                label?: string;
-                                hidden?: boolean;
-                                open?: boolean;
-                            }[];
-                            mobile?: {
-                                entry?: string;
-                                stickyBar?: boolean;
-                                quickChips?: string[];
-                            };
-                            desktop?: {
-                                placement?: string;
-                            };
-                            priceMode?: string;
-                            pricePresets?: {
-                                min?: number;
-                                max?: number;
-                            }[];
-                            brandMulti?: boolean;
-                            showCounts?: boolean;
-                            sort?: {
-                                default?: string;
-                                hidden?: string[];
-                            };
-                        };
                     };
                     checkout?: {
                         requiredFields?: string[];
@@ -23070,31 +22114,6 @@ export interface operations {
                             };
                         }[];
                     };
-                    templates?: {
-                        home?: string;
-                        collection?: string;
-                        product?: string;
-                        checkout?: string;
-                        footer?: string;
-                        header?: string;
-                        productCard?: string;
-                        cardActions?: string;
-                        /** @enum {string} */
-                        cardTagBadges?: "0" | "1" | "2";
-                        /** @enum {string} */
-                        discountBadge?: "percent" | "amount" | "off";
-                        hero?: string;
-                        headerMenu?: string;
-                        pagination?: string;
-                        imageFit?: string;
-                        imageRatio?: string;
-                        categoryTiles?: string;
-                        accountLayout?: string;
-                        contentLayout?: string;
-                        cartLayout?: string;
-                        shell?: string;
-                        mobile?: string;
-                    };
                     customersConfig?: {
                         allowAccounts?: boolean;
                     };
@@ -23110,63 +22129,6 @@ export interface operations {
                         delivered?: string;
                         ready_for_pickup?: string;
                         picked_up?: string;
-                    };
-                    trustBadges?: {
-                        text: string;
-                        icon?: string;
-                    }[];
-                    heroSlides?: {
-                        image?: {
-                            url: string;
-                            mediumUrl?: string;
-                            thumbnailUrl?: string;
-                            publicId?: string;
-                        } | null;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl?: string;
-                            thumbnailUrl?: string;
-                            publicId?: string;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
-                        imageFit?: string;
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        buttonLabel?: string;
-                        link?: string;
-                        hideTextOnMobile?: boolean;
-                    }[];
-                    heroBanner?: {
-                        badge?: string;
-                        title?: string;
-                        subtitle?: string;
-                        primaryLabel?: string;
-                        primaryLink?: string;
-                        secondaryLabel?: string;
-                        secondaryLink?: string;
-                        imageFit?: string;
-                        mobileImage?: {
-                            url: string;
-                            mediumUrl?: string;
-                            thumbnailUrl?: string;
-                            publicId?: string;
-                        } | null;
-                        focal?: {
-                            x: number;
-                            y: number;
-                        };
-                        mobileFocal?: {
-                            x: number;
-                            y: number;
-                        };
                     };
                 };
             };
@@ -23298,7 +22260,7 @@ export interface operations {
             };
         };
     };
-    post_api_organization_storefront_media_hero_slide: {
+    post_api_organization_storefront_media_image: {
         parameters: {
             query?: never;
             header?: {
@@ -23317,7 +22279,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["HeroSlideImage"];
+                        data?: components["schemas"]["StorefrontImageUpload"];
                     };
                 };
             };
@@ -29080,7 +28042,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["HeroSlideImage"];
+                        data?: components["schemas"]["StorefrontImageUpload"];
                     };
                 };
             };
@@ -44350,363 +43312,6 @@ export interface operations {
             };
         };
     };
-    get_api_ecommerce_content: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ContentPage"][];
-                    };
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    post_api_ecommerce_content: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    slug: string;
-                    title: string;
-                    body?: string;
-                    published?: boolean;
-                    showInFooter?: boolean;
-                    sortOrder?: number;
-                    seo?: {
-                        title?: string;
-                        description?: string;
-                    };
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ContentPage"];
-                    };
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    post_api_ecommerce_content_images: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["HeroSlideImage"];
-                    };
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_api_ecommerce_content_id: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ContentPage"];
-                    };
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    put_api_ecommerce_content_id: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    slug?: string;
-                    title?: string;
-                    body?: string;
-                    published?: boolean;
-                    showInFooter?: boolean;
-                    sortOrder?: number;
-                    seo?: {
-                        title?: string;
-                        description?: string;
-                    };
-                };
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["ContentPage"];
-                    };
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    delete_api_ecommerce_content_id: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
-                "X-Active-Location"?: string;
-            };
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["DeletedId"];
-                    };
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Missing or invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Permission denied, or the required organization feature is disabled */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     get_api_ecommerce_pages: {
         parameters: {
             query?: {
@@ -44895,7 +43500,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
-                        data?: components["schemas"]["HeroSlideImage"];
+                        data?: components["schemas"]["StorefrontImageUpload"];
                     };
                 };
             };
@@ -45788,12 +44393,6 @@ export interface operations {
                             preset: string;
                             brandColor?: string;
                             accentColor?: string;
-                            homepageSections?: {
-                                key: string;
-                                type: string;
-                                showOnDesktop?: boolean;
-                                showOnMobile?: boolean;
-                            }[];
                             logo?: {
                                 background?: "" | string;
                                 height?: number;
@@ -45814,17 +44413,6 @@ export interface operations {
                                 logoHeight?: number;
                                 sticky?: boolean;
                             };
-                            homeCollections?: {
-                                /** @enum {string} */
-                                style?: "card" | "plain";
-                                /** @enum {string} */
-                                layout?: "strip" | "grid";
-                                columns?: number;
-                                mobileColumns?: number;
-                                /** @enum {string} */
-                                align?: "left" | "center" | "right";
-                                showLabels?: boolean;
-                            };
                             design?: {
                                 font?: string;
                                 surface?: string;
@@ -45843,8 +44431,6 @@ export interface operations {
                                 headingWeight?: string;
                                 headingCase?: string;
                             };
-                            /** @enum {string} */
-                            heroAlign?: "left" | "center";
                             appliedThemeId?: string;
                         };
                         copy?: {
@@ -45856,142 +44442,6 @@ export interface operations {
                                 blurb?: string;
                                 buttonLabel?: string;
                             };
-                        };
-                        sectionConfig?: {
-                            key: string;
-                            /** @enum {string} */
-                            source?: "featured" | "newest" | "category" | "manual";
-                            categoryId?: string;
-                            categoryIds?: string[];
-                            /** @enum {string} */
-                            cardShape?: "stacked" | "split";
-                            /** @enum {string} */
-                            cardSide?: "left" | "right" | "alternate";
-                            cardSplit?: number;
-                            cardHideText?: boolean;
-                            mobile?: {
-                                /** @enum {string} */
-                                cardFlow?: "wrap" | "scroll";
-                                cardPerRow?: number;
-                                /** @enum {string} */
-                                cardShape?: "stacked" | "split";
-                                /** @enum {string} */
-                                cardSide?: "left" | "right" | "alternate";
-                                cardSplit?: number;
-                                cardHideText?: boolean;
-                                cardHeight?: number;
-                            };
-                            /** @enum {string} */
-                            cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-                            cardHeight?: number;
-                            /** @enum {string} */
-                            cardFlow?: "wrap" | "scroll";
-                            cardPerRow?: number;
-                            cardRadius?: number;
-                            cardArrows?: boolean;
-                            fullWidth?: boolean;
-                            cards?: {
-                                categoryId: string;
-                                title?: string;
-                                description?: string;
-                                image?: {
-                                    url: string;
-                                    mediumUrl?: string;
-                                    thumbnailUrl?: string;
-                                    publicId?: string;
-                                } | null;
-                                buttonLabel?: string;
-                                buttonHref?: string;
-                            }[];
-                            title?: string;
-                            limit?: number;
-                            tagIds?: string[];
-                            productIds?: string[];
-                            ctaLabel?: string;
-                            ctaHref?: string;
-                            showCta?: boolean;
-                        }[];
-                        trustBadges?: {
-                            text: string;
-                            icon?: string;
-                        }[];
-                        heroBanner?: {
-                            badge?: string;
-                            title?: string;
-                            subtitle?: string;
-                            primaryLabel?: string;
-                            primaryLink?: string;
-                            secondaryLabel?: string;
-                            secondaryLink?: string;
-                            imageFit?: string;
-                            mobileImage?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            focal?: {
-                                x: number;
-                                y: number;
-                            };
-                            mobileFocal?: {
-                                x: number;
-                                y: number;
-                            };
-                        };
-                        heroSlides?: {
-                            image?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            mobileImage?: {
-                                url: string;
-                                mediumUrl?: string;
-                                thumbnailUrl?: string;
-                                publicId?: string;
-                            } | null;
-                            focal?: {
-                                x: number;
-                                y: number;
-                            };
-                            mobileFocal?: {
-                                x: number;
-                                y: number;
-                            };
-                            imageFit?: string;
-                            badge?: string;
-                            title?: string;
-                            subtitle?: string;
-                            buttonLabel?: string;
-                            link?: string;
-                            hideTextOnMobile?: boolean;
-                        }[];
-                        templates?: {
-                            home?: string;
-                            collection?: string;
-                            product?: string;
-                            checkout?: string;
-                            footer?: string;
-                            header?: string;
-                            productCard?: string;
-                            cardActions?: string;
-                            /** @enum {string} */
-                            cardTagBadges?: "0" | "1" | "2";
-                            /** @enum {string} */
-                            discountBadge?: "percent" | "amount" | "off";
-                            hero?: string;
-                            headerMenu?: string;
-                            pagination?: string;
-                            imageFit?: string;
-                            imageRatio?: string;
-                            categoryTiles?: string;
-                            accountLayout?: string;
-                            contentLayout?: string;
-                            cartLayout?: string;
-                            shell?: string;
-                            mobile?: string;
                         };
                         nav?: {
                             header?: {
@@ -46236,6 +44686,32 @@ export interface operations {
                                 };
                             };
                         };
+                        templates?: {
+                            collection?: string;
+                            product?: string;
+                            checkout?: string;
+                            footer?: string;
+                            header?: string;
+                            productCard?: string;
+                            cardActions?: string;
+                            /** @enum {string} */
+                            cardTagBadges?: "0" | "1" | "2";
+                            /** @enum {string} */
+                            discountBadge?: "percent" | "amount" | "off";
+                            headerMenu?: string;
+                            pagination?: string;
+                            imageFit?: string;
+                            imageRatio?: string;
+                            accountLayout?: string;
+                            contentLayout?: string;
+                            cartLayout?: string;
+                            shell?: string;
+                            mobile?: string;
+                        };
+                        trustBadges?: {
+                            text: string;
+                            icon?: string;
+                        }[];
                         contactButton?: {
                             enabled?: boolean;
                             label?: string;

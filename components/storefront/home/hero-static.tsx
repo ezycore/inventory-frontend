@@ -26,8 +26,7 @@ import { brandButton, buttonMetrics } from "@/lib/storefront-button";
  * replaces it, and a phone-only shape must not reach the desktop. So a view
  * spreads `heroFrameAttrs(frame)` beside `style={{ ...frame?.vars }}`.
  *
- * Undefined on every classic home hero, which sets nothing and keeps the shapes
- * the stylesheet has always drawn.
+ * Undefined keeps the shapes the stylesheet draws on its own.
  */
 export interface HeroFrame {
   vars: CSSProperties;
@@ -58,8 +57,7 @@ export interface HeroFrame {
  * phone — and a responsive value inherits the desktop's until it is set, which
  * would move every existing hero's photograph below the fold.
  *
- * Both undefined on every classic home hero, which keeps the placement this
- * file has always drawn: picture right on a desktop, picture first on a phone
+ * Both undefined keeps the placement this file draws on its own: picture right on a desktop, picture first on a phone
  * card, copy first on a phone open hero.
  */
 export interface HeroPlacement {
@@ -271,8 +269,8 @@ export function HeroCardView({
        — the copy column, the button row's own stretch on a phone and the trust
        strip all have to agree, and `text-align` alone leaves the buttons and
        the badges hard left. They live beside `.sf-herocard` in storefront.css.
-       Left is the default everywhere, so a caller that passes nothing (every
-       classic home hero) renders exactly as before. */
+       Left is the default everywhere, so a caller that passes nothing renders
+       exactly as before. */
     <div
       className="sf-herocard"
       data-align={align === "center" ? "center" : undefined}

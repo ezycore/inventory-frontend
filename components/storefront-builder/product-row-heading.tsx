@@ -22,9 +22,7 @@ export interface ProductRowWording {
 const word = (id: StoreWord) => <Island name="store-word" props={{ word: id }} />;
 
 /**
- * A product row's heading and link, as the classic home page resolves them
- * (`sectionRow` in `components/storefront/home/home-shared.tsx`): the merchant's
- * heading, else — when the row keeps the store's wording — "Featured products",
+ * A product row's heading and link: the merchant's heading, else — when the row keeps the store's wording — "Featured products",
  * "New arrivals" or "Selected for you" in the shopper's language, or its
  * collection's name. "View all" goes to `ctaHref`, else the row's collection,
  * else the catalogue. Without `viewAll` a link needs both a label and a

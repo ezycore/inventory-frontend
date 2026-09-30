@@ -233,9 +233,8 @@ const RULES: Record<string, VisibilityRule> = {
      browser rather than in the code: the rule used to show the toggle at
      exactly one slide, which was the single configuration where it did
      nothing. Switching it on there drew the same hero the static branch draws,
-     minus its server markup. The field stays in the spec so a hero migrated
-     from the classic home keeps its stored value (and so the wire format does
-     not change); nothing reads it. See D5 for the full-bleed half. */
+     minus its server markup. The field stays in the spec so a stored value
+     survives (and so the wire format does not change); nothing reads it. See D5 for the full-bleed half. */
   "hero.slideshow": () => false,
 
   /* Read by the static card and open heroes, by the rotating one, and by the

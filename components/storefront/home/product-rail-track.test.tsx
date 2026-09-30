@@ -23,7 +23,7 @@ const products = [
 
 describe("ProductRailTrack", () => {
   it("keeps its own bare track when no arrows are asked for", () => {
-    // ⚠ The classic home draws this rail and passes nothing, so this branch is
+    // ⚠ A carousel with no arrows asked for passes nothing, so this branch is
     // its markup — asserted as the ABSENCE of the strip, not as the cards
     // merely appearing.
     const { container } = render(<ProductRailTrack products={products} currency="BDT" />);

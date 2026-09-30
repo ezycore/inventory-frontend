@@ -1,13 +1,12 @@
 // coding-standard: maintained
 /**
- * Rich-text CMS page bodies: a TipTap/ProseMirror JSON document, restricted to
+ * Rich-text bodies: a TipTap/ProseMirror JSON document, restricted to
  * the node/mark set the admin editor exposes (see components/shared/rich-text-editor).
  * Dependency-free, like lib/storefront-markdown.ts — the renderer
  * (components/storefront/rich-doc-view.tsx) walks this typed tree into React
- * nodes directly, so owner content can never inject markup. Legacy pages whose
- * `body` is still markdown text are bridged into this shape via
- * `legacyMarkdownToRichDoc` so the editor can open them pre-formatted; once
- * saved, a page permanently moves to this JSON format (no bulk migration).
+ * nodes directly, so owner content can never inject markup. A body that is still
+ * markdown text is bridged into this shape via `legacyMarkdownToRichDoc` so the
+ * editor can open it pre-formatted; once saved, it is stored in this JSON format.
  */
 
 import {

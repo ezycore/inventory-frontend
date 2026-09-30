@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   publicCollections,
   toPreviewPayload,
-  toSettingsPatch,
-  toSettingsPayload,
+  toLookPatch,
+  toLookPayload,
 } from "@/components/ecommerce/customize/draft-payloads";
 import { resolveMobileChrome } from "@/lib/storefront-mobile";
 import { PHARMACY_SAMPLE } from "@/lib/storefront-theme-samples";
@@ -133,15 +133,9 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   // this back against the template, so a partial value here would make the
   // "stores nothing when untouched" path untestable.
   mobile: resolveMobileChrome(undefined, undefined),
-  homeCollections: {},
   design: DEFAULT_DESIGN,
-  heroAlign: "left",
-  homepageSections: [],
-  sectionConfig: [],
   templates: {},
   badges: [],
-  heroSlides: [],
-  heroBanner: {},
   navHeader: [],
   navMenu: DEFAULT_MENU_SETTINGS,
   navFilters: DEFAULT_FILTER_SETTINGS,
@@ -217,61 +211,7 @@ const draft = (over: Partial<CustomizeDraft> = {}): CustomizeDraft => ({
   ...over,
 });
 
-describe("toSettingsPayload (theme fields must survive a Save)", () => {
-  it("keeps image-only slides and drops only completely blank rows", () => {
-    const result = toSettingsPayload(
-      draft({
-        heroSlides: [
-          { title: "", image: { url: "/artwork.jpg", publicId: "hero/artwork" } },
-          { title: "" },
-        ],
-      }),
-    );
-
-    expect(result.heroSlides).toEqual([
-      expect.objectContaining({
-        image: { url: "/artwork.jpg", publicId: "hero/artwork" },
-        title: undefined,
-      }),
-    ]);
-  });
-
-  it("carries optional mobile hero artwork and crop anchors", () => {
-    const mobileImage = {
-      url: "/mobile.jpg",
-      publicId: "storefront/mobile",
-    };
-    const result = toSettingsPayload(
-      draft({
-        heroSlides: [
-          {
-            title: "Sale",
-            image: { url: "/desktop.jpg", publicId: "storefront/desktop" },
-            mobileImage,
-            focal: { x: 70, y: 30 },
-            mobileFocal: { x: 40, y: 65 },
-            hideTextOnMobile: true,
-          },
-        ],
-        heroBanner: {
-          mobileImage,
-          focal: { x: 60, y: 50 },
-          mobileFocal: { x: 35, y: 55 },
-        },
-      }),
-    );
-
-    expect(result.heroSlides?.[0]).toMatchObject({
-      mobileImage,
-      mobileFocal: { x: 40, y: 65 },
-      hideTextOnMobile: true,
-    });
-    expect(result.heroBanner).toMatchObject({
-      mobileImage,
-      mobileFocal: { x: 35, y: 55 },
-    });
-  });
-
+describe("toLookPayload (theme fields must survive a Save)", () => {
   it("carries the design tokens", () => {
     const design = {
       font: "serif",
@@ -291,14 +231,14 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
       headingWeight: "regular",
       headingCase: "upper",
     };
-    expect(toSettingsPayload(draft({ design })).theme?.design).toEqual(design);
+    expect(toLookPayload(draft({ design })).theme?.design).toEqual(design);
   });
 
   // The backend refuses anything but `#rrggbb` or empty; a half-typed hex in
   // the colour box must not fail the whole save.
   it("saves a half-typed current-page colour as empty", () => {
     const design = { ...DEFAULT_DESIGN, navActiveColor: "custom", navActiveCustom: "#1a7" };
-    expect(toSettingsPayload(draft({ design })).theme?.design?.navActiveCustom).toBe("");
+    expect(toLookPayload(draft({ design })).theme?.design?.navActiveCustom).toBe("");
   });
 
   // Nothing in the editor writes `appliedThemeId` — a ready-made theme does.
@@ -306,17 +246,17 @@ describe("toSettingsPayload (theme fields must survive a Save)", () => {
   // erase which theme their store is on while the store kept rendering it.
   it("carries appliedThemeId even though no control edits it", () => {
     expect(
-      toSettingsPayload(draft({ appliedThemeId: "grocery-modern" })).theme
+      toLookPayload(draft({ appliedThemeId: "grocery-modern" })).theme
         ?.appliedThemeId,
     ).toBe("grocery-modern");
   });
 
   it("leaves appliedThemeId absent for a store that never applied one", () => {
-    expect(toSettingsPayload(draft()).theme?.appliedThemeId).toBeUndefined();
+    expect(toLookPayload(draft()).theme?.appliedThemeId).toBeUndefined();
   });
 });
 
-describe("toSettingsPatch — unchanged Customize parts stay off the wire", () => {
+describe("toLookPatch — unchanged Customize parts stay off the wire", () => {
   it("sends only the complete theme block for a Design-only save", () => {
     const value = draft({
       contactButton: {
@@ -332,7 +272,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
         hoursDays: [1, 3, 5],
       },
     });
-    const patch = toSettingsPatch(value, ["look"]);
+    const patch = toLookPatch(value, ["look"]);
     expect(Object.keys(patch)).toEqual(["theme"]);
     expect(patch).not.toHaveProperty("contactButton");
   });
@@ -352,7 +292,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
         hoursDays: [1, 3, 5],
       },
     });
-    expect(toSettingsPatch(value, ["contact"]).contactButton).toMatchObject({
+    expect(toLookPatch(value, ["contact"]).contactButton).toMatchObject({
       channels: value.contactButton.channels,
       hours: { days: [1, 3, 5] },
     });
@@ -364,7 +304,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
       footerGroups: [{ title: "Help", links: [] }],
       footerPaymentMethods: { showOnDesktop: false, showOnMobile: true },
     });
-    const patch = toSettingsPatch(value, ["announcement"]);
+    const patch = toLookPatch(value, ["announcement"]);
     expect(Object.keys(patch)).toEqual(["nav"]);
     expect(patch.nav?.header).toEqual(value.navHeader);
     expect(patch.nav?.footer).toEqual(value.footerGroups);
@@ -393,7 +333,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
       },
     });
 
-    const patch = toSettingsPatch(value, ["header"]);
+    const patch = toLookPatch(value, ["header"]);
 
     expect(patch.nav?.utilityBar).toEqual({
       ...value.utilityBar,
@@ -403,16 +343,15 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
 
   it("persists a site part's template change", () => {
     const value = draft({ templates: { productCard: "bold", cardActions: "always" } });
-    const patch = toSettingsPatch(value, ["cards"]);
+    const patch = toLookPatch(value, ["cards"]);
 
     expect(Object.keys(patch)).toEqual(["templates"]);
     expect(patch.templates).toEqual(value.templates);
   });
 
-  /* Customize stopped editing the page layouts on 2026-09-20, but `templates`
-     is ONE block the PATCH replaces wholesale — so a site part's save has to
-     carry the page ids it no longer shows, or saving the header would erase
-     every page's layout. */
+  /* `templates` is ONE block the save replaces wholesale — so a site part's save
+     has to carry the page ids Customize does not show, or saving the header
+     would erase every page's layout. */
   it("carries the page layout ids Customize no longer edits", () => {
     const value = draft({
       templates: {
@@ -423,11 +362,9 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
         accountLayout: "tabs",
         cartLayout: "compact",
         checkout: "guided",
-        hero: "banner",
-        home: "minimal",
       },
     });
-    const patch = toSettingsPatch(value, ["cards"]);
+    const patch = toLookPatch(value, ["cards"]);
 
     expect(patch.templates).toMatchObject({
       product: "gallery-top",
@@ -436,20 +373,7 @@ describe("toSettingsPatch — unchanged Customize parts stay off the wire", () =
       accountLayout: "tabs",
       cartLayout: "compact",
       checkout: "guided",
-      hero: "banner",
-      home: "minimal",
     });
-  });
-
-  /* The same trap one block over: the hero's own blocks are only SENT by a part
-     that is dirty, and no part owns them any more — so a site-part save must
-     leave them out entirely rather than send a trimmed or empty version. */
-  it("sends no hero blocks when a site part is saved", () => {
-    const patch = toSettingsPatch(draft({}), ["look", "header", "footer"]);
-
-    expect(patch).not.toHaveProperty("heroSlides");
-    expect(patch).not.toHaveProperty("heroBanner");
-    expect(patch).not.toHaveProperty("sectionConfig");
   });
 });
 
@@ -470,13 +394,13 @@ describe("merchant promises", () => {
     });
     expect(seeded.badges).toEqual(trustBadges);
     expect(
-      toSettingsPatch({ ...seeded, collections: [] }, ["footer"]).trustBadges,
+      toLookPatch({ ...seeded, collections: [] }, ["footer"]).trustBadges,
     ).toEqual(trustBadges);
   });
 
   it("drops blank rows instead of inventing fallback claims", () => {
     expect(
-      toSettingsPayload(
+      toLookPayload(
         draft({ badges: [{ text: "  ", icon: "shield" }] }),
       ).trustBadges,
     ).toEqual([]);
@@ -488,7 +412,7 @@ describe("merchant promises", () => {
  * replaces wholesale; `copy` is what the merchant wrote. If a word the merchant
  * typed ever appears under `theme` again, applying a theme silently erases it.
  */
-describe("toSettingsPayload — theme owns the look, copy owns the words", () => {
+describe("toLookPayload — theme owns the look, copy owns the words", () => {
   const withCopy = draft({
     footerText: "  Family run since 1998  ",
     footerNote: "Dhaka, Bangladesh",
@@ -497,7 +421,7 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
   });
 
   it("sends merchant wording under copy, trimmed", () => {
-    expect(toSettingsPayload(withCopy).copy).toEqual({
+    expect(toLookPayload(withCopy).copy).toEqual({
       footerText: "Family run since 1998",
       footerNote: "Dhaka, Bangladesh",
       footerContactHeading: "Order by phone",
@@ -506,7 +430,7 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
   });
 
   it("keeps every merchant word OUT of theme", () => {
-    const theme = toSettingsPayload(withCopy).theme as Record<string, unknown>;
+    const theme = toLookPayload(withCopy).theme as Record<string, unknown>;
     for (const key of ["footerText", "footerNote", "footerContactHeading", "footerNewsletter"]) {
       expect(theme).not.toHaveProperty(key);
     }
@@ -514,7 +438,7 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
 
   // Blank ⇒ "use the storefront's localized wording", so it must not ship as "".
   it("omits a blank field rather than sending an empty string", () => {
-    expect(toSettingsPayload(draft()).copy).toEqual({
+    expect(toLookPayload(draft()).copy).toEqual({
       footerText: undefined,
       footerNote: undefined,
       footerContactHeading: undefined,
@@ -526,9 +450,7 @@ describe("toSettingsPayload — theme owns the look, copy owns the words", () =>
 describe("toPreviewPayload — sample content reaches the storefront", () => {
   const wire = {
     logo: null,
-    banner: null,
     mobileLogo: null,
-    forceHeroSlides: false,
     forceCollectionsMenu: false,
   };
 
@@ -565,7 +487,7 @@ describe("toPreviewPayload — sample content reaches the storefront", () => {
   });
 
   it("still omits it from the SAVE, so an untouched shop stores nothing", () => {
-    expect(toSettingsPayload(draft()).theme?.mobile).toBeUndefined();
+    expect(toLookPayload(draft()).theme?.mobile).toBeUndefined();
   });
 
   // A real override must survive both paths — the fix above must not flatten
@@ -574,7 +496,7 @@ describe("toPreviewPayload — sample content reaches the storefront", () => {
     const edited = draft();
     const value = { ...edited, mobile: { ...edited.mobile, sticky: !edited.mobile.sticky } };
     expect(toPreviewPayload(value, wire).theme?.mobile).toHaveProperty("sticky");
-    expect(toSettingsPayload(value).theme?.mobile).toHaveProperty("sticky");
+    expect(toLookPayload(value).theme?.mobile).toHaveProperty("sticky");
   });
 });
 
@@ -583,7 +505,7 @@ describe("toPreviewPayload — sample content reaches the storefront", () => {
    both, and `nav.menu` must hold only what the merchant moved off a default. */
 describe("the Menu part", () => {
   it("saves templates and nav, with only the changed menu settings", () => {
-    const patch = toSettingsPatch(
+    const patch = toLookPatch(
       draft({
         navMenu: {
           ...DEFAULT_MENU_SETTINGS,
@@ -599,7 +521,7 @@ describe("the Menu part", () => {
   // The Filters part lives in `nav`, and `nav` is replaced wholesale — a part
   // that forgot to take it would save nothing and report success.
   it("saves nav for the Filters part, with only the changed filter settings", () => {
-    const patch = toSettingsPatch(
+    const patch = toLookPatch(
       draft({
         navFilters: {
           ...DEFAULT_FILTER_SETTINGS,
@@ -613,7 +535,7 @@ describe("the Menu part", () => {
       desktop: { placement: "sidebar" },
       sort: { default: "newest" },
     });
-    expect(toSettingsPatch(draft({}), ["filters"]).nav?.filters).toBeUndefined();
+    expect(toLookPatch(draft({}), ["filters"]).nav?.filters).toBeUndefined();
   });
 
   /* Header absorbed Phone bar and Utility bar (2026-09-29). It writes the phone
@@ -629,33 +551,33 @@ describe("the Menu part", () => {
         desktop: { ...DEFAULT_MENU_SETTINGS.desktop, dropdown: "mega" },
       },
     });
-    const patch = toSettingsPatch(value, ["header"]);
+    const patch = toLookPatch(value, ["header"]);
     expect(patch.templates?.mobile).toBe("drawer");
     expect(patch.theme?.mobile).toEqual({ sticky: false });
     expect(patch.nav?.menu).toEqual({ desktop: { dropdown: "mega" } });
   });
 
   it("saves only the language and theme choices off their defaults", () => {
-    const patch = toSettingsPatch(
+    const patch = toLookPatch(
       draft({ languageTheme: { ...DEFAULT_LANGUAGE_THEME, languages: "bn" } }),
       ["language"],
     );
     expect(patch.nav?.languageTheme).toEqual({ languages: "bn" });
     // A live shop that never opens the part must store nothing new.
-    expect(toSettingsPatch(draft({}), ["language"]).nav?.languageTheme).toBeUndefined();
+    expect(toLookPatch(draft({}), ["language"]).nav?.languageTheme).toBeUndefined();
   });
 
   it("saves the computer header only once it stops following the page", () => {
     expect(
-      toSettingsPatch(draft({ desktopHeader: { sticky: false } }), ["header"]).nav
+      toLookPatch(draft({ desktopHeader: { sticky: false } }), ["header"]).nav
         ?.desktopHeader,
     ).toEqual({ sticky: false });
-    expect(toSettingsPatch(draft({}), ["header"]).nav?.desktopHeader).toBeUndefined();
+    expect(toLookPatch(draft({}), ["header"]).nav?.desktopHeader).toBeUndefined();
   });
 
   // The category sidebar's opening moved under Page layout with the sidebar.
   it("saves nav for the Page layout part", () => {
-    const patch = toSettingsPatch(
+    const patch = toLookPatch(
       draft({
         navMenu: {
           ...DEFAULT_MENU_SETTINGS,
@@ -668,13 +590,13 @@ describe("the Menu part", () => {
   });
 
   it("stores no menu block for a shop left on the defaults", () => {
-    const patch = toSettingsPatch(draft({}), ["menu"]);
+    const patch = toLookPatch(draft({}), ["menu"]);
     expect(patch.nav).toBeDefined();
     expect(patch.nav?.menu).toBeUndefined();
   });
 
   it("keeps a category item's dropdown choice, and only a category's", () => {
-    const patch = toSettingsPatch(
+    const patch = toLookPatch(
       draft({
         navHeader: [
           { label: "Mats", type: "category", value: "mats", childrenMode: "none" },

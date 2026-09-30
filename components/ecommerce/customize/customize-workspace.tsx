@@ -41,8 +41,8 @@ export function CustomizeWorkspace({
   site,
 }: {
   settings: StorefrontSettings;
-  /** Present once the store publishes its look through the Site (see `SitePublishBar`). */
-  site?: StorefrontSite;
+  /** The store's look: published, and the draft Customize edits (see `SitePublishBar`). */
+  site: StorefrontSite;
 }) {
   const slug = useAuthStore((s) => s.user?.organization?.slug);
   // The shop inherits the org logo when it has no store-specific one — the
@@ -147,18 +147,12 @@ export function CustomizeWorkspace({
 
   return (
     <div className="space-y-4">
-    {site ? <SitePublishBar site={site} unsavedEdits={api.isDirty} /> : null}
+    <SitePublishBar site={site} unsavedEdits={api.isDirty} />
     <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)] 2xl:grid-cols-[440px_minmax(0,1fr)]">
       {/* LEFT — fixed-height sticky rail: content scrolls INSIDE it and each
           mode fills the same frame, so a panel takeover never changes the
-          column height. Shorter by the publish bar when the store has one. */}
-      <div
-        className={
-          site
-            ? "flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-12.25rem)]"
-            : "flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-8.75rem)]"
-        }
-      >
+          column height, less the publish bar above it. */}
+      <div className="flex min-w-0 flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-12.25rem)]">
         {collectionsPanel ? (
           <CollectionsPanel
             collections={api.draft.collections}
@@ -197,7 +191,6 @@ export function CustomizeWorkspace({
           // While the panel is open, force-preview its own subject even if the
           // saved setting points elsewhere — otherwise reordering collections
           // changes nothing on screen.
-          forceHeroSlides={false}
           forceCollectionsMenu={collectionsPanel}
           // The contact button's number lives in Settings → General, not in this
           // draft, so the preview needs it to mirror the blank-number fallback.
@@ -206,7 +199,6 @@ export function CustomizeWorkspace({
           // straight off `settings` (already refreshed by the mutation) rather
           // than from the draft.
           logo={settings.logo ?? orgLogo ?? null}
-          banner={settings.banner ?? null}
           // Raw, with no fallback chain: the storefront falls back from this to
           // the desktop logo itself, so resolving it here would make removing
           // the phone mark preview as though nothing had changed.

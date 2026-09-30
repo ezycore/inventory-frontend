@@ -81,8 +81,7 @@ export function PromiseRows({
             {/* INHERIT, never `var(--text)`: a builder band carries the
                 section's Text colour on the frame and every line drawn on it
                 has to read it (`.sfb-sec[data-tone]`). Hardcoding the token
-                left the promises the theme's colour on a merchant's own ground.
-                On the classic home the inherited colour IS `--text`. */}
+                left the promises the theme's colour on a merchant's own ground. */}
             <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, color: "inherit" }}>
               {promise.text}
             </span>

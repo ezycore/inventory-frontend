@@ -338,8 +338,7 @@ function SearchRow({
 
 /**
  * `emptyHeading` / `emptyText` are the BUILDER search section's own words for an
- * empty result. The classic search route passes neither and keeps the
- * storefront's wording in the shopper's language.
+ * empty result. Unset keeps the storefront's wording in the shopper's language.
  */
 export function SearchPageView({ emptyHeading, emptyText }: { emptyHeading?: string; emptyText?: string } = {}) {
   const { t } = useStorefrontUI();

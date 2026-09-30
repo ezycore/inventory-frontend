@@ -115,7 +115,7 @@ export function PlaceOrderButton({
   /**
    * The merchant's own words for the button, from a builder order form. Unset
    * keeps the storefront's "Place order" in the shopper's language — which is
-   * what the checkout page and the classic pages pass.
+   * what the checkout page passes.
    */
   label?: string;
 }) {
