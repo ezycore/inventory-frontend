@@ -36,7 +36,9 @@ Self-contained list table built on **TanStack Table v8 + TanStack Query v5 + Dyn
 | [ui/components/dataTable/cells/date-cell.tsx](ui/components/dataTable/cells/date-cell.tsx) | `DateCell` (timezone-aware via `useAuthStore`) |
 | [types/DataTable.ts](types/DataTable.ts) | All public types: `DataTableProps`, `Operations`, `FilterConfig`, `SortingConfig`, `CustomAction`, `DataTableAction`, `TableVariant`, `RowSpacing`, `DataTableSearchConfig` |
 | [hooks/use-crud-handlers.ts](hooks/use-crud-handlers.ts) | `useCrudModal` — modal open/close + edit/view state |
-| [hooks/use-url-filters.ts](hooks/use-url-filters.ts) | Reads initial filter values from URL search params |
+| [hooks/use-list-url-state.ts](hooks/use-list-url-state.ts) | `useListUrlState` — page, page size, sort and filters **kept in the URL** (both ways). DataTable and DataCard use it; so does every hand-rolled list |
+| [lib/list-url-state.ts](lib/list-url-state.ts) | The pure encode/decode behind it: defaults never written, other params kept, a `prefix` for a second list on one screen. Tested |
+| [hooks/use-url-param.ts](hooks/use-url-param.ts) | `useUrlParam` — one choice (a page's tab) in the URL, so Back returns to the tab the merchant was on |
 | [ui/components/filters/global-filter.tsx](ui/components/filters/global-filter.tsx) | Drawer/popover that renders `FilterField`s |
 | [components/shared/column-settings-dialog.tsx](components/shared/column-settings-dialog.tsx) | Per-user column visibility (used when `manageColumns` + `module` set) |
 | [ui/components/dataTable/datatable-doc.md](ui/components/dataTable/datatable-doc.md) | Long-form reference (1300+ lines) |
@@ -110,8 +112,11 @@ Self-contained list table built on **TanStack Table v8 + TanStack Query v5 + Dyn
 
 1. Define `filterConfig.fields: FilterField[]` with `name` matching backend query param.
 2. Filter values are sent flat (`?status=active`); objects (date-range) are JSON-serialized by `lib/api-client.ts` (`?createdAt={"from":"...","to":"..."}`).
-3. Initial values come from URL (`useUrlFilters`).
+3. Page, size, sort and filters live in the URL (`useListUrlState`): Back from a row returns to the
+   same page with the same filters, a refresh keeps them, the view is a shareable link. The same keys
+   land a link built elsewhere filtered (`/products?tags=a,b`).
 4. Apply/Reset auto-reset `page` to 1.
+5. A table inside a sheet or dialog passes **`syncUrl={false}`** — its state must not outlive it.
 
 ## Procedure: Custom actions / replace default Edit
 

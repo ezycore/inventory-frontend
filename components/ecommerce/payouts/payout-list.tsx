@@ -3,7 +3,8 @@
 
 import { useState } from "react";
 
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { useCourierPayouts } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Card } from "@/ui/components/card";
@@ -22,10 +23,13 @@ import { PayoutRow } from "./payout-row";
  */
 export function PayoutList() {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [provider, setProvider] = useState("all");
-  const [status, setStatus] = useState("all");
+  // Filters and page live in the URL, so Back from a payout lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: { provider: "all", status: "all" } },
+    limitOptions: LIST_PAGE_SIZES,
+  });
+  const { page, limit } = list;
+  const { provider, status } = list.filters;
   const [openId, setOpenId] = useState<string | null>(null);
 
   const { data, isLoading, isFetching } = useCourierPayouts({
@@ -37,7 +41,6 @@ export function PayoutList() {
   });
 
   const payouts = data?.items ?? [];
-  const reset = () => setPage(1);
 
   return (
     <>
@@ -45,10 +48,7 @@ export function PayoutList() {
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
           <SimpleSelect
             value={provider}
-            onValueChange={(v) => {
-              setProvider(v);
-              reset();
-            }}
+            onValueChange={(v) => list.patchFilters({ provider: v })}
             className="w-40"
             options={[
               { label: "All couriers", value: "all" },
@@ -59,10 +59,7 @@ export function PayoutList() {
           />
           <SimpleSelect
             value={status}
-            onValueChange={(v) => {
-              setStatus(v);
-              reset();
-            }}
+            onValueChange={(v) => list.patchFilters({ status: v })}
             className="w-48"
             options={[
               { label: "All payments", value: "all" },
@@ -118,11 +115,8 @@ export function PayoutList() {
               totalPages={data?.totalPages ?? 1}
               limit={limit}
               total={data?.total}
-              onPageChange={setPage}
-              onLimitChange={(next) => {
-                setLimit(next);
-                reset();
-              }}
+              onPageChange={list.setPage}
+              onLimitChange={list.setLimit}
               isFetching={isFetching}
             />
           </div>

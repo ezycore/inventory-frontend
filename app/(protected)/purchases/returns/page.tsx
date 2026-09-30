@@ -184,6 +184,7 @@ function PurchaseReturnsPageContent() {
 
       {/* Returns History Table */}
       <ReturnHistoryTable
+        key={ctx.listRevision}
         columns={ctx.returnsColumns}
         data={ctx.returns}
         isLoading={ctx.isLoadingReturns}

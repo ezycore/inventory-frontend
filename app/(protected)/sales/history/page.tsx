@@ -60,6 +60,7 @@ export default function SalesHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
+            key={ctx.listRevision}
             title={t('tableTitle')}
             columns={ctx.columns}
             data={ctx.sales}
@@ -76,8 +77,8 @@ export default function SalesHistoryPage() {
               manualPagination: true,
               pageSizeOptions: [10, 20, 50, 100],
               onPaginationChange: ({ pageIndex, pageSize }) => {
-                ctx.setPage(pageIndex + 1);
                 if (pageSize !== ctx.limit) ctx.setLimit(pageSize);
+                else ctx.setPage(pageIndex + 1);
               },
             }}
             enableSorting

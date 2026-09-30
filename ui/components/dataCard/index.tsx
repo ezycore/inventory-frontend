@@ -1,8 +1,9 @@
 "use client";
+// coding-standard: maintained
 
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
-import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { stripHiddenValues } from "../form/type";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import type { CardCustomAction, DataCardProps } from "@/types/DataCard";
@@ -48,6 +49,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     emptyMessage,
     emptyIcon,
     operations,
+    syncUrl = true,
     ...restProps
   } = props;
 
@@ -72,30 +74,30 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     onFieldChange,
   } = operations || {};
 
-  // Read initial filter values from URL query params
-  const urlFilters = useUrlFilters(filterConfig);
-
   const queryClient = useQueryClient();
 
-  // Internal state for self-contained mode
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(defaultPageSize || 12);
-  const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
+  // Page, page size, sort and filters live in the URL, under the same keys as
+  // `DataTable` (`hooks/use-list-url-state.ts`).
+  const pageSizeOptions = pageSizes || [12, 24, 48, 96];
+  const list = useListUrlState({
+    defaults: {
+      limit: defaultPageSize || 12,
+      sortBy: sortingConfig?.defaultSortBy,
+      sortOrder: sortingConfig?.defaultSortOrder || "desc",
+    },
+    filterFields: filterConfig?.fields,
+    limitOptions: pageSizeOptions,
+    sync: syncUrl,
+  });
+  const { page, limit, filters, sortBy, sortOrder, setSort } = list;
   const [importOpen, setImportOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
-  // Server-side sorting state
+  // Server-side sorting — a new sort starts again from page 1
   const isServerSorting = !!sortingConfig && !!getAllData;
-  const [sortBy, setSortBy] = useState<string | undefined>(sortingConfig?.defaultSortBy);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(sortingConfig?.defaultSortOrder || "desc");
-
   const handleSortChange = useCallback(
-    (newSortBy: string, newSortOrder: "asc" | "desc") => {
-      setSortBy(newSortBy);
-      setSortOrder(newSortOrder);
-      if (isServerSorting) setPage(1);
-    },
-    [isServerSorting],
+    (newSortBy: string, newSortOrder: "asc" | "desc") => setSort(newSortBy, newSortOrder),
+    [setSort],
   );
 
   // Data fetching (self-contained mode)
@@ -142,7 +144,7 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
         hasNext: hasNext,
         hasPrev: hasPrev,
         manualPagination: true,
-        pageSizeOptions: pageSizes || [12, 24, 48, 96],
+        pageSizeOptions,
         onPaginationChange: ({
           pageIndex,
           pageSize,
@@ -150,8 +152,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
           pageIndex: number;
           pageSize: number;
         }) => {
-          setPage(pageIndex + 1);
-          limit !== pageSize && setLimit(pageSize);
+          if (limit !== pageSize) list.setLimit(pageSize);
+          else list.setPage(pageIndex + 1);
         },
       };
     }
@@ -173,24 +175,22 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     }
 
     return undefined;
-  }, [page, limit, queryData, pageSizes, externalData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `list` setters are stable
+  }, [page, limit, queryData, pageSizes, pageSizeOptions, externalData]);
 
   // Filter configuration with callbacks
   const mergedFilterConfig = useMemo(() => {
     if (!filterConfig) return undefined;
     return {
       ...(filterConfig || {}),
-      initialValues: urlFilters,
-      onApply: (newFilters: Record<string, any>) => {
-        setFilters(newFilters);
-        setPage(1); // Reset to first page when filters change
-      },
-      onReset: () => {
-        setFilters({});
-        setPage(1); // Reset to first page when filters are cleared
-      },
+      initialValues: filters,
+      onApply: (newFilters: Record<string, any>) => list.setFilters(newFilters), // back to page 1
+      onReset: () => list.setFilters({}),
     };
-  }, [filterConfig, urlFilters]);
+    // `filters` is read when the bar mounts; `revision` remounts it after an
+    // outside URL change, so it is the only other input that matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+  }, [filterConfig, list.revision]);
 
   const { form, defaultValues: mergedDefaults } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
 
@@ -334,6 +334,8 @@ export function DataCard<TData extends { _id: string }, TValue = any>(
     <Card className="border-none ring-0 shadow-none py-0 gap-3 bg-transparent">
       <CardContent className="p-0">
         <BaseDataCard
+          // Remounted after an outside URL change, so the filter bar shows it.
+          key={list.revision}
           {...restProps}
           title={cardTitle
             ? typeof cardTitle === "function"

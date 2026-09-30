@@ -488,6 +488,15 @@ on the 2FA backup codes).
   a bare Previous/Next pair. (The storefront's `<Pager>` is the one deliberate exception — a
   separate design system, inline-styled against storefront CSS vars, with its own constant-width
   window and its own test.)
+- **Paging STATE lives in the URL: `useListUrlState`** (`hooks/use-list-url-state.ts`, pure rules in
+  `lib/list-url-state.ts`). Page, page size, sort and filters are read from and written back to the
+  query string with `history.replaceState` (no server round-trip, no history entry), so opening a row
+  and pressing Back lands on the same page with the same filters — a merchant working page 3 of
+  their orders used to be thrown back to page 1 with every filter gone. `DataTable` and `DataCard`
+  use it by default (`syncUrl={false}` for one inside a sheet/dialog); every hand-rolled list uses
+  it directly. **Never hold a list's page or filters in `useState`.** Two lists on one screen take a
+  `prefix`; a page's tab is `useUrlParam` (`hooks/use-url-param.ts`); anything that seeds itself
+  once (filter bar, `ListSearchInput`) is keyed on the hook's `revision`. See the `data-table` skill.
 
 **Cross-field rules in a CRUD form** go through `operations.onFieldChange(fieldName,
 value, allValues, form)` — wired by **both** DataTable and DataCard. The `form` argument is that

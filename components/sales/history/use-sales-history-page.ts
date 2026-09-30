@@ -20,6 +20,8 @@ import { useAuthStore } from '@/services/stores/use-auth-store';
 import { useCurrency } from '@/lib/currency';
 import type { Sale, Payment, SaleFilters, AddPaymentDto, SalesReturn } from '@/types';
 import type { FilterField } from '@/types/filter';
+import { useListUrlState } from '@/hooks/use-list-url-state';
+import type { ListFilters } from '@/lib/list-url-state';
 
 import { getSalesHistoryColumns, getSalesHistoryActions } from './columns';
 
@@ -38,9 +40,37 @@ export function useSalesHistoryPage() {
   const router = useRouter();
 
   // ── Table state ───────────────────────────────────────────────
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [filters, setFilters] = useState<SaleFilters>({});
+  const filterFields = useMemo(
+    (): FilterField[] => [
+      {
+        name: 'status',
+        label: t('filters.status'),
+        type: 'select',
+        options: [
+          { label: t('filters.draft'), value: 'draft' },
+          { label: t('filters.paid'), value: 'paid' },
+          { label: t('filters.partial'), value: 'partial' },
+          { label: t('filters.due'), value: 'due' },
+          { label: t('filters.cancelled'), value: 'cancelled' },
+        ],
+      },
+      {
+        name: 'search',
+        label: t('filters.search'),
+        type: 'text',
+        placeholder: t('filters.searchPlaceholder'),
+      },
+    ],
+    [t],
+  );
+  // Page, size and filters live in the URL, so Back from a sale lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20 },
+    filterFields,
+    limitOptions: [10, 20, 50, 100],
+  });
+  const { page, limit, setPage, setLimit } = list;
+  const filters = list.filters as SaleFilters;
 
   // ── Modal state ───────────────────────────────────────────────
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
@@ -169,38 +199,18 @@ export function useSalesHistoryPage() {
   ]);
 
   // ── Filter config ─────────────────────────────────────────────
+  const { setFilters, revision: listRevision } = list;
   const filterConfig = useMemo(
     () => ({
-      fields: [
-        {
-          name: 'status',
-          label: t('filters.status'),
-          type: 'select' as const,
-          options: [
-            { label: t('filters.draft'), value: 'draft' },
-            { label: t('filters.paid'), value: 'paid' },
-            { label: t('filters.partial'), value: 'partial' },
-            { label: t('filters.due'), value: 'due' },
-            { label: t('filters.cancelled'), value: 'cancelled' },
-          ],
-        },
-        {
-          name: 'search',
-          label: t('filters.search'),
-          type: 'text' as const,
-          placeholder: t('filters.searchPlaceholder'),
-        },
-      ] as FilterField[],
-      onApply: (newFilters: Record<string, unknown>) => {
-        setFilters(newFilters as SaleFilters);
-        setPage(1);
-      },
-      onReset: () => {
-        setFilters({});
-        setPage(1);
-      },
+      fields: filterFields,
+      initialValues: filters,
+      // Both start again from page 1.
+      onApply: (newFilters: Record<string, unknown>) => setFilters(newFilters as ListFilters),
+      onReset: () => setFilters({}),
     }),
-    [t],
+    // `filters` seeds the bar once; `listRevision` remounts it after an outside URL change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+    [filterFields, setFilters, listRevision],
   );
 
   // ── Table columns & actions (memoised) ────────────────────────
@@ -227,6 +237,7 @@ export function useSalesHistoryPage() {
     limit,
     setPage,
     setLimit,
+    listRevision,
     paginationInfo,
     filterConfig,
     columns,

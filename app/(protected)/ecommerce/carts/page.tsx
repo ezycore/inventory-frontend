@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
 import { PackageX, ShoppingCart, TrendingDown, Wallet } from "lucide-react";
 import {
   useAbandonedCarts,
@@ -12,7 +11,8 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
 import { AbandonedCartTable } from "@/components/ecommerce/carts/abandoned-cart-table";
 import { CartFunnel } from "@/components/ecommerce/carts/cart-funnel";
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { Card } from "@/ui/components/card";
 import StatsCard from "@/ui/components/StatsCard";
@@ -45,10 +45,14 @@ const TABS: { key: CartListStatus; label: string; hint: string }[] = [
 
 export default function AbandonedCartsPage() {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const [status, setStatus] = useState<CartListStatus>("abandoned");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // Tab, search and page live in the URL, so Back from a cart lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: { status: "abandoned", q: "" } },
+    limitOptions: LIST_PAGE_SIZES,
+  });
+  const { page, limit } = list;
+  const status = list.filters.status as CartListStatus;
+  const search = list.filters.q;
 
   const { data: stats, isLoading: statsLoading } = useCartFunnelStats();
   const { data, isLoading, isFetching } = useAbandonedCarts({
@@ -129,10 +133,7 @@ export default function AbandonedCartsPage() {
             <button
               key={tab.key}
               type="button"
-              onClick={() => {
-                setStatus(tab.key);
-                setPage(1);
-              }}
+              onClick={() => list.patchFilters({ status: tab.key })}
               className={cn(
                 "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 status === tab.key
@@ -145,11 +146,10 @@ export default function AbandonedCartsPage() {
           ))}
         </div>
         <ListSearchInput
+          key={list.revision}
           placeholder="Search shopper name, email, phone"
-          onSearch={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
+          defaultValue={search}
+          onSearch={(v) => list.patchFilters({ q: v })}
         />
       </div>
 
@@ -174,11 +174,8 @@ export default function AbandonedCartsPage() {
           totalPages={pagination.totalPages}
           total={pagination.total}
           limit={limit}
-          onPageChange={setPage}
-          onLimitChange={(n) => {
-            setLimit(n);
-            setPage(1);
-          }}
+          onPageChange={list.setPage}
+          onLimitChange={list.setLimit}
           isFetching={isFetching}
         />
       ) : null}

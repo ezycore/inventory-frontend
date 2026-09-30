@@ -109,6 +109,7 @@ export default function CreatedOrdersPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
+            key={ctx.listRevision}
             columns={ctx.columns}
             data={ctx.orders}
             title={t("orders.title")}

@@ -18,7 +18,8 @@ import { Checkbox } from "@/ui/components/checkbox";
 import { Badge } from "@/ui/components/badge";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { SafeImage } from "@/ui/components/safeImage";
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { onlineBlockReason } from "@/components/ecommerce/catalog/online-block-reason";
 import { ProductOnlineEditor } from "@/components/ecommerce/catalog/product-online-editor";
@@ -68,11 +69,17 @@ function basePriceLabel(p: CatalogProduct, currency?: string): string {
 export function OnlineCatalogPanel() {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
-  const [search, setSearch] = useState("");
-  const [listed, setListed] = useState<ListedFilter>("all");
-  const [featuredOnly, setFeaturedOnly] = useState(false);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // In the URL under `online_`, apart from the products table on the other tab,
+  // so Back from a product lands on the same page of the online listing.
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: { q: "", listed: "all", featured: false } },
+    limitOptions: LIST_PAGE_SIZES,
+    prefix: "online_",
+  });
+  const { page, limit } = list;
+  const search = list.filters.q as string;
+  const listed = list.filters.listed as ListedFilter;
+  const featuredOnly = list.filters.featured === true;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<CatalogProduct | null>(null);
 
@@ -112,18 +119,14 @@ export function OnlineCatalogPanel() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-end gap-2">
         <ListSearchInput
+          key={list.revision}
           placeholder="Search products…"
-          onSearch={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
+          defaultValue={search}
+          onSearch={(v) => list.patchFilters({ q: v })}
         />
         <SimpleSelect
           value={listed}
-          onValueChange={(v) => {
-            setListed(v as ListedFilter);
-            setPage(1);
-          }}
+          onValueChange={(v) => list.patchFilters({ listed: v })}
           options={[
             { value: "all", label: "All products" },
             { value: "listed", label: "Listed online" },
@@ -134,10 +137,7 @@ export function OnlineCatalogPanel() {
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Checkbox
             checked={featuredOnly}
-            onCheckedChange={(v) => {
-              setFeaturedOnly(!!v);
-              setPage(1);
-            }}
+            onCheckedChange={(v) => list.patchFilters({ featured: !!v })}
           />
           Featured only
         </label>
@@ -335,11 +335,8 @@ export function OnlineCatalogPanel() {
           total={pagination.total}
           limit={limit}
           isFetching={isFetching}
-          onPageChange={setPage}
-          onLimitChange={(n) => {
-            setLimit(n);
-            setPage(1);
-          }}
+          onPageChange={list.setPage}
+          onLimitChange={list.setLimit}
         />
       )}
 

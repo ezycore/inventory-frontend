@@ -24,6 +24,9 @@ interface ListPaginationProps {
   isFetching?: boolean;
 }
 
+/** The page sizes the footer offers unless a list passes its own. */
+export const LIST_PAGE_SIZES = [20, 50, 100];
+
 /**
  * Footer shared by the hand-rolled ecommerce list pages (orders, customers,
  * carts, catalog): rows-per-page select, numbered pager, row-range readout.
@@ -44,7 +47,7 @@ export function ListPagination({
   total,
   onPageChange,
   onLimitChange,
-  pageSizes = [20, 50, 100],
+  pageSizes = LIST_PAGE_SIZES,
   isFetching = false,
 }: ListPaginationProps) {
   const t = useTranslations("common.table");

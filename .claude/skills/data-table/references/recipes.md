@@ -163,4 +163,21 @@ Overrides the auto Add button only when `createMutation` is absent.
 
 ## URL-driven filters
 
-Filters are read from URL search params on mount via `useUrlFilters(filterConfig)`. Wire your filter form's `onApply` to also push to the router if you want shareable URLs.
+DataTable keeps page, page size, sort and filters in the URL through `useListUrlState`
+(`hooks/use-list-url-state.ts`) — nothing to wire. Keys are the filter names plus `page`, `limit`,
+`sort_by`, `sort_order`; defaults are left out, so an untouched list is its bare path.
+
+A hand-rolled list uses the hook directly, declaring each filter by its default:
+
+```ts
+const list = useListUrlState({
+  defaults: { limit: 20, filters: { status: "", courier: "all", q: "" } },
+  limitOptions: LIST_PAGE_SIZES,
+  prefix: "online_", // only when another list shares the screen
+});
+list.patchFilters({ status: "pending" }); // back to page 1
+<ListSearchInput key={list.revision} defaultValue={list.filters.q} onSearch={(q) => list.patchFilters({ q })} />
+```
+
+Key anything that seeds itself once (a filter bar, a search box) on `list.revision`, so an outside URL
+change — the sidebar link to the same list — resets what it shows.

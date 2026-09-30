@@ -26,7 +26,7 @@ Self-contained card-grid built on the same primitives as `DataTable` (TanStack Q
 | [ui/components/dataCard/pagination.tsx](ui/components/dataCard/pagination.tsx) | Page size + numbered pager (mirror of DataTable's) |
 | [types/DataCard.ts](types/DataCard.ts) | `DataCardProps`, `BaseDataCardProps`, `CardFieldConfig`, `CardImageConfig`, `CardCustomAction`, `DataCardAction`, `CardLayoutConfig`, `CardVariant`, `CardSize`, `CardSortingConfig` |
 | [hooks/use-crud-handlers.ts](hooks/use-crud-handlers.ts) | `useCrudModal` (shared with DataTable) |
-| [hooks/use-url-filters.ts](hooks/use-url-filters.ts) | URL → initial filters |
+| [hooks/use-list-url-state.ts](hooks/use-list-url-state.ts) | Page, size, sort and filters kept in the URL — the **same keys as DataTable**, so switching views keeps the merchant's place. `syncUrl={false}` for cards in a sheet/dialog |
 | [ui/components/dataCard/datacard-doc.md](ui/components/dataCard/datacard-doc.md) | Long-form reference |
 | [ui/components/dataCard/DATACARD_PROPS_REFERENCE.md](ui/components/dataCard/DATACARD_PROPS_REFERENCE.md) | Exhaustive prop walk-through with examples |
 
