@@ -63,8 +63,7 @@ const CARD_LOOK = {
 /** An icon a row or card may carry — names from `components/storefront/sf-icons.tsx`. */
 /**
  * A product row's link to where its products live, and the heading it takes
- * when the merchant typed none — the classic home page's rows, moved as they
- * were (plan §17, Phase 5 step 5). `storeHeading` names the row in the
+ * when the merchant typed none. `storeHeading` names the row in the
  * shopper's language (`featured`, `newArrivals`, `selected`) or after its
  * collection; `viewAll` draws the link, worded "View all" unless `ctaLabel` is
  * set, to `ctaHref` or else the row's collection or the catalogue. Both unset on
@@ -235,9 +234,8 @@ export const SECTION_SPECS = {
        */
       dots: { type: "enum", values: ["under", "over"], optional: true },
       /*
-       * The classic home hero, for a hero moved from it (plan §17, Phase 5 step 5);
-       * all unset on a new hero. `slideshow` rotates even one slide, as the home
-       * page's slides always did. The rest describe its banner hero, drawn from the
+       * The store-worded hero; all unset on a new hero. `slideshow` rotates even
+       * one slide. The rest describe its banner hero, drawn from the
        * first slide: `storeBanner` shows the store banner where the slide has no
        * picture; `storeWords` keeps the store's name as a visible title and words
        * both buttons in the shopper's language ("Shop now", "Browse categories" —
@@ -270,8 +268,7 @@ export const SECTION_SPECS = {
       },
       promises: { type: "boolean", optional: true },
     },
-    // The limits mirror the home hero's slides (`heroSlidesSchema`), so a
-    // store's slides move onto a builder hero unchanged.
+    // At most five slides, the same bound the backend's hero spec sets.
     blocks: {
       max: 5,
       settings: {
@@ -305,10 +302,8 @@ export const SECTION_SPECS = {
   },
   /**
    * A content page's body in the store's content frame — the core section of
-   * every store page, whether it was moved from the Content screen (plan §6, §17
-   * Phase 5 step 6) or made on the builder. `body` is the page's own text in
-   * whichever format it was stored: rich text, or the markdown the CMS pages
-   * have always accepted (`ContentBodyView` reads both).
+   * every store page. `body` is the page's own text in whichever format it was
+   * stored: rich text, or markdown (`ContentBodyView` reads both).
    *
    * Required and unremovable, but allowed to be EMPTY — see the settings below.
    */
@@ -577,8 +572,7 @@ export const SECTION_SPECS = {
    * ### The related row
    *
    * `hideRelated` drops the built-in "You may also like" row, for a page where
-   * the merchant places a Related products section instead; unset keeps the row,
-   * which is what every page moved from the classic product page draws.
+   * the merchant places a Related products section instead; unset keeps the row.
    * `relatedLimit` and `relatedColumns` shape the row in place, so the common
    * case — four cards, three to a line — no longer needs the row hidden and a
    * whole second section added to answer it. They are deliberately the same two
@@ -697,8 +691,8 @@ export const SECTION_SPECS = {
       heading: { type: "string", max: 120, optional: true },
       ...SUBHEADING,
       /**
-       * The store's own promises (Customize → Footer) in place of the blocks, as
-       * the classic home band. A new band starts with it on when the store has
+       * The store's own promises (Customize → Footer) in place of the blocks. A
+       * new band starts with it on when the store has
        * promises (`defaultsForStore`), so the band and the footer say the same
        * thing and one edit changes both.
        */
@@ -754,9 +748,7 @@ export const SECTION_SPECS = {
       /**
        * Whether the picture is cropped to its shape or shown whole inside it.
        * Unset keeps `cover`, which is what every `image-text` drew before this
-       * existed — including Noor Collection's converted editorial band, the one
-       * page in that store's set that did not match the classic home it
-       * replaced (master plan §17).
+       * existed.
        */
       imageFit: { type: "enum", values: ["fit", "crop"], optional: true },
       imageRatio: { type: "enum", values: ["4:5", "1:1", "4:3", "16:9"], responsive: true, optional: true },
@@ -777,7 +769,7 @@ export const SECTION_SPECS = {
       tagIds: { type: "refs", to: "tag", max: 20 },
       ...SUBHEADING,
       flow: FLOW,
-      /** The classic home row's heading — "Shop by age" in the shopper's language when Heading is empty. */
+      /** "Shop by age" in the shopper's language when Heading is empty. */
       storeHeading: { type: "enum", values: ["shopByAge"], optional: true },
     },
   },
@@ -795,10 +787,10 @@ export const SECTION_SPECS = {
       arrows: { type: "boolean", optional: true },
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       // Its own setting rather than a responsive `columns`: a phone takes 2–4,
-      // not the desktop's 2–6 (`resolveHomeCollections`).
+      // not the desktop's 2–6.
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
-      /** The tile's shape. Unset keeps each layout's own, as the classic row drew it. */
+      /** The tile's shape. Unset keeps each layout's own. */
       tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       /** The tile's corners in px. Unset keeps the theme's own radius token. */
       radius: { type: "number", min: 0, max: 40, int: true, optional: true },
@@ -855,7 +847,7 @@ export const SECTION_SPECS = {
       heading: { type: "string", max: 120, optional: true },
       ...SUBHEADING,
       limit: { type: "number", min: 1, max: 12, int: true, optional: true },
-      /** "Current offers" in the shopper's language when Heading is empty, as the classic home row. */
+      /** "Current offers" in the shopper's language when Heading is empty. */
       storeHeading: { type: "enum", values: ["campaignOffers"], optional: true },
     },
   },
@@ -879,7 +871,7 @@ export const SECTION_SPECS = {
       columns: { type: "number", min: 2, max: 6, int: true, optional: true },
       mobileColumns: { type: "number", min: 2, max: 4, int: true, optional: true },
       align: { type: "enum", values: ["left", "center", "right"], optional: true },
-      /** The tile's shape. Unset keeps each mode's own, as the classic row drew it. */
+      /** The tile's shape. Unset keeps each mode's own. */
       tileRatio: { type: "enum", values: ["1:1", "4:5", "3:4", "4:3", "16:9"], responsive: true, optional: true },
       /** The tile's corners in px. Unset keeps the theme's own radius token. */
       radius: { type: "number", min: 0, max: 40, int: true, optional: true },
@@ -910,7 +902,7 @@ export const SECTION_SPECS = {
       ratio: { type: "enum", values: ["16:9", "4:3", "1:1", "3:4"], optional: true },
       radius: { type: "number", min: 0, max: 40, int: true, optional: true },
       arrows: { type: "boolean", optional: true },
-      /** Every card gets a button — "Shop now" in the shopper's language where the card has no label — as on the classic home. */
+      /** Every card gets a button — "Shop now" in the shopper's language where the card has no label. */
       storeWords: { type: "boolean", optional: true },
     },
     blocks: {

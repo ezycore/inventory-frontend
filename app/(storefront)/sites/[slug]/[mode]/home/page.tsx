@@ -44,7 +44,7 @@ export default async function SiteHomePage({
   const page = site?.builder?.page;
   if (!site?.store || !page) notFound();
   // Every hero layout draws the page's <h1>; without one the store's name stands
-  // in, hidden, as on the classic home (`resolveHomePrimaryHeading`).
+  // in, hidden.
   const hasHero = page.sections.some((section) => section.type === "hero");
   return (
     <>

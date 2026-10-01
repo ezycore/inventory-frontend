@@ -1,11 +1,11 @@
 // coding-standard: maintained
-import { useContentPages } from "@/services/api";
+import { useStorefrontPages } from "@/services/api";
 import type { CollectionRowValue } from "@/components/ecommerce/collections/collection-row";
 import type { NavOption } from "@/components/ecommerce/customize/menu-item-fields";
 
 /**
  * The choices a link row offers — categories labelled "Parent › Child" and
- * stored by PATH, and the store's content pages by slug. Shared by the header
+ * stored by PATH, and the store's written pages by slug. Shared by the header
  * menu and the footer so a link means the same thing in both.
  *
  * The bare leaf slug the menu editor used to store is only unique within its
@@ -15,7 +15,7 @@ import type { NavOption } from "@/components/ecommerce/customize/menu-item-field
  * as the option it matches until the merchant next edits it.
  */
 export function useNavLinkOptions(collections: CollectionRowValue[]) {
-  const { data: pages } = useContentPages();
+  const { data: pages } = useStorefrontPages({ kind: "content", limit: 100 });
 
   const nameOf = (c: CollectionRowValue) => c.displayName || c.name;
   const byId = new Map(collections.map((c) => [c._id, c]));
@@ -30,10 +30,9 @@ export function useNavLinkOptions(collections: CollectionRowValue[]) {
     value.includes("/")
       ? value
       : (ordered.find((c) => c.slug === value)?.slugPath ?? value);
-  const pageOptions: NavOption[] = (pages ?? []).map((p) => ({
-    label: p.title,
-    value: p.slug,
-  }));
+  const pageOptions: NavOption[] = (pages?.items ?? []).flatMap((p) =>
+    p.slug ? [{ label: p.title, value: p.slug }] : [],
+  );
 
   return { categoryOptions, pageOptions, resolveCategory };
 }

@@ -15,7 +15,7 @@ import {
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
-import { HeroCtaLink } from "@/components/storefront/home/home-shared";
+import { HeroCtaLink } from "@/components/storefront/home/hero-links";
 import { Icon } from "@/components/storefront/sf-icons";
 
 /**

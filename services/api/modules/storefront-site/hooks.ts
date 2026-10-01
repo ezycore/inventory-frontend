@@ -13,7 +13,7 @@ import { storefrontSiteApi, type SaveStorefrontSiteDraftInput } from "./api";
  * merchant's next edit.
  */
 
-/** Only for a store that has switched over — pass `enabled: false` before that, or it 404s. */
+/** The store's look: the published Site and any unpublished draft. */
 export const useStorefrontSite = (enabled = true) =>
   useQuery({
     queryKey: queryKeys.storefrontSite.detail(),
@@ -30,7 +30,7 @@ export const useStorefrontSiteRevisions = (enabled = true) =>
     enabled,
   });
 
-/** Customize's Save for a switched store. Shoppers see nothing until publish. */
+/** Customize's Save. Shoppers see nothing until publish. */
 export const useSaveStorefrontSiteDraft = () => {
   const qc = useQueryClient();
   return useMutation({

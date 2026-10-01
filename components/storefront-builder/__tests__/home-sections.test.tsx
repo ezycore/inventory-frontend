@@ -184,7 +184,7 @@ describe("shop-by-tag", () => {
     expect(hrefs(container)).toEqual(["/shop/products?tags=0-3m", "/shop/products?tags=newborn"]);
   });
 
-  it("keeps the classic row's heading under storeHeading: the merchant's, else Shop by age", () => {
+  it("keeps the store's heading under storeHeading: the merchant's, else Shop by age", () => {
     const { container } = renderPage([
       section("t1", "shop-by-tag", { tagIds: [ID(1)], storeHeading: "shopByAge" }),
       section("t2", "shop-by-tag", { tagIds: [ID(2)], storeHeading: "shopByAge", heading: "By size" }),

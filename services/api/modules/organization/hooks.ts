@@ -630,10 +630,9 @@ export const useUpdateStorefrontMedia = () => {
   });
 };
 
-// POST /api/organization/storefront/media/hero-slide - Upload one storefront
-// image. Returns uploadInfo only (no cache write): the editor embeds it in a
-// slide / announcement and persists via the settings PATCH. Shared by the hero
-// slides panel and the announcement-bar background.
+// POST /api/organization/storefront/media/image - Upload one image the look
+// embeds. Returns uploadInfo only (no cache write): Customize puts it in the
+// announcement or the footer and persists it with the Site draft.
 export const useUploadStorefrontImage = () => {
   return useMutation({
     mutationFn: (file: File) => {

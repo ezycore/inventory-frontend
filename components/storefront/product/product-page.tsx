@@ -38,8 +38,8 @@ const wrap: CSSProperties = {
 /**
  * What the `product-main` section says about this page's photos and its related
  * row. Every field is optional and every absent one means "the store's own
- * choice", so the classic product page — which passes nothing at all — renders
- * byte-for-byte as it did.
+ * choice", so a page that passes nothing at all renders byte-for-byte as it
+ * did.
  *
  * The shape travels as CSS custom properties rather than as a rendered value,
  * because it differs per screen and one HTML is served to both (the same reason

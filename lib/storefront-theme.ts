@@ -24,15 +24,6 @@ export const THEME_PRESETS: ThemePreset[] = [
 export const getPreset = (id?: string): ThemePreset =>
   THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];
 
-/* The homepage section catalogue used to live here as `HOMEPAGE_SECTIONS` /
-   `DEFAULT_HOMEPAGE_SECTIONS`, listing four ids — `banner`, `categories`,
-   `featured`, `products` — that no section component ever answered to. It was
-   superseded by the real registry (`SECTION_COMPONENTS` / `SECTION_LABELS` /
-   `HOME_PRESET_SECTIONS` in lib/storefront-section-ids.ts, and `SECTION_COMPONENTS`
-   in components/storefront/home/home-sections.tsx) and
-   had no remaining callers, so it is deleted rather than left as a second,
-   wrong answer to "what sections exist". */
-
 /** Resolve the effective brand/accent colors from a theme (preset + overrides). */
 export function resolveThemeColors(theme?: {
   preset?: string;

@@ -14,7 +14,6 @@ import { JsonLd } from "@/components/storefront/json-ld";
 import { storeHref } from "@/lib/storefront-links";
 import { fullImageUrl } from "@/lib/storefront-image";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { ProductPageView } from "@/components/storefront/product/product-page";
 import { ProductDataProvider } from "@/components/storefront/product/product-data";
 
 // Host-resolved (dynamic render); the product itself is cached via the
@@ -120,9 +119,7 @@ export default async function Page({
     <>
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <ProductDataProvider value={{ initialProduct: product ?? undefined }}>
-        <SystemPage path={`/products/${productSlug}`} product={product ?? undefined}>
-          <ProductPageView initialProduct={product ?? undefined} />
-        </SystemPage>
+        <SystemPage path={`/products/${productSlug}`} product={product ?? undefined} />
       </ProductDataProvider>
     </>
   );

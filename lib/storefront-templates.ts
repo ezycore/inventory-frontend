@@ -1,20 +1,15 @@
 // coding-standard: maintained
 import type {
   HeaderMenuSource,
-  StoreHomeCollections,
-  StoreHomeSection,
   StoreLogoStyle,
-  StoreSectionConfig,
   StoreTemplates,
   StoreTemplatesRaw,
   StorefrontStore,
 } from "@/lib/storefront-client";
-import { mergeSectionConfig } from "@/lib/storefront-sections";
 import { DEFAULT_MOBILE_TEMPLATE, mobileTemplate } from "@/lib/storefront-mobile";
 
 /** Default page variants when the store hasn't selected one (or backend omits it). */
 export const DEFAULT_TEMPLATES: StoreTemplates = {
-  home: "classic",
   collection: "grid4",
   product: "left",
   checkout: "single",
@@ -25,11 +20,9 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   // Both are what every card rendered before the settings existed.
   cardTagBadges: "2",
   discountBadge: "percent",
-  hero: "slides",
   pagination: "pages",
   imageFit: "fit",
   imageRatio: "square",
-  categoryTiles: "tile",
   accountLayout: "sidebar",
   contentLayout: "centered",
   cartLayout: "panel",
@@ -37,9 +30,6 @@ export const DEFAULT_TEMPLATES: StoreTemplates = {
   mobile: DEFAULT_MOBILE_TEMPLATE,
 };
 
-// The admin Templates tab stores ids like "grid-4" / "gallery-left" / "multi-step";
-// the storefront pages consume short variant names. These maps bridge the two.
-const HOME = { classic: "classic", "hero-split": "hero-split", minimal: "minimal" } as const;
 const COLLECTION = { "grid-3": "grid3", "grid-4": "grid4", sidebar: "sidebar" } as const;
 const PRODUCT = { "gallery-left": "left", "gallery-top": "top", "sticky-bar": "sticky" } as const;
 // Whole checkout layouts. The first two ids predate the layout registry and are
@@ -85,7 +75,6 @@ const CARDACTIONS = {
   reveal: "reveal",
   "icon-only": "iconOnly",
 } as const;
-const HERO = { slides: "slides", banner: "banner" } as const;
 const HEADER_MENU = { collections: "collections", custom: "custom" } as const;
 // How product listings advance past page 1. `pages` stays the default: it is what
 // every existing store already renders, and it is the only mode that puts a real
@@ -103,22 +92,6 @@ const IMAGERATIO = {
   portrait: "portrait",
   landscape: "landscape",
   tall: "tall",
-} as const;
-// How `category-tiles` presents one department. `tile` is the default because it
-// is what the section has always rendered; `overlay` needs real photographs on
-// every category, so making it the fallback would put a scrim over a grid of
-// letter placeholders.
-// `circle` is `disc`'s shape with `tile`'s content: the merchant's photograph
-// cropped round, the name beneath. The two existing photo modes are both
-// rectangles, so a soft catalogue (baby, gifts, beauty) had no way to lose the
-// corners without also losing the pictures — `disc` refuses photographs by
-// design. A category with no photo falls back to the lettered disc, which is
-// the same circle, so a half-photographed catalogue stays one consistent row.
-const CATEGORYTILES = {
-  tile: "tile",
-  overlay: "overlay",
-  disc: "disc",
-  circle: "circle",
 } as const;
 // Whole account-area layouts. `sidebar` is the default because it is what the
 // account area has always been; the other three are separate page components,
@@ -175,7 +148,6 @@ export function resolveTemplates(
     DEFAULT_TEMPLATES.productCard,
   );
   return {
-    home: pick(HOME, t.home, DEFAULT_TEMPLATES.home),
     collection: pick(COLLECTION, t.collection, DEFAULT_TEMPLATES.collection),
     product: pick(PRODUCT, t.product, DEFAULT_TEMPLATES.product),
     checkout: pick(CHECKOUT, t.checkout, DEFAULT_TEMPLATES.checkout),
@@ -185,15 +157,9 @@ export function resolveTemplates(
     cardActions: resolveCardActions(t.cardActions, productCard),
     cardTagBadges: pick(CARDTAGBADGES, t.cardTagBadges, DEFAULT_TEMPLATES.cardTagBadges),
     discountBadge: pick(DISCOUNTBADGE, t.discountBadge, DEFAULT_TEMPLATES.discountBadge),
-    hero: pick(HERO, t.hero, DEFAULT_TEMPLATES.hero),
     pagination: pick(PAGINATION, t.pagination, DEFAULT_TEMPLATES.pagination),
     imageFit: pick(IMAGEFIT, t.imageFit, DEFAULT_TEMPLATES.imageFit),
     imageRatio: pick(IMAGERATIO, t.imageRatio, DEFAULT_TEMPLATES.imageRatio),
-    categoryTiles: pick(
-      CATEGORYTILES,
-      t.categoryTiles,
-      DEFAULT_TEMPLATES.categoryTiles,
-    ),
     accountLayout: pick(
       ACCOUNTLAYOUT,
       t.accountLayout,
@@ -230,120 +196,6 @@ export function mediaFitFor(imageFit: StoreTemplates["imageFit"]): "cover" | "ca
  */
 export function isImageFit(value: unknown): value is StoreTemplates["imageFit"] {
   return typeof value === "string" && Object.hasOwn(IMAGEFIT, value);
-}
-
-/**
- * One entry in a DEFAULT composition — a home preset's list, or a ready-made
- * theme's.
- *
- * A bare id is a section with nothing more to say, which is most of them. The
- * object form is for a section whose default is a *configured* one: "a product
- * grid, sourced newest" is something a composition has to be able to express,
- * and a flat id list cannot — which is the only reason `latest-grid` ever had
- * to exist as a section type of its own.
- */
-export type HomeSectionEntry =
-  | string
-  | { type: string; config?: Omit<StoreSectionConfig, "key"> };
-
-/** A composition's instances and the config they imply, keyed to each other. */
-export interface HomeSectionInstances {
-  sections: StoreHomeSection[];
-  /** Usually empty — only entries written in the object form contribute. */
-  config: StoreSectionConfig[];
-}
-
-/**
- * Turn a default composition — a home preset's list, or a ready-made theme's —
- * into instances, minting keys from the type and its position, and the config
- * its entries imply alongside them.
- *
- * **Deterministic, never random.** The same preset must mint the same keys every
- * time: keys are what per-section config joins on, and what `isThemeModified`
- * compares. A `crypto.randomUUID()` here would re-key on every render, so a
- * merchant's config would detach from its section and a freshly applied theme
- * would report itself as edited one second later.
- *
- * The index is in the key because a preset may legitimately repeat a type — and
- * with config on the entry it now has a reason to: two grids differing only in
- * where their products come from is one composition, not two section types.
- */
-export function sectionInstances(
-  entries: readonly HomeSectionEntry[],
-): HomeSectionInstances {
-  const sections: StoreHomeSection[] = [];
-  const config: StoreSectionConfig[] = [];
-  entries.forEach((entry, i) => {
-    const type = typeof entry === "string" ? entry : entry.type;
-    const key = `${type}-${i}`;
-    sections.push({ key, type });
-    /* Minted HERE, beside the key it belongs to, and nowhere else. The join
-       between a section and its config IS the key, so a config list built
-       separately would drift the first time an entry moved — and a config whose
-       key drifted does not fail, it silently does nothing. */
-    if (typeof entry !== "string" && entry.config) {
-      config.push({ key, ...entry.config });
-    }
-  });
-  return { sections, config };
-}
-
-/**
- * The homepage's sections, in render order.
- *
- * Precedence: the Customize draft (live preview) → the merchant's saved
- * `theme.homepageSections` → the default composition for their `templates.home`
- * → Classic. So a store that has never touched Sections renders exactly the page
- * its home template always produced, and one that has reordered them keeps that
- * order even after switching template.
- *
- * Unknown TYPES are dropped rather than rendered: a retired section, or one from
- * a newer build, must not reach `SECTION_COMPONENTS[type]` and blow up the page.
- * The caller passes the registry's guard so this module stays free of component
- * imports — `lib/` must not depend on `components/`.
- *
- * **Returns the config too, and callers must read it rather than the store's
- * own.** A preset can describe a configured row, so on a shop that has never
- * composed its page the effective config is the preset's with the merchant's
- * folded over it. Reading `store.sectionConfig` directly renders those rows
- * unconfigured — which is how a "New arrivals" row becomes a second Featured
- * one with nothing on screen to explain it.
- */
-export function resolveSections(
-  store: Pick<StorefrontStore, "theme" | "templates"> | null | undefined,
-  options: {
-    draft?: StoreHomeSection[] | null;
-    /** The merchant's own per-section config — the draft's under preview. */
-    sectionConfig?: StoreSectionConfig[] | null;
-    isSectionId: (value: unknown) => boolean;
-    presets: Record<string, readonly HomeSectionEntry[]>;
-  },
-): HomeSectionInstances {
-  const { draft, sectionConfig, isSectionId, presets } = options;
-  const saved = store?.theme?.homepageSections;
-  const home = pick(HOME, store?.templates?.home, DEFAULT_TEMPLATES.home);
-  const own = (draft?.length ? draft : undefined) ?? (saved?.length ? saved : undefined);
-  // `entry?.type` rather than `entry.type`: `own` comes off a stored document
-  // and a store written before instances holds bare strings, where `.type` is
-  // `undefined` — dropped by the guard, which is what makes the fallback below
-  // catch the whole legacy shape instead of throwing on it.
-  const known = own?.filter((entry) => isSectionId(entry?.type)) ?? [];
-  // A merchant who has composed their own page gets no implied config: the
-  // preset is not in use, so its rows are not on the page to configure.
-  if (known.length) return { sections: known, config: sectionConfig ? [...sectionConfig] : [] };
-
-  // ⚠ If NOTHING survives the filter, fall back rather than returning `[]` — an
-  // empty list renders a blank homepage. This is not theoretical: every seeded
-  // store carried four ids from the pre-registry catalogue (`banner`,
-  // `featured`, `categories`, `products`) that no section ever answered to, so
-  // the strict version would have blanked the homepage of every demo shop while
-  // leaving stores with an unset value working perfectly. The same guard now
-  // absorbs a store still holding the pre-instance `string[]`.
-  const fallback = sectionInstances(presets[home] ?? presets.classic ?? []);
-  return {
-    sections: fallback.sections.filter((entry) => isSectionId(entry.type)),
-    config: mergeSectionConfig(fallback.config, sectionConfig ?? undefined),
-  };
 }
 
 /** Narrows a raw/draft id to a known ratio — the guard `useStoreImageRatio` uses. */
@@ -463,26 +315,8 @@ export function resolveLogoStyle(
   };
 }
 
-/**
- * Where the OPEN hero's copy sits — `theme.heroAlign` narrowed to something the
- * DOM may see.
- *
- * `left` is the fallback for anything unset or unrecognised, because that is
- * what every hero rendered before this control existed: an unknown stored id
- * must not centre a shop nobody asked to centre.
- *
- * This is the whole of what the retired `hero-manifesto` section contributed.
- * It was `hero-open` with no picture and centred type, and `hero-open` already
- * collapses to one column when no banner is set — so a merchant who wanted
- * centred copy had to choose a different SECTION, and doing so silently
- * discarded the banner they had uploaded.
- */
-export function resolveHeroAlign(raw: string | null | undefined): "left" | "center" {
-  return raw === "center" ? "center" : "left";
-}
-
-/** Homepage collections row layout with the owner's overrides applied. */
-export interface ResolvedHomeCollections {
+/** A category row's layout: tiles or names, strip or grid, and how many across. */
+export interface CategoryRowOptions {
   /** `plain` draws names only; `card` is the picture tile. */
   style: "card" | "plain";
   layout: "strip" | "grid";
@@ -501,36 +335,6 @@ export interface ResolvedHomeCollections {
 }
 
 /**
- * Resolve `theme.homeCollections` (Customize → Home page → Collections row).
- *
- * `strip` is the default because it is what the row has always been; switching
- * the fallback to `grid` would restyle every existing homepage without its
- * owner asking, which is the same trap `resolveHeaderMenu` documents.
- */
-export function resolveHomeCollections(
-  raw: StoreHomeCollections | null | undefined,
-): ResolvedHomeCollections {
-  return {
-    // Only an explicit `plain` drops the pictures. This is what the retired
-    // `category-links` section drew, and `card` is every shop that never asked.
-    style: raw?.style === "plain" ? "plain" : "card",
-    layout: raw?.layout === "grid" ? "grid" : "strip",
-    columns: clampInt(raw?.columns, 2, 6, 4),
-    /* Two, the count every phone drew before this setting existed — so a shop
-       that never opens the control is unchanged. The ceiling is four rather
-       than six: a 360px screen minus padding is ~336px, and six tracks of 48px
-       are below the size a tile has to be to be tapped. */
-    mobileColumns: clampInt(raw?.mobileColumns, 2, 4, 2),
-    align:
-      raw?.align === "center" || raw?.align === "right" ? raw.align : "left",
-    // Only an explicit `false` hides the names. Anything else — unset, null, a
-    // string that survived an old payload — is the shop that has never been
-    // asked, and that shop shows its category names.
-    showLabels: raw?.showLabels !== false,
-  };
-}
-
-/**
  * Does this row draw its category NAMES?
  *
  * Two inputs, and the second is the one that matters: a merchant can ask for a
@@ -545,9 +349,9 @@ export function resolveHomeCollections(
  * whole section rather than tile by tile. One shape used consistently beats a
  * ragged row, even when the consistent one is not what was asked for.
  *
- * Lives here rather than beside `useCategoryRowLayout` because that module is
- * `"use client"`, and the Storefront Builder's server views ask this too — a
- * server component cannot call a function exported from a client module.
+ * Lives here, in a module with no `"use client"`, because the Storefront
+ * Builder's server views ask this too — a server component cannot call a
+ * function exported from a client module.
  */
 export function categoryLabelsVisible(
   showLabels: boolean,

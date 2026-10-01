@@ -5,9 +5,8 @@
  * scrollbar.
  *
  * Shared by both catalogue-entry sections, which is why this is a component and
- * not another style helper: Classic's chips (`home-collections.tsx`) and the
- * photo tiles (`sections/category-sections.tsx`) both render the merchant's
- * `layout: "strip"`, and arrow state is behavior, not CSS.
+ * not another style helper: the collections row and the photo tiles both
+ * render the merchant's `layout: "strip"`, and arrow state is behavior, not CSS.
  *
  * **The arrows REPLACE the scrollbar rather than joining it.** `.sf-root` styles
  * a visible 9px bar, so until now the strip's only overflow affordance was raw
@@ -46,7 +45,7 @@ import {
   type ReactNode,
 } from "react";
 import { Icon } from "@/components/storefront/sf-icons";
-import type { ResolvedHomeCollections } from "@/lib/storefront-templates";
+import type { CategoryRowOptions } from "@/lib/storefront-templates";
 import { useStorefrontUI } from "@/services/storefront/ui-context";
 import {
   stripEdges,
@@ -71,7 +70,7 @@ export function CategoryStrip({
   arrowLabels,
   children,
 }: {
-  align: ResolvedHomeCollections["align"];
+  align: CategoryRowOptions["align"];
   /** Chips run tighter than photo tiles, which take the theme's own rhythm. */
   gap: number | string;
   /** Inherited by the tiles — `--tile-min`/`--tile-max` for the photo row. */

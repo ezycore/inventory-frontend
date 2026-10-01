@@ -97,18 +97,16 @@
  * tab's alignment reaches a heading through this instead — the frame emits
  * `--sfb-title-justify` beside `--sfb-align`.
  *
- * ⚠ `SectionTitle` is shared with the CLASSIC home, product and category pages,
- * which load this stylesheet but sit in no `.sfb-sec` and so set no variable.
- * The fallback below is what keeps those four callers byte-identical; do not
- * replace it with a value of its own.
+ * ⚠ `SectionTitle` is shared with views that sit in no `.sfb-sec` and so set no
+ * variable (`product-page`, `product-overview`). The fallback below is what
+ * keeps those callers byte-identical; do not replace it with a value of its own.
  */
 .sfb-title-row {
   justify-content: var(--sfb-title-justify, space-between);
 }
 
 /*
- * A section type's OWN column — the width its classic twin was drawn at, which
- * six sections carry: prose at 780px, the picks and collection rows at 980, the
+ * A section type's OWN column, which six sections carry: prose at 780px, the picks and collection rows at 980, the
  * order form at 560, a video at 880 or 420 by its shape. Each passes its number
  * as `--sfb-own-column`, so one rule serves all six and a per-instance value
  * (the video's) works the same as a constant.
@@ -157,7 +155,7 @@
  * carry the theme's own colours on purpose — the benefit cards, the review
  * cards, the sticky bar. Only text drawn directly on the section's band reads
  * `--sfb-muted`, and it falls back to `var(--muted)` everywhere else, so a
- * section with no tone and every classic page are unchanged.
+ * section with no tone and every view outside a section are unchanged.
  */
 .sfb-sec[data-tone="light"] {
   --sfb-muted: color-mix(in srgb, #ffffff 72%, transparent);
@@ -264,8 +262,8 @@
    Two names and never one: a custom property may not be defined from itself, so
    the section writes `--sfb-pdp-frame` / `--sfb-pdp-frame-m` and the gallery
    reads `--sf-pdp-ratio`, which these rules map. The gallery asks for it as
-   `var(--sf-pdp-ratio, <the store's shape>)`, so a classic product page — which
-   carries no `.sfb-pdp` and emits no variable — is byte-identical, and a
+   `var(--sf-pdp-ratio, <the store's shape>)`, so a product view with no
+   `.sfb-pdp` emits no variable and is byte-identical, and a
    phone-only shape leaves the desktop on the store's (an undefined variable
    makes `--sf-pdp-ratio` guaranteed-invalid, which is exactly when `var()`
    takes its fallback). */
@@ -408,7 +406,7 @@
  * stylesheets load in; a single class would be a coin toss.
  *
  * A rail without arrows never reaches this rule: `ProductRailTrack` keeps its
- * own inline track there, which is what the classic home still draws.
+ * own inline track there.
  */
 .sf-cat-strip-track.sf-rail-track {
   display: grid;
@@ -592,9 +590,8 @@
   border-radius: var(--radius-lg);
 }
 
-/* The whole picture inside its box, blurred bands filling the rest — what the
-   CLASSIC editorial band draws (`bannerPhoto`'s `canvas` default) and what this
-   section could not do until 2026-09-21. Unset is `crop`, so nothing moves. */
+/* The whole picture inside its box, blurred bands filling the rest — `bannerPhoto`'s
+   `canvas` mode, which this section could not do until 2026-09-21. Unset is `crop`, so nothing moves. */
 /* ⚠ DESCENDANT, not child. `SfImage` wraps the `<img>` in a
    `<picture style="display:contents">` as soon as the section is given a phone
    picture, so `> .sfb-split-media` stops matching — while `display: contents`
@@ -625,8 +622,7 @@
     aspect-ratio: var(--sfb-video-ratio-m, var(--sfb-video-ratio, 16 / 9));
   }
   /* A phone shape for the collection tiles. The variable is read by
-     `collection-tiles.tsx`, which the classic home draws too — it sets neither,
-     so it keeps its square. */
+     `collection-tiles.tsx`; a row that sets neither keeps its square. */
   [style*="--sfb-tile-ratio-m"] {
     --sfb-tile-ratio: var(--sfb-tile-ratio-m);
   }

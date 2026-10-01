@@ -3,8 +3,7 @@ import type { Dict } from "@/lib/storefront-i18n";
 
 /**
  * The storefront's own wording a builder section may show where the merchant
- * typed nothing — the words the classic home page names its rows and buttons
- * with, in the shopper's language (owner decision, plan §17 Phase 5 step 5).
+ * typed nothing — row headings and button labels, in the shopper's language.
  *
  * A cached server view cannot know that language, so a word is drawn by the
  * `store-word` island, which reads it from the storefront dictionary. The

@@ -12,7 +12,6 @@ import {
   type CatalogCategory,
   type CatalogProduct,
   type ContentPageLink,
-  type ContentPageView,
   type PlaceOrderInput,
   type ProductListResult,
   type ShopperPrefs,
@@ -56,8 +55,6 @@ export const storefront = {
   campaign: (slug: string, campaignSlug: string) =>
     ["storefront", slug, "campaign", campaignSlug] as const,
   pages: (slug: string) => ["storefront", slug, "pages"] as const,
-  page: (slug: string, pageSlug: string) =>
-    ["storefront", slug, "page", pageSlug] as const,
   /**
    * One builder section's products as the editor preview re-queries them —
    * filed by the query itself (`requestSignature`), so two sections asking the
@@ -252,20 +249,6 @@ export const useStorePages = (slug: string, initialData?: ContentPageLink[]) =>
     queryFn: () => storefrontApi.listPages(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
-    initialData,
-  });
-
-// `initialData` (server-fetched in the CMS page's page.tsx) — the body is the
-// only content on that route, so without it the SSR HTML is a "Loading…" line.
-export const useStorePage = (
-  slug: string,
-  pageSlug: string,
-  initialData?: ContentPageView,
-) =>
-  useQuery({
-    queryKey: storefront.page(slug, pageSlug),
-    queryFn: () => storefrontApi.getPage(slug, pageSlug),
-    enabled: !!slug && !!pageSlug,
     initialData,
   });
 

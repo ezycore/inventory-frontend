@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import type { ApiImage } from "@/types/api";
 import { resolveFeatureMap } from "@/lib/feature-utils";
 import type {
   ApiResponse,
@@ -7,7 +8,6 @@ import type {
   PaginatedResponse,
   PlanChangeResult,
   ReferralLinkInfo,
-  StorefrontHeroSlide,
   StorefrontSettings,
   SubscriptionCancelResult,
   SubscriptionInfo,
@@ -400,11 +400,9 @@ export const organizationApi = {
   ): Promise<ApiResponse<StorefrontSettings>> =>
     apiClient.patch(`/organization/storefront/media`, data),
 
-  // POST /api/organization/storefront/media/hero-slide - Upload one storefront
-  // image (FormData `image`); returns uploadInfo to embed in a settings PATCH.
-  // Shared by hero slides and the announcement-bar background image.
-  uploadStorefrontImage: (
-    data: FormData,
-  ): Promise<ApiResponse<NonNullable<StorefrontHeroSlide["image"]>>> =>
-    apiClient.post(`/organization/storefront/media/hero-slide`, data),
+  // POST /api/organization/storefront/media/image - Upload one image the look
+  // embeds (FormData `image`): the announcement background, footer pictures and
+  // logos. Returns uploadInfo to put in the Site draft.
+  uploadStorefrontImage: (data: FormData): Promise<ApiResponse<ApiImage>> =>
+    apiClient.post(`/organization/storefront/media/image`, data),
 };

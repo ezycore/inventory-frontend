@@ -391,7 +391,6 @@ export const queryKeys = {
 
   campaigns: resourceKeys("campaigns"),
   coupons: resourceKeys("coupons"),
-  contentPages: resourceKeys("content-pages"),
   /** Storefront Builder pages. Revisions sit under the root, so a publish flushes them with the rest. */
   storefrontPages: {
     ...resourceKeys("storefront-pages"),

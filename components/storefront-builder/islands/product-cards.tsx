@@ -13,8 +13,8 @@ import { Grid, trimToWholeRows } from "@/components/storefront/home/home-shared"
  * `imageFit` / `imageRatio` are the section's own card photo settings
  * (`sectionCardMedia`); unset, the cards follow Customize → Product cards.
  *
- * `wholeRows` drops the cards a short last row would leave alone, as the classic
- * home grid does (`trimToWholeRows`); the section never asks for it on a
+ * `wholeRows` drops the cards a short last row would leave alone
+ * (`trimToWholeRows`); the section never asks for it on a
  * hand-picked row.
  *
  * Needs the store context and the seeded store query above it, like every

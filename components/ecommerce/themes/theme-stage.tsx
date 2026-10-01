@@ -7,7 +7,6 @@ import { Sparkles } from "lucide-react";
 import type { ReadyMadeTheme } from "@/lib/storefront-themes";
 import type { StorefrontSettings } from "@/types";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { SECTION_LABELS, SOURCE_LABELS } from "@/lib/storefront-section-ids";
 import {
   BrowserPreview,
   type PreviewPage,
@@ -87,19 +86,16 @@ export function ThemeStage({
           draft={draft}
           page={page}
           onPageChange={setPage}
-          // Neither Customize panel exists here, so neither force applies: the
-          // preview must show the hero source and menu the merchant really has.
-          forceHeroSlides={false}
+          // The collections panel does not exist here, so the preview must show
+          // the menu the merchant really has.
           forceCollectionsMenu={false}
           hasCollections={false}
-          // What an empty shop is previewed WITH — this theme's own trade, so a
-          // merchant with no catalogue yet still sees a pharmacy in Meridian and
-          // a grocery in Fresh Market rather than four blank shells. Their real
-          // products, categories and badges win wherever they have any.
+          // The departments an empty shop is previewed WITH — this theme's own
+          // trade, so a merchant with no catalogue yet still sees pharmacy
+          // departments in Meridian. Their real categories win when they have any.
           samples={theme.sample}
           socialWhatsapp={settings?.social?.whatsapp}
           logo={settings?.logo ?? orgLogo ?? null}
-          banner={settings?.banner ?? null}
           viewportHeight="min(66vh, 720px)"
         />
       ) : (
@@ -110,36 +106,15 @@ export function ThemeStage({
 
       {/* The honesty line for the sample content, and it belongs HERE rather
           than inside the preview: a banner painted over the shop would obscure
-          the very thing the merchant is trying to judge. Sample product names
-          are prefixed "Sample" for the same reason this exists, but departments
-          and promises are not — prefixing every rail entry would wreck the
-          layout being assessed, so the disclosure is made once, in the admin
-          chrome, where it cannot be mistaken for part of the design. */}
+          the very thing the merchant is trying to judge. The sample departments
+          are not labelled — prefixing every rail entry would wreck the layout
+          being assessed — so the disclosure is made once, in the admin chrome,
+          where it cannot be mistaken for part of the design. */}
       <p className="text-xs text-muted-foreground">
-        Sections your shop has no data for are filled with sample content so you
-        can see the layout. Your own products, collections and badges are shown
-        wherever you have them, and nothing here is saved.
+        If your shop has no collections yet, sample ones fill in so you can see
+        the layout. Your own collections are shown when you have them, and
+        nothing here is saved.
       </p>
-
-      {/* The running order in words, under the shop. The preview shows what the
-          page looks like; this says what it is MADE of, which is what separates
-          two themes that both look fine. */}
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">Home page:</span>
-        {/* Keyed by position, not by type: a composition may name the same
-            section twice — a featured grid and a new-arrivals grid are one
-            component now — and a repeated type would collide the pair. */}
-        {theme.sections.map((entry, i) => {
-          const type = typeof entry === "string" ? entry : entry.type;
-          const source = typeof entry === "string" ? undefined : entry.config?.source;
-          return (
-            <span key={`${type}-${i}`}>
-              {i > 0 ? <span className="mr-2 opacity-40">→</span> : null}
-              {(source && SOURCE_LABELS[source]) || SECTION_LABELS[type] || type}
-            </span>
-          );
-        })}
-      </div>
     </div>
   );
 }

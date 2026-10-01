@@ -7,11 +7,7 @@ const reply = (status: number) => new Response(status === 200 ? "{}" : null, { s
 async function load(responses: Record<string, number | Error>) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
     const url = String(input);
-    const key = url.endsWith("/page?path=%2F")
-      ? "home"
-      : url.includes("/page?path=")
-        ? "builder"
-        : "content";
+    const key = url.endsWith("/page?path=%2F") ? "home" : "builder";
     const outcome = responses[key];
     if (outcome instanceof Error) throw outcome;
     return reply(outcome ?? 404);
@@ -35,24 +31,18 @@ describe("storePageExists", () => {
     expect(String(fetchMock.mock.calls[0][0])).toContain("/storefront/rafi5/page?path=%2Fpages%2Feid-sale");
   });
 
-  it("falls through to the content page", async () => {
-    const { storePageExists, fetchMock } = await load({ builder: 404, content: 200 });
-    expect(await storePageExists("rafi5", "about")).toBe(true);
-    expect(String(fetchMock.mock.calls[1][0])).toContain("/storefront/rafi5/pages/about");
-  });
-
   it("never caches a miss, so a page published a moment later is served at once", async () => {
-    const { storePageExists, fetchMock } = await load({ builder: 404, content: 404 });
+    const { storePageExists, fetchMock } = await load({ builder: 404 });
     expect(await storePageExists("rafi5", "soon")).toBe(false);
     expect(await storePageExists("rafi5", "soon")).toBe(false);
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("answers yes while the API fails, so cached pages keep serving", async () => {
-    const down = await load({ builder: 503, content: 404 });
+    const down = await load({ builder: 503 });
     expect(await down.storePageExists("rafi5", "about")).toBe(true);
 
-    const unreachable = await load({ builder: new Error("ECONNREFUSED"), content: new Error("ECONNREFUSED") });
+    const unreachable = await load({ builder: new Error("ECONNREFUSED") });
     expect(await unreachable.storePageExists("rafi5", "about")).toBe(true);
   });
 
@@ -70,7 +60,7 @@ describe("storeHomePageExists", () => {
   beforeEach(() => vi.useRealTimers());
   afterEach(() => vi.unstubAllGlobals());
 
-  it("asks the page read for / and remembers a landing homepage", async () => {
+  it("asks the page read for / and remembers the homepage", async () => {
     const { storeHomePageExists, fetchMock } = await load({ home: 200 });
     expect(await storeHomePageExists("rafi5")).toBe(true);
     expect(await storeHomePageExists("rafi5")).toBe(true);
@@ -89,11 +79,15 @@ describe("storeHomePageExists", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("falls back to the Customize home while the API fails", async () => {
+  // "No" is a 404, so a
+  // backend blip keeps the cached home route serving what it already has.
+  it("keeps the home while the API fails", async () => {
     const down = await load({ home: 503 });
-    expect(await down.storeHomePageExists("rafi5")).toBe(false);
+    expect(await down.storeHomePageExists("rafi5")).toBe(true);
     const unreachable = await load({ home: new Error("ECONNREFUSED") });
-    expect(await unreachable.storeHomePageExists("rafi5")).toBe(false);
+    expect(await unreachable.storeHomePageExists("rafi5")).toBe(true);
+    const preview = await load({ home: 503 });
+    expect(await preview.storeHomePageExists("rafi5", "token-1")).toBe(true);
   });
 
   it("asks as the owner under preview, and never remembers that answer", async () => {
