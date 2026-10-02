@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
-import { getHeaderLineMeta, type ReceiptHeaderLine } from "@/types/receipt";
+import { getHeaderLineMeta, taxIdLineLabel, type ReceiptHeaderLine } from "@/types/receipt";
 import type { ReceiptSettingsActions } from "@/hooks";
 import { Button } from "@/ui/components/button";
 import { Input } from "@/ui/components/input";
@@ -79,7 +79,7 @@ export default function LetterheadLineRow({
           </div>
         ) : meta.editableLabel ? (
           <Input
-            value={line.label ?? ""}
+            value={(line.source === "taxId" ? taxIdLineLabel(line.label) : line.label) ?? ""}
             onChange={(e) => actions.setLineLabel(line.id, e.target.value)}
             placeholder={tLine("labelPlaceholderGeneric")}
           />

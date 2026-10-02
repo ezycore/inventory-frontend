@@ -21,7 +21,7 @@ describe("renderReceiptPreview — letterhead", () => {
     const html = body(base);
     // Identity block in the legacy order, top logo, default in-words caption.
     expect(html).toContain('<div class="org">Acme Traders</div>');
-    expect(html).toContain("Tax Reg. No: BIN-123");
+    expect(html).toContain("VAT Reg. No (BIN): BIN-123");
     expect(html).toContain("12 Market Rd");
     expect(html).toContain("017-000 · a@b.com");
     expect(html).toContain('<img class="logo"');
@@ -76,6 +76,20 @@ describe("renderReceiptPreview — letterhead", () => {
     expect(html).not.toContain('<div class="org">');
     // custom line precedes the contact line
     expect(html.indexOf("Trade Licence")).toBeLessThan(html.indexOf("017-000"));
+  });
+
+  it("prints the VAT label over a saved legacy 'Tax Reg. No' seed, but keeps a merchant label", () => {
+    const legacy = body({
+      ...base,
+      headerLines: [{ id: "1", source: "taxId", label: "Tax Reg. No", visible: true }],
+    });
+    expect(legacy).toContain("VAT Reg. No (BIN): BIN-123");
+    expect(legacy).not.toContain("Tax Reg. No");
+    const custom = body({
+      ...base,
+      headerLines: [{ id: "1", source: "taxId", label: "BIN", visible: true }],
+    });
+    expect(custom).toContain("BIN: BIN-123");
   });
 
   it("suppresses amount-in-words when toggled off, and uses a custom caption", () => {

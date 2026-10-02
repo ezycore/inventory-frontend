@@ -25,7 +25,7 @@ export type ReceiptHeaderLineSource =
 export interface ReceiptHeaderLine {
   id: string;
   source: ReceiptHeaderLineSource;
-  /** Optional prefix label (e.g. "Tax Reg. No"); also the caption for custom lines. */
+  /** Optional prefix label (e.g. "VAT Reg. No (BIN)"); also the caption for custom lines. */
   label?: string;
   /** Free text — only used when `source === "custom"`. */
   text?: string;
@@ -103,6 +103,14 @@ export const DEFAULT_META_FIELDS: Record<ReceiptMetaKey, boolean> = {
 export const DEFAULT_WATERMARK_OPACITY = 0.08;
 export const DEFAULT_AMOUNT_IN_WORDS_LABEL = "In words:";
 
+/**
+ * Older builders seeded the tax line with a literal "Tax Reg. No" label and
+ * orgs saved it verbatim. Treat that seed as unset so the translated
+ * "VAT Reg. No (BIN)" prints — a merchant-typed label still wins.
+ */
+export const taxIdLineLabel = (label: string | undefined): string | undefined =>
+  label && label.trim() !== "Tax Reg. No" ? label : undefined;
+
 /** Fresh id for a header line — see `utils/local-id.ts` for why it isn't inline. */
 export const newLineId = (): string => newLocalId("line");
 
@@ -115,7 +123,7 @@ export const newLineId = (): string => newLocalId("line");
 export const seedHeaderLines = (): ReceiptHeaderLine[] =>
   [
     { source: "orgName" as const },
-    { source: "taxId" as const, label: "Tax Reg. No" },
+    { source: "taxId" as const },
     { source: "storeName" as const },
     { source: "address" as const },
     { source: "contact" as const },
