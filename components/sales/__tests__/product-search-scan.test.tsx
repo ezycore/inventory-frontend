@@ -92,6 +92,15 @@ describe("ProductSearch — one box for scanning and searching", () => {
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ value: "inv-2" }));
   });
 
+  it("Enter picks the first match even after typing narrowed the list", () => {
+    const { onSelect, input } = setup();
+    // "s" lists both products (gloves first); "sy" leaves only the syringe. The
+    // highlight must follow, or Enter lands on a row that is no longer there.
+    typeThenEnter(input, "sy", 150);
+
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ value: "inv-2" }));
+  });
+
   it("looks up a hand-typed code that matches no product", () => {
     const { onScan, onSelect, input } = setup();
     typeThenEnter(input, "4006381333931", 150);

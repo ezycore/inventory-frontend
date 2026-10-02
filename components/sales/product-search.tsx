@@ -140,6 +140,16 @@ export function ProductSearch({
     [onSelect, castProducts],
   );
 
+  // The highlighted row, which Enter picks. Kept on a row that is still in the
+  // list: cmdk only re-highlights when its own <CommandInput> types, and this
+  // box is a plain input, so narrowing the results ("i" → "insulin") left the
+  // highlight on a row that had been filtered out and Enter did nothing. The
+  // arrow keys still move it (`onValueChange`).
+  const [active, setActive] = useState("");
+  const activeValue = filteredProducts.some((p) => p.value === active)
+    ? active
+    : (filteredProducts[0]?.value ?? "");
+
   const submitScan = useCallback(
     (code: string) => {
       onScan?.(code);
@@ -154,6 +164,8 @@ export function ProductSearch({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <Command
         shouldFilter={false}
+        value={activeValue}
+        onValueChange={setActive}
         className="overflow-visible bg-transparent"
       >
         <PopoverAnchor asChild>

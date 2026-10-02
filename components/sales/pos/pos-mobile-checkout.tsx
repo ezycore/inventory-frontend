@@ -28,6 +28,9 @@ export function PosMobileCheckout({ ctx }: { ctx: SellPageContext }) {
   const tSummary = useTranslations("sales.sell.summary");
   const [open, setOpen] = useState(false);
   const hasItems = ctx.items.length > 0;
+  // The sale (or draft) emptied the cart: shut for good, not just hide —
+  // otherwise the next product tapped pops the sheet back over the browser.
+  if (open && !hasItems) setOpen(false);
 
   return (
     <>
@@ -42,8 +45,14 @@ export function PosMobileCheckout({ ctx }: { ctx: SellPageContext }) {
           <ArrowRight className="size-5" />
         </Button>
       </div>
-      <Sheet open={open && hasItems} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-2xl">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[92dvh] overflow-y-auto rounded-t-2xl"
+          // Focusing the first field would pop the phone keyboard over the
+          // totals the cashier opened this to read.
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <SheetHeader>
             <SheetTitle>{t("checkout")}</SheetTitle>
             <SheetDescription>{tSummary("totalAmount")}: {formatCurrency(ctx.totalSalePrice)}</SheetDescription>

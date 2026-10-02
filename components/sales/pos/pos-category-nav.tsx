@@ -56,7 +56,7 @@ export function PosCategoryNav({
     return (
       <nav
         aria-label={t("categories")}
-        className="hidden w-44 shrink-0 flex-col gap-0.5 overflow-y-auto border-r bg-muted/30 p-1.5 @2xl:flex @5xl:w-52"
+        className="hidden w-48 shrink-0 flex-col gap-0.5 overflow-y-auto border-r bg-muted/30 p-1.5 @2xl:flex @4xl:w-56"
       >
         {entries.map((entry) => {
           const active = selected === entry.id;
@@ -75,7 +75,7 @@ export function PosCategoryNav({
               )}
             >
               <CategoryMark category={entry.category} active={active} />
-              <span className="min-w-0 flex-1 truncate">{entry.name}</span>
+              <span className="line-clamp-2 min-w-0 flex-1 leading-tight">{entry.name}</span>
               <span className="text-xs tabular-nums text-muted-foreground">{entry.count}</span>
             </button>
           );

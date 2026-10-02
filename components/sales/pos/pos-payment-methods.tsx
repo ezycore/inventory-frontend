@@ -22,7 +22,12 @@ export function PosPaymentMethods({ ctx }: { ctx: SellPageContext }) {
   return (
     <div className="space-y-1.5">
       <div className="text-sm font-medium">{t("paymentMethod")}</div>
-      <div role="radiogroup" aria-label={t("paymentMethod")} className="grid grid-cols-3 gap-1.5">
+      {/* As many per row as fit whole names — "bKash Merchant" must not truncate. */}
+      <div
+        role="radiogroup"
+        aria-label={t("paymentMethod")}
+        className="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-1.5"
+      >
         {accounts.map((account) => {
           const active = selected === account._id;
           return (
