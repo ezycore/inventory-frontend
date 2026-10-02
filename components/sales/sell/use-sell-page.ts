@@ -1,6 +1,6 @@
 "use client";
 // coding-standard: maintained
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -23,7 +23,7 @@ import {
   useFinalizeDraftSale,
 } from "@/services/api";
 import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
-import { useAuthStore, useSellPageStore } from "@/services/stores";
+import { useAuthStore, useSellPageStore, type SellOrderItem } from "@/services/stores";
 import { applyDiscountWithPriority, type DiscountType } from "@/utils/discount";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
 import { useCurrency } from "@/lib/currency";
@@ -93,7 +93,28 @@ const toSaleItemPayload = (item: {
         ...(item.batchId ? { batchId: item.batchId } : {}),
       };
 
-export function useSellPage() {
+/**
+ * What differs between the screens that sell through this hook — New Sale
+ * (`/sales`) and the full-screen POS counter (`/sales/pos`). Everything else
+ * (cart, discounts, credit, drafts, payment, receipt) is the same code path.
+ */
+export interface SellPageOptions {
+  /** The screen's own route: a finalized draft lands back here. */
+  homePath?: string;
+  /**
+   * After a draft is saved: open the drafts list (New Sale), or stay on this
+   * screen ready for the next customer (the POS counter).
+   */
+  afterDraftSave?: "history" | "stay";
+  /** Photo beside each cart line's name. */
+  renderThumb?: (item: SellOrderItem) => ReactNode;
+}
+
+export function useSellPage({
+  homePath = "/sales",
+  afterDraftSave = "history",
+  renderThumb,
+}: SellPageOptions = {}) {
   const t = useTranslations("sales.sell");
   const tPrintDoc = useTranslations("common.printDoc");
   const locale = useLocale() as AppLocale;
@@ -190,6 +211,21 @@ export function useSellPage() {
       customerForm.setValue("accountId", defaultAccount._id);
     }
   }, [isAccountsEnabled, defaultAccount, customerForm]);
+
+  // Back to the state the screen opened in: default customer, default payment
+  // account, nothing paid. Resetting to `{ paidAmount, notes }` alone emptied
+  // both pickers, so the next sale stopped on "select a customer" / "select a
+  // payment account" — every sale, at a counter.
+  const resetCustomerForm = useCallback(() => {
+    customerForm.reset({
+      customerId: defaultCustomer,
+      accountId: defaultAccountType || defaultAccount?._id,
+      discountType: "percentage",
+      discountValue: 0,
+      paidAmount: 0,
+      notes: "",
+    });
+  }, [customerForm, defaultCustomer, defaultAccountType, defaultAccount]);
 
   // Hydrate sell-page store from a draft sale when ?draftId is present
   useEffect(() => {
@@ -351,8 +387,9 @@ export function useSellPage() {
         (id, batchId) => updateItem(id, { batchId }),
         isExpiryEnabled,
         isTaxEnabled,
+        renderThumb,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled, t],
+    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled, renderThumb, t],
   );
   const salesColumns = useCostGatedColumns(allSalesColumns);
 
@@ -382,6 +419,19 @@ export function useSellPage() {
         toast.error(t("toasts.outOfStock", { name: product.label }));
         return;
       }
+      // Already in the cart: one more, not a fresh line. The store's `addItem`
+      // REPLACES a line with the same inventory row, so scanning the same box
+      // twice used to leave a quantity of 1.
+      const existing = items.find((line) => line.inventoryId === product.value);
+      if (existing) {
+        const max = existing.availableQuantity ?? Number.MAX_SAFE_INTEGER;
+        if (existing.quantity >= max) {
+          toast.error(t("toasts.maxStock", { name: product.label, count: max }));
+          return;
+        }
+        updateItem(existing.id, { quantity: existing.quantity + 1 });
+        return;
+      }
       const { value: inventoryId, label: productName, price, costPrice, productId, variantId, availableQuantity, tracked } = product;
       const discountType = customerForm.getValues("discountType");
       const discountValue = customerForm.getValues("discountValue");
@@ -405,7 +455,7 @@ export function useSellPage() {
         comboProductId: product.comboProductId,
       });
     },
-    [addItem, customerForm, t],
+    [addItem, updateItem, items, customerForm, t],
   );
 
   // Barcode scan-to-add: look up by code → shape into ExtractedProduct → re-use selector
@@ -577,21 +627,21 @@ export function useSellPage() {
           } as unknown as Sale["createdBy"],
         });
         clearAll();
-        customerForm.reset({ paidAmount: 0, notes: "" });
+        resetCustomerForm();
         setPaidAmount(0);
         setLocalAdditionalDiscount(0);
         setUseCreditBalance(false);
         setCreditBalanceAmount(0);
         if (isDraftMode) {
           hydratedDraftIdRef.current = null;
-          router.replace("/sales");
+          router.replace(homePath);
         }
       }
     } catch (error) {
       console.error("Failed to complete sale:", error);
       toast.error(t("toasts.saleFailed"));
     }
-  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, user, t]);
+  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, homePath, resetCustomerForm, user, t]);
 
   // Reprint the just-completed sale's receipt (paper chosen in the PrintMenu).
   const printLastReceipt = useCallback(
@@ -637,12 +687,15 @@ export function useSellPage() {
         });
         hydratedDraftIdRef.current = null;
         clearAll();
-        customerForm.reset({ paidAmount: 0, notes: "" });
+        resetCustomerForm();
         setPaidAmount(0);
         setLocalAdditionalDiscount(0);
         setUseCreditBalance(false);
         setCreditBalanceAmount(0);
-        router.push("/sales/history?status=draft");
+        // Staying still has to drop `?draftId=`, or the cleared screen would keep
+        // editing the draft that was just saved.
+        if (afterDraftSave === "stay") router.replace(homePath);
+        else router.push("/sales/history?status=draft");
       } else {
         const draftPayload: CreateSalesOrderData = {
           customerId: updatedCustomerId as string,
@@ -656,18 +709,18 @@ export function useSellPage() {
         const createResult = await mutateAsync(draftPayload);
         if (createResult.data?.sale?._id) {
           clearAll();
-          customerForm.reset({ paidAmount: 0, notes: "" });
+          resetCustomerForm();
           setPaidAmount(0);
           setLocalAdditionalDiscount(0);
           setUseCreditBalance(false);
           setCreditBalanceAmount(0);
-          router.push("/sales/history?status=draft");
+          if (afterDraftSave !== "stay") router.push("/sales/history?status=draft");
         }
       }
     } catch (error) {
       console.error("Failed to save draft:", error);
     }
-  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, router, isTaxEnabled, t]);
+  }, [items, customerId, notes, getTotalCostPrice, localAdditionalDiscount, customerForm, isDraftMode, draftId, updateDraftMutation, mutateAsync, clearAll, resetCustomerForm, router, homePath, afterDraftSave, isTaxEnabled, t]);
 
   // Preview tax rollup (backend recomputes on save). Grand total drives payment math.
   const taxResult = computeOrderTax(toTaxInputs(items, isTaxEnabled), localAdditionalDiscount);
@@ -721,6 +774,11 @@ export function useSellPage() {
     // store passthroughs
     items,
     clearAll,
+    // per-line edits, for a cart drawn without `salesColumns` (the POS phone cards)
+    updateItem,
+    removeItem,
+    handleUpdateDiscount,
+    isExpiryEnabled,
     isPending,
     isSavingDraft: updateDraftMutation.isPending,
     isFinalizing: finalizeDraftMutation.isPending,

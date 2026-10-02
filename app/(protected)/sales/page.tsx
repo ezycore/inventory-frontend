@@ -13,8 +13,10 @@ import PageHeader from "@/ui/components/header";
 import { Separator } from "@/ui/components/separator";
 import { useAuthStore } from "@/services/stores";
 import { useConfirm } from "@/hooks/use-confirm";
-import { Trash2 } from "lucide-react";
+import { POS_PATH } from "@/constants/pos";
+import { MonitorSmartphone, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { Suspense, useMemo } from "react";
 
 function SalesPageContent() {
@@ -22,7 +24,10 @@ function SalesPageContent() {
   const tForm = useTranslations("sales.sell.form");
   const customerFormConfig = useMemo(() => getCustomerFormConfig(tForm), [tForm]);
   const ctx = useSellPage();
-  const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect, handleBarcodeScan } = ctx;
+  const { items, salesColumns, clearAll, customerForm, handleFieldChange, handleProductSelect, handleBarcodeScan, draftId } = ctx;
+  // Carry an open draft across: the cart store is shared, so without the id the
+  // counter would post the draft's lines as a NEW sale and leave the draft behind.
+  const posHref = draftId ? `${POS_PATH}?draftId=${draftId}` : POS_PATH;
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem);
   const { confirm, ConfirmDialog } = useConfirm({
     title: t("clearAllTitle"),
@@ -38,7 +43,18 @@ function SalesPageContent() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title={t("title")} subTitle={t("subtitle")} />
+      <PageHeader
+        title={t("title")}
+        subTitle={t("subtitle")}
+        actions={
+          <Button asChild variant="outline">
+            <Link href={posHref}>
+              <MonitorSmartphone className="size-4" />
+              {t("openPos")}
+            </Link>
+          </Button>
+        }
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <Card>
