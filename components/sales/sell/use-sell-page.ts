@@ -422,7 +422,14 @@ export function useSellPage({
       // Already in the cart: one more, not a fresh line. The store's `addItem`
       // REPLACES a line with the same inventory row, so scanning the same box
       // twice used to leave a quantity of 1.
-      const existing = items.find((line) => line.inventoryId === product.value);
+      // Read the cart from the store, not this render: a barcode scan awaits a
+      // lookup first, and two quick scans would both see the cart from before
+      // either landed. Keeping `items` out of the deps also keeps this callback
+      // (and `handleBarcodeScan`) stable, so the camera scanner isn't torn down
+      // on every cart change.
+      const existing = useSellPageStore
+        .getState()
+        .items.find((line) => line.inventoryId === product.value);
       if (existing) {
         const max = existing.availableQuantity ?? Number.MAX_SAFE_INTEGER;
         if (existing.quantity >= max) {
@@ -455,7 +462,7 @@ export function useSellPage({
         comboProductId: product.comboProductId,
       });
     },
-    [addItem, updateItem, items, customerForm, t],
+    [addItem, updateItem, customerForm, t],
   );
 
   // Barcode scan-to-add: look up by code → shape into ExtractedProduct → re-use selector
