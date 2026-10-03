@@ -8,6 +8,7 @@ import type {
   ReceiptMetaFields,
   ReceiptMetaKey,
 } from "@/types/receipt";
+import { taxIdLineLabel } from "@/types/receipt";
 import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format";
@@ -240,7 +241,7 @@ const renderHeaderLine = (
         : "";
     case "taxId":
       return header.taxId
-        ? `<div class="muted contact">${escapeHtml(line.label || tr(t)("taxRegNo", "Tax Reg. No"))}: ${escapeHtml(header.taxId)}</div>`
+        ? `<div class="muted contact">${escapeHtml(taxIdLineLabel(line.label) || tr(t)("taxRegNo", "VAT Reg. No (BIN)"))}: ${escapeHtml(header.taxId)}</div>`
         : "";
     case "storeName":
       return header.storeName
