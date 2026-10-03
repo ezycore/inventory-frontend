@@ -6,6 +6,7 @@ order: 60
 covers_routes:
   - /sales
   - /sales/history
+  - /sales/pos
 features:
   - sales
 ui_labels:
@@ -19,6 +20,10 @@ ui_labels:
   - sales:sell.cart.autoFefo
   - sales:history.title
   - sales:history.walkInCustomer
+  - sales:sell.openPos
+  - sales:pos.exit
+  - sales:pos.checkout
+  - sales:pos.browse.tabBrowse
 ---
 
 # Make a sale
@@ -44,6 +49,24 @@ finalising.
 
 If the customer has credit on their account, **Use store credit** appears and can be applied to the
 sale.
+
+## The full-screen counter (POS)
+
+**Open POS** on New Sale (or **POS** in the sidebar) opens the same sale on the whole screen, made
+for a till with a barcode scanner:
+
+- One box scans and searches. A scanner adds the item straight away; typing a name lists matches
+  with their photos. Press **F2** to jump back to the box from anywhere.
+- **F4** jumps to the customer and **F8** confirms the order.
+- **Browse products** shows your stock as photo tiles, by category — tap a tile to add one, and a
+  product with sizes asks which. **Cart** shows what is in the sale, with the running total on the tab.
+  Scanning or picking the same item again adds one more.
+- Customer discount, store credit, drafts, payment and receipts work exactly as on **New Sale** — it
+  is the same sale, and the cart carries over between the two screens.
+- **Save as Draft** keeps you on the counter, ready for the next customer.
+- On a phone the cart shows as cards, the camera button scans barcodes, and **Checkout** opens the
+  payment.
+- **Exit to dashboard** in the top corner leaves the counter.
 
 ## Batches and expiry
 

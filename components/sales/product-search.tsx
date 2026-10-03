@@ -13,10 +13,14 @@ import {
 } from "@/ui/components/command";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/components/popover";
 import { Input } from "@/ui/components/input";
-import { Package, Search } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Package, ScanBarcode, Search } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, type RefObject } from "react";
 import Fuse from "fuse.js";
+import { useKeyboardWedgeScan } from "@/hooks/use-keyboard-wedge-scan";
+import { toWestern } from "@/lib/parse-bd-address";
+import { cn } from "@ui/lib/utils";
 import { productItemsCreateCallback } from "./helpers";
+import { ProductThumb } from "./product-thumb";
 import { ExtractedProduct } from "./types";
 
 interface SellableProduct {
@@ -47,6 +51,26 @@ interface ProductSearchProps {
    */
   source?: ExtractedProduct[];
   loading?: boolean;
+  /**
+   * Make this ONE box for scanning and searching (the POS counter). A
+   * keyboard-wedge scanner's burst ending in Enter calls `onScan(code)` instead
+   * of picking from the list, and so does Enter on typed text that matches
+   * nothing — a barcode keyed in by hand. A barcode typed in full lists its
+   * product as the only result.
+   */
+  onScan?: (code: string) => void;
+  /** productId → photo URL. When set, rows show the photo instead of the box icon. */
+  thumbnails?: Map<string, string>;
+  /** `lg` for the counter: a taller box for a touch screen and a scanner. */
+  size?: "default" | "lg";
+  /** Lets the caller focus the box (the POS F2 shortcut). */
+  inputRef?: RefObject<HTMLInputElement | null>;
+  /**
+   * Whether focusing the empty box lists every product (default). The POS
+   * passes `false`: it focuses the box on arrival and after every scan, and has
+   * its own Browse tab — there the list opens only once the cashier types.
+   */
+  openOnFocus?: boolean;
 }
 
 export function ProductSearch({
@@ -54,12 +78,19 @@ export function ProductSearch({
   placeholder,
   source,
   loading,
+  onScan,
+  thumbnails,
+  size = "default",
+  inputRef: externalRef,
+  openOnFocus = true,
 }: ProductSearchProps) {
   const t = useTranslations("sales.sell.search");
   const resolvedPlaceholder = placeholder ?? t("products");
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const ownRef = useRef<HTMLInputElement>(null);
+  const inputRef = externalRef ?? ownRef;
+  const scan = useKeyboardWedgeScan();
 
   // A `null` url short-circuits the query, so a caller supplying `source` never
   // pays for the POS list it is not going to show.
@@ -83,11 +114,19 @@ export function ProductSearch({
     [castProducts],
   );
 
-  // Fuzzy-filtered results
+  // Fuzzy-filtered results. In scan mode a full barcode is an exact hit, not
+  // a fuzzy one — digits fuzzy-match half the catalogue.
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return castProducts;
-    return fuse.search(search).map((result) => result.item);
-  }, [search, fuse, castProducts]);
+    const term = search.trim();
+    if (!term) return castProducts;
+    if (onScan) {
+      // With Avro/Bijoy on, a scanner "types" Bangla digits (৮৯০…).
+      const code = toWestern(term);
+      const exact = castProducts.filter((p) => p.barcode === code);
+      if (exact.length) return exact;
+    }
+    return fuse.search(term).map((result) => result.item);
+  }, [search, fuse, castProducts, onScan]);
 
   const handleSelect = useCallback(
     (productValue: string) => {
@@ -101,15 +140,41 @@ export function ProductSearch({
     [onSelect, castProducts],
   );
 
+  // The highlighted row, which Enter picks. Kept on a row that is still in the
+  // list: cmdk only re-highlights when its own <CommandInput> types, and this
+  // box is a plain input, so narrowing the results ("i" → "insulin") left the
+  // highlight on a row that had been filtered out and Enter did nothing. The
+  // arrow keys still move it (`onValueChange`).
+  const [active, setActive] = useState("");
+  const activeValue = filteredProducts.some((p) => p.value === active)
+    ? active
+    : (filteredProducts[0]?.value ?? "");
+
+  const submitScan = useCallback(
+    (code: string) => {
+      onScan?.(code);
+      setSearch("");
+      setIsOpen(false);
+      scan.reset();
+    },
+    [onScan, scan],
+  );
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <Command
         shouldFilter={false}
+        value={activeValue}
+        onValueChange={setActive}
         className="overflow-visible bg-transparent"
       >
         <PopoverAnchor asChild>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {onScan ? (
+              <ScanBarcode className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-primary", size === "lg" ? "h-5 w-5" : "h-4 w-4")} />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            )}
             <Input
               ref={inputRef}
               value={search}
@@ -117,15 +182,36 @@ export function ProductSearch({
                 setSearch(e.target.value);
                 if (!isOpen) setIsOpen(true);
               }}
-              onFocus={() => setIsOpen(true)}
+              onFocus={() => {
+                if (openOnFocus || search.trim()) setIsOpen(true);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   setIsOpen(false);
                   inputRef.current?.blur();
+                  return;
                 }
+                if (!onScan) return;
+                const term = search.trim();
+                // Ahead of the list's own Enter (it bubbles to `Command`
+                // next): a scanner burst or an unmatched code is a barcode,
+                // not a pick from the list.
+                if (
+                  e.key === "Enter" &&
+                  term &&
+                  (scan.isScan() || filteredProducts.length === 0)
+                ) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  submitScan(toWestern(term));
+                  return;
+                }
+                scan.track(e.key);
               }}
               placeholder={resolvedPlaceholder}
-              className="pl-9"
+              autoComplete="off"
+              spellCheck={false}
+              className={cn(size === "lg" ? "h-12 pl-11 text-base" : "pl-9")}
             />
           </div>
         </PopoverAnchor>
@@ -167,7 +253,11 @@ export function ProductSearch({
                       onSelect={handleSelect}
                       className="flex items-center gap-3 px-3 py-2.5"
                     >
-                      <Package className="h-5 w-5 text-muted-foreground/50 shrink-0" />
+                      {thumbnails ? (
+                        <ProductThumb src={thumbnails.get(product.productId)} />
+                      ) : (
+                        <Package className="h-5 w-5 text-muted-foreground/50 shrink-0" />
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="min-w-0 font-medium text-sm break-words">
