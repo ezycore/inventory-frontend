@@ -7,8 +7,13 @@ import { cn } from "@ui/lib/utils";
  * Camera-based barcode scanner using `@zxing/browser`.
  * Lazy-loads zxing so it doesn't bloat the initial bundle.
  *
- * Calls `onDetect(code)` for every successful read. Caller is responsible for
- * debouncing duplicates if needed (we debounce identical codes for 1s here).
+ * Calls `onDetect(code)` once per code put in front of the camera. A code held
+ * in view keeps being decoded every frame; it fires again only after it has
+ * been out of view for `duplicateDebounceMs`. (A fixed window from the last
+ * accepted read re-fired a held code every second — a POS adding +1 per tick.)
+ *
+ * `onDetect` / `onError` are read through refs, so a caller passing a fresh
+ * callback each render doesn't stop and restart the camera.
  */
 export interface BarcodeScannerProps {
   onDetect: (code: string) => void;
@@ -16,7 +21,7 @@ export interface BarcodeScannerProps {
   className?: string;
   /** Show a stop button (caller-controlled via `active` is preferred). */
   active?: boolean;
-  /** Debounce same-code reads. Default 1000ms. */
+  /** How long a code must be out of view before it can fire again. Default 1000ms. */
   duplicateDebounceMs?: number;
 }
 
@@ -30,6 +35,12 @@ export function BarcodeScanner({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const lastCode = useRef<{ code: string; at: number } | null>(null);
+  const onDetectRef = useRef(onDetect);
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onDetectRef.current = onDetect;
+    onErrorRef.current = onError;
+  });
   const [status, setStatus] = useState<"idle" | "starting" | "running" | "error">(
     "idle",
   );
@@ -62,14 +73,16 @@ export function BarcodeScanner({
                 lastCode.current.code === code &&
                 now - lastCode.current.at < duplicateDebounceMs
               ) {
+                // Still in view: push the window forward, don't fire.
+                lastCode.current.at = now;
                 return;
               }
               lastCode.current = { code, at: now };
-              onDetect(code);
+              onDetectRef.current(code);
             }
             // ignore per-frame "NotFound" errors silently
-            if (err && err.name !== "NotFoundException" && onError) {
-              onError(err);
+            if (err && err.name !== "NotFoundException") {
+              onErrorRef.current?.(err);
             }
           },
         );
@@ -77,7 +90,7 @@ export function BarcodeScanner({
         setStatus("running");
       } catch (e) {
         setStatus("error");
-        onError?.(e as Error);
+        onErrorRef.current?.(e as Error);
       }
     })();
 
@@ -90,7 +103,7 @@ export function BarcodeScanner({
       }
       controlsRef.current = null;
     };
-  }, [active, onDetect, onError, duplicateDebounceMs]);
+  }, [active, duplicateDebounceMs]);
 
   return (
     <div className={cn("relative w-full overflow-hidden rounded-md bg-black", className)}>
