@@ -2,6 +2,7 @@
 // coding-standard: maintained
 import { UserAvatarProfile } from "@/components/user-avatar-profile";
 import { navGroups } from "@/constants/navItem";
+import { APP_VERSION_LABEL } from "@/constants/app-version";
 import { useLogout } from "@/hooks";
 import { useCanManageBilling } from "@/hooks/use-has-permission";
 import { filterNavItems, navLinkTarget } from "@/lib/nav-utils";
@@ -329,6 +330,11 @@ export default function AppSidebar() {
                     <LogOutIcon className="mr-2 h-4 w-4" />
                     {tUserMenu("logout")}
                   </DropdownMenuItem>
+                  {APP_VERSION_LABEL && (
+                    <div className="px-2 pt-1.5 pb-1 text-[11px] tabular-nums text-muted-foreground">
+                      {APP_VERSION_LABEL}
+                    </div>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>

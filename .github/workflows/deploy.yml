@@ -22,13 +22,18 @@ jobs:
 
       - name: Resolve environment
         id: env
+        # The release comes from package.json (see CHANGELOG.md). Production images
+        # are tagged with it (`:1.0.0`, the rollback handle); staging gets `-rc`.
         run: |
+          VERSION=$(node -p "require('./package.json').version")
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "tag=production" >> "$GITHUB_OUTPUT"
             echo "dir=production" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "tag=staging" >> "$GITHUB_OUTPUT"
             echo "dir=staging" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION-rc" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Log in to GHCR
@@ -48,8 +53,10 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ github.ref_name == 'main' && secrets.NEXT_PUBLIC_API_URL_PROD || secrets.NEXT_PUBLIC_API_URL_STAGING }}
             NEXT_PUBLIC_ROOT_DOMAIN=${{ github.ref_name == 'main' && 'ezycore.com' || '' }}
             NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN=${{ github.ref_name == 'main' && 'ezycore.com' || '' }}
+            NEXT_PUBLIC_GIT_SHA=${{ github.sha }}
           tags: |
             ${{ env.IMAGE }}:${{ steps.env.outputs.tag }}
+            ${{ env.IMAGE }}:${{ steps.env.outputs.version }}
             ${{ env.IMAGE }}:${{ github.sha }}
 
       - name: Deploy over SSH
@@ -77,5 +84,5 @@ jobs:
           token: ${{ github.ref_name == 'main' && secrets.TELEGRAM_BOT_TOKEN_PROD || secrets.TELEGRAM_BOT_TOKEN_STAGING }}
           format: html
           message: |
-            ${{ job.status == 'success' && '✅' || '❌' }} <b>${{ github.event.repository.name }}</b> → ${{ steps.env.outputs.tag }} (${{ job.status }})
+            ${{ job.status == 'success' && '✅' || '❌' }} <b>${{ github.event.repository.name }}</b> v${{ steps.env.outputs.version }} → ${{ steps.env.outputs.tag }} (${{ job.status }})
             ${{ github.actor }}: ${{ github.event.head_commit.message }}
