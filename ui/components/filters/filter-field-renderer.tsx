@@ -134,6 +134,11 @@ export function FilterFieldRenderer({
             options={selectOptions}
             optionsApi={optionsApi ?? undefined}
             disabled={awaitingDependency}
+            // A filter is undone as often as it is set: the placeholder ("All
+            // brands") heads the menu as the way back, and the ✕ stays visible
+            // because a touch screen never hovers to reveal it.
+            clearOptionLabel={isMulti ? undefined : field.placeholder}
+            alwaysShowClear={!isMulti}
             className={cn(controlClassName)}
           />
         );

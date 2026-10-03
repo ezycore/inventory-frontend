@@ -34,6 +34,12 @@ export interface StorefrontImage {
   url?: string;
   mediumUrl?: string;
   thumbnailUrl?: string;
+  /**
+   * 2560px rendition — only builder section pictures uploaded since 2026-10-03,
+   * and only when the source was wider than 1600px. Lets a full-width hero stay
+   * sharp on a Retina desktop.
+   */
+  largeUrl?: string;
 }
 
 /**

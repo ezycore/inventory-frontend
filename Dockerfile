@@ -18,6 +18,10 @@ ENV NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN=$NEXT_PUBLIC_STOREFRONT_ROOT_DOMAIN
 # Custom domain → store slug JSON map (wired manually per merchant, see .env.example).
 ARG NEXT_PUBLIC_CUSTOM_DOMAIN_MAP
 ENV NEXT_PUBLIC_CUSTOM_DOMAIN_MAP=$NEXT_PUBLIC_CUSTOM_DOMAIN_MAP
+# Build commit, shown next to the release in the user menu (version itself comes
+# from package.json via next.config.mjs).
+ARG NEXT_PUBLIC_GIT_SHA
+ENV NEXT_PUBLIC_GIT_SHA=$NEXT_PUBLIC_GIT_SHA
 RUN pnpm build
 
 # ---- runner ----

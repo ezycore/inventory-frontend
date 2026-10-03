@@ -120,6 +120,11 @@ export function FilterBar({ config, className }: FilterBarProps) {
   });
 
   const visibleInline = inlineEligible.slice(0, visibleCount);
+  const visibleNames = new Set(visibleInline.map((f) => f.name));
+  /** What the panel still has to offer: the overflow plus the panel-only types. */
+  const panelFieldNames = fields
+    .filter((f) => !visibleNames.has(f.name))
+    .map((f) => f.name);
   const hasHiddenInline = visibleCount < inlineEligible.length;
   const hasPanelOnlyFields = fields.length > inlineEligible.length;
   // Show the Filters button whenever something isn't reachable inline.
@@ -153,7 +158,9 @@ export function FilterBar({ config, className }: FilterBarProps) {
         const value = isFreeText
           ? state.filterInputs[field.name]
           : state.values[field.name];
-        const active = value !== "" && value != null;
+        const active = Array.isArray(value)
+          ? value.length > 0
+          : value !== "" && value != null;
         // ITEM_WIDTH is the target width, not a floor — a chip may squeeze when the
         // overflow measurement is momentarily stale (first paint renders them all,
         // before the effect runs). Non-shrinkable chips instead pushed the document
@@ -164,6 +171,14 @@ export function FilterBar({ config, className }: FilterBarProps) {
             className="relative min-w-24 shrink"
             style={{ width: widthOf(field) }}
           >
+            {/* Set, a chip shows its value ("EverGood") and nothing else — so
+                the filter's name sits on the border, and the box is tinted, or
+                three set chips read as three unexplained words. */}
+            {active && (
+              <span className="pointer-events-none absolute -top-1.5 left-2 z-10 max-w-[calc(100%-1rem)] truncate rounded-sm bg-background px-1 text-[10px] font-medium leading-3 text-primary">
+                {field.label}
+              </span>
+            )}
             <FilterFieldRenderer
               field={field}
               value={value}
@@ -177,7 +192,10 @@ export function FilterBar({ config, className }: FilterBarProps) {
               // 36px against its 32px neighbours — a visibly taller box in the
               // middle of the row. twMerge lets the later class win, so stating
               // the floor here is what actually sets the height.
-              controlClassName="h-8 min-h-8"
+              controlClassName={cn(
+                "h-8 min-h-8",
+                active && "border-primary/60 bg-primary/5",
+              )}
               onChange={(v) =>
                 isFreeText
                   ? state.setFilterDebounced(field.name, v)
@@ -204,7 +222,13 @@ export function FilterBar({ config, className }: FilterBarProps) {
 
       {showPanelButton && (
         <div className="shrink-0">
-          <FilterPanel config={config} state={state} showReset={false} />
+          <FilterPanel
+            config={config}
+            state={state}
+            showReset={false}
+            fieldNames={panelFieldNames}
+            live
+          />
         </div>
       )}
 

@@ -94,11 +94,15 @@ export const navGroups: NavGroup[] = [
         anyFeatures: ["sales", "storefront"],
         items: [
           {
+            // Out of the menu since POS shipped — every "new sale" entry point
+            // opens POS now. Kept in the table so `/sales` stays gated on its
+            // own `sales.create` + `sales` rather than the group's union.
             title: "New Sale",
             url: "/sales",
             permissions: ["sales.create"],
             icon: "shopping-cart",
             features: ["sales"],
+            hideInMenu: true,
           },
           {
             // The full-screen counter (constants/pos.ts). Same gates as New
@@ -108,6 +112,7 @@ export const navGroups: NavGroup[] = [
             permissions: ["sales.create"],
             icon: "scan-barcode",
             features: ["sales"],
+            openInNewTab: true,
           },
           {
             // Online orders are sales, so they live with the ledger rather than

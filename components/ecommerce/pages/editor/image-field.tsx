@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { handleMutationError } from "@/lib/error-handling";
 import { storefrontPagesApi } from "@/services/api";
 import { MediaField } from "@/components/ecommerce/customize/media-field";
-import { RICH_IMAGE_MAX_BYTES } from "@/components/shared/rich-text-editor/image-upload";
+
+/**
+ * Mirrors the backend's `uploadLargeImageConfig` (15MB) on the section upload:
+ * a full-width hero straight off a camera is routinely past 5MB, and the
+ * backend re-encodes it to webp anyway.
+ */
+const SECTION_IMAGE_MAX_BYTES = 15 * 1024 * 1024;
 
 const urlOf = (value: unknown): string | undefined => {
   if (typeof value !== "object" || value === null) return undefined;
@@ -17,8 +23,8 @@ const urlOf = (value: unknown): string | undefined => {
 /**
  * A section's picture. Uploads the moment a file is picked — the preview needs
  * its URL before the draft saves — through the builder's own upload
- * (`storefront.design`), and stores what the upload answered: the three variants
- * and the storage key.
+ * (`storefront.design`), and stores what the upload answered: the variants
+ * (three, plus `largeUrl` for a wide picture) and the storage key.
  */
 export function ImageField({
   label,
@@ -35,8 +41,8 @@ export function ImageField({
   const [busy, setBusy] = useState(false);
 
   const pick = async (file: File) => {
-    if (file.size > RICH_IMAGE_MAX_BYTES) {
-      toast.error("A picture can be up to 5 MB.");
+    if (file.size > SECTION_IMAGE_MAX_BYTES) {
+      toast.error("A picture can be up to 15 MB.");
       return;
     }
     setBusy(true);

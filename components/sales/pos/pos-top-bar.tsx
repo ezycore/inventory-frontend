@@ -8,11 +8,11 @@ import { formatRoleName } from "@/components/users/helpers";
 import { useAuthStore } from "@/services/stores";
 import { Avatar, AvatarFallback } from "@/ui/components/avatar";
 import { Button } from "@/ui/components/button";
-import { LocationSwitcher } from "@/ui/components/LocationSwitcher";
 
 /**
- * The counter's only chrome: who is selling (far left), the shop and branch,
- * language, and the way back to the dashboard.
+ * The counter's only chrome: who is selling (far left), language, and the way
+ * back to the dashboard. No shop name or branch switcher: the till sells from
+ * the location it was opened on, and switching it is not the cashier's call.
  */
 export function PosTopBar() {
   const t = useTranslations("sales.pos");
@@ -37,11 +37,6 @@ export function PosTopBar() {
           ) : null}
         </div>
       </div>
-      <span className="hidden h-7 w-px bg-border sm:block" />
-      <span className="hidden truncate text-sm font-semibold md:block">
-        {user?.organization?.name}
-      </span>
-      <LocationSwitcher />
       <div className="flex-1" />
       <LanguageToggle />
       <Button asChild variant="outline" size="sm">

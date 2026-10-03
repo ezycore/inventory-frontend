@@ -13,6 +13,121 @@ export type ReceiptHeaderAlign = "left" | "center" | "right";
 /** Where the logo prints. Watermark/both are A4-only (thermal is 1-bit). */
 export type ReceiptLogoPlacement = "top" | "watermark" | "both" | "hidden";
 
+/** Vertical anchor of the A4 watermark. */
+export type ReceiptWatermarkPosition = "center" | "top" | "bottom";
+
+/** Logo bounding box (mm) for one paper. `object-fit: contain` keeps the ratio. */
+export interface ReceiptLogoBox {
+  heightMm: number;
+  widthMm: number;
+}
+
+export type ReceiptLogoSize = Partial<Record<ReceiptPaperSize, ReceiptLogoBox>>;
+
+export interface ReceiptWatermarkSize {
+  widthPct: number;
+  heightPct: number;
+}
+
+export type ReceiptLineVatMode = "off" | "rate" | "amount" | "both";
+
+/** Optional item-table columns (print-setup-v2 P2). */
+export interface ReceiptItemColumns {
+  serial?: boolean;
+  unit?: boolean;
+  code?: boolean;
+  discount?: boolean;
+  /** Unset → "rate" on A4 when VAT is active, else "off". */
+  vat?: ReceiptLineVatMode;
+}
+
+/** Totals-block extras (P3). */
+export interface ReceiptTotalsOptions {
+  /** Default true. */
+  showDue?: boolean;
+  showPaymentMethods?: boolean;
+  showPreviousBalance?: boolean;
+  /** Unset → on for thermal, off for A4. */
+  showTenderedChange?: boolean;
+}
+
+/** Signature block (P4). */
+export interface ReceiptSignatureSettings {
+  enabled?: boolean;
+  leftLabel?: string;
+  rightLabel?: string;
+  imageHeightMm?: number;
+}
+
+export interface ReceiptImage {
+  url?: string;
+  mediumUrl?: string;
+  thumbnailUrl?: string;
+  publicId?: string;
+}
+
+export type ReceiptWalletProvider = "bkash" | "nagad" | "rocket" | "upay" | "other";
+export type ReceiptWalletAccountType = "personal" | "merchant" | "agent";
+
+/** Printed payment instruction (P5) — text only, never linked to accounts. */
+export interface ReceiptPaymentDetail {
+  id: string;
+  kind: "bank" | "wallet";
+  visible: boolean;
+  bankName?: string;
+  accountName?: string;
+  accountNumber?: string;
+  branch?: string;
+  routingNumber?: string;
+  provider?: ReceiptWalletProvider;
+  number?: string;
+  accountType?: ReceiptWalletAccountType;
+  label?: string;
+}
+
+export type ReceiptQrSource = "off" | "storefront" | "custom";
+export interface ReceiptQrSettings {
+  source?: ReceiptQrSource;
+  customValue?: string;
+  label?: string;
+  sizeMm?: number;
+}
+
+export type ReceiptDocumentKind =
+  | "invoice"
+  | "deliveryNote"
+  | "purchaseOrder"
+  | "return"
+  | "paymentReceipt"
+  | "statement";
+
+export const RECEIPT_DOCUMENT_KINDS: ReceiptDocumentKind[] = [
+  "invoice",
+  "deliveryNote",
+  "purchaseOrder",
+  "return",
+  "paymentReceipt",
+  "statement",
+];
+
+/** Per-document override (P7). Unset inherits; `null` footer/terms = none on this doc. */
+export interface ReceiptDocumentOverride {
+  title?: string;
+  footer?: string | null;
+  terms?: string | null;
+  showPaymentDetails?: boolean;
+  showQr?: boolean;
+  signature?: { enabled?: boolean; leftLabel?: string; rightLabel?: string };
+}
+
+export type ReceiptDocumentOverrides = Partial<Record<ReceiptDocumentKind, ReceiptDocumentOverride>>;
+
+export type ReceiptFontScale = "sm" | "md" | "lg";
+export interface ReceiptThermalSettings {
+  fontScale?: ReceiptFontScale;
+  sideMarginMm?: number;
+}
+
 /** Source of a letterhead identity line. Non-custom sources resolve at print time. */
 export type ReceiptHeaderLineSource =
   | "orgName"
@@ -47,12 +162,32 @@ export interface ReceiptSettings {
   showLogo?: boolean;
   logoPlacement?: ReceiptLogoPlacement;
   watermarkOpacity?: number;
+  /** Logo box per paper. A missing paper prints `DEFAULT_LOGO_SIZE`. */
+  logoSize?: ReceiptLogoSize;
+  /** Watermark box (% of the page). Unset → 60 × 60. */
+  watermarkSize?: ReceiptWatermarkSize;
+  /** Unset → center. */
+  watermarkPosition?: ReceiptWatermarkPosition;
   headerLines?: ReceiptHeaderLine[];
   metaFields?: ReceiptMetaFields;
   /** Print the document title line ("Tax Invoice" / "Purchase Order" …). Unset → true. */
   showDocTitle?: boolean;
   showAmountInWords?: boolean;
   amountInWordsLabel?: string;
+  itemColumns?: ReceiptItemColumns;
+  totals?: ReceiptTotalsOptions;
+  signature?: ReceiptSignatureSettings;
+  /** Uploaded via `PUT /organization/receipt-images`; read-only in the settings payload. */
+  signatureImage?: ReceiptImage | null;
+  stampImage?: ReceiptImage | null;
+  paymentDetails?: ReceiptPaymentDetail[];
+  terms?: string;
+  qr?: ReceiptQrSettings;
+  documents?: ReceiptDocumentOverrides;
+  thermal?: ReceiptThermalSettings;
+  copies?: number;
+  copyLabels?: string[];
+  autoPrintAfterSale?: boolean;
 }
 
 // --- UI metadata (labels / option lists), colocated so the builder stays lean ---
@@ -101,6 +236,69 @@ export const DEFAULT_META_FIELDS: Record<ReceiptMetaKey, boolean> = {
 };
 
 export const DEFAULT_WATERMARK_OPACITY = 0.08;
+
+/**
+ * The renderer's built-in logo box per paper, in mm (the old fixed CSS:
+ * A4 64 × 220 px, 80 mm 40 px × 70 mm, 58 mm 32 px × 50 mm). Shown as the
+ * starting value in the builder; an org that never edits a paper's size keeps
+ * the original CSS, not this mm conversion.
+ */
+export const DEFAULT_LOGO_SIZE: Record<ReceiptPaperSize, ReceiptLogoBox> = {
+  a4: { heightMm: 17, widthMm: 58 },
+  thermal80: { heightMm: 10.5, widthMm: 70 },
+  thermal58: { heightMm: 8.5, widthMm: 50 },
+};
+
+/** Mirrors the backend clamps (`RECEIPT_LOGO_SIZE_LIMITS`). */
+export const LOGO_SIZE_LIMITS: Record<
+  ReceiptPaperSize,
+  { height: [number, number]; width: [number, number] }
+> = {
+  a4: { height: [8, 40], width: [15, 120] },
+  thermal80: { height: [5, 30], width: [10, 72] },
+  thermal58: { height: [5, 25], width: [10, 50] },
+};
+
+/**
+ * Built-in per-document overrides (plan P7): shipped as defaults, editable.
+ * Only NEW blocks get a built-in default — anything that would change what a
+ * document prints today stays opt-in (plan rule 2): the PO footer still
+ * inherits, and the delivery note's "Received by" line is a suggestion in the
+ * UI, not a default. A purchase order and a return go to a supplier / back to
+ * a customer, so the shop's payment instructions don't belong on them.
+ */
+export const BUILT_IN_DOCUMENT_OVERRIDES: ReceiptDocumentOverrides = {
+  purchaseOrder: { showPaymentDetails: false, showQr: false },
+  return: { showPaymentDetails: false },
+};
+
+/** Effective override for one document: built-in defaults, then the merchant's. */
+export const resolveDocumentOverride = (
+  kind: ReceiptDocumentKind,
+  saved?: ReceiptDocumentOverrides,
+): ReceiptDocumentOverride => {
+  const builtIn = BUILT_IN_DOCUMENT_OVERRIDES[kind] ?? {};
+  const own = saved?.[kind] ?? {};
+  return {
+    ...builtIn,
+    ...own,
+    signature: { ...builtIn.signature, ...own.signature },
+  };
+};
+
+export const DEFAULT_SIGNATURE_IMAGE_HEIGHT_MM = 18;
+export const MAX_PAYMENT_DETAILS = 6;
+
+export const DEFAULT_WATERMARK_SIZE: ReceiptWatermarkSize = { widthPct: 60, heightPct: 60 };
+export const WATERMARK_SIZE_LIMITS: [number, number] = [20, 95];
+
+export const getWatermarkPositionOptions = (
+  t: Translator,
+): { value: ReceiptWatermarkPosition; label: string }[] => [
+  { value: "center", label: t("watermarkPositionOptions.center") },
+  { value: "top", label: t("watermarkPositionOptions.top") },
+  { value: "bottom", label: t("watermarkPositionOptions.bottom") },
+];
 export const DEFAULT_AMOUNT_IN_WORDS_LABEL = "In words:";
 
 /**

@@ -1510,7 +1510,6 @@ export interface UpdateUnitDto extends Partial<CreateUnitDto> { }
 export interface Tax extends BaseEntity {
   name: string;
   rate: number;
-  type: "percentage" | "fixed";
   status: "active" | "inactive";
   isDefault: boolean; // Pre-selected on new product forms
 }
@@ -1518,7 +1517,6 @@ export interface Tax extends BaseEntity {
 export interface CreateTaxDto {
   name: string;
   rate: number;
-  type: "percentage" | "fixed";
   status?: "active" | "inactive";
   isDefault?: boolean;
 }
@@ -1529,7 +1527,6 @@ export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
  * Price semantics for a product's tax:
  * - "inclusive": the selling price already contains the tax (tax is backed out for reporting).
  * - "exclusive": tax is added on top of the selling price.
- * Note: distinct from `Tax.type` ("percentage" | "fixed"), which is how the rate is calculated.
  */
 export type TaxType = "inclusive" | "exclusive";
 
@@ -2515,6 +2512,8 @@ export interface FinalizeSaleDto {
   };
   creditBalanceAmount?: number;
   notes?: string;
+  /** Cash handed over when it exceeds the settled amount (receipt snapshot). */
+  tenderedAmount?: number;
 }
 
 // ============================================

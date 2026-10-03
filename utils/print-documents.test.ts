@@ -117,4 +117,158 @@ describe("renderReceiptPreview — letterhead", () => {
     expect(taxed).toContain("Tax Invoice");
     expect(taxed).toContain("Tax 5%");
   });
+
+  it("keeps the paper's CSS logo size when no box is set (no inline style)", () => {
+    expect(body(base)).toContain('<img class="logo" src="https://cdn.test/logo.png" alt="" />');
+  });
+
+  it("sizes the top logo from the box for the rendered paper only", () => {
+    const logoSize = { a4: { heightMm: 25, widthMm: 80 }, thermal58: { heightMm: 9, widthMm: 40 } };
+    expect(body({ ...base, logoSize })).toContain('style="max-height:25mm;max-width:80mm"');
+    expect(body({ ...base, paper: "thermal58", logoSize })).toContain(
+      'style="max-height:9mm;max-width:40mm"',
+    );
+    // 80 mm has no box → its CSS size stays.
+    expect(body({ ...base, paper: "thermal80", logoSize })).not.toContain("max-height:");
+  });
+
+  it("sizes and anchors the watermark only when set", () => {
+    const plain = body({ ...base, logoPlacement: "watermark" });
+    expect(plain).toContain('style="opacity:0.08"');
+    const sized = body({
+      ...base,
+      logoPlacement: "watermark",
+      watermarkSize: { widthPct: 80, heightPct: 40 },
+      watermarkPosition: "bottom",
+    });
+    expect(sized).toContain("max-width:80%;max-height:40%");
+    expect(sized).toContain("bottom:6%");
+    expect(body({ ...base, logoPlacement: "watermark", watermarkPosition: "top" })).toContain(
+      "top:6%",
+    );
+  });
+
+  it("labels the buyer's number as the customer phone", () => {
+    expect(body(base)).toContain("Customer phone:");
+  });
+});
+
+describe("renderReceiptPreview — print setup v2", () => {
+  const base = { paper: "a4" as const, orgName: "Acme" };
+  const html = (v2: Parameters<typeof renderReceiptPreview>[0]["v2"], extra = {}) =>
+    renderReceiptPreview({ ...base, ...extra, v2 }).body;
+
+  it("adds serial / code / unit / discount / VAT columns on A4", () => {
+    const out = html({ itemColumns: { serial: true, code: true, unit: true, discount: true, vat: "both" } }, { salesTaxActive: true });
+    for (const h of [">#<", ">Code<", ">Disc.<", ">VAT %<", ">VAT<"]) expect(out).toContain(h);
+    expect(out).toContain("2 pcs");
+    expect(out).toContain("8901234567890");
+    expect(out).toContain(">5%<");
+  });
+
+  it("moves the code under the name on thermal and drops discount + VAT on 58mm", () => {
+    const cols = { code: true, discount: true, vat: "both" as const };
+    const t80 = html({ itemColumns: cols }, { paper: "thermal80", salesTaxActive: true });
+    expect(t80).toContain('class="muted item-code"');
+    expect(t80).not.toContain(">Code<");
+    expect(t80).toContain(">VAT %<");
+    expect(t80).not.toContain(">VAT<"); // amount is A4-only
+    const t58 = html({ itemColumns: cols }, { paper: "thermal58", salesTaxActive: true });
+    expect(t58).not.toContain(">Disc.<");
+    expect(t58).not.toContain("VAT %");
+  });
+
+  it("hides Due, inserts payment rows after Paid, appends previous balance", () => {
+    const out = html({ totals: { showPaymentMethods: true, showPreviousBalance: true } });
+    expect(out.indexOf(">Paid<")).toBeLessThan(out.indexOf(">Cash<"));
+    expect(out).toContain(">bKash<");
+    expect(out).toContain("Previous due");
+    expect(out).toContain("Total due");
+  });
+
+  it("shows cash received / change on thermal by default, not on A4", () => {
+    expect(html({}, { paper: "thermal80" })).toContain("Cash received");
+    expect(html({})).not.toContain("Cash received");
+    expect(html({ totals: { showTenderedChange: true } })).toContain("Change");
+  });
+
+  it("renders two signature lines with images, and none when disabled", () => {
+    const out = html({
+      signature: { leftLabel: "Customer Signature", imageHeightMm: 20 },
+      signatureImageUrl: "https://cdn.test/sig.png",
+      stampImageUrl: "https://cdn.test/stamp.png",
+    });
+    expect(out).toContain('class="signature two"');
+    expect(out).toContain("Customer Signature");
+    expect(out).toContain('class="stamp-img"');
+    expect(out).toContain("height:20mm");
+    expect(html({ signature: { enabled: false } })).not.toContain("signature-line");
+  });
+
+  it("prints banks + wallets on A4 and wallets only on thermal", () => {
+    const paymentDetails = [
+      { id: "1", kind: "bank" as const, visible: true, bankName: "DBBL", accountNumber: "123" },
+      { id: "2", kind: "wallet" as const, visible: true, provider: "bkash" as const, accountType: "merchant" as const, number: "01711" },
+      { id: "3", kind: "wallet" as const, visible: false, provider: "nagad" as const, number: "01811" },
+    ];
+    const a4 = html({ paymentDetails });
+    expect(a4).toContain("DBBL");
+    expect(a4).toContain("bKash (Merchant): 01711");
+    expect(a4).not.toContain("01811");
+    const t = html({ paymentDetails }, { paper: "thermal80" });
+    expect(t).not.toContain("DBBL");
+    expect(t).toContain("01711");
+  });
+
+  it("prints terms on A4 only and a QR as inline SVG", () => {
+    expect(html({ terms: "No refunds" })).toContain('class="terms">No refunds');
+    expect(html({ terms: "No refunds" }, { paper: "thermal80" })).not.toContain("No refunds");
+    const qr = html({ qrValue: "https://shop.test", qrLabel: "Shop online", qrSizeMm: 30 });
+    expect(qr).toContain('class="sign-row"');
+    expect(qr).toContain('width="30mm"');
+    expect(qr).toContain("Shop online");
+  });
+
+  it("applies per-document overrides: title, null footer, hidden QR", () => {
+    const out = html(
+      {
+        qrValue: "https://shop.test",
+        documents: { invoice: { title: "Cash Memo", footer: null, showQr: false } },
+      },
+      { footer: "Thanks" },
+    );
+    expect(out).toContain(">Cash Memo<");
+    expect(out).not.toContain("Thanks");
+    expect(out).not.toContain("qr-svg");
+  });
+
+  it("keeps payment details and QR off purchase orders by default", () => {
+    const out = html(
+      { qrValue: "https://shop.test", paymentDetails: [{ id: "1", kind: "wallet", visible: true, number: "017" }] },
+      { docKind: "purchaseOrder" },
+    );
+    expect(out).toContain("Purchase Order");
+    expect(out).not.toContain("qr-svg");
+    expect(out).not.toContain("Payment details");
+  });
+
+  it("stamps copy labels and a cut line when copies > 1", () => {
+    const out = renderReceiptPreview({
+      ...base,
+      paper: "thermal80",
+      showCopies: true,
+      v2: { copies: 2, copyLabels: ["", "Shop"] },
+    }).body;
+    expect(out).toContain(">Customer Copy<");
+    expect(out).toContain(">Shop<");
+    expect(out).toContain('class="cut-line"');
+  });
+
+  it("scales thermal text and margins only when set", () => {
+    const styles = (thermal: object) =>
+      renderReceiptPreview({ ...base, paper: "thermal80", v2: { thermal } }).styles;
+    expect(styles({})).toBe(renderReceiptPreview({ ...base, paper: "thermal80" }).styles);
+    expect(styles({ fontScale: "lg", sideMarginMm: 1 })).toContain("font-size: 12.7px");
+    expect(styles({ sideMarginMm: 1 })).toContain("padding-left: 1mm");
+  });
 });

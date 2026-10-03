@@ -146,6 +146,34 @@ Run a single test file:
 pnpm test path/to/file.test.ts
 ```
 
+## Releasing (versions + changelog)
+
+Since **1.0.0 (2026-10-03)** every production deploy is a numbered release. This repo
+versions **independently** of `inventory-backend`; when a release needs the other side at a
+minimum version, say so under "Deploy notes".
+
+- **The version lives in `package.json` only.** `next.config.mjs` inlines it as `NEXT_PUBLIC_APP_VERSION` at build and `constants/app-version.ts` shows it, with the `NEXT_PUBLIC_GIT_SHA` commit, at the bottom of the user menu — check it after a deploy.
+- **Semver:** PATCH = fixes only · MINOR = new features, nothing breaks · MAJOR = a
+  breaking change (the other repo must deploy in lockstep, a contract field removed,
+  a migration that must run first).
+- **`CHANGELOG.md` is kept as you go — every change, every session.** Each change adds
+  one line under `## [Unreleased]` → Added / Changed / Removed / Fixed, written for
+  whoever reads the deploy, not as a commit log. Migrations, new env vars and
+  cross-repo ordering ("needs inventory-frontend ≥ 1.2.0") go under **Deploy notes**.
+  A change with no changelog line is unfinished — the same as a missing test or doc.
+- **Cutting a release** (the owner pushes and tags — never push or tag unasked):
+  1. Pick the bump from what is under Unreleased.
+  2. `pnpm version <x.y.z> --no-git-tag-version`; rename `[Unreleased]` to
+     `[x.y.z] - YYYY-MM-DD` and open a fresh empty `[Unreleased]` above it.
+  3. Commit `chore(release): vX.Y.Z`; merge to `main` (the deploy branch).
+  4. Nothing else: after a successful production deploy, `deploy.yml` creates and
+     pushes the `vX.Y.Z` tag on the deployed commit. Forget step 2 and the tag
+     already exists — the run warns "this deploy is untagged" instead.
+- **What the deploy does with it:** `deploy.yml` reads `package.json` and also tags
+  the image `:X.Y.Z` (staging builds get `:X.Y.Z-rc`) — that tag is the rollback
+  handle — and passes the commit in as a build arg. The Telegram notice names the
+  version.
+
 ## Infra env templates (mandatory)
 
 **A new `NEXT_PUBLIC_*` is not done until four files agree.** Every env var this app reads is

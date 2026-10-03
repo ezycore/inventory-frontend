@@ -43,6 +43,7 @@ import {
   type FuseFieldContext,
 } from "@ui/components/fuse-select-fields";
 import type { FuseAdvancedSelectProps } from "@ui/components/fuse-select-types";
+import { CLEAR_OPTION_VALUE } from "@ui/components/select-strategy";
 import { useComboboxKeyboard } from "@ui/hooks/use-combobox-keyboard";
 import { useFuseSelectValue } from "@ui/hooks/use-fuse-select-value";
 import { cn } from "@ui/lib/utils";
@@ -75,6 +76,8 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
   itemsCreateCallback,
   onMount,
   defaultFlag,
+  clearOptionLabel,
+  alwaysShowClear,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
@@ -146,9 +149,12 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   const filteredOptions = useMemo<SelectOption[]>(() => {
     const q = (query ?? "").trim();
-    if (!q) return finalOptions;
-    return fuse.search(q).map((r) => r.item);
-  }, [query, fuse, finalOptions]);
+    if (q) return fuse.search(q).map((r) => r.item);
+    // The "All …" item only heads the unfiltered list — a search is for a value.
+    return clearOptionLabel && !isMulti
+      ? [{ label: clearOptionLabel, value: CLEAR_OPTION_VALUE }, ...finalOptions]
+      : finalOptions;
+  }, [query, fuse, finalOptions, clearOptionLabel, isMulti]);
 
   // ── Open / close ──────────────────────────────────────────────────────────
 
@@ -198,7 +204,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
 
   const handleSelectSingle = useCallback(
     (optionValue: string) => {
-      handleValueChange(optionValue);
+      handleValueChange(optionValue === CLEAR_OPTION_VALUE ? "" : optionValue);
       closeDropdown();
     },
     [handleValueChange, closeDropdown]
@@ -377,6 +383,7 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
                   selectedValue={singleValue}
                   selectedLabel={selectedLabel}
                   onClear={handleClearSingle}
+                  alwaysShowClear={alwaysShowClear}
                 />
               )}
             </div>
@@ -386,7 +393,15 @@ export const FuseAdvancedSelect: React.FC<FuseAdvancedSelectProps> = ({
             listId={listId}
             anchorRef={anchorRef}
             options={filteredOptions}
-            selectedValues={isMulti ? multiValues : singleValue ? [singleValue] : []}
+            selectedValues={
+              isMulti
+                ? multiValues
+                : singleValue
+                  ? [singleValue]
+                  : clearOptionLabel
+                    ? [CLEAR_OPTION_VALUE]
+                    : []
+            }
             activeIndex={activeIndex}
             onActivate={setActiveIndex}
             onSelect={isMulti ? handleToggleMulti : handleSelectSingle}

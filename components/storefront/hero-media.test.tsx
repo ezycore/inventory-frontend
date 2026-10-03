@@ -25,6 +25,24 @@ describe("HeroMedia", () => {
     );
   });
 
+  it("offers the desktop the 2560px rendition while the phone source never gets it", () => {
+    // A 1600px original stretched over a Retina desktop is soft; `largeUrl`
+    // exists for exactly that, and must not leak into the phone's `<source>`.
+    const { container } = render(
+      <HeroMedia
+        image={{ mediumUrl: "/d_md.webp", url: "/d.webp", largeUrl: "/d_lg.webp" }}
+        mobileImage={{ mediumUrl: "/m_md.webp", url: "/m.webp" }}
+        fit="cover"
+      />,
+    );
+
+    const img = container.querySelector("img");
+    expect(img).toHaveAttribute("srcset", "/d_md.webp 800w, /d.webp 1600w, /d_lg.webp 2560w");
+    expect(img).toHaveAttribute("sizes", "100vw");
+    expect(img).toHaveAttribute("src", "/d.webp");
+    expect(container.querySelector("source")).toHaveAttribute("srcset", "/m_md.webp 800w, /m.webp 1600w");
+  });
+
   it("gives the likely LCP photo high priority on both canvas copies", () => {
     const { container } = render(
       <HeroMedia image={{ mediumUrl: "/hero-800.jpg", url: "/hero-1600.jpg" }} fit="canvas" eager />,

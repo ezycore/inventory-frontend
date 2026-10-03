@@ -17,6 +17,11 @@ export function navLabelKey(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/** Link props for a nav row — a new tab when the item asks for one. */
+export function navLinkTarget(item: NavItem): { target?: string; rel?: string } {
+  return item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {};
+}
+
 /**
  * Filter navigation items based on user role, permissions, and enabled features.
  *
@@ -35,6 +40,8 @@ export function filterNavItems(
   const posOff = !!features && !isFeatureOn(features, "sales");
   return items
     .filter((item) => {
+      if (item.hideInMenu) return false;
+
       // Check role restrictions
       if (item.roles && item.roles.length > 0) {
         if (!item.roles.includes(userRole)) {
