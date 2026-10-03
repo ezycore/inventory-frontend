@@ -40,6 +40,7 @@
 - `components/sales/types.ts` + `components/sales/helpers.ts` — `ProductApiItem`/`ExtractedProduct` carry `barcode`.
 - `components/sales/sell/use-sell-page.ts` — `handleBarcodeScan` callback (uses `useBarcodeLookupAction`); refuses when `!hasInventoryAtLocation`.
 - `app/(protected)/sales/page.tsx` — `<BarcodeInput onScan={handleBarcodeScan} />` above ProductSearch, gated by feature flag.
+- `components/sales/pos/pos-screen.tsx` (POS counter) — no separate scan field: `<ProductSearch onScan={handleBarcodeScan}>` is one box for both. `hooks/use-keyboard-wedge-scan.ts` holds the same < 30 ms timing rule as `<BarcodeInput>` for a box that also searches; Bangla digits (Avro/Bijoy on) go through `toWestern` (`lib/parse-bd-address.ts`). The counter is also the first user of `<BarcodeScanner>`, via `pos-camera-scan.tsx` (dialog stays open for a basket).
 
 ### Purchases scan
 - `components/purchases/use-purchase-page.ts` — `handleBarcodeScan` adds a row to active seller's cart with qty 1.

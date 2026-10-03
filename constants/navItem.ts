@@ -101,6 +101,15 @@ export const navGroups: NavGroup[] = [
             features: ["sales"],
           },
           {
+            // The full-screen counter (constants/pos.ts). Same gates as New
+            // Sale — it is the same sale, drawn for a till.
+            title: "POS",
+            url: "/sales/pos",
+            permissions: ["sales.create"],
+            icon: "scan-barcode",
+            features: ["sales"],
+          },
+          {
             // Online orders are sales, so they live with the ledger rather than
             // with the storefront's setup screens. Still storefront-gated: a
             // shop-only merchant has no online channel to take orders through.

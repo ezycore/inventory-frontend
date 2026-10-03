@@ -201,6 +201,12 @@ request in the storefront root layout.** Moving between the two trees is a full 
 
 The protected shell (`components/layout/protected-shell.tsx`, rendered by the server `app/(protected)/layout.tsx`) verifies the session via `useMe()` and checks subscription status on every mount. If the subscription is inactive it forces logout to `/login?subscription=inactive`.
 
+Two protected routes render **without the sidebar shell**, each by its own branch in `ProtectedShell`:
+`/onboarding` (the setup wizard) and `/sales/pos` (`POS_PATH`, `constants/pos.ts` — the full-screen
+POS counter, which keeps the billing and support-session banners). Both still sit under their
+segment's guards; `/sales/pos` gets the New Sale gates from `app/(protected)/sales/layout.tsx`. The
+counter is a second presentation of `useSellPage`, not a second sale engine — see the `sales-flow` skill.
+
 ### State Management
 
 **Auth** is in a Zustand store (`services/stores/use-auth-store.ts`) persisted to `localStorage` as `easystock-auth`. The store also syncs the JWT to a cookie (`auth-token`) and the active location to another cookie (`active-location`) so the Next.js middleware can read them server-side.
