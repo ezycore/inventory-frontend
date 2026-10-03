@@ -4,7 +4,7 @@ import { UserAvatarProfile } from "@/components/user-avatar-profile";
 import { navGroups } from "@/constants/navItem";
 import { useLogout } from "@/hooks";
 import { useCanManageBilling } from "@/hooks/use-has-permission";
-import { filterNavItems } from "@/lib/nav-utils";
+import { filterNavItems, navLinkTarget } from "@/lib/nav-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   Collapsible,
@@ -109,6 +109,7 @@ function NestedNavItem({
               <DropdownMenuItem key={subItem.title} asChild>
                 <Link
                   href={subItem.url}
+                  {...navLinkTarget(subItem)}
                   data-active={pathname === subItem.url}
                   className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                 >
@@ -147,7 +148,7 @@ function NestedNavItem({
                   asChild
                   isActive={pathname === subItem.url}
                 >
-                  <Link href={subItem.url} onClick={closeMobileNav}>
+                  <Link href={subItem.url} {...navLinkTarget(subItem)} onClick={closeMobileNav}>
                     <span>{itemLabel(subItem.title)}</span>
                   </Link>
                 </SidebarMenuSubButton>
@@ -233,7 +234,7 @@ export default function AppSidebar() {
                       tooltip={itemLabel(item.title)}
                       isActive={pathname === item.url}
                     >
-                      <Link href={item.url} onClick={closeMobileNav}>
+                      <Link href={item.url} {...navLinkTarget(item)} onClick={closeMobileNav}>
                         <NavIcon name={item.icon} />
                         <span>{itemLabel(item.title)}</span>
                       </Link>

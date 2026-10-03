@@ -2,7 +2,6 @@
 // coding-standard: maintained
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import {
@@ -22,6 +21,7 @@ import type { Sale, Payment, SaleFilters, AddPaymentDto, SalesReturn } from '@/t
 import type { FilterField } from '@/types/filter';
 import { useListUrlState } from '@/hooks/use-list-url-state';
 import type { ListFilters } from '@/lib/list-url-state';
+import { POS_PATH, openPos } from '@/constants/pos';
 
 import { getSalesHistoryColumns, getSalesHistoryActions } from './columns';
 
@@ -37,7 +37,6 @@ export function useSalesHistoryPage() {
     (user?.organization?.features?.sales ?? false) &&
     (user?.organization?.features?.storefront ?? false);
   const { format: formatCurrency } = useCurrency();
-  const router = useRouter();
 
   // ── Table state ───────────────────────────────────────────────
   const filterFields = useMemo(
@@ -145,8 +144,8 @@ export function useSalesHistoryPage() {
   }, [t]);
 
   const handleEditDraft = useCallback((sale: Sale) => {
-    router.push(`/sales?draftId=${sale._id}`);
-  }, [router]);
+    openPos(`${POS_PATH}?draftId=${sale._id}`);
+  }, []);
 
   const handleDeleteDraft = useCallback(async (sale: Sale) => {
     if (typeof window !== 'undefined') {

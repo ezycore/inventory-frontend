@@ -1055,9 +1055,7 @@
       "active": "সক্রিয়",
       "activeDescription": "বর্তমানে সক্রিয়",
       "percentage": "শতাংশ",
-      "percentageDescription": "শতাংশ ধরন",
-      "fixed": "নির্দিষ্ট অঙ্ক",
-      "fixedDescription": "নির্দিষ্ট অঙ্কের ধরন"
+      "percentageDescription": "শতাংশ ধরন"
     },
     "form": {
       "name": "ছাড়ের নাম",
@@ -1066,7 +1064,6 @@
       "valuePlaceholder": "ছাড়ের পরিমাণ লিখুন",
       "type": "ধরন",
       "percentage": "শতাংশ",
-      "fixed": "নির্দিষ্ট",
       "applicableTo": "প্রযোজ্য",
       "applicableBoth": "উভয় (বিক্রয় ও ক্রয়)",
       "applicableSales": "শুধু বিক্রয়",
@@ -1084,8 +1081,6 @@
     "filters": {
       "searchLabel": "ছাড় খুঁজুন",
       "searchPlaceholder": "ছাড় খুঁজুন...",
-      "typeLabel": "ধরন",
-      "typePlaceholder": "সব ধরন",
       "applicableLabel": "প্রযোজ্য",
       "applicablePlaceholder": "সব",
       "applicableSales": "বিক্রয়",

@@ -1055,9 +1055,7 @@
       "active": "Active",
       "activeDescription": "Currently active",
       "percentage": "Percentage",
-      "percentageDescription": "Percentage type",
-      "fixed": "Fixed Amount",
-      "fixedDescription": "Fixed amount type"
+      "percentageDescription": "Percentage type"
     },
     "form": {
       "name": "Discount Name",
@@ -1066,7 +1064,6 @@
       "valuePlaceholder": "Enter discount value",
       "type": "Type",
       "percentage": "Percentage",
-      "fixed": "Fixed",
       "applicableTo": "Applicable To",
       "applicableBoth": "Both (Sales & Purchase)",
       "applicableSales": "Sales Only",
@@ -1084,8 +1081,6 @@
     "filters": {
       "searchLabel": "Search discounts",
       "searchPlaceholder": "Search discounts...",
-      "typeLabel": "Type",
-      "typePlaceholder": "All types",
       "applicableLabel": "Applicable To",
       "applicablePlaceholder": "All",
       "applicableSales": "Sales",

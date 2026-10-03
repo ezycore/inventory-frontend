@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { FeatureName } from "@/types";
 
 export type NavItem = {
@@ -40,6 +41,15 @@ export type NavItem = {
    * vocabulary: a storefront-only seller's "Sales" menu is their orders.
    */
   titleWithoutPos?: string;
+  /**
+   * Kept out of the sidebar and command palette, but still read by the route
+   * guard (`permissionsForPath` / `featuresForPath`) — so the screen stays
+   * reachable by URL with its own gates rather than inheriting the parent's
+   * looser union.
+   */
+  hideInMenu?: boolean;
+  /** Menu links open this route in a new browser tab (the POS counter). */
+  openInNewTab?: boolean;
 };
 
 // A labeled sidebar section (e.g. "Operations") holding top-level nav items.

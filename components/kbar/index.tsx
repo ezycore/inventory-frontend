@@ -17,6 +17,7 @@ import { navItems } from '@/constants/navItem';
 import { useNavLabels } from '@/hooks/use-nav-labels';
 import { filterNavItems } from '@/lib/nav-utils';
 import { useAuthStore } from '@/services/stores/use-auth-store';
+import type { NavItem } from '@/types/layout';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -37,8 +38,9 @@ export default function KBar({ children }: { children: React.ReactNode }) {
         )
       : navItems;
 
-    const navigateTo = (url: string) => {
-      router.push(url);
+    const navigateTo = (item: NavItem) => {
+      if (item.openInNewTab) window.open(item.url, '_blank', 'noopener,noreferrer');
+      else router.push(item.url);
     };
 
     return visibleItems.flatMap((navItem) => {
@@ -54,7 +56,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
               keywords: `${navItem.title.toLowerCase()} ${itemLabel(navItem.title).toLowerCase()}`,
               section: tKbar('navigation'),
               subtitle: tKbar('goTo', { title: itemLabel(navItem.title) }),
-              perform: () => navigateTo(navItem.url)
+              perform: () => navigateTo(navItem)
             }
           : null;
 
@@ -67,7 +69,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
           keywords: `${childItem.title.toLowerCase()} ${itemLabel(childItem.title).toLowerCase()}`,
           section: itemLabel(navItem.title),
           subtitle: tKbar('goTo', { title: itemLabel(childItem.title) }),
-          perform: () => navigateTo(childItem.url)
+          perform: () => navigateTo(childItem)
         })) ?? [];
 
       // Return only valid actions (ignoring null base actions for containers)
