@@ -71,6 +71,7 @@ function BatchPickerCell({
       value={item.batchId ?? null}
       onChange={(batchId) => onUpdateBatch(item.id, batchId)}
       emptyLabel={t("autoFefo")}
+      hideExpired
       title={t("fefoTooltip")}
       className="h-7 w-[150px] px-2 py-1 text-xs"
     />
@@ -113,6 +114,11 @@ export const getSalesColumns = (
               row.original.availableQuantity !== null && (
               <div className="text-xs text-muted-foreground">
                 Available: {row.original.availableQuantity} {row.original.unitName || "units"}
+              </div>
+            )}
+            {row.original.tracked !== false && (row.original.heldQuantity ?? 0) > 0 && (
+              <div className="text-xs text-amber-700 dark:text-amber-400">
+                {t("heldForOnline", { count: row.original.heldQuantity as number })}
               </div>
             )}
           </div>

@@ -9,6 +9,15 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- POS and sale lines show "N held for online orders" under Available when confirmed
+  storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
+
+### Fixed
+- Sale and POS batch pickers no longer offer expired batches — choosing one only failed at
+  Confirm. Stock adjustment still lists them for write-off.
+- Receipt & Print: "Organization profile" links now open `/settings/organization` instead of the personal `/profile` page.
+
 ## [1.0.0] - 2026-10-03
 
 First versioned release. Everything live before this date is the baseline; the

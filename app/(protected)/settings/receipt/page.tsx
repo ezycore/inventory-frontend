@@ -250,7 +250,7 @@ export default function ReceiptSettingsPage() {
               signatureImage={savedReceipt?.signatureImage}
               stampImage={savedReceipt?.stampImage}
               onTabChange={setActiveTab}
-              onNavigateProfile={() => router.push("/profile")}
+              onNavigateProfile={() => router.push("/settings/organization")}
             />
             <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
               <AlertDialog>

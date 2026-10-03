@@ -384,6 +384,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/public/version
+         * @description Defined in `src/routes/public.routes.ts:23`.
+         */
+        get: operations["get_api_public_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/storefront/oauth/{provider}/callback": {
         parameters: {
             query?: never;
@@ -9038,6 +9058,7 @@ export interface components {
             costPrice?: number;
             quantity: number;
             tracked?: boolean;
+            reservedQuantity?: number;
             productId: string;
             variantId: string | null;
             unitName: string | null;
@@ -12516,6 +12537,10 @@ export interface components {
                 messages: number;
                 segments: number;
             };
+        };
+        AppVersion: {
+            version: string;
+            commit: string | null;
         };
         AvailablePlan: {
             id: string;
@@ -19411,6 +19436,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_public_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["AppVersion"];
+                    };
                 };
             };
         };

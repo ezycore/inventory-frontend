@@ -47,6 +47,7 @@
       "maxStock": "Only {count} of {name} in stock"
     },
     "cart": {
+      "heldForOnline": "{count} held for online orders",
       "product": "Product",
       "priceMrp": "Price (MRP)",
       "costPrice": "Cost Price",

@@ -47,6 +47,7 @@
       "maxStock": "{name} স্টকে আছে মাত্র {count}টি"
     },
     "cart": {
+      "heldForOnline": "অনলাইন অর্ডারের জন্য {count}টি রাখা",
       "product": "পণ্য",
       "priceMrp": "মূল্য (MRP)",
       "costPrice": "ক্রয়মূল্য",

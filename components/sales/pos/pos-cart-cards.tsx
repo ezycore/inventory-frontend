@@ -43,6 +43,11 @@ export function PosCartCards({
                     })}
                   </div>
                 )}
+                {item.tracked !== false && (item.heldQuantity ?? 0) > 0 && (
+                  <div className="text-xs text-amber-700 dark:text-amber-400">
+                    {t("heldForOnline", { count: item.heldQuantity as number })}
+                  </div>
+                )}
                 <div className="text-xs text-muted-foreground tabular-nums">
                   {formatCurrency(item.price)} × {item.quantity}
                 </div>
@@ -113,6 +118,7 @@ export function PosCartCards({
                 value={item.batchId ?? null}
                 onChange={(batchId) => updateItem(item.id, { batchId })}
                 emptyLabel={t("autoFefo")}
+                hideExpired
                 title={t("fefoTooltip")}
                 className="h-10 w-full text-sm"
               />

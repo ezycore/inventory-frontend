@@ -25,6 +25,8 @@ export interface ProductApiItem {
   price: number;
   costPrice: number;
   quantity: number;
+  /** Units held by confirmed online orders — already taken off `quantity`. */
+  reservedQuantity?: number;
   productId: string;
   variantId: string | null;
   conversionFactor?: number;
@@ -104,6 +106,8 @@ export interface ExtractedProduct {
    * for explicitly.
    */
   tracked?: boolean;
+  /** Units held by confirmed online orders — already taken off `availableQuantity`. */
+  heldQuantity?: number;
   productId: string;
   variantId: string | null;
   conversionFactor?: number;

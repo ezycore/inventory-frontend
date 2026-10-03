@@ -460,6 +460,7 @@ export function useSellPage({
         // Onto the line, so the row keeps knowing its number is a sentinel long
         // after the picker list it came from has been replaced.
         tracked,
+        heldQuantity: product.heldQuantity,
         unitName: product.unitName, saleUnitName: product.saleUnitName,
         hasExpiry: product.hasExpiry,
         taxRate: product.taxRate ?? 0,
