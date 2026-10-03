@@ -166,7 +166,9 @@ minimum version, say so under "Deploy notes".
   2. `pnpm version <x.y.z> --no-git-tag-version`; rename `[Unreleased]` to
      `[x.y.z] - YYYY-MM-DD` and open a fresh empty `[Unreleased]` above it.
   3. Commit `chore(release): vX.Y.Z`; merge to `main` (the deploy branch).
-  4. On the deployed `main` commit: `git tag -a vX.Y.Z -m "vX.Y.Z"` and push the tag.
+  4. Nothing else: after a successful production deploy, `deploy.yml` creates and
+     pushes the `vX.Y.Z` tag on the deployed commit. Forget step 2 and the tag
+     already exists — the run warns "this deploy is untagged" instead.
 - **What the deploy does with it:** `deploy.yml` reads `package.json` and also tags
   the image `:X.Y.Z` (staging builds get `:X.Y.Z-rc`) — that tag is the rollback
   handle — and passes the commit in as a build arg. The Telegram notice names the

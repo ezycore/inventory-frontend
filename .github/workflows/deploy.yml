@@ -15,7 +15,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write          # push the vX.Y.Z release tag after a production deploy
       packages: write
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +75,23 @@ jobs:
             docker compose pull
             docker compose up -d
             docker image prune -f || true
+
+      # Tag the release once production is actually running it. The version is
+      # package.json's; an existing tag means it was not bumped for this deploy —
+      # warn rather than fail, the deploy itself already succeeded. A tag pushed
+      # with GITHUB_TOKEN starts no workflow, so this cannot redeploy.
+      - name: Tag release
+        if: github.ref_name == 'main'
+        run: |
+          TAG="v${{ steps.env.outputs.version }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::warning::$TAG already exists — package.json was not bumped, so this deploy is untagged."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "$TAG" "${{ github.sha }}"
+            git push origin "$TAG"
+          fi
 
       - name: Notify Telegram
         if: always()

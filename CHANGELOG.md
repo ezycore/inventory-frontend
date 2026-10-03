@@ -20,6 +20,8 @@ entries below are what this deploy adds on top of it.
   details, QR, per-document overrides, copies.
 - List pages keep page, filters and sort in the URL, so Back returns to the same view.
 - Release version shown in the user menu.
+- Production deploys tag the release (`vX.Y.Z`) automatically once the deploy
+  succeeds; an un-bumped version is warned about, not re-tagged.
 
 ### Changed
 - "New Sale" is out of the sidebar; every "new sale" button opens POS. POS's top bar
