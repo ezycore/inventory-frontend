@@ -10,7 +10,7 @@ import { useGetOrganizationApi, useReceiptSettings } from "@/hooks";
 import { useDebounce } from "@/hooks/use-debounce";
 import { isFeatureEnabled, isVatActive } from "@/lib/feature-utils";
 import { useUpdateOrganization } from "@/services/api";
-import type { ReceiptSettings } from "@/types/receipt";
+import { RECEIPT_DOCUMENT_KINDS, type ReceiptDocumentKind, type ReceiptSettings } from "@/types/receipt";
 import {
   Card,
   CardContent,
@@ -20,8 +20,28 @@ import {
 } from "@/ui/components/card";
 import PageHeader from "@/ui/components/header";
 import { Button } from "@/ui/components/button";
+import { SegmentedField } from "@/ui/components/segmented-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/components/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/ui/components/alert-dialog";
 import LetterheadBuilder from "@/components/settings/letterhead-builder";
 import {
+  receiptV2Header,
   renderReceiptPreview,
   type PaperSize,
 } from "@/utils/print-documents";
@@ -82,6 +102,8 @@ export default function ReceiptSettingsPage() {
   // Printing is a licensed feature; without it this page has nothing to configure.
   const canPrint = isFeatureEnabled(user?.organization?.features, "invoicePrinting");
   const salesTaxActive = isVatActive(user?.organization);
+  const accountsEnabled = isFeatureEnabled(user?.organization?.features, "accounts");
+  const storefrontEnabled = isFeatureEnabled(user?.organization?.features, "storefront");
 
   const { data: orgData } = useGetOrganizationApi();
   const org = orgData?.data;
@@ -92,6 +114,19 @@ export default function ReceiptSettingsPage() {
   const { state, actions, hasChanges, buildPayload } =
     useReceiptSettings(savedReceipt);
   const [previewHeight, setPreviewHeight] = useState(420);
+
+  // The preview's paper is its own switch, so a thermal render doesn't need the
+  // saved default changed. Changing the default still moves the preview to it.
+  const [previewPaper, setPreviewPaper] = useState<PaperSize>(state.paper);
+  const [followedPaper, setFollowedPaper] = useState(state.paper);
+  if (state.paper !== followedPaper) {
+    setFollowedPaper(state.paper);
+    setPreviewPaper(state.paper);
+  }
+  // Which sample document the preview renders; the Documents tab edits its overrides.
+  const [docKind, setDocKind] = useState<ReceiptDocumentKind>("invoice");
+  // Copies render in the preview only while the Paper tab (where they're set) is open.
+  const [activeTab, setActiveTab] = useState("header");
 
   // The iframe reparses its whole document whenever `srcDoc` changes, so driving
   // it straight off `state` janks typing/toggling. Debounce the value that feeds
@@ -115,7 +150,7 @@ export default function ReceiptSettingsPage() {
 
   const previewSrcDoc = useMemo(() => {
     const { body, styles } = renderReceiptPreview({
-      paper: previewState.paper,
+      paper: previewPaper,
       align: previewState.align,
       orgName: org?.name,
       logoUrl,
@@ -126,18 +161,41 @@ export default function ReceiptSettingsPage() {
       footer: previewState.footer || undefined,
       logoPlacement: previewState.logoPlacement,
       watermarkOpacity: previewState.watermarkOpacity,
+      logoSize: previewState.logoSize,
+      watermarkSize: previewState.watermarkSize,
+      watermarkPosition: previewState.watermarkPosition,
       headerLines: previewState.headerLines,
       metaFields: previewState.metaFields,
       showDocTitle: previewState.showDocTitle,
       showAmountInWords: previewState.showAmountInWords,
       amountInWordsLabel: previewState.amountInWordsLabel,
+      // The v2 blocks read the same mapping the printout uses, over the draft.
+      v2: receiptV2Header(
+        {
+          itemColumns: previewState.itemColumns,
+          totals: previewState.totals,
+          signature: previewState.signature,
+          signatureImage: savedReceipt?.signatureImage,
+          stampImage: savedReceipt?.stampImage,
+          paymentDetails: previewState.paymentDetails,
+          terms: previewState.terms,
+          qr: previewState.qr,
+          documents: previewState.documents,
+          thermal: previewState.thermal,
+          copies: previewState.copies,
+          copyLabels: previewState.copyLabels,
+        },
+        { slug: org?.slug, features: user?.organization?.features },
+      ),
+      docKind,
+      showCopies: activeTab === "paper",
       currencyCode: org?.currency,
       salesTaxActive,
       t: tPrintDoc,
       locale,
     });
-    return buildPreviewSrcDoc(body, styles, previewState.paper);
-  }, [previewState, org?.name, logoUrl, org?.address, org?.currency, salesTaxActive, tPrintDoc, locale]);
+    return buildPreviewSrcDoc(body, styles, previewPaper);
+  }, [previewState, previewPaper, docKind, activeTab, savedReceipt?.signatureImage, savedReceipt?.stampImage, org?.slug, user?.organization?.features, org?.name, logoUrl, org?.address, org?.currency, salesTaxActive, tPrintDoc, locale]);
 
   // Size the preview iframe to its content so short (thermal) receipts leave no
   // dead space below. Content is same-origin (allow-same-origin, no scripts), so
@@ -183,9 +241,39 @@ export default function ReceiptSettingsPage() {
               state={state}
               actions={actions}
               hasLogo={hasLogo}
+              logoUrl={logoUrl}
+              previewPaper={previewPaper}
+              docKind={docKind}
+              vatActive={salesTaxActive}
+              accountsEnabled={accountsEnabled}
+              storefrontEnabled={storefrontEnabled}
+              signatureImage={savedReceipt?.signatureImage}
+              stampImage={savedReceipt?.stampImage}
+              onTabChange={setActiveTab}
               onNavigateProfile={() => router.push("/profile")}
             />
-            <div className="flex justify-end border-t pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="ghost">
+                    {t("resetDefaults")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("resetDialog.title")}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t("resetDialog.description")}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("resetDialog.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={actions.resetToDefaults}>
+                      {t("resetDialog.confirm")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button
                 onClick={handleSave}
                 disabled={!hasChanges || updateOrganization.isPending}
@@ -204,7 +292,30 @@ export default function ReceiptSettingsPage() {
               {t("previewDescription")}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            <SegmentedField
+              label={t("previewPaperLabel")}
+              value={previewPaper}
+              onChange={(v) => setPreviewPaper(v as PaperSize)}
+              caption={false}
+              options={[
+                { value: "a4", label: t("previewPaper.a4") },
+                { value: "thermal80", label: t("previewPaper.thermal80") },
+                { value: "thermal58", label: t("previewPaper.thermal58") },
+              ]}
+            />
+            <Select value={docKind} onValueChange={(v) => setDocKind(v as ReceiptDocumentKind)}>
+              <SelectTrigger aria-label={t("previewDocLabel")} className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RECEIPT_DOCUMENT_KINDS.map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {t(`v2.documents.kinds.${k}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <iframe
               title={t("previewIframeTitle")}
               srcDoc={previewSrcDoc}

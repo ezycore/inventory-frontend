@@ -36,7 +36,7 @@ import {
   type PaperSize,
 } from "@/utils/print-documents";
 import type { AppLocale } from "@/i18n/config";
-import type { Sale, TaxType } from "@/types";
+import type { Payment, Sale, TaxType } from "@/types";
 import { populatedRef } from "@/utils/populated-ref";
 
 /**
@@ -108,12 +108,19 @@ export interface SellPageOptions {
   afterDraftSave?: "history" | "stay";
   /** Photo beside each cart line's name. */
   renderThumb?: (item: SellOrderItem) => ReactNode;
+  /**
+   * Open the print dialog for the receipt right after a sale completes (the
+   * POS counter passes the org's `autoPrintAfterSale`). Browsers can't print
+   * silently — this opens the dialog, nothing more.
+   */
+  autoPrint?: boolean;
 }
 
 export function useSellPage({
   homePath = "/sales",
   afterDraftSave = "history",
   renderThumb,
+  autoPrint = false,
 }: SellPageOptions = {}) {
   const t = useTranslations("sales.sell");
   const tPrintDoc = useTranslations("common.printDoc");
@@ -594,8 +601,16 @@ export function useSellPage({
         orderData.creditBalanceAmount = creditApplied;
         orderData.dueAmount = dueAmount;
       }
+      // The handed-over figure the cap above throws away: kept on the sale only
+      // so the receipt can print "Cash received / Change". Never posted.
+      const tenderedAmount =
+        isAccountsEnabled && orderData.payment && formPaidAmount > settledPaidAmount
+          ? formPaidAmount
+          : undefined;
+      if (tenderedAmount !== undefined) orderData.tenderedAmount = tenderedAmount;
 
       let createdSale: Sale | undefined;
+      let createdPayment: Payment | undefined;
       if (isDraftMode && draftId) {
         const finalizeResult = await finalizeDraftMutation.mutateAsync({
           id: draftId,
@@ -605,11 +620,14 @@ export function useSellPage({
           payment: orderData.payment,
           creditBalanceAmount: orderData.creditBalanceAmount,
           notes,
+          tenderedAmount,
         });
         createdSale = finalizeResult.data?.sale as Sale | undefined;
+        createdPayment = (finalizeResult.data as { payment?: Payment } | undefined)?.payment;
       } else {
         const createResult = await mutateAsync(orderData);
         createdSale = createResult.data?.sale as Sale | undefined;
+        createdPayment = (createResult.data as { payment?: Payment } | undefined)?.payment;
       }
 
       if (createdSale) {
@@ -618,8 +636,11 @@ export function useSellPage({
         // reads "Walk-in Customer" / "undefined undefined" and the email-receipt
         // popover can't prefill the recipient. Item names/totals are denormalized
         // on the doc, so they're already right.
-        setLastCompletedSale({
+        const receiptSale: Sale = {
           ...createdSale,
+          // The create response carries the payment beside the sale, not on it;
+          // graft it so "payment methods" can print on the receipt.
+          ...(createdPayment ? { payments: [createdPayment] } : {}),
           ...(customerName
             ? {
                 customerId: {
@@ -632,7 +653,17 @@ export function useSellPage({
             firstName: user?.firstName ?? "",
             lastName: user?.lastName ?? "",
           } as unknown as Sale["createdBy"],
-        });
+        };
+        setLastCompletedSale(receiptSale);
+        if (autoPrint) {
+          printSaleInvoice(receiptSale, {
+            paper: resolveDefaultPaper(user?.organization),
+            currency: formatCurrency,
+            header: orgToPrintHeader(user?.organization),
+            t: tPrintDoc,
+            locale,
+          });
+        }
         clearAll();
         resetCustomerForm();
         setPaidAmount(0);
@@ -648,7 +679,7 @@ export function useSellPage({
       console.error("Failed to complete sale:", error);
       toast.error(t("toasts.saleFailed"));
     }
-  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, homePath, resetCustomerForm, user, t]);
+  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, homePath, resetCustomerForm, user, t, autoPrint, formatCurrency, tPrintDoc, locale]);
 
   // Reprint the just-completed sale's receipt (paper chosen in the PrintMenu).
   const printLastReceipt = useCallback(

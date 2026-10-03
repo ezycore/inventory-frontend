@@ -2515,6 +2515,8 @@ export interface FinalizeSaleDto {
   };
   creditBalanceAmount?: number;
   notes?: string;
+  /** Cash handed over when it exceeds the settled amount (receipt snapshot). */
+  tenderedAmount?: number;
 }
 
 // ============================================

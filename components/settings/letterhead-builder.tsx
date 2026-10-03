@@ -7,9 +7,15 @@ import {
   getHeaderLineMeta,
   getLogoPlacementOptions,
   getMetaFieldOptions,
+  getWatermarkPositionOptions,
+  DEFAULT_WATERMARK_SIZE,
+  WATERMARK_SIZE_LIMITS,
   type ReceiptHeaderAlign,
   type ReceiptLogoPlacement,
   type ReceiptPaperSize,
+  type ReceiptWatermarkPosition,
+  type ReceiptDocumentKind,
+  type ReceiptImage,
 } from "@/types/receipt";
 import type { ReceiptFormState, ReceiptSettingsActions } from "@/hooks";
 import { Button } from "@/ui/components/button";
@@ -18,6 +24,7 @@ import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { Switch } from "@/ui/components/switch";
 import { Textarea } from "@/ui/components/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/components/tabs";
 import {
   Select,
   SelectContent,
@@ -27,66 +34,59 @@ import {
 } from "@/ui/components/select";
 
 import LetterheadLineRow from "./letterhead-line-row";
+import { Panel, ToggleRow } from "./receipt-panel";
+import {
+  DocumentOverridesPanel,
+  ItemColumnsPanel,
+  PaymentDetailsPanel,
+  PrintControlsPanel,
+  QrPanel,
+  SignaturePanel,
+  TermsPanel,
+  TotalsPanel,
+} from "./receipt-v2-panels";
+import LogoSizeFields from "./logo-size-fields";
 
 interface LetterheadBuilderProps {
   state: ReceiptFormState;
   actions: ReceiptSettingsActions;
   hasLogo: boolean;
+  logoUrl?: string;
+  /** Paper the preview shows; the per-paper logo size edits this one. */
+  previewPaper: ReceiptPaperSize;
+  /** Document the preview shows; the Documents tab edits its overrides. */
+  docKind: ReceiptDocumentKind;
+  vatActive: boolean;
+  accountsEnabled: boolean;
+  storefrontEnabled: boolean;
+  signatureImage?: ReceiptImage | null;
+  stampImage?: ReceiptImage | null;
+  onTabChange?: (tab: string) => void;
   onNavigateProfile: () => void;
 }
-
-/** A titled, bordered section — one visual group per concern for even rhythm. */
-const Panel = ({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-}) => (
-  <section className="space-y-4 rounded-lg border p-4">
-    <div className="space-y-0.5">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
-    {children}
-  </section>
-);
-
-/** A toggle row: label + optional hint on the left, switch on the right. */
-const ToggleRow = ({
-  label,
-  hint,
-  checked,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) => (
-  <label className="flex items-center justify-between gap-3 rounded-md border p-3">
-    <span className="space-y-0.5">
-      <span className="block text-sm font-medium">{label}</span>
-      {hint ? (
-        <span className="block text-xs text-muted-foreground">{hint}</span>
-      ) : null}
-    </span>
-    <Switch checked={checked} onCheckedChange={onChange} />
-  </label>
-);
 
 export default function LetterheadBuilder({
   state,
   actions,
   hasLogo,
+  logoUrl,
+  previewPaper,
+  docKind,
+  vatActive,
+  accountsEnabled,
+  storefrontEnabled,
+  signatureImage,
+  stampImage,
+  onTabChange,
   onNavigateProfile,
 }: LetterheadBuilderProps) {
   const t = useTranslations("settings.receipt");
   const showsWatermark =
     state.logoPlacement === "watermark" || state.logoPlacement === "both";
   const showsLogo = state.logoPlacement !== "hidden";
+  const showsTopLogo =
+    state.logoPlacement === "top" || state.logoPlacement === "both";
+  const watermarkSize = state.watermarkSize ?? DEFAULT_WATERMARK_SIZE;
 
   const profileLinkTag = (chunks: React.ReactNode) => (
     <button
@@ -101,7 +101,18 @@ export default function LetterheadBuilder({
   const headerLineMeta = getHeaderLineMeta(t);
 
   return (
-    <div className="space-y-5">
+    <Tabs defaultValue="header" className="gap-4" onValueChange={onTabChange}>
+      <div className="-mx-1 overflow-x-auto px-1">
+        <TabsList className="w-max">
+          <TabsTrigger value="header">{t("tabs.header")}</TabsTrigger>
+          <TabsTrigger value="body">{t("tabs.body")}</TabsTrigger>
+          <TabsTrigger value="footer">{t("tabs.footer")}</TabsTrigger>
+          <TabsTrigger value="paper">{t("tabs.paper")}</TabsTrigger>
+          <TabsTrigger value="documents">{t("tabs.documents")}</TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="header" className="space-y-5">
       {/* Contact values that feed the identity lines */}
       <Panel
         title={t("contactTitle")}
@@ -185,9 +196,79 @@ export default function LetterheadBuilder({
             {t("watermarkHint")}
           </p>
         ) : null}
+        {showsWatermark && hasLogo ? (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="watermarkWidth">{t("watermarkWidthLabel")}</Label>
+              <NumberField
+                id="watermarkWidth"
+                value={watermarkSize.widthPct}
+                onChange={(n) =>
+                  n !== null &&
+                  actions.update({ watermarkSize: { ...watermarkSize, widthPct: n } })
+                }
+                min={WATERMARK_SIZE_LIMITS[0]}
+                max={WATERMARK_SIZE_LIMITS[1]}
+                precision={0}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="watermarkHeight">{t("watermarkHeightLabel")}</Label>
+              <NumberField
+                id="watermarkHeight"
+                value={watermarkSize.heightPct}
+                onChange={(n) =>
+                  n !== null &&
+                  actions.update({ watermarkSize: { ...watermarkSize, heightPct: n } })
+                }
+                min={WATERMARK_SIZE_LIMITS[0]}
+                max={WATERMARK_SIZE_LIMITS[1]}
+                precision={0}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="watermarkPosition">{t("watermarkPositionLabel")}</Label>
+              <Select
+                value={state.watermarkPosition}
+                onValueChange={(v) =>
+                  actions.update({ watermarkPosition: v as ReceiptWatermarkPosition })
+                }
+              >
+                <SelectTrigger id="watermarkPosition" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getWatermarkPositionOptions(t).map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        ) : null}
+        {showsTopLogo && hasLogo ? (
+          <div className="space-y-1.5 border-t pt-4">
+            <p className="text-sm font-medium">
+              {t("logoSizeTitle", { paper: t(`paper.${previewPaper}`) })}
+            </p>
+            <LogoSizeFields
+              paper={previewPaper}
+              box={state.logoSize[previewPaper]}
+              logoUrl={logoUrl}
+              onChange={(box) => actions.setLogoBox(previewPaper, box)}
+            />
+          </div>
+        ) : null}
         {showsLogo && !hasLogo ? (
           <p className="text-xs text-amber-600">
             {t.rich("noLogoWarning", { link: profileLinkTag })}
+          </p>
+        ) : null}
+        {hasLogo ? (
+          <p className="text-xs text-muted-foreground">
+            {t.rich("changeLogoInProfile", { link: profileLinkTag })}
           </p>
         ) : null}
       </Panel>
@@ -205,6 +286,7 @@ export default function LetterheadBuilder({
               isFirst={i === 0}
               isLast={i === state.headerLines.length - 1}
               actions={actions}
+              onNavigateProfile={onNavigateProfile}
             />
           ))}
         </div>
@@ -226,54 +308,32 @@ export default function LetterheadBuilder({
         </p>
       </Panel>
 
-      {/* Paper + alignment */}
-      <Panel title={t("layoutTitle")} hint={t("layoutHint")}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="receiptPaperSize">{t("paperSizeLabel")}</Label>
-            <Select
-              value={state.paper}
-              onValueChange={(v) =>
-                actions.update({ paper: v as ReceiptPaperSize })
-              }
-            >
-              <SelectTrigger id="receiptPaperSize" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="a4">{t("paper.a4")}</SelectItem>
-                <SelectItem value="thermal80">{t("paper.thermal80")}</SelectItem>
-                <SelectItem value="thermal58">{t("paper.thermal58")}</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {t("paperSizeHint")}
-            </p>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="receiptHeaderAlign">{t("headerAlignLabel")}</Label>
-            <Select
-              value={state.align}
-              onValueChange={(v) =>
-                actions.update({ align: v as ReceiptHeaderAlign })
-              }
-            >
-              <SelectTrigger id="receiptHeaderAlign" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="left">{t("align.left")}</SelectItem>
-                <SelectItem value="center">{t("align.center")}</SelectItem>
-                <SelectItem value="right">{t("align.right")}</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {t("headerAlignHint")}
-            </p>
-          </div>
+      {/* Alignment */}
+      <Panel title={t("alignTitle")} hint={t("headerAlignHint")}>
+        <div className="space-y-1.5 sm:max-w-xs">
+          <Label htmlFor="receiptHeaderAlign">{t("headerAlignLabel")}</Label>
+          <Select
+            value={state.align}
+            onValueChange={(v) =>
+              actions.update({ align: v as ReceiptHeaderAlign })
+            }
+          >
+            <SelectTrigger id="receiptHeaderAlign" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">{t("align.left")}</SelectItem>
+              <SelectItem value="center">{t("align.center")}</SelectItem>
+              <SelectItem value="right">{t("align.right")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </Panel>
+      </TabsContent>
 
+      <TabsContent value="body" className="space-y-5">
+      <ItemColumnsPanel state={state} actions={actions} vatActive={vatActive} />
+      <TotalsPanel state={state} actions={actions} accountsEnabled={accountsEnabled} />
       {/* Per-document lines: title, meta rows */}
       <Panel
         title={t("showOnDocsTitle")}
@@ -326,6 +386,18 @@ export default function LetterheadBuilder({
         ) : null}
       </Panel>
 
+      </TabsContent>
+
+      <TabsContent value="footer" className="space-y-5">
+      <SignaturePanel
+        state={state}
+        actions={actions}
+        signatureImage={signatureImage}
+        stampImage={stampImage}
+      />
+      <PaymentDetailsPanel state={state} actions={actions} />
+      <TermsPanel state={state} actions={actions} />
+      <QrPanel state={state} actions={actions} storefrontEnabled={storefrontEnabled} />
       {/* Footer note */}
       <Panel title={t("footerTitle")} hint={t("footerHint")}>
         <Textarea
@@ -337,6 +409,38 @@ export default function LetterheadBuilder({
           className="resize-none"
         />
       </Panel>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="paper" className="space-y-5">
+      <Panel title={t("paperTitle")} hint={t("paperHint")}>
+        <div className="space-y-1.5 sm:max-w-xs">
+          <Label htmlFor="receiptPaperSize">{t("paperSizeLabel")}</Label>
+          <Select
+            value={state.paper}
+            onValueChange={(v) =>
+              actions.update({ paper: v as ReceiptPaperSize })
+            }
+          >
+            <SelectTrigger id="receiptPaperSize" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="a4">{t("paper.a4")}</SelectItem>
+              <SelectItem value="thermal80">{t("paper.thermal80")}</SelectItem>
+              <SelectItem value="thermal58">{t("paper.thermal58")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {t("paperSizeHint")}
+          </p>
+        </div>
+      </Panel>
+      <PrintControlsPanel state={state} actions={actions} />
+      </TabsContent>
+
+      <TabsContent value="documents" className="space-y-5">
+        <DocumentOverridesPanel state={state} actions={actions} docKind={docKind} />
+      </TabsContent>
+    </Tabs>
   );
 }
