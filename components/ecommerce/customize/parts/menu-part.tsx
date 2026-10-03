@@ -1,7 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
 import { LayoutGrid, Menu, Pencil } from "lucide-react";
 import type { HeaderMenuSource } from "@/lib/storefront-client";
 import {
@@ -15,13 +14,10 @@ import { SegmentedField } from "@/ui/components/segmented-field";
 import { PartBlock, PartHint } from "@/components/ecommerce/customize/part-group";
 import { MenuLinksEditor } from "@/components/ecommerce/customize/menu-links-editor";
 import {
-  DesktopMenuFields,
-  PhoneMenuFields,
+  CollectionStripFields,
+  MenuShortcutFields,
 } from "@/components/ecommerce/customize/menu-behaviour-fields";
-import {
-  MenuActiveFields,
-  MenuHoverFields,
-} from "@/components/ecommerce/customize/menu-hover-fields";
+import { MenuActiveFields } from "@/components/ecommerce/customize/menu-hover-fields";
 import type { CustomizeDraftApi } from "@/components/ecommerce/customize/use-customize-draft";
 
 const SOURCES: {
@@ -44,45 +40,36 @@ const SOURCES: {
   },
 ];
 
-/** Header layouts with no menu row of their own, which can take one on request. */
-const ROWLESS_HEADERS = new Set(["search-first", "clinical"]);
-
-type Device = "mobile" | "desktop"
-
 /**
- * Menu — what is in the shop's menu and how it opens, on each device.
+ * Menu — what is in the shop's menu, on every device.
  *
  * One set of links drives every menu surface (`lib/storefront-menu.ts`): the
  * desktop header row, the phone menu panel, and — for the category tree — the
  * phone strip and the category sidebar. Split out of Header on 2026-09-24,
  * because it stopped being a header setting the moment the phone obeyed it.
  *
- * Phone first (the owner's standing rule): the device switch opens on Phone
- * and the preview opens on a phone with it.
+ * **What, not how** (2026-09-29). How the menu opens moved to Header, beside
+ * the bar that opens it — the phone panel under Phone, the dropdown row under
+ * Computer — so this part has no device switch: everything here applies to
+ * both screens, and the few answers stored per device say which one.
  */
 export function MenuPart({
   draft,
   patch,
   patchTemplate,
   onManageCollections,
-  onPreviewDevice,
 }: {
   /**
    * Opens the collections panel. Omitted for a role without `storefront.manage`:
    * renaming, listing and reordering collections are catalog writes.
    */
   onManageCollections?: () => void;
-  onPreviewDevice?: (device: Device) => void;
 } & Pick<CustomizeDraftApi, "draft" | "patch" | "patchTemplate">) {
-  const [device, setDevice] = useState<Device>("mobile");
   const source = draft.templates.headerMenu as HeaderMenuSource;
   const listed = draft.collections.filter((c) => c.isListed);
   const menu = draft.navMenu;
   const setMenu = (next: Partial<ResolvedMenuSettings>) =>
     patch({ navMenu: { ...menu, ...next } });
-
-  const header = draft.templates.header;
-  const rowless = ROWLESS_HEADERS.has(header);
 
   return (
     <>
@@ -172,52 +159,27 @@ export function MenuPart({
         />
       </PartBlock>
 
-      {/* Both devices — so above the switch, not inside one side of it. */}
+      <PartBlock label="Shortcut rows">
+        <MenuShortcutFields value={menu} onChange={setMenu} />
+      </PartBlock>
+
+      {/* `design` axes, so the save bar counts them under Look. */}
       <MenuActiveFields
         design={draft.design}
         onChange={(axis) => patch({ design: { ...draft.design, ...axis } })}
       />
 
-      <PartBlock label="Edit menu for">
-        <SegmentedField
-          label="Device"
-          caption={false}
-          value={device}
-          onChange={(v) => {
-            const next: Device = v === "desktop" ? "desktop" : "mobile";
-            setDevice(next);
-            onPreviewDevice?.(next);
-          }}
-          options={[
-            { value: "mobile", label: "Phone" },
-            { value: "desktop", label: "Computer" },
-          ]}
-        />
+      <PartBlock
+        label="Sub-categories on a collection page"
+        hint="The row under a collection's heading — All ‹category›, then each sub-category."
+      >
+        <CollectionStripFields value={menu} onChange={setMenu} />
       </PartBlock>
 
-      {device === "mobile" ? (
-        <PhoneMenuFields
-          value={menu.mobile}
-          onChange={(p) => setMenu({ mobile: { ...menu.mobile, ...p } })}
-          hasChipsRow={draft.mobile.row === "chips"}
-          slidesIn={draft.mobile.menuStyle === "drawer"}
-        />
-      ) : (
-        <>
-          <DesktopMenuFields
-            value={menu.desktop}
-            onChange={(p) => setMenu({ desktop: { ...menu.desktop, ...p } })}
-            headerHasRow={!rowless || menu.desktop.row}
-            headerCanAddRow={rowless}
-            hasSidebar={draft.templates.shell === "rail"}
-          />
-          {/* `design` axes, so the save bar counts them under Look. */}
-          <MenuHoverFields
-            design={draft.design}
-            onChange={(axis) => patch({ design: { ...draft.design, ...axis } })}
-          />
-        </>
-      )}
+      <PartHint>
+        How the menu opens — the phone&apos;s menu panel, the computer&apos;s
+        dropdowns — is under Header, beside the bar that opens it.
+      </PartHint>
     </>
   );
 }

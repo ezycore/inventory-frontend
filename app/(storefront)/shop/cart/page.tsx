@@ -5,7 +5,6 @@ import { getStore } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import { storePages } from "@/lib/storefront-page-controls";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { CartPageView } from "@/components/storefront/cart/cart-page";
 
 export async function generateMetadata() {
   return storePageMetadata({ title: "Your cart", index: false });
@@ -25,8 +24,6 @@ export default async function Page() {
   const store = slug ? await getStore(slug) : null;
   if (store && !storePages(store).cartPage) redirect(`${base}/checkout`);
   return (
-    <SystemPage path="/cart">
-      <CartPageView />
-    </SystemPage>
+    <SystemPage path="/cart" />
   );
 }

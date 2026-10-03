@@ -483,7 +483,7 @@ const HINTS: Record<string, string> = {
      promo row's `height` means a card's height, this one means the whole hero's,
      and the two layouts answer differently to a number. */
   "hero.height":
-    "The hero's height in pixels. A height REPLACES Picture shape on the screen you set it for — set one or the other, not both. On a full-width hero it is a minimum, so the hero still grows if the words need more room.",
+    "The hero's height in pixels. A height replaces Hero shape on the screen you set it for, so typing one clears the shape there — and picking a shape clears the height. On a full-width hero it is a minimum, so the hero still grows if the words need more room.",
   /* Section-keyed for the reason `"hero.frame"` gives: `image-text` and the hero
      ask the same question of layouts that start from different defaults. */
   "image-text.mobileFirst":

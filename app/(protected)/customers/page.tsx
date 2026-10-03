@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,12 +30,14 @@ import {
 import { StorefrontListPanel } from "@/components/customers/storefront-list-panel";
 import { PageTabs, type PageTab } from "@/ui/components/page-tabs";
 import { useFilteredFormConfig } from "@/hooks/use-filters";
+import { useUrlParam } from "@/hooks/use-url-param";
 import StatsCard from "@/ui/components/StatsCard";
 import { formatCurrency } from "@/lib/currency";
 import { isFeatureEnabled } from "@/lib/feature-utils";
 import { HandCoins, Users, Wallet } from "lucide-react";
 
-type CustomerTab = "all" | "accounts" | "subscribers";
+const CUSTOMER_TABS = ["all", "accounts", "subscribers"] as const;
+type CustomerTab = (typeof CUSTOMER_TABS)[number];
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -59,15 +61,9 @@ export default function CustomersPage() {
     isFeatureEnabled(user?.organization?.features, "storefront") &&
     (user?.permissions?.includes("storefront.view") ?? false);
 
-  // `/customers/online` redirects here with ?tab=accounts, so the deep link
-  // lands on the right tab instead of silently on "All customers".
-  const searchParams = useSearchParams();
-  const requestedTab = searchParams.get("tab");
-  const [tab, setTab] = useState<CustomerTab>(
-    requestedTab === "accounts" || requestedTab === "subscribers"
-      ? requestedTab
-      : "all",
-  );
+  // The tab lives in the URL: `/customers/online` redirects here with
+  // ?tab=accounts, and Back from a customer opened on a tab returns to it.
+  const [tab, setTab] = useUrlParam<CustomerTab>("tab", CUSTOMER_TABS, "all");
   // Same clamp as Products: PageTabs hides itself at one tab, so a merchant on
   // an Online tab when the storefront is switched off would be stranded there
   // with no strip to click back through.

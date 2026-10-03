@@ -10,7 +10,7 @@ import {
 import type { HeroFrame } from "@/components/storefront/home/hero-static";
 
 /**
- * A full-width builder hero drawn as the classic home's banner hero: the store
+ * A full-width builder hero drawn as the store's banner hero: the store
  * banner behind the merchant's slides, with the store's own wording where a
  * slide supplies none. Loaded only through the island map.
  *
@@ -24,8 +24,7 @@ import type { HeroFrame } from "@/components/storefront/home/hero-static";
  *
  * The two things the view cannot know are resolved here, because both need the
  * shopper's language and the store's name:
- * - a first slide with no headline shows the **store's name**, as the classic
- *   banner hero did;
+ * - a first slide with no headline shows the **store's name**;
  * - a slide with no button label takes the store's own word for it when the
  *   merchant kept the store's wording.
  */

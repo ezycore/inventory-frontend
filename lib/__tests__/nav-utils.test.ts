@@ -45,6 +45,30 @@ describe("filterNavItems", () => {
     expect(titles(sales.items ?? [])).toEqual(["New Sale"]);
   });
 
+  it("drops a hideInMenu item from the menu but keeps its route gates", () => {
+    const groups = [
+      {
+        label: "Ops",
+        items: [
+          {
+            title: "Sales",
+            url: "/sales",
+            permissions: ["sales.view", "sales.create"],
+            items: [
+              { title: "New Sale", url: "/sales", permissions: ["sales.create"], features: ["sales"], hideInMenu: true },
+              { title: "POS", url: "/sales/pos", permissions: ["sales.create"] },
+            ],
+          },
+        ] as NavItem[],
+      },
+    ];
+
+    const [sales] = filterNavItems(groups[0].items, "admin", ["sales.create"], ALL_ON);
+    expect(titles(sales.items ?? [])).toEqual(["POS"]);
+    expect(permissionsForPath("/sales", groups)).toEqual(["sales.create"]);
+    expect(featuresForPath("/sales", groups)?.all).toEqual(["sales"]);
+  });
+
   it("drops a '#' parent once every child is filtered away", () => {
     const items: NavItem[] = [
       {

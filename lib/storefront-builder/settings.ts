@@ -36,6 +36,8 @@ export interface SectionImage {
   url: string;
   mediumUrl?: string;
   thumbnailUrl?: string;
+  /** The 2560px rendition the section upload writes for a wide picture (`imageUpload.ts` `largeVariant`). */
+  largeUrl?: string;
   width?: number;
   height?: number;
   alt?: string;
@@ -121,6 +123,10 @@ export const readImage = (value: unknown): SectionImage | undefined => {
     url,
     mediumUrl: variant(value.mediumUrl),
     thumbnailUrl: variant(value.thumbnailUrl),
+    // Dropping it here leaves a sharp hero soft on a Retina desktop with no error
+    // anywhere: the backend stores it, `SfImage` would list it, and this reader is
+    // the one step between them (found in browser QA, 2026-10-03).
+    largeUrl: variant(value.largeUrl),
     width: size(value.width),
     height: size(value.height),
     alt: typeof value.alt === "string" ? value.alt.slice(0, MAX_ALT_LENGTH) : undefined,

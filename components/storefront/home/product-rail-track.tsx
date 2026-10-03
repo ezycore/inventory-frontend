@@ -40,10 +40,9 @@ export function ProductRailTrack({
   currency?: string;
   /**
    * Draw paging arrows instead of the scrollbar, the way the category strip
-   * does. **Off by default, and that is load-bearing**: the CLASSIC home draws
-   * this same rail and passes nothing, so it keeps the bare scrolling track it
-   * has always had, markup and all. Only a builder carousel whose merchant asked
-   * for arrows takes the other branch.
+   * does. **Off by default**: a caller that passes nothing keeps the bare
+   * scrolling track, markup and all. Only a builder carousel whose merchant
+   * asked for arrows takes the other branch.
    */
   arrows?: boolean;
   arrowLabels?: { previous: string; next: string };

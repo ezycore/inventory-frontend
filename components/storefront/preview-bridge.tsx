@@ -33,15 +33,7 @@ export function StorePreviewBridge() {
         accent: p.theme?.accentColor,
         logoStyle: p.theme?.logo,
         mobileChrome: p.theme?.mobile,
-        homeCollections: p.theme?.homeCollections,
         design: p.theme?.design,
-        heroAlign: p.theme?.heroAlign,
-        homepageSections: p.theme?.homepageSections,
-        // Sent beside the section list, never inside it — the preview has to
-        // show a re-pointed row's real products, and the row's collection lives
-        // in this block precisely so a theme cannot reach it.
-        sectionConfig: p.sectionConfig,
-        home: p.templates?.home,
         footer: p.templates?.footer,
         header: p.templates?.header,
         cardStyle: p.templates?.productCard,
@@ -51,7 +43,6 @@ export function StorePreviewBridge() {
         pagination: p.templates?.pagination,
         imageFit: p.templates?.imageFit,
         imageRatio: p.templates?.imageRatio,
-        categoryTiles: p.templates?.categoryTiles,
         accountLayout: p.templates?.accountLayout,
         contentLayout: p.templates?.contentLayout,
         cartLayout: p.templates?.cartLayout,
@@ -61,9 +52,6 @@ export function StorePreviewBridge() {
         product: p.templates?.product,
         checkout: p.templates?.checkout,
         badges: p.trustBadges,
-        heroSlides: p.heroSlides,
-        heroSrc: p.templates?.hero,
-        heroBanner: p.heroBanner,
         headerMenuSrc: p.templates?.headerMenu,
         navHeader: p.nav?.header,
         announcement: p.nav?.announcement,
@@ -73,6 +61,8 @@ export function StorePreviewBridge() {
         // Only when the payload carries `nav` at all, like every slot here.
         navMenu: p.nav ? (p.nav.menu ?? {}) : undefined,
         navFilters: p.nav ? (p.nav.filters ?? {}) : undefined,
+        languageTheme: p.nav ? (p.nav.languageTheme ?? {}) : undefined,
+        desktopHeader: p.nav ? (p.nav.desktopHeader ?? {}) : undefined,
         campaignStrip: p.nav?.campaignStrip,
         collections: p.collections,
         footerGroups: p.nav?.footer,
@@ -94,7 +84,6 @@ export function StorePreviewBridge() {
         // Sent as explicit `null` when there is no image — see the store's note
         // on why these two can't use a `?? saved` fallback downstream.
         logo: p.logo,
-        banner: p.banner,
         mobileLogo: p.mobileLogo,
       });
       /* Tell the editor the draft is IN. Without this the editor has no way to

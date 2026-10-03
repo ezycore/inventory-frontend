@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { describe, expect, it } from "vitest";
 import type { StorefrontSettings } from "@/types";
 import type { StorefrontSite } from "@/types/api";
@@ -6,8 +7,6 @@ import { settingsWithSiteLook } from "./site-look";
 const settings = {
   published: true,
   logo: { url: "https://cdn.test/logo.webp" },
-  copy: { footerText: "Words from the day the store switched" },
-  heroBanner: { title: "Stale banner" },
 } as unknown as StorefrontSettings;
 
 const siteWith = (published: object, draft?: object) =>
@@ -22,10 +21,6 @@ const siteWith = (published: object, draft?: object) =>
   }) as unknown as StorefrontSite;
 
 describe("settingsWithSiteLook", () => {
-  it("returns the settings untouched for a store that has not switched", () => {
-    expect(settingsWithSiteLook(settings, undefined)).toBe(settings);
-  });
-
   it("edits the draft when there is one", () => {
     const merged = settingsWithSiteLook(
       settings,
@@ -54,8 +49,8 @@ describe("settingsWithSiteLook", () => {
     expect(merged.published).toBe(true);
   });
 
-  it("never falls back to the settings' stale look for a block the Site lacks", () => {
+  it("leaves a block the Site lacks unset", () => {
     const merged = settingsWithSiteLook(settings, siteWith({ copy: { footerText: "Live" } }));
-    expect(merged.heroBanner).toBeUndefined();
+    expect(merged.nav).toBeUndefined();
   });
 });

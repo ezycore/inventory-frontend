@@ -4,10 +4,17 @@
 import type { StoreTemplates, StorefrontStore } from "@/lib/storefront-client";
 import { resolveTemplates } from "@/lib/storefront-templates";
 import {
+  headerNeeds,
   resolveUtilityBar,
+  type Breakpoint,
   type ResolvedUtilityBar,
 } from "@/lib/storefront-utility-bar";
+import {
+  offersDarkMode,
+  offersLanguageSwitch,
+} from "@/lib/storefront-language-theme";
 import { useSfPreview } from "@/services/stores/use-sf-preview-store";
+import { useLanguageTheme } from "@/components/storefront/use-language-theme";
 
 /** Desktop anatomies, in `TEMPLATE_OPTIONS.header` order. */
 export const HEADER_VARIANTS: readonly string[] = [
@@ -43,16 +50,39 @@ export function useHeaderVariant(
  * alone, and the moment the two trees resolve it differently the shopper gets
  * the duplicate-toggle bug back — so they read one source instead.
  *
- * Cheap to call repeatedly: both reads are zustand selectors and
- * `resolveUtilityBar` is pure defaulting over a handful of booleans.
+ * A switch the shop does not offer is taken out of the bar here, so the bar
+ * can never draw one. The Customize editor resolves the bar itself
+ * (`resolveUtilityBar`) and never sees this gating — it must save the
+ * merchant's placement untouched, so turning a language back on restores it.
  */
 export function useResolvedUtilityBar(
   store?: StorefrontStore,
 ): ResolvedUtilityBar {
   const previewUtilityBar = useSfPreview((s) => s.utilityBar);
   const variant = useHeaderVariant(store);
-  return resolveUtilityBar(
-    previewUtilityBar ?? store?.nav?.utilityBar,
-    variant,
-  );
+  const offers = useLanguageTheme(store);
+  const bar = resolveUtilityBar(previewUtilityBar ?? store?.nav?.utilityBar, variant);
+  return {
+    ...bar,
+    showLanguage: bar.showLanguage && offersLanguageSwitch(offers),
+    showTheme: bar.showTheme && offersDarkMode(offers),
+  };
+}
+
+/**
+ * What the header still owes the shopper at this breakpoint (`headerNeeds`),
+ * with the shop's offers folded in — the one call the desktop header, the
+ * phone bar and the phone drawer all make, so none of them can draw a switch
+ * the shop has turned off.
+ */
+export function useHeaderNeeds(
+  store: StorefrontStore | undefined,
+  at: Breakpoint,
+): { needsTheme: boolean; needsLang: boolean } {
+  const bar = useResolvedUtilityBar(store);
+  const offers = useLanguageTheme(store);
+  return headerNeeds(bar, at, {
+    language: offersLanguageSwitch(offers),
+    theme: offersDarkMode(offers),
+  });
 }

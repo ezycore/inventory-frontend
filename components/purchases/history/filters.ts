@@ -7,7 +7,7 @@ import type { Translator } from "@/i18n/config";
 import { ALL_ORDER_STATUSES } from "../orders/filters";
 
 /** `t` is bound to the `purchases` namespace. */
-const buildFilterFields = (t: Translator): FilterField[] => [
+export const historyFilterFields = (t: Translator): FilterField[] => [
   {
     name: "status",
     label: t("orders.filterStatus"),
@@ -40,7 +40,7 @@ export const buildHistoryFilterConfig = ({
   onReset,
   t,
 }: BuildFilterConfigParams): FilterConfig => ({
-  fields: buildFilterFields(t),
+  fields: historyFilterFields(t),
   onApply: (newFilters) => onApply(newFilters as PurchaseOrderFilters),
   onReset,
 });

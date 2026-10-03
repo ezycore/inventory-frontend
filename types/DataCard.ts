@@ -294,6 +294,12 @@ export interface DataCardProps<TData, TValue = any> {
   sortingConfig?: SortingConfig;
   /** Loading state */
   loading?: boolean;
+  /**
+   * Keep the page, page size, sort and filters in the URL (default `true`) —
+   * the same keys as `DataTable`, so switching views keeps the merchant's place.
+   * Pass `false` for cards in a sheet or dialog.
+   */
+  syncUrl?: boolean;
 
   // Card Layout Configuration
   /** Layout configuration for cards */

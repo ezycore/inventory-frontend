@@ -43,7 +43,8 @@ export interface ParsedBdAddress {
 }
 
 const BENGALI_DIGITS = "০১২৩৪৫৬৭৮৯";
-const toWestern = (s: string) =>
+/** `০১৭১২` → `01712`. Also used by the POS: Avro turns a scanned barcode into Bangla digits. */
+export const toWestern = (s: string) =>
   s.replace(/[০-৯]/g, (d) => String(BENGALI_DIGITS.indexOf(d)));
 
 /**

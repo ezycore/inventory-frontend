@@ -269,16 +269,15 @@ export type SmsTemplateCase = SmsTemplatePreview["cases"][number];
 export type SmsStoreName = NotificationSettings["sms"]["smsStoreName"];
 export type ApiCampaign = Schemas["Campaign"];
 export type ApiCoupon = Schemas["Coupon"];
-export type ApiContentPage = Schemas["ContentPage"];
 /**
  * One uploaded image: `{ url, mediumUrl, thumbnailUrl, publicId, bytes? }`.
  *
  * The generator dedupes identical DTOs and names the result after the first
- * endpoint that used it — hence `HeroSlideImage` for what is really the shared
- * `image` DTO in `src/dtos/common.dto.ts`. The content-image upload returns the
+ * endpoint that used it — hence `StorefrontImageUpload` for what is really the
+ * shared `image` DTO in `src/dtos/common.dto.ts`. Every image upload returns the
  * same schema. Alias it here so callers are not misled by the generated name.
  */
-export type ApiImage = Schemas["HeroSlideImage"];
+export type ApiImage = Schemas["StorefrontImageUpload"];
 export type ShopperListItem = Schemas["ShopperListItem"];
 export type ShopperDetail = Schemas["ShopperDetail"];
 export type ShopperOrder = Schemas["ShopperOrder"];

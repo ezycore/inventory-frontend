@@ -2,6 +2,8 @@
 // coding-standard: maintained
 
 import { useCallback, useMemo, useState } from "react";
+import { useListUrlState } from "@/hooks/use-list-url-state";
+import type { ListFilters } from "@/lib/list-url-state";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +23,7 @@ import type {
 import {
   ALL_ORDER_STATUSES,
   buildCreatedOrdersFilterConfig,
+  createdOrderFilterFields,
   defaultCreatedOrderFilters,
   getCreatedOrderActions,
   getCreatedOrdersColumns,
@@ -31,11 +34,17 @@ export function useCreatedOrdersPage() {
   const t = useTranslations("purchases");
   const { format: formatCurrency } = useCurrency();
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [filters, setFilters] = useState<PurchaseOrderFilters>(
-    defaultCreatedOrderFilters,
-  );
+  // Page, size and filters live in the URL, so Back from an order lands here
+  // again. The default status (`ordered`) is the hook's default, so an
+  // untouched list is still the bare path.
+  const filterFields = useMemo(() => createdOrderFilterFields(t), [t]);
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: defaultCreatedOrderFilters as ListFilters },
+    filterFields,
+    limitOptions: [10, 20, 50, 100],
+  });
+  const { page, limit, setPage, setLimit, setFilters, revision: listRevision } = list;
+  const filters = list.filters as PurchaseOrderFilters;
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [viewDrawerOpen, setViewDrawerOpen] = useState(false);
@@ -130,18 +139,18 @@ export function useCreatedOrdersPage() {
 
   const filterConfig = useMemo(
     () =>
-      buildCreatedOrdersFilterConfig({
-        onApply: (newFilters) => {
-          setFilters(newFilters);
-          setPage(1);
-        },
-        onReset: () => {
-          setFilters(defaultCreatedOrderFilters);
-          setPage(1);
-        },
-        t,
+      ({
+        ...buildCreatedOrdersFilterConfig({
+          // Both start again from page 1.
+          onApply: (newFilters) => setFilters(newFilters as ListFilters),
+          onReset: () => setFilters(defaultCreatedOrderFilters as ListFilters),
+          t,
+        }),
+        initialValues: filters,
       }),
-    [t],
+    // `filters` seeds the bar once; `listRevision` remounts it after an outside URL change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+    [t, setFilters, listRevision],
   );
 
   return {
@@ -163,6 +172,7 @@ export function useCreatedOrdersPage() {
     limit,
     setPage,
     setLimit,
+    listRevision,
     paginationInfo,
 
     // Selection / dialogs

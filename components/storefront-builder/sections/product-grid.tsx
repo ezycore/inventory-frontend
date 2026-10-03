@@ -19,8 +19,8 @@ type Spec = (typeof SECTION_SPECS)["product-grid"]["settings"];
  * (`responsiveClasses`, `.sfb-cols` / `.sfb-cols-m` in
  * `app/(storefront)/storefront-builder.css`);
  * the card photo shape and fit likewise, only when the section sets them. A row
- * moved from the classic home keeps its own wording, "View all" link and
- * whole-row trim (`productRowHeading`, `wholeRows`).
+ * that keeps the store's wording takes its heading, "View all" link and
+ * whole-row trim from `productRowHeading` and `wholeRows`.
  */
 export function ProductGridSection({ settings, context, data }: SectionViewProps<Spec>) {
   const products = data?.items ?? [];

@@ -14,8 +14,8 @@ type BlockSpec = (typeof SECTION_SPECS)["promises-band"]["blocks"]["settings"];
  * The shop's promises — delivery, returns, authenticity — as icon + text rows:
  * the home page's trust band as a section, every word the merchant's own. Rows
  * are the blocks, or under `storePromises` the store's own promises from
- * Customize → Footer, which the header and footer show too — so a band moved
- * from the classic home stays in step with them.
+ * Customize → Footer, which the header and footer show too — so the band stays
+ * in step with them.
  *
  * The band's accent tint is the section type's default frame (`section-registry.tsx`),
  * so the style box can put the same rows on any other ground.

@@ -27,6 +27,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { BRAND } from "@/constants/brand";
+import { POS_PATH } from "@/constants/pos";
 
 /**
  * The workspace's own <title>, which React 19 hoists into <head>.
@@ -245,6 +246,23 @@ export function ProtectedShell({
       <>
         {workspaceTitle}
         <div className="min-h-screen bg-background">{children}</div>
+      </>
+    );
+  }
+
+  // The POS counter is full-screen too: a cashier needs the whole screen for
+  // the cart, and the sidebar is a way off the counter mid-sale. It keeps the
+  // banners that change what the cashier may do (overdue billing, a support
+  // session) and drops the rest; the counter brings its own way back.
+  if (pathname === POS_PATH) {
+    return (
+      <>
+        {workspaceTitle}
+        <div className="flex h-dvh flex-col bg-background">
+          <BillingAlertBanner />
+          <SupportSessionBanner />
+          <div className="min-h-0 flex-1">{children}</div>
+        </div>
       </>
     );
   }

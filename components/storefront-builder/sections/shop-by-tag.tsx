@@ -12,8 +12,8 @@ type Spec = (typeof SECTION_SPECS)["shop-by-tag"]["settings"];
  * Chips for the tags the merchant picked, in their order, each linking to the
  * catalogue filtered by that tag. A tag deleted since drops out of the row.
  *
- * By default the heading is the merchant's or none. A row moved from the classic
- * home keeps that row's heading (`storeHeading`): always there, "Shop by age" in
+ * By default the heading is the merchant's or none. Under `storeHeading` it is
+ * always there, "Shop by age" in
  * the shopper's language until the merchant types their own.
  */
 export function ShopByTagSection({ settings, context }: SectionViewProps<Spec>) {

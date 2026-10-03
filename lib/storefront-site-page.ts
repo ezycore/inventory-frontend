@@ -111,7 +111,6 @@ export const loadSiteHome = (params: SiteHomeParams) => loadStoreHome(publicStor
  * draft, and the page it would point a crawler at may not be live.
  */
 export async function storePageMetadataFor(
-  reads: StorefrontReads,
   site: SitePage | null,
   { preview = false }: { preview?: boolean } = {},
 ): Promise<Metadata> {
@@ -119,27 +118,19 @@ export async function storePageMetadataFor(
   const target = { origin: site.origin, base: site.base };
 
   const page = site.builder?.page;
-  if (page) {
-    // The homepage is indexed at `/` (`storeHomeMetadataFor`). Its own address
-    // stays out of the index, so search engines do not hold the same page twice.
-    const isHome = site.store.homePageId === page._id;
-    const index = !preview && !isHome && !page.seo.noindex;
-    return buildStorePageMetadata(site.store, target, {
-      title: page.seo.title || page.title,
-      description: page.seo.description || undefined,
-      // A noindex page emits no canonical, and still lets crawlers follow its
-      // links: a campaign page is not worth indexing, the products on it are.
-      path: index ? site.path : undefined,
-      index,
-      follow: true,
-    });
-  }
-
-  const content = await reads.getStorePage(site.slug, site.pageSlug);
+  if (!page) return {};
+  // The homepage is indexed at `/` (`storeHomeMetadataFor`). Its own address
+  // stays out of the index, so search engines do not hold the same page twice.
+  const isHome = site.store.homePageId === page._id;
+  const index = !preview && !isHome && !page.seo.noindex;
   return buildStorePageMetadata(site.store, target, {
-    title: content?.seo?.title || content?.title || "Page",
-    description: content?.seo?.description || undefined,
-    ...(preview ? { index: false, follow: true } : { path: site.path }),
+    title: page.seo.title || page.title,
+    description: page.seo.description || undefined,
+    // A noindex page emits no canonical, and still lets crawlers follow its
+    // links: a campaign page is not worth indexing, the products on it are.
+    path: index ? site.path : undefined,
+    index,
+    follow: true,
   });
 }
 

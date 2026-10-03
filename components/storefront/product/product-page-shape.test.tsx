@@ -17,8 +17,8 @@ import type { ProductShape } from "./product-page";
  * inline style (the checkout's coupon row, 2026-09-21). Both were checked live.
  *
  * The other half is what must NOT happen: a product page that sets nothing
- * carries no class, no variable and no prop, so the classic page and every
- * unconfigured builder page render exactly as they did.
+ * carries no class, no variable and no prop, so every unconfigured page renders
+ * exactly as it did.
  */
 const related = [
   { _id: "r1", name: "Jamdani", slug: "jamdani" },

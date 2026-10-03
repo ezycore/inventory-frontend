@@ -209,7 +209,6 @@ And pages inline raw strings that must happen to match those private roots:
 |---|---|---|
 | `["coupons"]` | `app/(protected)/ecommerce/coupons/page.tsx:66` | `coupons/hooks.ts` ROOT |
 | `["campaigns"]` | `app/(protected)/ecommerce/campaigns/page.tsx:63` | `campaigns/hooks.ts` ROOT |
-| `["content-pages"]` | `app/(protected)/ecommerce/content/page.tsx:43` | `content-pages/hooks.ts` ROOT |
 | `["storefront-orders"]`, `["ecommerce-dashboard"]` | `app/(protected)/ecommerce/orders/page.tsx:176-177` | two private roots |
 | `["locations", "storefront-options"]` | `app/(protected)/ecommerce/settings/page.tsx:157` | `queryKeys.locations` by prefix, accidentally |
 | `["select-options", <url>]` | `use-select-options.ts:24`, `advanced-select.tsx:316`, `fuse-advanced-select.tsx:318` | invalidated by hand in `categories/hooks.ts:37`, `customers/hooks.ts:13` |

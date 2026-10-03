@@ -4,26 +4,24 @@ import { describe, expect, it } from "vitest";
 import { categoryLabelsVisible } from "@/lib/storefront-templates";
 import {
   categoryTileRowLayout,
-  resolveCategoryRowLayout,
+  type CategoryRowLayout,
   stripEdges,
   stripStep,
 } from "@/components/storefront/home/category-row-layout";
 
-describe("categoryTileRowLayout", () => {
-  it("preserves each section's historical default until layout is explicit", () => {
-    expect(resolveCategoryRowLayout({}, "strip")).toMatchObject({
-      layout: "strip",
-      columnsExplicit: false,
-    });
-    expect(resolveCategoryRowLayout({}, "grid")).toMatchObject({
-      layout: "grid",
-      columnsExplicit: false,
-    });
-    expect(resolveCategoryRowLayout({ layout: "strip" }, "grid").layout).toBe(
-      "strip",
-    );
-  });
+/** A row as the builder's `category-tiles` section builds it, defaults and all. */
+const tileRow = (over: Partial<CategoryRowLayout> = {}): CategoryRowLayout => ({
+  style: "card",
+  layout: "grid",
+  columns: 4,
+  mobileColumns: 2,
+  align: "left",
+  showLabels: true,
+  columnsExplicit: false,
+  ...over,
+});
 
+describe("categoryTileRowLayout", () => {
   it("turns the shared grid setting into bounded tile-grid variables", () => {
     const result = categoryTileRowLayout(
       {
@@ -84,24 +82,15 @@ describe("categoryTileRowLayout", () => {
   /* The phone count is its own setting, so an untouched shop still gets the two
      columns every phone drew before the control existed — and setting a desktop
      count must not move it. */
-  it("defaults the phone column count to two, independent of the desktop one", () => {
-    const row = resolveCategoryRowLayout({ layout: "grid", columns: 6 }, "grid");
-    expect(row.mobileColumns).toBe(2);
+  it("keeps the phone column count independent of the desktop one", () => {
+    const row = tileRow({ columns: 6, columnsExplicit: true });
     expect(categoryTileRowLayout(row, 96, 148).style).toMatchObject({
       "--sf-ct-mcols": 2,
     });
   });
 
-  it("clamps the phone column count to the range a phone can draw", () => {
-    expect(resolveCategoryRowLayout({ mobileColumns: 6 }, "grid").mobileColumns).toBe(4);
-    expect(resolveCategoryRowLayout({ mobileColumns: 1 }, "grid").mobileColumns).toBe(2);
-  });
-
   it("keeps a theme's unmodified tile grid adaptive", () => {
-    const row = resolveCategoryRowLayout(
-      { layout: "grid", align: "center" },
-      "grid",
-    );
+    const row = tileRow({ align: "center" });
     const result = categoryTileRowLayout(row, 100, 150);
 
     expect(result.className).toBe("sf-cat-tiles");
@@ -128,16 +117,6 @@ describe("categoryLabelsVisible", () => {
     // under it is a mystery box where a department should be. One shape for the
     // whole row beats a ragged one, even when it is not the shape asked for.
     expect(categoryLabelsVisible(false, false)).toBe(true);
-  });
-});
-
-describe("resolveCategoryRowLayout", () => {
-  it("shows the names until a shop explicitly turns them off", () => {
-    expect(resolveCategoryRowLayout({}, "strip").showLabels).toBe(true);
-    expect(resolveCategoryRowLayout(undefined, "strip").showLabels).toBe(true);
-    expect(
-      resolveCategoryRowLayout({ showLabels: false }, "strip").showLabels,
-    ).toBe(false);
   });
 });
 

@@ -80,7 +80,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
     defaultValues: {
       supplierId: null,
       purchaseType: "order",
-      discountType: "fixed",
+      discountType: "percentage",
       discountValue: 0,
       invoiceNumber: "",
       invoiceDate: "",

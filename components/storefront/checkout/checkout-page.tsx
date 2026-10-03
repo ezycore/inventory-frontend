@@ -65,8 +65,8 @@ const wrap: CSSProperties = {
  */
 /**
  * Which screens hide the coupon field. Both answers travel together and CSS
- * picks — see `sf-nocoupon-d` / `sf-nocoupon-m` in `storefront.css`. Absent on
- * the classic `/checkout` route, which has no section to carry the setting.
+ * picks — see `sf-nocoupon-d` / `sf-nocoupon-m` in `storefront.css`. Absent when
+ * the checkout section sets nothing.
  */
 export interface HideCoupon {
   desktop: boolean;

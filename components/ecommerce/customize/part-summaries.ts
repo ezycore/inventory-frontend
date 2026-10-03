@@ -11,10 +11,8 @@ import {
   DESIGN_WIDTHS,
 } from "@/lib/storefront-theme";
 import { whatsappNumberLabel } from "@/lib/whatsapp-number";
-import { MENU_MOBILE_LAYOUTS } from "@/lib/storefront-menu";
 import { FILTER_ENTRIES, FILTER_PLACEMENTS } from "@/lib/storefront-filters";
-import { hasHeroSlideContent } from "@/lib/storefront-hero-slide";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontWithLook } from "@/types";
 import { TEMPLATE_OPTIONS } from "@/components/ecommerce/customize/template-options";
 import type {
   CustomizeDraft,
@@ -64,7 +62,7 @@ function stripWhere(showOnDesktop: boolean, showOnMobile: boolean): string {
 export function partSummary(
   id: PartId,
   draft: CustomizeDraft,
-  settings: StorefrontSettings,
+  settings: StorefrontWithLook,
   orgHasLogo: boolean,
 ): string {
   const listed = draft.collections.filter((c) => c.isListed).length;
@@ -140,32 +138,31 @@ export function partSummary(
         draft.templates.headerMenu === "collections"
           ? `From ${count(listed, "collection")}`
           : count(draft.navHeader.filter((i) => i.label.trim()).length, "custom link");
-      // How the PHONE opens it — the half most shoppers meet, and the one a
-      // merchant came here to change.
-      const phone = MENU_MOBILE_LAYOUTS.find((o) => o.id === draft.navMenu.mobile.layout);
-      /* Hover is appended only once it has been moved off `none`, the same
-         rule the Look ramps follow: on the shop that never opened the control
-         it would report a setting nobody made. */
+      const subs =
+        draft.navMenu.subcategories === "off"
+          ? "sub-categories hidden"
+          : "sub-categories shown";
+      return `${links} · ${subs}`;
+    }
+    case "header": {
+      /* Both screens by name — the row covers two devices now, and a merchant
+         reading "Centered" alone would take it for the whole answer. Then the
+         two things worth seeing without opening it: the strip above, and a
+         hover effect once it is moved off `none` (the Look ramps' rule — on
+         the shop that never opened the control it reports a setting nobody
+         made). */
+      const phone = labelOf("mobile", draft.templates.mobile);
+      const computer = labelOf("header", draft.templates.header);
+      const u = draft.utilityBar;
+      const strip = u.enabled ? "info strip" : "";
       const hover = [
         ramp(DESIGN_NAV_HOVERS, draft.design.navHover, DEFAULT_DESIGN.navHover),
         ramp(DESIGN_NAV_HOVERS, draft.design.navChildHover, DEFAULT_DESIGN.navChildHover),
       ].filter(Boolean);
-      const hoverNote = hover.length ? ` · ${[...new Set(hover)].join("/")} hover` : "";
-      return `${links} · phone: ${phone?.label.toLowerCase() ?? "fold open"}${hoverNote}`;
-    }
-    case "header":
-      return labelOf("header", draft.templates.header);
-    case "utility": {
-      const u = draft.utilityBar;
-      if (!u.enabled) return "Off";
-      const where = stripWhere(u.showOnDesktop, u.showOnMobile);
-      const items = [
-        u.showPhone,
-        u.showTrackOrder,
-        u.showLanguage,
-        u.showTheme,
-      ].filter(Boolean).length;
-      return [`On · ${count(items, "item")}`, where].filter(Boolean).join(" · ");
+      const hoverNote = hover.length ? `${[...new Set(hover)].join("/")} hover` : "";
+      return [`Phone: ${phone}`, `Computer: ${computer}`, strip, hoverNote]
+        .filter(Boolean)
+        .join(" · ");
     }
     case "cards":
       return `${labelOf("productCard", draft.templates.productCard)} · ${labelOf(
@@ -202,25 +199,15 @@ export function partSummary(
       return `${labelOf("contentLayout", draft.templates.contentLayout)} · content + tracking`;
     case "shell":
       return labelOf("shell", draft.templates.shell);
-    case "mobile": {
-      const m = draft.mobile;
-      /* Names the layout, then the two facts a merchant is actually checking:
-         whether their phone has a bottom bar, and whether search is on screen.
-         Not a list of every slot — the live preview beside the rail already
-         shows the arrangement far better than a sentence can. */
-      const tabs = m.tabs.length
-        ? `${count(m.tabs.length, "tab")} at the bottom`
-        : "no bottom bar";
-      const search = m.searchInline
-        ? "search in the bar"
-        : m.row === "search"
-          ? "search under it"
-          : m.row === "chips"
-            ? "category strip"
-            : "";
-      return [labelOf("mobile", draft.templates.mobile), tabs, search]
-        .filter(Boolean)
-        .join(" · ");
+    case "language": {
+      const lt = draft.languageTheme;
+      const langs =
+        lt.languages === "both"
+          ? `English + বাংলা, opens in ${lt.defaultLanguage === "bn" ? "বাংলা" : "English"}`
+          : lt.languages === "bn"
+            ? "বাংলা only"
+            : "English only";
+      return `${langs} · ${lt.darkMode === "light" ? "always light" : "light & dark"}`;
     }
   }
 }

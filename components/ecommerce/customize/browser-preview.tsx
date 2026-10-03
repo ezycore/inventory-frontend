@@ -60,12 +60,10 @@ export function BrowserPreview({
   published,
   draft,
   logo,
-  banner,
   mobileLogo = null,
   page,
   onPageChange,
-  /** Force the preview to show slides / collections while their panel is open. */
-  forceHeroSlides,
+  /** Force the preview to show the collections menu while its panel is open. */
   forceCollectionsMenu,
   socialWhatsapp,
   hasCollections = true,
@@ -83,7 +81,6 @@ export function BrowserPreview({
   draft: CustomizeDraft;
   /** Effective (org-fallback applied) images; `null` = none, and must stay null. */
   logo: Image | null;
-  banner: Image | null;
   /**
    * The merchant's phone artwork, raw — deliberately NOT resolved to the desktop
    * logo. The storefront owns that fallback, so resolving it here would make
@@ -92,7 +89,6 @@ export function BrowserPreview({
   mobileLogo?: Image | null;
   page: PreviewPage;
   onPageChange: (page: PreviewPage) => void;
-  forceHeroSlides: boolean;
   forceCollectionsMenu: boolean;
   /** Settings → General number, so the preview mirrors the blank-number fallback. */
   socialWhatsapp?: string;
@@ -107,9 +103,9 @@ export function BrowserPreview({
    */
   viewportHeight?: string;
   /**
-   * Nudge the frame onto a device when the merchant opens a part that only
-   * exists there — the Phone bar panel is the case, and its controls change
-   * nothing visible while the preview is showing a desktop.
+   * Nudge the frame onto a device when the merchant opens a part, or flips a
+   * part's own Phone / Computer switch — Header → Phone is the case, and its
+   * controls change nothing visible while the preview is showing a desktop.
    *
    * A NUDGE, not a lock: the toggle stays live afterwards, so a merchant who
    * wants to see how their phone choices leave the desktop can just switch back
@@ -125,8 +121,8 @@ export function BrowserPreview({
 
      `-1`, not `0`, and that is the whole of a shipped bug: the workspace mints
      its FIRST request as `token: 0`, so a marker starting at `0` read the
-     opening request as one it had already applied. Clicking the Phone bar row
-     worked (that increments to 1) while `?part=mobile` — the documented deep
+     opening request as one it had already applied. Clicking the (then) Phone
+     bar row worked (that increments to 1) while `?part=mobile` — the documented deep
      link, and what a reload restores — silently left the merchant on the desktop
      frame, looking at a panel of controls that change nothing on screen. No
      token is ever negative, so this cannot collide with a real one.
@@ -219,8 +215,6 @@ export function BrowserPreview({
     () =>
       toPreviewPayload(draft, {
         logo,
-        banner,
-        forceHeroSlides,
         forceCollectionsMenu,
         socialWhatsapp,
         hasCollections,
@@ -230,9 +224,7 @@ export function BrowserPreview({
     [
       draft,
       logo,
-      banner,
       mobileLogo,
-      forceHeroSlides,
       forceCollectionsMenu,
       socialWhatsapp,
       hasCollections,

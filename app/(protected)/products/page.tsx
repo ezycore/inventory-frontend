@@ -2,7 +2,6 @@
 // coding-standard: maintained
 
 import { useTranslations, useLocale } from 'next-intl'
-import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/ui/components/header'
 import { useEffect, useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
@@ -27,6 +26,7 @@ import { useFilteredFormConfig, useFilteredColumns, useFeatureGatedColumns } fro
 import { useVatGatedFormConfig } from '@/hooks/use-vat-gated-form-config'
 import StatsCard from '@/ui/components/StatsCard'
 import ViewToggle from '@/ui/components/ViewToggle'
+import { useUrlParam } from '@/hooks/use-url-param'
 import { useViewMode } from '@/hooks/use-view-mode'
 import { ProductCard } from '@/components/products/product-card'
 import MountingHandler from '@/components/MountingHandler';
@@ -35,6 +35,8 @@ import { BarcodeLabelSheet, type LabelItem } from '@/components/shared/barcode';
 import { toast } from 'sonner';
 import { ProductStatus } from '@/types'
 import type { AppLocale } from '@/i18n/config'
+
+const PRODUCT_TABS = ['all', 'online'] as const
 
 export default function ProductsPage() {
   const t = useTranslations('products.products')
@@ -56,10 +58,9 @@ export default function ProductsPage() {
   //
   // `?tab=online` makes it linkable: the ecommerce dashboard's "Online products
   // live" tile points here, and there is no other route to the online listing
-  // since /ecommerce/catalog was removed. Read once as the initial value — the
-  // strip owns the tab after that, so switching tabs does not rewrite the URL.
-  const initialTab = useSearchParams().get('tab') === 'online' ? 'online' : 'all'
-  const [tab, setTab] = useState<'all' | 'online'>(initialTab)
+  // since /ecommerce/catalog was removed. Kept in the URL both ways, so Back
+  // from a product opened on the Online tab returns to it.
+  const [tab, setTab] = useUrlParam('tab', PRODUCT_TABS, 'all')
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [labelSheet, setLabelSheet] = useState<{ open: boolean; items: LabelItem[] }>({ open: false, items: [] })
   const [viewMode, setViewMode, isMounted] = useViewMode('products')

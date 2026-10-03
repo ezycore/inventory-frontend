@@ -389,6 +389,28 @@ export const useUpdateOrganization = () => {
   });
 };
 
+// PUT /api/organization/receipt-images - Upload / replace / remove the receipt
+// signature and company stamp. Saves immediately (images aren't part of the
+// settings draft), then syncs the printed letterhead in the auth store.
+export const useUpdateReceiptImages = () => {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
+  return useMutation({
+    mutationFn: (data: FormData) => organizationApi.updateReceiptImages(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Saved");
+      const updated = result.data as { receiptSettings?: ReceiptSettings } | undefined;
+      if (user && updated?.receiptSettings) {
+        updateUser({
+          organization: { ...user.organization, receiptSettings: updated.receiptSettings },
+        });
+      }
+      invalidate(queryClient, "org.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
 // PUT /api/organization/form-settings - Update form field visibility settings
 export const useUpdateFormSettings = () => {
   const queryClient = useQueryClient();
@@ -630,10 +652,9 @@ export const useUpdateStorefrontMedia = () => {
   });
 };
 
-// POST /api/organization/storefront/media/hero-slide - Upload one storefront
-// image. Returns uploadInfo only (no cache write): the editor embeds it in a
-// slide / announcement and persists via the settings PATCH. Shared by the hero
-// slides panel and the announcement-bar background.
+// POST /api/organization/storefront/media/image - Upload one image the look
+// embeds. Returns uploadInfo only (no cache write): Customize puts it in the
+// announcement or the footer and persists it with the Site draft.
 export const useUploadStorefrontImage = () => {
   return useMutation({
     mutationFn: (file: File) => {

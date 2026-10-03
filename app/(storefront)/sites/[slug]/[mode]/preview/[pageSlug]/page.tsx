@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<SitePageParams>;
 }): Promise<Metadata> {
   const site = await loadStorePage(requestStorefront, await params);
-  return storePageMetadataFor(requestStorefront, site, { preview: true });
+  return storePageMetadataFor(site, { preview: true });
 }
 
 /**

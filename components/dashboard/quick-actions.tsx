@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import { areAllFeaturesEnabled } from '@/lib/feature-utils'
+import { POS_PATH, openPos } from '@/constants/pos'
 import type { OrganizationFeatures } from '@/types'
 
 /**
@@ -47,7 +48,7 @@ const ACTIONS: {
   {
     labelKey: 'newSale',
     icon: ShoppingCart,
-    path: '/sales',
+    path: POS_PATH,
     color: 'text-primary',
     // `sales` is the POS counter itself, so unlike the Sales *group* this is
     // an all-of gate, matching the "New Sale" nav item.
@@ -179,7 +180,7 @@ export function QuickActions() {
                 // row rather than sitting alone beside an empty cell.
                 actions.length % 2 === 1 && i === actions.length - 1 && "col-span-2 sm:col-span-1",
               )}
-              onClick={() => router.push(action.path)}
+              onClick={() => (action.path === POS_PATH ? openPos() : router.push(action.path))}
             >
               <action.icon className={`h-5 w-5 ${action.color}`} />
               <span className="text-xs font-medium">{t(action.labelKey)}</span>

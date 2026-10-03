@@ -16,17 +16,13 @@
  * -case it in a component.
  *
  * **A theme may only write the look.** `theme` + `templates` are replaced
- * wholesale on apply; `copy`, `nav`, `trustBadges`, `promoTiles`, `heroSlides`,
- * `heroBanner`, the logo and the CMS pages are the merchant's and are never
- * touched — see `StorefrontCopy`. `applyThemeToDraft` in `use-customize-draft.ts`
+ * wholesale on apply; `copy`, `nav`, `trustBadges`, the logo and the store's
+ * pages are the merchant's and are never touched — see `StorefrontCopy`. `applyThemeToDraft` in `use-customize-draft.ts`
  * is the one place that enforces it.
  *
- * Deliberately NOT stamped, though both are `templates.*` keys:
- *  - `hero` (slides vs banner) and `headerMenu` (collections vs custom) depend on
- *    what content the merchant actually has. A theme that forced `hero: "slides"`
- *    would show the built-in placeholder hero to every shop with no slides, and
- *    one that forced `headerMenu: "collections"` would hide a menu its owner
- *    built by hand. Both are content questions wearing a layout key's clothes.
+ * Deliberately NOT stamped, though it is a `templates.*` key: `headerMenu`
+ * (collections vs custom) depends on what the merchant has built. A theme that
+ * forced `"collections"` would hide a menu its owner built by hand.
  *
  * `checkout` USED to be on that list — "a checkout layout is a conversion
  * decision, not a look". That was wrong, and the owner overruled it: leaving it
@@ -36,8 +32,6 @@
  */
 
 import type { StoreDesign } from "@/lib/storefront-theme";
-import type { HomePresetEntry } from "@/lib/storefront-section-ids";
-import type { StoreHomeCollections } from "@/lib/storefront-client";
 import {
   APPAREL_SAMPLE,
   BABY_SAMPLE,
@@ -58,19 +52,6 @@ export interface ReadyMadeTheme {
   brandColor: string;
   accentColor: string;
   design: StoreDesign;
-  /** The category row's starting geometry. Applying a theme resets this look. */
-  homeCollections: StoreHomeCollections;
-  /**
-   * The homepage, as an ordered section list. **This is what makes the themes
-   * structurally different rather than differently painted** — they compose
-   * different sections, not different arrangements of the same four.
-   */
-  sections: HomePresetEntry[];
-  /**
-   * Where the open hero's copy sits. Part of the LOOK, so a theme owns it —
-   * and Classic sets `"left"` explicitly because Classic is the reset.
-   */
-  heroAlign?: "left" | "center";
   /**
    * What the PREVIEW fills a merchant's empty shop with — see
    * `storefront-theme-samples.ts`. Required on purpose: a theme that shipped
@@ -80,7 +61,6 @@ export interface ReadyMadeTheme {
   sample: ThemeSample;
   /** Only keys a theme is allowed to own — see the note above. */
   templates: {
-    home: string;
     header: string;
     footer: string;
     collection: string;
@@ -90,7 +70,6 @@ export interface ReadyMadeTheme {
     pagination: string;
     imageFit: string;
     imageRatio: string;
-    categoryTiles: string;
     accountLayout: string;
     checkout: string;
     contentLayout: string;
@@ -154,20 +133,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingWeight: "default",
       headingCase: "default",
     },
-    homeCollections: { layout: "strip", align: "left" },
-    // Spelled out because Classic is the RESET: a merchant who centred their
-    // hero and then reached for "start over" must actually get it back.
-    heroAlign: "left",
-    // `HOME_PRESET_SECTIONS.classic`, spelled out for the same reason.
-    sections: [
-      "hero-card",
-      "category-chips",
-      "featured-grid",
-      // The retired `latest-grid`: the same grid, sourced newest.
-      { type: "featured-grid", config: { source: "newest" } },
-    ],
     templates: {
-      home: "classic",
       header: "classic",
       footer: "columns",
       collection: "grid-4",
@@ -177,7 +143,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       pagination: "pages",
       imageFit: "fit",
       imageRatio: "square",
-      categoryTiles: "tile",
       // The account area the storefront has always had.
       accountLayout: "sidebar",
       // …and the checkout it has always had.
@@ -238,44 +203,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingWeight: "default",
       headingCase: "default",
     },
-    // No fixed column count: the original department row fits as many roomy
-    // discs as the available width allows. The owner can still choose 2–6.
-    homeCollections: { layout: "grid", align: "center" },
-    /* The page, top to bottom: a typographic hero, a strip of department
-       discs, the seasonal grid, the buy-again rail, then the merchant's own
-       promise band when they have written one.
-
-       `hero-open` reads as a reversal of the old note here ("no lifestyle
-       hero — a weekly shop is not sold a photograph") and is not: the mockup's
-       hero is a headline, a sentence and buttons on the page ground. The
-       objection was to selling groceries with a photograph, and it still stands.
-
-       `deal-strip` is dropped. The mockup has no countdown, and the strip was
-       the weakest thing on the page — a live campaign already announces itself
-       in the announcement bar and on every discounted card.
-
-       No `search-hero`: the `search-first` header already carries the search
-       box, and stacking a second one under it was a duplicate browser QA caught.
-
-       The trust band still closes the page. It maps to nothing in the mockup —
-       but it is the merchant's own three promises, and the `columns` footer does
-       not show them either, so dropping it to match a mockup that had no
-       merchant behind it would delete real content to gain a resemblance. */
-    sections: [
-      /* `hero-open`, NOT `hero-card`. Every other hero is a card, so the first
-         screen of this shop was a full-width `#f9f4ed` block and the parchment
-         ground only showed in the gutters beside it — the whole point of the
-         surface, hidden exactly where it introduces itself. Pixel-sampling the
-         mockup against the shop is what found it: the mockup's top strip reads
-         page colour all the way across, ours read card. */
-      "hero-open",
-      "category-tiles",
-      "featured-grid",
-      "product-rail",
-      "trust-band",
-    ],
     templates: {
-      home: "classic",
       // A white bar built around a pill search, with the delivery promise as a
       // tinted chip beside it — the quick-commerce anatomy.
       header: "search-first",
@@ -299,7 +227,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // `disc` rather than `tile` because it is the shape asked for rather than
       // fallen back to — `tile` gives the same row only when the merchant has
       // photographed nothing, which makes the good layout an accident.
-      categoryTiles: "disc",
       // A repeat grocery shopper lives in Orders, so the account area spends its
       // width on the order list rather than on a column of section names.
       // (The mockup's Buy-again page: pill tabs over a reorder grid.)
@@ -377,28 +304,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingWeight: "default",
       headingCase: "default",
     },
-    homeCollections: { layout: "grid", align: "center" },
-    /* **No hero, and no category section.** The `rail` shell puts the conditions
-       down the left of every page and the `clinical` header carries the search,
-       so a hero could only repeat one of the two — which is exactly the bug this
-       storefront has now shipped five times (trust badges twice, promises twice,
-       the hero photograph twice, departments twice, and a search box twice in
-       the first draft of this very theme).
-
-       What is left is a page made only of things the shell cannot say:
-
-       - `deal-strip` — a live campaign, and only when one is running.
-       - `featured-grid` — what people actually buy.
-       - `product-rail` — what just arrived. A different question from the grid,
-         which is why both belong. */
-    sections: [
-      "deal-strip",
-      "featured-grid",
-      "product-rail",
-      "trust-band",
-    ],
     templates: {
-      home: "classic",
       /* Logo, one wide search, icons. It is the only search on the page and it
          is on EVERY page, which is what a shop selling by product name needs —
          a hero search vanishes the moment the shopper scrolls or opens a box. */
@@ -420,7 +326,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       imageRatio: "square",
       // Unused by this theme (no category section), kept at the default so a
       // merchant who adds one back gets the ordinary photo tile.
-      categoryTiles: "tile",
       // One decision per screen, targets big enough to hit without aiming.
       accountLayout: "panel",
       /* `multi-step`. A pharmacy basket is long and the shopper is cautious;
@@ -485,27 +390,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingWeight: "default",
       headingCase: "default",
     },
-    // Overlay scenes keep their original adaptive, centred composition until
-    // the merchant chooses an exact number per row.
-    homeCollections: { layout: "grid", align: "center" },
-    // A magazine, not a shop window: a **split** hero — photograph beside the
-    // eyebrow, serif headline and one CTA — then "shop by occasion" as overlay
-    // tiles, then a short edit of products with no card chrome, closing on the
-    // promises band. No search hero and no deal strip; both would break it.
-    //
-    // ⚠ `hero-fullbleed` led this list until 2026-08-13 **with
-    // `editorial-split` right under it**, and the two render the *same*
-    // `banner` image — so the merchant's one photograph appeared twice, a
-    // screen apart. `editorial-split` alone is the approved hero.
-    sections: [
-      "editorial-split",
-      "category-tiles",
-      "minimal-picks",
-      "product-rail",
-      "trust-band",
-    ],
     templates: {
-      home: "hero-split",
       // Wordmark, a hairline-underlined search, menu on its own row beneath.
       header: "boutique",
       footer: "newsletter",
@@ -520,7 +405,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       // The single strongest signal that this is a clothing shop.
       imageRatio: "portrait",
       // Occasion tiles are scenes, so the name sits on the photograph.
-      categoryTiles: "overlay",
       // No cards, no icons, no avatar disc — the account area reads as the same
       // boutique rather than a dashboard bolted onto it.
       accountLayout: "editorial",
@@ -578,28 +462,7 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       headingWeight: "default",
       headingCase: "default",
     },
-    homeCollections: { layout: "grid", align: "center" },
-    /* **The promises come SECOND, above the catalogue** — the one structural
-       argument this theme makes. Meridian Care closes on its trust band;
-       everything else buries it. A parent's objection is not "what else do you
-       sell", it is whether the formula is genuine and in date, and an answer
-       below six rows of products is an answer they never read.
-
-       `tag-chips` third, because a parent shops for their six-month-old long
-       before they think about "Feeding" — it renders nothing unless the shop
-       actually keeps age tags, so a gift shop applying this theme simply does
-       not get the row. */
-    sections: [
-      "hero-fullbleed",
-      "trust-band",
-      "tag-chips",
-      "category-tiles",
-      "featured-grid",
-      "deal-strip",
-      "product-rail",
-    ],
     templates: {
-      home: "hero-split",
       // Wordmark centred with the departments beneath — a small shop's own
       // sign, not a marketplace's search bar.
       header: "centered",
@@ -618,7 +481,6 @@ export const READY_MADE_THEMES: ReadyMadeTheme[] = [
       imageRatio: "square",
       // Round photos — the shape the whole theme is built on, and the reason
       // the mode exists (`disc` refuses photographs).
-      categoryTiles: "circle",
       accountLayout: "tabs",
       // First-time COD buyers, so one question per step beats one long form.
       checkout: "guided",

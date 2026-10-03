@@ -2,6 +2,7 @@
 // coding-standard: maintained
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { Mail, MessageSquare, RotateCw } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { useOrgCalendar } from "@/hooks/use-org-calendar";
@@ -70,10 +71,13 @@ export function NotificationLog() {
   const { timezone } = useOrgCalendar();
   const { data: settings } = useNotificationSettings();
 
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState(ALL);
-  const [channel, setChannel] = useState(ALL);
-  const [eventKey, setEventKey] = useState(ALL);
+  // Filters and page live in the URL (under `log_`, beside the settings above).
+  const list = useListUrlState({
+    defaults: { limit: PAGE_SIZE, filters: { status: ALL, channel: ALL, event: ALL } },
+    prefix: "log_",
+  });
+  const { page, setPage } = list;
+  const { status, channel, event: eventKey } = list.filters;
   const resend = useResendNotification();
   // Tracked per row, not off `isPending` alone: the mutation is shared by every
   // row, so a single flag would spin all of them.
@@ -88,10 +92,8 @@ export function NotificationLog() {
   });
 
   /** Changing a filter invalidates the current page number, not just the rows. */
-  const applyFilter = (set: (value: string) => void) => (value: string) => {
-    set(value);
-    setPage(1);
-  };
+  const applyFilter = (name: "status" | "channel" | "event") => (value: string) =>
+    list.patchFilters({ [name]: value });
 
   const statusOptions = [
     { label: t("log.filters.allStatuses"), value: ALL },
@@ -232,21 +234,21 @@ export function NotificationLog() {
           size="sm"
           className="w-44"
           value={eventKey}
-          onValueChange={applyFilter(setEventKey)}
+          onValueChange={applyFilter("event")}
           options={eventOptions}
         />
         <SimpleSelect
           size="sm"
           className="w-36"
           value={status}
-          onValueChange={applyFilter(setStatus)}
+          onValueChange={applyFilter("status")}
           options={statusOptions}
         />
         <SimpleSelect
           size="sm"
           className="w-32"
           value={channel}
-          onValueChange={applyFilter(setChannel)}
+          onValueChange={applyFilter("channel")}
           options={channelOptions}
         />
       </div>

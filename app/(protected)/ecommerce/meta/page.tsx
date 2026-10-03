@@ -1,13 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
 import { useGetMetaSettings, useMetaEvents } from "@/services/api";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
 import { Skeleton } from "@/ui/components/skeleton";
 import EmptyState from "@/ui/components/EmptyState";
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { MetaEventsTable } from "@/components/ecommerce/meta-events-table";
 
 /**
@@ -26,9 +26,13 @@ const TABS = [
 ] as const;
 
 export default function MetaEventsPage() {
-  const [status, setStatus] = useState<string>("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // Tab and page live in the URL, so Back from an order lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: { status: "" } },
+    limitOptions: LIST_PAGE_SIZES,
+  });
+  const { page, limit } = list;
+  const status = list.filters.status;
 
   const { data: settings } = useGetMetaSettings();
   const { data, isLoading, isFetching } = useMetaEvents({
@@ -56,10 +60,7 @@ export default function MetaEventsPage() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => {
-              setStatus(tab.id);
-              setPage(1);
-            }}
+            onClick={() => list.patchFilters({ status: tab.id })}
             className={cn(
               "whitespace-nowrap border-b-2 px-3 pb-2.5 pt-1 text-sm font-medium transition-colors",
               status === tab.id
@@ -98,11 +99,8 @@ export default function MetaEventsPage() {
           totalPages={data.pagination.totalPages}
           total={data.pagination.total}
           limit={limit}
-          onPageChange={setPage}
-          onLimitChange={(n) => {
-            setLimit(n);
-            setPage(1);
-          }}
+          onPageChange={list.setPage}
+          onLimitChange={list.setLimit}
           isFetching={isFetching}
         />
       ) : null}

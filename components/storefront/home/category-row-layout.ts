@@ -1,18 +1,13 @@
 // coding-standard: maintained
 
 import type { ComponentProps, CSSProperties, ReactNode } from "react";
-import type { StoreHomeCollections } from "@/lib/storefront-client";
-import {
-  resolveHomeCollections,
-  type ResolvedHomeCollections,
-} from "@/lib/storefront-templates";
+import type { CategoryRowOptions } from "@/lib/storefront-templates";
 import type { CategoryStrip } from "@/components/storefront/home/category-strip";
 
 /**
  * Layout for the category rows — pure, with no directive and no hooks. The
- * Storefront Builder's server views call these too, and a function exported
- * from a `"use client"` module cannot be called on the server. The
- * Customize-aware hook lives in `use-category-row-layout.ts`.
+ * Storefront Builder's server views call these, and a function exported from a
+ * `"use client"` module cannot be called on the server.
  */
 
 /** How much of the visible row one arrow press moves. */
@@ -26,7 +21,7 @@ const GRID_ROW_ALIGN = {
   right: "end",
 } as const;
 
-export interface CategoryRowLayout extends ResolvedHomeCollections {
+export interface CategoryRowLayout extends CategoryRowOptions {
   /** Unset keeps a tile theme's original auto-fit grid. */
   columnsExplicit: boolean;
 }
@@ -36,22 +31,6 @@ export interface CategoryRowLayout extends ResolvedHomeCollections {
  * on a Storefront Builder page, whose server views may not import client code.
  */
 export type StripRenderer = (props: ComponentProps<typeof CategoryStrip>) => ReactNode;
-
-/** Preserve each section's historical default until the merchant chooses one. */
-export function resolveCategoryRowLayout(
-  raw: StoreHomeCollections | null | undefined,
-  defaultLayout: ResolvedHomeCollections["layout"],
-): CategoryRowLayout {
-  const resolved = resolveHomeCollections(raw);
-  return {
-    ...resolved,
-    layout:
-      raw?.layout === "grid" || raw?.layout === "strip"
-        ? resolved.layout
-        : defaultLayout,
-    columnsExplicit: typeof raw?.columns === "number",
-  };
-}
 
 /** Distance one arrow press scrolls a strip whose track is `clientWidth` wide. */
 export function stripStep(clientWidth: number): number {

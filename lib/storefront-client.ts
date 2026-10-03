@@ -14,6 +14,10 @@ import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
+import type {
+  DesktopHeaderConfig,
+  LanguageThemeConfig,
+} from "@/lib/storefront-language-theme";
 import type { ProductsDataRequest, SectionData } from "@/lib/storefront-builder/section-data";
 import type {
   StorefrontFooterBlock,
@@ -30,6 +34,12 @@ export interface StorefrontImage {
   url?: string;
   mediumUrl?: string;
   thumbnailUrl?: string;
+  /**
+   * 2560px rendition — only builder section pictures uploaded since 2026-10-03,
+   * and only when the source was wider than 1600px. Lets a full-width hero stay
+   * sharp on a Retina desktop.
+   */
+  largeUrl?: string;
 }
 
 /**
@@ -58,29 +68,6 @@ export const faviconHref = (
   favicon?: StorefrontFavicon | null,
 ): string | undefined =>
   favicon?.pngUrl || favicon?.thumbnailUrl || favicon?.url || undefined;
-
-/**
- * One homepage section instance on the public payload.
- *
- * A bare section id until 2026-08-15. It carries identity now because a flat id
- * list cannot hold two instances of one section with different content — two
- * product rows drawing from different collections is the case — and because
- * per-section config joins on `key`.
- */
-export interface StoreHomeSection {
-  key: string;
-  type: string;
-  /**
-   * Which screens this instance appears on. **Both unset ⇒ everywhere**, which
-   * is what every section did before this existed.
-   *
-   * Rendered as a CSS class (`stripVisibilityClass`), never `matchMedia`: the
-   * page is server-rendered and the server cannot know the viewport, so a JS
-   * check paints the wrong state and corrects it after hydration.
-   */
-  showOnDesktop?: boolean;
-  showOnMobile?: boolean;
-}
 
 /**
  * Per-instance config for one homepage section, joined on `key`.
@@ -287,50 +274,6 @@ export interface StoreLogoStyle {
   radius?: number;
 }
 
-/** Owner layout for homepage category rows (Customize → Home page). */
-export interface StoreHomeCollections {
-  /**
-   * How a collection is DRAWN. `card` (default) is the picture tile every shop
-   * has always had; `plain` is names only, centred between hairlines.
-   *
-   * This was a separate section — `category-links` — until 2026-09-06. It drew
-   * the same collections, in the same order, to the same links; the only
-   * difference was the treatment, and the chips row already owned every other
-   * decision about itself through this object. A merchant asking for a quieter
-   * row should not have to swap components and lose their layout, columns and
-   * label settings to get one.
-   *
-   * `plain` has no pictures, so `layout`, `columns` and `showLabels` do not
-   * apply to it — the panel says so rather than leaving dead controls on.
-   */
-  style?: "card" | "plain";
-  /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
-  layout?: "strip" | "grid";
-  /** Columns per row in `grid` (2–6). Ignored by `strip`. */
-  columns?: number;
-  /**
-   * Columns per row in `grid` **on a phone** (2–4). Unset ⇒ 2, which is what
-   * every phone drew before this existed.
-   *
-   * Its own number rather than something derived from `columns`: a desktop row
-   * divides a 1200px page and a phone row divides ~360px, so a merchant with
-   * fourteen departments wants four across on a phone while a merchant with two
-   * wants them big. It also caps lower — six 48px tracks on a phone are below
-   * the touch target the tile has to be.
-   *
-   * ⚠ Read by the `category-tiles` section too. Both category grids on the home
-   * page take their layout from this object.
-   */
-  mobileColumns?: number;
-  align?: "left" | "center" | "right";
-  /**
-   * `false` draws the row as pictures only. Honored ONLY when every listed
-   * category has an image — a nameless letter tile is not a wayfinding target,
-   * so the storefront keeps the names rather than shipping one. Unset ⇒ shown.
-   */
-  showLabels?: boolean;
-}
-
 /** One home-page hero slide (owner-managed carousel). */
 export interface StoreHeroSlide {
   image?: StorefrontImage | null;
@@ -357,29 +300,6 @@ export interface StoreHeroSlide {
    */
   secondaryLabel?: string;
   secondaryLink?: string;
-}
-
-/**
- * Owner overrides for the static banner hero's copy (Classic / Hero Split).
- * Unset fields fall back to the built-in localized copy; button links default
- * to /products. Links are store paths or full URLs (same rules as slide links).
- */
-export interface StoreHeroBanner {
-  badge?: string;
-  title?: string;
-  subtitle?: string;
-  primaryLabel?: string;
-  primaryLink?: string;
-  secondaryLabel?: string;
-  secondaryLink?: string;
-  /** How the banner photo fills its frame; unset = show the whole photo. */
-  imageFit?: string;
-  /** Optional phone artwork; desktop continues to use the store banner. */
-  mobileImage?: StorefrontImage | null;
-  /** Crop anchor for the banner; unset = centre. See `storefront-focal.ts`. */
-  focal?: StoreFocalPoint;
-  /** Phone crop anchor; unset falls back to `focal`. */
-  mobileFocal?: StoreFocalPoint;
 }
 
 /** One channel on the public payload — `value` is resolved, `enabled` is gone. */
@@ -427,7 +347,7 @@ export interface StorefrontStore {
   canonicalHost?: string | null;
   /**
    * The landing page the merchant uses as the homepage, or null for the
-   * Customize home. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
+   * store's `home` builder page. Mirrors `storeInfoDto.homePageId`. What `/` draws is decided
    * by the proxy (`storeHomePageExists`); this only tells that page's own
    * address it is not the one to index.
    */
@@ -489,12 +409,6 @@ export interface StorefrontStore {
     preset?: string;
     brandColor?: string;
     accentColor?: string;
-    /**
-     * The homepage's sections, in render order. `{ key, type }` rather than a
-     * bare id: `key` is the instance identity a repeated section is told apart
-     * by, and what per-section config joins on.
-     */
-    homepageSections?: StoreHomeSection[];
     /** How the uploaded logo is drawn — see `StoreLogoStyle`. */
     logo?: StoreLogoStyle;
     /**
@@ -505,8 +419,6 @@ export interface StorefrontStore {
      * raw, exactly like `design`.
      */
     mobile?: MobileChromeOverrides;
-    /** Layout of the homepage collections row — see `StoreHomeCollections`. */
-    homeCollections?: StoreHomeCollections;
     /**
      * Type family, surface palette, spatial rhythm and corner radius — see
      * `resolveDesign` in `lib/storefront-theme.ts`, which is the only thing that
@@ -531,12 +443,6 @@ export interface StorefrontStore {
       headingWeight?: string;
       headingCase?: string;
     };
-    /**
-     * Where the OPEN hero's copy sits. Unset ⇒ left, which every hero was
-     * before this existed. Read through `resolveHeroAlign` so an unknown
-     * stored value cannot reach the DOM — the same rule `design` follows.
-     */
-    heroAlign?: string;
   };
   /**
    * Words the merchant wrote — a SIBLING of `theme`, not part of it.
@@ -546,8 +452,6 @@ export interface StorefrontStore {
    * has a localized fallback in the storefront dictionary, so unset means "use
    * the built-in wording" — never "render an empty line".
    */
-  /** Per-section homepage config, joined to `theme.homepageSections[].key`. */
-  sectionConfig?: StoreSectionConfig[];
   copy?: {
     footerText?: string;
     footerNote?: string;
@@ -641,10 +545,6 @@ export interface StorefrontStore {
   templates?: StoreTemplatesRaw;
   /** Owner-editable footer trust badges (Rich footer); undefined → built-in copy. */
   trustBadges?: { text: string; icon?: string }[];
-  /** Home hero carousel slides; unset/empty → the static built-in hero. */
-  heroSlides?: StoreHeroSlide[];
-  /** Static banner-hero copy overrides; unset fields → built-in copy. */
-  heroBanner?: StoreHeroBanner;
   /** Header menu / footer groups / announcement bar (admin Navigation tab). */
   nav?: StoreNav;
   /** Checkout behaviour (order prefix, min order, required fields, terms). */
@@ -744,7 +644,6 @@ export type CheckoutNoticeSize = "sm" | "md" | "lg";
 
 /** Raw per-page template ids as stored by the admin (free strings). */
 export interface StoreTemplatesRaw {
-  home?: string;
   collection?: string;
   product?: string;
   checkout?: string;
@@ -756,12 +655,10 @@ export interface StoreTemplatesRaw {
   cardTagBadges?: string;
   /** "percent" | "amount" | "off" — the card's discount badge. Unset = "percent". */
   discountBadge?: string;
-  hero?: string;
   headerMenu?: string;
   pagination?: string;
   imageFit?: string;
   imageRatio?: string;
-  categoryTiles?: string;
   accountLayout?: string;
   contentLayout?: string;
   cartLayout?: string;
@@ -775,7 +672,6 @@ export type HeaderMenuSource = "collections" | "custom";
 
 /** Normalized storefront page-layout variants (resolved from the raw admin ids). */
 export interface StoreTemplates {
-  home: "classic" | "hero-split" | "minimal";
   collection: "grid3" | "grid4" | "sidebar";
   product: "left" | "top" | "sticky";
   /**
@@ -809,8 +705,6 @@ export interface StoreTemplates {
   cardTagBadges: "0" | "1" | "2";
   /** The card's discount badge: `-25%`, `Save ৳149`, or none. The struck price stays either way. */
   discountBadge: "percent" | "amount" | "off";
-  /** Home hero source: carousel (when slides exist) vs the static banner hero. */
-  hero: "slides" | "banner";
   /**
    * How product listings advance past page 1: numbered Prev/Next, auto-load on
    * scroll (then a button), or a button only. Collection page + search results.
@@ -819,17 +713,6 @@ export interface StoreTemplates {
   /** How a photo fills a box it doesn't match: full photo w/ blurred fill, or cropped. */
   imageFit: "fit" | "crop";
   imageRatio: "square" | "portrait" | "landscape" | "tall";
-  /**
-   * How the homepage `category-tiles` section presents a department: a photo on
-   * a tinted card with the name underneath, a taller photo with the name over it
-   * behind a scrim, or a lettered disc with no photograph at all.
-   *
-   * A presentation, not a theme — a grocery shop's departments and a fashion
-   * shop's occasions are the same section, and which mode reads better depends
-   * on whether the merchant's category images are product shots, scenes, or not
-   * worth showing.
-   */
-  categoryTiles: "tile" | "overlay" | "disc" | "circle";
   /**
    * Which WHOLE LAYOUT the signed-in account area renders in. Unlike every other
    * key here this selects a page-level component rather than a variation within
@@ -1006,6 +889,10 @@ export interface StoreNav {
   announcement?: StoreAnnouncement;
   campaignStrip?: StoreCampaignStrip;
   utilityBar?: StoreUtilityBar;
+  /** Languages and colour schemes on offer (Customize → Language & theme). */
+  languageTheme?: LanguageThemeConfig;
+  /** The computer header's behaviour (Customize → Header → Computer). */
+  desktopHeader?: DesktopHeaderConfig;
   /** How the menu behaves per device (Customize → Menu). */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort). */
@@ -1121,18 +1008,6 @@ export interface ContentPageLink {
   sortOrder?: number;
   /** Unset reads as listed — every page stored before the flag existed. */
   footer?: boolean;
-}
-
-/** A published CMS page rendered at /shop/pages/{pageSlug}. */
-export interface ContentPageView {
-  _id: string;
-  slug: string;
-  title: string;
-  body: string;
-  /** Merchant SEO overrides; absent until one is set. `title` above is the page
-   *  heading and may run to 160 characters, so the search title is its own field. */
-  seo?: { title?: string; description?: string };
-  updatedAt?: string;
 }
 
 export interface StoreCampaign {
@@ -1705,8 +1580,6 @@ export const storefrontApi = {
     sfFetch<StoreCampaignDetail>(slug, `/campaigns/${encodeURIComponent(campaignSlug)}`),
   listPages: (slug: string) =>
     sfFetch<ContentPageLink[]>(slug, "/pages"),
-  getPage: (slug: string, pageSlug: string) =>
-    sfFetch<ContentPageView>(slug, `/pages/${pageSlug}`),
   /**
    * Builder section products, from the browser — the editor preview re-querying
    * a section whose products changed before the page was saved. At most

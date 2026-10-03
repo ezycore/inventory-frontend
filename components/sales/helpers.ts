@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { SelectOption } from "@/ui/components/form/type";
 import type { DiscountType } from "@/utils/discount";
 import type {
@@ -81,7 +82,8 @@ export const customerItemsCreateCallback = (
     label: item.name,
     email: item.email ?? null,
     discountValue: item.defaultDiscount?.value ?? 0,
-    discountType: item.defaultDiscount?.type ?? "fixed",
+    // Customer discounts are percentage-only; "fixed" left the Discounts form.
+    discountType: item.defaultDiscount?.type ?? "percentage",
   })) as SelectOption[];
 };
 

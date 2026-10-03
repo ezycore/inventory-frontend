@@ -43,7 +43,8 @@
       "selectCustomer": "Please select a customer for the order",
       "saleFailed": "Failed to complete sale",
       "addItemsDraft": "Please add items to save as draft",
-      "selectCustomerDraft": "Please select a customer for the draft"
+      "selectCustomerDraft": "Please select a customer for the draft",
+      "maxStock": "Only {count} of {name} in stock"
     },
     "cart": {
       "product": "Product",
@@ -71,7 +72,8 @@
     "search": {
       "products": "Search products by name or category...",
       "noProducts": "No products found"
-    }
+    },
+    "openPos": "Open POS"
   },
   "history": {
     "title": "Sales History",
@@ -258,6 +260,52 @@
     },
     "validation": {
       "enterSaleId": "Please enter a sale ID or invoice number"
+    }
+  },
+  "pos": {
+    "customer": "Customer",
+    "exit": "Exit to dashboard",
+    "searchPlaceholder": "Scan a barcode, or type a product name or category…",
+    "cameraScan": "Scan with camera",
+    "cameraTitle": "Scan barcodes",
+    "cameraHelp": "Hold each barcode inside the frame. Every read adds one to the cart.",
+    "cameraDone": "Done",
+    "cartCount": "{count, plural, one {# item} other {# items}} in cart",
+    "emptyTitle": "Scan a barcode to start a sale",
+    "emptyHint": "Or type a product name in the same box (F2).",
+    "available": "Available: {count} {unit}",
+    "lessQty": "One less",
+    "moreQty": "One more",
+    "removeItem": "Remove item",
+    "addNote": "Add a note",
+    "checkout": "Checkout",
+    "shortcuts": {
+      "scanSearch": "Scan or search",
+      "customer": "Customer",
+      "confirm": "Confirm order",
+      "close": "Close list"
+    },
+    "browse": {
+      "tabBrowse": "Browse products",
+      "tabCart": "Cart",
+      "categories": "Categories",
+      "allProducts": "All products",
+      "allInCategory": "All",
+      "uncategorized": "Other",
+      "variants": "{count} options",
+      "inStock": "{count} in stock",
+      "inCart": "{count} in cart",
+      "pickVariantHelp": "Each tap adds one to the cart.",
+      "done": "Done",
+      "loading": "Loading products…",
+      "empty": "Nothing in this category has stock at this branch.",
+      "noneAtAll": "No products have stock at this branch yet.",
+      "sort": {
+        "label": "Sort",
+        "name": "Name A–Z",
+        "priceLow": "Price: low to high",
+        "stockLow": "Stock: low first"
+      }
     }
   }
 }

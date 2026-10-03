@@ -71,7 +71,7 @@ export function HeroSlidesView({
   align?: "left" | "center";
   /** The store banner, for a hero that fills artwork-less slides with it. */
   banner?: StorefrontImage | null;
-  /** The classic banner hero's wording: both buttons always, catalogue by default. */
+  /** The store's banner-hero wording: both buttons always, catalogue by default. */
   storeWords?: boolean;
   /**
    * The running offer without its last word ("Eid sale · 10%"), drawn on any
@@ -186,7 +186,7 @@ export function HeroSlidesView({
         const primary = slide.buttonLabel?.trim();
         let actions: ReactNode = null;
         if (storeWords) {
-          // The classic banner hero's pair: both buttons always, each going to
+          // The store's banner-hero pair: both buttons always, each going to
           // the catalogue where the merchant set no link.
           actions = (
             <HeroActions align={align}>

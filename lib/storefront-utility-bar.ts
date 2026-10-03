@@ -81,13 +81,20 @@ export type Breakpoint = "desktop" | "mobile";
 export function headerNeeds(
   bar: ResolvedUtilityBar,
   at: Breakpoint,
+  /**
+   * Whether the shop offers each switch at all (Customize → Language & theme).
+   * A switch the shop does not offer is owed by nobody — not the bar, not the
+   * header, not the phone drawer — so it is answered here, the one place all
+   * three already ask.
+   */
+  offers: { language: boolean; theme: boolean } = { language: true, theme: true },
 ): { needsTheme: boolean; needsLang: boolean } {
   // `showTheme`/`showLanguage` imply the bar rendered: `UtilityBar` only bails
   // out when all four of its items are off, which either of these rules out.
   const shows = showsOn(bar, at);
   return {
-    needsTheme: !(shows && bar.showTheme),
-    needsLang: !(shows && bar.showLanguage),
+    needsTheme: offers.theme && !(shows && bar.showTheme),
+    needsLang: offers.language && !(shows && bar.showLanguage),
   };
 }
 

@@ -7,6 +7,7 @@ import { NumberField } from "@/ui/components/number-field";
 import { ColumnDef } from "@tanstack/react-table";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
 import { BatchSelect } from "@/components/shared/batch-select";
@@ -90,26 +91,31 @@ export const getSalesColumns = (
   onUpdateBatch?: (id: string, batchId: string | null) => void,
   expiryEnabled?: boolean,
   isTaxEnabled?: boolean,
+  /** Optional photo beside the product name (the POS counter passes one). */
+  renderThumb?: (item: SellOrderItem) => ReactNode,
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
       header: t("product"),
       cell: ({ row }) => (
-        <div className="min-w-[100px]">
-          <span className="font-medium text-sm">{row.original.productName}</span>
-          {/*
-            `tracked === false` hides it outright rather than printing the
-            untracked sentinel — "Available: 9007199254740991 units" under every
-            line on the sell page. A shop that counts nothing has no
-            availability to report, and any stand-in label would be a claim
-            about stock rather than the absence of one.
-          */}
-          {row.original.tracked !== false &&
-            row.original.availableQuantity !== null && (
-            <div className="text-xs text-muted-foreground">
-              Available: {row.original.availableQuantity} {row.original.unitName || "units"}
-            </div>
-          )}
+        <div className="flex min-w-[100px] items-center gap-2.5">
+          {renderThumb?.(row.original)}
+          <div className="min-w-0">
+            <span className="font-medium text-sm">{row.original.productName}</span>
+            {/*
+              `tracked === false` hides it outright rather than printing the
+              untracked sentinel — "Available: 9007199254740991 units" under every
+              line on the sell page. A shop that counts nothing has no
+              availability to report, and any stand-in label would be a claim
+              about stock rather than the absence of one.
+            */}
+            {row.original.tracked !== false &&
+              row.original.availableQuantity !== null && (
+              <div className="text-xs text-muted-foreground">
+                Available: {row.original.availableQuantity} {row.original.unitName || "units"}
+              </div>
+            )}
+          </div>
         </div>
       ),
     },

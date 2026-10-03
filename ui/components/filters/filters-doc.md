@@ -74,6 +74,19 @@ const filterConfig: FilterConfig = {
 > **panel-only** standalone alternative (button → Sheet/Popover) for surfaces that
 > aren't a DataTable/DataCard. Search is just a `type: "text"` field placed first
 > in `filterConfig` — there is no separate search box anymore.
+>
+> **How the `FilterBar` behaves** (shared by every list page):
+> - Its **Filters** panel lists only the fields that did not fit inline (plus the
+>   panel-only types), and its count badge counts only those — an inline filter
+>   is never shown or counted twice.
+> - The panel applies each change at once, like the inline controls; the
+>   `applyOnChange` / `showApplyButton` modes below apply to `GlobalFilter` only.
+> - The popover always opens below the button, capped to the room left and
+>   scrolled inside — a tall panel used to flip above and run off the screen.
+> - A single select's menu starts with its placeholder ("All brands") as the way
+>   back to "all", and its ✕ stays visible while set (touch has no hover).
+> - A set chip carries its field `label` on the border and a tint, since the
+>   chip itself only shows the value.
 
 ```tsx
 import { GlobalFilter } from "@/ui/components/filters/global-filter";

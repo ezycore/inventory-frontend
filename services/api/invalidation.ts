@@ -256,21 +256,6 @@ export const EFFECTS = {
   ],
 
   /**
-   * A storefront content PAGE changed (About, FAQ, a policy) — created, edited,
-   * published or deleted.
-   *
-   * Its own event rather than a line inside `storefront.catalog.changed`: pages
-   * are merchant-authored content, and nothing a campaign or a listing flag does
-   * dirties them. It was folded into that event once, which is how creating a
-   * page left the admin list showing the previous set until a reload — the event
-   * fired, and none of the keys it carries was the one the page list reads.
-   *
-   * In `PUBLIC_STOREFRONT_EVENTS` too, because publishing a page has to reach the
-   * shop's rendered routes and its footer.
-   */
-  "storefront.content.changed": [k.contentPages.all()],
-
-  /**
    * A Storefront Builder page's DRAFT changed — created, duplicated, autosaved,
    * discarded or restored from a revision. Shoppers see none of it, so it stays
    * out of `PUBLIC_STOREFRONT_EVENTS`.
@@ -375,7 +360,6 @@ const PUBLIC_STOREFRONT_EVENTS: Partial<
   Record<DomainEvent, StorefrontCacheScope | readonly StorefrontCacheScope[]>
 > = {
   "storefront.catalog.changed": "catalog",
-  "storefront.content.changed": "content",
   "storefront.page.published": "content",
   "storefront.home.changed": ["site", "content"],
   "storefront.site.published": "site",

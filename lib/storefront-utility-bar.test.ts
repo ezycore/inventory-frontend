@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { describe, expect, it } from "vitest";
 import { headerNeeds, resolveUtilityBar } from "@/lib/storefront-utility-bar";
 
@@ -132,6 +133,26 @@ describe("headerNeeds", () => {
     });
     expect(headerNeeds(mobileOnly, "mobile")).toEqual({
       needsTheme: false,
+      needsLang: false,
+    });
+  });
+
+  /* Customize → Language & theme. "Never both silent" above is the rule for a
+     switch the shop OFFERS; a switch it does not offer is owed by nobody, on
+     either breakpoint, whatever the bar says. */
+  it.each(configs)("owes no switch the shop does not offer (%o)", (bar) => {
+    for (const at of ["desktop", "mobile"] as const) {
+      expect(headerNeeds(bar, at, { language: false, theme: false })).toEqual({
+        needsTheme: false,
+        needsLang: false,
+      });
+    }
+  });
+
+  it("answers each switch on its own", () => {
+    const off = resolveUtilityBar({ enabled: false }, "classic");
+    expect(headerNeeds(off, "desktop", { language: false, theme: true })).toEqual({
+      needsTheme: true,
       needsLang: false,
     });
   });

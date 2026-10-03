@@ -154,7 +154,7 @@ Grouped bundles `DERIVED` (dashboard + reports), `STOCK`, `MONEY` are composed i
 Current list: `stock.moved`, `money.moved`, `sale.posted`, `sale.drafted`, `sale.paid`,
 `sale.returned`, `purchase.ordered`, `purchase.received`, `purchase.paid`, `purchase.returned`,
 `order.changed`, `order.confirmed`, `order.settled`, `order.returned`, `catalog.changed`,
-`storefront.catalog.changed`, `storefront.content.changed`, `storefront.page.drafted`,
+`storefront.catalog.changed`, `storefront.page.drafted`,
 `storefront.page.published`, `party.changed`, `org.changed`.
 
 `storefront.page.drafted` is deliberately **lists only**: its hooks `setQueryData` the page they got
