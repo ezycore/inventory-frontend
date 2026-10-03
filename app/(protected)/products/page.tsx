@@ -302,6 +302,11 @@ export default function ProductsPage() {
         // product, and the weight field would blank a real parcel weight.
         featured: item.storefront?.featured ?? undefined,
         weightKg: item.storefront?.weightKg ?? undefined,
+        // Warranty is nested on the document and flat on the form — same
+        // unflattening, or an edit would save the product as "no warranty".
+        warrantyMonths: item.warranty?.months ?? undefined,
+        warrantyKind: item.warranty?.kind ?? undefined,
+        warrantyNote: item.warranty?.note ?? undefined,
         variants: transformedVariants,
       }
     },

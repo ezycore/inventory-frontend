@@ -57,6 +57,25 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
     formData.append("storefront", JSON.stringify(storefrontPatch));
   }
 
+  // Warranty is flat on the form (`warrantyMonths/Kind/Note`) and one nested
+  // `warranty` object on the wire. Only sent when the section was rendered —
+  // `useFilteredFormConfig` drops it with the feature off, and then the keys are
+  // absent and the stored terms are left alone. Rendered with months empty
+  // means "no warranty", sent as `null` so an edit can clear it.
+  const warrantyKeys = ["warrantyMonths", "warrantyKind", "warrantyNote"] as const;
+  if (warrantyKeys.some((key) => key in data)) {
+    const months = Number(data.warrantyMonths);
+    const note = typeof data.warrantyNote === "string" ? data.warrantyNote.trim() : "";
+    formData.append(
+      "warranty",
+      JSON.stringify(
+        months > 0
+          ? { months, kind: data.warrantyKind || "replacement", ...(note ? { note } : {}) }
+          : null,
+      ),
+    );
+  }
+
   // An empty rich-text editor serializes to `{"type":"doc","content":[{"type":
   // "paragraph"}]}` — a NON-empty string. Left as-is, clearing the description
   // would store 45 bytes of empty document instead of unsetting the field, and
@@ -75,6 +94,7 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
       // Sent nested as `storefront` above; a duplicate flat key here would be
       // ignored by the validator at best and shadow the object at worst.
       !storefrontKeys.includes(key as (typeof storefrontKeys)[number]) &&
+      !warrantyKeys.includes(key as (typeof warrantyKeys)[number]) &&
       !skipUOMKeys.has(key) &&
       data[key] !== undefined
     ) {

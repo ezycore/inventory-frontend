@@ -88,6 +88,7 @@ export const navGroups: NavGroup[] = [
           "storefront.orders.view",
           "sales.create",
           "returns.view",
+          "warranty.view",
         ],
         icon: "shopping-cart",
         isActive: false,
@@ -162,6 +163,16 @@ export const navGroups: NavGroup[] = [
             icon: "corner-up-left",
             features: ["returns"],
             anyFeatures: ["sales", "storefront"],
+          },
+          {
+            // Lookup ("is this still covered?") and claims. Sits with the sales
+            // it is claimed against; its own row so the route carries
+            // `warranty.view` rather than the group's union.
+            title: "Warranty",
+            url: "/sales/warranty",
+            permissions: ["warranty.view"],
+            icon: "shield",
+            features: ["warranty"],
           },
         ],
       },

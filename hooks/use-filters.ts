@@ -272,6 +272,9 @@ export function useFilteredFormConfig<T extends DynamicFormConfig>(
       if (!storefrontOn || stockOn) {
         hiddenSections.push("publish-to-store");
       }
+      if (user?.organization?.features?.warranty === false) {
+        hiddenSections.push("warranty");
+      }
       if (!stockOn) {
         excludedFields.push(
           "addToInventory",

@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Percent,
   CalendarClock,
+  ShieldCheck,
 } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import { getTaxTypeOptions } from './product-form-options'
@@ -393,6 +394,54 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             validation: { min: 1, max: 999999 },
             tooltip: tr('form.expiryAlertDaysTooltip', "How many days before the expiry date the product should start appearing in expiry alerts, so you have time to act on soon-to-expire stock."),
             dependsOn: { field: "hasExpiry", condition: "truthy", action: "show" },
+          },
+        ],
+      },
+
+      // 3b. WARRANTY -------------------------------------------------------------
+      // Dropped whole by `useFilteredFormConfig` when the `warranty` feature is
+      // off. Flat on the form, nested on the wire (`warranty` JSON — see
+      // `makePrepareSubmitData`). An empty months field means "no warranty".
+      {
+        id: "warranty",
+        title: tr('form.sections.warrantyTitle', "Warranty"),
+        description: tr('form.sections.warrantyDescription', "Printed on the invoice and checked when a customer brings it back"),
+        icon: sectionIcon(ShieldCheck),
+        collapsible: true,
+        // A combo's components carry their own warranty.
+        dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
+        fields: [
+          {
+            name: "warrantyMonths",
+            type: "number",
+            precision: 0,
+            label: tr('form.warrantyMonths', "Warranty (months)"),
+            columnSpan: 4,
+            placeholder: tr('form.warrantyMonthsPlaceholder', "No warranty"),
+            validation: { min: 1, max: 120 },
+            tooltip: tr('form.warrantyMonthsTooltip', "How long the warranty lasts from the day of sale. Leave empty for no warranty. Changing it later does not change what earlier customers were promised."),
+          },
+          {
+            name: "warrantyKind",
+            type: "select",
+            label: tr('form.warrantyKind', "Warranty type"),
+            columnSpan: 4,
+            defaultValue: "replacement",
+            options: [
+              { value: "replacement", label: tr('form.warrantyKindReplacement', "Replacement") },
+              { value: "service", label: tr('form.warrantyKindService', "Service (repair)") },
+              { value: "parts", label: tr('form.warrantyKindParts', "Parts only") },
+            ],
+            dependsOn: { field: "warrantyMonths", condition: "truthy", action: "show" },
+          },
+          {
+            name: "warrantyNote",
+            type: "input",
+            label: tr('form.warrantyNote', "Warranty note"),
+            columnSpan: 4,
+            placeholder: tr('form.warrantyNotePlaceholder', "e.g. Motor only"),
+            validation: { maxLength: 200 },
+            dependsOn: { field: "warrantyMonths", condition: "truthy", action: "show" },
           },
         ],
       },

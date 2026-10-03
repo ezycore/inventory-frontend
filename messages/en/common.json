@@ -228,7 +228,8 @@
     "sale": "Sale",
     "return": "Return",
     "transfer": "Transfer",
-    "expiry": "Expiry"
+    "expiry": "Expiry",
+    "warrantyReplacement": "Warranty replacement"
   },
   "language": {
     "label": "Language",
@@ -319,7 +320,11 @@
     "customerCopy": "Customer Copy",
     "shopCopy": "Shop Copy",
     "officeCopy": "Office Copy",
-    "customerStatement": "Customer Statement"
+    "customerStatement": "Customer Statement",
+    "warrantyLine": "{months}-month {kind} warranty, until {until}",
+    "warrantyKind_replacement": "replacement",
+    "warrantyKind_service": "service",
+    "warrantyKind_parts": "parts"
   },
   "access": {
     "restrictedTitle": "Access restricted",

@@ -81,6 +81,12 @@ export const EFFECTS = {
     STOCK,
   ),
 
+  /** A warranty claim was logged or moved along. No stock and no money move. */
+  "warranty.claimed": [k.warranty.all()],
+
+  /** A replacement unit left stock for a warranty claim — stock moves, money does not. */
+  "warranty.replaced": union([k.warranty.all()], STOCK),
+
   /** A purchase order was created, updated or cancelled. Nothing received yet. */
   "purchase.ordered": [k.purchaseOrders.all(), k.suppliers.all(), ...DERIVED],
 

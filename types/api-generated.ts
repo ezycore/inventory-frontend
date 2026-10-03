@@ -6012,6 +6012,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/warranty/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/warranty/lookup
+         * @description Defined in `src/routes/warranty.routes.ts:28`. Requires permission `warranty.view`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        get: operations["get_api_warranty_lookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warranty/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/warranty/claims
+         * @description Defined in `src/routes/warranty.routes.ts:35`. Requires permission `warranty.view`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        get: operations["get_api_warranty_claims"];
+        put?: never;
+        /**
+         * POST /api/warranty/claims
+         * @description Defined in `src/routes/warranty.routes.ts:42`. Requires permission `warranty.create`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        post: operations["post_api_warranty_claims"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warranty/claims/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/warranty/claims/:id
+         * @description Defined in `src/routes/warranty.routes.ts:49`. Requires permission `warranty.view`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        get: operations["get_api_warranty_claims_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/warranty/claims/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * PATCH /api/warranty/claims/:id/status
+         * @description Defined in `src/routes/warranty.routes.ts:56`. Requires permission `warranty.edit`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        patch: operations["patch_api_warranty_claims_id_status"];
+        trace?: never;
+    };
+    "/api/warranty/claims/{id}/replace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/warranty/claims/:id/replace
+         * @description Defined in `src/routes/warranty.routes.ts:64`. Requires permission `warranty.edit`. Gated by organization feature `warranty` — returns 403 when disabled.
+         */
+        post: operations["post_api_warranty_claims_id_replace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reports/inventory": {
         parameters: {
             query?: never;
@@ -7962,6 +8066,12 @@ export interface components {
             };
             hasExpiry?: boolean;
             expiryAlertDays?: number;
+            warranty?: {
+                months: number;
+                /** @enum {string} */
+                kind: "replacement" | "service" | "parts";
+                note?: string;
+            } | null;
             comboComponents?: {
                 componentProductId: string;
                 componentVariantId?: string | null;
@@ -8100,6 +8210,12 @@ export interface components {
             };
             hasExpiry?: boolean;
             expiryAlertDays?: number;
+            warranty?: {
+                months: number;
+                /** @enum {string} */
+                kind: "replacement" | "service" | "parts";
+                note?: string;
+            } | null;
             comboComponents?: {
                 componentProductId: string;
                 componentVariantId?: string | null;
@@ -9439,6 +9555,14 @@ export interface components {
                 comboUnitQuantity?: number;
                 unitName?: string;
                 barcode?: string;
+                warranty?: {
+                    months: number;
+                    /** @enum {string} */
+                    kind: "replacement" | "service" | "parts";
+                    note?: string;
+                    /** Format: date-time */
+                    until: string;
+                };
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9553,6 +9677,14 @@ export interface components {
                 comboUnitQuantity?: number;
                 unitName?: string;
                 barcode?: string;
+                warranty?: {
+                    months: number;
+                    /** @enum {string} */
+                    kind: "replacement" | "service" | "parts";
+                    note?: string;
+                    /** Format: date-time */
+                    until: string;
+                };
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9633,6 +9765,14 @@ export interface components {
                 comboUnitQuantity?: number;
                 unitName?: string;
                 barcode?: string;
+                warranty?: {
+                    months: number;
+                    /** @enum {string} */
+                    kind: "replacement" | "service" | "parts";
+                    note?: string;
+                    /** Format: date-time */
+                    until: string;
+                };
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9787,6 +9927,14 @@ export interface components {
                     comboUnitQuantity?: number;
                     unitName?: string;
                     barcode?: string;
+                    warranty?: {
+                        months: number;
+                        /** @enum {string} */
+                        kind: "replacement" | "service" | "parts";
+                        note?: string;
+                        /** Format: date-time */
+                        until: string;
+                    };
                 }[];
                 subtotal: number;
                 additionalDiscount: number;
@@ -12736,6 +12884,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -12752,6 +12901,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -12982,6 +13132,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -13019,6 +13170,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -13060,6 +13212,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13076,6 +13229,7 @@ export interface components {
                 multiLocation: boolean;
                 purchases: boolean;
                 inventoryTracking: boolean;
+                warranty: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -13105,6 +13259,7 @@ export interface components {
             multiLocation: boolean;
             purchases: boolean;
             inventoryTracking: boolean;
+            warranty: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -16678,6 +16833,7 @@ export interface components {
                     multiLocation: boolean;
                     purchases: boolean;
                     inventoryTracking: boolean;
+                    warranty: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -16694,6 +16850,7 @@ export interface components {
                     multiLocation: boolean;
                     purchases: boolean;
                     inventoryTracking: boolean;
+                    warranty: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -16942,6 +17099,7 @@ export interface components {
                     multiLocation: boolean;
                     purchases: boolean;
                     inventoryTracking: boolean;
+                    warranty: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -16958,6 +17116,7 @@ export interface components {
                     multiLocation: boolean;
                     purchases: boolean;
                     inventoryTracking: boolean;
+                    warranty: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
@@ -17210,6 +17369,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -17226,6 +17386,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -17475,6 +17636,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -17491,6 +17653,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -17778,6 +17941,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -17794,6 +17958,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18066,6 +18231,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18082,6 +18248,7 @@ export interface components {
                         multiLocation: boolean;
                         purchases: boolean;
                         inventoryTracking: boolean;
+                        warranty: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
@@ -18701,6 +18868,109 @@ export interface components {
         MarketingSettings: {
             /** @enum {string} */
             cookieBanner: "off" | "eu" | "always";
+        };
+        SaleLineWarranty: {
+            months: number;
+            /** @enum {string} */
+            kind: "replacement" | "service" | "parts";
+            note?: string;
+            /** Format: date-time */
+            until: string;
+        };
+        WarrantyClaim: {
+            _id: string;
+            organizationId: string;
+            locationId: string;
+            claimNumber: string;
+            saleId: string;
+            invoiceNumber: string;
+            lineIndex: number;
+            productId: string;
+            variantId: string | null;
+            productName: string;
+            customerId: {
+                _id: string;
+                name: string;
+                phone?: string;
+            } | null;
+            quantity: number;
+            warranty: {
+                months: number;
+                /** @enum {string} */
+                kind: "replacement" | "service" | "parts";
+                note?: string;
+                /** Format: date-time */
+                until: string;
+            };
+            coveredAtIntake: boolean;
+            issue: string;
+            notes?: string;
+            /** @enum {string} */
+            status: "received" | "in_repair" | "sent_to_supplier" | "ready" | "replaced" | "rejected" | "returned_to_customer";
+            /** @enum {string|null} */
+            resolution: "repaired" | "replaced" | "rejected" | null;
+            replacement: {
+                quantity: number;
+                locationId: string;
+                costPrice: number;
+                stockMovementIds: string[];
+                /** Format: date-time */
+                replacedAt: string;
+                replacedBy?: string;
+            } | null;
+            serviceCharge?: number;
+            history: {
+                /** @enum {string} */
+                status: "received" | "in_repair" | "sent_to_supplier" | "ready" | "replaced" | "rejected" | "returned_to_customer";
+                /** Format: date-time */
+                at: string;
+                by?: string;
+                note?: string;
+            }[];
+            createdBy?: string;
+            isDemoData?: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WarrantyLookupSale: {
+            saleId: string;
+            invoiceNumber: string;
+            /** Format: date-time */
+            saleDate: string;
+            customer: {
+                _id: string;
+                name: string;
+                phone?: string;
+            } | null;
+            lines: {
+                lineIndex: number;
+                productId: string;
+                variantId: string | null;
+                productName: string;
+                comboName?: string;
+                quantity: number;
+                returnedQuantity: number;
+                openClaimQuantity: number;
+                claimableQuantity: number;
+                warranty: {
+                    months: number;
+                    /** @enum {string} */
+                    kind: "replacement" | "service" | "parts";
+                    note?: string;
+                    /** Format: date-time */
+                    until: string;
+                };
+                active: boolean;
+                daysLeft: number;
+            }[];
+        };
+        WarrantyTerms: {
+            months: number;
+            /** @enum {string} */
+            kind: "replacement" | "service" | "parts";
+            note?: string;
         };
     };
     responses: never;
@@ -22777,6 +23047,7 @@ export interface operations {
                     multiLocation?: boolean;
                     purchases?: boolean;
                     inventoryTracking?: boolean;
+                    warranty?: boolean;
                 };
             };
         };
@@ -22893,6 +23164,7 @@ export interface operations {
                         combo?: boolean;
                         purchases?: boolean;
                         inventoryTracking?: boolean;
+                        warranty?: boolean;
                     };
                     vatRegistration?: {
                         /** @enum {string} */
@@ -28753,6 +29025,17 @@ export interface operations {
                     };
                     hasExpiry?: boolean;
                     expiryAlertDays?: number;
+                    warranty?: (string | ({
+                        months: number;
+                        /** @enum {string} */
+                        kind: "replacement" | "service" | "parts";
+                        note?: string;
+                    } | null)) & ({
+                        months: number;
+                        /** @enum {string} */
+                        kind: "replacement" | "service" | "parts";
+                        note?: string;
+                    } | null);
                     price?: number;
                     barcode?: (unknown | string) | "";
                     /** @enum {string} */
@@ -29744,6 +30027,17 @@ export interface operations {
                     };
                     hasExpiry?: boolean;
                     expiryAlertDays?: number;
+                    warranty?: (string | ({
+                        months: number;
+                        /** @enum {string} */
+                        kind: "replacement" | "service" | "parts";
+                        note?: string;
+                    } | null)) & ({
+                        months: number;
+                        /** @enum {string} */
+                        kind: "replacement" | "service" | "parts";
+                        note?: string;
+                    } | null);
                     price?: number;
                     barcode?: (unknown | string) | "";
                     /** @enum {string} */
@@ -39424,6 +39718,403 @@ export interface operations {
                 };
             };
             /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_warranty_lookup: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["WarrantyLookupSale"][];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_warranty_claims: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                all?: string | boolean;
+                fields?: string;
+                sort_by?: string;
+                sort_order?: "asc" | "desc";
+                search?: string;
+                status?: "received" | "in_repair" | "sent_to_supplier" | "ready" | "replaced" | "rejected" | "returned_to_customer";
+                start_date?: string;
+                end_date?: string;
+                startDate?: string;
+                endDate?: string;
+            };
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: {
+                            items?: components["schemas"]["WarrantyClaim"][];
+                            total?: number;
+                            page?: number;
+                            limit?: number;
+                            totalPages?: number;
+                            hasNext?: boolean;
+                            hasPrev?: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_warranty_claims: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    saleId: string;
+                    lineIndex: number;
+                    quantity: number;
+                    issue: string;
+                    notes?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["WarrantyClaim"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_warranty_claims_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["WarrantyClaim"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patch_api_warranty_claims_id_status: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "received" | "in_repair" | "sent_to_supplier" | "ready" | "replaced" | "rejected" | "returned_to_customer";
+                    note?: string;
+                    serviceCharge?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["WarrantyClaim"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_warranty_claims_id_replace: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    batchDraws?: {
+                        batchId: string;
+                        quantity: number;
+                    }[];
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["WarrantyClaim"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
             403: {
                 headers: {
                     [name: string]: unknown;

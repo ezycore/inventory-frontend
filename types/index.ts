@@ -114,6 +114,11 @@ export interface OrganizationFeatures {
    * Mirrors the backend `OrganizationFeatures`; the two must stay in step.
    */
   inventoryTracking: boolean;
+  /**
+   * Warranty terms on products, printed on the invoice, looked up and claimed
+   * against (Sales → Warranty). Mirrors the backend `OrganizationFeatures`.
+   */
+  warranty: boolean;
 }
 
 /**
@@ -138,6 +143,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   multiLocation: true,
   purchases: true,
   inventoryTracking: true,
+  warranty: true,
 };
 
 /**

@@ -308,5 +308,94 @@
         "stockLow": "Stock: low first"
       }
     }
+  },
+  "warranty": {
+    "page": {
+      "title": "Warranty",
+      "subtitle": "Check whether a sale is still covered, and track the claims customers bring back",
+      "tabs": {
+        "lookup": "Check warranty",
+        "claims": "Claims"
+      }
+    },
+    "kinds": {
+      "replacement": "Replacement",
+      "service": "Service (repair)",
+      "parts": "Parts only"
+    },
+    "lookup": {
+      "placeholder": "Invoice number or customer phone",
+      "hint": "Type an invoice number (INV-…) or the customer's phone number.",
+      "empty": "No sale found for “{q}”.",
+      "noWarranty": "Nothing on this sale was sold with a warranty.",
+      "soldOn": "Sold {date}",
+      "walkIn": "Walk-in customer",
+      "until": "Covered until {date}",
+      "daysLeft": "{days} days left",
+      "lastDay": "Last day today",
+      "expired": "Expired",
+      "active": "Covered",
+      "quantities": "Sold {sold} · returned {returned} · in a claim {claimed}",
+      "logClaim": "Log claim",
+      "months": "{months} months"
+    },
+    "claim": {
+      "title": "Log warranty claim",
+      "quantity": "Quantity",
+      "issue": "Problem",
+      "issuePlaceholder": "What is wrong with it?",
+      "notes": "Notes",
+      "notesPlaceholder": "Accessories received, condition, promised date…",
+      "outOfWarranty": "This warranty has run out. The claim will be logged as out of warranty (a paid repair).",
+      "submit": "Log claim",
+      "cancel": "Cancel",
+      "maxQuantity": "Up to {max}"
+    },
+    "claims": {
+      "search": "Search claim, invoice or product",
+      "allStatuses": "All statuses",
+      "empty": "No warranty claims yet.",
+      "columns": {
+        "claim": "Claim",
+        "invoice": "Invoice",
+        "product": "Product",
+        "customer": "Customer",
+        "quantity": "Qty",
+        "status": "Status",
+        "date": "Logged"
+      },
+      "outOfWarranty": "Out of warranty",
+      "noMatch": "No claims match these filters."
+    },
+    "status": {
+      "received": "Received",
+      "in_repair": "In repair",
+      "sent_to_supplier": "Sent to supplier",
+      "ready": "Ready to collect",
+      "replaced": "Replaced",
+      "rejected": "Rejected",
+      "returned_to_customer": "Handed back"
+    },
+    "detail": {
+      "issue": "Problem",
+      "notes": "Notes",
+      "warranty": "Warranty",
+      "coveredAtIntake": "Under warranty when logged",
+      "outOfWarrantyAtIntake": "Out of warranty when logged",
+      "history": "History",
+      "moveTo": "Move to",
+      "note": "Note",
+      "serviceCharge": "Service charge",
+      "update": "Update",
+      "replace": "Replace from stock",
+      "replaceHint": "Hands one new unit per claimed item out of this location's stock. The faulty unit is not restocked.",
+      "replacement": "Replaced {quantity} from stock on {date}",
+      "resolution": "Resolution",
+      "resolutions": {
+        "repaired": "Repaired",
+        "replaced": "Replaced",
+        "rejected": "Rejected"
+      }
+    }
   }
 }

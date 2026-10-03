@@ -39,7 +39,7 @@ import {
 } from "./print-blocks";
 import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
-import { formatDateTime } from "@/lib/format";
+import { formatDateOnly, formatDateTime } from "@/lib/format";
 import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { amountToWords } from "./number-to-words";
 import { populatedRef } from "./populated-ref";
@@ -349,6 +349,7 @@ const watermarkStyle = (opacity: number, header: DocHeader): string => {
 /** Styles for the print-setup-v2 blocks; inert when the blocks are absent. */
 const V2_STYLES = `
   .item-code { font-size: 0.85em; font-weight: 400; }
+  .item-note { font-size: 0.85em; font-weight: 400; }
   .signature.two { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; text-align: center; }
   .sig-block { display: flex; flex-direction: column; align-items: center; }
   .sig-images { position: relative; display: flex; align-items: flex-end; justify-content: center; min-width: 180px; }
@@ -699,8 +700,30 @@ const taxByRate = (
     }));
 };
 
+/**
+ * The warranty frozen on a sale line, as one printed line — "12-month
+ * replacement warranty, until 03 Oct 2027". `until` is date-only (UTC midnight),
+ * so it is formatted in UTC and names the same day everywhere. Sales made before
+ * warranties, or of products without one, print nothing.
+ */
+const warrantyNote = (item: SaleItem, t?: Translator, locale: AppLocale = "en"): string | undefined => {
+  const warranty = item.warranty;
+  if (!warranty) return undefined;
+  const until = formatDateOnly(warranty.until, "dd MMM yyyy", locale);
+  const kindFallback = { replacement: "replacement", service: "service", parts: "parts" }[warranty.kind];
+  const line = t
+    ? t("warrantyLine", { months: warranty.months, kind: t(`warrantyKind_${warranty.kind}`), until })
+    : `${warranty.months}-month ${kindFallback} warranty, until ${until}`;
+  return warranty.note ? `${line} (${warranty.note})` : line;
+};
+
 /** One sale line as a structured print item (snapshots blank on older sales). */
-const saleLineToItem = (item: SaleItem, currency: Currency): PrintItem => ({
+const saleLineToItem = (
+  item: SaleItem,
+  currency: Currency,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintItem => ({
   name: item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
   code: item.barcode ?? undefined,
   quantity: item.quantity,
@@ -710,6 +733,7 @@ const saleLineToItem = (item: SaleItem, currency: Currency): PrintItem => ({
   vatRate: (item.taxAmount ?? 0) > 0 ? item.taxRate ?? undefined : undefined,
   vatAmount: (item.taxAmount ?? 0) > 0 ? currency(item.taxAmount as number) : undefined,
   amount: currency(item.subtotal),
+  note: warrantyNote(item, t, locale),
 });
 
 /**
@@ -831,7 +855,7 @@ const saleToDoc = (
         ? [{ label: tt("cashier", "Cashier"), value: cashierName, key: "cashier" as const }]
         : []),
     ],
-    itemTable: { items: sale.items.map((item) => saleLineToItem(item, currency)) },
+    itemTable: { items: sale.items.map((item) => saleLineToItem(item, currency, t, locale)) },
     columns: [],
     rows: [],
     totals,

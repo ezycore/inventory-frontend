@@ -228,7 +228,8 @@
     "sale": "বিক্রয়",
     "return": "ফেরত",
     "transfer": "স্থানান্তর",
-    "expiry": "মেয়াদোত্তীর্ণ"
+    "expiry": "মেয়াদোত্তীর্ণ",
+    "warrantyReplacement": "ওয়ারেন্টি রিপ্লেসমেন্ট"
   },
   "language": {
     "label": "ভাষা",
@@ -319,7 +320,11 @@
     "customerCopy": "গ্রাহকের কপি",
     "shopCopy": "দোকানের কপি",
     "officeCopy": "অফিস কপি",
-    "customerStatement": "গ্রাহকের বিবরণী"
+    "customerStatement": "গ্রাহকের বিবরণী",
+    "warrantyLine": "{months} মাসের {kind} ওয়ারেন্টি, {until} পর্যন্ত",
+    "warrantyKind_replacement": "রিপ্লেসমেন্ট",
+    "warrantyKind_service": "সার্ভিস",
+    "warrantyKind_parts": "পার্টস"
   },
   "access": {
     "restrictedTitle": "প্রবেশাধিকার সীমিত",

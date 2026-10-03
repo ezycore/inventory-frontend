@@ -26,7 +26,8 @@
       "smsNotifications": "SMS Notifications",
       "multiLocation": "Multiple Locations",
       "purchases": "Purchasing",
-      "inventoryTracking": "Stock tracking"
+      "inventoryTracking": "Stock tracking",
+      "warranty": "Warranty"
     },
     "descriptions": {
       "sales": "Enable sales orders, customer invoices, and sales history tracking",
@@ -42,7 +43,8 @@
       "smsNotifications": "Send order and payment updates to customers by SMS (uses SMS credits)",
       "multiLocation": "Run more than one shop or warehouse, with stock transfers between them",
       "purchases": "Purchase orders, receiving stock, purchase returns and supplier records. Turn this off if you do not buy from suppliers to resell.",
-      "inventoryTracking": "Count what you have on hand — stock levels, adjustments, transfers and the movement history. Turn this off if you sell to order and do not hold inventory."
+      "inventoryTracking": "Count what you have on hand — stock levels, adjustments, transfers and the movement history. Turn this off if you sell to order and do not hold inventory.",
+      "warranty": "Set warranty terms on products, print them on the invoice, check whether a sale is still covered and log warranty claims"
     },
     "disable": {
       "title": "Turn off {feature}?",
@@ -625,7 +627,8 @@
       "returns": "Returns",
       "storefront": "Online Store",
       "roles": "Roles",
-      "costs": "Cost prices"
+      "costs": "Cost prices",
+      "warranty": "Warranty"
     }
   },
   "billing": {

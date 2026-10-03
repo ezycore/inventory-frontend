@@ -10,6 +10,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- Warranty: a Warranty section on the product form, a warranty line under each item on printed
+  invoices, and Sales → Warranty to check a sale by invoice or phone and log/track claims
+  (repair, supplier, replacement from stock). Feature switch under Settings → Features.
 - POS and sale lines show "N held for online orders" under Available when confirmed
   storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
 
@@ -17,6 +20,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Sale and POS batch pickers no longer offer expired batches — choosing one only failed at
   Confirm. Stock adjustment still lists them for write-off.
 - Receipt & Print: "Organization profile" links now open `/settings/organization` instead of the personal `/profile` page.
+
+### Deploy notes
+- Warranty needs inventory-backend with `/api/warranty` (its next release) deployed first.
 
 ## [1.0.0] - 2026-10-03
 

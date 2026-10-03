@@ -55,6 +55,8 @@ export interface PrintItem {
   vatAmount?: string;
   /** Formatted line amount; omitted on quantity-only docs. */
   amount?: string;
+  /** A muted line under the item name on every paper — e.g. the warranty frozen on a sale line. */
+  note?: string;
 }
 
 export interface ItemTableSpec {
@@ -106,11 +108,10 @@ export const buildItemTable = (
   const rows = spec.items.map((item, i) => {
     const row: PrintCell[] = [];
     if (serial) row.push(i + 1);
-    row.push(
-      codeUnderName && item.code
-        ? { html: `${escapeHtml(item.name)}<div class="muted item-code">${escapeHtml(item.code)}</div>` }
-        : item.name,
-    );
+    const codeLine =
+      codeUnderName && item.code ? `<div class="muted item-code">${escapeHtml(item.code)}</div>` : "";
+    const noteLine = item.note ? `<div class="muted item-note">${escapeHtml(item.note)}</div>` : "";
+    row.push(codeLine || noteLine ? { html: `${escapeHtml(item.name)}${codeLine}${noteLine}` } : item.name);
     if (codeColumn) row.push(item.code ?? "");
     row.push(unit && item.unit ? `${item.quantity} ${item.unit}` : item.quantity);
     if (priced) row.push(item.price ?? "");
