@@ -12,9 +12,10 @@ import { PosCartCards } from "./pos-cart-cards";
 /**
  * The order lines, sized to the space it gets (`@container`), not the screen:
  * New Sale's own table (`ctx.salesColumns` — quantity, batch, discount, VAT,
- * cost gating, all unchanged) plus photos once it is ~768 px wide, and the same
- * lines as cards below that — a phone, a tablet, or a narrow laptop with the
- * payment column open beside it.
+ * cost gating, all unchanged) plus photos once it is ~1150 px wide, and the
+ * same lines as cards below that. The table needs ~1090 px before a VAT column,
+ * so on a 1366 or 1440 px counter (cart ~940–1010 px beside the payment column)
+ * it would push Discount, Total and remove behind a sideways scroll.
  */
 export function PosCart({
   ctx,
@@ -62,7 +63,7 @@ export function PosCart({
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-auto border-t">
-          <div className="hidden @3xl:block">
+          <div className="hidden @6xl:block">
             <CardTable
               columns={salesColumns}
               data={items}
@@ -70,7 +71,7 @@ export function PosCart({
               showCard={false}
             />
           </div>
-          <div className="@3xl:hidden">
+          <div className="@6xl:hidden">
             <PosCartCards ctx={ctx} thumbnails={thumbnails} />
           </div>
         </div>

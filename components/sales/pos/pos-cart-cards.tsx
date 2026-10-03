@@ -10,9 +10,10 @@ import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
 
 /**
- * The cart on a phone: one card per line instead of New Sale's eight-column
- * table, with the same edits — quantity, per-unit discount, batch, remove —
- * through the same store actions the table's cells call.
+ * The cart wherever New Sale's eight-column table would not fit — a phone, a
+ * tablet, a 1366 px counter: one card per line, with the same edits —
+ * quantity, per-unit discount, batch, remove — through the same store actions
+ * the table's cells call.
  */
 export function PosCartCards({
   ctx,
