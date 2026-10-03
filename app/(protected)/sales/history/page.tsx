@@ -1,7 +1,6 @@
 'use client';
 // coding-standard: maintained
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
 import { Card, CardContent } from '@/ui/components/card';
@@ -14,16 +13,16 @@ import {
 } from '@/components/sales/history';
 import { useAuthStore } from '@/services/stores/use-auth-store';
 import { isFeatureEnabled } from '@/lib/feature-utils';
+import { openPos } from '@/constants/pos';
 
 export default function SalesHistoryPage() {
   const t = useTranslations('sales.history');
-  const router = useRouter();
   const ctx = useSalesHistoryPage();
   // History stays READABLE when the counter is switched off — that is what
   // `readOnly` on the nav item means, and why a year of sales does not vanish
   // with the capability. It does not mean the screen never creates.
   //
-  // What the flag never covered is this button, which pushes to `/sales` — a
+  // What the flag never covered is this button, which pushes to the POS — a
   // route the guard blocks once the capability is off. The twin screen
   // `/purchases/history` was given this exact guard and this one was missed,
   // so an online-only merchant is offered a counter sale they cannot start
@@ -41,7 +40,7 @@ export default function SalesHistoryPage() {
           <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         {canCreateSale && (
-          <Button onClick={() => router.push('/sales')}>
+          <Button onClick={() => openPos()}>
             <Plus className="h-4 w-4 mr-2" />
             {t('newSale')}
           </Button>
@@ -60,6 +59,7 @@ export default function SalesHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
+            key={ctx.listRevision}
             title={t('tableTitle')}
             columns={ctx.columns}
             data={ctx.sales}
@@ -76,8 +76,8 @@ export default function SalesHistoryPage() {
               manualPagination: true,
               pageSizeOptions: [10, 20, 50, 100],
               onPaginationChange: ({ pageIndex, pageSize }) => {
-                ctx.setPage(pageIndex + 1);
                 if (pageSize !== ctx.limit) ctx.setLimit(pageSize);
+                else ctx.setPage(pageIndex + 1);
               },
             }}
             enableSorting

@@ -125,8 +125,8 @@ describe("hero", () => {
     };
 
     it("leaves every layout untouched when the merchant chose no shape", () => {
-      // The promise the classic home depends on: no attribute, no variable, so
-      // the stylesheet keeps drawing the shape it always drew.
+      // No attribute, no variable, so the stylesheet keeps drawing the shape it
+      // always drew.
       for (const layout of ["card", "open", "full-bleed"]) {
         const root = frameOf({ layout }) as HTMLElement;
         expect(root.getAttribute("data-frame")).toBeNull();
@@ -244,8 +244,7 @@ describe("hero", () => {
     };
 
     it("sets no attribute when the merchant placed nothing", () => {
-      // The classic home's promise: unplaced heroes keep the placement the
-      // stylesheet has always drawn.
+      // Unplaced heroes keep the placement the stylesheet has always drawn.
       for (const layout of ["card", "open"]) {
         const root = rootOf({ layout });
         expect(root.getAttribute("data-media-side")).toBeNull();
@@ -397,7 +396,7 @@ describe("hero", () => {
     expect(prepareSections([hero({ layout: "split" }, [{ id: "s1", settings: { title: "Hi" } }])])).toEqual([]);
   });
 
-  describe("moved from the classic home", () => {
+  describe("drawn in the store's own words", () => {
     const banner = { url: "https://cdn.example.com/banner.jpg", mediumUrl: "https://cdn.example.com/banner-md.jpg" };
     // Real ObjectIds: a `ref` setting that is not one is dropped on read.
     const EID_SALE = "64b000000000000000000001";

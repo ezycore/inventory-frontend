@@ -255,9 +255,8 @@ first thing shoppers see when they open your store's own address.
 The row now shows **Homepage**, and your store's address opens the page with its own header and footer
 settings. The page keeps its own address too, so ads that already link to it keep working.
 
-Your homepage from **Customize** is kept, not replaced. Press **⋯** on the same row, then **Stop using as
-homepage**, to bring it back. Until then, **Customize** reminds you above the home page sections that shoppers are
-not seeing them.
+Your own **Home** page is kept, not replaced. Press **⋯** on the same row, then **Stop using as
+homepage**, to bring it back.
 
 Search engines are given your store's own search title and description for the homepage, and the page's
 own address is hidden from them, so the same page is not listed twice.

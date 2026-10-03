@@ -22,7 +22,7 @@ import { useFilteredFormConfig } from "@/hooks/use-filters";
 import { queryKeys } from "@/services/api/query-keys";
 import { FilterConfig } from "@/types/DataTable";
 import type { Translator, AppLocale } from "@/i18n/config";
-import { CheckCircle2, Hash, Percent, Tag } from "lucide-react";
+import { CheckCircle2, Percent, Tag } from "lucide-react";
 import { getDiscountFormConfig } from "@/components/discounts/form-config";
 import type { ApiDiscount } from "@/types/api";
 
@@ -50,13 +50,6 @@ function getDiscountStats(stats: Record<string, any> | undefined, t: Translator)
       variant: "info",
       description: t("stats.percentageDescription"),
     },
-    {
-      label: t("stats.fixed"),
-      value: stats?.fixed || 0,
-      icon: Hash,
-      variant: "warning",
-      description: t("stats.fixedDescription"),
-    },
   ];
 }
 
@@ -68,16 +61,6 @@ const getDiscountFilterConfig = (t: Translator): FilterConfig => ({
       label: t("filters.searchLabel"),
       type: "text",
       placeholder: t("filters.searchPlaceholder"),
-    },
-    {
-      name: "type",
-      label: t("filters.typeLabel"),
-      type: "select",
-      placeholder: t("filters.typePlaceholder"),
-      options: [
-        { label: t("form.percentage"), value: "percentage" },
-        { label: t("form.fixed"), value: "fixed" },
-      ],
     },
     {
       name: "applicableTo",

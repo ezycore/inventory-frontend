@@ -29,7 +29,9 @@ import type {
 import type { Payment } from "./types";
 
 import { getPurchaseHistoryColumns, getPurchaseHistoryActions } from "./columns";
-import { buildHistoryFilterConfig } from "./filters";
+import { buildHistoryFilterConfig, historyFilterFields } from "./filters";
+import { useListUrlState } from "@/hooks/use-list-url-state";
+import type { ListFilters } from "@/lib/list-url-state";
 import { ALL_ORDER_STATUSES } from "../orders/filters";
 
 export function usePurchaseHistoryPage() {
@@ -40,10 +42,16 @@ export function usePurchaseHistoryPage() {
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const { format: formatCurrency } = useCurrency();
 
-  // Table state
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [filters, setFilters] = useState<PurchaseOrderFilters>({});
+  // Table state — page, size and filters live in the URL, so Back from an
+  // order lands here again.
+  const filterFields = useMemo(() => historyFilterFields(t), [t]);
+  const list = useListUrlState({
+    defaults: { limit: 20 },
+    filterFields,
+    limitOptions: [10, 20, 50, 100],
+  });
+  const { page, limit, setPage, setLimit, setFilters, revision: listRevision } = list;
+  const filters = list.filters as PurchaseOrderFilters;
 
   // Drawer state (single drawer with summary | payment mode)
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(
@@ -232,18 +240,18 @@ export function usePurchaseHistoryPage() {
 
   const filterConfig = useMemo(
     () =>
-      buildHistoryFilterConfig({
-        onApply: (newFilters) => {
-          setFilters(newFilters);
-          setPage(1);
-        },
-        onReset: () => {
-          setFilters({});
-          setPage(1);
-        },
-        t,
+      ({
+        ...buildHistoryFilterConfig({
+          // Both start again from page 1.
+          onApply: (newFilters) => setFilters(newFilters as ListFilters),
+          onReset: () => setFilters({}),
+          t,
+        }),
+        initialValues: filters,
       }),
-    [t],
+    // `filters` seeds the bar once; `listRevision` remounts it after an outside URL change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+    [t, setFilters, listRevision],
   );
 
   return {
@@ -274,6 +282,7 @@ export function usePurchaseHistoryPage() {
     limit,
     setPage,
     setLimit,
+    listRevision,
 
     // Drawer (single)
     drawerOpen,

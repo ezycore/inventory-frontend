@@ -10,7 +10,6 @@ import {
   isIndexableCatalogUrl,
 } from "@/lib/storefront-catalog-params";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { CollectionPageView } from "@/components/storefront/collection/collection-page";
 import { CollectionDataProvider } from "@/components/storefront/collection/collection-data";
 
 // Host-resolved (dynamic render); the product list is cached via the
@@ -72,9 +71,7 @@ export default async function Page({
   const data = { initialProducts: products ?? undefined, initialPage: page };
   return (
     <CollectionDataProvider value={data}>
-      <SystemPage path="/products">
-        <CollectionPageView {...data} />
-      </SystemPage>
+      <SystemPage path="/products" />
     </CollectionDataProvider>
   );
 }

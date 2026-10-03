@@ -8,6 +8,7 @@ import {
   FileText,
   GalleryHorizontalEnd,
   Home,
+  Languages,
   LayoutGrid,
   Library,
   Megaphone,
@@ -17,14 +18,12 @@ import {
   Package,
   PanelBottom,
   PanelTop,
-  Rows3,
-  Smartphone,
   ShoppingCart,
   SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import type { StorefrontSettings } from "@/types";
+import type { StorefrontWithLook } from "@/types";
 import { Button } from "@/ui/components/button";
 import { Switch } from "@/ui/components/switch";
 import { PartGroup } from "@/components/ecommerce/customize/part-group";
@@ -35,12 +34,15 @@ import { CardsPart } from "@/components/ecommerce/customize/parts/cards-part";
 import { ContactPart } from "@/components/ecommerce/customize/parts/contact-part";
 import { FiltersPart } from "@/components/ecommerce/customize/parts/filters-part";
 import { FooterPart } from "@/components/ecommerce/customize/parts/footer-part";
-import { HeaderPart } from "@/components/ecommerce/customize/parts/header-part";
+import {
+  HeaderPart,
+  type PreviewDevice,
+} from "@/components/ecommerce/customize/parts/header-part";
+import { LanguageThemePart } from "@/components/ecommerce/customize/parts/language-theme-part";
 import { LookPart } from "@/components/ecommerce/customize/parts/look-part";
 import { MenuPart } from "@/components/ecommerce/customize/parts/menu-part";
-import { MobilePart } from "@/components/ecommerce/customize/parts/mobile-part";
+import { ShellPart } from "@/components/ecommerce/customize/parts/shell-part";
 import { TemplatePicker } from "@/components/ecommerce/customize/parts/template-picker";
-import { UtilityBarPart } from "@/components/ecommerce/customize/parts/utility-bar-part";
 import type { PreviewPage } from "@/components/ecommerce/customize/browser-preview";
 import type {
   CustomizeDraftApi,
@@ -91,16 +93,20 @@ export const RAIL_GROUPS: { title: string; parts: RailPart[] }[] = [
   {
     title: "Site frame",
     parts: [
+      /* The top of the shop on BOTH screens, behind a Phone / Computer switch
+         (2026-09-29). It absorbed the Phone bar and Utility bar rows: four rows
+         for one strip of screen made a merchant learn the split before they
+         could change their header. */
       { id: "header", title: "Header", icon: PanelTop },
-      /* Its own row, not a block inside Header: the menu drives the phone
-         panel, the chips row and the category sidebar as much as the header,
-         and merchants look for it by name. */
+      /* Its own row, not a block inside Header: WHAT the menu lists drives the
+         phone panel, the chips row and the category sidebar as much as the
+         header, and merchants look for it by name. How it opens is Header's. */
       { id: "menu", title: "Menu", icon: Menu },
-      { id: "utility", title: "Utility bar", icon: Rows3 },
-      /* Directly under Header, because it answers the same question for the
-         other screen — and above Footer, because for these merchants far more
-         shoppers see this bar than ever reach a footer. */
-      { id: "mobile", title: "Phone bar", icon: Smartphone },
+      /* Whether there is anything to switch — where the switches sit is
+         Header's. Beside Header and Menu because the switches live in the
+         header, and a merchant hunting for "remove the Bangla button" looks
+         there first. */
+      { id: "language", title: "Language & theme", icon: Languages },
       { id: "footer", title: "Footer", icon: PanelBottom },
       { id: "shell", title: "Page layout", icon: Columns2 },
       { id: "contact", title: "WhatsApp button", icon: MessageCircle },
@@ -147,18 +153,15 @@ export const previewPageForPart = (id: PartId): PreviewPage =>
   PART_PAGE[id] ?? "home";
 
 /**
- * Which device a part is about. Everything is "desktop" except the one part that
- * is only visible on a phone — opening it against a desktop frame gives the
- * merchant a panel of controls that change nothing on screen, which is the same
- * broken-control problem `PART_PAGE` exists to solve one axis over.
+ * Which device a part opens the preview on. A panel of phone controls against a
+ * desktop frame changes nothing on screen, which is the same broken-control
+ * problem `PART_PAGE` exists to solve one axis over.
+ *
+ * Header, Menu and the filters open on the phone: that is where most shoppers
+ * meet them (owner rule — mobile first), and Header's own switch opens on Phone.
  */
-export const previewDeviceForPart = (
-  id: PartId | null,
-): "desktop" | "mobile" =>
-  // The Menu and the filters open on the phone too: that is where most
-  // shoppers meet them (owner rule — mobile first), and both panels lead with
-  // the phone settings.
-  id === "mobile" || id === "menu" || id === "filters" ? "mobile" : "desktop";
+export const previewDeviceForPart = (id: PartId | null): PreviewDevice =>
+  id === "header" || id === "menu" || id === "filters" ? "mobile" : "desktop";
 
 /**
  * Ids that used to be rows. `?part=` is a documented deep link, so a bookmark or
@@ -168,7 +171,24 @@ export const previewDeviceForPart = (
 const RETIRED_PART_IDS: Record<string, PartId> = {
   brand: "look",
   design: "look",
+  // Folded into Header on 2026-09-29, one per side of its device switch.
+  mobile: "header",
+  utility: "header",
 };
+
+/**
+ * The device a retired id's panel lived on. Header opens on Phone, but an old
+ * Utility bar link is about the strip above the COMPUTER header, and opening it
+ * on Phone would land the merchant on the wrong half of the switch.
+ */
+const RETIRED_PART_DEVICE: Record<string, PreviewDevice> = {
+  mobile: "mobile",
+  utility: "desktop",
+};
+
+/** The device a `?part=` link should open on — its old row's, else the part's. */
+export const previewDeviceForParam = (value: string | null): PreviewDevice =>
+  RETIRED_PART_DEVICE[value ?? ""] ?? previewDeviceForPart(asPartId(value));
 
 /**
  * Rows that became a PAGE rather than another row (2026-09-20). A link written
@@ -201,22 +221,25 @@ export function PartsRail({
   open,
   onToggle,
   onManageCollections,
+  device,
   onPreviewDevice,
 }: {
-  settings: StorefrontSettings;
+  settings: StorefrontWithLook;
   api: CustomizeDraftApi;
   /** Owned by the workspace so it survives a panel taking the rail over. */
   open: PartId | null;
   onToggle: (id: PartId) => void;
   /**
-   * Opens the collections panel, for the Header part's collections menu.
+   * Opens the collections panel, for the Menu part's collection list.
    * Omitted without `storefront.manage`: renaming, listing and reordering
    * collections are catalog writes, not look, so a `storefront.design`-only
    * role would get a 403 on Save.
    */
   onManageCollections?: () => void;
-  /** Points the preview at a device — the Menu part's Phone / Desktop switch. */
-  onPreviewDevice?: (device: "desktop" | "mobile") => void;
+  /** The device the preview was last pointed at — Header's switch shows it. */
+  device: PreviewDevice;
+  /** Points the preview at a device — Header's and Filters' Phone / Computer switches. */
+  onPreviewDevice: (device: PreviewDevice) => void;
 }) {
   const {
     draft,
@@ -229,7 +252,6 @@ export function PartsRail({
     discard,
     save,
     saving,
-    savesDraft,
   } = api;
   const orgHasLogo = !!useAuthStore((s) => s.user?.organization?.logo);
 
@@ -277,17 +299,6 @@ export function PartsRail({
             }}
             aria-label="Show the campaign strip"
           />
-        ) : part.id === "utility" ? (
-          <Switch
-            checked={draft.utilityBar.enabled}
-            onCheckedChange={(enabled) => {
-              patch({
-                utilityBar: { ...draft.utilityBar, enabled },
-              });
-              if (enabled && open !== "utility") onToggle("utility");
-            }}
-            aria-label="Show the utility bar"
-          />
         ) : part.id === "contact" ? (
           <Switch
             checked={draft.contactButton.enabled}
@@ -319,25 +330,28 @@ export function PartsRail({
           draft={draft}
           patchCampaignStrip={api.patchCampaignStrip}
         />
-      ) : part.id === "mobile" ? (
-        <MobilePart
+      ) : part.id === "header" ? (
+        <HeaderPart
           settings={settings}
+          device={device}
+          onDevice={onPreviewDevice}
           draft={draft}
+          patch={patch}
+          patchTemplate={patchTemplate}
           patchMobile={api.patchMobile}
           patchMobileTemplate={api.patchMobileTemplate}
         />
-      ) : part.id === "utility" ? (
-        <UtilityBarPart settings={settings} draft={draft} patch={patch} />
-      ) : part.id === "header" ? (
-        <HeaderPart draft={draft} patchTemplate={patchTemplate} />
       ) : part.id === "menu" ? (
         <MenuPart
           draft={draft}
           patch={patch}
           patchTemplate={patchTemplate}
           onManageCollections={onManageCollections}
-          onPreviewDevice={onPreviewDevice}
         />
+      ) : part.id === "language" ? (
+        <LanguageThemePart draft={draft} patch={patch} />
+      ) : part.id === "shell" ? (
+        <ShellPart draft={draft} patch={patch} patchTemplate={patchTemplate} />
       ) : part.id === "contact" ? (
         <ContactPart
           settings={settings}
@@ -351,10 +365,10 @@ export function PartsRail({
       ) : part.id === "filters" ? (
         <FiltersPart draft={draft} patch={patch} onPreviewDevice={onPreviewDevice} />
       ) : (
-        // Content pages are a single layout choice, so the part IS its picker.
-        // Its id is not the template key it writes (`contentLayout`), which is
-        // worth one map entry. Product, collection, cart, checkout and account
-        // were the other four; each is its page's core-section setting now.
+        // Content & tracking is a single layout choice, so the part IS its
+        // picker. Its id is not the template key it writes (`contentLayout`),
+        // which is worth one map entry. Product, collection, cart, checkout and
+        // account were the other four; each is its page's core-section setting now.
         <TemplatePicker
           templateKey={PART_TEMPLATE_KEY[part.id] ?? part.id}
           value={draft.templates[PART_TEMPLATE_KEY[part.id] ?? part.id]}
@@ -399,7 +413,7 @@ export function PartsRail({
           </span>
         ) : (
           <span className="text-xs text-muted-foreground">
-            {savesDraft ? "Draft saved" : "All changes saved"}
+            Draft saved
           </span>
         )}
         <span className="ml-auto flex flex-none gap-2">
@@ -412,7 +426,7 @@ export function PartsRail({
             Discard
           </Button>
           <Button size="sm" onClick={save} disabled={!isDirty || !isValid || saving}>
-            {saving ? "Saving…" : savesDraft ? "Save draft" : "Save changes"}
+            {saving ? "Saving…" : "Save draft"}
           </Button>
         </span>
       </div>

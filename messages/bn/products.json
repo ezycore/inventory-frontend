@@ -312,9 +312,7 @@
         "mrp": "MRP",
         "profitPerUnit": "মুনাফা/একক",
         "salesTax": "বিক্রয় ভ্যাট",
-        "purchaseTax": "ক্রয় ভ্যাট",
-        "discount": "ছাড়",
-        "off": "ছাড়"
+        "purchaseTax": "ক্রয় ভ্যাট"
       },
       "storefront": {
         "title": "অনলাইন স্টোরফ্রন্ট",
@@ -448,7 +446,7 @@
       "createdDateLabel": "তৈরির তারিখ",
       "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
       "updatedDateLabel": "আপডেটের তারিখ",
-      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+      "updatedDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন"
     },
     "form": {
       "name": "ব্র্যান্ডের নাম",
@@ -587,7 +585,7 @@
       "createdDateLabel": "তৈরির তারিখ",
       "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
       "updatedDateLabel": "আপডেটের তারিখ",
-      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন",
+      "updatedDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
       "parentLabel": "প্যারেন্ট ক্যাটাগরি",
       "parentPlaceholder": "সব ক্যাটাগরি",
       "typeLabel": "ধরন",
@@ -717,7 +715,7 @@
       "createdDateLabel": "তৈরির তারিখ",
       "createdDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন",
       "updatedDateLabel": "আপডেটের তারিখ",
-      "updatedDatePlaceholder": "তারিখ নির্বাচন করুন"
+      "updatedDatePlaceholder": "তারিখ পরিসীমা নির্বাচন করুন"
     },
     "form": {
       "name": "অ্যাট্রিবিউটের নাম",

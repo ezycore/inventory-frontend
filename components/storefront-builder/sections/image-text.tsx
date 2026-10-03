@@ -23,9 +23,8 @@ const button = (label: string | undefined, href: string | undefined) =>
  * (`.sfb-split` in `app/(storefront)/storefront-builder.css`).
  *
  * ⚠ `imageFit` is unset on every section saved before it existed, and unset
- * means `cover` — the crop this section has always drawn. The classic editorial
- * band it replaces draws its photograph **fitted**, which is why a converted
- * home needs the field written rather than left to the default.
+ * means `cover` — the crop this section has always drawn. A **fitted**
+ * photograph needs the field written rather than left to the default.
  */
 export function ImageTextSection({ settings, context }: SectionViewProps<Spec>) {
   const primary = button(settings.buttonLabel, settings.buttonHref);

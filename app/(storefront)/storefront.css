@@ -1695,8 +1695,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    collection page's own column setting writes over them (`.sfb-cols` in
    storefront-builder.css, per screen). Nothing else emits that variable, so a
    page that sets no count renders the same 2 and 3 this grid has always drawn —
-   the `var(…, <today's value>)` technique the builder plan's §0.3 sets out for a
-   renderer shared with the classic pages.
+   the `var(…, <today's value>)` technique the builder plan's §0.3 sets out.
 
    ⚠ The variable is `--colcols3`, not `--colcols`: `.sf-grid-4` reads that one,
    and a single name would mean a count set on one layout silently following the
@@ -1712,10 +1711,10 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
-/* ---- Homepage collections row (grid layout) ----
+/* ---- Collections row (grid layout) ----
    The merchant's column count arrives as `--sf-hc-cols` from
-   `home-collections.tsx`. It applies from 680px up only: below that the row is
-   pinned to 2 whatever they chose, because six 60px tiles on a 360px phone are
+   `category-row-layout.ts`. It applies from 680px up only: below that the row
+   reads its own phone count, because six 60px tiles on a 360px phone are
    six unreadable slivers. This has to be CSS rather than an inline style for
    exactly that reason — a breakpoint. */
 .sf-home-collections {
@@ -1790,7 +1789,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   scroll-snap-align: start;
 }
 
-/* ---- Chip row sizing (home/home-collections.tsx) ----
+/* ---- Chip row sizing (home/collection-tiles.tsx) ----
    The chips are the one strip that needed phone sizing of its own: the photo
    tiles already run 132–210px and peek on their own, while an 84px chip put 3.5
    of them on a phone at a size better suited to a mouse.
@@ -3025,7 +3024,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   border-radius: 7px;
 }
 
-/* ---- Category tiles (home/sections/category-sections.tsx) ----
+/* ---- Category tiles (home/category-tile-row.tsx, category-row-layout.ts) ----
    A theme's untouched row keeps its original adaptive composition. Once the
    merchant chooses an exact column count, `--sf-ct-cols` takes over; phones
    stay at two and tracks never grow beyond the visual mode's maximum. */
@@ -3034,9 +3033,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   gap: var(--gap);
   justify-content: var(--sf-ct-justify, center);
   /* Phone base. `--sf-ct-mcols` is the merchant's phone count (2–4, default 2)
-     and is the SAME setting the collections row reads — both category grids
-     take their layout from `theme.homeCollections`, so a shop answers "how many
-     across on a phone" once. */
+     (`category-row-layout.ts`). */
   grid-template-columns: repeat(var(--sf-ct-mcols, 2), minmax(0, 1fr));
 }
 @media (min-width: 681px) {
@@ -3148,7 +3145,7 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
-/* ---- Classic hero card (home/sections/hero-sections.tsx → HeroCard) ----
+/* ---- Card hero (home/hero-static.tsx → HeroCard) ----
    The one static hero whose markup is NOT inline-styled, for the reason no
    inline style can cover: below 680px it REORDERS. `--herocols` collapsing to
    `1fr` there turned the card into copy-then-photo in DOM order, so the whole
@@ -3191,8 +3188,8 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 /* ---- "Picture shape" (`frame`), on all three heroes ----
    The merchant's own box, and the phone's own where they set one. Unset touches
    nothing: every rule below is gated on a data attribute the builder adds only
-   when a shape exists, so the classic home — which sets none — keeps the shapes
-   this file has always drawn.
+   when a shape exists, so a hero with none keeps the shapes this file has
+   always drawn.
 
    Why an attribute AND a variable, when the variable alone would carry the
    ratio: CSS cannot ask whether a custom property was set. Two things here turn
@@ -3238,8 +3235,8 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
    is the only thing sizing the box.
 
    Unset touches nothing — every rule is gated on `data-h` / `data-h-m`, which
-   the builder adds only when a height exists, so the classic home and every
-   hero nobody has resized are byte-identical. */
+   the builder adds only when a height exists, so every hero nobody has resized
+   is byte-identical. */
 .sf-herocard[data-h-m] {
   --herocard-ratio: auto;
   --herocard-h: var(--sfb-hero-h-m);
@@ -3353,10 +3350,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 }
 
 .sf-herocard-badge {
-  /* The ACCENT, not the brand — see the note in `hero-sections.tsx`. Colour
-     comes from `.sf-hero-badge` above, and so do type, padding and shape. */
-  /* One line on a phone. The badge accepts 60 characters — the limit the classic
-     banner hero set, where the chip sat on a full-width photograph — and at
+  /* The ACCENT, not the brand. Colour comes from `.sf-hero-badge` above, and so do type, padding and shape. */
+  /* One line on a phone. The badge accepts 60 characters — a limit set for a
+     chip on a full-width photograph — and at
      11.5px in a padded card that wraps to three lines stacked above the
      headline, which reads as a broken pill rather than a label.
 
@@ -4161,9 +4157,9 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
      subtitle outright, so a merchant typed 160 characters, watched them render
      on the desktop preview, and never learned the phone threw them away.
 
-     `:not(…)` rather than a positive rule for the hide, because the CLASSIC
-     home page passes no attribute at all — it keeps today's rendering with no
-     change to its markup, and only a builder hero set to "Everything" opts in.
+     `:not(…)` rather than a positive rule for the hide, because a hero with no
+     choice passes no attribute at all — it keeps today's rendering with no
+     change to its markup, and only a hero set to "Everything" opts in.
 
      The title's own 2-line clamp below stays whichever way this goes: it is the
      one rule here protecting the fold on a hero whose whole point is the

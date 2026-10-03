@@ -168,4 +168,6 @@ export interface CreateSalesOrderData {
   creditBalanceAmount?: number;
   /** When "draft", BE skips inventory / payment / credit side-effects. */
   status?: "draft";
+  /** Cash handed over when it exceeds what the sale settles — printed as cash received / change. */
+  tenderedAmount?: number;
 }

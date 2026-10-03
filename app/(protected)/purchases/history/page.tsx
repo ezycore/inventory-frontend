@@ -62,6 +62,7 @@ export default function PurchaseHistoryPage() {
       <Card className="p-0">
         <CardContent className="p-6">
           <BaseDataTable
+            key={ctx.listRevision}
             title={t("history.tableTitle")}
             columns={ctx.columns}
             data={ctx.purchases}

@@ -193,7 +193,7 @@ export function PartHint({
  * One on/off setting as a row: its name (and an optional detail line) beside a
  * switch. The whole row is the `<label>`, so the name is a tap target too.
  * `ariaLabel` names what the switch does when the visible name alone would be
- * ambiguous out of context ("Phone number" → "Show phone number in the utility bar").
+ * ambiguous out of context ("Phone number" → "Show your phone number in the info strip").
  */
 export function PartSwitch({
   label,

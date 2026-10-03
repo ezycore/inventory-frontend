@@ -3,7 +3,6 @@
 
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@ui/components/card'
-import { Separator } from '@ui/components/separator'
 import { Tag } from 'lucide-react'
 import { PERMISSIONS, useHasPermission } from '@/hooks/use-has-permission'
 
@@ -80,22 +79,6 @@ export function DetailPricing({
           )}
           {purchaseTaxActive && purchaseTaxRate > 0 && (
             <Row label={t('purchaseTax')} value={<span className="text-sm font-medium">{purchaseTaxRate}%</span>} />
-          )}
-          {product.discountValue != null && product.discountValue > 0 && (
-            <>
-              <Separator />
-              <Row
-                label={t('discount')}
-                value={
-                  <span className="text-sm font-medium text-orange-600">
-                    {product.discountType === 'fixed'
-                      ? formatCurrency(product.discountValue)
-                      : `${product.discountValue}%`}{' '}
-                    {t('off')}
-                  </span>
-                }
-              />
-            </>
           )}
         </div>
       </CardContent>

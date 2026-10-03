@@ -46,7 +46,7 @@ const OPTIONS: {
     value: "confirmed",
     label: "When you confirm the order",
     icon: CheckCircle2,
-    description: "Counts orders you agreed to ship. Recommended.",
+    description: "Counts orders you agreed to ship.",
   },
   {
     value: "delivered",
@@ -80,7 +80,13 @@ export function MetaPurchaseTriggerPicker({
             label={option.label}
             description={option.description}
             icon={option.icon}
-            badge={option.value === "confirmed" ? "Recommended" : undefined}
+            // Its own element: two bare strings in the card's flex row merge into one
+            // text node, and the gap between them disappears ("orderRecommended").
+            badge={
+              option.value === "confirmed" ? (
+                <span className="font-normal text-muted-foreground">(Recommended)</span>
+              ) : undefined
+            }
           />
         ))}
       </div>

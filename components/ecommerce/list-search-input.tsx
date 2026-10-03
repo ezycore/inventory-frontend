@@ -12,6 +12,9 @@ interface ListSearchInputProps {
   /** Called with the trimmed value 300ms after typing stops. The caller owns
    *  any reset side effects (page 1, clearing row selection). */
   onSearch: (value: string) => void;
+  /** The search the list opened with — the URL's, after Back from a row. Read
+   *  once; key the input to show a new one. */
+  defaultValue?: string;
   className?: string;
 }
 
@@ -20,9 +23,10 @@ interface ListSearchInputProps {
 export function ListSearchInput({
   placeholder,
   onSearch,
+  defaultValue = "",
   className,
 }: ListSearchInputProps) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(defaultValue);
   const commit = useDebouncedCallback(
     (value: string) => onSearch(value.trim()),
     300,

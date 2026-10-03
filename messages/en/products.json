@@ -312,9 +312,7 @@
         "mrp": "MRP",
         "profitPerUnit": "Profit/Unit",
         "salesTax": "Sales VAT",
-        "purchaseTax": "Purchase VAT",
-        "discount": "Discount",
-        "off": "off"
+        "purchaseTax": "Purchase VAT"
       },
       "storefront": {
         "title": "Online Storefront",
@@ -448,7 +446,7 @@
       "createdDateLabel": "Created Date",
       "createdDatePlaceholder": "Select date range",
       "updatedDateLabel": "Updated Date",
-      "updatedDatePlaceholder": "Select date"
+      "updatedDatePlaceholder": "Select date range"
     },
     "form": {
       "name": "Brand Name",
@@ -587,7 +585,7 @@
       "createdDateLabel": "Created Date",
       "createdDatePlaceholder": "Select date range",
       "updatedDateLabel": "Updated Date",
-      "updatedDatePlaceholder": "Select date",
+      "updatedDatePlaceholder": "Select date range",
       "parentLabel": "Parent category",
       "parentPlaceholder": "All categories",
       "typeLabel": "Type",
@@ -717,7 +715,7 @@
       "createdDateLabel": "Created Date",
       "createdDatePlaceholder": "Select date range",
       "updatedDateLabel": "Updated Date",
-      "updatedDatePlaceholder": "Select date"
+      "updatedDatePlaceholder": "Select date range"
     },
     "form": {
       "name": "Attribute Name",

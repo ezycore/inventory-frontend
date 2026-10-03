@@ -12,6 +12,10 @@ import type {
 import type { MobileChromeOverrides } from "@/lib/storefront-mobile";
 import type { StoreFilterSettings, StoreMenuSettings } from "@/lib/storefront-client";
 import type {
+  DesktopHeaderConfig,
+  LanguageThemeConfig,
+} from "@/lib/storefront-language-theme";
+import type {
   StorefrontFooterBlock,
   StorefrontFooterContentPages,
   StorefrontFooterGroup,
@@ -236,35 +240,6 @@ export interface StorefrontLogoStyle {
   radius?: number;
 }
 
-/** Layout of the collections row on the storefront homepage. */
-export interface StorefrontHomeCollections {
-  /**
-   * How a collection is DRAWN: `card` (default) is a picture tile, `plain` is
-   * names only between hairlines — what the retired `category-links` section
-   * used to be. `plain` has no pictures, so `layout`, `columns` and
-   * `showLabels` do not apply to it.
-   */
-  style?: "card" | "plain";
-  /** `strip` = the scrolling chip row (default); `grid` = equal columns. */
-  layout?: "strip" | "grid";
-  /** Columns per row in `grid` (2–6). Ignored by `strip`. */
-  columns?: number;
-  /**
-   * Columns per row in `grid` **on a phone** (2–4). Unset ⇒ 2, the count every
-   * phone drew before this existed. Its own number, not a scale of `columns`:
-   * a desktop row divides a 1200px page and a phone row ~360px, so the answers
-   * are unrelated. Governs the `category-tiles` section as well as this row.
-   */
-  mobileColumns?: number;
-  align?: "left" | "center" | "right";
-  /**
-   * `false` draws the row as pictures only. Honored ONLY when every listed
-   * category has an image — a nameless letter tile is not a wayfinding target,
-   * so the storefront keeps the names rather than shipping one. Unset ⇒ shown.
-   */
-  showLabels?: boolean;
-}
-
 /**
  * Copy for the footer's sign-up block (the `newsletter` footer layout).
  * Every field falls back to a localized default on the storefront, so an unset
@@ -276,146 +251,10 @@ export interface StorefrontFooterNewsletter {
   buttonLabel?: string;
 }
 
-/**
- * One homepage section INSTANCE — mirrors `StorefrontHomeSection` on the
- * backend.
- *
- * `key` is the stable instance identity: it survives a reorder and is what
- * per-section config will join on. `type` is the registry id, resolved through
- * `SECTION_COMPONENTS`; an unknown one is dropped by `resolveSections` rather
- * than reaching the dispatch.
- */
-export interface StorefrontHomeSection {
-  key: string;
-  type: string;
-  /** Which screens this instance appears on. Both unset ⇒ everywhere. */
-  showOnDesktop?: boolean;
-  showOnMobile?: boolean;
-}
-
-/**
- * Per-instance config for one homepage section, joined on `key`.
- *
- * A SIBLING of `theme`, never a field inside it: applying a ready-made theme
- * replaces `theme.homepageSections` outright, so a merchant's chosen collection
- * stored in there would be erased on every apply.
- */
-/**
- * One promo card's own title, description, picture and button.
- *
- * Every field optional, every one falling back to the collection the card
- * points at — so an untouched card is the card that existed before overrides.
- * Mirrors `StoreSectionCard` on the storefront side.
- */
-export interface StorefrontSectionCard {
-  categoryId: string;
-  title?: string;
-  description?: string;
-  /**
-   * `null` = the merchant cleared their upload, back to the collection's.
-   *
-   * ⚠ Typed loosely rather than as `Image`, and the reason is the seam: the
-   * Customize draft holds the STOREFRONT's `StoreSectionConfig` and this
-   * payload type is the admin's, so the two shapes are assigned across in
-   * `draft-payloads.ts`. The storefront's `StorefrontImage` makes every field
-   * optional and has no `publicId`, so requiring one here fails that assignment
-   * — while the upload endpoint returns a full `Image`, which satisfies this
-   * happily. Same relationship a hero slide has; it simply never crosses.
-   */
-  image?: {
-    url?: string;
-    mediumUrl?: string;
-    thumbnailUrl?: string;
-    publicId?: string;
-  } | null;
-  buttonLabel?: string;
-  buttonHref?: string;
-}
-
-export interface StorefrontSectionConfig {
-  key: string;
-  /** `manual` = the merchant picked `productIds` by hand, in that order. */
-  source?: "featured" | "newest" | "category" | "manual";
-  categoryId?: string;
-  /**
-   * The collections a `category-banners` row advertises, in the merchant's
-   * order. Distinct from `categoryId` above, which names the ONE collection a
-   * product row draws FROM.
-   */
-  categoryIds?: string[];
-  /** A promo card's composition. Unset ⇒ `stacked` (photo above the copy). */
-  cardShape?: "stacked" | "split";
-  /**
-   * Which side of a split promo card the picture sits on; `alternate` is the
-   * zebra. Unset ⇒ `left`.
-   */
-  cardSide?: "left" | "right" | "alternate";
-  /** The picture column's share of a split card, as a percentage (20–80). */
-  cardSplit?: number;
-  /** Drop the words and give the picture the whole card. */
-  cardHideText?: boolean;
-  /**
-   * What a PHONE answers differently — composition only. Every field optional
-   * and every one inheriting the desktop value above, so a row nobody has
-   * opened the Phone tab on renders as it always did.
-   */
-  mobile?: {
-    cardFlow?: "wrap" | "scroll";
-    cardPerRow?: number;
-    cardShape?: "stacked" | "split";
-    cardSide?: "left" | "right" | "alternate";
-    cardSplit?: number;
-    cardHideText?: boolean;
-    cardHeight?: number;
-  };
-  /** The promo photo's shape. Unset ⇒ the storefront stylesheet decides. */
-  cardRatio?: "16:9" | "4:3" | "1:1" | "3:4";
-  /**
-   * The picture's height in px, overriding `cardRatio`. Shared across screens.
-   *
-   * ⚠ A ratio ties the picture's height to the card's WIDTH, and the width comes
-   * from how many collections the merchant picked — so a thin strip across the
-   * page had no expression until this existed.
-   */
-  cardHeight?: number;
-  /** Grid or a scrolling track. Unset ⇒ `wrap`. Per screen. */
-  cardFlow?: "wrap" | "scroll";
-  /** How many cards fill the row, or are visible in a track. 1–4, per screen. */
-  cardPerRow?: number;
-  /** The card's corner radius in px. Unset ⇒ the shop's Design → Corners. */
-  cardRadius?: number;
-  /** Paging arrows on a scrolling row. Unset ⇒ shown (pointer devices only). */
-  cardArrows?: boolean;
-  /** Span the window rather than the page's content column. */
-  fullWidth?: boolean;
-  /**
-   * Per-card presentation overrides for a promo-card row.
-   *
-   * ⚠ **Layered over the collection, never written back to it.** Card copy is
-   * an advertisement in one block; the collection keeps its own name and
-   * description everywhere else it appears.
-   */
-  cards?: StorefrontSectionCard[];
-  title?: string;
-  /** 4–12. Unset ⇒ the section's own default. Ignored by a `manual` row. */
-  limit?: number;
-  /** Tags a `tag-chips` row renders, in the merchant's order. */
-  tagIds?: string[];
-  /** A `manual` row's products, in the merchant's order. */
-  productIds?: string[];
-  /** "View all" wording override. Blank ⇒ the localized default. */
-  ctaLabel?: string;
-  /** "View all" destination override. Blank ⇒ the derived one. */
-  ctaHref?: string;
-  /** Show the row's button. Unset ⇒ true. */
-  showCta?: boolean;
-}
-
 export interface StorefrontTheme {
   preset?: string;
   brandColor?: string;
   accentColor?: string;
-  homepageSections?: StorefrontHomeSection[];
   logo?: StorefrontLogoStyle;
   /**
    * The merchant's edits to their mobile chrome, over the template named by
@@ -424,19 +263,12 @@ export interface StorefrontTheme {
    * type, so the admin and the storefront cannot drift on the shape.
    */
   mobile?: MobileChromeOverrides;
-  homeCollections?: StorefrontHomeCollections;
   /**
    * Type family + spatial rhythm (Customize → Design). Ids only — the catalogue
    * and the resolver live in `lib/storefront-theme.ts`, and `storefront.css` owns
    * what each id renders as.
    */
   design?: StorefrontDesign;
-  /**
-   * Where the open hero's copy sits (Customize → Hero). Unset ⇒ `"left"`, which
-   * is what every hero rendered before this existed. Read only by `hero-open`;
-   * the other two heroes have no alignment worth asking about.
-   */
-  heroAlign?: "left" | "center";
   /**
    * Which ready-made theme was last applied. **Provenance, not config:** applying
    * a theme stamps its values into `theme`/`templates`, so nothing renders from
@@ -455,10 +287,7 @@ export interface StorefrontTheme {
  * `brandColor` and `design`. That put a merchant's own sentences in the object a
  * ready-made theme replaces wholesale, so applying one would erase their footer
  * copy. Splitting them makes the rule structural: **theme + templates = the
- * look; copy + nav + trustBadges + heroSlides = the merchant's.**
- *
- * Named `copy` rather than `content` because "Content" is already the CMS-pages
- * section of the admin.
+ * look; copy + nav + trustBadges = the merchant's.**
  */
 export interface StorefrontCopy {
   /** Free text in the storefront footer (copyright / tagline). */
@@ -600,6 +429,10 @@ export interface StorefrontNav {
   campaignStrip?: StorefrontCampaignStrip;
   /** Optional information strip above the main header. */
   utilityBar?: StorefrontUtilityBar;
+  /** Languages and colour schemes on offer; see `lib/storefront-language-theme.ts`. */
+  languageTheme?: LanguageThemeConfig;
+  /** The computer header's behaviour (Customize → Header → Computer). */
+  desktopHeader?: DesktopHeaderConfig;
   /** How the menu behaves per device (Customize → Menu); see `lib/storefront-menu.ts`. */
   menu?: StoreMenuSettings;
   /** Catalogue filters & sort (Customize → Filters & sort); see `lib/storefront-filters.ts`. */
@@ -718,7 +551,6 @@ export interface StorefrontNotifications {
 }
 
 export interface StorefrontTemplates {
-  home?: string;
   collection?: string;
   product?: string;
   checkout?: string;
@@ -732,8 +564,6 @@ export interface StorefrontTemplates {
    * the fallback from `productCard` so a compact store keeps its inline "+".
    */
   cardActions?: string;
-  /** Home hero source: "slides" (carousel when slides exist) | "banner" (static hero). */
-  hero?: string;
   /**
    * Header menu source: "collections" (listed categories) | "custom" (nav.header).
    * Unset on stores predating the control — read it via `resolveHeaderMenu`,
@@ -775,8 +605,6 @@ export interface StorefrontSettings {
   published: boolean;
   /** The landing page shown at the store's `/`; unset ⇒ the Customize home. Set on Pages, never by the settings save. */
   homePageId?: string;
-  /** Set once the store publishes its look through `/organization/storefront/site`; Customize then saves drafts. */
-  siteCutoverAt?: string;
   displayName?: string;
   logo?: Image | null;
   banner?: Image | null;
@@ -814,8 +642,6 @@ export interface StorefrontSettings {
     whatsapp?: string;
     profiles?: { platform: string; url: string }[];
   };
-  /** Floating chat launcher (Ecommerce → Customize → WhatsApp button). */
-  contactButton?: StorefrontContactButton;
   seo?: { title?: string; description?: string };
   currency?: string;
   shippingRule: StorefrontShippingRule;
@@ -829,25 +655,29 @@ export interface StorefrontSettings {
   /** Abandoned-cart recovery emails. Off unless the merchant opts in;
    *  `delaysMinutes` is sorted ascending and its length is the send cap. */
   cartRecovery?: { enabled?: boolean; delaysMinutes?: number[] };
-  theme?: StorefrontTheme;
-  /** Merchant-written words — never touched by a theme. See `StorefrontCopy`. */
-  copy?: StorefrontCopy;
-  /** Per-section homepage config — the half a theme must never overwrite. */
-  sectionConfig?: StorefrontSectionConfig[];
-  nav?: StorefrontNav;
   checkout?: StorefrontCheckout;
   notifications?: StorefrontNotifications;
-  templates?: StorefrontTemplates;
   customersConfig?: StorefrontCustomersConfig;
   pagesConfig?: StorefrontPagesConfig;
   /** Admin-panel-only wording for the order pipeline steps; unset → built-ins. */
   adminStatusLabels?: AdminOrderStatusLabels;
-  trustBadges?: StorefrontTrustBadge[];
-  /** Home hero carousel slides; unset/empty → the static built-in hero. */
-  heroSlides?: StorefrontHeroSlide[];
-  /** Static banner-hero copy overrides; unset fields → built-in copy. */
-  heroBanner?: StorefrontHeroBanner;
 }
+
+/**
+ * The store's look — the blocks its Site publishes (backend
+ * `STOREFRONT_SITE_LOOK_KEYS`, which must move with this list).
+ */
+export interface StorefrontLook {
+  theme?: StorefrontTheme;
+  copy?: StorefrontCopy;
+  nav?: StorefrontNav;
+  templates?: StorefrontTemplates;
+  trustBadges?: StorefrontTrustBadge[];
+  contactButton?: StorefrontContactButton;
+}
+
+/** The settings with a look laid over them — what Customize and Themes edit and report. */
+export type StorefrontWithLook = StorefrontSettings & StorefrontLook;
 
 /**
  * The order statuses a merchant may rename. The seven pipeline steps only —
@@ -932,64 +762,6 @@ export interface StorefrontContactButton {
 export interface StorefrontTrustBadge {
   text: string;
   icon?: string;
-}
-
-/**
- * Owner overrides for the static banner hero's copy (Classic / Hero Split when
- * the hero source is "banner" or no slides exist). Unset fields fall back to
- * the storefront's built-in localized copy; button links default to /products.
- */
-export interface StorefrontHeroBanner {
-  badge?: string;
-  title?: string;
-  subtitle?: string;
-  primaryLabel?: string;
-  primaryLink?: string;
-  secondaryLabel?: string;
-  secondaryLink?: string;
-  /**
-   * How the banner photo handles a frame it doesn't match ("crop" fills and
-   * trims, "fit" shows all of it); unset means "fit". Lives here, beside the
-   * banner's copy, because the image itself is `StorefrontSettings.banner` — a
-   * bare field shared with `og:image`, with no shape of its own.
-   */
-  imageFit?: string;
-  /** Optional phone artwork; desktop continues to use the top-level banner. */
-  mobileImage?: Image | null;
-  /** Where to crop the banner from when cropped; unset = centre. */
-  focal?: { x: number; y: number };
-  /** Phone crop anchor; unset falls back to `focal`. */
-  mobileFocal?: { x: number; y: number };
-}
-
-/** One home-page hero slide (owner-managed carousel, max 5). */
-export interface StorefrontHeroSlide {
-  image?: Image | null;
-  /** Optional phone artwork; unset falls back to `image`. */
-  mobileImage?: Image | null;
-  /**
-   * Crop anchor in percent; unset = centre. Mirrors `StoreFocalPoint` in
-   * `lib/storefront-focal.ts`, which owns the meaning and the CSS translation —
-   * the admin types mirror the storefront ones here rather than import them.
-   */
-  focal?: { x: number; y: number };
-  /** Phone crop anchor; unset falls back to `focal`. */
-  mobileFocal?: { x: number; y: number };
-  /**
-   * How this slide's photo fills the hero ("crop" fills and trims, "fit" shows
-   * all of it); unset means "fit", NOT "inherit" — the hero deliberately does
-   * not follow `templates.imageFit`, which is a *Product cards* control. A loose
-   * string like the templates ids it mirrors, narrowed by `isImageFit`.
-   */
-  imageFit?: string;
-  badge?: string;
-  /** Optional; an image can be the complete slide. */
-  title?: string;
-  subtitle?: string;
-  buttonLabel?: string;
-  link?: string;
-  /** Hide the slide's copy, CTA, and scrim on phone-sized storefronts. */
-  hideTextOnMobile?: boolean;
 }
 
 export type UpdateStorefrontSettingsDto = Partial<
@@ -1738,7 +1510,6 @@ export interface UpdateUnitDto extends Partial<CreateUnitDto> { }
 export interface Tax extends BaseEntity {
   name: string;
   rate: number;
-  type: "percentage" | "fixed";
   status: "active" | "inactive";
   isDefault: boolean; // Pre-selected on new product forms
 }
@@ -1746,7 +1517,6 @@ export interface Tax extends BaseEntity {
 export interface CreateTaxDto {
   name: string;
   rate: number;
-  type: "percentage" | "fixed";
   status?: "active" | "inactive";
   isDefault?: boolean;
 }
@@ -1757,7 +1527,6 @@ export interface UpdateTaxDto extends Partial<CreateTaxDto> { }
  * Price semantics for a product's tax:
  * - "inclusive": the selling price already contains the tax (tax is backed out for reporting).
  * - "exclusive": tax is added on top of the selling price.
- * Note: distinct from `Tax.type` ("percentage" | "fixed"), which is how the rate is calculated.
  */
 export type TaxType = "inclusive" | "exclusive";
 
@@ -2743,6 +2512,8 @@ export interface FinalizeSaleDto {
   };
   creditBalanceAmount?: number;
   notes?: string;
+  /** Cash handed over when it exceeds the settled amount (receipt snapshot). */
+  tenderedAmount?: number;
 }
 
 // ============================================

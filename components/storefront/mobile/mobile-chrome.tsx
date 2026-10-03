@@ -29,8 +29,7 @@ import {
   useMobileBrandLogo,
   useMobileChrome,
 } from "@/components/storefront/mobile/use-mobile-chrome";
-import { headerNeeds } from "@/lib/storefront-utility-bar";
-import { useResolvedUtilityBar } from "@/components/storefront/use-utility-bar";
+import { useHeaderNeeds } from "@/components/storefront/use-utility-bar";
 import { useStoreMenu } from "@/components/storefront/use-store-menu";
 import { CategoryChips } from "@/components/storefront/mobile/category-chips";
 
@@ -154,9 +153,9 @@ export function MobileBar({
   const ctx = useActionCtx(slug, base, chrome, store);
   const name = store?.name ?? "Store";
   /* The utility bar renders directly above this one, so whatever it carries is
-     dropped from these slots rather than drawn twice. */
-  const utilityBar = useResolvedUtilityBar(store);
-  const needs = headerNeeds(utilityBar, "mobile");
+     dropped from these slots rather than drawn twice — and so is a switch the
+     shop does not offer (Customize → Language & theme). */
+  const needs = useHeaderNeeds(store, "mobile");
   const left = keptSlot(chrome.left, needs);
   const right = keptSlot(chrome.right, needs);
 
@@ -325,9 +324,9 @@ export function MobileOverlays({
   const menu = useStoreMenu(store, categories, base);
   /* The drawer is the LAST fallback for language and theme, so it has to know
      about the utility bar too — otherwise a phone bar carrying them still gets
-     a second copy listed inside the menu. */
-  const utilityBar = useResolvedUtilityBar(store);
-  const utilityNeeds = headerNeeds(utilityBar, "mobile");
+     a second copy listed inside the menu. A switch the shop does not offer
+     comes back false here, so the drawer never lists it either. */
+  const utilityNeeds = useHeaderNeeds(store, "mobile");
   const menuOpen = useMobileNav((s) => s.menuOpen);
   const closeMenu = useMobileNav((s) => s.closeMenu);
   const searchOpen = useMobileNav((s) => s.searchOpen);

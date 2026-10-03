@@ -29,6 +29,8 @@ import type {
   PaginatedResponse,
 } from '@/types';
 import type { FilterField } from '@/types/filter';
+import { useListUrlState } from '@/hooks/use-list-url-state';
+import type { ListFilters } from '@/lib/list-url-state';
 import { populatedRef } from '@/utils/populated-ref';
 
 import type { PendingDueRaw } from './types';
@@ -54,9 +56,48 @@ export function useSalesReturnPage() {
   const [selectedReturn, setSelectedReturn] = useState<SalesReturn | null>(null);
 
   // ── Table pagination & filter ─────────────────────────────────
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [filters, setFilters] = useState<SalesReturnFilters>({});
+  const filterFields = useMemo(
+    (): FilterField[] => [
+      {
+        name: 'search',
+        label: t('filters.search'),
+        type: 'text',
+        placeholder: t('filters.searchPlaceholder'),
+      },
+      {
+        name: 'status',
+        label: t('filters.status'),
+        type: 'select',
+        options: [
+          { label: t('filters.pending'), value: 'pending' },
+          { label: t('filters.processed'), value: 'completed' },
+          { label: t('filters.cancelled'), value: 'cancelled' },
+        ],
+      },
+      {
+        name: 'reason',
+        label: t('filters.reason'),
+        type: 'select',
+        options: [
+          { label: t('reasons.damaged'), value: 'damaged' },
+          { label: t('reasons.defective'), value: 'defective' },
+          { label: t('reasons.wrongItem'), value: 'wrong_item' },
+          { label: t('reasons.customerChangedMind'), value: 'customer_changed_mind' },
+          { label: t('reasons.expired'), value: 'expired' },
+          { label: t('reasons.other'), value: 'other' },
+        ],
+      },
+    ],
+    [t],
+  );
+  // Page, size and filters live in the URL, so Back from a return lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20 },
+    filterFields,
+    limitOptions: [10, 20, 50, 100],
+  });
+  const { page, limit, setPage, setLimit } = list;
+  const filters = list.filters as SalesReturnFilters;
 
   // ── Auth & features ───────────────────────────────────────────
   const { user } = useAuthStore();
@@ -146,49 +187,18 @@ export function useSalesReturnPage() {
     searchForm.reset();
   }, [itemsHook, allocationHook, searchForm]);
 
+  const { setFilters, revision: listRevision } = list;
   const filterConfig = useMemo(
     () => ({
-      fields: [
-        {
-          name: 'search',
-          label: t('filters.search'),
-          type: 'text' as const,
-          placeholder: t('filters.searchPlaceholder'),
-        },
-        {
-          name: 'status',
-          label: t('filters.status'),
-          type: 'select' as const,
-          options: [
-            { label: t('filters.pending'), value: 'pending' },
-            { label: t('filters.processed'), value: 'completed' },
-            { label: t('filters.cancelled'), value: 'cancelled' },
-          ],
-        },
-        {
-          name: 'reason',
-          label: t('filters.reason'),
-          type: 'select' as const,
-          options: [
-            { label: t('reasons.damaged'), value: 'damaged' },
-            { label: t('reasons.defective'), value: 'defective' },
-            { label: t('reasons.wrongItem'), value: 'wrong_item' },
-            { label: t('reasons.customerChangedMind'), value: 'customer_changed_mind' },
-            { label: t('reasons.expired'), value: 'expired' },
-            { label: t('reasons.other'), value: 'other' },
-          ],
-        },
-      ] as FilterField[],
-      onApply: (newFilters: Record<string, unknown>) => {
-        setFilters(newFilters as SalesReturnFilters);
-        setPage(1);
-      },
-      onReset: () => {
-        setFilters({});
-        setPage(1);
-      },
+      fields: filterFields,
+      initialValues: filters,
+      // Both start again from page 1.
+      onApply: (newFilters: Record<string, unknown>) => setFilters(newFilters as ListFilters),
+      onReset: () => setFilters({}),
     }),
-    [t],
+    // `filters` seeds the bar once; `listRevision` remounts it after an outside URL change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+    [filterFields, setFilters, listRevision],
   );
 
   const initFromSale = useCallback(
@@ -338,6 +348,7 @@ export function useSalesReturnPage() {
     filterConfig,
     setPage,
     setLimit,
+    listRevision,
     // totals
     totalReturnQty: itemsHook.totalReturnQty,
     grossRefundAmount: itemsHook.grossRefundAmount,

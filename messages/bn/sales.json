@@ -43,7 +43,8 @@
       "selectCustomer": "অর্ডারের জন্য গ্রাহক নির্বাচন করুন",
       "saleFailed": "বিক্রয় সম্পন্ন করা যায়নি",
       "addItemsDraft": "খসড়া সংরক্ষণে আইটেম যোগ করুন",
-      "selectCustomerDraft": "খসড়ার জন্য গ্রাহক নির্বাচন করুন"
+      "selectCustomerDraft": "খসড়ার জন্য গ্রাহক নির্বাচন করুন",
+      "maxStock": "{name} স্টকে আছে মাত্র {count}টি"
     },
     "cart": {
       "product": "পণ্য",
@@ -71,7 +72,8 @@
     "search": {
       "products": "নাম বা ক্যাটাগরি দিয়ে পণ্য খুঁজুন...",
       "noProducts": "কোনো পণ্য পাওয়া যায়নি"
-    }
+    },
+    "openPos": "POS খুলুন"
   },
   "history": {
     "title": "বিক্রয় ইতিহাস",
@@ -258,6 +260,52 @@
     },
     "validation": {
       "enterSaleId": "বিক্রয় আইডি বা চালান নম্বর লিখুন"
+    }
+  },
+  "pos": {
+    "customer": "গ্রাহক",
+    "exit": "ড্যাশবোর্ডে ফিরুন",
+    "searchPlaceholder": "বারকোড স্ক্যান করুন, অথবা পণ্যের নাম বা ক্যাটাগরি লিখুন…",
+    "cameraScan": "ক্যামেরায় স্ক্যান",
+    "cameraTitle": "বারকোড স্ক্যান করুন",
+    "cameraHelp": "প্রতিটি বারকোড ফ্রেমের ভেতরে ধরুন। প্রতিবার পড়লে কার্টে একটি করে যোগ হবে।",
+    "cameraDone": "শেষ",
+    "cartCount": "কার্টে {count}টি আইটেম",
+    "emptyTitle": "বিক্রয় শুরু করতে বারকোড স্ক্যান করুন",
+    "emptyHint": "অথবা একই ঘরে পণ্যের নাম লিখুন (F2)।",
+    "available": "স্টকে আছে: {count} {unit}",
+    "lessQty": "একটি কম",
+    "moreQty": "একটি বেশি",
+    "removeItem": "আইটেম সরান",
+    "addNote": "নোট যোগ করুন",
+    "checkout": "পেমেন্ট নিন",
+    "shortcuts": {
+      "scanSearch": "স্ক্যান বা খোঁজ",
+      "customer": "গ্রাহক",
+      "confirm": "অর্ডার নিশ্চিত করুন",
+      "close": "তালিকা বন্ধ"
+    },
+    "browse": {
+      "tabBrowse": "পণ্য দেখুন",
+      "tabCart": "কার্ট",
+      "categories": "ক্যাটাগরি",
+      "allProducts": "সব পণ্য",
+      "allInCategory": "সব",
+      "uncategorized": "অন্যান্য",
+      "variants": "{count}টি অপশন",
+      "inStock": "স্টকে {count}",
+      "inCart": "কার্টে {count}",
+      "pickVariantHelp": "প্রতি ট্যাপে কার্টে একটি করে যোগ হবে।",
+      "done": "শেষ",
+      "loading": "পণ্য লোড হচ্ছে…",
+      "empty": "এই ক্যাটাগরির কোনো পণ্য এই ব্রাঞ্চে স্টকে নেই।",
+      "noneAtAll": "এই ব্রাঞ্চে এখনো কোনো পণ্য স্টকে নেই।",
+      "sort": {
+        "label": "সাজান",
+        "name": "নাম অনুযায়ী",
+        "priceLow": "দাম: কম থেকে বেশি",
+        "stockLow": "স্টক: কম আগে"
+      }
     }
   }
 }

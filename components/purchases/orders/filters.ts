@@ -12,7 +12,7 @@ export const defaultCreatedOrderFilters: PurchaseOrderFilters = {
 };
 
 /** `t` is bound to the `purchases` namespace. */
-const buildFilterFields = (t: Translator): FilterField[] => [
+export const createdOrderFilterFields = (t: Translator): FilterField[] => [
   {
     name: "status",
     label: t("orders.filterStatus"),
@@ -43,7 +43,7 @@ export const buildCreatedOrdersFilterConfig = ({
   onReset,
   t,
 }: BuildFilterConfigParams): FilterConfig => ({
-  fields: buildFilterFields(t),
+  fields: createdOrderFilterFields(t),
   onApply: (newFilters) => onApply(newFilters as PurchaseOrderFilters),
   onReset,
 });

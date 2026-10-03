@@ -3,6 +3,7 @@ export { getCreatedOrdersColumns } from "./columns";
 export {
   ALL_ORDER_STATUSES,
   buildCreatedOrdersFilterConfig,
+  createdOrderFilterFields,
   defaultCreatedOrderFilters,
 } from "./filters";
 export {

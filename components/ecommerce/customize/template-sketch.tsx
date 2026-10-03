@@ -178,62 +178,15 @@ const SKETCHES: Record<string, ReactNode> = {
       <span className="flex-1" />
     </Phone>
   ),
-  /* ---------------------------------------------------------------- home */
-  "home:classic": (
-    <Frame>
-      <span className="flex flex-1 gap-1.5 rounded-[3px] border border-border p-1.5">
-        <span className="flex flex-1 flex-col justify-center gap-1">
-          <span className={cn(BAR, "h-1 w-3/4")} />
-          <span className={cn(CTA, "h-1.5 w-6")} />
-        </span>
-        <span className={cn(IMG, "w-1/3")} />
-      </span>
-      <span className="flex items-center gap-1">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className={cn(BAR, "h-1.5 w-1.5 rounded-full")} />
-        ))}
-        <span className="ml-auto flex gap-1">
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={cn(BOX, "h-2.5 w-3.5")} />
-          ))}
-        </span>
-      </span>
-    </Frame>
-  ),
   /* NO border: this layout composes the OPEN hero, whose whole point is that the
      copy sits on the page rather than in a card. It drew a bordered card until
      2026-09-06, when `hero-split` (the framed middle of that axis) retired and
      this preset moved to `hero-open`. A sketch that promises a frame the shop
      does not draw is the picker lying about what the tile does. */
-  "home:hero-split": (
-    <Frame>
-      <span className="flex flex-1 items-center gap-1.5">
-        <span className="flex flex-1 flex-col justify-center gap-1">
-          <span className={cn(BAR, "h-1 w-3/4")} />
-          <span className={cn(BAR, "h-1 w-1/2")} />
-          <span className={cn(CTA, "h-1.5 w-6")} />
-        </span>
-        <span className={cn(IMG, "w-2/5")} />
-      </span>
-      <Cards n={3} />
-    </Frame>
-  ),
   /* Centred copy, a chip row, then a sparse edit — `hero-open` centred,
      `category-chips`, `minimal-picks`. The chips and the products were missing
      from this sketch while the preset composed `hero-manifesto`, which is a
      hero and nothing else. */
-  "home:minimal": (
-    <Frame className="items-center">
-      <span className={cn(BAR, "h-1.5 w-3/5 bg-muted-foreground/60")} />
-      <span className={cn(BAR, "h-1 w-2/5")} />
-      <span className="flex items-center gap-1">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={cn(BAR, "h-1 w-4")} />
-        ))}
-      </span>
-      <Cards n={3} />
-    </Frame>
-  ),
 
   /* ---------------------------------------------------- collection page */
   "collection:grid-3": (
@@ -524,57 +477,9 @@ const SKETCHES: Record<string, ReactNode> = {
     </Frame>
   ),
 
-  /* ------------------------------------------------------- category tiles */
-  "categoryTiles:tile": (
-    <Frame className="items-center justify-center">
-      <span className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="flex flex-col items-center gap-1">
-            <span className={cn(IMG, "size-5")} />
-            <span className={cn(BAR, "h-1 w-4")} />
-          </span>
-        ))}
-      </span>
-    </Frame>
-  ),
-  "categoryTiles:overlay": (
-    <Frame className="items-center justify-center">
-      <span className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={cn(IMG, "flex h-7 w-5 items-end p-0.5")}>
-            <span className={cn(BAR, "h-1 w-full bg-muted-foreground/60")} />
-          </span>
-        ))}
-      </span>
-    </Frame>
-  ),
   /* Discs, not squares — the shape IS the option, since this is the one tile
      style that carries a letter instead of a photograph. */
-  "categoryTiles:disc": (
-    <Frame className="items-center justify-center">
-      <span className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="flex flex-col items-center gap-1">
-            <span className={cn(IMG, "size-5 rounded-full")} />
-            <span className={cn(BAR, "h-1 w-4")} />
-          </span>
-        ))}
-      </span>
-    </Frame>
-  ),
 
-  "categoryTiles:circle": (
-    <Frame className="items-center justify-center">
-      <span className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="flex flex-col items-center gap-1">
-            <span className={cn(IMG, "size-6 rounded-full")} />
-            <span className={cn(BAR, "h-1 w-4")} />
-          </span>
-        ))}
-      </span>
-    </Frame>
-  ),
 
   /* -------------------------------------------------------------- header */
   "header:classic": (

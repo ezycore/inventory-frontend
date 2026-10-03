@@ -7,7 +7,36 @@ import type {
   ReceiptHeaderLine,
   ReceiptMetaFields,
   ReceiptMetaKey,
+  ReceiptLogoSize,
+  ReceiptWatermarkPosition,
+  ReceiptWatermarkSize,
 } from "@/types/receipt";
+import { resolveDocumentOverride, taxIdLineLabel } from "@/types/receipt";
+import type {
+  ReceiptDocumentKind,
+  ReceiptDocumentOverrides,
+  ReceiptItemColumns,
+  ReceiptPaymentDetail,
+  ReceiptQrSettings,
+  ReceiptSignatureSettings,
+  ReceiptThermalSettings,
+  ReceiptTotalsOptions,
+} from "@/types/receipt";
+import {
+  applyTotalsOptions,
+  buildItemTable,
+  buildPaymentDetails,
+  buildQrBlock,
+  buildSignature,
+  buildTerms,
+  paymentMethodLabel,
+  pickOverridable,
+  type ItemTableSpec,
+  type PrintCell,
+  type PrintItem,
+  type TotalsExtras,
+  type TotalsRow,
+} from "./print-blocks";
 import type { AppLocale, Translator } from "@/i18n/config";
 import { formatCurrency } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format";
@@ -15,6 +44,7 @@ import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { amountToWords } from "./number-to-words";
 import { populatedRef } from "./populated-ref";
 import { escapeHtml, printHtml } from "./print";
+import { storefrontUrl } from "@/lib/storefront-url";
 
 /** `t ? t(key) : fallback` — every builder below is callable without `t` (tests /
  * back-compat), falling back to the English literal that used to be hardcoded. */
@@ -43,14 +73,23 @@ interface PrintDocColumn {
 }
 
 export interface PrintDoc {
+  /** Which per-document overrides apply (P7). Unset → "invoice". */
+  kind?: ReceiptDocumentKind;
   docTitle: string;
   number: string;
   /** `key` (when set) lets a receipt setting hide this row; keyless rows always print. */
   meta: { label: string; value: string; key?: MetaKey }[];
+  /**
+   * Structured item lines. When set, the renderer builds the table from the
+   * org's column settings and `columns`/`rows` are ignored.
+   */
+  itemTable?: ItemTableSpec;
   columns: PrintDocColumn[];
   /** Pre-formatted cells (currency already applied by the adapter). */
-  rows: (string | number)[][];
-  totals: { label: string; value: string; strong?: boolean }[];
+  rows: PrintCell[][];
+  totals: TotalsRow[];
+  /** Optional totals rows the org's totals settings may switch on (P3). */
+  totalsExtras?: TotalsExtras;
   /** Grand total spelled out (invoice "amount in words" line). Omitted when unset. */
   amountInWords?: string;
   notes?: string;
@@ -76,6 +115,12 @@ export interface DocHeader {
   logoPlacement?: PrintLogoPlacement;
   /** Watermark opacity 0.03–0.20. Unset → 0.08. */
   watermarkOpacity?: number;
+  /** Logo box (mm) per paper. A missing paper keeps the paper's built-in CSS size. */
+  logoSize?: ReceiptLogoSize;
+  /** Watermark box (% of the page). Unset → the 60 × 60 CSS default. */
+  watermarkSize?: ReceiptWatermarkSize;
+  /** Watermark anchor. Unset → center. */
+  watermarkPosition?: ReceiptWatermarkPosition;
   /** Ordered identity lines. Empty/undefined → classic fixed order derived from the fields above. */
   headerLines?: PrintHeaderLine[];
   /** Per-document meta-row visibility. Unset → show every row the doc provides. */
@@ -86,6 +131,22 @@ export interface DocHeader {
   showAmountInWords?: boolean;
   /** Caption for the amount-in-words line. Unset → "In words:". */
   amountInWordsLabel?: string;
+  // print-setup-v2 P2–P8 — unset reproduces the pre-v2 output.
+  itemColumns?: ReceiptItemColumns;
+  totals?: ReceiptTotalsOptions;
+  signature?: ReceiptSignatureSettings;
+  signatureImageUrl?: string;
+  stampImageUrl?: string;
+  paymentDetails?: ReceiptPaymentDetail[];
+  terms?: string;
+  /** Resolved QR payload (storefront URL or custom value); unset → no QR. */
+  qrValue?: string;
+  qrLabel?: string;
+  qrSizeMm?: number;
+  documents?: ReceiptDocumentOverrides;
+  thermal?: ReceiptThermalSettings;
+  copies?: number;
+  copyLabels?: string[];
 }
 
 /** Minimal org shape the print header is built from (auth-store organization). */
@@ -93,8 +154,48 @@ export interface PrintableOrg {
   name?: string;
   logo?: { url?: string; mediumUrl?: string; thumbnailUrl?: string } | null;
   address?: string;
+  /** Tenant slug — resolves the "storefront" QR source. */
+  slug?: string;
+  /** Storefront off → the storefront QR source prints nothing. */
+  features?: { storefront?: boolean } | null;
   receiptSettings?: ReceiptSettings;
 }
+
+const imageUrl = (img?: { url?: string; mediumUrl?: string; thumbnailUrl?: string } | null) =>
+  img?.url ?? img?.mediumUrl ?? img?.thumbnailUrl ?? undefined;
+
+/** The QR payload for the org's QR setting, or undefined when there is none. */
+export const resolveQrValue = (
+  qr: ReceiptQrSettings | undefined,
+  org?: Pick<PrintableOrg, "slug" | "features">,
+): string | undefined => {
+  if (qr?.source === "custom") return qr.customValue?.trim() || undefined;
+  if (qr?.source === "storefront" && org?.slug && org.features?.storefront !== false) {
+    return storefrontUrl(org.slug);
+  }
+  return undefined;
+};
+
+/** Spread the v2 receipt settings onto a DocHeader (shared by the org header and the preview). */
+export const receiptV2Header = (
+  rs: ReceiptSettings | undefined,
+  org?: Pick<PrintableOrg, "slug" | "features">,
+): Partial<DocHeader> => ({
+  itemColumns: rs?.itemColumns,
+  totals: rs?.totals,
+  signature: rs?.signature,
+  signatureImageUrl: imageUrl(rs?.signatureImage),
+  stampImageUrl: imageUrl(rs?.stampImage),
+  paymentDetails: rs?.paymentDetails,
+  terms: rs?.terms || undefined,
+  qrValue: resolveQrValue(rs?.qr, org),
+  qrLabel: rs?.qr?.label,
+  qrSizeMm: rs?.qr?.sizeMm,
+  documents: rs?.documents,
+  thermal: rs?.thermal,
+  copies: rs?.copies,
+  copyLabels: rs?.copyLabels,
+});
 
 /** Build the letterhead header from the organization (single source for every doc). */
 export const orgToPrintHeader = (
@@ -120,11 +221,15 @@ export const orgToPrintHeader = (
     align: rs?.headerAlign,
     logoPlacement,
     watermarkOpacity: rs?.watermarkOpacity,
+    logoSize: rs?.logoSize,
+    watermarkSize: rs?.watermarkSize,
+    watermarkPosition: rs?.watermarkPosition,
     headerLines: rs?.headerLines,
     metaFields: rs?.metaFields,
     showDocTitle: rs?.showDocTitle,
     showAmountInWords: rs?.showAmountInWords,
     amountInWordsLabel: rs?.amountInWordsLabel,
+    ...receiptV2Header(rs, org),
   };
 };
 
@@ -217,6 +322,72 @@ const PAPER_STYLES: Record<PaperSize, string> = {
   `,
 };
 
+/** A finite, positive mm/% value for an inline style (guards a hand-edited org doc). */
+const mm = (n: number): number => (Number.isFinite(n) && n > 0 ? Math.round(n * 10) / 10 : 1);
+
+/**
+ * Inline style for the A4 watermark. Size and position add to the `.watermark`
+ * CSS only when set, so the default stays the 60 % centered image.
+ */
+const watermarkStyle = (opacity: number, header: DocHeader): string => {
+  const parts = [`opacity:${opacity}`];
+  if (header.watermarkSize) {
+    parts.push(
+      `max-width:${mm(header.watermarkSize.widthPct)}%`,
+      `max-height:${mm(header.watermarkSize.heightPct)}%`,
+    );
+  }
+  // Top/bottom anchor 6 % in from the edge and drop the vertical centering.
+  if (header.watermarkPosition === "top") {
+    parts.push("top:6%", "transform:translate(-50%,0)");
+  } else if (header.watermarkPosition === "bottom") {
+    parts.push("top:auto", "bottom:6%", "transform:translate(-50%,0)");
+  }
+  return parts.join(";");
+};
+
+/** Styles for the print-setup-v2 blocks; inert when the blocks are absent. */
+const V2_STYLES = `
+  .item-code { font-size: 0.85em; font-weight: 400; }
+  .signature.two { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; text-align: center; }
+  .sig-block { display: flex; flex-direction: column; align-items: center; }
+  .sig-images { position: relative; display: flex; align-items: flex-end; justify-content: center; min-width: 180px; }
+  .sig-img { object-fit: contain; }
+  .stamp-img { object-fit: contain; opacity: 0.85; margin-left: -20px; }
+  .sign-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-top: 24px; }
+  .sign-row .signature { margin-top: 0; }
+  .qr { text-align: center; margin-top: 8px; }
+  .qr-svg { display: inline-block; }
+  .qr-label { font-size: 0.85em; color: #4b5563; margin-top: 2px; }
+  .pay-block { margin-top: 14px; }
+  .pay-title { font-weight: 600; margin-bottom: 4px; }
+  .pay-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px; }
+  .pay-card { border: 1px solid #e5e7eb; border-radius: 4px; padding: 6px 8px; line-height: 1.5; }
+  .pay-line { line-height: 1.5; }
+  .terms { margin-top: 12px; font-size: 0.85em; color: #4b5563; white-space: pre-line; }
+  .copy-label { text-align: right; font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #4b5563; }
+  .copy-break { page-break-after: always; break-after: page; }
+  .cut-line { border-top: 1px dashed #111827; margin: 10px 0; text-align: center; font-size: 0.8em; color: #6b7280; }
+`;
+
+const FONT_SCALE = { sm: 0.9, md: 1, lg: 1.15 } as const;
+const THERMAL_BASE = { thermal80: { font: 11, pad: 3 }, thermal58: { font: 10, pad: 2 } } as const;
+
+/** Thermal font scale + side margin; nothing when unset (keeps the paper CSS). */
+const thermalStyles = (paper: PaperSize, thermal?: ReceiptThermalSettings): string => {
+  if (paper === "a4" || !thermal) return "";
+  const base = THERMAL_BASE[paper];
+  const rules: string[] = [];
+  if (thermal.fontScale && thermal.fontScale !== "md") {
+    rules.push(`font-size: ${Math.round(base.font * FONT_SCALE[thermal.fontScale] * 10 + 1e-6) / 10}px;`);
+  }
+  if (thermal.sideMarginMm !== undefined && Number.isFinite(thermal.sideMarginMm)) {
+    const m = Math.min(6, Math.max(0, thermal.sideMarginMm));
+    rules.push(`padding-left: ${m}mm; padding-right: ${m}mm;`);
+  }
+  return rules.length ? `\n  body { ${rules.join(" ")} }\n` : "";
+};
+
 /** The classic fixed identity order, used when no custom `headerLines` are set. */
 const LEGACY_HEADER_ORDER: PrintHeaderLine["source"][] = [
   "orgName",
@@ -240,7 +411,7 @@ const renderHeaderLine = (
         : "";
     case "taxId":
       return header.taxId
-        ? `<div class="muted contact">${escapeHtml(line.label || tr(t)("taxRegNo", "Tax Reg. No"))}: ${escapeHtml(header.taxId)}</div>`
+        ? `<div class="muted contact">${escapeHtml(taxIdLineLabel(line.label) || tr(t)("taxRegNo", "VAT Reg. No (BIN)"))}: ${escapeHtml(header.taxId)}</div>`
         : "";
     case "storeName":
       return header.storeName
@@ -310,10 +481,16 @@ export const composeDocument = (
     hasLogo && paper === "a4" && (placement === "watermark" || placement === "both");
   const opacity = Math.min(0.2, Math.max(0.03, header.watermarkOpacity ?? 0.08));
   const watermark = showWatermark
-    ? `<img class="watermark" src="${escapeHtml(header.logoUrl!)}" alt="" style="opacity:${opacity}" />`
+    ? `<img class="watermark" src="${escapeHtml(header.logoUrl!)}" alt="" style="${watermarkStyle(opacity, header)}" />`
+    : "";
+  // A configured box overrides the paper's CSS max size inline; unset keeps the
+  // class alone so orgs that never touched it print byte-identical HTML.
+  const logoBox = header.logoSize?.[paper];
+  const logoStyle = logoBox
+    ? ` style="max-height:${mm(logoBox.heightMm)}mm;max-width:${mm(logoBox.widthMm)}mm"`
     : "";
   const topLogo = showTopLogo
-    ? `<img class="logo" src="${escapeHtml(header.logoUrl!)}" alt="" />`
+    ? `<img class="logo" src="${escapeHtml(header.logoUrl!)}" alt=""${logoStyle} />`
     : "";
 
   // Meta rows: drop any keyed row the org switched off (keyless rows always print).
@@ -323,10 +500,11 @@ export const composeDocument = (
     .join("");
 
   // Document title ("Tax Invoice" etc.) is togglable; the number line always prints.
+  const titleOverride = resolveDocumentOverride(doc.kind ?? "invoice", header.documents).title?.trim();
   const docTitle =
     header.showDocTitle === false
       ? ""
-      : `<div class="doc-title">${escapeHtml(doc.docTitle)}</div>`;
+      : `<div class="doc-title">${escapeHtml(titleOverride || doc.docTitle)}</div>`;
 
   const head = `
     <div class="header${stacked ? " stack" : ""}"${alignStyle}>
@@ -344,22 +522,34 @@ export const composeDocument = (
     </div>
   `;
 
-  const thead = `<tr>${doc.columns
+  const tt = tr(t);
+  const kind = doc.kind ?? "invoice";
+  const override = resolveDocumentOverride(kind, header.documents);
+
+  // Item table: structured items go through the org's column settings; legacy
+  // adapters (payment receipt, statement) still hand over ready columns/rows.
+  const table = doc.itemTable
+    ? buildItemTable(doc.itemTable, header.itemColumns, paper, tt)
+    : { columns: doc.columns, rows: doc.rows };
+  const cellHtml = (cell: PrintCell) =>
+    typeof cell === "object" && cell !== null ? cell.html : escapeHtml(cell);
+  const thead = `<tr>${table.columns
     .map((c) => `<th class="${c.align === "right" ? "num" : ""}">${escapeHtml(c.header)}</th>`)
     .join("")}</tr>`;
-  const tbody = doc.rows
+  const tbody = table.rows
     .map(
       (row) =>
         `<tr>${row
           .map(
             (cell, i) =>
-              `<td class="${doc.columns[i]?.align === "right" ? "num" : ""}">${escapeHtml(cell)}</td>`,
+              `<td class="${table.columns[i]?.align === "right" ? "num" : ""}">${cellHtml(cell)}</td>`,
           )
           .join("")}</tr>`,
     )
     .join("");
 
-  const totals = `<table class="totals">${doc.totals
+  const totalRows = applyTotalsOptions(doc.totals, doc.totalsExtras, header.totals, paper);
+  const totals = `<table class="totals">${totalRows
     .map(
       (row) =>
         `<tr class="${row.strong ? "strong" : ""}"><td>${escapeHtml(row.label)}</td><td class="t-val">${escapeHtml(row.value)}</td></tr>`,
@@ -369,30 +559,63 @@ export const composeDocument = (
   // Amount in words: gated by the org toggle (default on) with a configurable caption.
   const amountInWords =
     doc.amountInWords && header.showAmountInWords !== false
-      ? `<div class="words"><span class="muted">${escapeHtml(header.amountInWordsLabel || tr(t)("inWords", "In words:"))}</span> <b>${escapeHtml(doc.amountInWords)}</b></div>`
+      ? `<div class="words"><span class="muted">${escapeHtml(header.amountInWordsLabel || tt("inWords", "In words:"))}</span> <b>${escapeHtml(doc.amountInWords)}</b></div>`
       : "";
 
   const notes = doc.notes
     ? `<div class="hr"></div><div class="muted">${escapeHtml(doc.notes)}</div>`
     : "";
 
-  // Authorized-signature block — full documents only (looks wrong on a thermal slip).
-  const signature =
-    doc.signature && paper === "a4"
-      ? `<div class="signature"><div class="signature-line">${escapeHtml(tr(t)("authorizedSignature", "Authorized Signature"))}</div></div>`
-      : "";
+  // Payment instructions (P5), unless this document type switches them off.
+  const paymentDetails =
+    override.showPaymentDetails === false
+      ? ""
+      : buildPaymentDetails(header.paymentDetails, paper, tt);
 
-  const footer = header.footer
-    ? `<div class="hr"></div><div class="muted footer">${escapeHtml(header.footer)}</div>`
+  // Signature row (P4) — full documents only (looks wrong on a thermal slip).
+  // Per-document label/enable overrides win over the global signature settings.
+  const signature = buildSignature(
+    {
+      allowed: !!doc.signature,
+      enabled: override.signature?.enabled ?? header.signature?.enabled,
+      leftLabel: override.signature?.leftLabel ?? header.signature?.leftLabel,
+      rightLabel: override.signature?.rightLabel ?? header.signature?.rightLabel,
+      imageHeightMm: header.signature?.imageHeightMm,
+      signatureUrl: header.signatureImageUrl,
+      stampUrl: header.stampImageUrl,
+    },
+    paper,
+    tt,
+  );
+
+  // QR (P6): A4 → bottom-left beside the signature; thermal → centered above the footer.
+  const qr =
+    override.showQr === false
+      ? ""
+      : buildQrBlock(
+          header.qrValue,
+          header.qrLabel,
+          Math.min(paper === "a4" ? 40 : 30, header.qrSizeMm ?? (paper === "a4" ? 24 : 20)),
+        );
+  const signRow =
+    qr && paper === "a4"
+      ? `<div class="sign-row">${qr}${signature || "<div></div>"}</div>`
+      : signature;
+  const thermalQr = qr && paper !== "a4" ? qr : "";
+
+  const terms = buildTerms(pickOverridable(override.terms, header.terms), paper);
+  const footerText = pickOverridable(override.footer, header.footer);
+  const footer = footerText
+    ? `<div class="hr"></div><div class="muted footer">${escapeHtml(footerText)}</div>`
     : "";
 
   // Watermark sits outside `.doc` (fixed, z-index 0) so it stays behind content.
-  const body = `${watermark}<div class="doc">${head}<div class="hr"></div><table class="items">${thead}${tbody}</table>${totals}${amountInWords}${signature}${notes}${footer}</div>`;
+  const body = `${watermark}<div class="doc">${head}<div class="hr"></div><table class="items">${thead}${tbody}</table>${totals}${amountInWords}${paymentDetails}${signRow}${notes}${terms}${thermalQr}${footer}</div>`;
 
   return {
     body,
-    styles: BASE_STYLES + PAPER_STYLES[paper],
-    title: `${doc.docTitle} ${doc.number}`,
+    styles: BASE_STYLES + PAPER_STYLES[paper] + V2_STYLES + thermalStyles(paper, header.thermal),
+    title: `${override.title?.trim() || doc.docTitle} ${doc.number}`,
   };
 };
 
@@ -405,7 +628,42 @@ const printDoc = (
   locale?: AppLocale,
 ): boolean => {
   const { body, styles, title } = composeDocument(doc, paper, header, t);
-  return printHtml(body, { title, styles, locale });
+  return printHtml(withCopies(body, paper, header, t), { title, styles, locale });
+};
+
+const DEFAULT_COPY_LABELS = [
+  ["customerCopy", "Customer Copy"],
+  ["shopCopy", "Shop Copy"],
+  ["officeCopy", "Office Copy"],
+] as const;
+
+/**
+ * Repeat a composed body for the org's copy count (P8), each stamped with its
+ * copy label, separated by a page break (A4) or a cut line (thermal). One copy
+ * — the default — returns the body untouched.
+ */
+export const withCopies = (
+  body: string,
+  paper: PaperSize,
+  header: Pick<DocHeader, "copies" | "copyLabels">,
+  t?: Translator,
+): string => {
+  const copies = Math.min(3, Math.max(1, Math.trunc(header.copies ?? 1)));
+  if (copies <= 1) return body;
+  const tt = tr(t);
+  return Array.from({ length: copies }, (_, i) => {
+    const label =
+      header.copyLabels?.[i]?.trim() ||
+      tt(DEFAULT_COPY_LABELS[i][0], DEFAULT_COPY_LABELS[i][1]);
+    // The fixed watermark repeats on every printed page already; a second copy
+    // of the <img> would stack its opacity.
+    const part = i === 0 ? body : body.replace(/^<img class="watermark"[^>]*\/>/, "");
+    const stamped = part.replace(
+      '<div class="doc">',
+      `<div class="doc${paper === "a4" && i < copies - 1 ? " copy-break" : ""}"><div class="copy-label">${escapeHtml(label)}</div>`,
+    );
+    return i === 0 || paper === "a4" ? stamped : `<div class="cut-line">✂</div>${stamped}`;
+  }).join("");
 };
 
 /** A document date on the ORGANIZATION's calendar, whatever zone the printing device is in. */
@@ -441,6 +699,52 @@ const taxByRate = (
     }));
 };
 
+/** One sale line as a structured print item (snapshots blank on older sales). */
+const saleLineToItem = (item: SaleItem, currency: Currency): PrintItem => ({
+  name: item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
+  code: item.barcode ?? undefined,
+  quantity: item.quantity,
+  unit: item.unitName ?? undefined,
+  price: currency(item.price),
+  discount: (item.discount ?? 0) > 0 ? currency(item.discount) : undefined,
+  vatRate: (item.taxAmount ?? 0) > 0 ? item.taxRate ?? undefined : undefined,
+  vatAmount: (item.taxAmount ?? 0) > 0 ? currency(item.taxAmount as number) : undefined,
+  amount: currency(item.subtotal),
+});
+
+/**
+ * Totals rows a sale can offer (P3). All read the sale's own snapshots — a
+ * reprint never recomputes a "current" balance (plan rule 3); a sale made
+ * before the snapshots existed simply offers nothing.
+ */
+const saleTotalsExtras = (
+  sale: Sale,
+  currency: Currency,
+  tt: (key: string, fallback: string) => string,
+): TotalsExtras => {
+  const payments = (sale.payments ?? [])
+    .filter((p) => p.status !== "cancelled" && p.amount > 0)
+    .map((p) => ({ label: paymentMethodLabel(p.paymentMethod, tt), value: currency(p.amount) }));
+  const before = sale.customerBalanceBefore;
+  const after = sale.customerBalanceAfter;
+  const previousBalance =
+    before != null && after != null
+      ? [
+          { label: tt("previousDue", "Previous due"), value: currency(before) },
+          { label: tt("thisInvoiceDue", "This invoice"), value: currency(Math.max(0, after - before)) },
+          { label: tt("totalDue", "Total due"), value: currency(after), strong: true },
+        ]
+      : undefined;
+  const tendered =
+    sale.tenderedAmount != null && sale.changeAmount != null
+      ? [
+          { label: tt("cashReceived", "Cash received"), value: currency(sale.tenderedAmount) },
+          { label: tt("change", "Change"), value: currency(sale.changeAmount) },
+        ]
+      : undefined;
+  return { payments, previousBalance, tendered };
+};
+
 const saleToDoc = (
   sale: Sale,
   currency: Currency,
@@ -465,7 +769,7 @@ const saleToDoc = (
     totals.push({ label: tt("tax", "Tax"), value: currency(sale.taxTotal) });
   }
   totals.push({ label: tt("total", "Total"), value: currency(sale.totalAmount), strong: true });
-  totals.push({ label: tt("paid", "Paid"), value: currency(sale.paidAmount) });
+  totals.push({ label: tt("paid", "Paid"), value: currency(sale.paidAmount), key: "paid" });
   // The two settlements that are NOT cash-in, printed so the column reconciles.
   //
   // `dueAmount = totalAmount − paidAmount − refundCreditApplied` (sales-flow §1),
@@ -492,7 +796,7 @@ const saleToDoc = (
     });
   }
   if (sale.dueAmount > 0) {
-    totals.push({ label: tt("due", "Due"), value: currency(sale.dueAmount), strong: true });
+    totals.push({ label: tt("due", "Due"), value: currency(sale.dueAmount), strong: true, key: "due" });
   }
 
   const hasTax =
@@ -505,6 +809,7 @@ const saleToDoc = (
   const cashierName = `${cashier?.firstName ?? ""} ${cashier?.lastName ?? ""}`.trim();
 
   return {
+    kind: "invoice",
     // "Tax Invoice" is the accepted wording once any tax applies.
     docTitle: hasTax ? tt("taxInvoice", "Tax Invoice") : tt("invoice", "Invoice"),
     number: sale.invoiceNumber,
@@ -516,7 +821,7 @@ const saleToDoc = (
         key: "customer",
       },
       ...(customer?.phone
-        ? [{ label: tt("phone", "Phone"), value: customer.phone, key: "phone" as const }]
+        ? [{ label: tt("customerPhone", "Customer phone"), value: customer.phone, key: "phone" as const }]
         : []),
       ...(customer?.address
         ? [{ label: tt("address", "Address"), value: customer.address, key: "address" as const }]
@@ -526,19 +831,11 @@ const saleToDoc = (
         ? [{ label: tt("cashier", "Cashier"), value: cashierName, key: "cashier" as const }]
         : []),
     ],
-    columns: [
-      { header: tt("item", "Item") },
-      { header: tt("qty", "Qty"), align: "right" },
-      { header: tt("price", "Price"), align: "right" },
-      { header: tt("amount", "Amount"), align: "right" },
-    ],
-    rows: sale.items.map((item) => [
-      item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
-      item.quantity,
-      currency(item.price),
-      currency(item.subtotal),
-    ]),
+    itemTable: { items: sale.items.map((item) => saleLineToItem(item, currency)) },
+    columns: [],
+    rows: [],
     totals,
+    totalsExtras: saleTotalsExtras(sale, currency, tt),
     amountInWords: amountToWords(sale.totalAmount, locale),
     notes: sale.notes,
     signature: true,
@@ -567,15 +864,16 @@ const purchaseOrderToDoc = (
   }
   totals.push({ label: tt("grandTotal", "Grand Total"), value: currency(grand), strong: true });
   if (order.paidAmount && order.paidAmount > 0) {
-    totals.push({ label: tt("paid", "Paid"), value: currency(order.paidAmount) });
+    totals.push({ label: tt("paid", "Paid"), value: currency(order.paidAmount), key: "paid" });
   }
   if (order.dueAmount && order.dueAmount > 0) {
-    totals.push({ label: tt("due", "Due"), value: currency(order.dueAmount), strong: true });
+    totals.push({ label: tt("due", "Due"), value: currency(order.dueAmount), strong: true, key: "due" });
   }
 
   const supplierName = populatedRef(order.supplierId)?.name ?? "-";
 
   return {
+    kind: "purchaseOrder",
     docTitle: tt("purchaseOrder", "Purchase Order"),
     number: order.orderNumber,
     meta: [
@@ -586,18 +884,18 @@ const purchaseOrderToDoc = (
         ? [{ label: tt("invoiceNumber", "Invoice #"), value: order.invoiceNumber }]
         : []),
     ],
-    columns: [
-      { header: tt("item", "Item") },
-      { header: tt("qty", "Qty"), align: "right" },
-      { header: tt("price", "Price"), align: "right" },
-      { header: tt("amount", "Amount"), align: "right" },
-    ],
-    rows: order.items.map((item) => [
-      item.productName ?? "-",
-      item.quantity,
-      currency(item.price),
-      currency(item.subtotal),
-    ]),
+    itemTable: {
+      items: order.items.map((item) => ({
+        name: item.productName ?? "-",
+        quantity: item.quantity,
+        price: currency(item.price),
+        vatRate: (item.taxAmount ?? 0) > 0 ? item.taxRate ?? undefined : undefined,
+        vatAmount: (item.taxAmount ?? 0) > 0 ? currency(item.taxAmount as number) : undefined,
+        amount: currency(item.subtotal),
+      })),
+    },
+    columns: [],
+    rows: [],
     totals,
     notes: order.notes,
   };
@@ -626,6 +924,7 @@ const returnToDoc = (
   }
 
   return {
+    kind: "return",
     docTitle: isSales
       ? tt("salesReturn", "Sales Return")
       : tt("purchaseReturn", "Purchase Return"),
@@ -646,18 +945,18 @@ const returnToDoc = (
       { label: tt("status", "Status"), value: data.status, key: "status" },
       ...(data.reason ? [{ label: tt("reason", "Reason"), value: data.reason }] : []),
     ],
-    columns: [
-      { header: tt("item", "Item") },
-      { header: tt("qty", "Qty"), align: "right" },
-      { header: isSales ? tt("price", "Price") : tt("cost", "Cost"), align: "right" },
-      { header: tt("refund", "Refund"), align: "right" },
-    ],
-    rows: data.items.map((item) => [
-      item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
-      item.quantity,
-      currency(isSales ? item.price ?? 0 : item.costPrice),
-      currency(item.refundAmount),
-    ]),
+    itemTable: {
+      priceHeader: isSales ? tt("price", "Price") : tt("cost", "Cost"),
+      amountHeader: tt("refund", "Refund"),
+      items: data.items.map((item) => ({
+        name: item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
+        quantity: item.quantity,
+        price: currency(isSales ? item.price ?? 0 : item.costPrice),
+        amount: currency(item.refundAmount),
+      })),
+    },
+    columns: [],
+    rows: [],
     totals,
     notes: data.notes,
   };
@@ -740,6 +1039,7 @@ const paymentReceiptToDoc = (
 ): PrintDoc => {
   const tt = tr(t);
   return {
+    kind: "paymentReceipt",
     docTitle: tt("paymentReceipt", "Payment Receipt"),
     number: p.docNumber,
     meta: [
@@ -798,23 +1098,30 @@ const saleToDeliveryDoc = (
   const customer = populatedRef(sale.customerId);
   const totalUnits = sale.items.reduce((sum, i) => sum + (i.quantity ?? 0), 0);
   return {
+    kind: "deliveryNote",
     docTitle: tt("deliveryNote", "Delivery Note"),
     number: sale.invoiceNumber,
     meta: [
       { label: tt("date", "Date"), value: dateStr(sale.createdAt, locale) },
       { label: tt("customer", "Customer"), value: customer?.name ?? tt("walkIn", "Walk-in Customer"), key: "customer" },
       ...(customer?.phone
-        ? [{ label: tt("phone", "Phone"), value: customer.phone, key: "phone" as const }]
+        ? [{ label: tt("customerPhone", "Customer phone"), value: customer.phone, key: "phone" as const }]
         : []),
       ...(customer?.address
         ? [{ label: tt("address", "Address"), value: customer.address, key: "address" as const }]
         : []),
     ],
-    columns: [{ header: tt("item", "Item") }, { header: tt("qty", "Qty"), align: "right" }],
-    rows: sale.items.map((item) => [
-      item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
-      item.quantity,
-    ]),
+    itemTable: {
+      quantityOnly: true,
+      items: sale.items.map((item) => ({
+        name: item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
+        code: item.barcode ?? undefined,
+        quantity: item.quantity,
+        unit: item.unitName ?? undefined,
+      })),
+    },
+    columns: [],
+    rows: [],
     totals: [{ label: tt("totalUnits", "Total units"), value: String(totalUnits), strong: true }],
     notes: sale.notes,
     signature: true,
@@ -873,6 +1180,7 @@ const statementToDoc = (
 ): PrintDoc => {
   const tt = tr(t);
   return {
+    kind: "statement",
     docTitle: s.title,
     number: dateStr(new Date(), locale),
     meta: [
@@ -913,7 +1221,9 @@ export const printStatement = (
 /**
  * A representative invoice used to render the receipt live-preview. Mirrors the
  * real printout's tax behaviour: with tax active it reads "Tax Invoice" and shows
- * the tax line; without it, a plain "Invoice" at the pre-tax total.
+ * the tax line; without it, a plain "Invoice" at the pre-tax total. The sample
+ * carries every snapshot (code, unit, payments, previous due, cash tendered)
+ * so each v2 setting has something to show; settings left unset hide them.
  */
 const buildSampleInvoiceDoc = (
   currency: Currency,
@@ -924,33 +1234,168 @@ const buildSampleInvoiceDoc = (
   const tt = tr(t);
   const total = hasTax ? 840 : 800;
   return {
+    kind: "invoice",
     docTitle: hasTax ? tt("taxInvoice", "Tax Invoice") : tt("invoice", "Invoice"),
     number: "INV-0001",
     meta: [
       { label: tt("date", "Date"), value: dateStr(new Date(), locale) },
       { label: tt("customer", "Customer"), value: "John Doe", key: "customer" },
-      { label: tt("phone", "Phone"), value: "01700-000000", key: "phone" },
+      { label: tt("customerPhone", "Customer phone"), value: "01700-000000", key: "phone" },
       { label: tt("status", "Status"), value: "completed", key: "status" },
     ],
-    columns: [
-      { header: tt("item", "Item") },
-      { header: tt("qty", "Qty"), align: "right" },
-      { header: tt("price", "Price"), align: "right" },
-      { header: tt("amount", "Amount"), align: "right" },
-    ],
-    rows: [
-      ["Sample product A", 2, currency(150), currency(300)],
-      ["Sample product B", 1, currency(500), currency(500)],
-    ],
+    itemTable: {
+      items: [
+        {
+          name: "Sample product A",
+          code: "8901234567890",
+          quantity: 2,
+          unit: "pcs",
+          price: currency(150),
+          vatRate: hasTax ? 5 : undefined,
+          vatAmount: hasTax ? currency(15) : undefined,
+          amount: currency(300),
+        },
+        {
+          name: "Sample product B",
+          code: "8901234567891",
+          quantity: 1,
+          unit: "pcs",
+          price: currency(550),
+          discount: currency(50),
+          vatRate: hasTax ? 5 : undefined,
+          vatAmount: hasTax ? currency(25) : undefined,
+          amount: currency(500),
+        },
+      ],
+    },
+    columns: [],
+    rows: [],
     totals: [
       { label: tt("subtotal", "Subtotal"), value: currency(800) },
       ...(hasTax ? [{ label: t ? t("taxRate", { rate: 5 }) : "Tax 5%", value: currency(40) }] : []),
       { label: tt("total", "Total"), value: currency(total), strong: true },
-      { label: tt("paid", "Paid"), value: currency(total) },
+      { label: tt("paid", "Paid"), value: currency(total), key: "paid" },
     ],
+    totalsExtras: {
+      payments: [
+        { label: paymentMethodLabel("cash", tt), value: currency(total - 300) },
+        { label: "bKash", value: currency(300) },
+      ],
+      previousBalance: [
+        { label: tt("previousDue", "Previous due"), value: currency(1200) },
+        { label: tt("thisInvoiceDue", "This invoice"), value: currency(0) },
+        { label: tt("totalDue", "Total due"), value: currency(1200), strong: true },
+      ],
+      tendered: [
+        { label: tt("cashReceived", "Cash received"), value: currency(1000) },
+        { label: tt("change", "Change"), value: currency(1000 - (total - 300)) },
+      ],
+    },
     amountInWords: amountToWords(total, locale),
     signature: true,
   };
+};
+
+/** Sample of each non-invoice document, for the preview document switch (P7). */
+const buildSampleDoc = (
+  kind: ReceiptDocumentKind,
+  currency: Currency,
+  hasTax: boolean,
+  t?: Translator,
+  locale: AppLocale = "en",
+): PrintDoc => {
+  const tt = tr(t);
+  const date = { label: tt("date", "Date"), value: dateStr(new Date(), locale) };
+  switch (kind) {
+    case "deliveryNote":
+      return {
+        kind,
+        docTitle: tt("deliveryNote", "Delivery Note"),
+        number: "INV-0001",
+        meta: [date, { label: tt("customer", "Customer"), value: "John Doe", key: "customer" }],
+        itemTable: {
+          quantityOnly: true,
+          items: [
+            { name: "Sample product A", code: "8901234567890", quantity: 2, unit: "pcs" },
+            { name: "Sample product B", code: "8901234567891", quantity: 1, unit: "pcs" },
+          ],
+        },
+        columns: [],
+        rows: [],
+        totals: [{ label: tt("totalUnits", "Total units"), value: "3", strong: true }],
+        signature: true,
+      };
+    case "purchaseOrder":
+      return {
+        kind,
+        docTitle: tt("purchaseOrder", "Purchase Order"),
+        number: "PO-0001",
+        meta: [date, { label: tt("supplier", "Supplier"), value: "Acme Supplies" }],
+        itemTable: {
+          items: [
+            { name: "Sample product A", quantity: 10, price: currency(100), amount: currency(1000) },
+          ],
+        },
+        columns: [],
+        rows: [],
+        totals: [
+          { label: tt("subtotal", "Subtotal"), value: currency(1000) },
+          { label: tt("grandTotal", "Grand Total"), value: currency(1000), strong: true },
+          { label: tt("paid", "Paid"), value: currency(400), key: "paid" },
+          { label: tt("due", "Due"), value: currency(600), strong: true, key: "due" },
+        ],
+      };
+    case "return":
+      return {
+        kind,
+        docTitle: tt("salesReturn", "Sales Return"),
+        number: "SR-0001",
+        meta: [date, { label: tt("originalInvoice", "Original Invoice"), value: "INV-0001" }],
+        itemTable: {
+          priceHeader: tt("price", "Price"),
+          amountHeader: tt("refund", "Refund"),
+          items: [{ name: "Sample product A", quantity: 1, price: currency(150), amount: currency(150) }],
+        },
+        columns: [],
+        rows: [],
+        totals: [{ label: tt("totalRefund", "Total Refund"), value: currency(150), strong: true }],
+      };
+    case "paymentReceipt":
+      return {
+        ...paymentReceiptToDoc(
+          {
+            amount: 500,
+            createdAt: new Date(),
+            paymentMethod: "cash",
+            docNumber: "INV-0001",
+            counterparty: "John Doe",
+            isSale: true,
+            balanceDue: 300,
+          },
+          currency,
+          t,
+          locale,
+        ),
+      };
+    case "statement":
+      return statementToDoc(
+        {
+          title: tt("customerStatement", "Customer Statement"),
+          partyLabel: tt("customer", "Customer"),
+          partyName: "John Doe",
+          transactions: [
+            { date: new Date(), type: "invoice", reference: "INV-0001", amount: 800 },
+            { date: new Date(), type: "payment", reference: "", amount: 500 },
+          ],
+          summary: [{ label: tt("balanceDue", "Balance due"), value: 300, strong: true }],
+        },
+        currency,
+        t,
+        locale,
+      );
+    default:
+      return buildSampleInvoiceDoc(currency, hasTax, t, locale);
+  }
 };
 
 export interface ReceiptPreviewInput {
@@ -967,11 +1412,23 @@ export interface ReceiptPreviewInput {
   showLogo?: boolean;
   logoPlacement?: PrintLogoPlacement;
   watermarkOpacity?: number;
+  logoSize?: ReceiptLogoSize;
+  watermarkSize?: ReceiptWatermarkSize;
+  watermarkPosition?: ReceiptWatermarkPosition;
   headerLines?: PrintHeaderLine[];
   metaFields?: PrintMetaFields;
   showDocTitle?: boolean;
   showAmountInWords?: boolean;
   amountInWordsLabel?: string;
+  /**
+   * print-setup-v2 settings (P2–P8), as `receiptV2Header` builds them from the
+   * form state. Unset → the pre-v2 sample.
+   */
+  v2?: Partial<DocHeader>;
+  /** Which sample document to render (P7 preview switch). Unset → invoice. */
+  docKind?: ReceiptDocumentKind;
+  /** Render the org's copy count too (copy labels + separators). */
+  showCopies?: boolean;
   /** ISO currency code for the sample amounts (falls back to a plain number). */
   currencyCode?: string;
   /** Sales tax active for the org → sample reads "Tax Invoice" + shows a tax line. */
@@ -1007,14 +1464,19 @@ export const renderReceiptPreview = (
     logoPlacement:
       input.logoPlacement ?? (input.showLogo === false ? "hidden" : "top"),
     watermarkOpacity: input.watermarkOpacity,
+    logoSize: input.logoSize,
+    watermarkSize: input.watermarkSize,
+    watermarkPosition: input.watermarkPosition,
     headerLines: input.headerLines,
     metaFields: input.metaFields,
     showDocTitle: input.showDocTitle,
     showAmountInWords: input.showAmountInWords,
     amountInWordsLabel: input.amountInWordsLabel,
+    ...input.v2,
   };
   const { body, styles } = composeDocument(
-    buildSampleInvoiceDoc(
+    buildSampleDoc(
+      input.docKind ?? "invoice",
       previewCurrency(input.currencyCode),
       input.salesTaxActive === true,
       input.t,
@@ -1024,5 +1486,8 @@ export const renderReceiptPreview = (
     header,
     input.t,
   );
-  return { body, styles };
+  return {
+    body: input.showCopies ? withCopies(body, input.paper, header, input.t) : body,
+    styles,
+  };
 };

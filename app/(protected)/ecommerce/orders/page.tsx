@@ -19,6 +19,7 @@ import { useAuthStore } from "@/services/stores/use-auth-store";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { PERMISSIONS, useHasPermission } from "@/hooks/use-has-permission";
 import { useNow } from "@/hooks/use-now";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import { ALL_TIME, PeriodSelect } from "@/components/shared/period-filter";
 import { OrderInvoicePrintButton } from "@/components/ecommerce/order-invoice-print";
 import { OrderRow } from "@/components/ecommerce/orders/order-row";
@@ -34,7 +35,7 @@ import {
   REJECTION_REASON_OPTIONS,
   rejectableOrders,
 } from "@/components/ecommerce/orders/helpers";
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { cn } from "@/ui/lib/utils";
 import { Card } from "@/ui/components/card";
@@ -103,7 +104,6 @@ export default function EcommerceOrdersPage() {
 function OrdersList() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialStatus = searchParams.get("status") ?? "";
   // Set only by the Orders count on Online Store → Pages; see `LandingPageFilter`.
   const pageId = searchParams.get("pageId") ?? undefined;
   const qc = useQueryClient();
@@ -114,22 +114,34 @@ function OrdersList() {
   const now = useNow();
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [status, setStatus] = useState(initialStatus);
-  const [courier, setCourier] = useState("all");
-  const [fulfillment, setFulfillment] = useState("all");
-  const [channel, setChannel] = useState("all");
-  // Defaults to ALL_TIME, and that is the whole reason the shared filter takes
-  // an `includeAllTime` flag: the dashboard opens on "today" because a summary
-  // should, and a work queue that did the same would hide every unshipped order
-  // older than this morning behind a filter nobody chose.
-  const [period, setPeriod] = useState<OrderListPeriod | typeof ALL_TIME>(
-    ALL_TIME,
-  );
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // The view — tab, filters, search, page — lives in the URL, so opening an
+  // order and pressing Back lands on the same page of the same queue.
+  // `status` is also the key the dashboard's links set (`?status=pending`).
+  //
+  // `period` defaults to ALL_TIME, and that is the whole reason the shared
+  // filter takes an `includeAllTime` flag: the dashboard opens on "today"
+  // because a summary should, and a work queue that did the same would hide
+  // every unshipped order older than this morning behind a filter nobody chose.
+  const list = useListUrlState({
+    defaults: {
+      limit: 20,
+      filters: {
+        status: "",
+        courier: "all",
+        fulfillment: "all",
+        channel: "all",
+        period: ALL_TIME as string,
+        start: "",
+        end: "",
+        q: "",
+      },
+    },
+    limitOptions: LIST_PAGE_SIZES,
+  });
+  const { page, limit } = list;
+  const { status, courier, fulfillment, channel, start: customStart, end: customEnd, q: search } =
+    list.filters as Record<string, string>;
+  const period = list.filters.period as OrderListPeriod | typeof ALL_TIME;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkProvider, setBulkProvider] = useState("");
@@ -162,67 +174,35 @@ function OrdersList() {
   // View changes (search / tab / filter / page size / page) reset selection in
   // the handlers below, not in effects — synchronous setState in effects
   // cascades renders.
-  const changeSearch = (v: string) => {
-    setSearch(v);
-    setPage(1);
+  // Each filter change also starts again from page 1 (`patchFilters`).
+  const changeFilter = (patch: Record<string, string>) => {
+    list.patchFilters(patch);
     setSelected(new Set());
   };
-  const changeStatus = (v: string) => {
-    setStatus(v);
-    setPage(1);
-    setSelected(new Set());
-  };
-  const changeCourier = (v: string) => {
-    setCourier(v);
-    setPage(1);
-    setSelected(new Set());
-  };
-  const changeFulfillment = (v: string) => {
-    setFulfillment(v);
-    setPage(1);
-    setSelected(new Set());
-  };
-  const changeChannel = (v: string) => {
-    setChannel(v);
-    setPage(1);
-    setSelected(new Set());
-  };
+  const changeSearch = (v: string) => changeFilter({ q: v });
+  const changeStatus = (v: string) => changeFilter({ status: v });
+  const changeCourier = (v: string) => changeFilter({ courier: v });
+  const changeFulfillment = (v: string) => changeFilter({ fulfillment: v });
+  const changeChannel = (v: string) => changeFilter({ channel: v });
   // Back to every page's orders, from the chip `LandingPageFilter` draws.
   const clearPageFilter = () => {
-    setPage(1);
     setSelected(new Set());
     router.replace("/ecommerce/orders");
   };
   // No cast any more: the shared filter is generic over the period type, so the
   // pills and this handler are checked against `OrderListPeriod` end to end.
-  const changePeriod = (v: OrderListPeriod | typeof ALL_TIME) => {
-    setPeriod(v);
+  const changePeriod = (v: OrderListPeriod | typeof ALL_TIME) =>
     // Leaving "custom" drops the dates with it, so switching to Today and back
     // does not silently re-apply a range the merchant can no longer see.
-    if (v !== "custom") {
-      setCustomStart("");
-      setCustomEnd("");
-    }
-    setPage(1);
-    setSelected(new Set());
-  };
-  const changeCustomStart = (v: string) => {
-    setCustomStart(v);
-    setPage(1);
-    setSelected(new Set());
-  };
-  const changeCustomEnd = (v: string) => {
-    setCustomEnd(v);
-    setPage(1);
-    setSelected(new Set());
-  };
+    changeFilter(v === "custom" ? { period: v } : { period: v, start: "", end: "" });
+  const changeCustomStart = (v: string) => changeFilter({ start: v });
+  const changeCustomEnd = (v: string) => changeFilter({ end: v });
   const changeLimit = (n: number) => {
-    setLimit(n);
-    setPage(1);
+    list.setLimit(n);
     setSelected(new Set());
   };
   const goToPage = (p: number) => {
-    setPage(p);
+    list.setPage(p);
     setSelected(new Set());
   };
 
@@ -483,6 +463,10 @@ function OrdersList() {
             // guest order has — so the most useful thing this box does was the
             // one thing a merchant had no way to discover.
             placeholder="Search order #, customer or phone"
+            // The URL's search, after Back from an order; remounted on an
+            // outside URL change so the box shows what the list is filtered by.
+            key={list.revision}
+            defaultValue={search}
             onSearch={changeSearch}
           />
         </div>

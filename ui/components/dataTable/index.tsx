@@ -4,7 +4,7 @@
 import { ExportDialog } from "@/components/shared/export/export-dialog";
 import { useCrudModal } from "@/hooks/use-crud-handlers";
 import { useDynamicForm } from "@/hooks/use-dynamic-form";
-import { useUrlFilters } from "@/hooks/use-url-filters";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import type { ApiResponse, PaginatedResponse } from "@/types";
 import { CustomAction, DataTableProps } from "@/types/DataTable";
 import DynamicForm from "@/ui/components/form";
@@ -53,6 +53,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     rowBgColor,
     bulkActions,
     onFiltersChange,
+    syncUrl = true,
     ...restProps
   } = props;
 
@@ -77,15 +78,22 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     onFieldChange,
   } = operations || {};
 
-  // Read initial filter values from URL query params
-  const urlFilters = useUrlFilters(filterConfig);
-
   const queryClient = useQueryClient();
 
-  // Internal state for self-contained mode
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(defaultPageSize || 10);
-  const [filters, setFilters] = useState<Record<string, any>>(urlFilters);
+  // Page, page size, sort and filters live in the URL, so Back from a row lands
+  // on the same page with the same filters (`hooks/use-list-url-state.ts`).
+  const pageSizeOptions = pageSizes || [10, 20, 50, 100];
+  const list = useListUrlState({
+    defaults: {
+      limit: defaultPageSize || 10,
+      sortBy: sortingConfig?.defaultSortBy,
+      sortOrder: sortingConfig?.defaultSortBy ? sortingConfig.defaultSortOrder : undefined,
+    },
+    filterFields: filterConfig?.fields,
+    limitOptions: pageSizeOptions,
+    sync: syncUrl,
+  });
+  const { page, limit, filters } = list;
   const [importOpen, setImportOpen] = useState(false);
   // "Select all N matching": the selection is the filter, not a list of ids.
   // Dropped the moment the rows or the question change — a tick, a page turn, a
@@ -104,23 +112,19 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     [sortingConfig],
   );
   const isServerSorting = sortableFields.length > 0 && !!getAllData;
-  const [sorting, setSorting] = useState<SortingState>(
-    sortingConfig?.defaultSortBy
-      ? [{ id: sortingConfig.defaultSortBy, desc: sortingConfig.defaultSortOrder === "desc" }]
-      : [],
+  const { sortBy, sortOrder, setSort } = list;
+  const sorting = useMemo<SortingState>(
+    () => (sortBy ? [{ id: sortBy, desc: sortOrder === "desc" }] : []),
+    [sortBy, sortOrder],
   );
 
-  // Derive sort_by / sort_order from TanStack SortingState
-  const sortBy = sorting.length > 0 ? sorting[0].id : undefined;
-  const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : undefined;
-
-  // Server sorting change handler — also resets to page 1
+  // Server sorting change handler — the URL state resets to page 1
   const handleSortingChange = useCallback(
     (newSorting: SortingState) => {
-      setSorting(newSorting);
-      if (isServerSorting) setPage(1);
+      const [next] = newSorting;
+      setSort(next?.id, next ? (next.desc ? "desc" : "asc") : undefined);
     },
-    [isServerSorting],
+    [setSort],
   );
 
   // Data fetching (self-contained mode)
@@ -166,7 +170,7 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
         hasNext: hasNext,
         hasPrev: hasPrev,
         manualPagination: true,
-        pageSizeOptions: pageSizes || [10, 20, 50, 100],
+        pageSizeOptions,
         onPaginationChange: ({
           pageIndex,
           pageSize,
@@ -174,32 +178,34 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
           pageIndex: number;
           pageSize: number;
         }) => {
-          setPage(pageIndex + 1);
-          limit !== pageSize && setLimit(pageSize);
+          if (limit !== pageSize) list.setLimit(pageSize);
+          else list.setPage(pageIndex + 1);
           setAllMatching(false);
         },
       };
     }
-  }, [page, limit, queryData, pageSizes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `list` setters are stable
+  }, [page, limit, queryData, pageSizeOptions]);
 
   // Filter configuration with callbacks
   const mergedFilterConfig = useMemo(() => {
     if (!filterConfig) return undefined;
     return {
       ...(filterConfig || {}),
-      initialValues: urlFilters,
+      initialValues: filters,
       onApply: (newFilters: Record<string, any>) => {
-        setFilters(newFilters);
-        setPage(1); // Reset to first page when filters change
+        list.setFilters(newFilters); // back to page 1
         setAllMatching(false);
       },
       onReset: () => {
-        setFilters({});
-        setPage(1); // Reset to first page when filters are cleared
+        list.setFilters({});
         setAllMatching(false);
       },
     };
-  }, [filterConfig, urlFilters]);
+    // `filters` is read when the bar mounts; `revision` remounts it after an
+    // outside URL change, so it is the only other input that matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+  }, [filterConfig, list.revision]);
 
   const { form, defaultValues: mergedDefaults } = useDynamicForm(formConfig || { fields: [] }, defaultValues);
 
@@ -366,6 +372,8 @@ export function DataTable<TData extends { _id: string }, TValue = any>(
     <Card className="border-none ring-0 shadow-none py-0 gap-3 bg-transparent">
       <CardContent className="p-0">
         <BaseDataTable
+          // Remounted after an outside URL change, so the filter bar shows it.
+          key={list.revision}
           {...restProps}
           title={cardTitle
             ? typeof cardTitle === "function"

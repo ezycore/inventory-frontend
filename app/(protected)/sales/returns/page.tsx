@@ -185,6 +185,7 @@ export default function SalesReturnsPage() {
 
       {/* Returns History Table */}
       <ReturnHistoryTable
+        key={ctx.listRevision}
         columns={ctx.returnsColumns}
         data={ctx.returns}
         isLoading={ctx.isLoadingReturns}

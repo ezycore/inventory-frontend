@@ -449,6 +449,12 @@ export interface DataTableProps<TData, TValue = any> {
   bulkActions?: (selection: BulkSelection) => React.ReactNode;
   /** Told the table's filters whenever they change (and once on mount). */
   onFiltersChange?: (filters: Record<string, unknown>) => void;
+  /**
+   * Keep the page, page size, sort and filters in the URL (default `true`), so
+   * Back from a row lands where the merchant was. Pass `false` for a table in
+   * a sheet or dialog, whose state must not outlive it.
+   */
+  syncUrl?: boolean;
 }
 
 export interface BaseDataTableProps<TData, TValue = any> {

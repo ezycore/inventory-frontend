@@ -1,13 +1,13 @@
 "use client";
 // coding-standard: maintained
 
-import { useState } from "react";
+import { useListUrlState } from "@/hooks/use-list-url-state";
 import {
   useOnlineCustomers,
   useStorefrontSubscribers,
 } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
-import { ListPagination } from "@/components/ecommerce/list-pagination";
+import { LIST_PAGE_SIZES, ListPagination } from "@/components/ecommerce/list-pagination";
 import { ListSearchInput } from "@/components/ecommerce/list-search-input";
 import { AccountsTable } from "@/components/ecommerce/customers/accounts-table";
 import { SubscribersTable } from "@/components/ecommerce/customers/subscribers-table";
@@ -40,9 +40,15 @@ const COPY: Record<StorefrontListKind, { hint: string; search: string }> = {
  */
 export function StorefrontListPanel({ kind }: { kind: StorefrontListKind }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  // In the URL under this tab's own prefix, so it never collides with the
+  // "All customers" table beside it, and Back from a customer lands here again.
+  const list = useListUrlState({
+    defaults: { limit: 20, filters: { q: "" } },
+    limitOptions: LIST_PAGE_SIZES,
+    prefix: `${kind}_`,
+  });
+  const { page, limit } = list;
+  const search = list.filters.q as string;
 
   const params = { search: search || undefined, page, limit };
   // Both run, and only the visible one is read — the same trade the standalone
@@ -60,11 +66,10 @@ export function StorefrontListPanel({ kind }: { kind: StorefrontListKind }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{copy.hint}</p>
         <ListSearchInput
+          key={list.revision}
           placeholder={copy.search}
-          onSearch={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
+          defaultValue={search}
+          onSearch={(v) => list.patchFilters({ q: v })}
         />
       </div>
 
@@ -87,11 +92,8 @@ export function StorefrontListPanel({ kind }: { kind: StorefrontListKind }) {
         total={pagination?.total}
         limit={limit}
         isFetching={query.isFetching}
-        onPageChange={setPage}
-        onLimitChange={(n) => {
-          setLimit(n);
-          setPage(1);
-        }}
+        onPageChange={list.setPage}
+        onLimitChange={list.setLimit}
       />
     </div>
   );

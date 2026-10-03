@@ -29,6 +29,12 @@ import { useEffect, type RefObject } from "react";
 export function useHeaderHeight(
   mobileBar: RefObject<HTMLElement | null>,
   desktopBar: RefObject<HTMLElement | null>,
+  /**
+   * Whether the computer header follows the page (Header → Computer). Only a
+   * dependency: flipping it in the Customize preview changes `position`
+   * without resizing anything, so the observer below would never re-measure.
+   */
+  desktopSticky = true,
 ): void {
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(".sf-root");
@@ -54,5 +60,5 @@ export function useHeaderHeight(
       observer.disconnect();
       root.style.removeProperty("--sf-header-h");
     };
-  }, [mobileBar, desktopBar]);
+  }, [mobileBar, desktopBar, desktopSticky]);
 }

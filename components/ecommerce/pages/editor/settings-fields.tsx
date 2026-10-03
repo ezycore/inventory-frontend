@@ -1,6 +1,7 @@
 "use client";
 // coding-standard: maintained
 
+import { toast } from "sonner";
 import type { SectionFieldSpec, SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import { Label } from "@/ui/components/label";
@@ -10,6 +11,7 @@ import { isFieldVisible } from "./field-visibility";
 import { ImageField } from "./image-field";
 import { PhoneNote, ResetToDesktop } from "./responsive-note";
 import { fieldHint, fieldLabel } from "./section-catalogue";
+import { clearRivalSize, inheritedRivalNote } from "./size-exclusion";
 import {
   fieldValue,
   hasPhoneValue,
@@ -89,7 +91,13 @@ export function SettingsFields({
         }
         const hint = fieldHint(key, sectionType);
         const value = fieldValue(settings, key, spec, device);
-        const set = (next: unknown) => onChange(withFieldValue(settings, key, spec, next, device));
+        const set = (next: unknown) => {
+          // A hero's shape and height size the same box: picking one clears the other on this screen.
+          const result = clearRivalSize(sectionType, key, withFieldValue(settings, key, spec, next, device), specs, device);
+          if (result.cleared) toast.info(result.cleared);
+          onChange(result.settings);
+        };
+        const overridden = inheritedRivalNote(sectionType, key, settings, specs, device);
         const ownPhoneValue = hasPhoneValue(settings, key, spec);
 
         const phoneNote = spec.responsive ? <PhoneNote device={device} own={ownPhoneValue} /> : null;
@@ -130,6 +138,7 @@ export function SettingsFields({
             </div>
             <FieldControl id={id} name={key} sectionType={sectionType} spec={spec} value={value} onChange={set} />
             {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+            {overridden ? <p className="text-xs text-amber-700 dark:text-amber-400">{overridden}</p> : null}
             {resetToDesktop}
           </div>
         );

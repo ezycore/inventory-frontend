@@ -32,7 +32,7 @@ const ISLANDS = {
   "hero-fullbleed": dynamic(() =>
     import("@/components/storefront/home/hero-fullbleed").then((module) => module.HeroFullBleedView),
   ),
-  /** A full-width hero drawn as the classic home's banner hero, its button worded in the shopper's language. */
+  /** A full-width hero drawn as the store's banner hero, its button worded in the shopper's language. */
   "hero-fullbleed-store": dynamic(() =>
     import("./hero-fullbleed-store").then((module) => module.HeroFullBleedStoreIsland),
   ),

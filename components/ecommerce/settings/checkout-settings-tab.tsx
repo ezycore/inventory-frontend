@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useState } from "react";
-import { useContentPages, useStorefrontPages } from "@/services/api";
+import { useStorefrontPages } from "@/services/api";
 import { isStripHiddenEverywhere } from "@/lib/storefront-strip-display";
 import type { StorefrontSettings } from "@/types";
 import { cn } from "@/ui/lib/utils";
@@ -68,24 +68,13 @@ export function CheckoutSettingsTab({ settings }: { settings: StorefrontSettings
   const [customFields, setCustomFields] = useState(() =>
     storedFields.filter((field) => !isMethodOwnedField(field)),
   );
-  // BOTH page collections, because a store's pages may live in either: a page
-  // that moved onto the builder keeps its slug and is what the storefront
-  // serves, while a store that has not moved still has its CMS pages. Listing
-  // only the CMS ones left a migrated store unable to name its own terms page.
-  const { data: cmsPages } = useContentPages();
-  const { data: builderPages } = useStorefrontPages({ kind: "content", limit: 100 });
-  const livePages = [
-    ...(builderPages?.items ?? [])
-      .filter((page) => page.status === "published" && page.slug)
-      .map((page) => ({ title: page.title, slug: page.slug as string })),
-    ...(cmsPages ?? []).filter((page) => page.published).map((page) => ({ title: page.title, slug: page.slug })),
-  ];
-  // The builder's copy wins on a shared slug — it is the one shoppers get.
+  // The store's published written pages, any of which can be the terms page.
+  const { data: writtenPages } = useStorefrontPages({ kind: "content", limit: 100 });
   const pageOptions = [
     { label: "Auto-detect (a published page slugged “terms”)", value: AUTO_TERMS },
-    ...livePages
-      .filter((page, index) => livePages.findIndex((other) => other.slug === page.slug) === index)
-      .map((page) => ({ label: page.title, value: page.slug })),
+    ...(writtenPages?.items ?? [])
+      .filter((page) => page.status === "published" && page.slug)
+      .map((page) => ({ label: page.title, value: page.slug as string })),
   ];
   const toggleField = (id: string, on: boolean) => setFields((current) => on ? Array.from(new Set([...current, id])) : current.filter((field) => field !== id));
 

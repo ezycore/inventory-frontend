@@ -5,7 +5,6 @@ import { getStore } from "@/lib/storefront-server";
 import { storePageMetadata } from "@/lib/storefront-metadata";
 import { storePages } from "@/lib/storefront-page-controls";
 import { SystemPage } from "@/components/storefront-builder/system-page";
-import { SearchPageView } from "@/components/storefront/search/search-page";
 
 export async function generateMetadata() {
   return storePageMetadata({ title: "Search", index: false });
@@ -23,8 +22,6 @@ export default async function Page() {
   const store = slug ? await getStore(slug) : null;
   if (store && !storePages(store).search) notFound();
   return (
-    <SystemPage path="/search">
-      <SearchPageView />
-    </SystemPage>
+    <SystemPage path="/search" />
   );
 }

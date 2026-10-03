@@ -77,8 +77,7 @@ const bannerConfig = (settings: Settings, cards: StoreSectionCard[]): BannerRowC
  * line about it and a button: the home page's category promo cards as a
  * section. Each block is a card; its words and photo override the collection's
  * for this card only. A card shows a button only when the merchant wrote one —
- * or, for cards moved from the classic home (`storeWords`), always, worded
- * "Shop now" in the shopper's language until the merchant writes their own.
+ * or, under `storeWords`, always, worded "Shop now" in the shopper's language until the merchant writes their own.
  */
 export function CategoryPromoCardsSection({
   settings,

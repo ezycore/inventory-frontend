@@ -120,10 +120,9 @@ export interface SectionFrame {
 }
 
 /**
- * A section type's own frame where the style box sets nothing: the padding, band
- * and width it has on the classic home page, so a home moved onto the builder
- * keeps its spacing. CSS values rather than spacing steps — the home page's
- * sections were never spaced in steps, and they are not merchant choices.
+ * A section type's own frame where the style box sets nothing: its default
+ * padding, band and width. CSS values rather than spacing steps — they are the
+ * type's own rhythm, not merchant choices.
  */
 export interface FrameDefaults {
   top: string;
@@ -164,8 +163,8 @@ export interface FrameDefaults {
  * A heading row is a flex row, and `text-align` cannot move a flex item — which
  * is why the Style tab's alignment did nothing to eight sections' headings until
  * 2026-09-21. The frame emits the matching `justify-content` beside `--sfb-align`
- * and `.sfb-title-row` reads it; a classic page sets neither, so its rows keep
- * `space-between`.
+ * and `.sfb-title-row` reads it; a view outside a section frame sets neither, so
+ * its rows keep `space-between`.
  *
  * Typed as a total `Record`, so widening `SECTION_ALIGNS` (Phase 2 adds `right`)
  * fails to compile until this maps the new value too.

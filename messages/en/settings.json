@@ -234,8 +234,6 @@
     "letterheadLinesHint": "Reorder with the arrows, hide with the switch, and add your own lines.",
     "addCustomLine": "Add custom line",
     "linesFromProfile": "{orgName}, {address} and the logo come from the <link>Organization profile</link>.",
-    "layoutTitle": "Layout",
-    "layoutHint": "Default paper size and how the header aligns.",
     "paperSizeLabel": "Default paper size",
     "paperSizeHint": "Pre-selected in the print menu; still overridable per print.",
     "headerAlignLabel": "Header alignment",
@@ -309,8 +307,227 @@
       "removeLine": "Remove line",
       "labelPlaceholderOptional": "Label (optional)",
       "labelPlaceholderCustomText": "e.g. Trade Licence: 12345",
-      "labelPlaceholderGeneric": "Label shown before the value"
-    }
+      "labelPlaceholderGeneric": "Label shown before the value",
+      "editInProfile": "Edit in profile"
+    },
+    "tabs": {
+      "header": "Header",
+      "body": "Body",
+      "footer": "Footer",
+      "paper": "Paper",
+      "documents": "Documents"
+    },
+    "alignTitle": "Alignment",
+    "paperTitle": "Paper",
+    "paperHint": "The paper size the print menu starts on.",
+    "logoSizeTitle": "Logo size — {paper}",
+    "logoHeightLabel": "Height (mm)",
+    "logoWidthLabel": "Width (mm)",
+    "lockAspect": "Keep proportions",
+    "unlockAspect": "Size each side separately",
+    "logoSizeHint": "Sizes are per paper — switch paper above the preview. The logo fits inside this box without stretching. Height {hMin}–{hMax} mm, width {wMin}–{wMax} mm.",
+    "logoSizeReset": "Use default size",
+    "watermarkWidthLabel": "Watermark width (%)",
+    "watermarkHeightLabel": "Watermark height (%)",
+    "watermarkPositionLabel": "Watermark position",
+    "watermarkPositionOptions": {
+      "center": "Center",
+      "top": "Top",
+      "bottom": "Bottom"
+    },
+    "changeLogoInProfile": "To change the logo itself, go to the <link>Organization profile</link>.",
+    "resetDefaults": "Reset to defaults",
+    "resetDialog": {
+      "title": "Reset the print layout?",
+      "description": "Logo, letterhead lines, alignment, sizes and the details shown on documents go back to the defaults. Your phone, email, VAT number and footer text stay. Nothing is saved until you click Save changes.",
+      "cancel": "Cancel",
+      "confirm": "Reset"
+    },
+    "previewPaperLabel": "Preview paper",
+    "previewPaper": {
+      "a4": "A4",
+      "thermal80": "80 mm",
+      "thermal58": "58 mm"
+    },
+    "v2": {
+      "itemColumns": {
+        "title": "Item table",
+        "hint": "Extra columns on invoices, purchase orders and returns.",
+        "serial": "Serial number",
+        "serialHint": "A # column first",
+        "unit": "Unit with quantity",
+        "unitHint": "Prints \"2 pcs\"",
+        "code": "Product code",
+        "codeHint": "Own column on A4, under the name on receipts",
+        "discount": "Line discount",
+        "discountHint": "Not on 58mm receipts",
+        "vat": "Line VAT",
+        "vatHint": "80mm shows the rate only; 58mm has no room for it.",
+        "vatOptions": {
+          "off": "Off",
+          "rate": "Rate (%)",
+          "amount": "Amount",
+          "both": "Rate and amount"
+        },
+        "snapshotHint": "Unit and code are saved on each sale when it's made, so sales from before this update print those cells empty."
+      },
+      "totals": {
+        "title": "Totals",
+        "hint": "Extra lines under the invoice total.",
+        "showDue": "Due",
+        "showDueHint": "When the invoice isn't fully paid",
+        "showPaymentMethods": "Payment methods",
+        "showPaymentMethodsHint": "One line per payment, e.g. Cash · bKash",
+        "showPreviousBalance": "Previous due",
+        "showPreviousBalanceHint": "Previous due, this invoice and total due",
+        "showTenderedChange": "Cash received and change",
+        "tenderedOptions": {
+          "auto": "Receipts only (80mm / 58mm)",
+          "always": "Always",
+          "never": "Never"
+        },
+        "tenderedHint": "Shows when the customer handed over more cash than the bill.",
+        "accountsOff": "Payments, previous due and change need the Accounts feature, so they won't print for now."
+      },
+      "signature": {
+        "title": "Signature and stamp",
+        "hint": "The signature lines at the bottom of A4 documents.",
+        "enabled": "Show signature lines",
+        "leftLabel": "Left line",
+        "leftPlaceholder": "e.g. Customer Signature (blank = none)",
+        "rightLabel": "Right line",
+        "rightPlaceholder": "Authorized Signature",
+        "signatureImage": "Signature image",
+        "stampImage": "Company stamp",
+        "noImage": "No image",
+        "upload": "Upload",
+        "replace": "Replace",
+        "remove": "Remove",
+        "imageHeight": "Image height (mm)",
+        "securityHint": "Images save as soon as you upload them. Anyone who can print can reprint them, and only people who can edit this page can change them.",
+        "a4Hint": "Signatures print on A4 only."
+      },
+      "payment": {
+        "title": "Payment details",
+        "hint": "Bank and mobile-wallet numbers printed for customers who pay later.",
+        "bank": "Bank account",
+        "wallet": "Mobile wallet",
+        "bankName": "Bank name",
+        "accountName": "Account name",
+        "accountNumber": "Account number",
+        "branch": "Branch",
+        "routingNumber": "Routing number",
+        "provider": "Provider",
+        "accountType": "Account type",
+        "number": "Number",
+        "label": "Label",
+        "labelPlaceholder": "Optional, replaces the provider name",
+        "providers": {
+          "bkash": "bKash",
+          "nagad": "Nagad",
+          "rocket": "Rocket",
+          "upay": "Upay",
+          "other": "Other"
+        },
+        "accountTypes": {
+          "personal": "Personal",
+          "merchant": "Merchant",
+          "agent": "Agent"
+        },
+        "addWallet": "Add wallet",
+        "addBank": "Add bank account",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "hide": "Hide",
+        "show": "Show",
+        "remove": "Remove",
+        "notLinkedHint": "Printed text only — not linked to your accounts. Receipts show wallets only; banks print on A4."
+      },
+      "terms": {
+        "title": "Terms and conditions",
+        "hint": "Small print above the footer, on A4 only.",
+        "placeholder": "e.g. Goods once sold are exchangeable within 7 days with the receipt."
+      },
+      "qr": {
+        "title": "QR code",
+        "hint": "A code customers can scan from the paper.",
+        "source": "QR links to",
+        "sources": {
+          "off": "No QR code",
+          "storefront": "Your online store",
+          "custom": "A link or text you choose"
+        },
+        "customValue": "Link or text",
+        "label": "Caption",
+        "labelPlaceholder": "e.g. Shop online",
+        "size": "Size (mm)",
+        "placementHint": "A4: bottom left, beside the signature. Receipts: centred above the footer (max 30 mm)."
+      },
+      "documents": {
+        "title": "Settings for: {doc}",
+        "hint": "Change what this one document prints. Pick a document in the preview above.",
+        "kinds": {
+          "invoice": "Invoice",
+          "deliveryNote": "Delivery note",
+          "purchaseOrder": "Purchase order",
+          "return": "Return",
+          "paymentReceipt": "Payment receipt",
+          "statement": "Statement"
+        },
+        "docTitle": "Title",
+        "docTitlePlaceholder": "Default title (e.g. \"Cash Memo\" instead of \"Invoice\")",
+        "footer": "Footer note",
+        "terms": "Terms",
+        "textModes": {
+          "inherit": "Same as all documents",
+          "custom": "Custom for this document",
+          "none": "None on this document"
+        },
+        "triModes": {
+          "inherit": "Same as all documents",
+          "on": "Show",
+          "off": "Hide"
+        },
+        "showPaymentDetails": "Payment details",
+        "showQr": "QR code",
+        "signature": "Signature lines",
+        "leftLabel": "Left line",
+        "rightLabel": "Right line",
+        "inherit": "Same as all documents",
+        "receivedBy": "e.g. Received by",
+        "noItemTableHint": "This document has no item table, so the item column settings don't apply."
+      },
+      "thermal": {
+        "title": "Receipt printer",
+        "hint": "80mm and 58mm thermal receipts.",
+        "fontScale": "Text size",
+        "fontScales": {
+          "sm": "Small",
+          "md": "Normal",
+          "lg": "Large"
+        },
+        "sideMargin": "Side margin (mm)",
+        "sideMarginPlaceholder": "Default (3mm / 2mm)"
+      },
+      "copies": {
+        "title": "Copies",
+        "hint": "Print several copies in one go, each with its own label.",
+        "count": "Copies per print",
+        "labelN": "Copy {n} label",
+        "defaults": {
+          "0": "Customer Copy",
+          "1": "Shop Copy",
+          "2": "Office Copy"
+        }
+      },
+      "autoPrint": {
+        "title": "POS counter",
+        "hint": "Applies to the full-screen POS only, not New Sale.",
+        "label": "Open the print dialog after each sale",
+        "browserHint": "Browsers can't print without asking — this opens the dialog for the cashier to confirm."
+      }
+    },
+    "previewDocLabel": "Preview document"
   },
   "roles": {
     "title": "Roles",
@@ -838,9 +1055,7 @@
       "active": "Active",
       "activeDescription": "Currently active",
       "percentage": "Percentage",
-      "percentageDescription": "Percentage type",
-      "fixed": "Fixed Amount",
-      "fixedDescription": "Fixed amount type"
+      "percentageDescription": "Percentage type"
     },
     "form": {
       "name": "Discount Name",
@@ -849,7 +1064,6 @@
       "valuePlaceholder": "Enter discount value",
       "type": "Type",
       "percentage": "Percentage",
-      "fixed": "Fixed",
       "applicableTo": "Applicable To",
       "applicableBoth": "Both (Sales & Purchase)",
       "applicableSales": "Sales Only",
@@ -867,8 +1081,6 @@
     "filters": {
       "searchLabel": "Search discounts",
       "searchPlaceholder": "Search discounts...",
-      "typeLabel": "Type",
-      "typePlaceholder": "All types",
       "applicableLabel": "Applicable To",
       "applicablePlaceholder": "All",
       "applicableSales": "Sales",

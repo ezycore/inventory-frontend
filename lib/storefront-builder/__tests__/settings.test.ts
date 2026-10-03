@@ -127,11 +127,21 @@ describe("readImage", () => {
       url: "https://cdn.example/a.webp",
       mediumUrl: undefined,
       thumbnailUrl: undefined,
+      largeUrl: undefined,
       width: undefined,
       height: 600,
       alt: "Cushion",
     });
     expect(readImage({ url: "data:image/png;base64,AAAA" })).toBeUndefined();
+  });
+
+  it("carries the large rendition through, and refuses a non-http one", () => {
+    // The backend stores `largeUrl` for a wide section upload; this reader is the
+    // only step between it and `SfImage`, and once dropped it silently.
+    expect(readImage({ url: "https://cdn.example/h.webp", largeUrl: "https://cdn.example/h_lg.webp" })?.largeUrl).toBe(
+      "https://cdn.example/h_lg.webp",
+    );
+    expect(readImage({ url: "https://cdn.example/h.webp", largeUrl: "javascript:x" })?.largeUrl).toBeUndefined();
   });
 });
 
