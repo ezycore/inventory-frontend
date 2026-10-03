@@ -9,6 +9,17 @@ describe("responsiveImageSources", () => {
     ).toEqual({ src: "/a.webp", srcSet: "/a_md.webp 800w, /a.webp 1600w" });
   });
 
+  it("adds the large rendition for a wide section picture, keeping the original as src", () => {
+    expect(
+      responsiveImageSources({
+        url: "/h.webp",
+        mediumUrl: "/h_md.webp",
+        thumbnailUrl: "/h_thumb.webp",
+        largeUrl: "/h_lg.webp",
+      }),
+    ).toEqual({ src: "/h.webp", srcSet: "/h_md.webp 800w, /h.webp 1600w, /h_lg.webp 2560w" });
+  });
+
   it("gives no srcset when there is nothing to choose between", () => {
     // An image imported by URL stores the same URL in all three fields.
     expect(responsiveImageSources({ url: "/x.jpg", mediumUrl: "/x.jpg", thumbnailUrl: "/x.jpg" })).toEqual({
