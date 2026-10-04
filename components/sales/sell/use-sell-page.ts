@@ -86,7 +86,9 @@ const toSaleItemPayload = (item: {
         quantity: item.quantity,
         price: item.price,
         costPrice: item.costPrice,
-        discount: item.discount,
+        // Capped here, not while typing (see `handleUpdatePrice`): the server
+        // takes `quantity × (price − discount)` with no floor.
+        discount: Math.min(item.discount, item.price),
         productName: item.productName,
         taxRate: item.taxRate,
         taxType: item.taxType,
@@ -383,6 +385,32 @@ export function useSellPage({
     [updateItem],
   );
 
+  // Price for THIS sale only — the product's MRP is untouched. With a customer
+  // discount in force it is re-applied to the new price, exactly as the
+  // order-discount effect above does; otherwise the line's own discount is left
+  // as typed. Never clamp here: this runs per keystroke, so typing "500" passes
+  // through 5 and a clamp would ratchet the discount down for good —
+  // `toSaleItemPayload` caps it at submit instead. Combo lines are priced by the
+  // server. Reads the store directly so the callback (and the cart columns,
+  // whose inputs would otherwise lose focus) stay stable.
+  const handleUpdatePrice = useCallback(
+    (id: string, price: number) => {
+      const state = useSellPageStore.getState();
+      const item = state.items.find((i) => i.id === id);
+      if (!item || item.isCombo) return;
+      const discount =
+        state.orderDiscountValue > 0
+          ? applyDiscountWithPriority({
+              price,
+              orderDiscountType: state.orderDiscountType,
+              orderDiscountValue: state.orderDiscountValue,
+            }).discount
+          : item.discount || 0;
+      updateItem(id, { price, discount, salePrice: Math.max(0, price - discount) });
+    },
+    [updateItem],
+  );
+
   const allSalesColumns = useMemo(
     () =>
       getSalesColumns(
@@ -395,8 +423,9 @@ export function useSellPage({
         isExpiryEnabled,
         isTaxEnabled,
         renderThumb,
+        handleUpdatePrice,
       ),
-    [updateItem, handleUpdateDiscount, removeItem, symbol, isExpiryEnabled, isTaxEnabled, renderThumb, t],
+    [updateItem, handleUpdateDiscount, handleUpdatePrice, removeItem, symbol, isExpiryEnabled, isTaxEnabled, renderThumb, t],
   );
   const salesColumns = useCostGatedColumns(allSalesColumns);
 
@@ -816,6 +845,7 @@ export function useSellPage({
     updateItem,
     removeItem,
     handleUpdateDiscount,
+    handleUpdatePrice,
     isExpiryEnabled,
     isPending,
     isSavingDraft: updateDraftMutation.isPending,

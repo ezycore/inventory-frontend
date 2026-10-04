@@ -62,3 +62,22 @@ export const deriveLinePricing = (
     costPrice,
   };
 };
+
+/**
+ * Discount after the user edits a line's Price (MRP). Cost is what the merchant
+ * actually pays, so it stays; the discount is re-derived as price − cost.
+ */
+export const discountForEditedPrice = (price: number, costPrice: number): number =>
+  roundMoney(Math.max(0, price - costPrice));
+
+/**
+ * Whether a line's Price should be written back as the product's MRP
+ * (`updateMrp` on the API). True when it differs from `mrpBoxPrice` — the price
+ * the line started from. A zero price is never an MRP; it is a cleared field.
+ */
+export const isMrpEdited = (linePrice: number, mrpBoxPrice: number): boolean =>
+  linePrice > 0 && roundMoney(linePrice) !== roundMoney(mrpBoxPrice);
+
+/** Per-base-unit MRP for a pack-priced line — what `updateMrp` will store. */
+export const mrpPerBaseUnit = (boxPrice: number, conversionFactor: number): number =>
+  roundMoney(boxPrice / (conversionFactor > 0 ? conversionFactor : 1));

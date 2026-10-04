@@ -9,6 +9,28 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- Purchases: Price (MRP) is editable when adding or editing a line. A changed price
+  updates the product's MRP (and its own online price, if set) when the purchase is
+  saved; a hint under the field says so, per piece for pack purchases.
+- New Sale and POS: the line price is editable for that sale (the product's MRP is not
+  changed). Combo lines stay fixed; a customer discount follows the new price.
+
+### Changed
+- New Purchase: Invoice Date defaults to today on the organization's calendar
+  (also after each save, and for a draft that has none).
+- New Purchase and Edit Purchase Order now share one edit-item dialog (Price and
+  Cost editable in both).
+
+### Removed
+- The "Remember Cost Price" checkbox (it was never sent to the server), and the
+  disabled "Per-line cost will update product cost on save" checkbox on Edit
+  Purchase Order.
+
+### Deploy notes
+- Needs the backend with `updateMrp` on purchase lines (inventory-backend Unreleased).
+  Deploy the backend first: an older backend rejects nothing, but silently ignores the flag.
+
 ## [1.0.0] - 2026-10-03
 
 First versioned release. Everything live before this date is the baseline; the
