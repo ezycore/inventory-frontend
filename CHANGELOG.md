@@ -9,6 +9,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Changed
+- New Purchase / Edit Purchase: "Stock" is now **Current Stock**, "Price (MRP)" is now **Sale Price**, "Discount" is now
+  **Discount (per unit)**, and the add-product row reads Sale Price → Discount → Cost Price
+  so it follows Sale Price − Discount = Cost Price. Labels only; nothing about the math changed.
+
 ## [1.1.0] - 2026-10-04
 
 ### Added
