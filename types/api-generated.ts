@@ -14438,6 +14438,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14465,6 +14469,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14569,6 +14577,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14665,6 +14677,10 @@ export interface components {
             visibility?: {
                 desktop?: boolean;
                 mobile?: boolean;
+                products?: {
+                    categories?: string[];
+                    tags?: string[];
+                };
             };
             settings: {
                 [key: string]: unknown;

@@ -7,6 +7,7 @@ import {
   ProductPageView,
   type ProductShape,
 } from "@/components/storefront/product/product-page";
+import type { ProductPart } from "@/lib/storefront-builder/product-parts";
 
 /**
  * The product a product route resolved on the server, so the page's content is
@@ -34,12 +35,18 @@ export function ProductFromRoute({
   hideDescription,
   layout,
   shape,
+  parts,
+  promises,
 }: {
   hideRelated?: boolean;
   hideDescription?: boolean;
   layout?: string;
   /** The section's photo and related-row settings, already resolved to CSS values. */
   shape?: ProductShape;
+  /** The column beside the photos, in the section's order; unset is the column as it always was. */
+  parts?: readonly ProductPart[];
+  /** The store's promises, for a promises part. */
+  promises?: readonly { text: string; icon?: string }[];
 }) {
   const { initialProduct } = useContext(ProductDataContext);
   return (
@@ -49,6 +56,8 @@ export function ProductFromRoute({
       hideDescription={hideDescription}
       layout={layout}
       shape={shape}
+      parts={parts}
+      promises={promises}
     />
   );
 }

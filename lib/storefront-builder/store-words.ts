@@ -23,6 +23,7 @@ export const STORE_WORDS = [
   "campaignOff",
   "editorialTitle",
   "editorialSubtitle",
+  "description",
 ] as const satisfies readonly (keyof Dict)[];
 
 export type StoreWord = (typeof STORE_WORDS)[number];

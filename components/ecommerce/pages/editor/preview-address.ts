@@ -21,7 +21,8 @@ const SYSTEM_PAGE_PATHS: Readonly<Record<string, string>> = {
  * to show yet.
  *
  * Every product shares the one `product` page, so its preview needs a real
- * product to draw around — `productSlug`, the store's first. Without one there is
+ * product to draw around — `productSlug`, the one the merchant picked in the
+ * preview toolbar (the store's first until they pick). Without one there is
  * nothing to preview, not a broken address.
  */
 export function previewAddress(

@@ -106,6 +106,13 @@ export const SECTION_CATALOGUE: Record<SectionType, SectionEntry> = {
     description: "A product's photos, options and buy buttons. Created when your product page moves onto the builder.",
     addable: false,
   },
+  "product-description": {
+    label: "Description",
+    group: "Products",
+    description:
+      "The product's own description, here instead of under the product. Turn on Hide the product's own words in the Product section so it does not show twice.",
+    addable: true,
+  },
   "related-products": {
     label: "Related products",
     group: "Products",
@@ -390,6 +397,7 @@ const FIELD_LABELS: Record<string, string> = {
   "collection-grid.columns": "Exact number in a row",
   "collection-grid.heading": "Heading (all collections)",
   "collection-grid.hideHeading": "Hide the heading",
+  "product-description.hideHeading": "Hide the heading",
   "collection-grid.hideCount": "Hide the results count",
   "collection-grid.cardImageRatio": "Card photo shape",
   "collection-grid.cardImageFit": "Card photo fit",
@@ -397,6 +405,9 @@ const FIELD_LABELS: Record<string, string> = {
   "campaign-main.pagination": "Loading more products",
   "campaign-main.hideBanner": "Hide the sale banner",
   "product-main.layout": "Photo layout",
+  "product-main.title": "Title",
+  "product-main.text": "Text",
+  "product-main.open": "Starts open",
   /* The page's big photo, not a card — so it takes `image-text`'s words rather
      than "Card photo shape", which on THIS section means the row underneath. */
   "product-main.imageRatio": "Product photo shape",
@@ -502,6 +513,8 @@ const HINTS: Record<string, string> = {
   cardButtons: "The fill of this section's Add to cart and Buy now. Default follows Look → Buttons.",
   "product-main.cardCorners": "The corners of the “You may also like” cards. Default follows Look → Corner radius.",
   "product-main.cardButtons": "The fill of the “You may also like” buttons. Default follows Look → Buttons.",
+  "product-main.title": "What shoppers tap to open it — “Size chart”, “Care”. It shows nothing without one.",
+  "product-main.open": "Off shows just the title until a shopper taps it.",
   coupon: "Lets shoppers type a coupon code into the form. Off by default.",
   galleryLayout: "Default uses your store's product page layout.",
   "product-main.layout": "Default keeps the layout your store already used. This page shows every product, so a change here applies to all of them.",
@@ -513,7 +526,8 @@ const HINTS: Record<string, string> = {
   "product-main.imageFit":
     "Default follows Customize → Product cards. Full photo shows the whole picture; Cropped fills the frame and trims what does not fit.",
   "product-main.hideDescription":
-    "Takes the product's description off every product page. Use it where a Rich text or FAQ section below tells it better.",
+    "Takes the product's description off the product block on every product page. To show it somewhere else on the page, add a Description section there.",
+  "product-description.heading": "Empty shows “Description” in the shopper's language.",
   "product-main.relatedLimit": "How many products the “You may also like” row shows. Empty shows four.",
   "product-main.relatedColumns": "How many of them sit on a line. Empty follows your store's usual grid.",
   "collection-grid.layout": "Default keeps the layout your store already used, on every category page.",

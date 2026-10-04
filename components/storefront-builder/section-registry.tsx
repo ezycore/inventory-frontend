@@ -32,6 +32,7 @@ import { CampaignMainSection } from "@/components/storefront-builder/sections/ca
 import { CollectionGridSection } from "@/components/storefront-builder/sections/collection-grid";
 import { ProductMainSection } from "@/components/storefront-builder/sections/product-main";
 import { RelatedProductsSection } from "@/components/storefront-builder/sections/related-products";
+import { ProductDescriptionSection } from "@/components/storefront-builder/sections/product-description";
 import { CollectionsRowSection } from "@/components/storefront-builder/sections/collections-row";
 import { FaqSection } from "@/components/storefront-builder/sections/faq";
 import { GallerySection } from "@/components/storefront-builder/sections/gallery";
@@ -270,6 +271,9 @@ export const SECTION_REGISTRY: Partial<Record<SectionType, RenderableSection>> =
   }),
   "product-main": defineSection(SECTION_SPECS["product-main"], ProductMainSection, {
     frame: { top: "0px", bottom: "0px", width: "full" },
+  }),
+  "product-description": defineSection(SECTION_SPECS["product-description"], ProductDescriptionSection, {
+    isEmpty: (_settings, _blocks, _data, context) => !context.product?.description,
   }),
   "related-products": defineSection(SECTION_SPECS["related-products"], RelatedProductsSection, {
     isEmpty: (_settings, _blocks, _data, context) => !context.product,

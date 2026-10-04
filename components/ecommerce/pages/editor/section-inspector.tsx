@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowLeft, ArrowUp, Plus, Trash2 } from "lucide-react";
 import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import type { SectionType } from "@/lib/storefront-builder/section-specs";
+import type { CatalogProduct } from "@/lib/storefront-client";
 import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { Switch } from "@/ui/components/switch";
@@ -19,9 +20,11 @@ import {
 } from "./section-instances";
 import { SectionStyleFields } from "./section-style-fields";
 import { isFieldVisible } from "./field-visibility";
+import { ProductPartsEditor } from "./product-parts-editor";
+import { ProductTargetsField } from "./product-targets-field";
+import { withProductTargets, withScreen } from "./section-visibility";
 import { SettingsFields } from "./settings-fields";
 
-type Screen = "desktop" | "mobile";
 
 const catalogueEntry = (type: string) =>
   Object.hasOwn(SECTION_CATALOGUE, type) ? SECTION_CATALOGUE[type as SectionType] : undefined;
@@ -59,23 +62,6 @@ function moveBlock(blocks: EditorBlock[], index: number, delta: -1 | 1): EditorB
   return next;
 }
 
-/** Shown everywhere is the default, stored as no `visibility` at all rather than two `true`s. */
-function withVisibility(section: EditorSection, screen: Screen, visible: boolean): EditorSection {
-  const hidden = {
-    desktop: screen === "desktop" ? !visible : section.visibility?.desktop === false,
-    mobile: screen === "mobile" ? !visible : section.visibility?.mobile === false,
-  };
-  const { visibility: _previous, ...rest } = section;
-  if (!hidden.desktop && !hidden.mobile) return rest;
-  return {
-    ...rest,
-    visibility: {
-      ...(hidden.desktop ? { desktop: false } : {}),
-      ...(hidden.mobile ? { mobile: false } : {}),
-    },
-  };
-}
-
 /**
  * The open section's settings — the rail's second view, in two tabs. Content:
  * its own settings, its repeatable items (each with its settings, order and
@@ -92,9 +78,12 @@ export function SectionInspector({
   onClose,
   context,
   siblingAnchors = [],
+  previewProduct,
 }: {
   section: EditorSection;
   device: EditorDevice;
+  /** The product the preview is drawn around, on the product page. */
+  previewProduct?: CatalogProduct | null;
   /** The page being edited, for the settings that page supplies itself. */
   context?: SectionPageContext;
   /** Link names the other sections on this page already use, to list and to warn on. */
@@ -176,6 +165,14 @@ export function SectionInspector({
             </p>
           ) : null}
 
+          {/* The product page's parts come first: arranging the column beside
+              the photos is what that page is opened for. They are its blocks,
+              edited as one short list (`ProductPartsEditor`) instead of the
+              card-per-item list below. */}
+          {section.type === "product-main" ? (
+            <ProductPartsEditor section={section} device={device} onChange={onChange} />
+          ) : null}
+
           <SettingsFields
             idPrefix={section.id}
             sectionType={section.type}
@@ -187,7 +184,7 @@ export function SectionInspector({
             onChange={(settings) => onChange({ ...section, settings })}
           />
 
-          {spec.blocks && showsBlocks ? (
+          {spec.blocks && showsBlocks && section.type !== "product-main" ? (
             <div className="space-y-3 border-t pt-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{item}s</h3>
@@ -278,10 +275,20 @@ export function SectionInspector({
                   <Switch
                     id={`${section.id}-show-${screen}`}
                     checked={section.visibility?.[screen] !== false}
-                    onCheckedChange={(checked) => onChange(withVisibility(section, screen, checked))}
+                    onCheckedChange={(checked) => onChange(withScreen(section, screen, checked))}
                   />
                 </div>
               ))}
+              {/* One page draws every product, so a section here can be limited
+                  to some of them — the size guide for cushions, not floor mats. */}
+              {context === "product" ? (
+                <ProductTargetsField
+                  id={section.id}
+                  targets={section.visibility?.products}
+                  previewProduct={previewProduct}
+                  onChange={(targets) => onChange(withProductTargets(section, targets))}
+                />
+              ) : null}
             </div>
           )}
         </TabsContent>
