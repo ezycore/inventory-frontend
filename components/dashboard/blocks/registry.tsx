@@ -7,7 +7,6 @@ import { TopSoldItems } from '@/components/dashboard/top-sold-items'
 import { LowStockAlerts } from '@/components/dashboard/low-stock-alerts'
 import { ActivitySection } from '@/components/dashboard/activity-section'
 import { FinancialInsights } from '@/components/dashboard/financial-insights'
-import { QuickActions } from '@/components/dashboard/quick-actions'
 import { RecentOrders } from '@/components/dashboard/recent-orders'
 import { OrderFulfillment, StoreHealth } from './order-panels'
 import {
@@ -135,5 +134,6 @@ export const DASHBOARD_BLOCK_VIEWS: Partial<
   'orders.recent': { layout: 'half', Component: () => <RecentOrders /> },
   'store.health': { layout: 'half', Component: () => <StoreHealth /> },
 
-  'actions.quick': { layout: 'full', Component: () => <QuickActions /> },
+  // Quick actions are not a block: they are page chrome, drawn by the dashboard
+  // page above the period filter (`components/dashboard/quick-actions.tsx`).
 }

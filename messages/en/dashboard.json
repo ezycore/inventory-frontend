@@ -57,7 +57,9 @@
     "orders": "Orders",
     "ordersTitle": "Sales & orders",
     "counterSales": "Counter sales",
-    "onlyOrdersTitle": "Orders"
+    "onlyOrdersTitle": "Orders",
+    "ordersVsPurchasesTitle": "Orders vs Purchases",
+    "purchasesTitle": "Purchases"
   },
   "summary": {
     "receivable": "Receivable",
@@ -118,14 +120,17 @@
   },
   "quickActions": {
     "title": "Quick Actions",
-    "subtitle": "Jump to common tasks",
     "newSale": "New Sale",
-    "purchase": "Purchase",
+    "newSaleHint": "Open the POS counter",
+    "onlineOrders": "Online Orders",
+    "onlineOrdersHint": "Confirm, pack and dispatch",
+    "toConfirm": "{count} to confirm",
     "addProduct": "Add Product",
-    "transferStock": "Transfer Stock",
-    "adjustStock": "Adjust Stock",
-    "viewReports": "View Reports",
-    "onlineOrders": "Online Orders"
+    "newPurchase": "New Purchase",
+    "customers": "Customers",
+    "lowStock": "Low Stock",
+    "customizeStore": "Customize Store",
+    "reports": "Reports"
   },
   "restricted": {
     "title": "Sales figures aren't shown for your role",

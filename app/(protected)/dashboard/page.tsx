@@ -16,6 +16,7 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { PeriodFilter } from '@/components/shared/period-filter'
 import { ReportsRestricted } from '@/components/dashboard/reports-restricted'
 import { DashboardBlockList } from '@/components/dashboard/blocks/block-renderer'
+import { QuickActions } from '@/components/dashboard/quick-actions'
 import type { DashboardBlockContext } from '@/components/dashboard/blocks/context'
 
 /**
@@ -92,6 +93,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <DashboardHeader firstName={firstName} timezone={timezone} />
+
+      {/* Above the period filter: shortcuts are not period-scoped. */}
+      <QuickActions overview={overview} />
 
       {canViewReports ? (
         <PeriodFilter

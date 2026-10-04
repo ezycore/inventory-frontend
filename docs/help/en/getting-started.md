@@ -47,7 +47,10 @@ if you help run more than one business you will be asked which one to open.
 
 The dashboard is the first screen after signing in. It answers "what needs my attention today":
 
-- **Quick Actions** — shortcuts to the things you do most, like starting a new sale.
+- **Quick Actions** — right under the greeting: big buttons for the screens you open every day
+  (a new sale, your online orders) and shortcuts below them. A number on a shortcut means something
+  is waiting, like orders to confirm or items running low. You only see shortcuts for the features
+  your shop uses.
 - **Low Stock Alerts** — items running low, so you can reorder before you run out.
 - Sales and purchase trends, top selling items, and recent stock movements.
 
