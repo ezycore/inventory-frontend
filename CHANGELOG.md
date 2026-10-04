@@ -21,6 +21,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   (also after each save, and for a draft that has none).
 - New Purchase and Edit Purchase Order now share one edit-item dialog (Price and
   Cost editable in both).
+- Sidebar: the product list under Products is now labelled "All products" (bn "সব পণ্য")
+  instead of repeating "Products". The page title and breadcrumb are unchanged.
 
 ### Removed
 - The "Remember Cost Price" checkbox (it was never sent to the server), and the
