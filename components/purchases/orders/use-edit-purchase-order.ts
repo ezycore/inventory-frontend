@@ -11,11 +11,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import {
+  discountForEditedPrice,
   getProductFormConfig,
   getSupplierFormConfig,
+  isMrpEdited,
   makeProductFormSchema,
 } from "@/components/purchases";
-import { extractProductValue } from "@/components/sales";
+import { roundMoney } from "@/lib/money";
+import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { isVatActive } from "@/lib/feature-utils";
 import { useCurrency } from "@/lib/currency";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
@@ -96,7 +99,6 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       price: 0,
       discount: 0,
       costPrice: 0,
-      rememberCostPrice: false,
       stock: "",
     },
   });
@@ -110,7 +112,6 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       price: 0,
       discount: 0,
       costPrice: 0,
-      rememberCostPrice: false,
     },
   });
 
@@ -137,6 +138,9 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           productName: it.productName ?? "Unknown",
           quantity: qty,
           price: it.price,
+          // Never carry the stored flag: it was applied when the order was
+          // saved, and resending it would revert a later hand edit of the MRP.
+          updateMrp: false,
           costPrice,
           discount: Math.max(0, (it.price ?? 0) - costPrice),
           total: costPrice * qty,
@@ -236,6 +240,11 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           const conversionFactor = product.conversionFactor || 1;
           productForm.setValue("convertedQuantity", quantity * conversionFactor);
         }
+      } else if (fieldName === "price") {
+        productForm.setValue(
+          "discount",
+          discountForEditedPrice((value as number) || 0, productForm.getValues("costPrice") || 0),
+        );
       } else if (fieldName === "discount") {
         const boxPrice = productForm.getValues("price") || 0;
         const boxDiscount = (value as number) || 0;
@@ -257,6 +266,9 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         return;
       }
       const conversionFactor = product.conversionFactor || 1;
+      const mrpBoxPrice = roundMoney((product.price || 0) * conversionFactor);
+      const price = roundMoney(data.price || 0);
+      const updateMrp = isMrpEdited(price, mrpBoxPrice);
       const newItem: PurchaseOrderItem = {
         id: uuidv4(),
         productId: product.productId,
@@ -264,7 +276,8 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         inventoryId: product.value,
         productName: product.label,
         quantity: data.quantity,
-        price: data.price || 0,
+        price: updateMrp ? price : mrpBoxPrice,
+        updateMrp,
         costPrice: data.costPrice || 0,
         discount: data.discount || 0,
         total: (data.costPrice || 0) * data.quantity,
@@ -294,7 +307,6 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
         price: 0,
         discount: 0,
         costPrice: 0,
-        rememberCostPrice: false,
       });
     },
     [productForm, isTaxEnabled, t],
@@ -320,7 +332,6 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       price: item.price,
       discount: item.discount,
       costPrice: item.costPrice,
-      rememberCostPrice: false,
     });
     setIsEditDialogOpen(true);
   }, [editForm]);
@@ -330,6 +341,11 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       if (fieldName === "quantity") {
         const conversionFactor = editingItem?.conversionFactor || 1;
         editForm.setValue("convertedQuantity", ((value as number) || 1) * conversionFactor);
+      } else if (fieldName === "price") {
+        editForm.setValue(
+          "discount",
+          discountForEditedPrice((value as number) || 0, editForm.getValues("costPrice") || 0),
+        );
       } else if (fieldName === "discount") {
         const boxPrice = editForm.getValues("price") || 0;
         editForm.setValue("costPrice", Math.max(0, boxPrice - ((value as number) || 0)));
@@ -344,13 +360,16 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
   const handleSaveEdit = useCallback(() => {
     if (!editingItem) return;
     const data = editForm.getValues();
+    const price = roundMoney(data.price || 0);
+    const updateMrp = editingItem.updateMrp === true || isMrpEdited(price, editingItem.price);
     setItems((prev) =>
       prev.map((it) =>
         it.id === editingItem.id
           ? {
               ...it,
               quantity: data.quantity,
-              price: data.price,
+              price: updateMrp ? price : editingItem.price,
+              updateMrp,
               discount: data.discount,
               costPrice: data.costPrice,
               convertedQuantity: data.convertedQuantity,
@@ -374,10 +393,11 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       const dto: CreatePurchaseOrderItemDto = {
         productId: item.productId,
         variantId: item.variantId,
-        inventoryId: item.inventoryId,
+        inventoryId: inventoryIdForApi(item.inventoryId),
         productName: item.productName,
         quantity: item.quantity,
         price: item.price,
+        updateMrp: item.updateMrp === true,
         costPrice: item.costPrice,
         discount: item.discount,
         taxRate: item.taxRate,

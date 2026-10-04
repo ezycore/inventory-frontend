@@ -249,8 +249,10 @@ Fields use a **12-column CSS grid**. Each field's `columnSpan` determines how ma
 ### Select fields
 
 Two renderers, same config surface (`options` / `optionsApi`, `mode`, `labelInValue`,
-`defaultFlag`, `creatable` + `quickAddModule`, `dependsOn`, `autoFillFields`, `copyValueTo`) — both
-wired in `ui/components/form/field-select-inputs.tsx`.
+`defaultFlag` (+ `defaultFallbackLabel`), `creatable` + `quickAddModule`, `dependsOn`, `autoFillFields`,
+`copyValueTo`) — both wired in `ui/components/form/field-select-inputs.tsx`. On create, `defaultFlag`
+pre-fills the option carrying that flag; when none does, `defaultFallbackLabel` pre-fills the option
+with that label instead (`findDefaultOption`, `ui/components/select-default.ts` — shared by both renderers).
 
 | | `select` | `fuseSelect` |
 |---|---|---|

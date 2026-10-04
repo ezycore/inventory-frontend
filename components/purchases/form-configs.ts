@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { DynamicFormConfig, FormFieldConfig } from "@/ui/components/form/type";
 import type { Translator } from "@/i18n/config";
 import { accountItemsCreateCallback, customerItemsCreateCallback, productItemsCreateCallback } from "../sales";
+import { isMrpEdited, mrpPerBaseUnit } from "./helpers";
 
 /**
  * Per-form zod messages (zod v4 ships no bn locale — docs/I18N.md). Callers pass
@@ -37,7 +38,6 @@ export const makeProductFormSchema = (msg?: {
     price: z.number().min(0),
     discount: z.number().min(0),
     costPrice: z.number().min(0),
-    rememberCostPrice: z.boolean().optional(),
     stock: z.string().optional(),
   });
 
@@ -151,12 +151,10 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
   ];
 
   fields.push(
-    // Disabled reference price, labeled "(MRP)" — it is the selling price ×
-    // conversion factor, shown so the box price looks right at a glance, not
-    // a field to fill in. Cost Price is the one that drives the line total
-    // (quantity × costPrice), so it sits immediately next to Price rather
-    // than after Discount — the two used to be two boxes apart, and typing
-    // into the disabled Price field silently did nothing.
+    // The selling price (MRP) × conversion factor, prefilled from the product.
+    // Editable: a changed value is written back as the product's MRP when the
+    // purchase is saved (`updateMrp`). Cost Price is what drives the line total
+    // (quantity × costPrice), so it sits immediately next to Price.
     {
       name: "price",
       label: t("form.price"),
@@ -166,7 +164,18 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       placeholder: "0",
       columnSpan: 4,
       validation: { min: 0 },
-      disabled: true,
+      helperText: (values) => {
+        const product = values?.productId;
+        if (!product || typeof product !== "object") return undefined;
+        const factor = product.conversionFactor || 1;
+        if (!isMrpEdited(values.price || 0, (product.price || 0) * factor)) return undefined;
+        return factor > 1
+          ? t("form.mrpWillUpdatePerUnit", {
+              amount: mrpPerBaseUnit(values.price, factor).toFixed(2),
+              unit: product.unitName || "",
+            })
+          : t("form.mrpWillUpdate");
+      },
     },
     {
       name: "costPrice",
@@ -187,13 +196,6 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       placeholder: "0",
       columnSpan: 4,
       validation: { min: 0 },
-    },
-    {
-      name: "rememberCostPrice",
-      label: t("form.rememberCostPrice"),
-      type: "checkbox",
-      required: false,
-      columnSpan: 12,
     },
   );
 

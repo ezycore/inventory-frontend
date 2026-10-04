@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { DiscountType } from "@/utils/discount";
 import type { AccountPaymentOption, SaleItemPayload, TaxType } from "@/types";
 
@@ -20,7 +21,8 @@ export interface CustomerApiItem {
 }
 
 export interface ProductApiItem {
-  _id: string; // inventoryId
+  /** inventoryId; null on a purchasable product with no row here yet. */
+  _id: string | null;
   name: string;
   price: number;
   costPrice: number;
