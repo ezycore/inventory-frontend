@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-04
+
 ### Added
 - Purchases: Price (MRP) is editable when adding or editing a line. A changed price
   updates the product's MRP (and its own online price, if set) when the purchase is
@@ -40,7 +42,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   It now adds, and the purchase creates its stock record.
 
 ### Deploy notes
-- Needs the backend with `updateMrp` on purchase lines (inventory-backend Unreleased).
+- Needs inventory-backend ≥ 1.1.0 (`updateMrp` on purchase lines).
   Deploy the backend first: an older backend rejects nothing, but silently ignores the flag.
 
 ## [1.0.0] - 2026-10-03
