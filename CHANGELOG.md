@@ -13,6 +13,23 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - New Purchase / Edit Purchase: "Stock" is now **Current Stock**, "Price (MRP)" is now **Sale Price**, "Discount" is now
   **Discount (per unit)**, and the add-product row reads Sale Price → Discount → Cost Price
   so it follows Sale Price − Discount = Cost Price. Labels only; nothing about the math changed.
+- Dashboard: Quick Actions moved from the bottom of the page to right under the greeting, above
+  the period filter. New Sale and Online Orders are now large tiles, Online Orders and Low Stock
+  show a live count, and Customers and Customize Store are new shortcuts. Transfer Stock and
+  Adjust Stock were removed from the dashboard (they're still in the sidebar). Phones get a
+  full-width New Sale button over an app-style icon grid. Every shortcut is now a real link, so
+  it opens in a new tab and keyboard focus shows a ring. Same feature/permission gating as before.
+
+### Fixed
+- Dashboard chart: the title now names the lines actually drawn. A shop with POS and the online
+  store off but purchasing on saw its purchases line titled "Orders"; it now reads "Purchases"
+  (and "Orders vs Purchases" for an online shop that also buys). A chart with no line the user
+  may see is no longer drawn at all.
+
+### Deploy notes
+- Deploy this **before** the backend release that drops the `actions.quick` dashboard block.
+  Backend first would leave the old frontend without a quick menu until this one ships; this
+  frontend never draws that block, so it is safe against either backend.
 
 ## [1.1.0] - 2026-10-04
 

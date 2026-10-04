@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$ROOT_DIR"
-BACKEND_DIR="$(cd "$ROOT_DIR/../easystock-backend" && pwd)"
+BACKEND_DIR="$(cd "$ROOT_DIR/../inventory-backend" && pwd)"
 LOG_DIR="$ROOT_DIR/.ezycore-logs"
 
 mkdir -p "$LOG_DIR"
