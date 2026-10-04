@@ -11,10 +11,20 @@
  * which is exactly the bug the seeding exists to fix).
  */
 
-export const PRODUCTS_PAGE_SIZE = 12;
+/**
+ * Products per request on every collection, path and campaign page — one page in
+ * "Numbered pages", one click of "Load more", one step of infinite scroll.
+ *
+ * 12 until 2026-10-04 — only three rows of a 4-across grid per "Load more". 24
+ * still ends on a full row for every layout (2, 3, 4 and 6 across). Server seed
+ * and client both read this constant, so their cache keys stay equal. The
+ * backend clamps `limit` to 1–100.
+ */
+export const PRODUCTS_PAGE_SIZE = 24;
 
-/** Results per request on `/search` — larger than the collection page's, because
- *  search rows are denser and a searcher is scanning, not browsing. */
+/** Results per request on `/search` — the same as the collection page's, so a
+ *  shopper gets one rhythm of "Load more" across the shop. Kept separate in case
+ *  search wants its own again: its rows are denser and a searcher is scanning. */
 export const SEARCH_PAGE_SIZE = 24;
 
 /** The filter/sort params the collection page reads off the URL. */
