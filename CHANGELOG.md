@@ -23,6 +23,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   Cost editable in both).
 - Sidebar: the product list under Products is now labelled "All products" (bn "সব পণ্য")
   instead of repeating "Products". The page title and breadcrumb are unchanged.
+- Add Product: Base unit starts on "Piece" when no unit is marked as default
+  (a unit the merchant marked default still wins; editing a product is unaffected).
 
 ### Removed
 - The "Remember Cost Price" checkbox (it was never sent to the server), and the

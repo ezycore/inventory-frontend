@@ -416,6 +416,9 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             columnSpan: 12,
             optionsApi: selectOptions("units", { fields: "_id,name,shortName,isDefault" }),
             defaultFlag: "isDefault",
+            // Every org is seeded a "Piece" system unit, so a new product starts
+            // on it unless the merchant has marked another unit as default.
+            defaultFallbackLabel: "Piece",
             copyValueTo: ["saleUnit.unitId"],
             placeholder: tr('form.unitIdPlaceholder', "Select base unit"),
             tooltip: tr('form.unitIdTooltip', "The unit all stock is counted and reported in (e.g. Piece). Choose carefully — every quantity, including purchases and sales, is recorded in this unit."),
