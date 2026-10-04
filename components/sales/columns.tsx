@@ -93,6 +93,8 @@ export const getSalesColumns = (
   isTaxEnabled?: boolean,
   /** Optional photo beside the product name (the POS counter passes one). */
   renderThumb?: (item: SellOrderItem) => ReactNode,
+  /** Edits this sale's line price; the product MRP is untouched. Combo lines stay read-only. */
+  onUpdatePrice?: (id: string, price: number) => void,
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
@@ -122,11 +124,23 @@ export const getSalesColumns = (
     {
       accessorKey: "price",
       header: t("priceMrp"),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">
-          {formatCurrency(row.original.price)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const item = row.original;
+        if (!onUpdatePrice || item.isCombo) {
+          return <span className="text-sm tabular-nums">{formatCurrency(item.price)}</span>;
+        }
+        return (
+          <EditableNumberCell
+            value={item.price}
+            min={0}
+            max={Number.MAX_SAFE_INTEGER}
+            fallback={item.price}
+            precision={2}
+            onChange={(val) => onUpdatePrice(item.id, val)}
+            className="h-7 w-20 text-center text-sm tabular-nums px-1"
+          />
+        );
+      },
     },
     {
       accessorKey: "costPrice",

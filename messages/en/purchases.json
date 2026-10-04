@@ -37,7 +37,8 @@
     "price": "Price (MRP)",
     "discount": "Discount",
     "costPrice": "Cost Price",
-    "rememberCostPrice": "Remember Cost Price",
+    "mrpWillUpdate": "Saving updates this product's MRP",
+    "mrpWillUpdatePerUnit": "Saving sets the MRP to {amount} per {unit}",
     "paymentAccount": "Payment Account",
     "selectAccount": "Select account",
     "paidAmount": "Paid Amount",
@@ -105,10 +106,7 @@
     "price": "Price (MRP)",
     "discount": "Discount",
     "costPrice": "Cost Price",
-    "rememberCostPrice": "Remember Cost Price",
-    "perLineCostNote": "Per-line cost will update product cost on save",
-    "saveChanges": "Save Changes",
-    "save": "Save"
+    "saveChanges": "Save Changes"
   },
   "import": {
     "title": "Import Low Stock Products",

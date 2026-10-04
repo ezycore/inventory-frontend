@@ -37,7 +37,8 @@
     "price": "মূল্য (MRP)",
     "discount": "ছাড়",
     "costPrice": "ক্রয়মূল্য",
-    "rememberCostPrice": "ক্রয়মূল্য মনে রাখুন",
+    "mrpWillUpdate": "সংরক্ষণ করলে এই পণ্যের MRP আপডেট হবে",
+    "mrpWillUpdatePerUnit": "সংরক্ষণ করলে MRP হবে প্রতি {unit} {amount}",
     "paymentAccount": "পেমেন্ট অ্যাকাউন্ট",
     "selectAccount": "অ্যাকাউন্ট নির্বাচন করুন",
     "paidAmount": "পরিশোধিত অঙ্ক",
@@ -105,10 +106,7 @@
     "price": "মূল্য (MRP)",
     "discount": "ছাড়",
     "costPrice": "ক্রয়মূল্য",
-    "rememberCostPrice": "ক্রয়মূল্য মনে রাখুন",
-    "perLineCostNote": "সংরক্ষণে প্রতি-লাইনের খরচ পণ্যের ক্রয়মূল্য আপডেট করবে",
-    "saveChanges": "পরিবর্তন সংরক্ষণ করুন",
-    "save": "সংরক্ষণ"
+    "saveChanges": "পরিবর্তন সংরক্ষণ করুন"
   },
   "import": {
     "title": "কম স্টকের পণ্য ইমপোর্ট",

@@ -416,6 +416,9 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             columnSpan: 12,
             optionsApi: selectOptions("units", { fields: "_id,name,shortName,isDefault" }),
             defaultFlag: "isDefault",
+            // Every org is seeded a "Piece" system unit, so a new product starts
+            // on it unless the merchant has marked another unit as default.
+            defaultFallbackLabel: "Piece",
             copyValueTo: ["saleUnit.unitId"],
             placeholder: tr('form.unitIdPlaceholder', "Select base unit"),
             tooltip: tr('form.unitIdTooltip', "The unit all stock is counted and reported in (e.g. Piece). Choose carefully — every quantity, including purchases and sales, is recorded in this unit."),
@@ -485,6 +488,7 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             required: true,
             columnSpan: 12,
             placeholder: "0.00",
+            defaultValue: 0,
             validation: { min: 0, max: 999999 },
             customComponent: PriceFieldWithUnit,
           },
@@ -571,13 +575,15 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             // exists only so `addToInventory` is part of the generated zod schema.
             // Without a declared field the schema (z.object) strips the key on
             // submit, so the backend never receives it and skips inventory creation.
+            // On by default: with it off the product has no inventory row, so it
+            // is missing from Current Stock and the merchant has to add it again.
             name: "addToInventory",
             type: "checkbox",
             zodType: "boolean",
             label: "",
             hidden: true,
             columnSpan: 12,
-            defaultValue: false,
+            defaultValue: true,
           },
           {
             name: "locationId",

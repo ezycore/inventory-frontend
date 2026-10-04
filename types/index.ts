@@ -2133,6 +2133,8 @@ export interface CreatePurchaseOrderItemDto {
   productName?: string;
   quantity: number;
   price: number;
+  /** Price was edited — the save writes it back as the product MRP. */
+  updateMrp?: boolean;
   costPrice?: number;
   discount?: number;
   // Per-line purchase tax (from the product's purchaseTax). Server recomputes.

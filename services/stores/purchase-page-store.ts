@@ -63,6 +63,7 @@ export interface PurchaseOrderItem {
   quantity: number;
   costPrice: number; // purchase price (what we pay)
   price: number; // unit price for the purchase
+  updateMrp?: boolean; // Price was edited — the save writes it back as the product MRP
   discount: number;
   total: number;
   // Calculated fields
