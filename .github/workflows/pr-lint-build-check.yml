@@ -1,10 +1,12 @@
 name: PR and Push — Lint & Build Check
 
+# Development only. This used to also run on PRs into `main`, so the rc → main
+# release PR re-ran lint + build on every push to `rc` — work the deploy
+# workflow's image build already does for rc/main.
 on:
   pull_request:
     branches:
       - development
-      - main
 
 concurrency:
   group: lint-build-${{ github.workflow }}-${{ github.ref }}
