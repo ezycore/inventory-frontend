@@ -28,3 +28,10 @@ export function shouldUseSearchableSelect(params: {
   if (params.optionsApi) return true;
   return params.optionCount > SEARCHABLE_OPTION_THRESHOLD;
 }
+
+/**
+ * Value of the leading "All …" item a filter select adds through
+ * `clearOptionLabel`. Picking it clears the selection; it never reaches
+ * `onValueChange`. Radix forbids an empty-string item value, hence a sentinel.
+ */
+export const CLEAR_OPTION_VALUE = "__clear__";

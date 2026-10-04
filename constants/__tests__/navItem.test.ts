@@ -99,7 +99,9 @@ describe("navGroups — shop-only merchant", () => {
   it("shows the POS and hides the whole Online Store group", () => {
     const titles = visibleTitles(SHOP_ONLY);
 
-    expect(titles).toContain("New Sale");
+    // "New Sale" is `hideInMenu` since POS shipped — POS is the entry point.
+    expect(titles).toContain("POS");
+    expect(titles).not.toContain("New Sale");
     expect(titles).toContain("Sales History");
     expect(titles).not.toContain("Online Store");
     expect(titles).not.toContain("Store Overview");
@@ -132,7 +134,7 @@ describe("navGroups — online-only merchant", () => {
   });
 
   it("hides the POS screen itself", () => {
-    expect(visibleTitles(ONLINE_ONLY)).not.toContain("New Sale");
+    expect(visibleTitles(ONLINE_ONLY)).not.toContain("POS");
   });
 
   it("keeps returns, titled Returns, which returns online orders too", () => {

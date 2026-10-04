@@ -146,7 +146,9 @@ export function PaymentsDrawer({
                     a4Label={t('invoice')}
                     defaultPaper={resolveDefaultPaper(user?.organization)}
                     onPrint={(paper) =>
-                      printSaleInvoice(sale, {
+                      // Payments load separately from the sale; hand them to the
+                      // receipt so the "payment methods" rows can print.
+                      printSaleInvoice(sale.payments ? sale : { ...sale, payments }, {
                         paper,
                         currency: formatCurrency,
                         header: orgToPrintHeader(user?.organization),

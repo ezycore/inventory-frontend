@@ -384,6 +384,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/public/version
+         * @description Defined in `src/routes/public.routes.ts:23`.
+         */
+        get: operations["get_api_public_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/storefront/oauth/{provider}/callback": {
         parameters: {
             query?: never;
@@ -1245,7 +1265,7 @@ export interface paths {
         };
         /**
          * GET /api/organization
-         * @description Defined in `src/routes/organization.routes.ts:55`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:69`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization"];
         /**
@@ -1253,6 +1273,26 @@ export interface paths {
          * @description Defined in `src/routes/organization.routes.ts:44`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organization/receipt-images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * PUT /api/organization/receipt-images
+         * @description Defined in `src/routes/organization.routes.ts:58`. Requires permission `organization.edit`.
+         */
+        put: operations["put_api_organization_receipt_images"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1272,7 +1312,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/demo-data
-         * @description Defined in `src/routes/organization.routes.ts:62`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:76`. Requires permission `organization.edit`.
          */
         delete: operations["delete_api_organization_demo_data"];
         options?: never;
@@ -1289,7 +1329,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:69`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:83`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications"];
         put?: never;
@@ -1299,7 +1339,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/notifications
-         * @description Defined in `src/routes/organization.routes.ts:76`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:90`. Requires permission `organization.manage`.
          */
         patch: operations["patch_api_organization_notifications"];
         trace?: never;
@@ -1313,7 +1353,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/log
-         * @description Defined in `src/routes/organization.routes.ts:84`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:98`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_log"];
         put?: never;
@@ -1335,7 +1375,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/log/:id/resend
-         * @description Defined in `src/routes/organization.routes.ts:93`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:107`. Requires permission `organization.manage`.
          */
         post: operations["post_api_organization_notifications_log_id_resend"];
         delete?: never;
@@ -1353,7 +1393,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/notifications/sms/usage
-         * @description Defined in `src/routes/organization.routes.ts:101`. Requires permission `organization.manage`.
+         * @description Defined in `src/routes/organization.routes.ts:115`. Requires permission `organization.manage`.
          */
         get: operations["get_api_organization_notifications_sms_usage"];
         put?: never;
@@ -1375,7 +1415,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/sms/test
-         * @description Defined in `src/routes/organization.routes.ts:111`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:125`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_notifications_sms_test"];
         delete?: never;
@@ -1395,7 +1435,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/notifications/sms-template/preview
-         * @description Defined in `src/routes/organization.routes.ts:123`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:137`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
          */
         post: operations["post_api_organization_notifications_sms_template_preview"];
         delete?: never;
@@ -1414,7 +1454,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/notifications/sms-template
-         * @description Defined in `src/routes/organization.routes.ts:133`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:147`. Requires permission `organization.manage`. Gated by organization feature `smsNotifications` — returns 403 when disabled.
          */
         put: operations["put_api_organization_notifications_sms_template"];
         post?: never;
@@ -1433,7 +1473,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription
-         * @description Defined in `src/routes/organization.routes.ts:151`.
+         * @description Defined in `src/routes/organization.routes.ts:165`.
          */
         get: operations["get_api_organization_subscription"];
         put?: never;
@@ -1453,7 +1493,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/subscription/status
-         * @description Defined in `src/routes/organization.routes.ts:163`.
+         * @description Defined in `src/routes/organization.routes.ts:177`.
          */
         get: operations["get_api_organization_subscription_status"];
         put?: never;
@@ -1473,7 +1513,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/billing/pay-link
-         * @description Defined in `src/routes/organization.routes.ts:169`.
+         * @description Defined in `src/routes/organization.routes.ts:183`.
          */
         get: operations["get_api_organization_billing_pay_link"];
         put?: never;
@@ -1493,7 +1533,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/plans
-         * @description Defined in `src/routes/organization.routes.ts:176`.
+         * @description Defined in `src/routes/organization.routes.ts:190`.
          */
         get: operations["get_api_organization_plans"];
         put?: never;
@@ -1513,7 +1553,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/referral-link
-         * @description Defined in `src/routes/organization.routes.ts:184`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:198`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_referral_link"];
         put?: never;
@@ -1535,7 +1575,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change
-         * @description Defined in `src/routes/organization.routes.ts:191`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:205`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change"];
         delete?: never;
@@ -1555,7 +1595,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/plan-change/reconcile
-         * @description Defined in `src/routes/organization.routes.ts:198`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:212`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_plan_change_reconcile"];
         delete?: never;
@@ -1575,7 +1615,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/subscription/cancel
-         * @description Defined in `src/routes/organization.routes.ts:206`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:220`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_subscription_cancel"];
         delete?: never;
@@ -1594,7 +1634,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/form-settings
-         * @description Defined in `src/routes/organization.routes.ts:214`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:228`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_form_settings"];
         post?: never;
@@ -1613,12 +1653,12 @@ export interface paths {
         };
         /**
          * GET /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:225`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:239`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features"];
         /**
          * PUT /api/organization/features
-         * @description Defined in `src/routes/organization.routes.ts:242`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:256`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_features"];
         post?: never;
@@ -1637,7 +1677,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/features/impact
-         * @description Defined in `src/routes/organization.routes.ts:234`. Requires permission `organization.view`.
+         * @description Defined in `src/routes/organization.routes.ts:248`. Requires permission `organization.view`.
          */
         get: operations["get_api_organization_features_impact"];
         put?: never;
@@ -1659,7 +1699,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/onboarding
-         * @description Defined in `src/routes/organization.routes.ts:252`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:266`. Requires permission `organization.edit`.
          */
         post: operations["post_api_organization_onboarding"];
         delete?: never;
@@ -1678,7 +1718,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/column-settings
-         * @description Defined in `src/routes/organization.routes.ts:261`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:275`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_column_settings"];
         post?: never;
@@ -1697,7 +1737,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:272`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:286`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront"];
         put?: never;
@@ -1707,7 +1747,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront
-         * @description Defined in `src/routes/organization.routes.ts:280`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. ⚠️ Nested objects are REPLACED WHOLESALE, not merged. A block you omit is left untouched; a block you send, you own entirely — every key you leave out of it is deleted, or reset to its schema default where the schema defines one. Send the complete object for any block you touch.
+         * @description Defined in `src/routes/organization.routes.ts:294`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. ⚠️ Nested objects are REPLACED WHOLESALE, not merged. A block you omit is left untouched; a block you send, you own entirely — every key you leave out of it is deleted, or reset to its schema default where the schema defines one. Send the complete object for any block you touch.
          */
         patch: operations["patch_api_organization_storefront"];
         trace?: never;
@@ -1721,7 +1761,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/preview-token
-         * @description Defined in `src/routes/organization.routes.ts:292`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:306`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_preview_token"];
         put?: never;
@@ -1747,7 +1787,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/media
-         * @description Defined in `src/routes/organization.routes.ts:311`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:325`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_media"];
         trace?: never;
@@ -1763,7 +1803,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/media/image
-         * @description Defined in `src/routes/organization.routes.ts:324`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:338`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_organization_storefront_media_image"];
         delete?: never;
@@ -1781,7 +1821,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:341`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:355`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_meta"];
         put?: never;
@@ -1791,7 +1831,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/meta
-         * @description Defined in `src/routes/organization.routes.ts:349`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:363`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_meta"];
         trace?: never;
@@ -1807,7 +1847,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/organization/storefront/meta/test
-         * @description Defined in `src/routes/organization.routes.ts:361`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
+         * @description Defined in `src/routes/organization.routes.ts:375`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled. Rate limited to 6 requests / 1 hour per IP (`smsTestLimiter`).
          */
         post: operations["post_api_organization_storefront_meta_test"];
         delete?: never;
@@ -1828,7 +1868,7 @@ export interface paths {
         post?: never;
         /**
          * DELETE /api/organization/storefront/meta/token
-         * @description Defined in `src/routes/organization.routes.ts:373`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:387`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_organization_storefront_meta_token"];
         options?: never;
@@ -1845,7 +1885,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/clarity
-         * @description Defined in `src/routes/organization.routes.ts:393`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:407`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_clarity"];
         put?: never;
@@ -1855,7 +1895,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/clarity
-         * @description Defined in `src/routes/organization.routes.ts:402`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:416`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_clarity"];
         trace?: never;
@@ -1869,7 +1909,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/ga4
-         * @description Defined in `src/routes/organization.routes.ts:419`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:433`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_ga4"];
         put?: never;
@@ -1879,7 +1919,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/ga4
-         * @description Defined in `src/routes/organization.routes.ts:427`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:441`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_ga4"];
         trace?: never;
@@ -1893,7 +1933,7 @@ export interface paths {
         };
         /**
          * GET /api/organization/storefront/marketing
-         * @description Defined in `src/routes/organization.routes.ts:442`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:456`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_organization_storefront_marketing"];
         put?: never;
@@ -1903,7 +1943,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/organization/storefront/marketing
-         * @description Defined in `src/routes/organization.routes.ts:450`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/organization.routes.ts:464`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_organization_storefront_marketing"];
         trace?: never;
@@ -1918,7 +1958,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/organization/vat-settings
-         * @description Defined in `src/routes/organization.routes.ts:460`. Requires permission `organization.edit`.
+         * @description Defined in `src/routes/organization.routes.ts:474`. Requires permission `organization.edit`.
          */
         put: operations["put_api_organization_vat_settings"];
         post?: never;
@@ -7935,6 +7975,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -8009,6 +8050,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -8071,6 +8113,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -8136,6 +8179,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive" | "archived";
@@ -8242,6 +8286,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive" | "archived";
@@ -8304,6 +8349,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -8325,6 +8371,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -8365,6 +8412,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -8399,6 +8447,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -8447,6 +8496,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             /** @enum {string} */
             status: "active" | "inactive";
@@ -8489,6 +8539,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 /** @enum {string} */
                 status: "active" | "inactive";
@@ -8792,6 +8843,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             brandId?: string;
             categoryId?: string;
@@ -9384,6 +9436,8 @@ export interface components {
                 comboName?: string;
                 comboLineId?: string;
                 comboUnitQuantity?: number;
+                unitName?: string;
+                barcode?: string;
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9395,6 +9449,10 @@ export interface components {
             postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
+            customerBalanceBefore?: number;
+            customerBalanceAfter?: number;
+            tenderedAmount?: number;
+            changeAmount?: number;
             /** @enum {string} */
             status: "draft" | "due" | "partial" | "paid" | "cancelled";
             /** @enum {string} */
@@ -9492,6 +9550,8 @@ export interface components {
                 comboName?: string;
                 comboLineId?: string;
                 comboUnitQuantity?: number;
+                unitName?: string;
+                barcode?: string;
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9503,6 +9563,10 @@ export interface components {
             postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
+            customerBalanceBefore?: number;
+            customerBalanceAfter?: number;
+            tenderedAmount?: number;
+            changeAmount?: number;
             /** @enum {string} */
             status: "draft" | "due" | "partial" | "paid" | "cancelled";
             /** @enum {string} */
@@ -9566,6 +9630,8 @@ export interface components {
                 comboName?: string;
                 comboLineId?: string;
                 comboUnitQuantity?: number;
+                unitName?: string;
+                barcode?: string;
             }[];
             subtotal: number;
             additionalDiscount: number;
@@ -9577,6 +9643,10 @@ export interface components {
             postSaleDiscount?: number;
             dueAmount: number;
             costPrice: number;
+            customerBalanceBefore?: number;
+            customerBalanceAfter?: number;
+            tenderedAmount?: number;
+            changeAmount?: number;
             /** @enum {string} */
             status: "draft" | "due" | "partial" | "paid" | "cancelled";
             /** @enum {string} */
@@ -9714,6 +9784,8 @@ export interface components {
                     comboName?: string;
                     comboLineId?: string;
                     comboUnitQuantity?: number;
+                    unitName?: string;
+                    barcode?: string;
                 }[];
                 subtotal: number;
                 additionalDiscount: number;
@@ -9725,6 +9797,10 @@ export interface components {
                 postSaleDiscount?: number;
                 dueAmount: number;
                 costPrice: number;
+                customerBalanceBefore?: number;
+                customerBalanceAfter?: number;
+                tenderedAmount?: number;
+                changeAmount?: number;
                 /** @enum {string} */
                 status: "draft" | "due" | "partial" | "paid" | "cancelled";
                 /** @enum {string} */
@@ -10187,6 +10263,7 @@ export interface components {
                     /** @enum {string} */
                     vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
+                    updateMrp?: boolean;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
                     expiryDate?: string | null;
@@ -10297,6 +10374,7 @@ export interface components {
                 /** @enum {string} */
                 vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
+                updateMrp?: boolean;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
                 expiryDate?: string | null;
@@ -10368,6 +10446,7 @@ export interface components {
                 /** @enum {string} */
                 vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
+                updateMrp?: boolean;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
                 expiryDate?: string | null;
@@ -10439,6 +10518,7 @@ export interface components {
                     /** @enum {string} */
                     vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
+                    updateMrp?: boolean;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
                     expiryDate?: string | null;
@@ -10872,6 +10952,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             /** @enum {string} */
             status: "active" | "inactive";
@@ -10897,6 +10978,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -10934,6 +11016,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 storefront?: {
                     isListed?: boolean;
@@ -10973,6 +11056,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             storefront?: {
                 isListed?: boolean;
@@ -11013,6 +11097,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             description?: string | null;
             storefront?: {
@@ -12456,6 +12541,10 @@ export interface components {
                 segments: number;
             };
         };
+        AppVersion: {
+            version: string;
+            commit: string | null;
+        };
         AvailablePlan: {
             id: string;
             name: string;
@@ -12727,6 +12816,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             favicon?: {
                 url: string;
@@ -12734,6 +12824,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
                 pngUrl?: string;
             } | null;
             receiptSettings?: {
@@ -12749,6 +12840,26 @@ export interface components {
                 /** @enum {string} */
                 logoPlacement?: "top" | "watermark" | "both" | "hidden";
                 watermarkOpacity?: number;
+                logoSize?: {
+                    a4?: {
+                        heightMm: number;
+                        widthMm: number;
+                    };
+                    thermal80?: {
+                        heightMm: number;
+                        widthMm: number;
+                    };
+                    thermal58?: {
+                        heightMm: number;
+                        widthMm: number;
+                    };
+                };
+                watermarkSize?: {
+                    widthPct: number;
+                    heightPct: number;
+                };
+                /** @enum {string} */
+                watermarkPosition?: "center" | "top" | "bottom";
                 headerLines?: {
                     id: string;
                     /** @enum {string} */
@@ -12767,6 +12878,89 @@ export interface components {
                 showDocTitle?: boolean;
                 showAmountInWords?: boolean;
                 amountInWordsLabel?: string;
+                itemColumns?: {
+                    serial?: boolean;
+                    unit?: boolean;
+                    code?: boolean;
+                    discount?: boolean;
+                    /** @enum {string} */
+                    vat?: "off" | "rate" | "amount" | "both";
+                };
+                totals?: {
+                    showDue?: boolean;
+                    showPaymentMethods?: boolean;
+                    showPreviousBalance?: boolean;
+                    showTenderedChange?: boolean;
+                };
+                signature?: {
+                    enabled?: boolean;
+                    leftLabel?: string;
+                    rightLabel?: string;
+                    imageHeightMm?: number;
+                };
+                signatureImage?: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                    bytes?: number;
+                    largeUrl?: string;
+                } | null;
+                stampImage?: {
+                    url: string;
+                    mediumUrl: string;
+                    thumbnailUrl: string;
+                    publicId: string;
+                    bytes?: number;
+                    largeUrl?: string;
+                } | null;
+                paymentDetails?: {
+                    id: string;
+                    /** @enum {string} */
+                    kind: "bank" | "wallet";
+                    visible: boolean;
+                    bankName?: string;
+                    accountName?: string;
+                    accountNumber?: string;
+                    branch?: string;
+                    routingNumber?: string;
+                    /** @enum {string} */
+                    provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                    number?: string;
+                    /** @enum {string} */
+                    accountType?: "personal" | "merchant" | "agent";
+                    label?: string;
+                }[];
+                terms?: string;
+                qr?: {
+                    /** @enum {string} */
+                    source?: "off" | "storefront" | "custom";
+                    customValue?: string;
+                    label?: string;
+                    sizeMm?: number;
+                };
+                documents?: {
+                    [key: string]: {
+                        title?: string;
+                        footer?: string | null;
+                        terms?: string | null;
+                        showPaymentDetails?: boolean;
+                        showQr?: boolean;
+                        signature?: {
+                            enabled?: boolean;
+                            leftLabel?: string;
+                            rightLabel?: string;
+                        };
+                    };
+                };
+                thermal?: {
+                    /** @enum {string} */
+                    fontScale?: "sm" | "md" | "lg";
+                    sideMarginMm?: number;
+                };
+                copies?: number;
+                copyLabels?: string[];
+                autoPrintAfterSale?: boolean;
             };
             settings?: {
                 excludedFields?: {
@@ -12990,6 +13184,26 @@ export interface components {
             /** @enum {string} */
             logoPlacement?: "top" | "watermark" | "both" | "hidden";
             watermarkOpacity?: number;
+            logoSize?: {
+                a4?: {
+                    heightMm: number;
+                    widthMm: number;
+                };
+                thermal80?: {
+                    heightMm: number;
+                    widthMm: number;
+                };
+                thermal58?: {
+                    heightMm: number;
+                    widthMm: number;
+                };
+            };
+            watermarkSize?: {
+                widthPct: number;
+                heightPct: number;
+            };
+            /** @enum {string} */
+            watermarkPosition?: "center" | "top" | "bottom";
             headerLines?: {
                 id: string;
                 /** @enum {string} */
@@ -13008,6 +13222,89 @@ export interface components {
             showDocTitle?: boolean;
             showAmountInWords?: boolean;
             amountInWordsLabel?: string;
+            itemColumns?: {
+                serial?: boolean;
+                unit?: boolean;
+                code?: boolean;
+                discount?: boolean;
+                /** @enum {string} */
+                vat?: "off" | "rate" | "amount" | "both";
+            };
+            totals?: {
+                showDue?: boolean;
+                showPaymentMethods?: boolean;
+                showPreviousBalance?: boolean;
+                showTenderedChange?: boolean;
+            };
+            signature?: {
+                enabled?: boolean;
+                leftLabel?: string;
+                rightLabel?: string;
+                imageHeightMm?: number;
+            };
+            signatureImage?: {
+                url: string;
+                mediumUrl: string;
+                thumbnailUrl: string;
+                publicId: string;
+                bytes?: number;
+                largeUrl?: string;
+            } | null;
+            stampImage?: {
+                url: string;
+                mediumUrl: string;
+                thumbnailUrl: string;
+                publicId: string;
+                bytes?: number;
+                largeUrl?: string;
+            } | null;
+            paymentDetails?: {
+                id: string;
+                /** @enum {string} */
+                kind: "bank" | "wallet";
+                visible: boolean;
+                bankName?: string;
+                accountName?: string;
+                accountNumber?: string;
+                branch?: string;
+                routingNumber?: string;
+                /** @enum {string} */
+                provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                number?: string;
+                /** @enum {string} */
+                accountType?: "personal" | "merchant" | "agent";
+                label?: string;
+            }[];
+            terms?: string;
+            qr?: {
+                /** @enum {string} */
+                source?: "off" | "storefront" | "custom";
+                customValue?: string;
+                label?: string;
+                sizeMm?: number;
+            };
+            documents?: {
+                [key: string]: {
+                    title?: string;
+                    footer?: string | null;
+                    terms?: string | null;
+                    showPaymentDetails?: boolean;
+                    showQr?: boolean;
+                    signature?: {
+                        enabled?: boolean;
+                        leftLabel?: string;
+                        rightLabel?: string;
+                    };
+                };
+            };
+            thermal?: {
+                /** @enum {string} */
+                fontScale?: "sm" | "md" | "lg";
+                sideMarginMm?: number;
+            };
+            copies?: number;
+            copyLabels?: string[];
+            autoPrintAfterSale?: boolean;
         };
         ReferralLink: {
             code: string;
@@ -13026,6 +13323,7 @@ export interface components {
             thumbnailUrl: string;
             publicId: string;
             bytes?: number;
+            largeUrl?: string;
         };
         StorefrontPreviewToken: {
             token: string;
@@ -13044,6 +13342,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             banner?: {
                 url: string;
@@ -13051,6 +13350,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             socialImage?: {
                 url: string;
@@ -13058,6 +13358,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             mobileLogo?: {
                 url: string;
@@ -13065,6 +13366,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             storefrontLocationId?: string;
             /** @enum {string} */
@@ -13405,6 +13707,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
                 pngUrl?: string;
             } | null;
             banner?: unknown;
@@ -13510,6 +13813,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             productCount: number;
         };
@@ -13551,6 +13855,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             description?: string;
             children: {
@@ -13564,6 +13869,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 description?: string;
             }[];
@@ -13579,6 +13885,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             description: string | null;
             seo?: {
@@ -13608,6 +13915,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 productCount: number;
             }[];
@@ -13651,6 +13959,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             }[];
             description: string;
             featured: boolean;
@@ -13689,6 +13998,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 availableQuantity: number;
                 tracked?: boolean;
@@ -13709,6 +14019,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 }[];
                 description: string;
                 featured: boolean;
@@ -13747,6 +14058,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     }[];
                     availableQuantity: number;
                     tracked?: boolean;
@@ -14297,6 +14609,7 @@ export interface components {
                             thumbnailUrl: string;
                             publicId: string;
                             bytes?: number;
+                            largeUrl?: string;
                         }[];
                         description: string;
                         featured: boolean;
@@ -14335,6 +14648,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             }[];
                             availableQuantity: number;
                             tracked?: boolean;
@@ -14479,6 +14793,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             logoHeight?: number;
                             bgImage?: {
@@ -14487,6 +14802,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             bgFocal?: {
                                 x: number;
@@ -14519,6 +14835,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             alt?: string;
                             url?: string;
@@ -14530,6 +14847,7 @@ export interface components {
                                     thumbnailUrl: string;
                                     publicId: string;
                                     bytes?: number;
+                                    largeUrl?: string;
                                 };
                                 alt?: string;
                                 url?: string;
@@ -14559,6 +14877,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             overlay?: string;
                             overlayOpacity?: number;
@@ -14824,6 +15143,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             logoHeight?: number;
                             bgImage?: {
@@ -14832,6 +15152,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             bgFocal?: {
                                 x: number;
@@ -14864,6 +15185,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             alt?: string;
                             url?: string;
@@ -14875,6 +15197,7 @@ export interface components {
                                     thumbnailUrl: string;
                                     publicId: string;
                                     bytes?: number;
+                                    largeUrl?: string;
                                 };
                                 alt?: string;
                                 url?: string;
@@ -14904,6 +15227,7 @@ export interface components {
                                 thumbnailUrl: string;
                                 publicId: string;
                                 bytes?: number;
+                                largeUrl?: string;
                             } | null;
                             overlay?: string;
                             overlayOpacity?: number;
@@ -15174,6 +15498,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     logoHeight?: number;
                     bgImage?: {
@@ -15182,6 +15507,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     bgFocal?: {
                         x: number;
@@ -15214,6 +15540,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     alt?: string;
                     url?: string;
@@ -15225,6 +15552,7 @@ export interface components {
                             thumbnailUrl: string;
                             publicId: string;
                             bytes?: number;
+                            largeUrl?: string;
                         };
                         alt?: string;
                         url?: string;
@@ -15254,6 +15582,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     overlay?: string;
                     overlayOpacity?: number;
@@ -15502,7 +15831,7 @@ export interface components {
             };
         };
         DashboardBlocks: {
-            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health")[];
         };
         DashboardOverview: {
             period: {
@@ -16293,6 +16622,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -16316,6 +16646,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 favicon?: {
                     url: string;
@@ -16323,6 +16654,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -16395,6 +16727,26 @@ export interface components {
                     /** @enum {string} */
                     logoPlacement?: "top" | "watermark" | "both" | "hidden";
                     watermarkOpacity?: number;
+                    logoSize?: {
+                        a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        thermal80?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        thermal58?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                    };
+                    watermarkSize?: {
+                        widthPct: number;
+                        heightPct: number;
+                    };
+                    /** @enum {string} */
+                    watermarkPosition?: "center" | "top" | "bottom";
                     headerLines?: {
                         id: string;
                         /** @enum {string} */
@@ -16413,6 +16765,89 @@ export interface components {
                     showDocTitle?: boolean;
                     showAmountInWords?: boolean;
                     amountInWordsLabel?: string;
+                    itemColumns?: {
+                        serial?: boolean;
+                        unit?: boolean;
+                        code?: boolean;
+                        discount?: boolean;
+                        /** @enum {string} */
+                        vat?: "off" | "rate" | "amount" | "both";
+                    };
+                    totals?: {
+                        showDue?: boolean;
+                        showPaymentMethods?: boolean;
+                        showPreviousBalance?: boolean;
+                        showTenderedChange?: boolean;
+                    };
+                    signature?: {
+                        enabled?: boolean;
+                        leftLabel?: string;
+                        rightLabel?: string;
+                        imageHeightMm?: number;
+                    };
+                    signatureImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    } | null;
+                    stampImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    } | null;
+                    paymentDetails?: {
+                        id: string;
+                        /** @enum {string} */
+                        kind: "bank" | "wallet";
+                        visible: boolean;
+                        bankName?: string;
+                        accountName?: string;
+                        accountNumber?: string;
+                        branch?: string;
+                        routingNumber?: string;
+                        /** @enum {string} */
+                        provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                        number?: string;
+                        /** @enum {string} */
+                        accountType?: "personal" | "merchant" | "agent";
+                        label?: string;
+                    }[];
+                    terms?: string;
+                    qr?: {
+                        /** @enum {string} */
+                        source?: "off" | "storefront" | "custom";
+                        customValue?: string;
+                        label?: string;
+                        sizeMm?: number;
+                    };
+                    documents?: {
+                        [key: string]: {
+                            title?: string;
+                            footer?: string | null;
+                            terms?: string | null;
+                            showPaymentDetails?: boolean;
+                            showQr?: boolean;
+                            signature?: {
+                                enabled?: boolean;
+                                leftLabel?: string;
+                                rightLabel?: string;
+                            };
+                        };
+                    };
+                    thermal?: {
+                        /** @enum {string} */
+                        fontScale?: "sm" | "md" | "lg";
+                        sideMarginMm?: number;
+                    };
+                    copies?: number;
+                    copyLabels?: string[];
+                    autoPrintAfterSale?: boolean;
                 };
                 /** @enum {string} */
                 demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -16451,6 +16886,7 @@ export interface components {
                 thumbnailUrl: string;
                 publicId: string;
                 bytes?: number;
+                largeUrl?: string;
             } | null;
             /** @enum {string} */
             locale?: "en" | "bn";
@@ -16474,6 +16910,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 favicon?: {
                     url: string;
@@ -16481,6 +16918,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                     pngUrl?: string;
                 } | null;
                 address?: string | null;
@@ -16553,6 +16991,26 @@ export interface components {
                     /** @enum {string} */
                     logoPlacement?: "top" | "watermark" | "both" | "hidden";
                     watermarkOpacity?: number;
+                    logoSize?: {
+                        a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        thermal80?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        thermal58?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                    };
+                    watermarkSize?: {
+                        widthPct: number;
+                        heightPct: number;
+                    };
+                    /** @enum {string} */
+                    watermarkPosition?: "center" | "top" | "bottom";
                     headerLines?: {
                         id: string;
                         /** @enum {string} */
@@ -16571,6 +17029,89 @@ export interface components {
                     showDocTitle?: boolean;
                     showAmountInWords?: boolean;
                     amountInWordsLabel?: string;
+                    itemColumns?: {
+                        serial?: boolean;
+                        unit?: boolean;
+                        code?: boolean;
+                        discount?: boolean;
+                        /** @enum {string} */
+                        vat?: "off" | "rate" | "amount" | "both";
+                    };
+                    totals?: {
+                        showDue?: boolean;
+                        showPaymentMethods?: boolean;
+                        showPreviousBalance?: boolean;
+                        showTenderedChange?: boolean;
+                    };
+                    signature?: {
+                        enabled?: boolean;
+                        leftLabel?: string;
+                        rightLabel?: string;
+                        imageHeightMm?: number;
+                    };
+                    signatureImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    } | null;
+                    stampImage?: {
+                        url: string;
+                        mediumUrl: string;
+                        thumbnailUrl: string;
+                        publicId: string;
+                        bytes?: number;
+                        largeUrl?: string;
+                    } | null;
+                    paymentDetails?: {
+                        id: string;
+                        /** @enum {string} */
+                        kind: "bank" | "wallet";
+                        visible: boolean;
+                        bankName?: string;
+                        accountName?: string;
+                        accountNumber?: string;
+                        branch?: string;
+                        routingNumber?: string;
+                        /** @enum {string} */
+                        provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                        number?: string;
+                        /** @enum {string} */
+                        accountType?: "personal" | "merchant" | "agent";
+                        label?: string;
+                    }[];
+                    terms?: string;
+                    qr?: {
+                        /** @enum {string} */
+                        source?: "off" | "storefront" | "custom";
+                        customValue?: string;
+                        label?: string;
+                        sizeMm?: number;
+                    };
+                    documents?: {
+                        [key: string]: {
+                            title?: string;
+                            footer?: string | null;
+                            terms?: string | null;
+                            showPaymentDetails?: boolean;
+                            showQr?: boolean;
+                            signature?: {
+                                enabled?: boolean;
+                                leftLabel?: string;
+                                rightLabel?: string;
+                            };
+                        };
+                    };
+                    thermal?: {
+                        /** @enum {string} */
+                        fontScale?: "sm" | "md" | "lg";
+                        sideMarginMm?: number;
+                    };
+                    copies?: number;
+                    copyLabels?: string[];
+                    autoPrintAfterSale?: boolean;
                 };
                 /** @enum {string} */
                 demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -16613,6 +17154,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -16636,6 +17178,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     favicon?: {
                         url: string;
@@ -16643,6 +17186,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -16715,6 +17259,26 @@ export interface components {
                         /** @enum {string} */
                         logoPlacement?: "top" | "watermark" | "both" | "hidden";
                         watermarkOpacity?: number;
+                        logoSize?: {
+                            a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal80?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal58?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                        };
+                        watermarkSize?: {
+                            widthPct: number;
+                            heightPct: number;
+                        };
+                        /** @enum {string} */
+                        watermarkPosition?: "center" | "top" | "bottom";
                         headerLines?: {
                             id: string;
                             /** @enum {string} */
@@ -16733,6 +17297,89 @@ export interface components {
                         showDocTitle?: boolean;
                         showAmountInWords?: boolean;
                         amountInWordsLabel?: string;
+                        itemColumns?: {
+                            serial?: boolean;
+                            unit?: boolean;
+                            code?: boolean;
+                            discount?: boolean;
+                            /** @enum {string} */
+                            vat?: "off" | "rate" | "amount" | "both";
+                        };
+                        totals?: {
+                            showDue?: boolean;
+                            showPaymentMethods?: boolean;
+                            showPreviousBalance?: boolean;
+                            showTenderedChange?: boolean;
+                        };
+                        signature?: {
+                            enabled?: boolean;
+                            leftLabel?: string;
+                            rightLabel?: string;
+                            imageHeightMm?: number;
+                        };
+                        signatureImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        stampImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        paymentDetails?: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "bank" | "wallet";
+                            visible: boolean;
+                            bankName?: string;
+                            accountName?: string;
+                            accountNumber?: string;
+                            branch?: string;
+                            routingNumber?: string;
+                            /** @enum {string} */
+                            provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                            number?: string;
+                            /** @enum {string} */
+                            accountType?: "personal" | "merchant" | "agent";
+                            label?: string;
+                        }[];
+                        terms?: string;
+                        qr?: {
+                            /** @enum {string} */
+                            source?: "off" | "storefront" | "custom";
+                            customValue?: string;
+                            label?: string;
+                            sizeMm?: number;
+                        };
+                        documents?: {
+                            [key: string]: {
+                                title?: string;
+                                footer?: string | null;
+                                terms?: string | null;
+                                showPaymentDetails?: boolean;
+                                showQr?: boolean;
+                                signature?: {
+                                    enabled?: boolean;
+                                    leftLabel?: string;
+                                    rightLabel?: string;
+                                };
+                            };
+                        };
+                        thermal?: {
+                            /** @enum {string} */
+                            fontScale?: "sm" | "md" | "lg";
+                            sideMarginMm?: number;
+                        };
+                        copies?: number;
+                        copyLabels?: string[];
+                        autoPrintAfterSale?: boolean;
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -16772,6 +17419,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -16795,6 +17443,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     favicon?: {
                         url: string;
@@ -16802,6 +17451,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -16874,6 +17524,26 @@ export interface components {
                         /** @enum {string} */
                         logoPlacement?: "top" | "watermark" | "both" | "hidden";
                         watermarkOpacity?: number;
+                        logoSize?: {
+                            a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal80?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal58?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                        };
+                        watermarkSize?: {
+                            widthPct: number;
+                            heightPct: number;
+                        };
+                        /** @enum {string} */
+                        watermarkPosition?: "center" | "top" | "bottom";
                         headerLines?: {
                             id: string;
                             /** @enum {string} */
@@ -16892,6 +17562,89 @@ export interface components {
                         showDocTitle?: boolean;
                         showAmountInWords?: boolean;
                         amountInWordsLabel?: string;
+                        itemColumns?: {
+                            serial?: boolean;
+                            unit?: boolean;
+                            code?: boolean;
+                            discount?: boolean;
+                            /** @enum {string} */
+                            vat?: "off" | "rate" | "amount" | "both";
+                        };
+                        totals?: {
+                            showDue?: boolean;
+                            showPaymentMethods?: boolean;
+                            showPreviousBalance?: boolean;
+                            showTenderedChange?: boolean;
+                        };
+                        signature?: {
+                            enabled?: boolean;
+                            leftLabel?: string;
+                            rightLabel?: string;
+                            imageHeightMm?: number;
+                        };
+                        signatureImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        stampImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        paymentDetails?: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "bank" | "wallet";
+                            visible: boolean;
+                            bankName?: string;
+                            accountName?: string;
+                            accountNumber?: string;
+                            branch?: string;
+                            routingNumber?: string;
+                            /** @enum {string} */
+                            provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                            number?: string;
+                            /** @enum {string} */
+                            accountType?: "personal" | "merchant" | "agent";
+                            label?: string;
+                        }[];
+                        terms?: string;
+                        qr?: {
+                            /** @enum {string} */
+                            source?: "off" | "storefront" | "custom";
+                            customValue?: string;
+                            label?: string;
+                            sizeMm?: number;
+                        };
+                        documents?: {
+                            [key: string]: {
+                                title?: string;
+                                footer?: string | null;
+                                terms?: string | null;
+                                showPaymentDetails?: boolean;
+                                showQr?: boolean;
+                                signature?: {
+                                    enabled?: boolean;
+                                    leftLabel?: string;
+                                    rightLabel?: string;
+                                };
+                            };
+                        };
+                        thermal?: {
+                            /** @enum {string} */
+                            fontScale?: "sm" | "md" | "lg";
+                            sideMarginMm?: number;
+                        };
+                        copies?: number;
+                        copyLabels?: string[];
+                        autoPrintAfterSale?: boolean;
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -16969,6 +17722,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -16992,6 +17746,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     favicon?: {
                         url: string;
@@ -16999,6 +17754,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -17071,6 +17827,26 @@ export interface components {
                         /** @enum {string} */
                         logoPlacement?: "top" | "watermark" | "both" | "hidden";
                         watermarkOpacity?: number;
+                        logoSize?: {
+                            a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal80?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal58?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                        };
+                        watermarkSize?: {
+                            widthPct: number;
+                            heightPct: number;
+                        };
+                        /** @enum {string} */
+                        watermarkPosition?: "center" | "top" | "bottom";
                         headerLines?: {
                             id: string;
                             /** @enum {string} */
@@ -17089,6 +17865,89 @@ export interface components {
                         showDocTitle?: boolean;
                         showAmountInWords?: boolean;
                         amountInWordsLabel?: string;
+                        itemColumns?: {
+                            serial?: boolean;
+                            unit?: boolean;
+                            code?: boolean;
+                            discount?: boolean;
+                            /** @enum {string} */
+                            vat?: "off" | "rate" | "amount" | "both";
+                        };
+                        totals?: {
+                            showDue?: boolean;
+                            showPaymentMethods?: boolean;
+                            showPreviousBalance?: boolean;
+                            showTenderedChange?: boolean;
+                        };
+                        signature?: {
+                            enabled?: boolean;
+                            leftLabel?: string;
+                            rightLabel?: string;
+                            imageHeightMm?: number;
+                        };
+                        signatureImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        stampImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        paymentDetails?: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "bank" | "wallet";
+                            visible: boolean;
+                            bankName?: string;
+                            accountName?: string;
+                            accountNumber?: string;
+                            branch?: string;
+                            routingNumber?: string;
+                            /** @enum {string} */
+                            provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                            number?: string;
+                            /** @enum {string} */
+                            accountType?: "personal" | "merchant" | "agent";
+                            label?: string;
+                        }[];
+                        terms?: string;
+                        qr?: {
+                            /** @enum {string} */
+                            source?: "off" | "storefront" | "custom";
+                            customValue?: string;
+                            label?: string;
+                            sizeMm?: number;
+                        };
+                        documents?: {
+                            [key: string]: {
+                                title?: string;
+                                footer?: string | null;
+                                terms?: string | null;
+                                showPaymentDetails?: boolean;
+                                showQr?: boolean;
+                                signature?: {
+                                    enabled?: boolean;
+                                    leftLabel?: string;
+                                    rightLabel?: string;
+                                };
+                            };
+                        };
+                        thermal?: {
+                            /** @enum {string} */
+                            fontScale?: "sm" | "md" | "lg";
+                            sideMarginMm?: number;
+                        };
+                        copies?: number;
+                        copyLabels?: string[];
+                        autoPrintAfterSale?: boolean;
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -17151,6 +18010,7 @@ export interface components {
                     thumbnailUrl: string;
                     publicId: string;
                     bytes?: number;
+                    largeUrl?: string;
                 } | null;
                 /** @enum {string} */
                 locale?: "en" | "bn";
@@ -17174,6 +18034,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                     } | null;
                     favicon?: {
                         url: string;
@@ -17181,6 +18042,7 @@ export interface components {
                         thumbnailUrl: string;
                         publicId: string;
                         bytes?: number;
+                        largeUrl?: string;
                         pngUrl?: string;
                     } | null;
                     address?: string | null;
@@ -17253,6 +18115,26 @@ export interface components {
                         /** @enum {string} */
                         logoPlacement?: "top" | "watermark" | "both" | "hidden";
                         watermarkOpacity?: number;
+                        logoSize?: {
+                            a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal80?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            thermal58?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                        };
+                        watermarkSize?: {
+                            widthPct: number;
+                            heightPct: number;
+                        };
+                        /** @enum {string} */
+                        watermarkPosition?: "center" | "top" | "bottom";
                         headerLines?: {
                             id: string;
                             /** @enum {string} */
@@ -17271,6 +18153,89 @@ export interface components {
                         showDocTitle?: boolean;
                         showAmountInWords?: boolean;
                         amountInWordsLabel?: string;
+                        itemColumns?: {
+                            serial?: boolean;
+                            unit?: boolean;
+                            code?: boolean;
+                            discount?: boolean;
+                            /** @enum {string} */
+                            vat?: "off" | "rate" | "amount" | "both";
+                        };
+                        totals?: {
+                            showDue?: boolean;
+                            showPaymentMethods?: boolean;
+                            showPreviousBalance?: boolean;
+                            showTenderedChange?: boolean;
+                        };
+                        signature?: {
+                            enabled?: boolean;
+                            leftLabel?: string;
+                            rightLabel?: string;
+                            imageHeightMm?: number;
+                        };
+                        signatureImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        stampImage?: {
+                            url: string;
+                            mediumUrl: string;
+                            thumbnailUrl: string;
+                            publicId: string;
+                            bytes?: number;
+                            largeUrl?: string;
+                        } | null;
+                        paymentDetails?: {
+                            id: string;
+                            /** @enum {string} */
+                            kind: "bank" | "wallet";
+                            visible: boolean;
+                            bankName?: string;
+                            accountName?: string;
+                            accountNumber?: string;
+                            branch?: string;
+                            routingNumber?: string;
+                            /** @enum {string} */
+                            provider?: "bkash" | "nagad" | "rocket" | "upay" | "other";
+                            number?: string;
+                            /** @enum {string} */
+                            accountType?: "personal" | "merchant" | "agent";
+                            label?: string;
+                        }[];
+                        terms?: string;
+                        qr?: {
+                            /** @enum {string} */
+                            source?: "off" | "storefront" | "custom";
+                            customValue?: string;
+                            label?: string;
+                            sizeMm?: number;
+                        };
+                        documents?: {
+                            [key: string]: {
+                                title?: string;
+                                footer?: string | null;
+                                terms?: string | null;
+                                showPaymentDetails?: boolean;
+                                showQr?: boolean;
+                                signature?: {
+                                    enabled?: boolean;
+                                    leftLabel?: string;
+                                    rightLabel?: string;
+                                };
+                            };
+                        };
+                        thermal?: {
+                            /** @enum {string} */
+                            fontScale?: "sm" | "md" | "lg";
+                            sideMarginMm?: number;
+                        };
+                        copies?: number;
+                        copyLabels?: string[];
+                        autoPrintAfterSale?: boolean;
                     };
                     /** @enum {string} */
                     demoSeedStatus?: "pending" | "seeding" | "ready" | "failed";
@@ -18474,6 +19439,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_public_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["AppVersion"];
+                    };
                 };
             };
         };
@@ -20713,6 +21700,49 @@ export interface operations {
         };
     };
     put_api_organization: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["Organization"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_organization_receipt_images: {
         parameters: {
             query?: never;
             header?: {
@@ -30532,6 +31562,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -31188,6 +32219,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -31431,6 +32463,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -37352,6 +38385,7 @@ export interface operations {
                     creditBalanceAmount?: number;
                     /** @default 0 */
                     dueAmount?: number;
+                    tenderedAmount?: number;
                     notes?: string;
                     /** @enum {string} */
                     status?: "draft";
@@ -38361,6 +39395,7 @@ export interface operations {
                     };
                     creditBalanceAmount?: number;
                     notes?: string;
+                    tenderedAmount?: number;
                 };
             };
         };

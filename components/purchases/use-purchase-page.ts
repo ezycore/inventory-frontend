@@ -2,8 +2,8 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, deriveLinePricing } from "@/components/purchases";
-import { extractProductValue } from "@/components/sales";
+import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, deriveLinePricing, discountForEditedPrice, isMrpEdited } from "@/components/purchases";
+import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { roundMoney } from "@/lib/money";
 import { isVatActive } from "@/lib/feature-utils";
@@ -15,6 +15,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { makeProductFormSchema } from "./form-configs";
 import { usePurchasePageStore, useAuthStore } from "@/services/stores";
+import { useOrgCalendar } from "@/hooks/use-org-calendar";
+import { orgDateKey } from "@/lib/org-calendar";
 import { useBarcodeLookupAction } from "@/services/api/modules/barcode";
 
 export function usePurchasePage() {
@@ -43,6 +45,11 @@ export function usePurchasePage() {
   const [preSelectedLowStockIds, setPreSelectedLowStockIds] = useState<string[]>(() => lowStockImport.ids);
 
   const { user } = useAuthStore();
+  // Invoice Date defaults to today on the ORG's calendar (never the browser's).
+  // A function, not a value: a page left open past midnight must not file
+  // tomorrow's purchase under yesterday.
+  const { timezone } = useOrgCalendar();
+  const todayKey = useCallback(() => orgDateKey(timezone), [timezone]);
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
   const isUOMEnabled = user?.organization?.features?.uomConversion ?? false;
   const isTaxEnabled = isVatActive(user?.organization);
@@ -110,7 +117,7 @@ export function usePurchasePage() {
       discountType: activeSeller?.discountType || "percentage",
       discountValue: activeSeller?.discountValue || 0,
       invoiceNumber: activeSeller?.invoiceNumber || "",
-      invoiceDate: activeSeller?.invoiceDate || "",
+      invoiceDate: activeSeller?.invoiceDate || orgDateKey(timezone),
     },
   });
 
@@ -123,7 +130,6 @@ export function usePurchasePage() {
       price: 0,
       discount: 0,
       costPrice: 0,
-      rememberCostPrice: false,
       stock: "",
     },
   });
@@ -137,7 +143,6 @@ export function usePurchasePage() {
       price: 0,
       discount: 0,
       costPrice: 0,
-      rememberCostPrice: false,
     },
   });
 
@@ -183,6 +188,8 @@ export function usePurchasePage() {
         costPrice: it.costPrice,
         price: it.price,
         discount: perUnitDiscount,
+        // A draft never applied its MRP edit — finalize still has to.
+        updateMrp: it.updateMrp === true,
         conversionFactor: cf,
         purchaseUnitName: it.purchaseUnitName ?? undefined,
         unitName: it.unitName ?? undefined,
@@ -201,16 +208,15 @@ export function usePurchasePage() {
       discountType,
       discountValue,
       invoiceNumber: draftOrder.invoiceNumber || "",
-      invoiceDate: draftOrder.invoiceDate ? String(draftOrder.invoiceDate).slice(0, 10) : "",
+      invoiceDate: draftOrder.invoiceDate ? String(draftOrder.invoiceDate).slice(0, 10) : todayKey(),
     });
-  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setNotes, setPurchaseType, setSupplier, supplierForm]);
+  }, [draftId, draftOrder, addItem, clearAll, setAdditionalDiscount, setDiscountType, setDiscountValue, setInvoiceDate, setInvoiceNumber, setNotes, setPurchaseType, setSupplier, supplierForm, todayKey]);
 
   const editQuantity = useWatch({ control: editForm.control, name: "quantity", defaultValue: 1 });
   const editConvertedQuantity = useWatch({ control: editForm.control, name: "convertedQuantity", defaultValue: 1 });
   const editPrice = useWatch({ control: editForm.control, name: "price", defaultValue: 0 });
   const editDiscount = useWatch({ control: editForm.control, name: "discount", defaultValue: 0 });
   const editCostPrice = useWatch({ control: editForm.control, name: "costPrice", defaultValue: 0 });
-  const editRememberCostPrice = useWatch({ control: editForm.control, name: "rememberCostPrice", defaultValue: false });
 
   const handleEditItem = useCallback((sellerId: string, item: any) => {
     setEditingItem(item);
@@ -231,7 +237,6 @@ export function usePurchasePage() {
       price: boxPrice,
       discount: item.discount,
       costPrice: item.costPrice,
-      rememberCostPrice: false,
     });
     setIsEditDialogOpen(true);
   }, [editForm]);
@@ -341,6 +346,8 @@ export function usePurchasePage() {
         const conversionFactor = product.conversionFactor || 1;
         productForm.setValue("convertedQuantity", quantity * conversionFactor);
       }
+    } else if (fieldName === "price") {
+      productForm.setValue("discount", discountForEditedPrice((value as number) || 0, productForm.getValues("costPrice") || 0));
     } else if (fieldName === "discount") {
       const boxPrice = productForm.getValues("price") || 0;
       const boxDiscount = (value as number) || 0;
@@ -368,19 +375,23 @@ export function usePurchasePage() {
     if (!product) { toast.error(t("create.selectProduct")); return; }
     const conversionFactor = product.conversionFactor || 1;
     const boxPrice = roundMoney(product.price * conversionFactor);
-    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: boxPrice, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
+    const price = roundMoney(data.price || 0);
+    const updateMrp = isMrpEdited(price, boxPrice);
+    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: updateMrp ? price : boxPrice, updateMrp, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
       // Per-line purchase tax from the product (neutralized when tax is inactive).
       taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,
       taxType: isTaxEnabled ? product.purchaseTaxType ?? "inclusive" : undefined,
     });
     toast.success(t("create.addedToOrder", { name: product.label }));
-    productForm.reset({ productId: "", quantity: 1, convertedQuantity: 1, price: 0, discount: 0, costPrice: 0, rememberCostPrice: false });
+    productForm.reset({ productId: "", quantity: 1, convertedQuantity: 1, price: 0, discount: 0, costPrice: 0 });
   }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled, t]);
 
   const handleSaveEdit = useCallback(() => {
     if (!editingItem || !editingSellerId) return;
     const data = editForm.getValues();
-    updateItem(editingSellerId, editingItem.id, { quantity: data.quantity, discount: data.discount, costPrice: data.costPrice, convertedQuantity: data.convertedQuantity });
+    const price = roundMoney(data.price || 0);
+    const updateMrp = editingItem.updateMrp === true || isMrpEdited(price, editingItem.price);
+    updateItem(editingSellerId, editingItem.id, { quantity: data.quantity, price: updateMrp ? price : editingItem.price, updateMrp, discount: data.discount, costPrice: data.costPrice, convertedQuantity: data.convertedQuantity });
     toast.success(t("create.itemUpdated"));
     setIsEditDialogOpen(false);
     setEditingItem(null);
@@ -391,8 +402,12 @@ export function usePurchasePage() {
     if (fieldName === "quantity") {
       const product = extractProductValue(editForm.getValues("productId"));
       if (product) { const quantity = (value as number) || 1; const conversionFactor = product.conversionFactor || 1; editForm.setValue("convertedQuantity", quantity * conversionFactor); }
+    } else if (fieldName === "price") {
+      editForm.setValue("discount", discountForEditedPrice((value as number) || 0, editForm.getValues("costPrice") || 0));
     } else if (fieldName === "discount") {
       const boxPrice = editForm.getValues("price") || 0; const boxDiscount = (value as number) || 0; editForm.setValue("costPrice", Math.max(0, boxPrice - boxDiscount));
+    } else if (fieldName === "costPrice") {
+      editForm.setValue("discount", discountForEditedPrice(editForm.getValues("price") || 0, (value as number) || 0));
     }
   }, [editForm]);
 
@@ -437,7 +452,7 @@ export function usePurchasePage() {
     try {
       const ordersData: any[] = validSellers.map((seller) => {
         const isInstant = seller.purchaseType === "instant";
-        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
+        const items = seller.items.map((item: any) => ({ inventoryId: inventoryIdForApi(item.inventoryId), productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
           // Per-line expiry-batch — only sent for instant (received-on-create) and
           // only honoured by the backend for expiry-tracked products.
           ...(isExpiryEnabled && isInstant && item.expiryDate ? { expiryDate: item.expiryDate } : {}),
@@ -448,7 +463,7 @@ export function usePurchasePage() {
         const sellerPaid = seller.paymentInfo?.paidAmount || 0;
         const sellerAccountId = seller.paymentInfo?.accountId || "";
         const sellerCredit = seller.creditApplied || 0;
-        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, notes: seller.notes || undefined };
+        const orderData: any = { supplierId: seller.supplierId || "", items, additionalDiscount: seller.additionalDiscount || 0, status, invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || todayKey(), notes: seller.notes || undefined };
         if (isAccountsEnabled && sellerAccountId && sellerPaid > 0) orderData.payment = { accountId: sellerAccountId, paidAmount: sellerPaid };
         if (isAccountsEnabled && sellerCredit > 0) orderData.creditBalanceAmount = sellerCredit;
         return orderData;
@@ -458,40 +473,40 @@ export function usePurchasePage() {
         await finalizeDraftMutation.mutateAsync({ id: draftId, data: { supplierId: first.supplierId, items: first.items, additionalDiscount: first.additionalDiscount, taxTotal: first.taxTotal, status: first.status === "received" || first.status === "ordered" ? first.status : "ordered", invoiceNumber: first.invoiceNumber, invoiceDate: first.invoiceDate, payment: first.payment, creditBalanceAmount: first.creditBalanceAmount, notes: first.notes } });
         hydratedDraftIdRef.current = null;
         clearAll();
-        supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
+        supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: todayKey() });
         productForm.reset();
         router.replace("/purchases/history");
         return;
       }
       await mutateAsync(ordersData);
       clearAll();
-      supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
+      supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: todayKey() });
       productForm.reset();
     } catch (error) { console.error("Failed to complete purchase:", error); toast.error(t("create.completeFailed")); }
-  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router, t]);
+  }, [sellers, isAccountsEnabled, isExpiryEnabled, getSellerNetAmount, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, finalizeDraftMutation, router, t, todayKey]);
 
   const handleSaveAsDraft = useCallback(async () => {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
     if (validSellers.length === 0) { toast.error(t("create.addItemsFirst")); return; }
     try {
-      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || undefined, notes: seller.notes || undefined }));
+      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: inventoryIdForApi(item.inventoryId), productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || todayKey(), notes: seller.notes || undefined }));
       if (isDraftMode && draftId) {
         const first = ordersData[0];
         await updateDraftMutation.mutateAsync({ id: draftId, data: { supplierId: first.supplierId, items: first.items, additionalDiscount: first.additionalDiscount, taxTotal: first.taxTotal, invoiceNumber: first.invoiceNumber, invoiceDate: first.invoiceDate, notes: first.notes } });
         hydratedDraftIdRef.current = null;
         clearAll();
-        supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
+        supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: todayKey() });
         productForm.reset();
         router.push("/purchases/history?status=draft");
         return;
       }
       await mutateAsync(ordersData);
       clearAll();
-      supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: "" });
+      supplierForm.reset({ supplierId: null, purchaseType: "instant", discountType: "percentage", discountValue: 0, invoiceNumber: "", invoiceDate: todayKey() });
       productForm.reset();
       router.push("/purchases/history?status=draft");
     } catch (error) { console.error("Failed to save purchase draft:", error); toast.error(t("create.saveDraftFailed")); }
-  }, [sellers, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, updateDraftMutation, router, t]);
+  }, [sellers, mutateAsync, clearAll, supplierForm, productForm, isDraftMode, draftId, updateDraftMutation, router, t, todayKey]);
 
   return {
     formatCurrency,
@@ -519,7 +534,6 @@ export function usePurchasePage() {
     editPrice,
     editDiscount,
     editCostPrice,
-    editRememberCostPrice,
     supplierFormConfig,
     productFormConfig,
     handleSupplierFieldChange,

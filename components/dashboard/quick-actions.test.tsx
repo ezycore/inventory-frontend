@@ -1,20 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderWithProviders, screen } from "@/tests/test-utils";
+import { beforeEach, describe, expect, it } from "vitest";
+import { renderWithProviders } from "@/tests/test-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { DEFAULT_ORGANIZATION_FEATURES, type OrganizationFeatures } from "@/types";
+import type { DashboardOverview } from "@/services/api";
 import { QuickActions } from "./quick-actions";
-
-// The card navigates imperatively; there is no app router in the test tree.
-const push = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: (...args: unknown[]) => push(...args) }),
-}));
 
 /**
  * Quick Actions are shortcuts into screens the sidebar already gates. Before
  * this was enforced they were a hardcoded list, so a shop that turned the POS
  * off during onboarding still got a "New Sale" button on its dashboard — the
  * one entry point the nav work had just removed.
+ *
+ * Assertions read the links' `href`s: the gate is about where a shortcut
+ * LANDS, and a label can be renamed without the destination moving.
  */
 const signIn = (
   permissions: string[],
@@ -39,87 +37,92 @@ const signIn = (
 /** Everything a full-access owner of an all-features-on org can reach. */
 const ALL_PERMISSIONS = [
   "sales.create",
+  "storefront.orders.view",
+  "storefront.design",
   "purchases.create",
   "products.create",
-  "stock.manage",
+  "customers.view",
+  "stock.view",
   "reports.view",
 ];
 /**
- * Every feature on — **derived, never listed by hand.**
- *
- * This was `{ sales: true, multiLocation: true }`, which named itself ALL and
- * was not: `areAllFeaturesEnabled` tests `=== true`, so every feature the object
- * omitted read as OFF. That was harmless only while `sales` and `multiLocation`
- * were the sole gates declared. When Purchase and Adjust Stock gained theirs —
- * they had none, so a storefront-only dashboard offered shortcuts onto two
- * screens its own route guard blocks (QA-C1) — four tests failed on rows the
- * merchant can see perfectly well.
- *
- * The fixture was wrong, not the gates. Same lesson, and the same fix, as
- * `ALL_PERMISSIONS` in `constants/__tests__/navItem.test.ts`: derive it, so
- * adding an action can never break this file again.
+ * Every feature on — **derived, never listed by hand.** `areAllFeaturesEnabled`
+ * tests `=== true`, so every feature an object omits reads as OFF; a hand list
+ * names itself ALL and is not, and breaks this file the day a shortcut gains a
+ * gate. Same fix as `ALL_PERMISSIONS` in `constants/__tests__/navItem.test.ts`.
  */
 const ALL_FEATURES: OrganizationFeatures = {
   ...DEFAULT_ORGANIZATION_FEATURES,
   sales: true,
+  storefront: true,
   purchases: true,
   inventoryTracking: true,
   multiLocation: true,
 };
 
-const labels = () => screen.getAllByRole("button").map((b) => b.textContent);
+const EVERY_HREF = [
+  "/sales/pos",
+  "/ecommerce/orders",
+  "/products",
+  "/purchases",
+  "/customers",
+  "/inventory/lowstock",
+  "/ecommerce/customize",
+  "/reports",
+];
+
+/** The links one layout renders, in order. Both are in the DOM; CSS picks one. */
+const linksIn = (container: HTMLElement, layout: "desktop" | "phone") =>
+  Array.from(
+    container.querySelectorAll<HTMLAnchorElement>(`[data-layout="${layout}"] a`),
+  );
+const hrefs = (container: HTMLElement, layout: "desktop" | "phone" = "desktop") =>
+  linksIn(container, layout).map((a) => a.getAttribute("href"));
+
+const render = (overview?: DashboardOverview) =>
+  renderWithProviders(<QuickActions overview={overview} />).container;
 
 beforeEach(() => {
   useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
 });
 
-describe("QuickActions", () => {
+describe("QuickActions — gating", () => {
   it("shows every shortcut when features and permissions allow it", () => {
     signIn(ALL_PERMISSIONS, ALL_FEATURES);
-    renderWithProviders(<QuickActions />);
 
     // The positive control: without this, the gating assertions below would
     // pass just as happily against a card that rendered nothing at all.
-    expect(labels()).toEqual([
-      "New Sale",
-      "Purchase",
-      "Add Product",
-      "Transfer Stock",
-      "Adjust Stock",
-      "View Reports",
-    ]);
+    expect(hrefs(render())).toEqual(EVERY_HREF);
   });
 
   it("hides New Sale when the POS feature is off", () => {
     signIn(ALL_PERMISSIONS, { ...ALL_FEATURES, sales: false });
-    renderWithProviders(<QuickActions />);
+    const container = render();
 
-    expect(labels()).not.toContain("New Sale");
-    expect(labels()).toContain("Purchase");
-  });
-
-  it("hides Transfer Stock for a single-location shop", () => {
-    signIn(ALL_PERMISSIONS, { ...ALL_FEATURES, multiLocation: false });
-    renderWithProviders(<QuickActions />);
-
-    expect(labels()).not.toContain("Transfer Stock");
-    expect(labels()).toContain("Adjust Stock");
+    expect(hrefs(container)).not.toContain("/sales/pos");
+    expect(hrefs(container)).toContain("/ecommerce/orders");
   });
 
   it("hides shortcuts the user lacks permission for", () => {
-    // A staff-shaped user: stock work yes, reports and purchasing no.
-    signIn(["products.create", "stock.manage"], ALL_FEATURES);
-    renderWithProviders(<QuickActions />);
+    // A staff-shaped user: catalogue and stock yes, money and purchasing no.
+    signIn(["products.create", "stock.view"], ALL_FEATURES);
 
-    expect(labels()).toEqual(["Add Product", "Transfer Stock", "Adjust Stock"]);
+    expect(hrefs(render())).toEqual(["/products", "/inventory/lowstock"]);
   });
 
   it("renders nothing rather than an empty card when all shortcuts are gated away", () => {
     signIn([], ALL_FEATURES);
-    const { container } = renderWithProviders(<QuickActions />);
 
-    // Not just "no buttons" — the whole card, heading included, must be gone.
-    expect(container).toBeEmptyDOMElement();
+    // Not just "no links" — the whole section must be gone.
+    expect(render()).toBeEmptyDOMElement();
+  });
+
+  it("opens the POS in its own tab and everything else in place", () => {
+    signIn(ALL_PERMISSIONS, ALL_FEATURES);
+    const [pos, orders] = linksIn(render(), "desktop");
+
+    expect(pos.getAttribute("target")).toBe("_blank");
+    expect(orders.getAttribute("target")).toBeNull();
   });
 });
 
@@ -139,23 +142,67 @@ describe("QuickActions — storefront-only", () => {
   };
 
   it("offers nothing that lands on a blocked screen", () => {
-    signIn(ALL_PERMISSIONS, STOREFRONT_ONLY);
-    renderWithProviders(<QuickActions />);
-
     // Permissions are full here on purpose — this is the FEATURE axis. A
     // merchant holding `purchases.create` on a plan without purchasing still
     // must not be handed a shortcut to `/purchases`.
-    expect(labels()).toEqual(["Add Product", "View Reports"]);
+    signIn(ALL_PERMISSIONS, STOREFRONT_ONLY);
+
+    expect(hrefs(render())).toEqual([
+      "/ecommerce/orders",
+      "/products",
+      "/customers",
+      "/ecommerce/customize",
+      "/reports",
+    ]);
   });
 
   it("brings Purchase back the moment purchasing is switched on", () => {
-    // The gate has to be a live read, not a tier assumption: features are
-    // per-org toggles, so a merchant enabling purchasing mid-life gets the
-    // shortcut without anything else changing.
+    // Features are per-org toggles, so the gate must be a live read.
     signIn(ALL_PERMISSIONS, { ...STOREFRONT_ONLY, purchases: true });
-    renderWithProviders(<QuickActions />);
+    const container = render();
 
-    expect(labels()).toContain("Purchase");
-    expect(labels()).not.toContain("Adjust Stock");
+    expect(hrefs(container)).toContain("/purchases");
+    expect(hrefs(container)).not.toContain("/inventory/lowstock");
+  });
+});
+
+describe("QuickActions — counts", () => {
+  const overview = (pending?: number, low?: [number, number]) =>
+    ({
+      ...(pending === undefined ? {} : { ordersPipeline: { pending, open: pending } }),
+      ...(low ? { lowStock: { items: [], count: low[0], outOfStockCount: low[1] } } : {}),
+    }) as unknown as DashboardOverview;
+
+  it("badges the order queue and the low-stock shortcut", () => {
+    signIn(ALL_PERMISSIONS, ALL_FEATURES);
+    const container = render(overview(12, [3, 2]));
+    const desktop = container.querySelector('[data-layout="desktop"]')!;
+
+    expect(desktop.textContent).toContain("12 to confirm");
+    // Out-of-stock counts too — "running low" includes "ran out".
+    expect(desktop.querySelector('a[href="/inventory/lowstock"]')!.textContent).toContain("5");
+  });
+
+  it("shows no number for an empty queue or a block the server did not send", () => {
+    signIn(ALL_PERMISSIONS, ALL_FEATURES);
+    const container = render(overview(0));
+
+    expect(container.textContent).not.toContain("to confirm");
+    expect(container.querySelector('a[href="/inventory/lowstock"]')!.textContent).toBe("Low Stock");
+  });
+});
+
+describe("QuickActions — phone", () => {
+  it("leads with New Sale and puts the order queue first in the grid", () => {
+    signIn(ALL_PERMISSIONS, ALL_FEATURES);
+
+    // Every shortcut still appears exactly once — the lead is not repeated.
+    expect(hrefs(render(), "phone")).toEqual(EVERY_HREF);
+  });
+
+  it("leads with Online Orders when the POS is off", () => {
+    signIn(ALL_PERMISSIONS, { ...ALL_FEATURES, sales: false });
+
+    expect(hrefs(render(), "phone")[0]).toBe("/ecommerce/orders");
   });
 });

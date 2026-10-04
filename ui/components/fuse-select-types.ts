@@ -61,4 +61,14 @@ export interface FuseAdvancedSelectProps {
    * matching option is auto-selected once so create forms come pre-filled.
    */
   defaultFlag?: string;
+  /** Pre-fill the option with this label when none carries `defaultFlag`. */
+  defaultFallbackLabel?: string;
+
+  /**
+   * Single mode: a first menu item with this label that clears the selection
+   * (a filter's "All brands"), so going back to "all" happens in the menu.
+   */
+  clearOptionLabel?: string;
+  /** Single mode: show the clear ✕ whenever a value is set — touch has no hover. */
+  alwaysShowClear?: boolean;
 }

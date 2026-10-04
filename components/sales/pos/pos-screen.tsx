@@ -48,7 +48,11 @@ export function PosScreen() {
     (item: SellOrderItem) => <ProductThumb src={catalog.photos.get(item.productId)} />,
     [catalog.photos],
   );
-  const ctx = useSellPage({ homePath: POS_PATH, afterDraftSave: "stay", renderThumb });
+  // Auto-print is a counter behaviour (plan P8): New Sale never prints unasked.
+  const autoPrint = useAuthStore(
+    (s) => s.user?.organization?.receiptSettings?.autoPrintAfterSale === true,
+  );
+  const ctx = useSellPage({ homePath: POS_PATH, afterDraftSave: "stay", renderThumb, autoPrint });
   const barcodeEnabled = useAuthStore((s) => s.user?.organization?.features?.barcodeSystem) ?? false;
   const isDesktop = useMatchesMedia(DESKTOP_QUERY);
 

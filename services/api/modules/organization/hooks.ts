@@ -389,6 +389,28 @@ export const useUpdateOrganization = () => {
   });
 };
 
+// PUT /api/organization/receipt-images - Upload / replace / remove the receipt
+// signature and company stamp. Saves immediately (images aren't part of the
+// settings draft), then syncs the printed letterhead in the auth store.
+export const useUpdateReceiptImages = () => {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
+  return useMutation({
+    mutationFn: (data: FormData) => organizationApi.updateReceiptImages(data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Saved");
+      const updated = result.data as { receiptSettings?: ReceiptSettings } | undefined;
+      if (user && updated?.receiptSettings) {
+        updateUser({
+          organization: { ...user.organization, receiptSettings: updated.receiptSettings },
+        });
+      }
+      invalidate(queryClient, "org.changed");
+    },
+    onError: handleMutationError,
+  });
+};
+
 // PUT /api/organization/form-settings - Update form field visibility settings
 export const useUpdateFormSettings = () => {
   const queryClient = useQueryClient();

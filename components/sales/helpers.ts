@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { SelectOption } from "@/ui/components/form/type";
 import type { DiscountType } from "@/utils/discount";
 import type {
@@ -81,9 +82,25 @@ export const customerItemsCreateCallback = (
     label: item.name,
     email: item.email ?? null,
     discountValue: item.defaultDiscount?.value ?? 0,
-    discountType: item.defaultDiscount?.type ?? "fixed",
+    // Customer discounts are percentage-only; "fixed" left the Discounts form.
+    discountType: item.defaultDiscount?.type ?? "percentage",
   })) as SelectOption[];
 };
+
+/**
+ * The purchase picker also offers products with no inventory row at this
+ * location yet (`_id: null`); the backend creates the row when the line is
+ * ordered. A select option needs a string value, so such a row gets this
+ * placeholder. It keys the line in the cart and is never sent as an id.
+ */
+const UNSTOCKED_PREFIX = "unstocked:";
+
+const unstockedOptionValue = (productId: string, variantId?: string | null) =>
+  `${UNSTOCKED_PREFIX}${productId}:${variantId ?? ""}`;
+
+/** The `inventoryId` to send for a line: a placeholder becomes "no row yet". */
+export const inventoryIdForApi = (value?: string | null): string | undefined =>
+  value && !value.startsWith(UNSTOCKED_PREFIX) ? value : undefined;
 
 /**
  * Transform inventory API response to select options with pricing metadata
@@ -91,7 +108,7 @@ export const customerItemsCreateCallback = (
 export const productItemsCreateCallback = (response: ProductApiResponse): SelectOption[] => {
   const items = response?.data || [];
   return items.map((item) => ({
-    value: item._id, // inventoryId
+    value: item._id ?? unstockedOptionValue(item.productId, item.variantId), // inventoryId
     label: item.name,
     costPrice: item.costPrice,
     price: item.price, // Match form field name

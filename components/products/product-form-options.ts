@@ -30,11 +30,6 @@ export const barcodeSymbologyOptions = [
   { value: 'UPC', label: 'UPC' },
 ]
 
-export const discountTypeOptions = [
-  { value: 'fixed', label: 'Fixed' },
-  { value: 'percentage', label: 'Percentage' },
-]
-
 export const warrantyOptions = [
   { value: 'none', label: 'No Warranty' },
   { value: '6m', label: '6 Months' },

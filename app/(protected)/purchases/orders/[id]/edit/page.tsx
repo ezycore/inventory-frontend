@@ -3,24 +3,16 @@
 
 import { useTranslations } from "next-intl";
 import { getPurchaseColumns } from "@/components/purchases";
+import { EditProductDialog } from "@/components/purchases/edit-product-dialog";
 import { useEditPurchaseOrder } from "@/components/purchases/orders/use-edit-purchase-order";
 import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
 import { Badge } from "@/ui/components/badge";
 import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
-import { Checkbox } from "@/ui/components/checkbox";
 import { CardTable } from "@/ui/components/custom/card-table";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/ui/components/dialog";
 import DynamicForm from "@/ui/components/form";
 import { Input } from "@/ui/components/input";
 import { NumberField } from "@/ui/components/number-field";
-import { Label } from "@/ui/components/label";
 import { Separator } from "@/ui/components/separator";
 import { Skeleton } from "@/ui/components/skeleton";
 import { ArrowLeft, ClipboardList, Save } from "lucide-react";
@@ -305,99 +297,18 @@ export default function EditPurchaseOrderPage() {
         </div>
       </div>
 
-      {/* Edit item dialog */}
-      <Dialog open={ctx.isEditDialogOpen} onOpenChange={ctx.setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("editDialog.title")}</DialogTitle>
-          </DialogHeader>
-          {ctx.editingItem && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{t("editDialog.product")}</Label>
-                <Input value={ctx.editingItem?.productName} disabled className="bg-muted" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-quantity">{t("editDialog.quantity")}</Label>
-                <NumberField
-                  id="edit-quantity"
-                  precision={0}
-                  min={1}
-                  value={ctx.editQuantity}
-                  onChange={(v) => {
-                    const value = v ?? 1;
-                    ctx.editForm.setValue("quantity", value);
-                    ctx.handleEditFieldChange("quantity", value);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-price">{t("editDialog.price")}</Label>
-                <NumberField
-                  id="edit-price"
-                  precision={2}
-                  min={0}
-                  value={ctx.editPrice}
-                  onChange={(v) => {
-                    const value = v ?? 0;
-                    ctx.editForm.setValue("price", value);
-                    ctx.editForm.setValue(
-                      "costPrice",
-                      Math.max(0, value - (ctx.editForm.getValues("discount") || 0)),
-                    );
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-discount">{t("editDialog.discount")}</Label>
-                <NumberField
-                  id="edit-discount"
-                  precision={2}
-                  min={0}
-                  value={ctx.editDiscount}
-                  onChange={(v) => {
-                    const value = v ?? 0;
-                    ctx.editForm.setValue("discount", value);
-                    ctx.handleEditFieldChange("discount", value);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-cost">{t("editDialog.costPrice")}</Label>
-                <NumberField
-                  id="edit-cost"
-                  precision={2}
-                  min={0}
-                  value={ctx.editCostPrice}
-                  onChange={(v) => {
-                    const value = v ?? 0;
-                    ctx.editForm.setValue("costPrice", value);
-                    ctx.handleEditFieldChange("costPrice", value);
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox id="edit-keep" disabled />
-                <Label htmlFor="edit-keep" className="text-sm font-normal text-muted-foreground">
-                  {t("editDialog.perLineCostNote")}
-                </Label>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => ctx.setIsEditDialogOpen(false)}>
-              {tActions("cancel")}
-            </Button>
-            <Button onClick={ctx.handleSaveEdit}>{t("editDialog.save")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditProductDialog
+        open={ctx.isEditDialogOpen}
+        onOpenChange={ctx.setIsEditDialogOpen}
+        editingItem={ctx.editingItem}
+        editQuantity={ctx.editQuantity}
+        editPrice={ctx.editPrice}
+        editDiscount={ctx.editDiscount}
+        editCostPrice={ctx.editCostPrice}
+        editForm={ctx.editForm}
+        handleEditFieldChange={ctx.handleEditFieldChange}
+        handleSaveEdit={ctx.handleSaveEdit}
+      />
     </div>
   );
 }

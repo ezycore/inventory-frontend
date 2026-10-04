@@ -30,7 +30,22 @@ interface FilterPanelProps {
   trigger?: React.ReactNode;
   /** Override `config.showResetButton` (e.g. suppressed when the bar owns Reset). */
   showReset?: boolean;
+  /**
+   * Only these fields — the ones the bar could not show inline. Without it the
+   * panel repeats every inline filter, and its count badge counts them twice.
+   */
+  fieldNames?: string[];
+  /**
+   * Apply each change at once, like the inline bar beside it, instead of
+   * waiting for "Apply Filters". Free text still commits on a debounce.
+   */
+  live?: boolean;
 }
+
+const FREE_TEXT_TYPES = new Set(["text", "number"]);
+
+const isActiveValue = (v: unknown) =>
+  Array.isArray(v) ? v.length > 0 : v !== "" && v !== null && v !== undefined;
 
 /**
  * Presentational Advanced-filter panel (popover on desktop, sheet on mobile).
@@ -38,9 +53,16 @@ interface FilterPanelProps {
  * shared `state`. No filter state of its own — see `GlobalFilter` (uncontrolled)
  * and `FilterBar` (inline + overflow) for the two entry points.
  */
-export function FilterPanel({ config, state, trigger, showReset }: FilterPanelProps) {
+export function FilterPanel({
+  config,
+  state,
+  trigger,
+  showReset,
+  fieldNames,
+  live = false,
+}: FilterPanelProps) {
   const {
-    fields = [],
+    fields: allFields = [],
     columns = 2,
     viewMode = "sheet",
     applyOnChange = false,
@@ -48,8 +70,20 @@ export function FilterPanel({ config, state, trigger, showReset }: FilterPanelPr
     showApplyButton = true,
   } = config;
 
-  const { values, updateField, apply, reset, activeCount, isOpen, setIsOpen } =
-    state;
+  const { values, updateField, apply, reset, isOpen, setIsOpen } = state;
+
+  const fields = fieldNames
+    ? allFields.filter((f) => fieldNames.includes(f.name))
+    : allFields;
+  const activeCount = fieldNames
+    ? fields.filter((f) => isActiveValue(values[f.name])).length
+    : state.activeCount;
+
+  const handleChange = (name: string, type: string, value: unknown) => {
+    if (!live) return updateField(name, value);
+    if (FREE_TEXT_TYPES.has(type)) return state.setFilterDebounced(name, value);
+    state.setFieldAndApply(name, value);
+  };
 
   const resetVisible = showReset ?? showResetButton;
 
@@ -98,9 +132,13 @@ export function FilterPanel({ config, state, trigger, showReset }: FilterPanelPr
             >
               <FilterFieldRenderer
                 field={field}
-                value={values[field.name]}
+                value={
+                  live && FREE_TEXT_TYPES.has(field.type)
+                    ? state.filterInputs[field.name]
+                    : values[field.name]
+                }
                 values={values}
-                onChange={(value) => updateField(field.name, value)}
+                onChange={(value) => handleChange(field.name, field.type, value)}
               />
             </div>
           );
@@ -126,7 +164,7 @@ export function FilterPanel({ config, state, trigger, showReset }: FilterPanelPr
             Reset All
           </Button>
         )}
-        {showApplyButton && !applyOnChange && (
+        {showApplyButton && !applyOnChange && !live && (
           <Button
             onClick={apply}
             className={viewMode === "sheet" ? "w-full sm:w-auto" : "w-auto"}
@@ -142,9 +180,16 @@ export function FilterPanel({ config, state, trigger, showReset }: FilterPanelPr
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+        {/* Always below the button, capped to the room left and scrolled
+            inside. Left to collision handling, a tall panel flipped ABOVE the
+            button and ran off the top of the screen — title and first row
+            unreachable. `end` grows it leftward from a right-hand button. */}
         <PopoverContent
-          className="w-[600px] max-w-[95vw] p-6 mr-6"
-          align="start"
+          className="w-[600px] max-w-[calc(100vw-2rem)] max-h-(--radix-popover-content-available-height) overflow-y-auto p-6"
+          side="bottom"
+          align="end"
+          avoidCollisions={false}
+          collisionPadding={16}
         >
           <div className="space-y-4">
             <div>

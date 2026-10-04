@@ -68,6 +68,8 @@ interface FuseSingleFieldProps {
   selectedValue: string;
   selectedLabel: string;
   onClear: (e: MouseEvent) => void;
+  /** Keep the ✕ visible whenever a value is set, instead of only on hover. */
+  alwaysShowClear?: boolean;
 }
 
 export function FuseSingleField({
@@ -75,6 +77,7 @@ export function FuseSingleField({
   selectedValue,
   selectedLabel,
   onClear,
+  alwaysShowClear = false,
 }: FuseSingleFieldProps) {
   const { disabled, open, query, inputRef } = ctx;
   const hasValue = !!selectedValue && !disabled;
@@ -110,7 +113,10 @@ export function FuseSingleField({
           aria-label="Clear selection"
           onMouseDown={(e) => e.preventDefault()}
           onClick={onClear}
-          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+          className={cn(
+            "absolute right-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer transition-opacity",
+            alwaysShowClear ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100"
+          )}
         >
           <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
         </button>
@@ -118,7 +124,7 @@ export function FuseSingleField({
       <ChevronDown
         className={cn(
           "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 transition-opacity",
-          hasValue && "group-hover:opacity-0"
+          hasValue && (alwaysShowClear ? "opacity-0" : "group-hover:opacity-0")
         )}
       />
     </div>

@@ -217,7 +217,7 @@ export function ImportLowStockDialog({
   initialSupplierId = "",
   initialSupplierName = "",
   initialPurchaseType = "instant",
-  initialDiscountType = "fixed",
+  initialDiscountType = "percentage",
   initialDiscountValue = 0,
 }: ImportLowStockDialogProps) {
   const t = useTranslations("purchases.import");

@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import type { DiscountType } from "@/utils/discount";
 import type { AccountPaymentOption, SaleItemPayload, TaxType } from "@/types";
 
@@ -20,7 +21,8 @@ export interface CustomerApiItem {
 }
 
 export interface ProductApiItem {
-  _id: string; // inventoryId
+  /** inventoryId; null on a purchasable product with no row here yet. */
+  _id: string | null;
   name: string;
   price: number;
   costPrice: number;
@@ -168,4 +170,6 @@ export interface CreateSalesOrderData {
   creditBalanceAmount?: number;
   /** When "draft", BE skips inventory / payment / credit side-effects. */
   status?: "draft";
+  /** Cash handed over when it exceeds what the sale settles — printed as cash received / change. */
+  tenderedAmount?: number;
 }

@@ -4,7 +4,8 @@
  *
  * The backend writes three variants per upload (`imageUpload.ts`): `url` capped
  * at 1600px wide, `mediumUrl` at 800px, and `thumbnailUrl` at a **200×200
- * `fit: "cover"` square crop**. Only the thumbnail changes the aspect ratio, so
+ * `fit: "cover"` square crop**. A builder section picture may carry a fourth,
+ * `largeUrl` at 2560px, for full-width heroes on Retina desktops. Only the thumbnail changes the aspect ratio, so
  * picking it for anything wider than ~100px both upscales a 200px source and
  * crops the product out of frame.
  *
@@ -17,14 +18,20 @@
  */
 import type { StorefrontImage } from "@/lib/storefront-client";
 
-/** The two widths the backend promises (`imageUpload.ts`): medium and the capped original. */
+/** The widths the backend promises (`imageUpload.ts`): medium, the capped original and the large rendition. */
 const MEDIUM_WIDTH = 800;
 const ORIGINAL_MAX_WIDTH = 1600;
+const LARGE_MAX_WIDTH = 2560;
 
 /**
  * `src` plus a `srcset` over the variants that keep the aspect ratio — the
- * medium (800w) and the capped original (1600w). The 200×200 thumbnail is never
- * a candidate: it is a square crop, not a smaller copy.
+ * medium (800w), the capped original (1600w) and, when stored, the large
+ * rendition (2560w). The 200×200 thumbnail is never a candidate: it is a square
+ * crop, not a smaller copy. `src` stays the original, so a browser without
+ * `srcset` never pulls the largest file.
+ *
+ * The backend writes `largeUrl` only for a source wider than 1600px, so when it
+ * exists the original is exactly 1600px and `1600w` is no longer an estimate.
  *
  * No `srcSet` when there is nothing to choose between, which is the case for an
  * image imported by URL (all three fields hold the same URL) and for a bare
@@ -40,6 +47,7 @@ export function responsiveImageSources(
   const candidates = [
     img.mediumUrl && img.mediumUrl !== img.url ? `${img.mediumUrl} ${MEDIUM_WIDTH}w` : null,
     img.url && img.mediumUrl && img.mediumUrl !== img.url ? `${img.url} ${ORIGINAL_MAX_WIDTH}w` : null,
+    img.largeUrl && img.largeUrl !== img.url ? `${img.largeUrl} ${LARGE_MAX_WIDTH}w` : null,
   ].filter(Boolean);
   return { src, srcSet: candidates.length > 1 ? candidates.join(", ") : undefined };
 }

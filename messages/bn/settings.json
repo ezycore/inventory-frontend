@@ -234,8 +234,6 @@
     "letterheadLinesHint": "তীর চিহ্ন দিয়ে পুনর্বিন্যাস করুন, সুইচ দিয়ে লুকান, এবং নিজের লাইন যোগ করুন।",
     "addCustomLine": "কাস্টম লাইন যোগ করুন",
     "linesFromProfile": "{orgName}, {address} এবং লোগো আসে <link>প্রতিষ্ঠানের প্রোফাইল</link> থেকে।",
-    "layoutTitle": "লেআউট",
-    "layoutHint": "ডিফল্ট কাগজের মাপ এবং হেডার কীভাবে সাজানো হবে।",
     "paperSizeLabel": "ডিফল্ট কাগজের মাপ",
     "paperSizeHint": "প্রিন্ট মেনুতে আগে থেকে নির্বাচিত থাকে; প্রতিটি প্রিন্টে পরিবর্তনযোগ্য।",
     "headerAlignLabel": "হেডার সারিবদ্ধকরণ",
@@ -309,8 +307,227 @@
       "removeLine": "লাইন সরান",
       "labelPlaceholderOptional": "লেবেল (ঐচ্ছিক)",
       "labelPlaceholderCustomText": "যেমন: ট্রেড লাইসেন্স: ১২৩৪৫",
-      "labelPlaceholderGeneric": "মানের আগে দেখানো লেবেল"
-    }
+      "labelPlaceholderGeneric": "মানের আগে দেখানো লেবেল",
+      "editInProfile": "প্রোফাইলে বদলান"
+    },
+    "tabs": {
+      "header": "হেডার",
+      "body": "মূল অংশ",
+      "footer": "ফুটার",
+      "paper": "কাগজ",
+      "documents": "ডকুমেন্ট"
+    },
+    "alignTitle": "অ্যালাইনমেন্ট",
+    "paperTitle": "কাগজ",
+    "paperHint": "প্রিন্ট মেনু কোন কাগজের সাইজ দিয়ে শুরু হবে।",
+    "logoSizeTitle": "লোগোর সাইজ — {paper}",
+    "logoHeightLabel": "উচ্চতা (মিমি)",
+    "logoWidthLabel": "প্রস্থ (মিমি)",
+    "lockAspect": "অনুপাত ঠিক রাখুন",
+    "unlockAspect": "প্রতিটি দিক আলাদা করে দিন",
+    "logoSizeHint": "সাইজ প্রতিটি কাগজের জন্য আলাদা — প্রিভিউয়ের উপরে কাগজ বদলান। লোগো এই বক্সের মধ্যে না টেনে বসবে। উচ্চতা {hMin}–{hMax} মিমি, প্রস্থ {wMin}–{wMax} মিমি।",
+    "logoSizeReset": "ডিফল্ট সাইজ ব্যবহার করুন",
+    "watermarkWidthLabel": "ওয়াটারমার্কের প্রস্থ (%)",
+    "watermarkHeightLabel": "ওয়াটারমার্কের উচ্চতা (%)",
+    "watermarkPositionLabel": "ওয়াটারমার্কের অবস্থান",
+    "watermarkPositionOptions": {
+      "center": "মাঝখানে",
+      "top": "উপরে",
+      "bottom": "নিচে"
+    },
+    "changeLogoInProfile": "লোগো বদলাতে <link>প্রতিষ্ঠানের প্রোফাইলে</link> যান।",
+    "resetDefaults": "ডিফল্টে ফেরত যান",
+    "resetDialog": {
+      "title": "প্রিন্ট লেআউট রিসেট করবেন?",
+      "description": "লোগো, লেটারহেডের লাইন, অ্যালাইনমেন্ট, সাইজ এবং ডকুমেন্টে দেখানো তথ্য ডিফল্টে ফিরে যাবে। আপনার ফোন, ইমেইল, ভ্যাট নম্বর ও ফুটারের লেখা থাকবে। পরিবর্তন সংরক্ষণ না করা পর্যন্ত কিছুই সেভ হবে না।",
+      "cancel": "বাতিল",
+      "confirm": "রিসেট"
+    },
+    "previewPaperLabel": "প্রিভিউয়ের কাগজ",
+    "previewPaper": {
+      "a4": "A4",
+      "thermal80": "৮০ মিমি",
+      "thermal58": "৫৮ মিমি"
+    },
+    "v2": {
+      "itemColumns": {
+        "title": "পণ্যের টেবিল",
+        "hint": "ইনভয়েস, ক্রয় অর্ডার ও ফেরতে বাড়তি কলাম।",
+        "serial": "ক্রমিক নম্বর",
+        "serialHint": "প্রথমে একটি # কলাম",
+        "unit": "পরিমাণের সাথে একক",
+        "unitHint": "\"2 pcs\" ছাপে",
+        "code": "পণ্যের কোড",
+        "codeHint": "A4-এ আলাদা কলাম, রিসিটে নামের নিচে",
+        "discount": "লাইনের ছাড়",
+        "discountHint": "৫৮মিমি রিসিটে নয়",
+        "vat": "লাইনের ভ্যাট",
+        "vatHint": "৮০মিমি-তে শুধু হার; ৫৮মিমি-তে জায়গা নেই।",
+        "vatOptions": {
+          "off": "বন্ধ",
+          "rate": "হার (%)",
+          "amount": "পরিমাণ",
+          "both": "হার ও পরিমাণ"
+        },
+        "snapshotHint": "একক ও কোড প্রতিটি বিক্রির সময় সংরক্ষণ হয়, তাই এই আপডেটের আগের বিক্রিতে ঘরগুলো খালি ছাপবে।"
+      },
+      "totals": {
+        "title": "মোট",
+        "hint": "ইনভয়েসের মোটের নিচে বাড়তি লাইন।",
+        "showDue": "বাকি",
+        "showDueHint": "বিল পুরো পরিশোধ না হলে",
+        "showPaymentMethods": "পেমেন্টের মাধ্যম",
+        "showPaymentMethodsHint": "প্রতিটি পেমেন্টে এক লাইন, যেমন নগদ · bKash",
+        "showPreviousBalance": "পূর্বের বাকি",
+        "showPreviousBalanceHint": "পূর্বের বাকি, এই বিল ও মোট বাকি",
+        "showTenderedChange": "নগদ গ্রহণ ও ফেরত",
+        "tenderedOptions": {
+          "auto": "শুধু রিসিটে (৮০ / ৫৮মিমি)",
+          "always": "সবসময়",
+          "never": "কখনও না"
+        },
+        "tenderedHint": "গ্রাহক বিলের চেয়ে বেশি নগদ দিলে দেখায়।",
+        "accountsOff": "পেমেন্ট, পূর্বের বাকি ও ফেরতের জন্য হিসাব ফিচার লাগে, তাই এখন ছাপবে না।"
+      },
+      "signature": {
+        "title": "স্বাক্ষর ও সিল",
+        "hint": "A4 ডকুমেন্টের নিচের স্বাক্ষরের লাইন।",
+        "enabled": "স্বাক্ষরের লাইন দেখান",
+        "leftLabel": "বাম লাইন",
+        "leftPlaceholder": "যেমন গ্রাহকের স্বাক্ষর (খালি = নেই)",
+        "rightLabel": "ডান লাইন",
+        "rightPlaceholder": "অনুমোদিত স্বাক্ষর",
+        "signatureImage": "স্বাক্ষরের ছবি",
+        "stampImage": "প্রতিষ্ঠানের সিল",
+        "noImage": "ছবি নেই",
+        "upload": "আপলোড",
+        "replace": "বদলান",
+        "remove": "সরান",
+        "imageHeight": "ছবির উচ্চতা (মিমি)",
+        "securityHint": "আপলোড করলেই ছবি সেভ হয়। যে প্রিন্ট করতে পারে সে আবার ছাপতে পারে; শুধু এই পাতা এডিট করার অনুমতি থাকলে বদলানো যায়।",
+        "a4Hint": "স্বাক্ষর শুধু A4-এ ছাপে।"
+      },
+      "payment": {
+        "title": "পেমেন্টের তথ্য",
+        "hint": "পরে পরিশোধকারী গ্রাহকদের জন্য ব্যাংক ও মোবাইল ওয়ালেট নম্বর।",
+        "bank": "ব্যাংক হিসাব",
+        "wallet": "মোবাইল ওয়ালেট",
+        "bankName": "ব্যাংকের নাম",
+        "accountName": "হিসাবের নাম",
+        "accountNumber": "হিসাব নম্বর",
+        "branch": "শাখা",
+        "routingNumber": "রাউটিং নম্বর",
+        "provider": "প্রোভাইডার",
+        "accountType": "হিসাবের ধরন",
+        "number": "নম্বর",
+        "label": "লেবেল",
+        "labelPlaceholder": "ঐচ্ছিক, প্রোভাইডারের নামের বদলে",
+        "providers": {
+          "bkash": "bKash",
+          "nagad": "নগদ",
+          "rocket": "রকেট",
+          "upay": "উপায়",
+          "other": "অন্যান্য"
+        },
+        "accountTypes": {
+          "personal": "পার্সোনাল",
+          "merchant": "মার্চেন্ট",
+          "agent": "এজেন্ট"
+        },
+        "addWallet": "ওয়ালেট যোগ করুন",
+        "addBank": "ব্যাংক হিসাব যোগ করুন",
+        "moveUp": "উপরে",
+        "moveDown": "নিচে",
+        "hide": "লুকান",
+        "show": "দেখান",
+        "remove": "সরান",
+        "notLinkedHint": "শুধু ছাপা লেখা — আপনার হিসাবের সাথে যুক্ত নয়। রিসিটে শুধু ওয়ালেট; ব্যাংক A4-এ।"
+      },
+      "terms": {
+        "title": "শর্তাবলি",
+        "hint": "ফুটারের উপরে ছোট লেখা, শুধু A4-এ।",
+        "placeholder": "যেমন বিক্রিত পণ্য রিসিটসহ ৭ দিনের মধ্যে বদলানো যাবে।"
+      },
+      "qr": {
+        "title": "QR কোড",
+        "hint": "কাগজ থেকে গ্রাহক স্ক্যান করতে পারে এমন কোড।",
+        "source": "QR-এর লিংক",
+        "sources": {
+          "off": "QR কোড নেই",
+          "storefront": "আপনার অনলাইন স্টোর",
+          "custom": "আপনার পছন্দের লিংক বা লেখা"
+        },
+        "customValue": "লিংক বা লেখা",
+        "label": "ক্যাপশন",
+        "labelPlaceholder": "যেমন অনলাইনে কিনুন",
+        "size": "সাইজ (মিমি)",
+        "placementHint": "A4: নিচে বামে, স্বাক্ষরের পাশে। রিসিট: ফুটারের উপরে মাঝখানে (সর্বোচ্চ ৩০ মিমি)।"
+      },
+      "documents": {
+        "title": "সেটিংস: {doc}",
+        "hint": "শুধু এই ডকুমেন্টে কী ছাপবে তা বদলান। উপরের প্রিভিউতে ডকুমেন্ট বাছুন।",
+        "kinds": {
+          "invoice": "ইনভয়েস",
+          "deliveryNote": "ডেলিভারি নোট",
+          "purchaseOrder": "ক্রয় অর্ডার",
+          "return": "ফেরত",
+          "paymentReceipt": "পেমেন্ট রসিদ",
+          "statement": "বিবরণী"
+        },
+        "docTitle": "শিরোনাম",
+        "docTitlePlaceholder": "ডিফল্ট শিরোনাম (যেমন \"ইনভয়েস\"-এর বদলে \"ক্যাশ মেমো\")",
+        "footer": "ফুটার নোট",
+        "terms": "শর্তাবলি",
+        "textModes": {
+          "inherit": "সব ডকুমেন্টের মতো",
+          "custom": "এই ডকুমেন্টের জন্য আলাদা",
+          "none": "এই ডকুমেন্টে নেই"
+        },
+        "triModes": {
+          "inherit": "সব ডকুমেন্টের মতো",
+          "on": "দেখান",
+          "off": "লুকান"
+        },
+        "showPaymentDetails": "পেমেন্টের তথ্য",
+        "showQr": "QR কোড",
+        "signature": "স্বাক্ষরের লাইন",
+        "leftLabel": "বাম লাইন",
+        "rightLabel": "ডান লাইন",
+        "inherit": "সব ডকুমেন্টের মতো",
+        "receivedBy": "যেমন গ্রহণকারী",
+        "noItemTableHint": "এই ডকুমেন্টে পণ্যের টেবিল নেই, তাই কলামের সেটিংস প্রযোজ্য নয়।"
+      },
+      "thermal": {
+        "title": "রিসিট প্রিন্টার",
+        "hint": "৮০মিমি ও ৫৮মিমি থার্মাল রিসিট।",
+        "fontScale": "লেখার আকার",
+        "fontScales": {
+          "sm": "ছোট",
+          "md": "স্বাভাবিক",
+          "lg": "বড়"
+        },
+        "sideMargin": "পাশের মার্জিন (মিমি)",
+        "sideMarginPlaceholder": "ডিফল্ট (৩মিমি / ২মিমি)"
+      },
+      "copies": {
+        "title": "কপি",
+        "hint": "একবারে কয়েকটি কপি ছাপুন, প্রতিটিতে আলাদা লেবেল।",
+        "count": "প্রতি প্রিন্টে কপি",
+        "labelN": "কপি {n}-এর লেবেল",
+        "defaults": {
+          "0": "গ্রাহকের কপি",
+          "1": "দোকানের কপি",
+          "2": "অফিস কপি"
+        }
+      },
+      "autoPrint": {
+        "title": "POS কাউন্টার",
+        "hint": "শুধু ফুল-স্ক্রিন POS-এ, নতুন বিক্রিতে নয়।",
+        "label": "প্রতিটি বিক্রির পর প্রিন্ট ডায়ালগ খুলুন",
+        "browserHint": "ব্রাউজার জিজ্ঞেস না করে প্রিন্ট করতে পারে না — এটি ডায়ালগ খোলে, ক্যাশিয়ার নিশ্চিত করেন।"
+      }
+    },
+    "previewDocLabel": "প্রিভিউয়ের ডকুমেন্ট"
   },
   "roles": {
     "title": "রোল",
@@ -838,9 +1055,7 @@
       "active": "সক্রিয়",
       "activeDescription": "বর্তমানে সক্রিয়",
       "percentage": "শতাংশ",
-      "percentageDescription": "শতাংশ ধরন",
-      "fixed": "নির্দিষ্ট অঙ্ক",
-      "fixedDescription": "নির্দিষ্ট অঙ্কের ধরন"
+      "percentageDescription": "শতাংশ ধরন"
     },
     "form": {
       "name": "ছাড়ের নাম",
@@ -849,7 +1064,6 @@
       "valuePlaceholder": "ছাড়ের পরিমাণ লিখুন",
       "type": "ধরন",
       "percentage": "শতাংশ",
-      "fixed": "নির্দিষ্ট",
       "applicableTo": "প্রযোজ্য",
       "applicableBoth": "উভয় (বিক্রয় ও ক্রয়)",
       "applicableSales": "শুধু বিক্রয়",
@@ -867,8 +1081,6 @@
     "filters": {
       "searchLabel": "ছাড় খুঁজুন",
       "searchPlaceholder": "ছাড় খুঁজুন...",
-      "typeLabel": "ধরন",
-      "typePlaceholder": "সব ধরন",
       "applicableLabel": "প্রযোজ্য",
       "applicablePlaceholder": "সব",
       "applicableSales": "বিক্রয়",

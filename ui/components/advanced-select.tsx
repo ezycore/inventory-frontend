@@ -38,6 +38,8 @@ import { Loader2, Plus, X } from "lucide-react";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "./button";
 import { MultiSelect } from "./multi-select";
+import { CLEAR_OPTION_VALUE } from "./select-strategy";
+import { findDefaultOption } from "./select-default";
 
 export interface LabelValueOption {
   label: string;
@@ -97,6 +99,13 @@ interface AdvancedSelectProps {
    * matching option is auto-selected once so create forms come pre-filled.
    */
   defaultFlag?: string;
+  /** Pre-fill the option with this label when none carries `defaultFlag`. */
+  defaultFallbackLabel?: string;
+
+  /** Single mode: a first menu item with this label that clears the selection. */
+  clearOptionLabel?: string;
+  /** Single mode: show the clear ✕ whenever a value is set — touch has no hover. */
+  alwaysShowClear?: boolean;
 }
 
 export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
@@ -121,6 +130,9 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   itemsCreateCallback,
   onMount,
   defaultFlag,
+  defaultFallbackLabel,
+  clearOptionLabel,
+  alwaysShowClear,
 }) => {
   // Quick-add modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -227,15 +239,13 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
       return;
     }
 
-    const defaultOption = finalOptions.find(
-      (opt) => (opt as unknown as Record<string, unknown>)[defaultFlag] === true,
-    );
+    const defaultOption = findDefaultOption(finalOptions, defaultFlag, defaultFallbackLabel);
     if (defaultOption) {
       defaultAppliedRef.current = true;
       handleValueChange(defaultOption.value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions, value, defaultFlag]);
+  }, [finalOptions, value, defaultFlag, defaultFallbackLabel]);
 
   // Quick-add modal success handler. Multi mode APPENDS: creating a tag from a
   // half-filled Tags field must not throw away the badges already picked.
@@ -417,7 +427,8 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
             // auto-applied default). Real items always have a truthy value;
             // clearing goes through the X button, not this handler.
             onValueChange={(newValue) => {
-              if (newValue) handleValueChange(newValue);
+              if (newValue === CLEAR_OPTION_VALUE) handleValueChange(undefined);
+              else if (newValue) handleValueChange(newValue);
             }}
             disabled={disabled}
           >
@@ -426,13 +437,20 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
               className={cn(
                 "w-full",
                 error ? "border-red-500" : "",
-                singleValue && !disabled && "[&>svg]:group-hover:opacity-0",
+                singleValue &&
+                  !disabled &&
+                  (alwaysShowClear ? "[&>svg]:opacity-0" : "[&>svg]:group-hover:opacity-0"),
                 className
               )}
             >
               <SelectValue placeholder={placeholder || "Select an option..."} />
             </SelectTrigger>
-            <SelectContent>
+            {/* Popper, not Radix's default item-aligned: that lays the menu over
+                the trigger, hiding the field the merchant just clicked. */}
+            <SelectContent position="popper">
+              {clearOptionLabel && (
+                <SelectItem value={CLEAR_OPTION_VALUE}>{clearOptionLabel}</SelectItem>
+              )}
               {finalOptions.length === 0 ? (
                 <div className="py-6 text-center text-sm text-muted-foreground">
                   No data available
@@ -454,7 +472,11 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
             <button
               type="button"
               onClick={handleClearValue}
-              className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
+              aria-label="Clear selection"
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 transition-opacity z-10 cursor-pointer",
+                alwaysShowClear ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
             >
               <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
             </button>

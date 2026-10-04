@@ -3,190 +3,139 @@
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@ui/components/card'
-import { Button } from '@ui/components/button'
 import { cn } from '@ui/lib/utils'
-import { useRouter } from 'next/navigation'
-import {
-  ShoppingCart,
-  ArrowDownToLine,
-  Package,
-  Repeat,
-  BarChart3,
-  Eye,
-  Receipt,
-} from 'lucide-react'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import { areAllFeaturesEnabled } from '@/lib/feature-utils'
-import type { OrganizationFeatures } from '@/types'
+import type { DashboardOverview } from '@/services/api'
+import {
+  PRIMARY_ACTIONS,
+  SECONDARY_ACTIONS,
+  quickActionCounts,
+  type QuickAction,
+} from './quick-action-items'
+import {
+  PhoneGridTile,
+  PhoneLeadButton,
+  PrimaryTile,
+  ShortcutTile,
+} from './quick-action-tiles'
 
 /**
- * Quick actions are shortcuts to screens the sidebar already gates, so they
- * carry the SAME `features`/`permissions` rules as their nav counterparts in
- * `constants/navItem.ts`. Without this the dashboard hands an online-only shop
- * a "New Sale" button to a POS it disabled, and a single-location shop a
- * "Transfer Stock" button with nothing to transfer between — the exact entry
- * points onboarding removed from the nav.
+ * Tailwind needs whole class names in the source — a lookup, not a template.
+ *
+ * One row, sized from what survives the gates — except six below `lg`: beside
+ * the sidebar a tablet or half-width laptop window leaves ~640px of content,
+ * where six cells fall to ~95px and their labels wrap, so they go 3 + 3. Four
+ * and five still fit (~120px) and must stay on one row: three-across left a
+ * storefront shop's fourth shortcut alone on a second row.
  */
-const ACTIONS: {
-  labelKey: string
-  icon: typeof ShoppingCart
-  path: string
-  color: string
-  /** All must be enabled — mirrors `NavItem.features`. */
-  features?: (keyof OrganizationFeatures)[]
-  /** Any one grants access — mirrors `NavItem.permissions`. */
-  permissions?: string[]
-}[] = [
-  {
-    labelKey: 'newSale',
-    icon: ShoppingCart,
-    path: '/sales',
-    color: 'text-primary',
-    // `sales` is the POS counter itself, so unlike the Sales *group* this is
-    // an all-of gate, matching the "New Sale" nav item.
-    features: ['sales'],
-    permissions: ['sales.create'],
-  },
-  {
-    /**
-     * The online seller's daily screen — confirm, pack, dispatch.
-     *
-     * Its absence was the other half of the storefront merchant's empty page:
-     * onboarding removed the POS and purchasing shortcuts for them and put
-     * nothing back, so a shop whose whole trade is online kept two of six
-     * actions, neither of which was the one they open every morning.
-     */
-    labelKey: 'onlineOrders',
-    icon: Receipt,
-    path: '/ecommerce/orders',
-    color: 'text-chart-1',
-    features: ['storefront'],
-    permissions: ['storefront.orders.view'],
-  },
-  {
-    labelKey: 'purchase',
-    icon: ArrowDownToLine,
-    path: '/purchases',
-    color: 'text-chart-2',
-    // Was the only action with a nav counterpart that gates on `purchases` and
-    // no gate of its own, so a storefront-only workspace got a shortcut onto a
-    // screen its own route guard blocks (QA-C1).
-    features: ['purchases'],
-    permissions: ['purchases.create'],
-  },
-  {
-    labelKey: 'addProduct',
-    icon: Package,
-    path: '/products',
-    color: 'text-chart-4',
-    permissions: ['products.create'],
-  },
-  {
-    labelKey: 'transferStock',
-    icon: Repeat,
-    path: '/inventory/transfers',
-    color: 'text-chart-5',
-    // Nothing to transfer between when there is one location.
-    features: ['multiLocation'],
-    permissions: ['stock.manage'],
-  },
-  {
-    labelKey: 'adjustStock',
-    icon: BarChart3,
-    path: '/inventory/adjust',
-    color: 'text-chart-1',
-    // Nothing to adjust when nothing is counted — the inventory rows a
-    // stock-free workspace holds are inactive link records.
-    features: ['inventoryTracking'],
-    permissions: ['stock.manage'],
-  },
-  {
-    labelKey: 'viewReports',
-    icon: Eye,
-    path: '/reports',
-    color: 'text-muted-foreground',
-    permissions: ['reports.view'],
-  },
-]
+const SHORTCUT_COLUMNS: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-3 lg:grid-cols-6',
+}
+
+interface QuickActionsProps {
+  overview?: DashboardOverview
+}
 
 /**
- * Tailwind needs whole class names present in the source to emit them, so this
- * is a lookup rather than a `lg:grid-cols-${n}` template.
+ * The dashboard's launchpad — the first thing under the greeting.
+ *
+ * It sits ABOVE the period filter, outside the server-composed block list: a
+ * shortcut is not period-scoped, and placed under the filter it read as if the
+ * dates changed where it goes. It was a block (`actions.quick`) that the server
+ * never gated and always ordered last, so the one thing an owner opens the
+ * dashboard to reach sat at the bottom of it.
+ *
+ * Desktop: primary tiles over a shortcut row. Phone: the first primary as a
+ * full-width button over an app-style icon grid.
  */
-const LG_COLUMNS: Record<number, string> = {
-  1: "lg:grid-cols-1",
-  2: "lg:grid-cols-2",
-  3: "lg:grid-cols-3",
-  4: "lg:grid-cols-4",
-  5: "lg:grid-cols-5",
-};
-
-export function QuickActions() {
-  const router = useRouter()
+export function QuickActions({ overview }: QuickActionsProps) {
   const t = useTranslations('dashboard.quickActions')
   const user = useAuthStore((state) => state.user)
   const features = user?.organization?.features
   const permissions = user?.permissions
 
-  const actions = useMemo(
-    () =>
-      ACTIONS.filter((action) => {
-        if (action.features && !areAllFeaturesEnabled(features, action.features))
-          return false
-        if (
-          action.permissions &&
-          !action.permissions.some((p) => permissions?.includes(p))
-        )
-          return false
-        return true
-      }),
-    [features, permissions],
-  )
+  const { primary, secondary } = useMemo(() => {
+    const allowed = (action: QuickAction) =>
+      (!action.features || areAllFeaturesEnabled(features, action.features)) &&
+      (!action.permissions ||
+        action.permissions.some((p) => permissions?.includes(p)))
+    return {
+      primary: PRIMARY_ACTIONS.filter(allowed),
+      secondary: SECONDARY_ACTIONS.filter(allowed),
+    }
+  }, [features, permissions])
 
   // Every shortcut gated away — render nothing rather than an empty card.
-  if (actions.length === 0) return null
+  if (primary.length === 0 && secondary.length === 0) return null
+
+  const counts = quickActionCounts(overview)
+  // On a phone the rest of the primaries join the grid ahead of the
+  // shortcuts, so the order queue keeps its badge when the POS leads.
+  const [phoneLead, ...phonePrimaryRest] = primary
+  const phoneGrid = [...phonePrimaryRest, ...secondary]
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t('title')}</CardTitle>
-        <CardDescription>{t('subtitle')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Sized from what survives the gates, not from the six actions that
-            exist. A storefront-only shop keeps two, and a 5-wide track left
-            them huddled against three empty columns (QA-R3). */}
-        <div
-          className={cn(
-            "grid gap-3 grid-cols-2 sm:grid-cols-3",
-            LG_COLUMNS[Math.min(actions.length, 5)] ?? "lg:grid-cols-5",
-          )}
-        >
-          {actions.map((action, i) => (
-            <Button
-              key={action.labelKey}
-              variant="outline"
-              className={cn(
-                "h-auto py-3 px-3 flex flex-col items-center gap-1.5 hover:shadow-sm transition-shadow",
-                // Phone track is 2 wide: an odd last action takes the whole
-                // row rather than sitting alone beside an empty cell.
-                actions.length % 2 === 1 && i === actions.length - 1 && "col-span-2 sm:col-span-1",
-              )}
-              onClick={() => router.push(action.path)}
-            >
-              <action.icon className={`h-5 w-5 ${action.color}`} />
-              <span className="text-xs font-medium">{t(action.labelKey)}</span>
-            </Button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <section aria-label={t('title')}>
+      <div data-layout="desktop" className="hidden flex-col gap-4 rounded-2xl border bg-card p-5 md:flex">
+        {primary.length > 0 && (
+          // Side by side from `lg` only: at medium widths each tile got ~300px and
+          // "Online Orders" broke across three lines around its badge.
+          <div className={cn('grid gap-4', primary.length > 1 && 'lg:grid-cols-2')}>
+            {primary.map((action) => (
+              <PrimaryTile
+                key={action.id}
+                action={action}
+                label={t(action.id)}
+                hint={t(`${action.id}Hint`)}
+                count={counts[action.id]}
+                countLabel={(count) => t('toConfirm', { count })}
+              />
+            ))}
+          </div>
+        )}
+        {secondary.length > 0 && (
+          // Sized from what survives the gates, so two shortcuts are not left
+          // huddled against four empty columns.
+          <div className={cn('grid gap-3', SHORTCUT_COLUMNS[secondary.length])}>
+            {secondary.map((action) => (
+              <ShortcutTile
+                key={action.id}
+                action={action}
+                label={t(action.id)}
+                count={counts[action.id]}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div data-layout="phone" className="flex flex-col gap-4 md:hidden">
+        {phoneLead && (
+          <PhoneLeadButton
+            action={phoneLead}
+            label={t(phoneLead.id)}
+            count={counts[phoneLead.id]}
+          />
+        )}
+        {phoneGrid.length > 0 && (
+          <div className="grid grid-cols-4 gap-x-1 gap-y-4 rounded-2xl border bg-card px-3 py-4">
+            {phoneGrid.map((action) => (
+              <PhoneGridTile
+                key={action.id}
+                action={action}
+                label={t(action.id)}
+                count={counts[action.id]}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   )
 }

@@ -14,6 +14,8 @@ interface LetterheadLineRowProps {
   isFirst: boolean;
   isLast: boolean;
   actions: ReceiptSettingsActions;
+  /** Lines whose value lives on the organization profile link there. */
+  onNavigateProfile?: () => void;
 }
 
 /**
@@ -26,10 +28,13 @@ export default function LetterheadLineRow({
   isFirst,
   isLast,
   actions,
+  onNavigateProfile,
 }: LetterheadLineRowProps) {
   const t = useTranslations("settings.receipt");
   const tLine = useTranslations("settings.receipt.lineRow");
   const meta = getHeaderLineMeta(t)[line.source];
+  const fromProfile =
+    !!onNavigateProfile && (line.source === "orgName" || line.source === "address");
 
   return (
     <div className="flex items-start gap-3 rounded-md border bg-card p-3">
@@ -61,7 +66,17 @@ export default function LetterheadLineRow({
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <span className="text-sm font-medium">{meta.label}</span>
-          <span className="text-xs text-muted-foreground">{meta.hint}</span>
+          {fromProfile ? (
+            <button
+              type="button"
+              className="text-xs text-primary underline underline-offset-2"
+              onClick={onNavigateProfile}
+            >
+              {tLine("editInProfile")}
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">{meta.hint}</span>
+          )}
         </div>
 
         {meta.custom ? (

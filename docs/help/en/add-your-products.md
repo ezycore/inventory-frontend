@@ -111,16 +111,20 @@ stop selling it — this is better than deleting, because deleting loses its sal
 
 A product is set up once for the whole business — every shop and warehouse uses the same one. Stock
 is not: it is counted per location. So creating a product and stocking it are two separate steps,
-and the form only does the second one if you ask it to.
+and the form does both unless you tell it not to.
 
-The **Track stock** switch at the top of the stock section is what asks. Turn it on and the product
-is added to the stock of the location you pick there, with the opening quantity and cost price you
-give it. Leave it off and the product is still saved and still appears in your product list — it
-just holds no stock anywhere.
+The **Track stock** switch at the top of the stock section controls this, and it starts **on**. The
+product is added to the stock of your current location, with the opening quantity, cost price and
+low-stock threshold you give it. An opening quantity of 0 is fine — the product is still stocked
+there, just sold out. Turn the switch off and the product is still saved and still appears in your
+product list — it just holds no stock anywhere.
 
 That matters more than it sounds. A product with no stock record at a location is not "zero stock"
-there: **it does not appear in the sell, purchase or adjust-stock screens at all.** Nothing on the
-Products list flags this, because that table has no stock column.
+there: **it does not appear in the sell or adjust-stock screens at all.** Nothing on the Products
+list flags this, because that table has no stock column. **New Purchase** is the exception: it
+offers the product anyway, and buying it creates the stock record for you. A stock record created
+that way has a low-stock threshold of 0, so set a real one on **Current Stock** if you want an
+early warning.
 
 Two things follow:
 

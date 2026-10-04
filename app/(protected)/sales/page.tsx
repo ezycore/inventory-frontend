@@ -48,7 +48,7 @@ function SalesPageContent() {
         subTitle={t("subtitle")}
         actions={
           <Button asChild variant="outline">
-            <Link href={posHref}>
+            <Link href={posHref} target="_blank" rel="noopener noreferrer">
               <MonitorSmartphone className="size-4" />
               {t("openPos")}
             </Link>

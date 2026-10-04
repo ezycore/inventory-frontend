@@ -262,6 +262,12 @@ export const organizationApi = {
     data: FormData | Record<string, any>,
   ): Promise<ApiResponse<any>> => apiClient.put(`/organization`, data),
 
+  // PUT /api/organization/receipt-images - Receipt signature + company stamp
+  // Used in: useUpdateReceiptImages → settings/receipt (signature panel)
+  // FormData: `signature` / `stamp` files, `removeSignature` / `removeStamp` flags.
+  updateReceiptImages: (data: FormData): Promise<ApiResponse<any>> =>
+    apiClient.put(`/organization/receipt-images`, data),
+
   // PUT /api/organization/form-settings - Update form field visibility settings
   // Used in: Form field management components
   updateFormSettings: (
