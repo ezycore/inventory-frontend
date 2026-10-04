@@ -35,7 +35,6 @@ function PurchasesPageContent() {
     editPrice,
     editDiscount,
     editCostPrice,
-    editRememberCostPrice,
     supplierFormConfig,
     productFormConfig,
     handleSupplierFieldChange,
@@ -197,8 +196,6 @@ function PurchasesPageContent() {
         editPrice={editPrice}
         editDiscount={editDiscount}
         editCostPrice={editCostPrice}
-        editRememberCostPrice={editRememberCostPrice}
-        formatCurrency={formatCurrency}
         editForm={editForm}
         handleEditFieldChange={handleEditFieldChange}
         handleSaveEdit={handleSaveEdit}

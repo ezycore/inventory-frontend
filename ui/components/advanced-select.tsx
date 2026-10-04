@@ -39,6 +39,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "./button";
 import { MultiSelect } from "./multi-select";
 import { CLEAR_OPTION_VALUE } from "./select-strategy";
+import { findDefaultOption } from "./select-default";
 
 export interface LabelValueOption {
   label: string;
@@ -98,6 +99,8 @@ interface AdvancedSelectProps {
    * matching option is auto-selected once so create forms come pre-filled.
    */
   defaultFlag?: string;
+  /** Pre-fill the option with this label when none carries `defaultFlag`. */
+  defaultFallbackLabel?: string;
 
   /** Single mode: a first menu item with this label that clears the selection. */
   clearOptionLabel?: string;
@@ -127,6 +130,7 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
   itemsCreateCallback,
   onMount,
   defaultFlag,
+  defaultFallbackLabel,
   clearOptionLabel,
   alwaysShowClear,
 }) => {
@@ -235,15 +239,13 @@ export const AdvancedSelect: React.FC<AdvancedSelectProps> = ({
       return;
     }
 
-    const defaultOption = finalOptions.find(
-      (opt) => (opt as unknown as Record<string, unknown>)[defaultFlag] === true,
-    );
+    const defaultOption = findDefaultOption(finalOptions, defaultFlag, defaultFallbackLabel);
     if (defaultOption) {
       defaultAppliedRef.current = true;
       handleValueChange(defaultOption.value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions, value, defaultFlag]);
+  }, [finalOptions, value, defaultFlag, defaultFallbackLabel]);
 
   // Quick-add modal success handler. Multi mode APPENDS: creating a tag from a
   // half-filled Tags field must not throw away the badges already picked.

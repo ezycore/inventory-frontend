@@ -135,6 +135,7 @@ function renderAdvancedSelect(
             optionsApi={resolvedOptionsApi}
             // Only prefill the default on create — never auto-fill on edit.
             defaultFlag={isEditMode ? undefined : field.defaultFlag}
+            defaultFallbackLabel={isEditMode ? undefined : field.defaultFallbackLabel}
             disabled={effectiveDisabled}
             error={error}
           />

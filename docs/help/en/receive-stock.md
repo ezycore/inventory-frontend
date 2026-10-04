@@ -18,6 +18,7 @@ ui_labels:
   - purchases:orders.receiveItems
   - purchases:orders.subtitle
   - purchases:summary.saveAsDraft
+  - purchases:form.price
 ---
 
 # Receive stock from a supplier
@@ -43,6 +44,9 @@ counts that do not match the shelf.
 2. Add products — search by name, or scan a barcode to add a line.
 3. Set the quantity and the cost price for each line. The cost price you enter here updates the
    product's cost, so it feeds straight into your profit and stock valuation figures.
+   **Price (MRP)** starts at the product's current selling price. If the MRP on the new stock is
+   different, type the new one: saving the purchase updates the product's MRP, and its online price
+   too if it has its own. When you buy in packs, enter the pack's MRP and it is divided per piece.
 4. If you track expiry, enter the batch number and expiry date for each line.
 5. Enter what you paid. Paying less than the total leaves a balance owing to that supplier.
 6. Complete the purchase.

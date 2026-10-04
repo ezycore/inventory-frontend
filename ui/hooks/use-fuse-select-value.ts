@@ -6,6 +6,7 @@ import type {
   FuseSelectValue,
   LabelValueOption,
 } from "@ui/components/fuse-select-types";
+import { findDefaultOption } from "@ui/components/select-default";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
@@ -27,6 +28,7 @@ interface UseFuseSelectValueParams {
   labelInValue: boolean;
   onMount?: (value: FuseSelectValue | undefined) => void;
   defaultFlag?: string;
+  defaultFallbackLabel?: string;
 }
 
 interface UseFuseSelectValueResult {
@@ -51,6 +53,7 @@ export function useFuseSelectValue({
   labelInValue,
   onMount,
   defaultFlag,
+  defaultFallbackLabel,
 }: UseFuseSelectValueParams): UseFuseSelectValueResult {
   // Guards the one-time default auto-select so we never override the user.
   const defaultAppliedRef = useRef(false);
@@ -118,15 +121,13 @@ export function useFuseSelectValue({
       return;
     }
 
-    const defaultOption = finalOptions.find(
-      (opt) => (opt as unknown as Record<string, unknown>)[defaultFlag] === true
-    );
+    const defaultOption = findDefaultOption(finalOptions, defaultFlag, defaultFallbackLabel);
     if (defaultOption) {
       defaultAppliedRef.current = true;
       handleValueChange(defaultOption.value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalOptions, value, defaultFlag]);
+  }, [finalOptions, value, defaultFlag, defaultFallbackLabel]);
 
   const actualValue = extractRaw(value);
 

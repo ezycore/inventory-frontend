@@ -212,6 +212,11 @@ export interface FormFieldConfig {
    * Requires the flag to be included in the `optionsApi` `fields=` projection.
    */
   defaultFlag?: string;
+  /**
+   * Label of the option to pre-fill when no option carries `defaultFlag`
+   * (e.g. "Piece" for a product's base unit). Create-only, like `defaultFlag`.
+   */
+  defaultFallbackLabel?: string;
   itemsCreateCallback?: (response: any) => SelectOption[];
   // Quick-add functionality for select fields
   creatable?: boolean; // Enable quick-add modal for creating new options
