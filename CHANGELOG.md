@@ -17,6 +17,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   changed). Combo lines stay fixed; a customer discount follows the new price.
 
 ### Changed
+- Add Product: **Track stock** is now on by default, so a new product is stocked at the
+  current location (opening quantity may be 0) instead of being missing from Current Stock.
+- Add Product: Sell price (per unit) starts at 0 instead of empty.
 - New Purchase: Invoice Date defaults to today on the organization's calendar
   (also after each save, and for a draft that has none).
 - New Purchase and Edit Purchase Order now share one edit-item dialog (Price and
@@ -30,6 +33,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - The "Remember Cost Price" checkbox (it was never sent to the server), and the
   disabled "Per-line cost will update product cost on save" checkbox on Edit
   Purchase Order.
+
+### Fixed
+- New Purchase and Edit Purchase Order: a product with no stock at this location yet
+  could be picked but not added ("Invalid input: expected string, received object").
+  It now adds, and the purchase creates its stock record.
 
 ### Deploy notes
 - Needs the backend with `updateMrp` on purchase lines (inventory-backend Unreleased).

@@ -18,7 +18,7 @@ import {
   makeProductFormSchema,
 } from "@/components/purchases";
 import { roundMoney } from "@/lib/money";
-import { extractProductValue } from "@/components/sales";
+import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { isVatActive } from "@/lib/feature-utils";
 import { useCurrency } from "@/lib/currency";
 import { computeOrderTax, type TaxLineInput } from "@/utils/tax";
@@ -393,7 +393,7 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
       const dto: CreatePurchaseOrderItemDto = {
         productId: item.productId,
         variantId: item.variantId,
-        inventoryId: item.inventoryId,
+        inventoryId: inventoryIdForApi(item.inventoryId),
         productName: item.productName,
         quantity: item.quantity,
         price: item.price,

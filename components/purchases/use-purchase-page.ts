@@ -3,7 +3,7 @@
 
 import { useTranslations } from "next-intl";
 import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, deriveLinePricing, discountForEditedPrice, isMrpEdited } from "@/components/purchases";
-import { extractProductValue } from "@/components/sales";
+import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { roundMoney } from "@/lib/money";
 import { isVatActive } from "@/lib/feature-utils";
@@ -452,7 +452,7 @@ export function usePurchasePage() {
     try {
       const ordersData: any[] = validSellers.map((seller) => {
         const isInstant = seller.purchaseType === "instant";
-        const items = seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
+        const items = seller.items.map((item: any) => ({ inventoryId: inventoryIdForApi(item.inventoryId), productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType,
           // Per-line expiry-batch — only sent for instant (received-on-create) and
           // only honoured by the backend for expiry-tracked products.
           ...(isExpiryEnabled && isInstant && item.expiryDate ? { expiryDate: item.expiryDate } : {}),
@@ -489,7 +489,7 @@ export function usePurchasePage() {
     const validSellers = sellers.filter((s) => s.items.length > 0 && s.supplierId);
     if (validSellers.length === 0) { toast.error(t("create.addItemsFirst")); return; }
     try {
-      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: item.inventoryId, productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || todayKey(), notes: seller.notes || undefined }));
+      const ordersData: any[] = validSellers.map((seller) => ({ supplierId: seller.supplierId || "", items: seller.items.map((item: any) => ({ inventoryId: inventoryIdForApi(item.inventoryId), productId: item.productId, variantId: item.variantId, productName: item.productName, quantity: item.quantity, price: item.price, updateMrp: item.updateMrp === true, costPrice: item.costPrice, discount: item.discount, conversionFactor: item.conversionFactor, taxRate: item.taxRate, taxType: item.taxType })), additionalDiscount: seller.additionalDiscount || 0, status: "draft", invoiceNumber: seller.invoiceNumber || undefined, invoiceDate: seller.invoiceDate || todayKey(), notes: seller.notes || undefined }));
       if (isDraftMode && draftId) {
         const first = ordersData[0];
         await updateDraftMutation.mutateAsync({ id: draftId, data: { supplierId: first.supplierId, items: first.items, additionalDiscount: first.additionalDiscount, taxTotal: first.taxTotal, invoiceNumber: first.invoiceNumber, invoiceDate: first.invoiceDate, notes: first.notes } });
