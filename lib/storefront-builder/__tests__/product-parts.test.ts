@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_PRODUCT_PARTS,
   buyingOrderHolds,
+  isTargetablePart,
+  partTargets,
   productParts,
   type ProductPartSettings,
 } from "../product-parts";
@@ -75,5 +77,32 @@ describe("the stored vocabulary", () => {
 
   it("starts with the default column, in its order", () => {
     expect(PRODUCT_PARTS.slice(0, DEFAULT_PRODUCT_PARTS.length)).toEqual([...DEFAULT_PRODUCT_PARTS]);
+  });
+});
+
+describe("a part on some products", () => {
+  const CLOTHING = "64b7f0c2a1b2c3d4e5f60720";
+  const SIZING = "64b7f0c2a1b2c3d4e5f60730";
+
+  it("reads the categories and tags of a text or collapsible part", () => {
+    expect(partTargets({ part: "collapsible", categoryIds: [CLOTHING] })).toEqual({ categories: [CLOTHING] });
+    expect(partTargets({ part: "text", tagIds: [SIZING] })).toEqual({ tags: [SIZING] });
+    expect(partTargets({ part: "text", categoryIds: [CLOTHING], tagIds: [SIZING] })).toEqual({
+      categories: [CLOTHING],
+      tags: [SIZING],
+    });
+  });
+
+  it("is every product with nothing named, or an empty list", () => {
+    expect(partTargets({ part: "collapsible" })).toBeUndefined();
+    expect(partTargets({ part: "collapsible", categoryIds: [], tagIds: [] })).toBeUndefined();
+  });
+
+  it.each(["options", "buy", "price", "name", "promises"])("never narrows the %s part, whatever is stored", (part) => {
+    expect(partTargets({ part, categoryIds: [CLOTHING] })).toBeUndefined();
+  });
+
+  it("lets only text and collapsible parts be limited", () => {
+    expect(PRODUCT_PARTS.filter(isTargetablePart)).toEqual(["text", "collapsible"]);
   });
 });

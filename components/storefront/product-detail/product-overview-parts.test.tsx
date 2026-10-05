@@ -108,3 +108,40 @@ describe("the product column", () => {
     expect(column(draw(parts, []))).toEqual(["buy"]);
   });
 });
+
+describe("a part on some products", () => {
+  const CLOTHING = "0000000000000000000000c1";
+  const MEN = "0000000000000000000000c2";
+  const SIZING = "0000000000000000000000t1";
+  const sizeChart: ProductPart = { key: "fold", part: "collapsible", title: "Size chart", categoryIds: [CLOTHING] };
+  const parts: ProductPart[] = [{ key: "b", part: "buy" }, sizeChart, { key: "d", part: "delivery" }];
+  const on = (product: Record<string, unknown>, shown = parts) =>
+    render(
+      <ProductOverview d={{ ...d, product: { ...d.product, ...product } } as ProductBuy} galleryTop={false} parts={shown} />,
+    ).container;
+
+  it("shows a part limited to a category on that category's products, and its sub-categories'", () => {
+    expect(column(on({ categoryId: CLOTHING }))).toEqual(["buy", "collapsible", expect.any(String)]);
+    expect(column(on({ categoryId: CLOTHING, subcategoryId: MEN }))).toContain("collapsible");
+  });
+
+  it("leaves it out on every other product, with no gap", () => {
+    const container = on({ categoryId: "0000000000000000000000c9" });
+    expect(column(container)).toEqual(["buy", expect.any(String)]);
+    expect(container.querySelector("details")).toBeNull();
+  });
+
+  it("shows a part limited to a tag on a product carrying it", () => {
+    const tagged: ProductPart[] = [{ key: "b", part: "buy" }, { key: "t", part: "text", text: "Runs small", tagIds: [SIZING] }];
+    expect(on({ tags: [{ _id: SIZING, name: "Sizing" }] }, tagged).textContent).toContain("Runs small");
+    expect(on({ tags: [] }, tagged).textContent).not.toContain("Runs small");
+  });
+
+  it("gives the last part drawn its place as the last, whichever part was left out", () => {
+    const lastFolded: ProductPart[] = [{ key: "d", part: "delivery" }, sizeChart];
+    const delivery = on({ categoryId: "0000000000000000000000c9" }, lastFolded).querySelector(
+      "[style*='border-top']",
+    ) as HTMLElement;
+    expect(delivery.style.marginBottom).toBe("0px");
+  });
+});

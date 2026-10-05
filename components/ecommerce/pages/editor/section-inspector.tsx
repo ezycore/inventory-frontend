@@ -170,7 +170,7 @@ export function SectionInspector({
               edited as one short list (`ProductPartsEditor`) instead of the
               card-per-item list below. */}
           {section.type === "product-main" ? (
-            <ProductPartsEditor section={section} device={device} onChange={onChange} />
+            <ProductPartsEditor section={section} device={device} previewProduct={previewProduct} onChange={onChange} />
           ) : null}
 
           <SettingsFields

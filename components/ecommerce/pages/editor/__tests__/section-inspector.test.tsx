@@ -289,3 +289,40 @@ describe("SectionInspector — the icon picker", () => {
     expect(screen.getByRole("button", { name: "No icon" })).toBeTruthy();
   });
 });
+
+describe("SectionInspector — a product part on some products", () => {
+  const FOLD = { id: "fold-1", settings: { part: "collapsible", title: "Size chart" } };
+  const main = (blocks: EditorSection["blocks"]): EditorSection => ({
+    id: "main",
+    type: "product-main",
+    v: 1,
+    enabled: true,
+    settings: {},
+    blocks,
+  });
+  const productsField = () => screen.queryByText("Products", { selector: "label" });
+
+  it("offers Products on a collapsible part, starting on every product", async () => {
+    inspect(main([{ id: "part-buy", settings: { part: "buy" } }, FOLD]), "product");
+    await userEvent.click(screen.getByRole("button", { name: /^Size chart/ }));
+    expect(productsField()).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Products" }).textContent).toContain("Every product");
+  });
+
+  it("offers it on no part that is the product's own", async () => {
+    inspect(main([{ id: "part-price", settings: { part: "price" } }, { id: "part-buy", settings: { part: "buy" } }]), "product");
+    await userEvent.click(screen.getByRole("button", { name: /^Price/ }));
+    expect(productsField()).toBeNull();
+  });
+
+  it("marks a limited part in the list", () => {
+    inspect(
+      main([
+        { id: "part-buy", settings: { part: "buy" } },
+        { ...FOLD, settings: { ...FOLD.settings, categoryIds: ["64b7f0c2a1b2c3d4e5f60720"] } },
+      ]),
+      "product",
+    );
+    expect(screen.getByText("Collapsible text · On some products")).toBeTruthy();
+  });
+});

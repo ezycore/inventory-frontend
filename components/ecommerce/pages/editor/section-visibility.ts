@@ -35,3 +35,20 @@ export function withProductTargets(section: EditorSection, targets: ProductTarge
       : undefined,
   });
 }
+
+/**
+ * A text or collapsible part's settings limited to `targets`, or — `undefined`
+ * — shown on every product: its `categoryIds` / `tagIds`, written only when
+ * they name something, since the backend refuses an empty list.
+ */
+export function withPartTargets(
+  settings: Record<string, unknown>,
+  targets: ProductTargets | undefined,
+): Record<string, unknown> {
+  const { categoryIds: _categories, tagIds: _tags, ...rest } = settings;
+  return {
+    ...rest,
+    ...(targets?.categories?.length ? { categoryIds: [...targets.categories] } : {}),
+    ...(targets?.tags?.length ? { tagIds: [...targets.tags] } : {}),
+  };
+}

@@ -4968,3 +4968,15 @@ off the product page and on `product-main` (`assertCoreSection`), and ownership-
 inline helper did not. The preview frame draws no note for a skipped section (that would be new
 shopper-dictionary copy); the tree row says **On some products** and the inspector says when the
 previewed product is not one of them.
+
+**A text or collapsible part on some products (2026-10-05).** The same rule reaches inside the product
+column: a `text` or `collapsible` part may carry `categoryIds` / `tagIds` (`refs` block settings, up to
+20 each) — a size chart beside the photos of the clothing only. **Flat refs, not a nested `products`
+object** like `visibility.products`: the manifest already validates refs and collects them for the
+backend's ownership check. `partTargets` (`product-parts.ts`) reads them, and **only** for those two
+parts (`isTargetablePart`) — a target stored on any other part is ignored, so options and buy can never
+be narrowed away; the backend refuses it there too, and as an empty list (`checkProductPartTargets`).
+`ProductOverview` filters the parts through `showsOnProduct` **before** laying out the column, so
+`last` still lands on the last part drawn. Editor: `PartDetails` renders the same `ProductTargetsField`,
+written through `withPartTargets` (`section-visibility.ts`); the part row says **On some products**; the
+details panel is keyed by part id because that field holds its own mode. Backend manifest first.
