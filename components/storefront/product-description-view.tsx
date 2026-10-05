@@ -43,6 +43,26 @@ export function ProductDescriptionView({
  */
 const INLINE_PROSE_LIMIT = 280;
 
+/**
+ * The legacy plain-text branch only — `ProductDescriptionView` applies it to the
+ * bare <p> so an un-migrated description looks exactly as it did before.
+ */
+export const descriptionText: CSSProperties = {
+  fontSize: 14,
+  color: "var(--muted)",
+  lineHeight: 1.6,
+  margin: 0,
+  whiteSpace: "pre-line",
+};
+
+/** Owns the spacing for BOTH branches, so a rich body and a legacy paragraph sit the same distance off what follows. */
+export const descriptionWrap: CSSProperties = {
+  fontSize: 14,
+  color: "var(--muted)",
+  lineHeight: 1.6,
+  marginBottom: 20,
+};
+
 export function isLongDescription(description?: string | null): boolean {
   if (!description) return false;
   const doc = parseRichDoc(description);

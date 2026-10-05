@@ -8,6 +8,7 @@ import { record, redo as redoStep, startHistory, undo as undoStep, type History 
 import {
   duplicateSection,
   moveSection,
+  moveSectionTo,
   newBlock,
   newSection,
   removeSection,
@@ -34,6 +35,8 @@ export interface PageEditor {
   add: (type: SectionType) => void;
   update: (id: string, change: (section: EditorSection) => EditorSection) => void;
   move: (id: string, delta: -1 | 1) => void;
+  /** Drag and drop: `id` to position `to` (`moveSectionTo`). */
+  moveTo: (id: string, to: number) => void;
   duplicate: (id: string) => void;
   remove: (id: string) => void;
   addBlock: (id: string) => void;
@@ -114,6 +117,11 @@ export function usePageEditor(page: StorefrontPage, store?: StoreFacts): PageEdi
     [change],
   );
 
+  const moveTo = useCallback(
+    (id: string, to: number) => change((current) => moveSectionTo(current, id, to)),
+    [change],
+  );
+
   const duplicate = useCallback(
     (id: string) => change((current) => duplicateSection(current, id)),
     [change],
@@ -173,6 +181,7 @@ export function usePageEditor(page: StorefrontPage, store?: StoreFacts): PageEdi
     add,
     update,
     move,
+    moveTo,
     duplicate,
     remove,
     addBlock,

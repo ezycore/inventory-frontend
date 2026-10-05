@@ -153,8 +153,9 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
   fields.push(
     // The selling price (MRP) × conversion factor, prefilled from the product.
     // Editable: a changed value is written back as the product's MRP when the
-    // purchase is saved (`updateMrp`). Cost Price is what drives the line total
-    // (quantity × costPrice), so it sits immediately next to Price.
+    // purchase is saved (`updateMrp`). The row reads as its own equation —
+    // Sale Price − Discount (per unit) = Cost Price — and Cost Price drives the
+    // line total (quantity × costPrice).
     {
       name: "price",
       label: t("form.price"),
@@ -178,8 +179,8 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       },
     },
     {
-      name: "costPrice",
-      label: t("form.costPrice"),
+      name: "discount",
+      label: t("form.discount"),
       type: "number",
       precision: 2,
       required: false,
@@ -188,8 +189,8 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       validation: { min: 0 },
     },
     {
-      name: "discount",
-      label: t("form.discount"),
+      name: "costPrice",
+      label: t("form.costPrice"),
       type: "number",
       precision: 2,
       required: false,

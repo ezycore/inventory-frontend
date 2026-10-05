@@ -5,8 +5,10 @@ import type { Responsive } from "@/lib/storefront-builder/settings";
 import { sectionCardMedia } from "@/lib/storefront-builder/card-media";
 import { mediaFitFor, mediaRatioFor } from "@/lib/storefront-templates";
 import { ProductFromRoute } from "@/components/storefront/product/product-data";
+import { productParts } from "@/lib/storefront-builder/product-parts";
 
 type Spec = (typeof SECTION_SPECS)["product-main"]["settings"];
+type Part = NonNullable<(typeof SECTION_SPECS)["product-main"]["blocks"]>["settings"];
 type Ratio = Parameters<typeof mediaRatioFor>[0];
 
 /**
@@ -32,15 +34,22 @@ type Ratio = Parameters<typeof mediaRatioFor>[0];
  * the row, as the classic product page draws it. `layout` is today's
  * `templates.product` become a section setting, unset on every page the
  * migration builds.
+ *
+ * The blocks are the column beside the photos, part by part
+ * (`productParts`). None saved passes nothing, so the column is drawn as it
+ * always was; the store's promises go along only for a promises part to draw.
  */
-export function ProductMainSection({ settings }: SectionViewProps<Spec>) {
+export function ProductMainSection({ settings, blocks, context }: SectionViewProps<Spec, Part>) {
   const card = sectionCardMedia(settings);
+  const parts = blocks.length > 0 ? productParts(blocks) : undefined;
   return (
     <div className="sfb-core">
       <ProductFromRoute
         layout={settings.layout}
         hideRelated={settings.hideRelated ?? false}
         hideDescription={settings.hideDescription ?? false}
+        parts={parts}
+        promises={parts?.some(({ part }) => part === "promises") ? context.trustBadges : undefined}
         shape={{
           imageFit: settings.imageFit ? mediaFitFor(settings.imageFit) : undefined,
           imageRatio: frameOf(settings.imageRatio),

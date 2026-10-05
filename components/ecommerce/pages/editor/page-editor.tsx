@@ -11,6 +11,7 @@ import {
   useUnpublishStorefrontPage,
   type StorefrontPage,
 } from "@/services/api";
+import type { CatalogProduct } from "@/lib/storefront-client";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { StatusBadge } from "@/ui/components/status-badge";
 import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-dialog";
@@ -27,7 +28,8 @@ import { SectionTree } from "./section-tree";
 import { usePageAutosave } from "./use-page-autosave";
 import { loadedSections, usePageEditor } from "./use-page-editor";
 import { useStoreFacts } from "./use-store-facts";
-import { usePreviewProductSlug } from "./use-preview-product";
+import { PreviewProductPicker } from "./preview-product-picker";
+import { usePreviewProducts } from "./use-preview-product";
 import { useUndoShortcuts } from "./use-undo-shortcuts";
 
 /** Which sections a page may hold is decided by what kind of page it is. */
@@ -49,7 +51,10 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
   // basket is empty, so the preview fills it with a sample and this is the
   // switch back to the empty state — see `PreviewCartToggle`.
   const showsCart = systemKey === "cart" || systemKey === "checkout";
-  const previewProduct = usePreviewProductSlug(slug, isProductPage);
+  const previewProducts = usePreviewProducts(slug, isProductPage);
+  // The store's first product until the merchant picks another.
+  const [previewPick, setPreviewPick] = useState<CatalogProduct | null>(null);
+  const previewProduct = previewPick ?? previewProducts.data?.[0] ?? null;
   const editor = usePageEditor(page, useStoreFacts());
   const autosave = usePageAutosave(page, editor.savable);
   useUndoShortcuts(editor.undo, editor.redo);
@@ -125,6 +130,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
               onClose={() => editor.select(null)}
               context={pageContextOf(page)}
               siblingAnchors={siblingAnchors(editor.sections, selected.id)}
+              previewProduct={isProductPage ? previewProduct : undefined}
             />
           ) : (
             <SectionTree
@@ -132,6 +138,7 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
               selectedId={editor.selectedId}
               onSelect={editor.select}
               onMove={editor.move}
+              onMoveTo={editor.moveTo}
               onToggle={(id) => editor.update(id, (section) => ({ ...section, enabled: !section.enabled }))}
               onDuplicate={editor.duplicate}
               onRemove={editor.remove}
@@ -144,9 +151,9 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
         <div className="min-w-0 lg:sticky lg:top-6">
           <PagePreviewFrame
             slug={slug}
-            address={previewAddress(page, previewProduct.data)}
+            address={previewAddress(page, previewProduct?.slug)}
             unavailable={
-              isProductPage && previewProduct.isPending
+              isProductPage && previewProducts.isPending
                 ? "Finding a product to preview…"
                 : isProductPage
                   ? "Add a product to your store to preview this page."
@@ -159,6 +166,16 @@ export function PageEditor({ page }: { page: StorefrontPage }) {
             selectedId={editor.selectedId}
             onSelect={editor.select}
             cart={showsCart ? { filled: cartFilled, onChange: setCartFilled } : undefined}
+            toolbar={
+              isProductPage && previewProduct ? (
+                <PreviewProductPicker
+                  slug={slug}
+                  products={previewProducts.data ?? []}
+                  value={previewProduct}
+                  onChange={setPreviewPick}
+                />
+              ) : undefined
+            }
             height="calc(100vh - 13.5rem)"
           />
         </div>

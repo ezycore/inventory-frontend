@@ -38,6 +38,7 @@ export const SECTION_DEFAULTS: Record<SectionType, SectionDefault> = {
   "collection-grid": { settings: {} },
   "campaign-main": { settings: {} },
   "product-main": { settings: {} },
+  "product-description": { settings: {} },
   "related-products": { settings: {} },
   faq: {
     settings: { heading: "Questions" },

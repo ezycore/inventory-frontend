@@ -14438,6 +14438,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14465,6 +14469,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14569,6 +14577,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14665,6 +14677,10 @@ export interface components {
             visibility?: {
                 desktop?: boolean;
                 mobile?: boolean;
+                products?: {
+                    categories?: string[];
+                    tags?: string[];
+                };
             };
             settings: {
                 [key: string]: unknown;
@@ -15831,7 +15847,7 @@ export interface components {
             };
         };
         DashboardBlocks: {
-            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health")[];
         };
         DashboardOverview: {
             period: {
