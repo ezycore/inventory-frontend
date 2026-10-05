@@ -16,8 +16,8 @@ import { OrderConfirmDialog } from "@/components/ecommerce/orders/order-confirm-
 import { cn } from "@/ui/lib/utils";
 import { isCoreSection, sectionLabel } from "./section-catalogue";
 import { isComplete, type EditorSection } from "./section-instances";
-import { DragHandle, DropLine } from "./drag-handle";
-import { useDragReorder } from "./use-drag-reorder";
+import { DragHandle, DropLine } from "@/ui/components/drag-handle";
+import { useDragReorder } from "@/ui/hooks/use-drag-reorder";
 
 const rowButton = "h-7 w-7 text-muted-foreground hover:text-foreground";
 

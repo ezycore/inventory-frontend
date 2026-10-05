@@ -22,7 +22,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { cn } from "@/ui/lib/utils";
 import { newInstanceId, type EditorBlock, type EditorDevice, type EditorSection } from "./section-instances";
-import { DragHandle, DropLine } from "./drag-handle";
+import { DragHandle, DropLine } from "@/ui/components/drag-handle";
 import {
   ADD_DESCRIPTIONS,
   PART_LABELS,
@@ -33,7 +33,7 @@ import {
   singleId,
 } from "./product-part-labels";
 import { PartDetails } from "./product-part-details";
-import { useDragReorder } from "./use-drag-reorder";
+import { useDragReorder } from "@/ui/hooks/use-drag-reorder";
 
 /**
  * The product page's column beside the photos, part by part — `product-main`'s

@@ -9,6 +9,8 @@ covers_routes:
   - /ecommerce/customize
 features:
   - storefront
+ui_labels:
+  - products:tags.arrangeProducts.menuItem
 ---
 
 # Choose what to sell online
@@ -40,6 +42,31 @@ so a small catalogue with good images and real descriptions outsells a large one
 **Collections** groups listed products into the sets shoppers browse by — "Winter", "Under 500",
 "New in". It lives under Online Store because it exists only there: your counter has categories,
 your store has collections, and a product can sit in several at once.
+
+### Put your products in order
+
+Your store shows products in an order you can set yourself, one list at a time:
+
+- **All products** — **Arrange All products**, at the top of Collections.
+- **A collection** — **Arrange products** on its row. A collection inside another has its own order.
+- **A tag** — **Arrange in online store** in the tag's menu under Products → Tags.
+
+Drag a product by its handle, or use the ⋯ menu to move it to the top, the bottom or a numbered
+place. On a long list, type a name in **Find a product** first. Press **Save** when you are done;
+**Discard** undoes everything since the last save, and **Reset to default** goes back to the
+store's own order.
+
+Products you have not placed show under **Not placed yet**, in the order shoppers see them after
+yours. A new product lands there too, so it never jumps into the middle of your list. Press
+**Start from the current order** to place them all at once and rearrange from there.
+
+Two things still outrank your order. A product that is out of stock always shows after the ones
+shoppers can buy, and a shopper who picks a sort, like price, sees that sort instead. Your order is
+the **Featured** sort, so if your store opens on another one, the screen says so and links to
+**Filters & sort**.
+
+A homepage section where you chose the products yourself keeps the order you give it in the page
+editor: drag the products in the section's list.
 
 ## Themes
 

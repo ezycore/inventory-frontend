@@ -4944,12 +4944,60 @@ editor alike:
   `product-part-labels.ts`, a part's settings in `product-part-details.tsx`) replaces the generic block
   cards for this one section and sits above its settings.
 
-**Dragging.** `useDragReorder` (`pages/editor/use-drag-reorder.ts`) is the one reorder mechanism for the
-editor's lists — the section tree and the parts list. Pointer events, not HTML drag and drop (a phone
-never fires those): a press becomes a drag after 4px, the row follows the pointer, the scroller scrolls
-near its edges, Escape cancels, and arrow keys on the focused handle move a row one step. Rows are the
-list's children with `data-drag-row`; the handle and the drop line are `DragHandle` / `DropLine`
-(`drag-handle.tsx`). The section tree keeps Move up / Move down in each row's ⋯ menu.
+**Dragging.** `useDragReorder` (`ui/hooks/use-drag-reorder.ts`) is the one reorder mechanism for the
+app's lists — the section tree, the parts list and a Manual section's product list. It moved out of
+`pages/editor/` on 2026-10-05 so code outside the page editor can use it without importing from there.
+Pointer events, not HTML drag and drop (a phone never fires those): a press becomes a drag after 4px,
+the row follows the pointer, the scroller scrolls near its edges, Escape cancels, and arrow keys on the
+focused handle move a row one step. Rows are the list's children with `data-drag-row`; the handle and
+the drop line are `DragHandle` / `DropLine` (`ui/components/drag-handle.tsx`). The section tree keeps
+Move up / Move down in each row's ⋯ menu.
+
+**A Manual section's products are an ordered list** (`ProductListField`,
+`pages/editor/product-list-field.tsx`). The storefront shows `productIds` in exactly the stored order
+(`orderByIds` on the backend), so `RefField` hands every `refs` → `product` setting (`product-grid`,
+`selected-products`, `product-carousel`) to this list instead of a multi-select:
+- The combobox only adds, at the end. A product already in the list is ignored, and the box disables
+  at the section's `max`.
+- The rows below are the selection: drag or arrow-key to move, ✕ to remove.
+- Names come from the same cached option list the combobox searches. There are no thumbnails on
+  purpose: that list is the whole catalogue, and images would make it megabytes.
+- An id with no option reads "Product no longer available" so it can be removed.
+
+Category and tag `refs` stay a multi-select, because their order means nothing. Plan:
+`inventory-backend/docs/plan/storefront-product-order.md` §8.
+
+**Arranging a listing (2026-10-05).** A merchant saves their own product order for **All products**,
+any **collection** (either level, each independent) or any **tag**.
+
+- **Backend.** It stores one ordered id list per listing, and it is the default (`featured`) sort.
+  A shopper-chosen sort or a search ignores it, and sold-out products still sink. The backend
+  `storefront-orders` / catalogue code owns the rules; this side only edits the list.
+- **Screen.** `/ecommerce/arrange/all`, `/ecommerce/arrange/category/<id>` and
+  `/ecommerce/arrange/tag/<id>` (`app/(protected)/ecommerce/arrange/[...target]/page.tsx`) all
+  render `ArrangeProducts` (`components/ecommerce/arrange/`).
+  - Moves are pure functions in `arrange-state.ts`. The working copy is a `draft` over the server
+    state; `null` means unchanged.
+  - Save sends `placed` ids and seeds the cache with what the server stored. Ids it refused (a
+    product since deleted or moved) disappear on save.
+- **Sections.** "Your order" is draggable (`useDragReorder`), and drag is off while searching; the
+  ⋯ menu covers top, bottom and position. "Not placed yet" stays in the shop's current order and
+  has **Add to top / Add to bottom** and **Start from the current order**.
+- **Q3 warning.** If the store's default sort (`resolveFilterSettings(nav.filters).sort.default`)
+  isn't `featured`, an amber notice links to Customize → Filters & sort. A saved order never
+  overrides the store default.
+- **Entry points.**
+  - Collections tab: **Arrange All products**, and **Arrange products** on each row through
+    `CollectionRow`'s `actions` slot (the compact Customize rail passes nothing).
+  - Tags page: **Arrange in online store** (`products.tags.arrangeProducts.menuItem`) in the
+    table's `customActions` and the card menu, only with the `storefront` feature and
+    `storefront.view`.
+  - Badges come from `useProductOrderSummary()`.
+- **API.** `services/api/modules/product-orders/`. Keys sit under `storefrontCatalog`
+  (`productOrders()` / `productOrder(scope, id)`), and writes fire `storefront.catalog.changed`,
+  which also expires the shop's cached pages so shoppers see the new order at once.
+- **Copy.** The screen's text is English, like the rest of Collections. Only the Tags menu item is a
+  message key.
 
 **Deploy order.** The parts and `product-description` are new manifest entries: the backend's
 regenerated `storefront-section-manifest.ts` must be live **before** this frontend, or the editor saves

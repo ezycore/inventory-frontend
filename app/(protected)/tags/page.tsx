@@ -29,7 +29,9 @@ import ViewToggle from "@/ui/components/ViewToggle";
 import MountingHandler from "@/components/MountingHandler";
 import type { TagListItem } from "@/types/api";
 import { useState } from "react";
-import { TagsIcon } from "lucide-react";
+import { ArrowUpDown, TagsIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { isFeatureEnabled } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores";
 import {
   RemoveFromProductsDialog,
@@ -72,6 +74,14 @@ export default function TagsPage() {
   // a product edit, so it needs `products.edit`, not a tag permission.
   const canEditProducts = user?.permissions?.includes("products.edit") ?? false;
   const [removeTarget, setRemoveTarget] = useState<RemoveTagTarget | null>(null);
+
+  // The tag's product order in the online store (`/products?tags=…`). Offered only
+  // where the Arrange screen can open: the store is on and the role can see it.
+  const router = useRouter();
+  const canArrange =
+    isFeatureEnabled(user?.organization?.features, "storefront") &&
+    (user?.permissions?.includes("storefront.view") ?? false);
+  const arrangeHref = (id: string) => `/ecommerce/arrange/tag/${id}`;
   const removeAction = canEditProducts
     ? [
         {
@@ -81,6 +91,17 @@ export default function TagsPage() {
           tooltip: t("removeFromProducts.menuItem"),
           onClick: (row: TagListItem) => setRemoveTarget(row),
           hidden: (row: TagListItem) => !row.productCount,
+        },
+      ]
+    : [];
+  const arrangeAction = canArrange
+    ? [
+        {
+          type: "arrange-products",
+          placement: "cell" as const,
+          icon: <ArrowUpDown className="h-4 w-4" />,
+          tooltip: t("arrangeProducts.menuItem"),
+          href: (row: TagListItem) => arrangeHref(row._id),
         },
       ]
     : [];
@@ -149,7 +170,7 @@ export default function TagsPage() {
           rowClassName={(row) => (row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : "")}
           enableRowHover={true}
           operations={sharedOperations}
-          customActions={removeAction}
+          customActions={[...arrangeAction, ...removeAction]}
         />
       )}
 
@@ -171,6 +192,7 @@ export default function TagsPage() {
               {
                 ...actions,
                 ...(canEditProducts ? { onRemoveFromProducts: () => setRemoveTarget(item) } : {}),
+                ...(canArrange ? { onArrangeProducts: () => router.push(arrangeHref(item._id)) } : {}),
               },
               { t, locale },
             )

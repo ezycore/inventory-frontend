@@ -359,6 +359,14 @@ export const queryKeys = {
     collections: () => ["storefront-catalog", "collections"] as const,
     /** Per-variant storefront pricing rows for one product (the listing editor). */
     variants: (id: string) => ["storefront-catalog", "variants", id] as const,
+    /**
+     * Arranged product orders. Under the catalog root on purpose: a listing,
+     * a featured flag or a deleted category changes what an arrangement holds,
+     * so one `storefront.catalog.changed` must refresh both.
+     */
+    productOrders: () => ["storefront-catalog", "product-orders"] as const,
+    productOrder: (scope: string, id?: string) =>
+      ["storefront-catalog", "product-orders", scope, id ?? null] as const,
   },
 
   storefrontCustomers: {

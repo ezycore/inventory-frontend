@@ -2,6 +2,7 @@
 // coding-standard: maintained
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import { getErrorMessage, isApiError } from "@/lib/error-handling";
 import { useSaveStorefrontPageDraft, type StorefrontPage } from "@/services/api";
 import { pageContextOf, savableSections, type EditorSection } from "./section-instances";
@@ -93,12 +94,7 @@ export function usePageAutosave(page: StorefrontPage, sections: EditorSection[])
   }, [dirty, blocked, flush]);
 
   // Leaving with unsaved edits asks first — the browser's own prompt.
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  useUnsavedChangesWarning(dirty);
 
   return {
     dirty,
