@@ -19,7 +19,7 @@ import { cn } from "@ui/lib/utils";
 interface PrintMenuProps {
   /** Print at the chosen paper size; returns false when printing couldn't start. */
   onPrint: (paper: PaperSize) => boolean;
-  /** Label for the A4 option (e.g. "Invoice", "Purchase Order"). */
+  /** Label for the full-page options (e.g. "Invoice", "Purchase Order"), suffixed (A4)/(A5). */
   a4Label?: string;
   /** Org's pre-selected paper size — the one-click primary action. Defaults to A4. */
   defaultPaper?: PaperSize;
@@ -29,7 +29,7 @@ interface PrintMenuProps {
 
 /**
  * Split print button: the primary segment prints at the org's default paper size
- * in one click; the caret opens the paper-size menu (A4 / 80mm / 58mm). Printing
+ * in one click; the caret opens the paper-size menu (A4 / A5 / 80mm / 58mm). Printing
  * renders into a hidden iframe (utils/print.ts) — no popups involved.
  */
 export function PrintMenu({
@@ -50,6 +50,7 @@ export function PrintMenu({
 
   const options: { paper: PaperSize; label: string }[] = [
     { paper: "a4", label: `${a4Label} (A4)` },
+    { paper: "a5", label: `${a4Label} (A5)` },
     { paper: "thermal80", label: t("receipt80") },
     { paper: "thermal58", label: t("receipt58") },
   ];

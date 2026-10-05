@@ -554,6 +554,9 @@
       "description": "The tag stays in your list; only the products stop carrying it. Use this when a campaign or sale ends.",
       "confirm": "Remove from all",
       "done": "Removed “{name}” from {count, plural, one {# product} other {# products}}"
+    },
+    "arrangeProducts": {
+      "menuItem": "Arrange in online store"
     }
   },
   "categories": {

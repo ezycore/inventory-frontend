@@ -1059,6 +1059,23 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
+/* ---- Page breadcrumb (components/storefront/breadcrumb.tsx) ----
+   Phones swap the full trail for a single "‹ Parent" link and tighten the
+   space around it: the trail plus its padding was costing ~100px above the
+   product gallery, which kept the title and price off the first screen.
+   `--sf-page-top` is read by the PDP and collection page wrappers. */
+.sf-crumbs {
+  margin-bottom: 12px;
+}
+@media (max-width: 679px) {
+  .sf-root {
+    --sf-page-top: 4px;
+  }
+  .sf-crumbs {
+    margin-bottom: 2px;
+  }
+}
+
 /* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */
 @media (max-width: 679px) {
   .sf-desktop-only {

@@ -313,6 +313,12 @@ the options, the quantity, the buy buttons and the delivery estimate — in the 
 - **Add a part** adds your own: **Text** for a short note, **Collapsible text** for a title shoppers tap
   to open (a size chart, care, materials), and **Trust promises** for the promises you wrote in
   Customize → Footer. Select a part to write its words, and use the bin button to remove one you added.
+- **Text and Collapsible text can go on some products only.** Select the part and set **Products** to
+  **Products in these categories** or **Products with these tags** — a size chart beside the photos of
+  your clothing that your floor mats never show. It works like a section's **Products** under **Show
+  on**: choosing a category includes the categories inside it, and the list marks the part **On some
+  products**. Only active tags reach your shop, so a part limited to a tag you turned off shows nowhere.
+  The product's own parts — the name, price, options, buy buttons and the rest — always show.
 
 Until you change anything here, the product shows exactly as it always has.
 

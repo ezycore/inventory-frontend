@@ -5,6 +5,7 @@ import type { SectionRefKind } from "@/lib/storefront-builder/field-specs";
 import { selectOptions } from "@/services/api/select-options";
 import { FuseAdvancedSelect } from "@/ui/components/fuse-advanced-select";
 import { CampaignRefField } from "./campaign-ref-field";
+import { ProductListField } from "./product-list-field";
 
 /**
  * Where each kind of document a section can point at is listed from. Built with
@@ -51,6 +52,12 @@ export function RefField({
   }
 
   const ids = Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  // A hand-picked product list is shown in the order it is stored, so it gets a
+  // list the merchant can reorder rather than a multi-select's unordered chips.
+  // Categories and tags stay chips: their order means nothing.
+  if (multiple && to === "product") {
+    return <ProductListField id={id} optionsApi={optionsApi} value={ids} onChange={onChange} max={max} />;
+  }
   return (
     <FuseAdvancedSelect
       id={id}

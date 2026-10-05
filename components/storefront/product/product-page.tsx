@@ -25,7 +25,9 @@ const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
   margin: "0 auto",
   width: "100%",
-  padding: "22px var(--pad) 40px",
+  // `--sf-page-top` shrinks on phones (storefront.css) — an inline literal
+  // would beat the media query.
+  padding: "var(--sf-page-top, 22px) var(--pad) 40px",
 };
 
 /**

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withProductTargets, withScreen } from "../section-visibility";
+import { withPartTargets, withProductTargets, withScreen } from "../section-visibility";
 import type { EditorSection } from "../section-instances";
 
 const CUSHIONS = "64b7f0c2a1b2c3d4e5f60720";
@@ -17,5 +17,19 @@ describe("a section's visibility", () => {
     expect(limited.visibility).toEqual({ desktop: false, products: { categories: [CUSHIONS] } });
     expect(withScreen(limited, "desktop", true).visibility).toEqual({ products: { categories: [CUSHIONS] } });
     expect(withProductTargets(limited, undefined).visibility).toEqual({ desktop: false });
+  });
+});
+
+describe("a product part's products", () => {
+  const fold = { part: "collapsible", title: "Size chart" };
+
+  it("writes the ids it names, and nothing for every product", () => {
+    expect(withPartTargets(fold, { categories: [CUSHIONS] })).toEqual({ ...fold, categoryIds: [CUSHIONS] });
+    expect(withPartTargets(fold, { tags: [CUSHIONS] })).toEqual({ ...fold, tagIds: [CUSHIONS] });
+    expect(withPartTargets({ ...fold, categoryIds: [CUSHIONS] }, undefined)).toEqual(fold);
+  });
+
+  it("never writes an empty list, which the backend refuses", () => {
+    expect(withPartTargets({ ...fold, tagIds: [CUSHIONS] }, { tags: [] })).toEqual(fold);
   });
 });

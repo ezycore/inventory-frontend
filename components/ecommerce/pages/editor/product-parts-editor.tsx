@@ -9,8 +9,10 @@ import {
   buyingOrderHolds,
   isLockedPart,
   isSinglePart,
+  partTargets,
   type ProductPartKind,
 } from "@/lib/storefront-builder/product-parts";
+import type { CatalogProduct } from "@/lib/storefront-client";
 import { Button } from "@/ui/components/button";
 import {
   DropdownMenu,
@@ -20,7 +22,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { cn } from "@/ui/lib/utils";
 import { newInstanceId, type EditorBlock, type EditorDevice, type EditorSection } from "./section-instances";
-import { DragHandle, DropLine } from "./drag-handle";
+import { DragHandle, DropLine } from "@/ui/components/drag-handle";
 import {
   ADD_DESCRIPTIONS,
   PART_LABELS,
@@ -31,7 +33,7 @@ import {
   singleId,
 } from "./product-part-labels";
 import { PartDetails } from "./product-part-details";
-import { useDragReorder } from "./use-drag-reorder";
+import { useDragReorder } from "@/ui/hooks/use-drag-reorder";
 
 /**
  * The product page's column beside the photos, part by part — `product-main`'s
@@ -49,10 +51,13 @@ import { useDragReorder } from "./use-drag-reorder";
 export function ProductPartsEditor({
   section,
   device,
+  previewProduct,
   onChange,
 }: {
   section: EditorSection;
   device: EditorDevice;
+  /** The product the preview is drawn around, for a part limited to some products. */
+  previewProduct?: CatalogProduct | null;
   onChange: (section: EditorSection) => void;
 }) {
   const parts = editorParts(section.blocks);
@@ -107,6 +112,12 @@ export function ProductPartsEditor({
           const kind = kindOf(block);
           const hidden = block.settings.hidden === true && !isLockedPart(kind);
           const untitled = kind === "collapsible" && !block.settings.title;
+          const note = [
+            kind === "collapsible" ? "Collapsible text" : null,
+            partTargets(block.settings) ? "On some products" : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
           const dragging = drag?.from === index;
           const moving = drag !== null && drag.to !== drag.from;
           return (
@@ -138,8 +149,8 @@ export function ProductPartsEditor({
                     <span className="block text-xs text-muted-foreground">Hidden from shoppers</span>
                   ) : untitled ? (
                     <span className="block text-xs text-amber-600 dark:text-amber-400">Add a title — it shows nothing until then</span>
-                  ) : kind === "collapsible" ? (
-                    <span className="block text-xs text-muted-foreground">Collapsible text</span>
+                  ) : note ? (
+                    <span className="block text-xs text-muted-foreground">{note}</span>
                   ) : null}
                 </button>
                 {isLockedPart(kind) ? (
@@ -213,14 +224,17 @@ export function ProductPartsEditor({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Keyed by part: the products field holds its own mode ("categories"
+          before any is chosen), which must not carry over to the next part. */}
       {selected ? (
-        <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+        <div key={selected.id} className="space-y-3 rounded-lg border bg-muted/30 p-3">
           <h4 className="text-sm font-semibold">{partLabel(selected)}</h4>
           <PartDetails
             block={selected}
             section={section}
             device={device}
             specs={specs}
+            previewProduct={previewProduct}
             onChange={(settings) => update(selected.id, settings)}
           />
         </div>
