@@ -19,9 +19,15 @@ export function Breadcrumb({ base, crumbs }: { base: string; crumbs: Crumb[] }) 
   // chrome, not navigation.
   if (crumbs.length < 2) return null;
 
+  // The rung one above this page — what the phone's back link points at.
+  const parent = crumbs[crumbs.length - 2];
+  // "‹ <store name>" on a top-level category only repeats the logo above it.
+  const showBack = parent.path !== "";
+
   return (
-    <nav aria-label="Breadcrumb" style={{ marginBottom: 12 }}>
-      <ol style={list}>
+    <nav aria-label="Breadcrumb" className="sf-crumbs">
+      {/* Desktop: the full trail. */}
+      <ol className="sf-desktop-only" style={list}>
         {crumbs.map((crumb, i) => {
           const last = i === crumbs.length - 1;
           return (
@@ -44,6 +50,16 @@ export function Breadcrumb({ base, crumbs }: { base: string; crumbs: Crumb[] }) 
           );
         })}
       </ol>
+      {/* Phone: one "‹ Parent" link. The full trail wrapped to two lines on a
+          390px screen and repeated both the logo (store crumb) and the <h1>
+          (product crumb), pushing the gallery ~100px down. The JSON-LD twin
+          still carries the whole trail, so search results are unaffected. */}
+      {showBack ? (
+        <Link href={storeHref(base, parent.path)} className="sf-mobile-only" style={back}>
+          <Icon name="chevL" size={14} style={{ flex: "none" }} />
+          <span style={backText}>{parent.name}</span>
+        </Link>
+      ) : null}
     </nav>
   );
 }
@@ -84,3 +100,24 @@ const current: CSSProperties = {
 };
 
 const separator: CSSProperties = { color: "var(--faint)", flex: "none" };
+
+const back: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 2,
+  maxWidth: "100%",
+  fontSize: 13,
+  color: "var(--muted)",
+  // Same ≥40px tap target as the desktop crumbs, without extra visible height
+  // (the page's top padding shrinks on phones to compensate).
+  padding: "10px 0",
+  marginLeft: -3,
+};
+
+/** One line, always — a long category name truncates rather than wraps. */
+const backText: CSSProperties = {
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};

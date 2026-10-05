@@ -31,6 +31,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 
 ### Changed
+- Storefront, on phones: the breadcrumb on product and category pages is now a single
+  **‹ Parent category** link instead of the full trail, with less space above and below it, so the
+  photo, title and price start higher on the screen. Desktop still shows the full trail; search
+  results are unaffected (the structured breadcrumb is unchanged).
 - New Purchase / Edit Purchase: "Stock" is now **Current Stock**, "Price (MRP)" is now **Sale Price**, "Discount" is now
   **Discount (per unit)**, and the add-product row reads Sale Price → Discount → Cost Price
   so it follows Sale Price − Discount = Cost Price. Labels only; nothing about the math changed.

@@ -3079,6 +3079,11 @@ cached entry on the `/sites` route (see "Cached store pages").
   builder call. Structured data that disagrees with the visible page is a manual-action risk, and
   the PDP's trail was a hardcoded `Store › Products › Product` until 2026-08-07 while the shop had
   a two-level taxonomy.
+  - **Phones (<680px) show one `‹ Parent` link, not the trail** (2026-10-05): the full trail wrapped
+    to two lines and repeated the logo and the `<h1>`, pushing the PDP gallery ~100px down. The link
+    is omitted when the parent is the store root (a top-level category). Only the *visible* trail
+    shrinks — the JSON-LD is unchanged. The PDP and collection wrappers read their top padding from
+    `--sf-page-top`, which `storefront.css` shrinks on phones.
   - `categoryCrumbs(tree, categoryId, subcategoryId)` reads the two ids **independently** —
     `categoryId` is the parent even when a child is set. A level is **skipped** when it cannot be
     linked (unlisted, or no `slugPath`): a crumb to a 404 is worse than a shorter trail.
