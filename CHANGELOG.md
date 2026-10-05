@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-05
+
 ### Added
 - Printing: A5 (portrait, half an A4 sheet) for every printed document — invoices, receipts,
   purchase orders, returns, statements and online-order invoices. It's in the print menu, the
@@ -63,9 +65,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   refused (printing on A5 from the menu still works).
 - Needs the inventory-backend release that accepts `categoryIds` / `tagIds` on product parts, deployed
   **first** — an older backend refuses those saves.
-- Deploy this **before** the backend release that drops the `actions.quick` dashboard block.
-  Backend first would leave the old frontend without a quick menu until this one ships; this
-  frontend never draws that block, so it is safe against either backend.
+- **Deploy order: inventory-backend 1.2.0 first, then this release right after** (every note above
+  needs it). Backend 1.2.0 drops the `actions.quick` dashboard block, so frontend 1.1.0 shows no
+  quick menu until this one is live; this frontend never reads that block.
 - Ship **after** inventory-backend with `/api/ecommerce/product-orders`: the Arrange screen and the
   Collections and Tags badges call it, and an older backend answers 404. `types/api-generated.ts`
   was regenerated against it.
