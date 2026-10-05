@@ -6,6 +6,7 @@ import type {
 } from "@/lib/storefront-builder/section-data";
 import type { SectionPageContext } from "@/lib/storefront-builder/field-specs";
 import { sectionFrame, type SectionFrame } from "@/lib/storefront-builder/section-style";
+import { showsOnProduct, type ProductTargets } from "@/lib/storefront-builder/product-targets";
 import type { SectionContext } from "@/components/storefront-builder/section-view";
 import {
   SECTION_REGISTRY,
@@ -18,7 +19,7 @@ export interface PageSectionInstance {
   type: string;
   v: number;
   enabled: boolean;
-  visibility?: { desktop?: boolean; mobile?: boolean };
+  visibility?: { desktop?: boolean; mobile?: boolean; products?: ProductTargets };
   settings: unknown;
   style?: unknown;
   blocks?: unknown;
@@ -29,6 +30,8 @@ export interface PreparedPageSection {
   frame: SectionFrame;
   /** Which breakpoint hides it, if one does. */
   hide?: "desktop" | "mobile";
+  /** The products it shows on, on the product page; unset is every product. */
+  products?: ProductTargets;
   section: PreparedSection;
 }
 
@@ -63,6 +66,7 @@ export function prepareSections(
       id: instance.id,
       frame: sectionFrame(instance.style, section.frame),
       hide: !desktop ? "desktop" : !mobile ? "mobile" : undefined,
+      products: instance.visibility?.products,
       section,
     });
   }
@@ -82,7 +86,8 @@ export const sectionListNeeds = (sections: readonly PreparedPageSection[]): Stor
  * Phase two: draw the prepared sections with the data fetched for them. Each
  * one sits in the common frame (`.sfb-sec`), whose style box arrives as custom
  * properties; a section with nothing to show is left out entirely rather than
- * leaving its padding behind as an empty band.
+ * leaving its padding behind as an empty band — and so is one limited to other
+ * products than the page's own (`showsOnProduct`).
  */
 export function PageSections({
   sections,
@@ -101,8 +106,9 @@ export function PageSections({
 }) {
   return (
     <>
-      {sections.map(({ id, frame, hide, section }) => {
+      {sections.map(({ id, frame, hide, products, section }) => {
         const sectionData = data[id];
+        if (!showsOnProduct(products, context.product)) return null;
         if (section.isEmpty(sectionData, context)) return null;
         return (
           <section

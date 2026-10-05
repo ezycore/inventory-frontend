@@ -155,3 +155,49 @@ describe("related products on the product page", () => {
     expect(container.querySelector("section")).toBeNull();
   });
 });
+
+/** A section limited to some products is drawn under those products only. */
+describe("a section on some products only", () => {
+  const RICH = JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Size guide" }] }] });
+  const guide = (products: PageSectionInstance["visibility"]) => ({
+    ...section("guide", "rich-text", { body: RICH }),
+    visibility: products,
+  });
+
+  it("draws under a product in one of its categories", () => {
+    const { container } = renderProductPage([guide({ products: { categories: [pageProduct.categoryId!] } })]);
+    expect(container.textContent).toContain("Size guide");
+  });
+
+  it("draws nothing under any other product", () => {
+    const { container } = renderProductPage([guide({ products: { categories: ["0000000000000000000000dd"] } })]);
+    expect(container.querySelector("section")).toBeNull();
+  });
+});
+
+/** The product's own description as a section of its own. */
+describe("the description section", () => {
+  const RICH = JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hand-stitched." }] }] });
+
+  it("draws the page's product's description under the shop's own heading", () => {
+    const { container } = renderProductPage(
+      [section("d", "product-description", {})],
+      context({ product: { ...pageProduct, description: RICH } }),
+    );
+    expect(container.textContent).toContain("Hand-stitched.");
+    expect(islandProps(container, "store-word")).toEqual({ word: "description" });
+  });
+
+  it("takes the merchant's heading, or none", () => {
+    const withDescription = context({ product: { ...pageProduct, description: RICH } });
+    const typed = renderProductPage([section("d", "product-description", { heading: "About it" })], withDescription);
+    expect(typed.container.querySelector("h2")?.textContent).toBe("About it");
+    const hidden = renderProductPage([section("d", "product-description", { hideHeading: true })], withDescription);
+    expect(hidden.container.querySelector("[data-island='store-word']")).toBeNull();
+  });
+
+  it("draws nothing for a product without a description", () => {
+    const { container } = renderProductPage([section("d", "product-description", {})]);
+    expect(container.querySelector("section")).toBeNull();
+  });
+});

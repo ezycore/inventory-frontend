@@ -57,7 +57,9 @@
     "orders": "অর্ডার",
     "ordersTitle": "বিক্রি ও অর্ডার",
     "counterSales": "কাউন্টার বিক্রি",
-    "onlyOrdersTitle": "অর্ডার"
+    "onlyOrdersTitle": "অর্ডার",
+    "ordersVsPurchasesTitle": "অর্ডার বনাম ক্রয়",
+    "purchasesTitle": "ক্রয়"
   },
   "summary": {
     "receivable": "পাওনা",
@@ -118,14 +120,17 @@
   },
   "quickActions": {
     "title": "দ্রুত কাজ",
-    "subtitle": "সাধারণ কাজে যান",
     "newSale": "নতুন বিক্রয়",
-    "purchase": "ক্রয়",
+    "newSaleHint": "POS কাউন্টার খুলুন",
+    "onlineOrders": "অনলাইন অর্ডার",
+    "onlineOrdersHint": "কনফার্ম, প্যাক ও পাঠান",
+    "toConfirm": "{count}টি কনফার্ম বাকি",
     "addProduct": "পণ্য যোগ করুন",
-    "transferStock": "স্টক স্থানান্তর",
-    "adjustStock": "স্টক সমন্বয়",
-    "viewReports": "রিপোর্ট দেখুন",
-    "onlineOrders": "অনলাইন অর্ডার"
+    "newPurchase": "নতুন ক্রয়",
+    "customers": "গ্রাহক",
+    "lowStock": "স্টক কম",
+    "customizeStore": "স্টোর কাস্টমাইজ",
+    "reports": "রিপোর্ট"
   },
   "restricted": {
     "title": "আপনার ভূমিকার জন্য বিক্রয়ের হিসাব দেখানো হয় না",

@@ -16,7 +16,8 @@ const BLURB: Record<string, string> = {
   search: "What a shopper's search finds.",
   account: "Sign-in, and a shopper's own order history.",
   collection: "A category's products.",
-  product: "One product's page.",
+  // The one fact to know before editing it: there is no per-product copy.
+  product: "The page every product uses. A change here shows on all of them.",
 };
 
 /**

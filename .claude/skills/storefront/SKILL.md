@@ -896,7 +896,8 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
     (`components/storefront/product-detail/product-overview.tsx`) and buying is `useProductBuy`
     (`product-detail/use-product-buy.ts`) — picks, quantity, photo, `ViewContent`, add / buy now /
     wishlist. `useProductDetail` wraps that hook with the product page's queries and template, and
-    `ProductBuyPanel` takes the hook's `ProductBuy`. **Reuse these for any other surface that sells one
+    the buy pieces in `product-buy-panel.tsx` (`ProductOptions`, `ProductQuantity`, `ProductBuyButtons`)
+    take the hook's `ProductBuy`. **Reuse these for any other surface that sells one
     product.** On a landing page Add to cart opens the cart drawer instead of a toast (there is often no
     header cart to reach).
   - **Offer & pricing** is a server view with an `offer-price` island for the words ("From", "off",
@@ -1067,8 +1068,12 @@ Phase 3 lands, edited. Plan: `../inventory-backend/docs/plan/storefront-builder.
 - **System pages preview in the editor too.**
   - **Address.** `previewAddress(page, productSlug)`
     (`components/ecommerce/pages/editor/preview-address.ts`) places each at its route, mirroring the
-    backend's `SYSTEM_PATHS`. The shared product page is previewed around the store's first product
-    (`usePreviewProductSlug`).
+    backend's `SYSTEM_PATHS`. The shared product page is previewed around a product the merchant
+    picks in the preview toolbar (`PreviewProductPicker`, over `usePreviewProducts`) — the store's
+    first until they pick. The picker leads with `previewSuggestions`: the first product with
+    options, with a long description and sold out, because each draws a part of the page the
+    others leave out. It reads the PUBLIC catalogue with the preview token, so only a product the
+    shop sells — one that has a product page — can be picked.
   - **The builder flag.** At `/` and at a system route, the frame adds `builder=1`
     (`PREVIEW_BUILDER_PARAM`), because plain `?preview=1` there is the Customize frame, which shows the
     SAVED page and streams only the look. `proxy.ts` turns
@@ -4906,3 +4911,60 @@ blocks Save — reuse it rather than re-parsing dates in a new surface (`schedul
 unchanged one would re-check a chosen page that may have been deleted since, and refuse a plain rename.
 The page picker (`AfterEndPagePicker`) mounts only for "Go to another page", so opening Page settings
 does not fetch the page list.
+
+## The product page's parts, and dragging in the editor (2026-10-04)
+
+**The column beside the product's photos is a list of parts the merchant orders and hides** — the
+`product-main` section's blocks, one `PRODUCT_PARTS` entry each (`lib/storefront-builder/section-specs.ts`).
+`lib/storefront-builder/product-parts.ts` owns what a stored list means, for the storefront and the
+editor alike:
+
+- **No blocks = the column as it always was** (`DEFAULT_PRODUCT_PARTS`: name, badges, price, summary,
+  options, quantity, buy, delivery). A page nobody arranged stores nothing, so live product pages are
+  unchanged; the editor writes the whole list on the first change (`editorParts`, fixed ids
+  `part-<kind>` for the single parts so a selection survives that first write).
+- `options` and `buy` are **locked** — `hidden` is ignored for them, and `productParts` puts either back
+  if a stored list lacks it. A single part stored twice draws once.
+- **Options and quantity stay above the buy buttons** (`buyingOrderHolds`). The page preselects an
+  option, so options under the button would let a shopper buy one they never saw. The schema cannot
+  say this; the editor refuses the move and says why.
+- The merchant's own parts are `text`, `collapsible` (a native `<details>`, `.sf-pdp-fold` in
+  `storefront.css`) and `promises` (the store's trust badges from `SectionContext.trustBadges`, one
+  column, `.sf-pdp-promises`). An untitled collapsible or an empty text draws nothing.
+- Rendering: `ProductMainSection` → `ProductFromRoute` → `ProductPageView` → `ProductOverview`, which
+  maps parts through `ProductPartView` (`product-detail/product-part-view.tsx`). **The buy panel is three
+  pieces** — `ProductOptions`, `ProductQuantity`, `ProductBuyButtons` (`product-buy-panel.tsx`); paused
+  orders and a variable product with nothing to pick make the buttons' place carry the stop card and
+  the other two draw nothing (`buyStopCard`). Single product draws the same parts through
+  `ProductOverview`, in the default order. Every buying part carries `BUY_PANEL_ANCHOR`; the sticky order bar scrolls to the first.
+- `hideDescription` still hides the product's words everywhere in the block (the summary part and the
+  long description below the photos). **`product-description`** is the section that puts them somewhere
+  else — the twin of `related-products`. Its unset heading is the `description` store word.
+- Editor: `ProductPartsEditor` (`pages/editor/product-parts-editor.tsx`, words in
+  `product-part-labels.ts`, a part's settings in `product-part-details.tsx`) replaces the generic block
+  cards for this one section and sits above its settings.
+
+**Dragging.** `useDragReorder` (`pages/editor/use-drag-reorder.ts`) is the one reorder mechanism for the
+editor's lists — the section tree and the parts list. Pointer events, not HTML drag and drop (a phone
+never fires those): a press becomes a drag after 4px, the row follows the pointer, the scroller scrolls
+near its edges, Escape cancels, and arrow keys on the focused handle move a row one step. Rows are the
+list's children with `data-drag-row`; the handle and the drop line are `DragHandle` / `DropLine`
+(`drag-handle.tsx`). The section tree keeps Move up / Move down in each row's ⋯ menu.
+
+**Deploy order.** The parts and `product-description` are new manifest entries: the backend's
+regenerated `storefront-section-manifest.ts` must be live **before** this frontend, or the editor saves
+blocks the deployed backend refuses.
+
+**A section on some products only (2026-10-04).** On the product page a section's
+`visibility.products` — `{ categories?, tags? }`, ids, up to 20 each (`MAX_PRODUCT_TARGETS`) — limits it
+to products in any of those categories or carrying any of those tags; absent is every product.
+`showsOnProduct` (`lib/storefront-builder/product-targets.ts`) is the one rule: a top-level category
+matches `product.categoryId` and so every product under it, a sub-category matches `subcategoryId`.
+`prepareSections` carries it onto `PreparedPageSection.products`; `PageSections` skips the section when
+`context.product` does not match, in the shop and in the editor's preview alike. The backend refuses it
+off the product page and on `product-main` (`assertCoreSection`), and ownership-checks the ids. Editor:
+`ProductTargetsField` under **Show on**, written through `withProductTargets` / `withScreen`
+(`pages/editor/section-visibility.ts`) — each keeps the other's half of `visibility`, which the old
+inline helper did not. The preview frame draws no note for a skipped section (that would be new
+shopper-dictionary copy); the tree row says **On some products** and the inspector says when the
+previewed product is not one of them.

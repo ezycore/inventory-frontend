@@ -36,6 +36,18 @@ interface ChartSectionProps {
   showSales: boolean
 }
 
+/**
+ * The title names exactly the lines drawn. It used to read "no counter" as
+ * "storefront-only" and say Orders — so a shop with POS and storefront off and
+ * purchasing on got its purchases line under an "Orders" title.
+ */
+const chartTitleKey = (sales: boolean, orders: boolean, purchases: boolean) => {
+  if (sales && purchases) return 'title'
+  if (sales) return orders ? 'ordersTitle' : 'salesTitle'
+  if (orders) return purchases ? 'ordersVsPurchasesTitle' : 'onlyOrdersTitle'
+  return 'purchasesTitle'
+}
+
 export function ChartSection({
   overview,
   isLoading,
@@ -45,6 +57,13 @@ export function ChartSection({
   showSales,
 }: ChartSectionProps) {
   const t = useTranslations('dashboard.chart')
+
+  // No line this caller may see — e.g. `reports.view` on a storefront shop
+  // without `storefront.orders.view`. An empty frame under any title is a
+  // claim about the business it cannot back, so draw nothing (and no skeleton
+  // that would vanish on load).
+  if (!showSales && !showOrders && !purchasesTracked) return null
+
   if (isLoading) {
     return (
       <Card className="p-5">
@@ -102,15 +121,7 @@ export function ChartSection({
               ]
             : []),
         ]}
-        title={
-          !showSales
-            ? t('onlyOrdersTitle')
-            : purchasesTracked
-              ? t('title')
-              : showOrders
-                ? t('ordersTitle')
-                : t('salesTitle')
-        }
+        title={t(chartTitleKey(showSales, showOrders, purchasesTracked))}
         subtitle={t('breakdownSuffix', { grouping: groupingLabel })}
         height={260}
         className="overflow-hidden"

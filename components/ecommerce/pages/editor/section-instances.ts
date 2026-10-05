@@ -191,13 +191,19 @@ export function withFieldValue(
   return next;
 }
 
+/** `id` taken out and put back at position `to`, the others closing up around it. */
+export function moveSectionTo(sections: readonly EditorSection[], id: string, to: number): EditorSection[] {
+  const from = sections.findIndex((section) => section.id === id);
+  if (from < 0 || to < 0 || to >= sections.length || from === to) return [...sections];
+  const next = [...sections];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
 export function moveSection(sections: readonly EditorSection[], id: string, delta: -1 | 1): EditorSection[] {
   const from = sections.findIndex((section) => section.id === id);
-  const to = from + delta;
-  if (from < 0 || to < 0 || to >= sections.length) return [...sections];
-  const next = [...sections];
-  [next[from], next[to]] = [next[to], next[from]];
-  return next;
+  return from < 0 ? [...sections] : moveSectionTo(sections, id, from + delta);
 }
 
 /** A copy placed right after the original, with fresh section and block ids. */
