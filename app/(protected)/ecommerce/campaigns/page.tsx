@@ -1,4 +1,5 @@
 "use client";
+// coding-standard: maintained
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,8 @@ import {
 import {
   campaignColumns,
   campaignDefaultValues,
+  campaignExclusionsBody,
+  campaignExclusionsForm,
   campaignFilterConfig,
   campaignFormConfig,
   CAMPAIGN_TARGET_FIELD,
@@ -56,6 +59,7 @@ function cleanCampaign(data: Record<string, any>, isEdit: boolean) {
     startsAt: data.startsAt,
     endsAt: data.endsAt,
     targets,
+    exclude: campaignExclusionsBody(data),
     status: data.status,
     // Create only. The backend refuses it on an update, and sending it there
     // would be a second way to make a page that nothing in the UI offers.
@@ -179,6 +183,7 @@ export default function CampaignsPage() {
                   ]]: c.targets ?? [],
                 }
               : {}),
+            ...campaignExclusionsForm(c),
             status: c.status,
           }),
           // Create → flat CampaignInput; edit → { body } (DataTable injects id),

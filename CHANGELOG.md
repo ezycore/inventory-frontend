@@ -10,6 +10,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- Online Store → Campaigns: **Exclude some products** lets a campaign leave out categories,
+  sub-categories, tags or single products, e.g. a storewide sale except Clearance. It is offered on
+  every scope except hand-picked products. Turning it off clears the exclusions on save. Needs
+  inventory-backend with campaign `exclude` (same release).
 - Pages → Product: a **Text** or **Collapsible text** part beside the photos can be limited to products
   in chosen categories or with chosen tags (**Products**, in the part's settings) — e.g. a size chart on
   clothing only. The part list marks it **On some products**; other parts always show.

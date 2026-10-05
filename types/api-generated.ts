@@ -11015,6 +11015,12 @@ export interface components {
             /** @enum {string} */
             scope: "storewide" | "category" | "subcategory" | "product" | "tag";
             targets?: string[];
+            exclude?: {
+                categoryIds: string[];
+                subcategoryIds: string[];
+                tagIds: string[];
+                productIds: string[];
+            } | null;
             /** @enum {string} */
             type: "percentage" | "fixed";
             value: number;
@@ -44150,6 +44156,12 @@ export interface operations {
                     /** @enum {string} */
                     scope: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
+                    exclude?: {
+                        categoryIds?: string[];
+                        subcategoryIds?: string[];
+                        tagIds?: string[];
+                        productIds?: string[];
+                    };
                     /** @enum {string} */
                     type: "percentage" | "fixed";
                     value: number;
@@ -44286,6 +44298,12 @@ export interface operations {
                     /** @enum {string} */
                     scope?: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
+                    exclude?: {
+                        categoryIds?: string[];
+                        subcategoryIds?: string[];
+                        tagIds?: string[];
+                        productIds?: string[];
+                    };
                     /** @enum {string} */
                     type?: "percentage" | "fixed";
                     value?: number;
