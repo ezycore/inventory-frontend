@@ -5,7 +5,8 @@ import { SectionTitle } from "@/components/storefront/sf-bits";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import type { ProductBuy } from "@/components/storefront/product-detail/use-product-buy";
 import { ProductPartView } from "@/components/storefront/product-detail/product-part-view";
-import { productParts, type ProductPart } from "@/lib/storefront-builder/product-parts";
+import { partTargets, productParts, type ProductPart } from "@/lib/storefront-builder/product-parts";
+import { showsOnProduct } from "@/lib/storefront-builder/product-targets";
 import {
   descriptionText,
   descriptionWrap,
@@ -21,7 +22,9 @@ import {
  * The column beside the photos is a list of parts (`ProductPartView`), in the
  * order the product page's section stores them; without `parts` it is the
  * column every product page always drew, which is also what Single product
- * draws.
+ * draws. A text or collapsible part limited to some products (`partTargets`)
+ * is left out on every other product before the column is laid out, so the
+ * last part drawn is still the one that loses its bottom space.
  *
  * `heading` is the product name's level: `h1` on the product page, `h2` in a
  * section, whose page has its own. `pending` holds the price and buy controls
@@ -52,7 +55,9 @@ export function ProductOverview({
 }) {
   const { product } = d;
   if (!product) return null;
-  const shown = pending ? NAME_ONLY : (parts ?? DEFAULT_PARTS);
+  const shown = pending
+    ? NAME_ONLY
+    : (parts ?? DEFAULT_PARTS).filter((part) => showsOnProduct(partTargets(part), product));
 
   return (
     <div

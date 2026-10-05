@@ -3,8 +3,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, ArrowUpDown, Info } from "lucide-react";
 import {
+  useProductOrderSummary,
   useReorderCollections,
   useStorefrontCollections,
   useUpdateCollection,
@@ -32,6 +33,9 @@ export function CollectionsTab() {
   const { data: settings } = useLiveStoreSettings();
   const updateCollection = useUpdateCollection();
   const reorder = useReorderCollections();
+  // Which collections carry a merchant-arranged product order — the row badges.
+  const { data: orders } = useProductOrderSummary();
+  const arranged = new Set(orders?.categoryIds ?? []);
   // Display-name edits are local until blur, so typing doesn't fire a PATCH per keystroke.
   const [edits, setEdits] = useState<Record<string, string>>({});
   // Same policy for the two SEO fields, keyed `<id>:title` / `<id>:description`.
@@ -113,10 +117,20 @@ export function CollectionsTab() {
         </Link>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Choose which categories appear as collections on your store, set their
-        display name, and put them in order.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          Choose which categories appear as collections on your store, set their
+          display name, and put them in order.
+        </p>
+        <Link
+          href="/ecommerce/arrange/all"
+          className="inline-flex flex-none items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-muted"
+        >
+          <ArrowUpDown className="h-3.5 w-3.5" />
+          Arrange All products
+          {orders?.all ? <span className="text-primary">· Custom order</span> : null}
+        </Link>
+      </div>
 
       <div className="overflow-hidden rounded-lg border bg-card">
         {items.map((c, i) => {
@@ -147,6 +161,16 @@ export function CollectionsTab() {
               }}
               onToggleListed={(isListed) =>
                 updateCollection.mutate({ id: c._id, isListed })
+              }
+              actions={
+                <Link
+                  href={`/ecommerce/arrange/category/${c._id}`}
+                  className="flex flex-none items-center gap-1 whitespace-nowrap text-xs font-medium text-primary hover:underline"
+                  title={`Arrange the products in ${row.displayName || row.name}`}
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  {arranged.has(c._id) ? "Custom order" : "Arrange products"}
+                </Link>
               }
             >
               <CollectionSeoFields

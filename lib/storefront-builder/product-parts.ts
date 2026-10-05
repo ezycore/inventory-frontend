@@ -1,5 +1,6 @@
 // coding-standard: maintained
 import { PRODUCT_PARTS } from "@/lib/storefront-builder/section-specs";
+import type { ProductTargets } from "@/lib/storefront-builder/product-targets";
 
 /**
  * The product page's column beside the photos, as an ordered list of parts —
@@ -22,6 +23,10 @@ export interface ProductPartSettings {
   text?: string;
   /** Whether a collapsible part starts open. */
   open?: boolean;
+  /** A text or collapsible part shown only on products in these categories (`partTargets`)… */
+  categoryIds?: string[];
+  /** …or carrying these tags. */
+  tagIds?: string[];
 }
 
 /** A part ready to draw: its settings plus a key stable across reorders. */
@@ -62,6 +67,28 @@ export const isLockedPart = (part: ProductPartKind): boolean => part === "option
  * quantity below it is picked after the press that used it.
  */
 export const isAboveBuyPart = (part: ProductPartKind): boolean => part === "options" || part === "quantity";
+
+/** Parts that may be limited to some products — the merchant's own words, never the product's own parts. */
+export const isTargetablePart = (part: unknown): boolean => part === "text" || part === "collapsible";
+
+const idList = (value: unknown): string[] | undefined => {
+  const ids = Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
+  return ids.length > 0 ? ids : undefined;
+};
+
+/**
+ * The products a part shows on, for `showsOnProduct` — or `undefined`, every
+ * product. Only a text or collapsible part can be limited: a target stored on
+ * any other part (hand-written data; the backend refuses it) is ignored, so the
+ * options and buy buttons can never be narrowed away.
+ */
+export function partTargets(settings: { part?: unknown; categoryIds?: unknown; tagIds?: unknown }): ProductTargets | undefined {
+  if (!isTargetablePart(settings.part)) return undefined;
+  const categories = idList(settings.categoryIds);
+  const tags = idList(settings.tagIds);
+  if (!categories && !tags) return undefined;
+  return { ...(categories ? { categories } : {}), ...(tags ? { tags } : {}) };
+}
 
 /** Whether `parts` keeps every part that must sit above the buy buttons there. */
 export function buyingOrderHolds(parts: readonly { part: ProductPartKind }[]): boolean {

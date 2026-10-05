@@ -1,3 +1,4 @@
+// coding-standard: maintained
 import { selectOptions } from "@/services/api/select-options";
 import type { FilterConfig } from "@/types/DataTable";
 import type { DynamicFormConfig } from "@/ui/components/form/type";
@@ -27,6 +28,27 @@ export const CAMPAIGN_TARGET_FIELD = {
 export type CampaignScope = keyof typeof CAMPAIGN_TARGET_FIELD | "storewide";
 
 /**
+ * Exclusion list on the wire → the form field holding it. "Everything except
+ * Clearance": each list carves products OUT of the scope, and always wins.
+ */
+export const CAMPAIGN_EXCLUDE_FIELD = {
+  categoryIds: "excludeCategories",
+  subcategoryIds: "excludeSubcategories",
+  tagIds: "excludeTags",
+  productIds: "excludeProducts",
+} as const;
+
+export type CampaignExcludeKey = keyof typeof CAMPAIGN_EXCLUDE_FIELD;
+
+/**
+ * Exclusions are offered under every scope but `product`: a hand-picked list
+ * is already exactly what the merchant wants, so "except" there means "don't
+ * pick it".
+ */
+export const scopeTakesExclusions = (scope: string | undefined) =>
+  scope !== "product";
+
+/**
  * How each scope is written for a merchant. Here rather than `capitalize` on the
  * raw enum, which renders `subcategory` as "Subcategory" in the table while the
  * form beside it says "Sub-category".
@@ -50,6 +72,57 @@ const shownForScope = (value: string) =>
     value,
     action: "show",
   }) as const;
+/** The scope select's watched value is the enriched option — compare `.value`. */
+const scopeTakesExclusionsDependency = {
+  field: "scope",
+  matchWithProp: "value",
+  condition: "ne",
+  value: "product",
+  action: "show",
+} as const;
+
+/**
+ * Shown while the scope takes exclusions AND the merchant switched them on.
+ * Scope must stay FIRST: only the primary condition gets select enrichment.
+ */
+const shownForExclusions = [
+  scopeTakesExclusionsDependency,
+  { field: "excludeEnabled", condition: "truthy" },
+] as const;
+
+/**
+ * TOP-LEVEL categories only — both a category target and a category exclusion
+ * match `product.categoryId`, which always holds the parent, so a child picked
+ * here would match nothing. Children go through the sub-category pickers.
+ */
+const topLevelCategoryOptions = selectOptions("categories", {
+  parentId: "null",
+  fields: "_id,name",
+});
+
+/**
+ * Children of ANY parent, labelled "Parent › Child": child names are unique
+ * only within a parent, so a flat list of bare names can show two identical
+ * entries that mean different things — on a pricing screen that is a discount
+ * applied to (or withheld from) the wrong half of the catalogue. `parentId` is
+ * projected so the list response resolves each row's `parent`.
+ */
+const subcategoryOptions = {
+  optionsApi: selectOptions("categories", {
+    parentId: "!null",
+    fields: "_id,name,parentId",
+  }),
+  itemsCreateCallback: (response: any) =>
+    (response?.data?.items ?? []).map((item: any) => ({
+      ...item,
+      value: item._id,
+      label: item.parent?.name ? `${item.parent.name} › ${item.name}` : item.name,
+    })),
+};
+
+const tagOptions = selectOptions("tags", { status: "active", fields: "_id,name" });
+const productOptions = selectOptions("products", { fields: "_id,name" });
+
 export const campaignFormConfig: DynamicFormConfig = {
   fields: [
     {
@@ -145,14 +218,9 @@ export const campaignFormConfig: DynamicFormConfig = {
       helperText:
         "Only these categories get the discount — including every product in their sub-categories.",
       columnSpan: 12,
-      // TOP-LEVEL only. The engine matches a `category` scope against
-      // `product.categoryId`, which always holds the parent, so a child picked
-      // here would match no product and the campaign would silently never
-      // discount anything. Targeting one child is what the scope below is for.
-      optionsApi: selectOptions("categories", {
-        parentId: "null",
-        fields: "_id,name",
-      }),
+      // TOP-LEVEL only — see `topLevelCategoryOptions`. Targeting one child is
+      // what the sub-category scope is for.
+      optionsApi: topLevelCategoryOptions,
       dependsOn: shownForScope("category"),
     },
     {
@@ -165,23 +233,8 @@ export const campaignFormConfig: DynamicFormConfig = {
       placeholder: "Search and select sub-categories...",
       helperText: "Only these sub-categories get the discount — siblings are untouched.",
       columnSpan: 12,
-      // Children of ANY parent: the campaign targets one child regardless of
-      // whose it is. `parentId` is projected so the list response resolves each
-      // row's `parent`, which the label below needs.
-      optionsApi: selectOptions("categories", {
-        parentId: "!null",
-        fields: "_id,name,parentId",
-      }),
-      // Labelled "Parent › Child": child names are unique only within a parent,
-      // so a flat list of bare names can show two identical entries that mean
-      // different things — on a pricing screen that is a discount applied to the
-      // wrong half of the catalogue.
-      itemsCreateCallback: (response: any) =>
-        (response?.data?.items ?? []).map((item: any) => ({
-          ...item,
-          value: item._id,
-          label: item.parent?.name ? `${item.parent.name} › ${item.name}` : item.name,
-        })),
+      // Children of ANY parent: the campaign targets one child regardless of whose it is.
+      ...subcategoryOptions,
       dependsOn: shownForScope("subcategory"),
     },
     {
@@ -196,7 +249,7 @@ export const campaignFormConfig: DynamicFormConfig = {
       placeholder: "Search and select products...",
       helperText: "Only these products get the campaign discount.",
       columnSpan: 12,
-      optionsApi: selectOptions("products", { fields: "_id,name" }),
+      optionsApi: productOptions,
       dependsOn: shownForScope("product"),
     },
     {
@@ -211,8 +264,75 @@ export const campaignFormConfig: DynamicFormConfig = {
       // a single campaign instead of hand-picking eighty products.
       helperText: "Any product carrying one of these tags gets the discount.",
       columnSpan: 12,
-      optionsApi: selectOptions("tags", { status: "active", fields: "_id,name" }),
+      optionsApi: tagOptions,
       dependsOn: shownForScope("tag"),
+    },
+    {
+      // A switch in front of four pickers: most campaigns exclude nothing, and
+      // four empty multi-selects on every form would read as required. Turning
+      // it off clears the exclusions on save (see `campaignExclusionsBody`).
+      name: "excludeEnabled",
+      type: "switch",
+      label: "Exclude some products",
+      helperText:
+        "Leave out categories, sub-categories, tags or products — e.g. everything except Clearance.",
+      columnSpan: 12,
+      defaultValue: false,
+      dependsOn: scopeTakesExclusionsDependency,
+    },
+    {
+      name: CAMPAIGN_EXCLUDE_FIELD.categoryIds,
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Except categories",
+      placeholder: "Search and select categories...",
+      helperText: "No product in these categories gets the discount — sub-categories included.",
+      columnSpan: 12,
+      optionsApi: topLevelCategoryOptions,
+      dependsOn: [...shownForExclusions],
+    },
+    {
+      name: CAMPAIGN_EXCLUDE_FIELD.subcategoryIds,
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Except sub-categories",
+      placeholder: "Search and select sub-categories...",
+      helperText:
+        "Only these sub-categories are left out — the rest of their parent still gets it.",
+      columnSpan: 12,
+      ...subcategoryOptions,
+      dependsOn: [...shownForExclusions],
+    },
+    {
+      name: CAMPAIGN_EXCLUDE_FIELD.tagIds,
+      type: "select",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Except tags",
+      placeholder: "Search and select tags...",
+      helperText: "A product carrying any of these tags is left out.",
+      columnSpan: 12,
+      optionsApi: tagOptions,
+      dependsOn: [...shownForExclusions],
+    },
+    {
+      // `fuseSelect`: a multiple-mode product picker must be fuzzy-searchable.
+      name: CAMPAIGN_EXCLUDE_FIELD.productIds,
+      type: "fuseSelect",
+      mode: "multiple",
+      zodType: "array",
+      arrayOf: "string",
+      label: "Except products",
+      placeholder: "Search and select products...",
+      helperText: "These products are left out.",
+      columnSpan: 12,
+      optionsApi: productOptions,
+      dependsOn: [...shownForExclusions],
     },
     {
       name: "createPage",
@@ -256,6 +376,11 @@ export const campaignDefaultValues = {
   subcategoryTargets: [] as string[],
   productTargets: [] as string[],
   tagTargets: [] as string[],
+  excludeEnabled: false,
+  excludeCategories: [] as string[],
+  excludeSubcategories: [] as string[],
+  excludeTags: [] as string[],
+  excludeProducts: [] as string[],
   status: "active" as const,
 };
 

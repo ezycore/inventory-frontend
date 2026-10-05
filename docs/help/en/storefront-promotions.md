@@ -26,6 +26,20 @@ Campaigns *Schedule storewide, category, or product discount campaigns.* Choose 
 store, one category, one sub-category, a tag, or specific products you pick yourself — set the
 discount, and set the dates.
 
+### Leaving products out
+
+To run a sale on almost everything, turn on **Exclude some products** and pick what to leave out:
+categories, sub-categories, tags or single products. "Whole store, except Clearance" is one campaign,
+and products you add later are covered automatically, unless they belong to something you excluded.
+
+Exclusions always win: a product that matches the campaign and also something you excluded keeps its
+normal price. Excluding a category leaves out its sub-categories too. Excluding a sub-category leaves
+out only that one, and the rest of its parent category still gets the discount. A campaign over
+products you picked by hand has no exclusions, because you only need to leave a product unpicked.
+
+An exclusion only affects its own campaign. If another running campaign covers the same product, that
+campaign can still discount it.
+
 Scheduling is the useful part: set the start and end in advance and the campaign begins and ends on
 its own. No one has to remember to switch it off at midnight, which is exactly when everyone forgets.
 

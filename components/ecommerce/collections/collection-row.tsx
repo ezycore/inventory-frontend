@@ -64,6 +64,7 @@ export function CollectionRow({
   onDisplayNameChange,
   onDisplayNameBlur,
   onToggleListed,
+  actions,
   children,
 }: {
   value: CollectionRowValue;
@@ -76,6 +77,11 @@ export function CollectionRow({
   onDisplayNameChange: (v: string) => void;
   onDisplayNameBlur?: () => void;
   onToggleListed: (isListed: boolean) => void;
+  /**
+   * Controls beside the Listed toggle, on the row itself. Catalog → Collections
+   * puts "Arrange products" here; the compact Customize rail passes nothing.
+   */
+  actions?: React.ReactNode;
   /**
    * Extra controls rendered under the row, inside its container. Catalog →
    * Collections puts the SEO fields here; the 380px Customize rail passes
@@ -162,6 +168,7 @@ export function CollectionRow({
           Listed
         </label>
       )}
+      {actions}
       </div>
       {children}
     </div>

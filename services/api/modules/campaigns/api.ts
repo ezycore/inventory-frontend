@@ -18,6 +18,8 @@ export interface CampaignInput {
   createPage?: boolean;
   scope: CampaignScope;
   targets?: string[];
+  /** Carved out of the scope. Sent whole — an update replaces the block. */
+  exclude?: NonNullable<ApiCampaign["exclude"]>;
   type: "percentage" | "fixed";
   value: number;
   startsAt: string;

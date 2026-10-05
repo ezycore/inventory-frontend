@@ -9,7 +9,38 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-05
+
+### Added
+- Printing: A5 (portrait, half an A4 sheet) for every printed document — invoices, receipts,
+  purchase orders, returns, statements and online-order invoices. It's in the print menu, the
+  default-paper setting and the live preview, and has its own logo size. A5 keeps everything A4
+  prints (signature, watermark, bank details, terms, VAT amount column) in a tighter layout.
+- Online Store → Campaigns: **Exclude some products** lets a campaign leave out categories,
+  sub-categories, tags or single products, e.g. a storewide sale except Clearance. It is offered on
+  every scope except hand-picked products. Turning it off clears the exclusions on save. Needs
+  inventory-backend with campaign `exclude` (same release).
+- Pages → Product: a **Text** or **Collapsible text** part beside the photos can be limited to products
+  in chosen categories or with chosen tags (**Products**, in the part's settings) — e.g. a size chart on
+  clothing only. The part list marks it **On some products**; other parts always show.
+- Pages → a **Product grid**, **Selected products** or **Product carousel** section set to pick
+  products by hand: the chosen products are now a list you can **drag into order** (or move with the
+  arrow keys), in the order the shop shows them. Products are added with **Add a product…** and
+  removed with ✕. A product that has since been deleted reads **Product no longer available**.
+  Before, the only way to change the order was to remove products and add them back.
+- Online Store → Collections: **Arrange All products** and, on each collection, **Arrange products**
+  let you drag your store's products into your own order. Products → Tags has the same for a tag
+  (**Arrange in online store**). Products you haven't placed show under **Not placed yet**, and
+  you can save, discard or reset to the store's default. A **Custom order** label marks an
+  arranged list. The screen warns when the store opens on a sort other than Featured, since that
+  hides the order. Help: "Choose what to sell online" → Put your products in order.
+
+
 ### Changed
+- Storefront, on phones: the breadcrumb on product and category pages is now a single
+  **‹ Parent category** link instead of the full trail, with less space above and below it, so the
+  photo, title and price start higher on the screen. Desktop still shows the full trail; search
+  results are unaffected (the structured breadcrumb is unchanged).
 - New Purchase / Edit Purchase: "Stock" is now **Current Stock**, "Price (MRP)" is now **Sale Price**, "Discount" is now
   **Discount (per unit)**, and the add-product row reads Sale Price → Discount → Cost Price
   so it follows Sale Price − Discount = Cost Price. Labels only; nothing about the math changed.
@@ -21,15 +52,25 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   it opens in a new tab and keyboard focus shows a ring. Same feature/permission gating as before.
 
 ### Fixed
+- Breadcrumbs: "Online Store" on every Online Store page now opens Store Overview directly
+  instead of an address that only redirected there.
 - Dashboard chart: the title now names the lines actually drawn. A shop with POS and the online
   store off but purchasing on saw its purchases line titled "Orders"; it now reads "Purchases"
   (and "Orders vs Purchases" for an online shop that also buys). A chart with no line the user
   may see is no longer drawn at all.
 
 ### Deploy notes
-- Deploy this **before** the backend release that drops the `actions.quick` dashboard block.
-  Backend first would leave the old frontend without a quick menu until this one ships; this
-  frontend never draws that block, so it is safe against either backend.
+- A5 printing needs the inventory-backend release that accepts `a5` as a paper size, deployed
+  **first**. Against an older backend, saving A5 as the default paper or setting an A5 logo size is
+  refused (printing on A5 from the menu still works).
+- Needs the inventory-backend release that accepts `categoryIds` / `tagIds` on product parts, deployed
+  **first** — an older backend refuses those saves.
+- **Deploy order: inventory-backend 1.2.0 first, then this release right after** (every note above
+  needs it). Backend 1.2.0 drops the `actions.quick` dashboard block, so frontend 1.1.0 shows no
+  quick menu until this one is live; this frontend never reads that block.
+- Ship **after** inventory-backend with `/api/ecommerce/product-orders`: the Arrange screen and the
+  Collections and Tags badges call it, and an older backend answers 404. `types/api-generated.ts`
+  was regenerated against it.
 
 ## [1.1.0] - 2026-10-04
 

@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/components/dropdown-menu";
-import { Edit2, MoreVertical, Package, TagsIcon, Trash2 } from "lucide-react";
+import { ArrowUpDown, Edit2, MoreVertical, Package, TagsIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { TruncatedText } from "@/components/shared/truncated-text";
 import { formatDate } from "@/lib/format";
@@ -31,11 +31,14 @@ const TagCardView = (
     onEdit,
     onDelete,
     onRemoveFromProducts,
+    onArrangeProducts,
   }: {
     onEdit?: () => void;
     onDelete?: () => void;
     /** Take this tag off every product — passed only when the user may edit products. */
     onRemoveFromProducts?: () => void;
+    /** Open the tag's product order in the online store — passed only when the store is on. */
+    onArrangeProducts?: () => void;
   },
   options: { t: Translator; locale: AppLocale },
 ) => {
@@ -89,6 +92,12 @@ const TagCardView = (
               <Edit2 className="h-4 w-4 mr-2" />
               {t("card.edit")}
             </DropdownMenuItem>
+            {onArrangeProducts && (
+              <DropdownMenuItem onClick={onArrangeProducts}>
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                {t("arrangeProducts.menuItem")}
+              </DropdownMenuItem>
+            )}
             {onRemoveFromProducts && count > 0 && (
               <DropdownMenuItem onClick={onRemoveFromProducts}>
                 <TagsIcon className="h-4 w-4 mr-2" />

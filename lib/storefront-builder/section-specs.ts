@@ -656,6 +656,15 @@ export const SECTION_SPECS = {
         title: { type: "string", max: 80, optional: true },
         text: { type: "richText", maxBytes: 12_000, optional: true },
         open: { type: "boolean", optional: true },
+        /*
+         * The products a text or collapsible part shows on — those in any of
+         * these categories, or carrying any of these tags; both unset is every
+         * product (`showsOnProduct`). The rules the manifest cannot say — only
+         * those two parts, never an empty list — are the backend's
+         * `checkProductPartTargets` and `lib/storefront-builder/product-parts.ts`.
+         */
+        categoryIds: { type: "refs", to: "category", max: 20, optional: true },
+        tagIds: { type: "refs", to: "tag", max: 20, optional: true },
       },
     },
   },
