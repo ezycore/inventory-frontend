@@ -15,13 +15,14 @@ import type { Translator } from "@/i18n/config";
 import type {
   ReceiptDocumentOverride,
   ReceiptItemColumns,
+  ReceiptPaperSize,
   ReceiptPaymentDetail,
   ReceiptTotalsOptions,
 } from "@/types/receipt";
-import { DEFAULT_SIGNATURE_IMAGE_HEIGHT_MM } from "@/types/receipt";
+import { DEFAULT_SIGNATURE_IMAGE_HEIGHT_MM, isPagePaper } from "@/types/receipt";
 import { escapeHtml } from "./print";
 
-type Paper = "a4" | "thermal80" | "thermal58";
+type Paper = ReceiptPaperSize;
 type Tr = (key: string, fallback: string) => string;
 
 export const trFor = (t: Translator | undefined): Tr => (key, fallback) =>
@@ -80,7 +81,7 @@ export const buildItemTable = (
   paper: Paper,
   tr: Tr,
 ): { columns: PrintColumn[]; rows: PrintCell[][] } => {
-  const thermal = paper !== "a4";
+  const thermal = !isPagePaper(paper);
   const serial = cols?.serial === true;
   const unit = cols?.unit === true;
   const code = cols?.code === true;
@@ -88,7 +89,7 @@ export const buildItemTable = (
   const discount = priced && cols?.discount === true && paper !== "thermal58";
   const vatMode = priced ? cols?.vat ?? "off" : "off";
   const vatRate = vatMode !== "off" && paper !== "thermal58" && (vatMode === "rate" || vatMode === "both" || paper === "thermal80");
-  const vatAmount = vatMode !== "off" && paper === "a4" && (vatMode === "amount" || vatMode === "both");
+  const vatAmount = vatMode !== "off" && isPagePaper(paper) && (vatMode === "amount" || vatMode === "both");
   const codeColumn = code && !thermal;
   const codeUnderName = code && thermal;
 
@@ -156,7 +157,7 @@ export const applyTotalsOptions = (
   if (opts?.showPreviousBalance && extras?.previousBalance?.length) {
     out = [...out, ...extras.previousBalance];
   }
-  const tendered = opts?.showTenderedChange ?? paper !== "a4";
+  const tendered = opts?.showTenderedChange ?? !isPagePaper(paper);
   if (tendered && extras?.tendered?.length) out = [...out, ...extras.tendered];
   return out;
 };
@@ -188,12 +189,12 @@ export interface SignatureInput {
 const RECEIVED_BY = "Received by";
 
 /**
- * Signature row (A4 only). Unset settings → the classic single "Authorized
+ * Signature row (page paper only — A4/A5). Unset settings → the classic single "Authorized
  * Signature" line, byte-identical. A left label adds a second line; images sit
  * above the right line (signature) and over it (stamp).
  */
 export const buildSignature = (sig: SignatureInput, paper: Paper, tr: Tr): string => {
-  if (!sig.allowed || paper !== "a4" || sig.enabled === false) return "";
+  if (!sig.allowed || !isPagePaper(paper) || sig.enabled === false) return "";
   const right = sig.rightLabel?.trim() || tr("authorizedSignature", "Authorized Signature");
   const leftRaw = sig.leftLabel?.trim();
   const left = leftRaw === RECEIVED_BY ? tr("receivedBy", RECEIVED_BY) : leftRaw;
@@ -236,7 +237,7 @@ const walletLine = (d: ReceiptPaymentDetail, tr: Tr): string => {
 };
 
 /**
- * Payment instructions. A4: a two-column grid of bank and wallet cards.
+ * Payment instructions. A4/A5: a two-column grid of bank and wallet cards.
  * Thermal: wallets only, one line each — a bank block doesn't fit a slip and
  * nobody wires money off a counter receipt.
  */
@@ -246,10 +247,10 @@ export const buildPaymentDetails = (
   tr: Tr,
 ): string => {
   const visible = (details ?? []).filter((d) => d.visible !== false);
-  const rows = paper === "a4" ? visible : visible.filter((d) => d.kind === "wallet");
+  const rows = isPagePaper(paper) ? visible : visible.filter((d) => d.kind === "wallet");
   if (rows.length === 0) return "";
   const title = `<div class="pay-title">${escapeHtml(tr("paymentDetails", "Payment details"))}</div>`;
-  if (paper !== "a4") {
+  if (!isPagePaper(paper)) {
     return `<div class="hr"></div>${title}${rows
       .map((d) => `<div class="pay-line">${escapeHtml(walletLine(d, tr))}</div>`)
       .join("")}`;
@@ -272,10 +273,10 @@ export const buildPaymentDetails = (
   return `<div class="pay-block">${title}<div class="pay-grid">${cards}</div></div>`;
 };
 
-/** Terms & conditions — A4 only, small type, line breaks kept. */
+/** Terms & conditions — page paper only (A4/A5), small type, line breaks kept. */
 export const buildTerms = (terms: string | null | undefined, paper: Paper): string => {
   const text = terms?.trim();
-  if (!text || paper !== "a4") return "";
+  if (!text || !isPagePaper(paper)) return "";
   return `<div class="terms">${escapeHtml(text)}</div>`;
 };
 

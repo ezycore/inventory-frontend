@@ -12915,7 +12915,7 @@ export interface components {
                 taxId?: string;
                 footer?: string;
                 /** @enum {string} */
-                defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                 /** @enum {string} */
                 headerAlign?: "left" | "center" | "right";
                 showLogo?: boolean;
@@ -12924,6 +12924,10 @@ export interface components {
                 watermarkOpacity?: number;
                 logoSize?: {
                     a4?: {
+                        heightMm: number;
+                        widthMm: number;
+                    };
+                    a5?: {
                         heightMm: number;
                         widthMm: number;
                     };
@@ -13259,7 +13263,7 @@ export interface components {
             taxId?: string;
             footer?: string;
             /** @enum {string} */
-            defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+            defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
             /** @enum {string} */
             headerAlign?: "left" | "center" | "right";
             showLogo?: boolean;
@@ -13268,6 +13272,10 @@ export interface components {
             watermarkOpacity?: number;
             logoSize?: {
                 a4?: {
+                    heightMm: number;
+                    widthMm: number;
+                };
+                a5?: {
                     heightMm: number;
                     widthMm: number;
                 };
@@ -16818,7 +16826,7 @@ export interface components {
                     taxId?: string;
                     footer?: string;
                     /** @enum {string} */
-                    defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                    defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                     /** @enum {string} */
                     headerAlign?: "left" | "center" | "right";
                     showLogo?: boolean;
@@ -16827,6 +16835,10 @@ export interface components {
                     watermarkOpacity?: number;
                     logoSize?: {
                         a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        a5?: {
                             heightMm: number;
                             widthMm: number;
                         };
@@ -17082,7 +17094,7 @@ export interface components {
                     taxId?: string;
                     footer?: string;
                     /** @enum {string} */
-                    defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                    defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                     /** @enum {string} */
                     headerAlign?: "left" | "center" | "right";
                     showLogo?: boolean;
@@ -17091,6 +17103,10 @@ export interface components {
                     watermarkOpacity?: number;
                     logoSize?: {
                         a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        a5?: {
                             heightMm: number;
                             widthMm: number;
                         };
@@ -17350,7 +17366,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17359,6 +17375,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -17615,7 +17635,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17624,6 +17644,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -17918,7 +17942,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17927,6 +17951,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -18206,7 +18234,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -18215,6 +18243,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };

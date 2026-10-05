@@ -51,6 +51,7 @@ import { useRequireAccess } from "@/hooks/use-require-access";
 // centered on a "desk", not a wide document with dead white space beside it.
 const PREVIEW_PAPER_WIDTH: Record<PaperSize, string> = {
   a4: "min(100%, 800px)",
+  a5: "min(100%, 560px)", // 148mm ≈ 559px @ 96dpi
   thermal80: "302px", // 80mm ≈ 302px @ 96dpi
   thermal58: "219px", // 58mm ≈ 219px @ 96dpi
 };
@@ -300,6 +301,7 @@ export default function ReceiptSettingsPage() {
               caption={false}
               options={[
                 { value: "a4", label: t("previewPaper.a4") },
+                { value: "a5", label: t("previewPaper.a5") },
                 { value: "thermal80", label: t("previewPaper.thermal80") },
                 { value: "thermal58", label: t("previewPaper.thermal58") },
               ]}

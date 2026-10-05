@@ -426,6 +426,7 @@ export default function LetterheadBuilder({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="a4">{t("paper.a4")}</SelectItem>
+              <SelectItem value="a5">{t("paper.a5")}</SelectItem>
               <SelectItem value="thermal80">{t("paper.thermal80")}</SelectItem>
               <SelectItem value="thermal58">{t("paper.thermal58")}</SelectItem>
             </SelectContent>

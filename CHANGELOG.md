@@ -10,6 +10,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Added
+- Printing: A5 (portrait, half an A4 sheet) for every printed document — invoices, receipts,
+  purchase orders, returns, statements and online-order invoices. It's in the print menu, the
+  default-paper setting and the live preview, and has its own logo size. A5 keeps everything A4
+  prints (signature, watermark, bank details, terms, VAT amount column) in a tighter layout.
 - Online Store → Campaigns: **Exclude some products** lets a campaign leave out categories,
   sub-categories, tags or single products, e.g. a storewide sale except Clearance. It is offered on
   every scope except hand-picked products. Turning it off clears the exclusions on save. Needs
@@ -54,6 +58,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   may see is no longer drawn at all.
 
 ### Deploy notes
+- A5 printing needs the inventory-backend release that accepts `a5` as a paper size, deployed
+  **first**. Against an older backend, saving A5 as the default paper or setting an A5 logo size is
+  refused (printing on A5 from the menu still works).
 - Needs the inventory-backend release that accepts `categoryIds` / `tagIds` on product parts, deployed
   **first** — an older backend refuses those saves.
 - Deploy this **before** the backend release that drops the `actions.quick` dashboard block.

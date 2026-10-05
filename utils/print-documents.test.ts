@@ -272,3 +272,50 @@ describe("renderReceiptPreview — print setup v2", () => {
     expect(styles({ sideMarginMm: 1 })).toContain("padding-left: 1mm");
   });
 });
+
+describe("renderReceiptPreview — A5 page paper", () => {
+  const base = { paper: "a5" as const, orgName: "Acme", logoUrl: "https://cdn.test/logo.png" };
+  const html = (v2: Parameters<typeof renderReceiptPreview>[0]["v2"], extra = {}) =>
+    renderReceiptPreview({ ...base, ...extra, v2 }).body;
+
+  it("prints on an A5 page, not a thermal roll", () => {
+    const { styles } = renderReceiptPreview(base);
+    expect(styles).toContain("@page { size: A5;");
+    expect(styles).not.toContain("size: A4");
+    expect(styles).not.toContain("80mm");
+  });
+
+  it("keeps the full-page blocks A4 has: watermark, signature, banks, terms, VAT amount", () => {
+    expect(body({ ...base, logoPlacement: "watermark" })).toContain('class="watermark"');
+    const out = html(
+      {
+        itemColumns: { code: true, vat: "both" },
+        signature: { leftLabel: "Customer Signature" },
+        paymentDetails: [
+          { id: "1", kind: "bank", visible: true, bankName: "DBBL", accountNumber: "123" },
+        ],
+        terms: "No refunds",
+      },
+      { salesTaxActive: true },
+    );
+    expect(out).toContain(">Code<");
+    expect(out).toContain(">VAT<");
+    expect(out).toContain('class="signature two"');
+    expect(out).toContain("DBBL");
+    expect(out).toContain('class="terms">No refunds');
+    expect(out).not.toContain("Cash received");
+  });
+
+  it("caps the QR at 32 mm and separates copies with a page break", () => {
+    expect(html({ qrValue: "https://shop.test", qrSizeMm: 40 })).toContain('width="32mm"');
+    const copies = renderReceiptPreview({ ...base, showCopies: true, v2: { copies: 2 } }).body;
+    expect(copies).toContain("copy-break");
+    expect(copies).not.toContain('class="cut-line"');
+  });
+
+  it("applies the A5 logo box only to A5", () => {
+    const logoSize = { a5: { heightMm: 12, widthMm: 40 } };
+    expect(body({ ...base, logoSize })).toContain("max-height:12mm;max-width:40mm");
+    expect(body({ ...base, paper: "a4", logoSize })).not.toContain("max-height:12mm");
+  });
+});
