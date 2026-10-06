@@ -130,14 +130,20 @@ function LookupLineRow({ line, onClaim }: { line: WarrantyLookupLine; onClaim: (
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Icon className={line.active ? "h-4 w-4 text-green-600" : "h-4 w-4 text-destructive"} />
-          <span>{t("lookup.until", { date: formatDateOnly(line.warranty.until) })}</span>
-          <span className="text-muted-foreground">
-            {!line.active
-              ? t("lookup.expired")
-              : line.daysLeft === 0
-                ? t("lookup.lastDay")
-                : t("lookup.daysLeft", { days: line.daysLeft })}
-          </span>
+          {line.active ? (
+            <>
+              <span>{t("lookup.until", { date: formatDateOnly(line.warranty.until) })}</span>
+              <span className="text-muted-foreground">
+                {line.daysLeft === 0
+                  ? t("lookup.lastDay")
+                  : t("lookup.daysLeft", { days: line.daysLeft })}
+              </span>
+            </>
+          ) : (
+            <span className="text-destructive">
+              {t("lookup.expiredOn", { date: formatDateOnly(line.warranty.until) })}
+            </span>
+          )}
         </div>
         {line.warranty.note && <p className="text-sm text-muted-foreground">{line.warranty.note}</p>}
         <p className="text-xs text-muted-foreground">

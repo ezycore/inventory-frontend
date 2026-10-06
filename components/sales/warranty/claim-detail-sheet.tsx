@@ -74,7 +74,7 @@ function ClaimSummary({ claim }: { claim: WarrantyClaim }) {
         <dt className="text-muted-foreground">{t("detail.warranty")}</dt>
         <dd>
           {t(`kinds.${claim.warranty.kind}`)} ·{" "}
-          {t("lookup.until", { date: formatDateOnly(claim.warranty.until) })}
+          {t("detail.validUntil", { date: formatDateOnly(claim.warranty.until) })}
           <span className={claim.coveredAtIntake ? "ml-2 text-green-600" : "ml-2 text-destructive"}>
             {claim.coveredAtIntake ? t("detail.coveredAtIntake") : t("detail.outOfWarrantyAtIntake")}
           </span>

@@ -333,11 +333,11 @@
       "until": "{date} পর্যন্ত ওয়ারেন্টি",
       "daysLeft": "আর {days} দিন",
       "lastDay": "আজ শেষ দিন",
-      "expired": "মেয়াদ শেষ",
       "active": "ওয়ারেন্টিতে আছে",
       "quantities": "বিক্রি {sold} · ফেরত {returned} · ক্লেইমে {claimed}",
       "logClaim": "ক্লেইম নিন",
-      "months": "{months} মাস"
+      "months": "{months} মাস",
+      "expiredOn": "{date} তারিখে মেয়াদ শেষ"
     },
     "claim": {
       "title": "ওয়ারেন্টি ক্লেইম নিন",
@@ -395,7 +395,8 @@
         "repaired": "মেরামত হয়েছে",
         "replaced": "রিপ্লেস করা হয়েছে",
         "rejected": "বাতিল"
-      }
+      },
+      "validUntil": "{date} পর্যন্ত বৈধ"
     }
   }
 }

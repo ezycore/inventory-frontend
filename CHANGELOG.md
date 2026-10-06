@@ -13,6 +13,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Warranty: a Warranty section on the product form, a warranty line under each item on printed
   invoices, and Sales → Warranty to check a sale by invoice or phone and log/track claims
   (repair, supplier, replacement from stock). Feature switch under Settings → Features.
+- Sale Summary shows each item's warranty under its name ("12 months · Replacement · Covered
+  until …"), in red as "Expired on …" once it has run out.
 - POS and sale lines show "N held for online orders" under Available when confirmed
   storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
 

@@ -333,11 +333,11 @@
       "until": "Covered until {date}",
       "daysLeft": "{days} days left",
       "lastDay": "Last day today",
-      "expired": "Expired",
       "active": "Covered",
       "quantities": "Sold {sold} · returned {returned} · in a claim {claimed}",
       "logClaim": "Log claim",
-      "months": "{months} months"
+      "months": "{months} months",
+      "expiredOn": "Expired on {date}"
     },
     "claim": {
       "title": "Log warranty claim",
@@ -395,7 +395,8 @@
         "repaired": "Repaired",
         "replaced": "Replaced",
         "rejected": "Rejected"
-      }
+      },
+      "validUntil": "Valid until {date}"
     }
   }
 }

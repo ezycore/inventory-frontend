@@ -22,6 +22,7 @@ import type { Sale, SaleItem, SalesReturn } from '@/types';
 import { populatedRef } from '@/utils/populated-ref';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
+import { SaleLineWarranty } from '@/components/sales/warranty/sale-line-warranty';
 
 // ── Headline stats ───────────────────────────────────────────────────────────
 
@@ -125,9 +126,16 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
             name={row.item.productName}
             indent={row.inCombo}
             sub={
-              canViewCosts
-                ? `Cost ${fmt(row.item.costPrice)} × ${row.item.quantity} = ${fmt(row.item.costPrice * row.item.quantity)}`
-                : undefined
+              canViewCosts || row.item.warranty ? (
+                <>
+                  {canViewCosts && (
+                    <div>
+                      {`Cost ${fmt(row.item.costPrice)} × ${row.item.quantity} = ${fmt(row.item.costPrice * row.item.quantity)}`}
+                    </div>
+                  )}
+                  <SaleLineWarranty warranty={row.item.warranty} />
+                </>
+              ) : undefined
             }
           />
         ),
