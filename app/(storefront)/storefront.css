@@ -1059,6 +1059,23 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
   }
 }
 
+/* ---- Page breadcrumb (components/storefront/breadcrumb.tsx) ----
+   Phones swap the full trail for a single "‹ Parent" link and tighten the
+   space around it: the trail plus its padding was costing ~100px above the
+   product gallery, which kept the title and price off the first screen.
+   `--sf-page-top` is read by the PDP and collection page wrappers. */
+.sf-crumbs {
+  margin-bottom: 12px;
+}
+@media (max-width: 679px) {
+  .sf-root {
+    --sf-page-top: 4px;
+  }
+  .sf-crumbs {
+    margin-bottom: 2px;
+  }
+}
+
 /* ---- Responsive show/hide (matches the design's 680px breakpoint) ---- */
 @media (max-width: 679px) {
   .sf-desktop-only {
@@ -4467,6 +4484,67 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
 @media (prefers-reduced-motion: reduce) {
   .sf-pdp-zoom-img,
   .sf-pdp-zoom-hint {
+    transition: none;
+  }
+}
+
+/* ---- The merchant's own parts of the product column (product-part-view.tsx) ----
+   A collapsible part is a native <details>: it opens without script and a screen
+   reader already knows it. Its marker is drawn here because `[open]` is a state
+   no inline style can reach. */
+.sf-pdp-fold {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.sf-pdp-fold > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sf-pdp-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.sf-pdp-fold > summary::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.sf-pdp-fold[open] > summary::after {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+.sf-pdp-fold-body {
+  padding: 0 14px 14px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+/* The store's promises as one column beside the buy buttons — the band's
+   three-up grid is for a full-width row, and its phone rule centres a 420px
+   column, which is wrong inside a column that is already narrow. */
+.sf-trust-list.sf-pdp-promises {
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 10px;
+  font-size: 13.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-pdp-fold > summary::after {
     transition: none;
   }
 }

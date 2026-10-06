@@ -7,10 +7,18 @@
 import type { Translator } from "@/i18n/config";
 import { newLocalId } from "@/utils/local-id";
 
-export type ReceiptPaperSize = "a4" | "thermal80" | "thermal58";
+export type ReceiptPaperSize = "a4" | "a5" | "thermal80" | "thermal58";
+
+/**
+ * Full-page paper (A4 / A5) vs a thermal slip. Page papers print the
+ * document blocks a slip can't hold: signature, watermark, bank details,
+ * terms, the VAT amount column, page-break copies.
+ */
+export const isPagePaper = (paper: ReceiptPaperSize): paper is "a4" | "a5" =>
+  paper === "a4" || paper === "a5";
 export type ReceiptHeaderAlign = "left" | "center" | "right";
 
-/** Where the logo prints. Watermark/both are A4-only (thermal is 1-bit). */
+/** Where the logo prints. Watermark/both are page-paper only (thermal is 1-bit). */
 export type ReceiptLogoPlacement = "top" | "watermark" | "both" | "hidden";
 
 /** Vertical anchor of the A4 watermark. */
@@ -245,6 +253,7 @@ export const DEFAULT_WATERMARK_OPACITY = 0.08;
  */
 export const DEFAULT_LOGO_SIZE: Record<ReceiptPaperSize, ReceiptLogoBox> = {
   a4: { heightMm: 17, widthMm: 58 },
+  a5: { heightMm: 13, widthMm: 44 },
   thermal80: { heightMm: 10.5, widthMm: 70 },
   thermal58: { heightMm: 8.5, widthMm: 50 },
 };
@@ -255,6 +264,7 @@ export const LOGO_SIZE_LIMITS: Record<
   { height: [number, number]; width: [number, number] }
 > = {
   a4: { height: [8, 40], width: [15, 120] },
+  a5: { height: [6, 30], width: [10, 90] },
   thermal80: { height: [5, 30], width: [10, 72] },
   thermal58: { height: [5, 25], width: [10, 50] },
 };

@@ -9,6 +9,7 @@ import {
   hasPhoneValue,
   isComplete,
   moveSection,
+  moveSectionTo,
   newInstanceId,
   newSection,
   pageContextOf,
@@ -165,6 +166,16 @@ describe("arranging sections", () => {
   it("moves a section and ignores a move past either end", () => {
     expect(moveSection([a, b], b.id, -1).map((s) => s.id)).toEqual([b.id, a.id]);
     expect(moveSection([a, b], a.id, -1).map((s) => s.id)).toEqual([a.id, b.id]);
+  });
+
+  it("drops a section at any position, the others closing up around it", () => {
+    const c = newSection("rich-text", [a, b]);
+    const ids = (sections: EditorSection[]) => sections.map((s) => s.id);
+    expect(ids(moveSectionTo([a, b, c], a.id, 2))).toEqual([b.id, c.id, a.id]);
+    expect(ids(moveSectionTo([a, b, c], c.id, 0))).toEqual([c.id, a.id, b.id]);
+    expect(ids(moveSectionTo([a, b, c], b.id, 1))).toEqual([a.id, b.id, c.id]);
+    expect(ids(moveSectionTo([a, b, c], b.id, 3))).toEqual([a.id, b.id, c.id]);
+    expect(ids(moveSectionTo([a, b, c], "missing", 0))).toEqual([a.id, b.id, c.id]);
   });
 
   it("duplicates right after the original with fresh section and item ids", () => {

@@ -19,12 +19,15 @@ import {
 } from "@/components/storefront/product-detail/product-overview";
 import { ProductStickyBar } from "@/components/storefront/product-detail/product-sticky-bar";
 import type { CatalogProduct } from "@/lib/storefront-client";
+import type { ProductPart } from "@/lib/storefront-builder/product-parts";
 
 const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
   margin: "0 auto",
   width: "100%",
-  padding: "22px var(--pad) 40px",
+  // `--sf-page-top` shrinks on phones (storefront.css) — an inline literal
+  // would beat the media query.
+  padding: "var(--sf-page-top, 22px) var(--pad) 40px",
 };
 
 /**
@@ -77,6 +80,8 @@ export function ProductPageView({
   hideDescription = false,
   layout,
   shape,
+  parts,
+  promises,
 }: {
   initialProduct?: CatalogProduct;
   /** Leave out "You may also like" — a builder page placing a Related products section instead. */
@@ -87,6 +92,10 @@ export function ProductPageView({
   layout?: string;
   /** That section's photo and related-row settings; unset everywhere else. */
   shape?: ProductShape;
+  /** That section's column beside the photos, part by part; unset is the column as it always was. */
+  parts?: readonly ProductPart[];
+  /** The store's promises, for a promises part. */
+  promises?: readonly { text: string; icon?: string }[];
 }) {
   const d = useProductDetail(initialProduct, layout, shape?.relatedLimit);
   const { t, base, product } = d;
@@ -142,6 +151,8 @@ export function ProductPageView({
         galleryTop={d.galleryTop}
         showDescription={!hideDescription}
         imageFit={shape?.imageFit}
+        parts={parts}
+        promises={promises}
       />
 
       {/* The `id` stays for deep links from outside (a campaign post pointing at

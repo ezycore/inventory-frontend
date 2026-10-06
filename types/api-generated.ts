@@ -7988,6 +7988,82 @@ export interface paths {
         patch: operations["patch_api_ecommerce_catalog_id"];
         trace?: never;
     };
+    "/api/ecommerce/product-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/product-orders
+         * @description Defined in `src/routes/product-orders.routes.ts:26`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_product_orders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/product-orders/all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/product-orders/all
+         * @description Defined in `src/routes/product-orders.routes.ts:28`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_product_orders_all"];
+        /**
+         * PUT /api/ecommerce/product-orders/all
+         * @description Defined in `src/routes/product-orders.routes.ts:29`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        put: operations["put_api_ecommerce_product_orders_all"];
+        post?: never;
+        /**
+         * DELETE /api/ecommerce/product-orders/all
+         * @description Defined in `src/routes/product-orders.routes.ts:35`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_ecommerce_product_orders_all"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/product-orders/{scope}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/ecommerce/product-orders/:scope/:id
+         * @description Defined in `src/routes/product-orders.routes.ts:37`. Requires permission `storefront.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        get: operations["get_api_ecommerce_product_orders_scope_id"];
+        /**
+         * PUT /api/ecommerce/product-orders/:scope/:id
+         * @description Defined in `src/routes/product-orders.routes.ts:43`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        put: operations["put_api_ecommerce_product_orders_scope_id"];
+        post?: never;
+        /**
+         * DELETE /api/ecommerce/product-orders/:scope/:id
+         * @description Defined in `src/routes/product-orders.routes.ts:49`. Requires permission `storefront.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        delete: operations["delete_api_ecommerce_product_orders_scope_id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -10412,6 +10488,7 @@ export interface components {
                     /** @enum {string} */
                     vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
+                    updateMrp?: boolean;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
                     expiryDate?: string | null;
@@ -10522,6 +10599,7 @@ export interface components {
                 /** @enum {string} */
                 vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
+                updateMrp?: boolean;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
                 expiryDate?: string | null;
@@ -10593,6 +10671,7 @@ export interface components {
                 /** @enum {string} */
                 vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                 conversionFactor?: number;
+                updateMrp?: boolean;
                 purchaseUnitName?: string | null;
                 /** Format: date-time */
                 expiryDate?: string | null;
@@ -10664,6 +10743,7 @@ export interface components {
                     /** @enum {string} */
                     vatCategory?: "standard" | "reduced" | "zero_rated" | "exempt";
                     conversionFactor?: number;
+                    updateMrp?: boolean;
                     purchaseUnitName?: string | null;
                     /** Format: date-time */
                     expiryDate?: string | null;
@@ -11084,6 +11164,12 @@ export interface components {
             /** @enum {string} */
             scope: "storewide" | "category" | "subcategory" | "product" | "tag";
             targets?: string[];
+            exclude?: {
+                categoryIds: string[];
+                subcategoryIds: string[];
+                tagIds: string[];
+                productIds: string[];
+            } | null;
             /** @enum {string} */
             type: "percentage" | "fixed";
             value: number;
@@ -12980,7 +13066,7 @@ export interface components {
                 taxId?: string;
                 footer?: string;
                 /** @enum {string} */
-                defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                 /** @enum {string} */
                 headerAlign?: "left" | "center" | "right";
                 showLogo?: boolean;
@@ -12989,6 +13075,10 @@ export interface components {
                 watermarkOpacity?: number;
                 logoSize?: {
                     a4?: {
+                        heightMm: number;
+                        widthMm: number;
+                    };
+                    a5?: {
                         heightMm: number;
                         widthMm: number;
                     };
@@ -13329,7 +13419,7 @@ export interface components {
             taxId?: string;
             footer?: string;
             /** @enum {string} */
-            defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+            defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
             /** @enum {string} */
             headerAlign?: "left" | "center" | "right";
             showLogo?: boolean;
@@ -13338,6 +13428,10 @@ export interface components {
             watermarkOpacity?: number;
             logoSize?: {
                 a4?: {
+                    heightMm: number;
+                    widthMm: number;
+                };
+                a5?: {
                     heightMm: number;
                     widthMm: number;
                 };
@@ -14590,6 +14684,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14617,6 +14715,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14721,6 +14823,10 @@ export interface components {
                     visibility?: {
                         desktop?: boolean;
                         mobile?: boolean;
+                        products?: {
+                            categories?: string[];
+                            tags?: string[];
+                        };
                     };
                     settings: {
                         [key: string]: unknown;
@@ -14817,6 +14923,10 @@ export interface components {
             visibility?: {
                 desktop?: boolean;
                 mobile?: boolean;
+                products?: {
+                    categories?: string[];
+                    tags?: string[];
+                };
             };
             settings: {
                 [key: string]: unknown;
@@ -15983,7 +16093,7 @@ export interface components {
             };
         };
         DashboardBlocks: {
-            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health" | "actions.quick")[];
+            blocks: ("orders.summary" | "orders.pipeline" | "orders.cod" | "revenue.summary" | "purchases.summary" | "profit.summary" | "transactions.count" | "chart.revenue" | "orders.fulfillment" | "topSold" | "orders.topProducts" | "stock.alerts" | "stock.movements" | "financial.insights" | "receivables" | "payables" | "stock.value" | "revenue.channelMix" | "shipping.money" | "cash.position" | "stock.expiry" | "orders.recent" | "store.health")[];
         };
         DashboardOverview: {
             period: {
@@ -16874,7 +16984,7 @@ export interface components {
                     taxId?: string;
                     footer?: string;
                     /** @enum {string} */
-                    defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                    defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                     /** @enum {string} */
                     headerAlign?: "left" | "center" | "right";
                     showLogo?: boolean;
@@ -16883,6 +16993,10 @@ export interface components {
                     watermarkOpacity?: number;
                     logoSize?: {
                         a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        a5?: {
                             heightMm: number;
                             widthMm: number;
                         };
@@ -17140,7 +17254,7 @@ export interface components {
                     taxId?: string;
                     footer?: string;
                     /** @enum {string} */
-                    defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                    defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                     /** @enum {string} */
                     headerAlign?: "left" | "center" | "right";
                     showLogo?: boolean;
@@ -17149,6 +17263,10 @@ export interface components {
                     watermarkOpacity?: number;
                     logoSize?: {
                         a4?: {
+                            heightMm: number;
+                            widthMm: number;
+                        };
+                        a5?: {
                             heightMm: number;
                             widthMm: number;
                         };
@@ -17410,7 +17528,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17419,6 +17537,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -17677,7 +17799,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17686,6 +17808,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -17982,7 +18108,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -17991,6 +18117,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -18272,7 +18402,7 @@ export interface components {
                         taxId?: string;
                         footer?: string;
                         /** @enum {string} */
-                        defaultPaperSize?: "a4" | "thermal80" | "thermal58";
+                        defaultPaperSize?: "a4" | "a5" | "thermal80" | "thermal58";
                         /** @enum {string} */
                         headerAlign?: "left" | "center" | "right";
                         showLogo?: boolean;
@@ -18281,6 +18411,10 @@ export interface components {
                         watermarkOpacity?: number;
                         logoSize?: {
                             a4?: {
+                                heightMm: number;
+                                widthMm: number;
+                            };
+                            a5?: {
                                 heightMm: number;
                                 widthMm: number;
                             };
@@ -18971,6 +19105,39 @@ export interface components {
             /** @enum {string} */
             kind: "replacement" | "service" | "parts";
             note?: string;
+        };
+        ProductOrderRow: {
+            _id: string;
+            name: string;
+            imageUrl: string | null;
+            price: number | null;
+            featured: boolean;
+            purchasable: boolean;
+        };
+        ProductOrderSummary: {
+            all: boolean;
+            categoryIds: string[];
+            tagIds: string[];
+        };
+        ProductOrderView: {
+            placed: {
+                _id: string;
+                name: string;
+                imageUrl: string | null;
+                price: number | null;
+                featured: boolean;
+                purchasable: boolean;
+            }[];
+            unplaced: {
+                _id: string;
+                name: string;
+                imageUrl: string | null;
+                price: number | null;
+                featured: boolean;
+                purchasable: boolean;
+            }[];
+            hasCustomOrder: boolean;
+            truncated: boolean;
         };
     };
     responses: never;
@@ -31853,6 +32020,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -32509,6 +32677,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -32752,6 +32921,7 @@ export interface operations {
                         taxType?: "inclusive" | "exclusive";
                         conversionFactor?: number | null;
                         purchaseUnitName?: string | null;
+                        updateMrp?: boolean;
                         /** Format: date-time */
                         expiryDate?: string | null;
                         /** Format: date-time */
@@ -44710,6 +44880,12 @@ export interface operations {
                     /** @enum {string} */
                     scope: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
+                    exclude?: {
+                        categoryIds?: string[];
+                        subcategoryIds?: string[];
+                        tagIds?: string[];
+                        productIds?: string[];
+                    };
                     /** @enum {string} */
                     type: "percentage" | "fixed";
                     value: number;
@@ -44846,6 +45022,12 @@ export interface operations {
                     /** @enum {string} */
                     scope?: "storewide" | "category" | "subcategory" | "product" | "tag";
                     targets?: string[];
+                    exclude?: {
+                        categoryIds?: string[];
+                        subcategoryIds?: string[];
+                        tagIds?: string[];
+                        productIds?: string[];
+                    };
                     /** @enum {string} */
                     type?: "percentage" | "fixed";
                     value?: number;
@@ -47078,6 +47260,391 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"] & {
                         data?: components["schemas"]["CatalogProduct"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_product_orders: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderSummary"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_product_orders_all: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_ecommerce_product_orders_all: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    productIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_ecommerce_product_orders_all: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_ecommerce_product_orders_scope_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                scope: "category" | "tag";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_ecommerce_product_orders_scope_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                scope: "category" | "tag";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    productIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_api_ecommerce_product_orders_scope_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                scope: "category" | "tag";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductOrderView"];
                     };
                 };
             };

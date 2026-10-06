@@ -364,6 +364,11 @@ The `useCrudModal` hook (`hooks/use-crud-handlers.ts`) is the standard pattern f
 or the current time/locale must gate on `useHydrated()` (`hooks/use-hydrated.ts`) so the first client
 render matches the SSR HTML — never hand-roll `useSyncExternalStore` or `typeof window` initializers.
 
+**Unsaved work:** a screen holding edits that are not saved yet calls `useUnsavedChangesWarning(dirty)`
+(`hooks/use-unsaved-changes-warning.ts`) so closing or reloading the tab asks first. Never hand-roll a
+`beforeunload` listener — Customize, the page editor's autosave and the Arrange screen share this one.
+There is no route-level guard in the app, so it does not cover a click to another admin page.
+
 **Browser tab (title + icon) is client-side, by necessity.** The organization lives in the persisted
 auth store, which no server `generateMetadata` can read — so both are set imperatively from
 `ProtectedShell` (`components/layout/protected-shell.tsx`): `useOrgFavicon()` (org **favicon** → tab icon, via `useFaviconOverride`) and
@@ -372,6 +377,12 @@ breadcrumb**, so it is already translated and already matches the sidebar label 
 renames the tab, and no page needs its own `metadata`. The storefront titles tabs separately via its
 own `generateMetadata` (store name). **Do not add `export const metadata` with a title to a page
 under `app/(protected)/`** — it can't see the org and will fight the hook.
+
+A page whose URL does not say where the merchant came from sets its own trail with
+`usePageBreadcrumbs(items)` (`hooks/use-breadcrumbs.tsx`) — the Arrange screen reads
+`Collections › Arrange Gadgets` or `Tags › Arrange tag "Eid"` rather than its URL's
+`Online Store › Arrange › Tag › Details`, none of whose parents is a page. The last item is
+also the tab title. It applies only while the pathname matches and clears on unmount.
 
 **The favicon is `organization.favicon` and nothing else** — admin app, auth pages, storefront and
 custom domains all read that one field, and it **never falls back to the org or store logo**. The two
@@ -560,7 +571,9 @@ that page's default). Add a key to the shared type and wire it in **both** compo
   - **Outside DynamicForm:** render **`<FuseAdvancedSelect>`** (`ui/components/fuse-advanced-select.tsx`), or reuse an existing Fuse picker — `ProductSearch` (`components/sales/product-search.tsx`, sell-side) / `InventorySearch` (`components/inventory/inventory-search.tsx`, stock-side).
   - **Never** use `Select`, `SimpleSelect`, or a direct `<AdvancedSelect>` for products. Calling `<AdvancedSelect>` directly **bypasses** `shouldUseSearchableSelect()` — that heuristic only runs inside the DynamicForm / filter-bar renderers — so a hand-built `<AdvancedSelect optionsApi=…>` single select is a plain, unsearchable dropdown. This is exactly how the combo-components field and the storefront builder's `RefField` (section inspector + "New page → Landing page") shipped without search (found 2026-09-25).
   - **Multiple-mode** product pickers must declare `type: "fuseSelect"` explicitly — the `select` heuristic keeps every multiple-mode field on `<MultiSelect>` (plain substring search). This is the one case where hand-picking `fuseSelect` on an `optionsApi` field is required, not redundant (coupon "Limit to products", campaign "Products"). Outside DynamicForm, `<FuseAdvancedSelect mode="multiple">`.
-  - **Before shipping a new product picker, grep for every caller** of the component you touched (e.g. `RefField` has two: `editor/field-control.tsx` and `pages/new-page-dialog.tsx`) — a fix or audit that only follows one entry point misses the others.
+  - **Before shipping a new product picker, grep for every caller** of the component you touched (e.g. `RefField` has three: `editor/field-control.tsx`, `editor/product-targets-field.tsx` and `pages/new-page-dialog.tsx`) — a fix or audit that only follows one entry point misses the others.
+  - **An ORDERED product list** (one whose order the shopper sees, like a storefront Manual section) is `ProductListField` (`components/ecommerce/pages/editor/product-list-field.tsx`), not a multi-select: a Fuse combobox that only adds, over a draggable list. `RefField` routes every `refs` → `product` setting to it.
+- **Drag to reorder a list:** `useDragReorder` (`ui/hooks/use-drag-reorder.ts`) with `DragHandle` / `DropLine` (`ui/components/drag-handle.tsx`). It handles pointer, touch and keyboard (arrow keys on the handle), and auto-scrolls near the scroller's edges. Never use HTML drag and drop, which a phone never fires. Rows are the list's children carrying `data-drag-row`. See the `storefront` skill → "Dragging".
 - **Picking a control for a "choose one of these" setting** — there are five, and the wrong one is what makes an editor panel three screens tall. Match the control to the *kind* of question:
   | The question is | Control | Where |
   |---|---|---|

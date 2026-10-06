@@ -368,6 +368,14 @@ export const queryKeys = {
     collections: () => ["storefront-catalog", "collections"] as const,
     /** Per-variant storefront pricing rows for one product (the listing editor). */
     variants: (id: string) => ["storefront-catalog", "variants", id] as const,
+    /**
+     * Arranged product orders. Under the catalog root on purpose: a listing,
+     * a featured flag or a deleted category changes what an arrangement holds,
+     * so one `storefront.catalog.changed` must refresh both.
+     */
+    productOrders: () => ["storefront-catalog", "product-orders"] as const,
+    productOrder: (scope: string, id?: string) =>
+      ["storefront-catalog", "product-orders", scope, id ?? null] as const,
   },
 
   storefrontCustomers: {
@@ -404,8 +412,8 @@ export const queryKeys = {
   storefrontPages: {
     ...resourceKeys("storefront-pages"),
     revisions: (id: string) => ["storefront-pages", "detail", id, "revisions"] as const,
-    /** The product the editor previews the shared product page around. */
-    previewProduct: (slug: string) => ["storefront-pages", "preview-product", slug] as const,
+    /** The products the editor can preview the shared product page around, narrowed by `q`. */
+    previewProducts: (slug: string, q: string) => ["storefront-pages", "preview-products", slug, q] as const,
   },
   /** The store's look with draft and publish — one per store. Revisions sit under the root, so a publish flushes them. */
   storefrontSite: {

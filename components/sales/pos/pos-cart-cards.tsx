@@ -11,7 +11,7 @@ import { NumberField } from "@/ui/components/number-field";
 
 /**
  * The cart on a phone: one card per line instead of New Sale's eight-column
- * table, with the same edits — quantity, per-unit discount, batch, remove —
+ * table, with the same edits — price, quantity, per-unit discount, batch, remove —
  * through the same store actions the table's cells call.
  */
 export function PosCartCards({
@@ -23,7 +23,7 @@ export function PosCartCards({
 }) {
   const t = useTranslations("sales.sell.cart");
   const tPos = useTranslations("sales.pos");
-  const { items, updateItem, removeItem, handleUpdateDiscount, isExpiryEnabled, symbol } = ctx;
+  const { items, updateItem, removeItem, handleUpdateDiscount, handleUpdatePrice, isExpiryEnabled, symbol } = ctx;
 
   return (
     <ul className="divide-y">
@@ -48,8 +48,21 @@ export function PosCartCards({
                     {t("heldForOnline", { count: item.heldQuantity as number })}
                   </div>
                 )}
-                <div className="text-xs text-muted-foreground tabular-nums">
-                  {formatCurrency(item.price)} × {item.quantity}
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+                  {/* This sale's price only; combo lines are priced by the server. */}
+                  {item.isCombo ? (
+                    formatCurrency(item.price)
+                  ) : (
+                    <NumberField
+                      aria-label={t("priceMrp")}
+                      precision={2}
+                      min={0}
+                      value={item.price}
+                      onChange={(v) => handleUpdatePrice(item.id, v ?? item.price)}
+                      className="h-8 w-20 px-1 text-right text-sm tabular-nums"
+                    />
+                  )}
+                  <span>× {item.quantity}</span>
                 </div>
               </div>
               <div className="text-right text-sm font-semibold tabular-nums">

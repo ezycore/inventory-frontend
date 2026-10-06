@@ -55,8 +55,10 @@ The list on the left is your page, top to bottom. Press **Add section** and pick
 banner, a **Product grid**, **Selected products**, an **FAQ**, a **Call to action** and more. It goes
 below the section you have open, or at the end.
 
-Each row has buttons to **Move up**, **Move down**, **Hide section**, **Duplicate section** and
-**Remove section**. A hidden section stays in the editor but shoppers do not see it.
+To move a section, drag it by the handle at the start of its row and drop it where it should go. With a
+keyboard, press Tab to reach the handle and use the up and down arrow keys. The eye button on a row is
+**Hide section**; a hidden section stays in the editor but shoppers do not see it. The **⋯** button
+holds the rest: **Move up**, **Move down**, **Duplicate section** and **Remove section**.
 
 Press a section's name, or click it in the preview, to change its settings. Press **Sections**, at the
 top of the settings, to return to the list.
@@ -287,6 +289,39 @@ product page for every product, and one collection page for every collection.** 
 under the product appears under *every* product in your shop, not just the one you were looking at.
 That is what makes it worth adding — write your returns policy once and it sits under all of them.
 
+A section does not have to go under every product, though. Open it and, under **Show on**, set
+**Products** to **Products in these categories** or **Products with these tags**, then choose them — a
+size guide for your cushions that floor mats never show. Choosing a category includes the categories
+inside it. The list of sections marks it **On some products**. The product block itself always shows
+on every product.
+
+The preview draws the product page around one of your products — your first, to begin with. Press
+**Previewing** at the top of the preview to pick another. It suggests one with options, one with a long
+description and one that is sold out, because each of those shows a part of the page the others do
+not; type a name to find any other.
+
+Open the **Product** section to arrange the product itself. Under **Beside the photos** is everything
+in the column next to the photos — the name, the stock badge and tags, the price, the short description,
+the options, the quantity, the buy buttons and the delivery estimate — in the order shoppers see them.
+
+- **Drag a part** by its handle to move it — the price above the name, or the options above the price so
+  shoppers pick a size before they see what it costs. The options and the quantity always stay above the
+  buy buttons: the page picks an option for the shopper to start with, so options under the button would
+  let them buy one they never looked at.
+- **The eye** hides a part on every product. The options and the buy buttons have a lock instead —
+  without them nobody can order.
+- **Add a part** adds your own: **Text** for a short note, **Collapsible text** for a title shoppers tap
+  to open (a size chart, care, materials), and **Trust promises** for the promises you wrote in
+  Customize → Footer. Select a part to write its words, and use the bin button to remove one you added.
+- **Text and Collapsible text can go on some products only.** Select the part and set **Products** to
+  **Products in these categories** or **Products with these tags** — a size chart beside the photos of
+  your clothing that your floor mats never show. It works like a section's **Products** under **Show
+  on**: choosing a category includes the categories inside it, and the list marks the part **On some
+  products**. Only active tags reach your shop, so a part limited to a tag you turned off shows nowhere.
+  The product's own parts — the name, price, options, buy buttons and the rest — always show.
+
+Until you change anything here, the product shows exactly as it always has.
+
 The product page can also take the sections that sell a product:
 
 - **Offer & pricing**, **Order form** and **Sticky order bar** sell the product the shopper is looking
@@ -296,6 +331,9 @@ The product page can also take the sections that sell a product:
   block already shows these under the product as **You may also like**. To show them somewhere else, or
   under your own heading, open the **Product** section, turn on **Hide "You may also like"**, and add a
   **Related products** section where you want the row.
+- **Description** shows the product's own description wherever you put it — under your testimonials,
+  say. Turn on **Hide the product's own words** in the **Product** section so it does not show twice.
+  Its heading is "Description" in the shopper's language unless you type your own.
 
 Everything else works as it does for a landing page: sections are drafted, **Preview** shows your
 unpublished version, and nothing reaches shoppers until you press **Publish**.
@@ -312,8 +350,9 @@ Check these in order:
 1. **It is not published.** The editor says **Draft saved**, but that is your draft. Press
    **Publish changes**.
 2. **The section is hidden.** Its row in the list says **Hidden from shoppers**.
-3. **It is off for that screen.** Open the section and look under **Show on** — you may be checking on a
-   phone with **Phones** turned off.
+3. **It is off for that screen, or for that product.** Open the section and look under **Show on** — you
+   may be checking on a phone with **Phones** turned off, or on a product page the section is not set to
+   show on under **Products**.
 4. **The section is unfinished.** A row marked **Unfinished — not saved yet** is never published.
 5. **The page was unpublished.** The button reads **Turn back on**.
 6. **The offer has not started, or is over.** In **Pages**, the page shows **Starts** or **Ended** under its

@@ -229,7 +229,7 @@
     "logoHint": "Where the logo prints on documents.",
     "placementLabel": "Placement",
     "watermarkOpacityLabel": "Watermark opacity (%)",
-    "watermarkHint": "Watermark prints on A4 only — thermal receipts can't render it.",
+    "watermarkHint": "Watermark prints on A4 and A5 only — thermal receipts can't render it.",
     "noLogoWarning": "No logo uploaded yet — add one on the <link>Organization profile</link> to have it appear here.",
     "organizationProfileLink": "Organization profile",
     "letterheadLinesTitle": "Letterhead lines",
@@ -254,6 +254,7 @@
     "footerPlaceholder": "e.g. Thank you for your business! Returns accepted within 7 days.",
     "paper": {
       "a4": "A4 (full page)",
+      "a5": "A5 (half page)",
       "thermal80": "Receipt — 80mm thermal",
       "thermal58": "Receipt — 58mm thermal"
     },
@@ -264,7 +265,7 @@
     },
     "logoPlacementOptions": {
       "top": "Top of header",
-      "watermark": "Watermark (A4 only)",
+      "watermark": "Watermark (A4/A5 only)",
       "both": "Both",
       "hidden": "Hidden"
     },
@@ -348,6 +349,7 @@
     "previewPaperLabel": "Preview paper",
     "previewPaper": {
       "a4": "A4",
+      "a5": "A5",
       "thermal80": "80 mm",
       "thermal58": "58 mm"
     },
@@ -360,7 +362,7 @@
         "unit": "Unit with quantity",
         "unitHint": "Prints \"2 pcs\"",
         "code": "Product code",
-        "codeHint": "Own column on A4, under the name on receipts",
+        "codeHint": "Own column on A4/A5, under the name on receipts",
         "discount": "Line discount",
         "discountHint": "Not on 58mm receipts",
         "vat": "Line VAT",
@@ -393,7 +395,7 @@
       },
       "signature": {
         "title": "Signature and stamp",
-        "hint": "The signature lines at the bottom of A4 documents.",
+        "hint": "The signature lines at the bottom of A4/A5 documents.",
         "enabled": "Show signature lines",
         "leftLabel": "Left line",
         "leftPlaceholder": "e.g. Customer Signature (blank = none)",
@@ -407,7 +409,7 @@
         "remove": "Remove",
         "imageHeight": "Image height (mm)",
         "securityHint": "Images save as soon as you upload them. Anyone who can print can reprint them, and only people who can edit this page can change them.",
-        "a4Hint": "Signatures print on A4 only."
+        "a4Hint": "Signatures print on A4 and A5 only."
       },
       "payment": {
         "title": "Payment details",
@@ -443,11 +445,11 @@
         "hide": "Hide",
         "show": "Show",
         "remove": "Remove",
-        "notLinkedHint": "Printed text only — not linked to your accounts. Receipts show wallets only; banks print on A4."
+        "notLinkedHint": "Printed text only — not linked to your accounts. Receipts show wallets only; banks print on A4/A5."
       },
       "terms": {
         "title": "Terms and conditions",
-        "hint": "Small print above the footer, on A4 only.",
+        "hint": "Small print above the footer, on A4/A5 only.",
         "placeholder": "e.g. Goods once sold are exchangeable within 7 days with the receipt."
       },
       "qr": {
@@ -463,7 +465,7 @@
         "label": "Caption",
         "labelPlaceholder": "e.g. Shop online",
         "size": "Size (mm)",
-        "placementHint": "A4: bottom left, beside the signature. Receipts: centred above the footer (max 30 mm)."
+        "placementHint": "A4/A5: bottom left, beside the signature. Receipts: centred above the footer (max 30 mm)."
       },
       "documents": {
         "title": "Settings for: {doc}",

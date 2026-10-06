@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   useReorderCollections,
   useSaveStorefrontSiteDraft,
@@ -45,6 +45,7 @@ import type {
   StorefrontTrustBadge,
 } from "@/types";
 import { toLookPatch } from "@/components/ecommerce/customize/draft-payloads";
+import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import { settingsWithSiteLook } from "@/components/ecommerce/customize/site-look";
 import {
   RETIRED_TEMPLATE_KEYS,
@@ -741,12 +742,7 @@ export function useCustomizeDraft(
 
   // The page owns real unsaved work and there is no route-level guard in the
   // app, so a closed tab used to lose it without a word.
-  useEffect(() => {
-    if (!isDirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [isDirty]);
+  useUnsavedChangesWarning(isDirty);
 
   const save = useCallback(async () => {
     if (!isValid) return;

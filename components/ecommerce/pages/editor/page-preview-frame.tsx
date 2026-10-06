@@ -1,7 +1,7 @@
 "use client";
 // coding-standard: maintained
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ExternalLink, RotateCw } from "lucide-react";
 import { useStorefrontPreviewToken, type StorefrontPage } from "@/services/api";
 import { PREVIEW_BUILDER_PARAM, PREVIEW_TOKEN_PARAM } from "@/lib/storefront-preview";
@@ -48,6 +48,7 @@ export function PagePreviewFrame({
   selectedId,
   onSelect,
   cart,
+  toolbar,
   height = "calc(100vh - 11rem)",
 }: {
   slug?: string;
@@ -72,6 +73,8 @@ export function PagePreviewFrame({
    * grows a control for a basket it never shows.
    */
   cart?: { filled: boolean; onChange: (filled: boolean) => void };
+  /** A control only this page needs, first in the toolbar — the product page's product picker. */
+  toolbar?: ReactNode;
   height?: string;
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -175,6 +178,7 @@ export function PagePreviewFrame({
       <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-3 py-2">
         <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{address}</span>
         <div className="ml-auto flex flex-none items-center gap-1">
+          {toolbar}
           {cart ? <PreviewCartToggle filled={cart.filled} onChange={cart.onChange} /> : null}
           <PreviewDeviceToggle device={device} onChange={onDeviceChange} />
           <PreviewThemeToggle theme={theme} onChange={setTheme} />

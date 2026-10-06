@@ -47,7 +47,8 @@ const wrap: CSSProperties = {
   maxWidth: "var(--maxw)",
   margin: "0 auto",
   width: "100%",
-  padding: "18px var(--pad) 40px",
+  // `--sf-page-top` shrinks on phones (storefront.css).
+  padding: "var(--sf-page-top, 18px) var(--pad) 40px",
 };
 
 /**

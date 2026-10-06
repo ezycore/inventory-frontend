@@ -123,6 +123,30 @@ const ICON = {
  */
 export const PROMISE_ICON_STYLES = ["disc", "plain", "none"] as const;
 
+/**
+ * The parts of the product page's column beside the photos, which the merchant
+ * orders and hides as `product-main`'s blocks.
+ *
+ * The first eight are what that column always drew, and the order here is the
+ * order it drew them in — a page with no parts saved still draws exactly that
+ * (`lib/storefront-builder/product-parts.ts`). The last three are added by the
+ * merchant: their own text, a title that opens onto text (a size chart, care),
+ * and the store's promises.
+ */
+export const PRODUCT_PARTS = [
+  "name",
+  "badges",
+  "price",
+  "summary",
+  "options",
+  "quantity",
+  "buy",
+  "delivery",
+  "promises",
+  "text",
+  "collapsible",
+] as const;
+
 export const SECTION_SPECS = {
   hero: {
     v: 1,
@@ -582,6 +606,24 @@ export const SECTION_SPECS = {
    * `hideDescription` is `single-product`'s, for the page whose description is
    * told better by a Rich text or FAQ section below. It hides the merchant's own
    * words on EVERY product at once, which is why the hint says so.
+   *
+   * ### The column beside the photos — `blocks`, one per part
+   *
+   * Each block is one `PRODUCT_PARTS` entry, in the merchant's order. **No blocks
+   * means the column as it always was**, so a page nobody has reordered stores
+   * nothing and draws exactly what it drew before the parts could move; the
+   * editor writes the whole list the first time the merchant changes it.
+   *
+   * - `hidden` takes a part off the page without losing its place. The ways to
+   *   order (`options`, `buy`) ignore it, and the renderer puts either back if a
+   *   list arrives without it — a product page that cannot sell is never the
+   *   right reading of a stored list.
+   * - `title`, `text` and `open` belong to the merchant's own parts: `text`
+   *   draws `text`; `collapsible` draws `title` and opens onto `text`, open at
+   *   first when `open` is on. The editor shows them only for those parts.
+   * - Options and quantity must sit above the buy buttons. The page always
+   *   preselects an option, so options below the button would let a shopper buy
+   *   one they never saw — the editor refuses that move; the schema cannot say it.
    */
   "product-main": {
     v: 1,
@@ -605,6 +647,43 @@ export const SECTION_SPECS = {
       relatedColumns: { type: "number", min: 1, max: 6, int: true, responsive: true, optional: true },
       ...CARD_PHOTO,
       ...CARD_LOOK,
+    },
+    blocks: {
+      max: 16,
+      settings: {
+        part: { type: "enum", values: PRODUCT_PARTS },
+        hidden: { type: "boolean", optional: true },
+        title: { type: "string", max: 80, optional: true },
+        text: { type: "richText", maxBytes: 12_000, optional: true },
+        open: { type: "boolean", optional: true },
+        /*
+         * The products a text or collapsible part shows on — those in any of
+         * these categories, or carrying any of these tags; both unset is every
+         * product (`showsOnProduct`). The rules the manifest cannot say — only
+         * those two parts, never an empty list — are the backend's
+         * `checkProductPartTargets` and `lib/storefront-builder/product-parts.ts`.
+         */
+        categoryIds: { type: "refs", to: "category", max: 20, optional: true },
+        tagIds: { type: "refs", to: "tag", max: 20, optional: true },
+      },
+    },
+  },
+  /**
+   * The product's own description, wherever the merchant places it — the twin
+   * of `related-products`: turn on `product-main.hideDescription` and put this
+   * where the words should go (under testimonials, above the FAQ). Product page
+   * only, since it has nothing to show without the page's product.
+   *
+   * It draws the whole description, short or long. Unset heading is the shop's
+   * own word, "Description", in the shopper's language — what the block below
+   * the photos has always been titled; `hideHeading` drops it.
+   */
+  "product-description": {
+    v: 1,
+    pages: ["product"],
+    settings: {
+      heading: { type: "string", max: 120, optional: true },
+      hideHeading: { type: "boolean", optional: true },
     },
   },
   /**

@@ -8,10 +8,11 @@ import type {
   ReceiptMetaFields,
   ReceiptMetaKey,
   ReceiptLogoSize,
+  ReceiptPaperSize,
   ReceiptWatermarkPosition,
   ReceiptWatermarkSize,
 } from "@/types/receipt";
-import { resolveDocumentOverride, taxIdLineLabel } from "@/types/receipt";
+import { isPagePaper, resolveDocumentOverride, taxIdLineLabel } from "@/types/receipt";
 import type {
   ReceiptDocumentKind,
   ReceiptDocumentOverrides,
@@ -54,11 +55,11 @@ const tr = (t: Translator | undefined) => (key: string, fallback: string): strin
 /**
  * POS document printing (invoice / receipt / purchase order) on top of the
  * shared `printHtml`. A generic doc model + renderer is fed by per-entity
- * adapters, so Sale and PurchaseOrder share one layout across three paper
- * sizes: A4 and thermal 80mm / 58mm.
+ * adapters, so Sale and PurchaseOrder share one layout across four paper
+ * sizes: A4 / A5 (full page) and thermal 80mm / 58mm.
  */
 
-export type PaperSize = "a4" | "thermal80" | "thermal58";
+export type PaperSize = ReceiptPaperSize;
 
 // Letterhead types live in types/receipt (single FE source). Aliased to the
 // Print* names this module uses internally.
@@ -93,7 +94,7 @@ export interface PrintDoc {
   /** Grand total spelled out (invoice "amount in words" line). Omitted when unset. */
   amountInWords?: string;
   notes?: string;
-  /** Render an authorized-signature block (A4 only; skipped on thermal). */
+  /** Render an authorized-signature block (A4/A5 only; skipped on thermal). */
   signature?: boolean;
 }
 
@@ -109,9 +110,9 @@ export interface DocHeader {
   footer?: string;
   /** Seller tax/registration number (VAT / BIN / TIN) printed under the org name. */
   taxId?: string;
-  /** Letterhead alignment; unset → per-paper default (A4 left, thermal centered). */
+  /** Letterhead alignment; unset → per-paper default (A4/A5 left, thermal centered). */
   align?: "left" | "center" | "right";
-  /** Logo placement. Unset → "top". Watermark/both render a faint centered image (A4 only). */
+  /** Logo placement. Unset → "top". Watermark/both render a faint centered image (A4/A5 only). */
   logoPlacement?: PrintLogoPlacement;
   /** Watermark opacity 0.03–0.20. Unset → 0.08. */
   watermarkOpacity?: number;
@@ -306,6 +307,42 @@ const PAPER_STYLES: Record<PaperSize, string> = {
     .words { text-align: right; margin-top: 10px; }
     .footer { margin-top: 10px; font-size: 11.5px; }
   `,
+  // A5 portrait (148 mm): the A4 layout scaled down — same two-column head,
+  // smaller type and tighter gaps so a VAT-column table still fits ~130 mm.
+  // `body` prefixes beat the V2_STYLES rules appended after this block.
+  a5: `
+    @page { size: A5; margin: 0; }
+    body { font-size: 10.5px; line-height: 1.4; padding: 0 9mm; }
+    .doc { padding: 8mm 0 7mm; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 10px; }
+    .header.stack { display: block; padding-bottom: 6px; }
+    .doc-head { text-align: right; }
+    .header.stack .doc-head { text-align: inherit; }
+    .doc-title { font-size: 17px; font-weight: 800; letter-spacing: 0.03em; margin-top: 0; }
+    .doc-number { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px; margin-top: 2px; }
+    .org { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+    .ident .contact { line-height: 1.55; }
+    .logo { max-height: 48px; max-width: 166px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 20px; }
+    .meta { margin-top: 8px; }
+    .hr { border-top: 1px solid #e5e7eb; margin: 8px 0; }
+    table.items { margin-top: 6px; }
+    table.items th { text-transform: uppercase; font-size: 9px; letter-spacing: 0.05em;
+      color: #6b7280; border-bottom: 1.5px solid #111827; padding: 6px 0 4px; }
+    table.items td { border-bottom: 1px solid #f0f1f3; padding: 5px 0; }
+    table.items td:first-child { font-weight: 600; }
+    table.items th + th, table.items td + td { padding-left: 8px; }
+    table.totals { width: auto; min-width: 200px; margin-left: auto; margin-top: 10px; }
+    table.totals td { padding: 2px 0 2px 16px; color: #4b5563; }
+    table.totals td:first-child { padding-left: 0; }
+    table.totals tr.strong td { border-top: 1.5px solid #111827; padding-top: 6px; font-size: 12px; }
+    .words { text-align: right; margin-top: 8px; }
+    .footer { margin-top: 8px; font-size: 10px; }
+    body .signature-line { min-width: 130px; }
+    body .sig-images { min-width: 130px; }
+    body .sign-row { gap: 16px; margin-top: 18px; }
+    body .pay-grid { gap: 4px 12px; }
+  `,
   thermal80: `
     @page { size: 80mm auto; margin: 0; }
     body { font-size: 11px; width: 80mm; padding: 3mm; }
@@ -372,11 +409,19 @@ const V2_STYLES = `
 `;
 
 const FONT_SCALE = { sm: 0.9, md: 1, lg: 1.15 } as const;
+
+/** QR size cap + unset default per paper (mm). A5 is capped below A4 to sit beside two signatures. */
+const QR_SIZE_MM: Record<PaperSize, { max: number; default: number }> = {
+  a4: { max: 40, default: 24 },
+  a5: { max: 32, default: 20 },
+  thermal80: { max: 30, default: 20 },
+  thermal58: { max: 30, default: 20 },
+};
 const THERMAL_BASE = { thermal80: { font: 11, pad: 3 }, thermal58: { font: 10, pad: 2 } } as const;
 
 /** Thermal font scale + side margin; nothing when unset (keeps the paper CSS). */
 const thermalStyles = (paper: PaperSize, thermal?: ReceiptThermalSettings): string => {
-  if (paper === "a4" || !thermal) return "";
+  if (isPagePaper(paper) || !thermal) return "";
   const base = THERMAL_BASE[paper];
   const rules: string[] = [];
   if (thermal.fontScale && thermal.fontScale !== "md") {
@@ -472,14 +517,14 @@ export const composeDocument = (
   // (left) A4 layout puts the document title opposite the identity block.
   const stacked = header.align === "center" || header.align === "right";
 
-  // Logo placement. Watermark is A4-only (thermal is 1-bit: a grey wash either
+  // Logo placement. Watermark is page-paper only (thermal is 1-bit: a grey wash either
   // vanishes or smears solid), so on thermal only the top-logo part of "both" runs.
   const placement = header.logoPlacement ?? "top";
   const hasLogo = !!header.logoUrl;
   const showTopLogo =
     hasLogo && (placement === "top" || placement === "both");
   const showWatermark =
-    hasLogo && paper === "a4" && (placement === "watermark" || placement === "both");
+    hasLogo && isPagePaper(paper) && (placement === "watermark" || placement === "both");
   const opacity = Math.min(0.2, Math.max(0.03, header.watermarkOpacity ?? 0.08));
   const watermark = showWatermark
     ? `<img class="watermark" src="${escapeHtml(header.logoUrl!)}" alt="" style="${watermarkStyle(opacity, header)}" />`
@@ -589,20 +634,21 @@ export const composeDocument = (
     tt,
   );
 
-  // QR (P6): A4 → bottom-left beside the signature; thermal → centered above the footer.
+  // QR (P6): A4/A5 → bottom-left beside the signature; thermal → centered above the footer.
+  const qrLimit = QR_SIZE_MM[paper];
   const qr =
     override.showQr === false
       ? ""
       : buildQrBlock(
           header.qrValue,
           header.qrLabel,
-          Math.min(paper === "a4" ? 40 : 30, header.qrSizeMm ?? (paper === "a4" ? 24 : 20)),
+          Math.min(qrLimit.max, header.qrSizeMm ?? qrLimit.default),
         );
   const signRow =
-    qr && paper === "a4"
+    qr && isPagePaper(paper)
       ? `<div class="sign-row">${qr}${signature || "<div></div>"}</div>`
       : signature;
-  const thermalQr = qr && paper !== "a4" ? qr : "";
+  const thermalQr = qr && !isPagePaper(paper) ? qr : "";
 
   const terms = buildTerms(pickOverridable(override.terms, header.terms), paper);
   const footerText = pickOverridable(override.footer, header.footer);
@@ -640,7 +686,7 @@ const DEFAULT_COPY_LABELS = [
 
 /**
  * Repeat a composed body for the org's copy count (P8), each stamped with its
- * copy label, separated by a page break (A4) or a cut line (thermal). One copy
+ * copy label, separated by a page break (A4/A5) or a cut line (thermal). One copy
  * — the default — returns the body untouched.
  */
 export const withCopies = (
@@ -661,9 +707,9 @@ export const withCopies = (
     const part = i === 0 ? body : body.replace(/^<img class="watermark"[^>]*\/>/, "");
     const stamped = part.replace(
       '<div class="doc">',
-      `<div class="doc${paper === "a4" && i < copies - 1 ? " copy-break" : ""}"><div class="copy-label">${escapeHtml(label)}</div>`,
+      `<div class="doc${isPagePaper(paper) && i < copies - 1 ? " copy-break" : ""}"><div class="copy-label">${escapeHtml(label)}</div>`,
     );
-    return i === 0 || paper === "a4" ? stamped : `<div class="cut-line">✂</div>${stamped}`;
+    return i === 0 || isPagePaper(paper) ? stamped : `<div class="cut-line">✂</div>${stamped}`;
   }).join("");
 };
 
