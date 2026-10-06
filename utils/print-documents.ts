@@ -763,6 +763,20 @@ const warrantyNote = (item: SaleItem, t?: Translator, locale: AppLocale = "en"):
   return warranty.note ? `${line} (${warranty.note})` : line;
 };
 
+/**
+ * The serial / IMEI codes recorded on a sale line — "S/N: A1B2, C3D4" — printed
+ * under the warranty line so the paper names the exact units handed over.
+ */
+const serialNote = (item: SaleItem, t?: Translator): string | undefined => {
+  const codes = item.serials?.join(", ");
+  if (!codes) return undefined;
+  return t ? t("serialLine", { codes }) : `S/N: ${codes}`;
+};
+
+/** Every muted line under an item name, one per line. */
+const itemNote = (item: SaleItem, t?: Translator, locale: AppLocale = "en"): string | undefined =>
+  [warrantyNote(item, t, locale), serialNote(item, t)].filter(Boolean).join("\n") || undefined;
+
 /** One sale line as a structured print item (snapshots blank on older sales). */
 const saleLineToItem = (
   item: SaleItem,
@@ -779,7 +793,7 @@ const saleLineToItem = (
   vatRate: (item.taxAmount ?? 0) > 0 ? item.taxRate ?? undefined : undefined,
   vatAmount: (item.taxAmount ?? 0) > 0 ? currency(item.taxAmount as number) : undefined,
   amount: currency(item.subtotal),
-  note: warrantyNote(item, t, locale),
+  note: itemNote(item, t, locale),
 });
 
 /**

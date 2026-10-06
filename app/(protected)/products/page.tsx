@@ -307,6 +307,8 @@ export default function ProductsPage() {
         warrantyMonths: item.warranty?.months ?? undefined,
         warrantyKind: item.warranty?.kind ?? undefined,
         warrantyNote: item.warranty?.note ?? undefined,
+        trackSerial: Boolean(item.serialKind),
+        serialKind: item.serialKind ?? "serial",
         variants: transformedVariants,
       }
     },

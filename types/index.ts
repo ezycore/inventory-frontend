@@ -2495,6 +2495,8 @@ export interface SaleItemNormalPayload {
   taxType?: TaxType;
   /** Manual batch override for the line; omit/null = auto FEFO. */
   batchId?: string | null;
+  /** Serial / IMEI of each unit handed over — at most one per unit. */
+  serials?: string[];
 }
 
 /** A sale line: either a normal stock line or a combo reference (server explodes it). */
@@ -2666,6 +2668,8 @@ export interface SalesReturnItem {
   comboId?: string | null;
   comboName?: string;
   comboLineId?: string;
+  /** Serial / IMEI codes of the units that came back. */
+  serials?: string[];
 }
 
 /**

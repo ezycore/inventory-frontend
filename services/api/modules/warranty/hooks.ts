@@ -8,6 +8,8 @@ import { createResourceHooks, handleMutationSuccess } from "../query-helpers";
 import {
   warrantyApi,
   type CreateWarrantyClaimInput,
+  type ReplaceWarrantyClaimInput,
+  type UpdateSaleSerialsInput,
   type UpdateWarrantyClaimStatusInput,
   type WarrantyClaimListParams,
 } from "./api";
@@ -65,11 +67,51 @@ export function useUpdateWarrantyClaimStatus() {
 export function useReplaceWarrantyClaim() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, note }: { id: string; note?: string }) => warrantyApi.replace(id, { note }),
+    mutationFn: ({ id, ...data }: ReplaceWarrantyClaimInput & { id: string }) =>
+      warrantyApi.replace(id, data),
     onSuccess: (result) => {
       handleMutationSuccess(result.message || "Replacement handed over");
       invalidate(qc, "warranty.replaced");
     },
     onError: handleMutationError,
+  });
+}
+
+/** One sale's codes per line, with each line's change log. */
+export function useSaleSerials(saleId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.warranty.saleSerials(saleId ?? ""),
+    queryFn: () => warrantyApi.getSaleSerials(saleId!),
+    select: (data) => data.data,
+    enabled: Boolean(saleId) && enabled,
+  });
+}
+
+/** Add or correct codes on a posted sale (`sales.edit`). */
+export function useUpdateSaleSerials() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ saleId, ...data }: UpdateSaleSerialsInput & { saleId: string }) =>
+      warrantyApi.updateSaleSerials(saleId, data),
+    onSuccess: (result) => {
+      handleMutationSuccess(result.message || "Serial numbers saved");
+      invalidate(qc, "sale.serialsChanged");
+    },
+    onError: handleMutationError,
+  });
+}
+
+/**
+ * Where else these codes were already handed out — the "already sold" warning.
+ * Pass already-normalised codes; runs only when there is at least one.
+ */
+export function useSerialCheck(codes: readonly string[], excludeSaleId?: string) {
+  const joined = [...new Set(codes.filter(Boolean))].sort().join(",");
+  return useQuery({
+    queryKey: queryKeys.warranty.serialCheck(joined, excludeSaleId),
+    queryFn: () => warrantyApi.checkSerials(joined, excludeSaleId),
+    select: (data) => data.data ?? [],
+    enabled: joined.length > 0,
+    staleTime: 30_000,
   });
 }

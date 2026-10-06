@@ -16,6 +16,7 @@ import {
   SheetTitle,
 } from "@/ui/components/sheet";
 import { Skeleton } from "@/ui/components/skeleton";
+import { SaleLineSerials } from "@/components/sales/serials/sale-line-serials";
 import { ClaimActions } from "./claim-actions";
 import { claimStatusTone } from "./claim-status";
 
@@ -80,6 +81,14 @@ function ClaimSummary({ claim }: { claim: WarrantyClaim }) {
           </span>
         </dd>
       </div>
+      {claim.serials?.length ? (
+        <div>
+          <dt className="text-muted-foreground">{t("detail.serials")}</dt>
+          <dd>
+            <SaleLineSerials serials={claim.serials} />
+          </dd>
+        </div>
+      ) : null}
       <div>
         <dt className="text-muted-foreground">{t("detail.issue")}</dt>
         <dd className="whitespace-pre-wrap">{claim.issue}</dd>
@@ -97,12 +106,19 @@ function ClaimSummary({ claim }: { claim: WarrantyClaim }) {
         </div>
       )}
       {claim.replacement && (
-        <p className="rounded-md bg-muted p-2">
-          {t("detail.replacement", {
-            quantity: claim.replacement.quantity,
-            date: formatDate(claim.replacement.replacedAt),
-          })}
-        </p>
+        <div className="space-y-1 rounded-md bg-muted p-2">
+          <p>
+            {t("detail.replacement", {
+              quantity: claim.replacement.quantity,
+              date: formatDate(claim.replacement.replacedAt),
+            })}
+          </p>
+          {claim.replacement.serials?.length ? (
+            <p className="text-muted-foreground">
+              {t("detail.replacementSerials")}: <SaleLineSerials serials={claim.replacement.serials} />
+            </p>
+          ) : null}
+        </div>
       )}
     </dl>
   );

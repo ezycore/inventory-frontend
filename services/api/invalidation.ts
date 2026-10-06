@@ -87,6 +87,9 @@ export const EFFECTS = {
   /** A replacement unit left stock for a warranty claim — stock moves, money does not. */
   "warranty.replaced": union([k.warranty.all()], STOCK),
 
+  /** Serial / IMEI codes on a posted sale were added or corrected. Nothing else on the sale moves. */
+  "sale.serialsChanged": [k.salesOrders.all(), k.warranty.all()],
+
   /** A purchase order was created, updated or cancelled. Nothing received yet. */
   "purchase.ordered": [k.purchaseOrders.all(), k.suppliers.all(), ...DERIVED],
 

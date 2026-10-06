@@ -190,6 +190,24 @@ Both directions powered by `GET /sales/:id/transactions` (backend merges & links
 
 ---
 
+### Serial / IMEI on sale lines (`components/sales/serials/`)
+
+Backend plan `docs/plan/sale-serials.md`; behaviour in backend `docs/features/warranty.md` §8. One code
+per unit on `Sale.items[].serials`; shown only while `features.warranty` is on (`useSerialsEnabled`).
+
+| File | Purpose |
+|---|---|
+| `serial-entry-dialog.tsx` | **The one serial input** — one box per unit, Enter/scan advances, camera fills the first blank. Warns (IMEI Luhn, "already sold on INV-…" via `useSerialCheck`), blocks (twice on the sale, too long). Reused by the cart, the sale editor and the replacement step — never hand-roll another. |
+| `use-serial-kinds.ts` | `useSerialsEnabled()`; `useSerialKindOf()` — a line's `serialKind`, else looked up by `inventoryId` in the cached sellable-products list (drafts and old persisted carts carry no kind). |
+| `cart-line-serials.tsx` | The cart line's "Serials 1/2" chip (New Sale table via `getSalesColumns(..., onUpdateSerials)`, POS cards). |
+| `use-serial-checkout.ts` | Checkout gate inside `handleMarkAsSold`: more codes than units → stop; missing → one confirm ("Sell anyway"). Its `ConfirmDialog` is `ctx.SerialsConfirmDialog`, mounted by BOTH sell screens. |
+| `sale-serials-editor.tsx` | "Add / edit serials" on a posted sale (`sales.edit`) → `PATCH /api/warranty/sales/:id/serials`; shows each line's change log. `order-sale-serials.tsx` puts it on an online order once it has a Sale. |
+| `sale-line-serials.tsx` | Read-only "S/N: …" line (sale details, lookup, claim). |
+| `return-serial-picker.tsx` | Optional "which units come back" on a sales return (`ReturnItemsCard.renderItemExtra`). |
+
+`utils/serial.ts` mirrors the backend `normalizeSerial` / `isLikelyImei` exactly — change both. The
+payload (`toSaleItemPayload`) sends normalised codes only; blanks never leave the cart.
+
 ## 6. Common pitfalls
 
 | Symptom | Cause | Fix |

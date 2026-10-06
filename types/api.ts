@@ -214,6 +214,10 @@ export type CourierChargeRefresh = Schemas["CourierChargeRefresh"];
  */
 export type WarrantyLookupSale = Schemas["WarrantyLookupSale"];
 export type WarrantyClaim = Schemas["WarrantyClaim"];
+/** A sale's serial / IMEI codes per line, with each line's change log (backend `docs/plan/sale-serials.md`). */
+export type SaleSerials = Schemas["SaleSerials"];
+/** Where else a code was already handed out — the "already sold" warning. Advice only. */
+export type SerialCheckResult = Schemas["SerialCheckResult"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */

@@ -11,6 +11,7 @@ import {
 } from "@/services/api";
 import { Alert, AlertDescription } from "@/ui/components/alert";
 import { Button } from "@/ui/components/button";
+import { Checkbox } from "@/ui/components/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,10 @@ import { Textarea } from "@/ui/components/textarea";
  * Log a claim against one looked-up sale line. The quantity is capped at what
  * the server says is still claimable; the server checks it again inside the
  * write, so this cap is a convenience, not the rule.
+ *
+ * A line that recorded serial / IMEI codes asks WHICH unit came back: ticking
+ * codes sets the quantity. Units sold without a code can still be claimed by
+ * quantity, but never mixed with named ones in one claim (the server's rule).
  */
 export function ClaimCreateDialog({
   sale,
@@ -43,7 +48,22 @@ export function ClaimCreateDialog({
   const [issue, setIssue] = useState("");
   const [notes, setNotes] = useState("");
   const create = useCreateWarrantyClaim();
-  const valid = !!quantity && quantity >= 1 && quantity <= line.claimableQuantity && issue.trim() !== "";
+  const hasSerials = line.serials.length > 0;
+  const [picked, setPicked] = useState<string[]>(() =>
+    line.matchedSerial && line.claimableSerials.includes(line.matchedSerial) ? [line.matchedSerial] : [],
+  );
+  const byCode = picked.length > 0;
+  // Without codes ticked, only units sold without a code may be claimed by quantity.
+  const maxQuantity = hasSerials ? line.claimableWithoutSerial : line.claimableQuantity;
+  const count = byCode ? picked.length : quantity ?? 0;
+  const valid =
+    count >= 1 &&
+    count <= line.claimableQuantity &&
+    (byCode || count <= maxQuantity) &&
+    issue.trim() !== "";
+
+  const toggle = (code: string, on: boolean) =>
+    setPicked((prev) => (on ? [...prev, code] : prev.filter((c) => c !== code)));
 
   const submit = () => {
     if (!valid) return;
@@ -51,7 +71,8 @@ export function ClaimCreateDialog({
       {
         saleId: sale.saleId,
         lineIndex: line.lineIndex,
-        quantity: quantity as number,
+        quantity: count,
+        ...(byCode ? { serials: picked } : {}),
         issue: issue.trim(),
         ...(notes.trim() ? { notes: notes.trim() } : {}),
       },
@@ -75,21 +96,54 @@ export function ClaimCreateDialog({
               <AlertDescription>{t("claim.outOfWarranty")}</AlertDescription>
             </Alert>
           )}
-          <div className="space-y-1.5">
-            <Label htmlFor="warranty-claim-quantity">{t("claim.quantity")}</Label>
-            <NumberField
-              id="warranty-claim-quantity"
-              value={quantity}
-              onChange={setQuantity}
-              min={1}
-              max={line.claimableQuantity}
-              precision={0}
-              showSteppers
-            />
-            <p className="text-xs text-muted-foreground">
-              {t("claim.maxQuantity", { max: line.claimableQuantity })}
-            </p>
-          </div>
+          {hasSerials && (
+            <fieldset className="space-y-1.5">
+              <legend className="text-sm font-medium">{t("claim.pickSerials")}</legend>
+              <p className="text-xs text-muted-foreground">{t("claim.pickSerialsHint")}</p>
+              <ul className="space-y-1">
+                {line.serials.map((code) => {
+                  const claimable = line.claimableSerials.includes(code);
+                  const reason = line.returnedSerials.includes(code)
+                    ? t("claim.serialReturned")
+                    : line.claimedSerials.includes(code)
+                      ? t("claim.serialInClaim")
+                      : undefined;
+                  return (
+                    <li key={code}>
+                      <label className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={picked.includes(code)}
+                          disabled={!claimable}
+                          onCheckedChange={(on) => toggle(code, on === true)}
+                        />
+                        <span className="font-mono">{code}</span>
+                        {reason && <span className="text-xs text-muted-foreground">({reason})</span>}
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          )}
+          {!byCode && (!hasSerials || maxQuantity > 0) && (
+            <div className="space-y-1.5">
+              <Label htmlFor="warranty-claim-quantity">
+                {hasSerials ? t("claim.withoutSerial") : t("claim.quantity")}
+              </Label>
+              <NumberField
+                id="warranty-claim-quantity"
+                value={quantity}
+                onChange={setQuantity}
+                min={1}
+                max={maxQuantity}
+                precision={0}
+                showSteppers
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("claim.maxQuantity", { max: maxQuantity })}
+              </p>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="warranty-claim-issue">{t("claim.issue")}</Label>
             <Textarea

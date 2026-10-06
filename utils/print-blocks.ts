@@ -111,7 +111,10 @@ export const buildItemTable = (
     if (serial) row.push(i + 1);
     const codeLine =
       codeUnderName && item.code ? `<div class="muted item-code">${escapeHtml(item.code)}</div>` : "";
-    const noteLine = item.note ? `<div class="muted item-note">${escapeHtml(item.note)}</div>` : "";
+    // A note may span lines (warranty, then serials) — each prints on its own.
+    const noteLine = item.note
+      ? `<div class="muted item-note">${escapeHtml(item.note).replace(/\n/g, "<br>")}</div>`
+      : "";
     row.push(codeLine || noteLine ? { html: `${escapeHtml(item.name)}${codeLine}${noteLine}` } : item.name);
     if (codeColumn) row.push(item.code ?? "");
     row.push(unit && item.unit ? `${item.quantity} ${item.unit}` : item.quantity);

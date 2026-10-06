@@ -126,6 +126,7 @@ export const productItemsCreateCallback = (response: ProductApiResponse): Select
     quantityAlert: item.quantityAlert,
     barcode: item.barcode ?? undefined,
     hasExpiry: !!item.hasExpiry,
+    serialKind: item.serialKind,
     taxRate: item.taxRate ?? 0,
     taxType: item.taxType ?? "inclusive",
     // Purchase-side tax (only present on the purchasable-products response).

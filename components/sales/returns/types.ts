@@ -10,6 +10,8 @@ export interface ReturnableItem extends SaleItem {
   salePrice: number;
   /** Tax-inclusive per-unit refund price (what the customer actually paid per unit). */
   refundUnitPrice: number;
+  /** Serial / IMEI codes picked as coming back (optional; at most returnQty). */
+  returnSerials: string[];
 }
 
 // ── Due allocation row ──────────────────────────────────────────────

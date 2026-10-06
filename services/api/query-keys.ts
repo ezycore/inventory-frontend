@@ -355,6 +355,9 @@ export const queryKeys = {
   warranty: {
     ...resourceKeys("warranty"),
     lookup: (q: string) => ["warranty", "lookup", q] as const,
+    saleSerials: (saleId: string) => ["warranty", "sale-serials", saleId] as const,
+    serialCheck: (codes: string, excludeSaleId?: string) =>
+      ["warranty", "serial-check", codes, excludeSaleId ?? ""] as const,
   },
 
   /** Courier provider config — a sibling of orders, not a part of them. */

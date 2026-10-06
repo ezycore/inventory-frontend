@@ -170,7 +170,8 @@
       "noItemsRecorded": "No items recorded",
       "costLine": "Cost {amount}",
       "taxLineIncl": "VAT {rate}% incl. · {amount}",
-      "taxLineExcl": "VAT {rate}% · {amount}"
+      "taxLineExcl": "VAT {rate}% · {amount}",
+      "serialsLine": "S/N: {codes}"
     }
   },
   "payments": {
@@ -324,7 +325,8 @@
     "warrantyLine": "{months}-month {kind} warranty, until {until}",
     "warrantyKind_replacement": "replacement",
     "warrantyKind_service": "service",
-    "warrantyKind_parts": "parts"
+    "warrantyKind_parts": "parts",
+    "serialLine": "S/N: {codes}"
   },
   "access": {
     "restrictedTitle": "Access restricted",

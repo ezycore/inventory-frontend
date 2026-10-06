@@ -15,6 +15,13 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   (repair, supplier, replacement from stock). Feature switch under Settings → Features.
 - Sale Summary shows each item's warranty under its name ("12 months · Replacement · Covered
   until …"), in red as "Expired on …" once it has run out.
+- Serial / IMEI numbers (shown while warranty is on): a "Record serial / IMEI number of each unit
+  sold" switch on the product form; the cart asks for one code per unit (scan or type, camera too)
+  and warns on a bad IMEI or a code already sold; missing codes ask once and never block. Codes
+  print on the invoice, show on the sale, and managers can add/correct them afterwards ("Add / edit
+  serials", also on an online order). Warranty lookup finds a sale by serial at any branch; claims
+  pick the unit by its code and a replacement records the new unit's code; returns can name the
+  units coming back.
 - POS and sale lines show "N held for online orders" under Available when confirmed
   storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
 
@@ -25,6 +32,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ### Deploy notes
 - Warranty needs inventory-backend with `/api/warranty` (its next release) deployed first.
+- Serial / IMEI needs the same inventory-backend release (`/api/warranty/serials/check`,
+  `/api/warranty/sales/:id/serials`, `serialKind` on sellable products and barcode lookup).
 
 ## [1.2.0] - 2026-10-05
 

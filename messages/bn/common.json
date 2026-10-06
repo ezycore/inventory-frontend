@@ -170,7 +170,8 @@
       "noItemsRecorded": "কোনো আইটেম রেকর্ড করা হয়নি",
       "costLine": "খরচ {amount}",
       "taxLineIncl": "ভ্যাট {rate}% অন্তর্ভুক্ত · {amount}",
-      "taxLineExcl": "ভ্যাট {rate}% · {amount}"
+      "taxLineExcl": "ভ্যাট {rate}% · {amount}",
+      "serialsLine": "সিরিয়াল: {codes}"
     }
   },
   "payments": {
@@ -324,7 +325,8 @@
     "warrantyLine": "{months} মাসের {kind} ওয়ারেন্টি, {until} পর্যন্ত",
     "warrantyKind_replacement": "রিপ্লেসমেন্ট",
     "warrantyKind_service": "সার্ভিস",
-    "warrantyKind_parts": "পার্টস"
+    "warrantyKind_parts": "পার্টস",
+    "serialLine": "সিরিয়াল: {codes}"
   },
   "access": {
     "restrictedTitle": "প্রবেশাধিকার সীমিত",

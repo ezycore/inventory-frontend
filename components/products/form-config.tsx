@@ -443,6 +443,28 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             validation: { maxLength: 200 },
             dependsOn: { field: "warrantyMonths", condition: "truthy", action: "show" },
           },
+          // Serial / IMEI per unit sold (docs/plan/sale-serials.md). Lives in
+          // this section because warranty is its switch: off, both go together.
+          {
+            name: "trackSerial",
+            type: "checkbox",
+            label: tr('form.trackSerial', "Record serial / IMEI number of each unit sold"),
+            columnSpan: 8,
+            defaultValue: false,
+            tooltip: tr('form.trackSerialTooltip', "The cashier scans or types each unit's number when selling. It prints on the invoice, and a warranty check by that number finds the exact sale."),
+          },
+          {
+            name: "serialKind",
+            type: "select",
+            label: tr('form.serialKind', "Number type"),
+            columnSpan: 4,
+            defaultValue: "serial",
+            options: [
+              { value: "serial", label: tr('form.serialKindSerial', "Serial number") },
+              { value: "imei", label: tr('form.serialKindImei', "IMEI (mobile phone)") },
+            ],
+            dependsOn: { field: "trackSerial", condition: "truthy", action: "show" },
+          },
         ],
       },
 

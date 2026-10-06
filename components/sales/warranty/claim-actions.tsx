@@ -16,6 +16,7 @@ import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { SerialEntryDialog } from "@/components/sales/serials/serial-entry-dialog";
 import { CLAIM_TRANSITIONS, canReplace } from "./claim-status";
 
 type NextStatus = UpdateWarrantyClaimStatusInput["status"];
@@ -34,8 +35,21 @@ export function ClaimActions({ claim }: { claim: WarrantyClaim }) {
   const [serviceCharge, setServiceCharge] = useState<number | null>(claim.serviceCharge ?? null);
   const update = useUpdateWarrantyClaimStatus();
   const replace = useReplaceWarrantyClaim();
+  // A claim that named the faulty units' codes asks for the new units' codes too.
+  const [askSerials, setAskSerials] = useState(false);
+  const tracksSerials = (claim.serials?.length ?? 0) > 0;
 
   if (!canEdit || (next.length === 0 && !canReplace(claim.status))) return null;
+
+  const handOver = (serials?: string[]) =>
+    replace.mutate(
+      {
+        id: claim._id,
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ...(serials?.length ? { serials } : {}),
+      },
+      { onSuccess: () => setAskSerials(false) },
+    );
 
   const submit = () => {
     if (!status) return;
@@ -101,11 +115,23 @@ export function ClaimActions({ claim }: { claim: WarrantyClaim }) {
           <p className="text-xs text-muted-foreground">{t("detail.replaceHint")}</p>
           <Button
             variant="outline"
-            onClick={() => replace.mutate({ id: claim._id, ...(note.trim() ? { note: note.trim() } : {}) })}
+            onClick={() => (tracksSerials ? setAskSerials(true) : handOver())}
             disabled={replace.isPending}
           >
             {t("detail.replace")}
           </Button>
+          {tracksSerials && (
+            <SerialEntryDialog
+              open={askSerials}
+              onOpenChange={setAskSerials}
+              productName={claim.productName}
+              quantity={claim.quantity}
+              otherCodes={claim.serials}
+              saving={replace.isPending}
+              description={t("detail.replaceSerialsPrompt")}
+              onSave={(slots) => handOver(slots.filter((slot) => slot.trim().length > 0))}
+            />
+          )}
         </div>
       )}
     </div>

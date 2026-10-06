@@ -34,4 +34,14 @@ describe("print item note", () => {
     expect((rows[0][0] as { html: string }).html).toContain("&lt;b&gt;x&lt;/b&gt;");
     expect(rows[1][0]).toBe("Blender");
   });
+
+  it("prints a multi-line note (warranty, then serials) one line each", () => {
+    const { rows } = buildItemTable(
+      { items: [{ ...item, note: "12-month warranty\nS/N: A1, B2" }] },
+      undefined,
+      "thermal58",
+      tr,
+    );
+    expect((rows[0][0] as { html: string }).html).toContain("12-month warranty<br>S/N: A1, B2");
+  });
 });

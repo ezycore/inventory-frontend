@@ -23,6 +23,8 @@ import { populatedRef } from '@/utils/populated-ref';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 import { SaleLineWarranty } from '@/components/sales/warranty/sale-line-warranty';
+import { SaleLineSerials } from '@/components/sales/serials/sale-line-serials';
+import { SaleSerialsEditor } from '@/components/sales/serials/sale-serials-editor';
 
 // ── Headline stats ───────────────────────────────────────────────────────────
 
@@ -126,7 +128,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
             name={row.item.productName}
             indent={row.inCombo}
             sub={
-              canViewCosts || row.item.warranty ? (
+              canViewCosts || row.item.warranty || row.item.serials?.length ? (
                 <>
                   {canViewCosts && (
                     <div>
@@ -134,6 +136,9 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
                     </div>
                   )}
                   <SaleLineWarranty warranty={row.item.warranty} />
+                  <div>
+                    <SaleLineSerials serials={row.item.serials} />
+                  </div>
                 </>
               ) : undefined
             }
@@ -197,9 +202,14 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-medium">
-        {t('itemsHeading')}{' '}
-        <span className="font-normal text-muted-foreground">({sale.items.length})</span>
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-medium">
+          {t('itemsHeading')}{' '}
+          <span className="font-normal text-muted-foreground">({sale.items.length})</span>
+        </div>
+        <div className="ml-auto">
+          <SaleSerialsEditor sale={sale} />
+        </div>
       </div>
       <div className="overflow-x-auto rounded-lg border">
         <SimpleTable

@@ -41,3 +41,21 @@ describe("warranty payload", () => {
     expect(readWarranty(fd)).toEqual({ months: 6, kind: "replacement" });
   });
 });
+
+describe("serial tracking payload", () => {
+  it("sends the kind when tracked and drops the flat keys", () => {
+    const fd = prepare({ name: "Phone", price: 9000, trackSerial: true, serialKind: "imei" }, false);
+    expect(fd.get("serialKind")).toBe("imei");
+    expect(fd.get("trackSerial")).toBeNull();
+  });
+
+  it("sends null when unticked — clears it on edit", () => {
+    const fd = prepare({ name: "Phone", price: 9000, trackSerial: false, serialKind: "imei" }, true, {});
+    expect(fd.get("serialKind")).toBe("null");
+  });
+
+  it("sends nothing when the section was stripped (feature off)", () => {
+    const fd = prepare({ name: "Phone", price: 9000 }, true, {});
+    expect(fd.get("serialKind")).toBeNull();
+  });
+});

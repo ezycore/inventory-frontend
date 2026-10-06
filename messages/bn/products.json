@@ -185,7 +185,12 @@
       "warrantyKindService": "সার্ভিস (মেরামত)",
       "warrantyKindParts": "শুধু পার্টস",
       "warrantyNote": "ওয়ারেন্টি নোট",
-      "warrantyNotePlaceholder": "যেমন: শুধু মোটর"
+      "warrantyNotePlaceholder": "যেমন: শুধু মোটর",
+      "trackSerial": "বিক্রি হওয়া প্রতিটি পণ্যের সিরিয়াল / IMEI নম্বর রাখুন",
+      "trackSerialTooltip": "বিক্রির সময় ক্যাশিয়ার প্রতিটি পণ্যের নম্বর স্ক্যান করেন বা লেখেন। এটি চালানে ছাপা হয়, আর ওই নম্বর দিয়ে ওয়ারেন্টি খুঁজলে ঠিক বিক্রিটি পাওয়া যায়।",
+      "serialKind": "নম্বরের ধরন",
+      "serialKindSerial": "সিরিয়াল নম্বর",
+      "serialKindImei": "IMEI (মোবাইল ফোন)"
     },
     "taxType": {
       "inclusive": "অন্তর্ভুক্ত",

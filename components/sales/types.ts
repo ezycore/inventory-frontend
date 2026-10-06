@@ -2,6 +2,9 @@
 import type { DiscountType } from "@/utils/discount";
 import type { AccountPaymentOption, SaleItemPayload, TaxType } from "@/types";
 
+/** A product's serial tracking (backend `Product.serialKind`). Absent = not tracked. */
+export type SerialKind = "serial" | "imei";
+
 // Re-export the canonical sale-line payload union so sales components/hooks can
 // import it from this module.
 export type { SaleItemPayload };
@@ -38,6 +41,7 @@ export interface ProductApiItem {
   quantityAlert: number;
   barcode?: string;
   hasExpiry?: boolean;
+  serialKind?: SerialKind;
   taxRate?: number;
   taxType?: TaxType;
   /** Purchase-side tax (from product.purchaseTax); present on purchasable-products. */
@@ -119,6 +123,7 @@ export interface ExtractedProduct {
   quantityAlert: number;
   barcode?: string;
   hasExpiry?: boolean;
+  serialKind?: SerialKind;
   taxRate?: number;
   taxType?: TaxType;
   /** Purchase-side tax (from product.purchaseTax); used by the purchase form. */
@@ -150,6 +155,10 @@ export interface OrderItem {
   hasExpiry?: boolean;
   /** Manual batch override for the line; omit/null = auto FEFO. Sent to the API. */
   batchId?: string | null;
+  /** Serial / IMEI tracking of the product — the cart asks for one code per unit. */
+  serialKind?: SerialKind;
+  /** Codes typed or scanned so far, one slot per unit (blank = not yet). Sent normalised. */
+  serials?: string[];
   /** True for a combo line — `inventoryId` holds the synthetic `combo:<id>` key;
    *  the line is sent to the API as a `{ comboProductId, quantity }` reference. */
   isCombo?: boolean;

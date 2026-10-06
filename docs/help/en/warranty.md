@@ -1,7 +1,7 @@
 ---
 title: Give and honour a warranty
 slug: warranty
-summary: Put warranty terms on a product, print them on the invoice, check a sale later and log the claim.
+summary: Put warranty terms on a product, print them on the invoice, record serial / IMEI numbers, check a sale later and log the claim.
 order: 66
 covers_routes:
   - /sales/warranty
@@ -17,6 +17,11 @@ ui_labels:
   - sales:warranty.status.returned_to_customer
   - products:products.form.warrantyMonths
   - products:products.form.warrantyKind
+  - products:products.form.trackSerial
+  - products:products.form.serialKind
+  - sales:serials.edit
+  - sales:serials.missingConfirm
+  - sales:warranty.claim.pickSerials
 ---
 
 # Give and honour a warranty
@@ -41,9 +46,12 @@ warranty, until 03 Oct 2027*. The warranty starts on the day of sale, on your sh
 
 ## 3. Check a sale
 
-Go to **Sales → Warranty → Check warranty** and type the *Invoice number or customer phone*. You
+Go to **Sales → Warranty → Check warranty** and type the *Invoice no., serial / IMEI or phone*. You
 see each item that carries a warranty, whether it is still covered and how many days are left. Items
 the customer already returned are not claimable.
+
+A serial / IMEI number finds the sale at **any branch** of your shop, and the result says which branch
+sold it.
 
 ## 4. Log the claim
 
@@ -55,3 +63,31 @@ collect, rejected — and finally handed back to the customer.
 
 **Replace from stock** hands a new unit out of this location's stock in place of the faulty one. The
 faulty unit is not put back into stock. The replacement keeps the original warranty end date.
+
+## 5. Record serial and IMEI numbers
+
+For phones and electronics, an invoice number only proves the customer bought *a* phone from you. The
+serial or IMEI number proves it is *this* phone.
+
+1. Open the product and, in its Warranty section, tick
+   **Record serial / IMEI number of each unit sold**. Choose the **Number type** —
+   *IMEI (mobile phone)* gives a warning when a number does not look like an IMEI.
+2. When you sell it, the line in the cart shows how many numbers are entered, for example
+   *IMEI 0/2*. Click it, then scan the barcode on the box or type the number — one per unit.
+3. If you finish the sale with numbers missing, EzyCore asks once. Press **Sell anyway** to sell now;
+   a manager can add them later.
+4. A manager opens the sale and presses **Add / edit serials** to add a missing number or fix a typo.
+   Every change is kept with who made it and when. Online orders and combo products get their numbers
+   this way too — on an online order, the button is on its line items once the order is shipped or
+   ready for pickup.
+
+The numbers print on the invoice under the item. When logging a claim, **Which unit?** lists them —
+tick the unit the customer brought back. When you replace from stock, you are asked for the new
+unit's number; searching that number later finds the original sale and its original warranty end
+date.
+
+### What it does not do
+
+EzyCore does not know which numbers are in your stock. It warns if a number was already sold on
+another invoice ("Already sold on INV-…"), but it does not stop the sale — a returned phone can be
+sold again.

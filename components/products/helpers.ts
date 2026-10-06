@@ -76,6 +76,13 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
     );
   }
 
+  // Serial tracking is a checkbox + a kind on the form and one `serialKind` on
+  // the wire (`null` = not tracked). Same rendered-only rule as warranty.
+  const serialKeys = ["trackSerial", "serialKind"] as const;
+  if (serialKeys.some((key) => key in data)) {
+    formData.append("serialKind", data.trackSerial ? data.serialKind || "serial" : "null");
+  }
+
   // An empty rich-text editor serializes to `{"type":"doc","content":[{"type":
   // "paragraph"}]}` — a NON-empty string. Left as-is, clearing the description
   // would store 45 bytes of empty document instead of unsetting the field, and
@@ -95,6 +102,7 @@ export const makePrepareSubmitData = (t: Translator) => (data: any, isEdit: bool
       // ignored by the validator at best and shadow the object at worst.
       !storefrontKeys.includes(key as (typeof storefrontKeys)[number]) &&
       !warrantyKeys.includes(key as (typeof warrantyKeys)[number]) &&
+      !serialKeys.includes(key as (typeof serialKeys)[number]) &&
       !skipUOMKeys.has(key) &&
       data[key] !== undefined
     ) {

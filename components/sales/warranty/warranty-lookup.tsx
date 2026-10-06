@@ -17,10 +17,12 @@ import { Button } from "@/ui/components/button";
 import { Card, CardContent } from "@/ui/components/card";
 import { Input } from "@/ui/components/input";
 import { Skeleton } from "@/ui/components/skeleton";
+import { SaleLineSerials } from "@/components/sales/serials/sale-line-serials";
 import { ClaimCreateDialog } from "./claim-create-dialog";
 
 /**
- * "Is this still under warranty?" — one box, an invoice number or a phone.
+ * "Is this still under warranty?" — one box: an invoice number, a serial /
+ * IMEI (searched across every branch, so the card names the branch) or a phone.
  * Every figure (`active`, `daysLeft`, `claimableQuantity`) is the server's own
  * reading on the org's calendar; nothing is re-derived here.
  */
@@ -91,9 +93,15 @@ function LookupSaleCard({
     <Card className="max-w-3xl">
       <CardContent className="space-y-3 p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="font-medium">{sale.invoiceNumber}</span>
+          <span className="flex items-center gap-2 font-medium">
+            {sale.invoiceNumber}
+            {sale.lines.some((line) => line.matchedSerial) && (
+              <Badge variant="secondary">{t("lookup.foundBySerial")}</Badge>
+            )}
+          </span>
           <span className="text-sm text-muted-foreground">
             {t("lookup.soldOn", { date: formatDate(sale.saleDate) })} ·{" "}
+            {sale.locationName ? `${t("lookup.branch", { branch: sale.locationName })} · ` : ""}
             {sale.customer
               ? [sale.customer.name, sale.customer.phone].filter(Boolean).join(" · ")
               : t("lookup.walkIn")}
@@ -146,6 +154,9 @@ function LookupLineRow({ line, onClaim }: { line: WarrantyLookupLine; onClaim: (
           )}
         </div>
         {line.warranty.note && <p className="text-sm text-muted-foreground">{line.warranty.note}</p>}
+        <div className="text-muted-foreground">
+          <SaleLineSerials serials={line.serials} highlight={line.matchedSerial} />
+        </div>
         <p className="text-xs text-muted-foreground">
           {t("lookup.quantities", {
             sold: line.quantity,
