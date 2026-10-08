@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-08
+
 ### Added
 - Purchases: the Discount (per unit) field on the add-product row shows only when the order has a
   supplier discount. Without one the row is Sale Price + Cost Price, cost opens at what you last
@@ -34,6 +36,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - POS and sale lines show "N held for online orders" under Available when confirmed
   storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
 
+### Changed
+- Storefront product page: a product with only one photo no longer shows a one-thumbnail rail
+  beside it; the main photo takes that space instead.
+
 ### Fixed
 - Online orders: the printed invoice (admin order page, single or bulk) now shows each item's
   warranty and serial / IMEI numbers from the order's sale, like a counter invoice.
@@ -49,6 +55,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Receipt & Print: "Organization profile" links now open `/settings/organization` instead of the personal `/profile` page.
 
 ### Deploy notes
+- **Deploy inventory-backend first.** Its warranty / serial / `reservedQuantity` release (still
+  under its Unreleased when this was cut) must be live before this one, or Sales → Warranty,
+  the serial editor and "held for online orders" call routes that don't exist yet.
 - Warranty needs inventory-backend with `/api/warranty` (its next release) deployed first.
 - Serial / IMEI needs the same inventory-backend release (`/api/warranty/serials/check`,
   `/api/warranty/sales/:id/serials`, `serialKind` on sellable products and barcode lookup).

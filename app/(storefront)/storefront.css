@@ -4432,8 +4432,8 @@ body:has(.sf-root[data-theme="dark"] .sf-shell[data-surface="midnight"]) {
     overflow-x: auto;
   }
   /* Fixed-width thumbs that scroll, NOT flex:1 — the images are square, so a
-     product with a single thumbnail would stretch it to the full row width and
-     render a second image as large as the hero itself. */
+     product with two thumbnails would stretch each to half the row width and
+     render them nearly as large as the hero itself. (One image has no rail.) */
   .sf-pdp-thumbs > button {
     flex: 0 0 68px;
   }
