@@ -13,6 +13,8 @@ export interface BarcodeLookupResult {
   saleUnitName: string | null;
   barcode?: string;
   hasInventoryAtLocation: boolean;
+  /** Serial / IMEI tracking — a scanned unit still needs its own code. */
+  serialKind?: "serial" | "imei";
   // Product-level tax (exempt collapses to rate 0). Drives per-line tax on scan-add.
   taxRate?: number;
   taxType?: "inclusive" | "exclusive";

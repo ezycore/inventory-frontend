@@ -190,14 +190,14 @@ interface PurchasePageStore {
 }
 
 /**
- * Calculate total for a purchase item
+ * A purchase line's total: what is paid for it, quantity × cost price — the
+ * same basis as the seller subtotal and the stored order. Not sale price −
+ * discount: those only agree while `price − discount === costPrice`, and a
+ * line entered without a supplier discount does not keep that.
  */
 const calculateItemTotal = (
   item: Omit<PurchaseOrderItem, "id" | "total">,
-): number => {
-  const subtotal = item.quantity * item.price;
-  return Math.max(0, subtotal - ((item.discount * item.quantity) || 0));
-};
+): number => Math.max(0, item.quantity * (item.costPrice || 0));
 
 /**
  * Create an empty seller session

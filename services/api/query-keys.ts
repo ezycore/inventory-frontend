@@ -348,6 +348,18 @@ export const queryKeys = {
     balances: () => ["courier-payouts", "balances"] as const,
   },
 
+  /**
+   * Warranty — claims, plus the counter lookup. `lookup` sits under the root so a
+   * new claim (which changes a line's claimable quantity) drops it with the list.
+   */
+  warranty: {
+    ...resourceKeys("warranty"),
+    lookup: (q: string) => ["warranty", "lookup", q] as const,
+    saleSerials: (saleId: string) => ["warranty", "sale-serials", saleId] as const,
+    serialCheck: (codes: string, excludeSaleId?: string) =>
+      ["warranty", "serial-check", codes, excludeSaleId ?? ""] as const,
+  },
+
   /** Courier provider config — a sibling of orders, not a part of them. */
   couriers: {
     ...resourceKeys("storefront-couriers"),

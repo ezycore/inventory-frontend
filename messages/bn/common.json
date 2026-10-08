@@ -170,7 +170,8 @@
       "noItemsRecorded": "কোনো আইটেম রেকর্ড করা হয়নি",
       "costLine": "খরচ {amount}",
       "taxLineIncl": "ভ্যাট {rate}% অন্তর্ভুক্ত · {amount}",
-      "taxLineExcl": "ভ্যাট {rate}% · {amount}"
+      "taxLineExcl": "ভ্যাট {rate}% · {amount}",
+      "serialsLine": "সিরিয়াল: {codes}"
     }
   },
   "payments": {
@@ -228,7 +229,8 @@
     "sale": "বিক্রয়",
     "return": "ফেরত",
     "transfer": "স্থানান্তর",
-    "expiry": "মেয়াদোত্তীর্ণ"
+    "expiry": "মেয়াদোত্তীর্ণ",
+    "warrantyReplacement": "ওয়ারেন্টি রিপ্লেসমেন্ট"
   },
   "language": {
     "label": "ভাষা",
@@ -319,7 +321,12 @@
     "customerCopy": "গ্রাহকের কপি",
     "shopCopy": "দোকানের কপি",
     "officeCopy": "অফিস কপি",
-    "customerStatement": "গ্রাহকের বিবরণী"
+    "customerStatement": "গ্রাহকের বিবরণী",
+    "warrantyLine": "{months} মাসের {kind} ওয়ারেন্টি, {until} পর্যন্ত",
+    "warrantyKind_replacement": "রিপ্লেসমেন্ট",
+    "warrantyKind_service": "সার্ভিস",
+    "warrantyKind_parts": "পার্টস",
+    "serialLine": "সিরিয়াল: {codes}"
   },
   "access": {
     "restrictedTitle": "প্রবেশাধিকার সীমিত",

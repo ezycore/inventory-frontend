@@ -8,6 +8,7 @@ import { cn } from "@/ui/lib/utils";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
 import { NumberField } from "@/ui/components/number-field";
+import { OrderSaleSerials } from "@/components/sales/serials/order-sale-serials";
 
 /**
  * Line items (prices snapshotted at purchase) + the money breakdown, including the
@@ -34,7 +35,8 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
     <Card className="overflow-hidden shadow-none">
       <div className="flex items-center justify-between gap-2 border-b px-4 py-3.5 sm:px-5">
         <h3 className="text-sm font-semibold">Line items</h3>
-        <span className="flex flex-none items-center gap-1.5 text-xs text-muted-foreground">
+        {order.saleId && <OrderSaleSerials saleId={String(order.saleId)} />}
+        <span className="ml-auto flex flex-none items-center gap-1.5 text-xs text-muted-foreground">
           <Lock className="h-3 w-3" /> snapshotted at purchase
         </span>
       </div>

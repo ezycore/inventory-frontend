@@ -51,6 +51,8 @@ export interface ReturnItem {
   costPrice: number;
   discount?: number;
   refundAmount?: number;
+  /** Serial / IMEI codes of the units coming back (optional). */
+  serials?: string[];
 }
 
 /**

@@ -10,7 +10,9 @@ import { isExpired } from '@/components/shared/expiry/expiry-badge'
 
 /**
  * A lot is past its expiry. Expired stock is excluded from sale but stays
- * on-hand for write-off, so pickers must show it rather than hide it.
+ * on-hand for write-off, so the write-off pickers must show it; the sale
+ * pickers pass `hideExpired`, since the server refuses a sale from it
+ * (`STOCK_BATCH_EXPIRED`) and offering it only fails at Confirm.
  *
  * Delegates to the shared `isExpired` so the picker and the ExpiryBadge cannot
  * drift to two thresholds — this is only the `BatchRow`-shaped wrapper.
@@ -64,6 +66,8 @@ interface BatchSelectProps {
   emptyLabel?: string
   /** Lots to hide — already claimed by a sibling row. */
   excludeIds?: string[]
+  /** Leave past-expiry lots out — a sale can never draw them. */
+  hideExpired?: boolean
   /** Skip the request entirely (e.g. the product is not expiry-tracked). */
   enabled?: boolean
   disabled?: boolean
@@ -83,6 +87,7 @@ export function BatchSelect({
   onChange,
   emptyLabel,
   excludeIds = [],
+  hideExpired = false,
   enabled = true,
   disabled,
   title,
@@ -97,10 +102,12 @@ export function BatchSelect({
   )
 
   const batches: BatchRow[] = (data?.data as BatchRow[]) || []
-  // The currently chosen lot stays listed even if excluded elsewhere, else the
-  // select would fall back to showing a blank for a value that is really set.
+  // The currently chosen lot stays listed even if excluded or since expired,
+  // else the select would show a blank for a value that is really set.
   const visible = batches.filter(
-    (b) => b._id === value || !excludeIds.includes(b._id),
+    (b) =>
+      b._id === value ||
+      (!excludeIds.includes(b._id) && !(hideExpired && isBatchExpired(b, timezone))),
   )
 
   const labelFor = (batch: BatchRow) => {

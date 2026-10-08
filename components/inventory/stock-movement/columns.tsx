@@ -42,6 +42,7 @@ const ReasonBadge = ({ reason }: { reason: string }) => {
     sale: "bg-chart-1/10 text-chart-1 border-chart-1/20",
     return: "bg-chart-5/10 text-chart-5 border-chart-5/20",
     transfer: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+    warranty_replacement: "bg-teal-500/10 text-teal-600 border-teal-500/20",
   };
 
   return (

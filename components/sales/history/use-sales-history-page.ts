@@ -104,6 +104,10 @@ export function useSalesHistoryPage() {
   const payments: Payment[] = paymentsData?.data || [];  const transactions = transactionsData?.data;  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
   const accounts = accountsData || [];
   const summary = summaryData?.data;
+  // The drawer opens on the row it was clicked from. Read it back from the
+  // refetched list, or an edit made inside the drawer (serials) stays invisible
+  // until it is closed and reopened.
+  const liveSelectedSale = sales.find((s) => s._id === selectedSale?._id) ?? selectedSale;
 
   const paginationInfo = useMemo(() => {
     if (!salesData?.data) return null;
@@ -247,7 +251,7 @@ export function useSalesHistoryPage() {
     isSummaryLoading,
 
     // drawer
-    selectedSale,
+    selectedSale: liveSelectedSale,
     drawerOpen,
     setDrawerOpen,
     drawerMode,

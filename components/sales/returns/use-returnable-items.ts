@@ -28,6 +28,7 @@ function buildReturnableItems(saleItems: SaleItem[]): ReturnableItem[] {
       selected: false,
       salePrice,
       refundUnitPrice,
+      returnSerials: [],
     };
   });
 }
@@ -64,6 +65,27 @@ export function useReturnableItems() {
         returnQty: validQty,
         refundAmount: Math.round(validQty * unitRefund * 100) / 100,
         selected: validQty > 0,
+        // Never more codes than units coming back.
+        returnSerials: item.returnSerials.slice(0, validQty),
+      };
+      return updated;
+    });
+  }, []);
+
+  /** Pick which serial / IMEI units come back; the quantity rises to cover them. */
+  const handleItemSerialsChange = useCallback((index: number, serials: string[]) => {
+    setReturnableItems((prev) => {
+      const updated = [...prev];
+      const item = updated[index];
+      const picked = serials.slice(0, item.maxReturnableQty);
+      const qty = Math.max(item.returnQty, picked.length);
+      const unitRefund = item.refundUnitPrice || item.salePrice || item.price;
+      updated[index] = {
+        ...item,
+        returnSerials: picked,
+        returnQty: qty,
+        refundAmount: Math.round(qty * unitRefund * 100) / 100,
+        selected: qty > 0,
       };
       return updated;
     });
@@ -104,6 +126,7 @@ export function useReturnableItems() {
     initFromSaleItems,
     handleItemSelect,
     handleItemQtyChange,
+    handleItemSerialsChange,
     handleRefundAmountChange,
   };
 }

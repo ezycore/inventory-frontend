@@ -59,6 +59,8 @@ export interface ReturnDetailsItem {
   /** Combo provenance (sales returns) — group by comboLineId under a combo header. */
   comboLineId?: string;
   comboName?: string;
+  /** Serial / IMEI codes of the units that came back (sales returns). */
+  serials?: string[];
 }
 
 export interface ReturnDetailsData {
@@ -309,6 +311,7 @@ function itemSubline(
     const key = item.taxType === 'inclusive' ? 'taxLineIncl' : 'taxLineExcl';
     parts.push(t(key, { rate: item.taxRate ?? 0, amount: formatCurrency(item.taxAmount!) }));
   }
+  if (item.serials?.length) parts.push(t('serialsLine', { codes: item.serials.join(', ') }));
   return parts.join(' · ');
 }
 
