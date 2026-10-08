@@ -9,6 +9,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Changed
+- Warranty help guide (en + bn) says warranty starts switched off and where to turn it on —
+  it is opt-in from inventory-backend's warranty opt-in release.
+
 ## [1.3.0] - 2026-10-08
 
 ### Added

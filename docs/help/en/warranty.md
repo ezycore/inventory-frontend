@@ -30,6 +30,9 @@ A warranty is a promise made at the counter: "1 year replacement", "6 months ser
 that promise on the sale, so when the customer comes back you look it up instead of digging for the
 paper memo.
 
+**Warranty starts switched off.** Turn on **Warranty** under **Customize workspace** at the bottom of
+the sidebar. That also turns on serial / IMEI numbers.
+
 ## 1. Put the warranty on the product
 
 Open the product and fill in **Warranty (months)**. Leave it empty for no warranty. Choose the
