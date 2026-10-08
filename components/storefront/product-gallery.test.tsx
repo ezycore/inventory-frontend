@@ -58,3 +58,20 @@ describe("ProductGallery hero", () => {
     });
   });
 });
+
+describe("ProductGallery thumbnail rail", () => {
+  const rail = (count: number, layout: "top" | "side") => {
+    const images = Array.from({ length: count }, (_, i) => ({ url: `/p${i}.webp` }));
+    return render(<ProductGallery images={images} alt="Polo" layout={layout} index={0} onSelect={() => {}} />)
+      .container.querySelectorAll("button");
+  };
+
+  it.each(["top", "side"] as const)("hides the rail in the %s layout when there is nothing to switch to", (layout) => {
+    expect(rail(0, layout)).toHaveLength(0);
+    expect(rail(1, layout)).toHaveLength(0);
+  });
+
+  it.each(["top", "side"] as const)("shows one thumb per image in the %s layout", (layout) => {
+    expect(rail(3, layout)).toHaveLength(3);
+  });
+});

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Minus, Package, Plus } from 'lucide-react';
 import {
@@ -24,6 +25,8 @@ export interface ReturnItemsCardProps {
   onSelect: (index: number, selected: boolean) => void;
   onQtyChange: (index: number, qty: number) => void;
   onRefundChange: (index: number, amount: number) => void;
+  /** Extra controls under one row (sales returns: which serial / IMEI units come back). */
+  renderItemExtra?: (item: ReturnableItemDisplay, index: number) => ReactNode;
   /** Custom key resolver — defaults to inventoryId ?? productId ?? index */
   getItemKey?: (
     item: ReturnableItemDisplay,
@@ -162,6 +165,7 @@ export function ReturnItemsCard({
   onSelect,
   onQtyChange,
   onRefundChange,
+  renderItemExtra,
   getItemKey,
 }: ReturnItemsCardProps) {
   const t = useTranslations('common.returns');
@@ -206,6 +210,7 @@ export function ReturnItemsCard({
                       onSelect={onSelect}
                       onQtyChange={onQtyChange}
                       onRefundChange={onRefundChange}
+                      extra={renderItemExtra?.(entry.item, entry.index)}
                     />
                   ))}
                 </div>
@@ -219,6 +224,7 @@ export function ReturnItemsCard({
                 onSelect={onSelect}
                 onQtyChange={onQtyChange}
                 onRefundChange={onRefundChange}
+                extra={renderItemExtra?.(group.entries[0].item, group.entries[0].index)}
               />
             ),
           )}

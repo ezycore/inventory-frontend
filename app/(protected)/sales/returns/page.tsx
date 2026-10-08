@@ -23,6 +23,7 @@ import {
   ReturnSubmitActions,
   ReturnHistoryTable,
 } from '@/components/shared/returns';
+import { ReturnSerialPicker } from '@/components/sales/serials/return-serial-picker';
 
 const REASON_KEYS: Record<string, string> = {
   damaged: 'damaged',
@@ -129,6 +130,16 @@ export default function SalesReturnsPage() {
             onSelect={ctx.handleItemSelect}
             onQtyChange={ctx.handleItemQtyChange}
             onRefundChange={ctx.handleRefundAmountChange}
+            renderItemExtra={(_item, index) => {
+              const line = ctx.returnableItems[index];
+              return (
+                <ReturnSerialPicker
+                  serials={line?.serials}
+                  picked={line?.returnSerials ?? []}
+                  onChange={(serials) => ctx.handleItemSerialsChange(index, serials)}
+                />
+              );
+            }}
             getItemKey={(item) =>
               (item as { inventoryId?: string }).inventoryId ??
               (item as { productId?: string }).productId ??

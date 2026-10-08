@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Percent,
   CalendarClock,
+  ShieldCheck,
 } from 'lucide-react'
 import { ProductStatus } from '@/types'
 import { getTaxTypeOptions } from './product-form-options'
@@ -393,6 +394,77 @@ function buildProductFormConfig(t?: Translator): DynamicFormConfig {
             validation: { min: 1, max: 999999 },
             tooltip: tr('form.expiryAlertDaysTooltip', "How many days before the expiry date the product should start appearing in expiry alerts, so you have time to act on soon-to-expire stock."),
             dependsOn: { field: "hasExpiry", condition: "truthy", action: "show" },
+          },
+        ],
+      },
+
+      // 3b. WARRANTY -------------------------------------------------------------
+      // Dropped whole by `useFilteredFormConfig` when the `warranty` feature is
+      // off. Flat on the form, nested on the wire (`warranty` JSON — see
+      // `makePrepareSubmitData`). An empty months field means "no warranty".
+      {
+        id: "warranty",
+        title: tr('form.sections.warrantyTitle', "Warranty"),
+        description: tr('form.sections.warrantyDescription', "Printed on the invoice and checked when a customer brings it back"),
+        icon: sectionIcon(ShieldCheck),
+        collapsible: true,
+        // A combo's components carry their own warranty.
+        dependsOn: { field: "productType", value: "combo", condition: "ne", action: "show" },
+        fields: [
+          {
+            name: "warrantyMonths",
+            type: "number",
+            precision: 0,
+            label: tr('form.warrantyMonths', "Warranty (months)"),
+            columnSpan: 12,
+            placeholder: tr('form.warrantyMonthsPlaceholder', "No warranty"),
+            validation: { min: 1, max: 120 },
+            tooltip: tr('form.warrantyMonthsTooltip', "How long the warranty lasts from the day of sale. Leave empty for no warranty. Changing it later does not change what earlier customers were promised."),
+          },
+          {
+            name: "warrantyKind",
+            type: "select",
+            label: tr('form.warrantyKind', "Warranty type"),
+            columnSpan: 6,
+            defaultValue: "replacement",
+            options: [
+              { value: "replacement", label: tr('form.warrantyKindReplacement', "Replacement") },
+              { value: "service", label: tr('form.warrantyKindService', "Service (repair)") },
+              { value: "parts", label: tr('form.warrantyKindParts', "Parts only") },
+            ],
+            dependsOn: { field: "warrantyMonths", condition: "truthy", action: "show" },
+          },
+          {
+            name: "warrantyNote",
+            type: "input",
+            label: tr('form.warrantyNote', "Warranty note"),
+            columnSpan: 6,
+            placeholder: tr('form.warrantyNotePlaceholder', "e.g. Motor only"),
+            validation: { maxLength: 200 },
+            dependsOn: { field: "warrantyMonths", condition: "truthy", action: "show" },
+          },
+          // Serial / IMEI per unit sold (docs/plan/sale-serials.md). Lives in
+          // this section because warranty is its switch: off, both go together.
+          {
+            name: "trackSerial",
+            type: "checkbox",
+            label: tr('form.trackSerial', "Record serial / IMEI number of each unit sold"),
+            columnSpan: 12,
+            defaultValue: false,
+            helperText: tr('form.trackSerialHint', "e.g. phones and laptops — the cashier scans or types each unit's number when selling."),
+            tooltip: tr('form.trackSerialTooltip', "The cashier scans or types each unit's number when selling. It prints on the invoice, and a warranty check by that number finds the exact sale."),
+          },
+          {
+            name: "serialKind",
+            type: "select",
+            label: tr('form.serialKind', "Number type"),
+            columnSpan: 6,
+            defaultValue: "serial",
+            options: [
+              { value: "serial", label: tr('form.serialKindSerial', "Serial number") },
+              { value: "imei", label: tr('form.serialKindImei', "IMEI (mobile phone)") },
+            ],
+            dependsOn: { field: "trackSerial", condition: "truthy", action: "show" },
           },
         ],
       },

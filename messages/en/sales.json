@@ -47,6 +47,7 @@
       "maxStock": "Only {count} of {name} in stock"
     },
     "cart": {
+      "heldForOnline": "{count} held for online orders",
       "product": "Product",
       "priceMrp": "Price (MRP)",
       "costPrice": "Cost Price",
@@ -307,5 +308,141 @@
         "stockLow": "Stock: low first"
       }
     }
+  },
+  "warranty": {
+    "page": {
+      "title": "Warranty",
+      "subtitle": "Check whether a sale is still covered, and track the claims customers bring back",
+      "tabs": {
+        "lookup": "Check warranty",
+        "claims": "Claims"
+      }
+    },
+    "kinds": {
+      "replacement": "Replacement",
+      "service": "Service (repair)",
+      "parts": "Parts only"
+    },
+    "lookup": {
+      "placeholder": "Invoice no., serial / IMEI or phone",
+      "hint": "Type an invoice number (INV-…), the serial / IMEI number on the unit, or the customer's phone number.",
+      "empty": "No sale found for “{q}”.",
+      "noWarranty": "Nothing on this sale was sold with a warranty.",
+      "soldOn": "Sold {date}",
+      "walkIn": "Walk-in customer",
+      "until": "Covered until {date}",
+      "daysLeft": "{days} days left",
+      "lastDay": "Last day today",
+      "active": "Covered",
+      "quantities": "Sold {sold} · returned {returned} · in a claim {claimed}",
+      "logClaim": "Log claim",
+      "months": "{months} months",
+      "expiredOn": "Expired on {date}",
+      "foundBySerial": "Found by serial",
+      "branch": "Sold at {branch}"
+    },
+    "claim": {
+      "title": "Log warranty claim",
+      "quantity": "Quantity",
+      "issue": "Problem",
+      "issuePlaceholder": "What is wrong with it?",
+      "notes": "Notes",
+      "notesPlaceholder": "Accessories received, condition, promised date…",
+      "outOfWarranty": "This warranty has run out. The claim will be logged as out of warranty (a paid repair).",
+      "submit": "Log claim",
+      "cancel": "Cancel",
+      "maxQuantity": "Up to {max}",
+      "pickSerials": "Which unit?",
+      "pickSerialsHint": "Tick the serial number of each unit the customer brought back.",
+      "serialReturned": "returned",
+      "serialInClaim": "already in a claim",
+      "withoutSerial": "Units sold without a serial number"
+    },
+    "claims": {
+      "search": "Search claim, invoice or product",
+      "allStatuses": "All statuses",
+      "empty": "No warranty claims yet.",
+      "columns": {
+        "claim": "Claim",
+        "invoice": "Invoice",
+        "product": "Product",
+        "customer": "Customer",
+        "quantity": "Qty",
+        "status": "Status",
+        "date": "Logged"
+      },
+      "outOfWarranty": "Out of warranty",
+      "noMatch": "No claims match these filters."
+    },
+    "status": {
+      "received": "Received",
+      "in_repair": "In repair",
+      "sent_to_supplier": "Sent to supplier",
+      "ready": "Ready to collect",
+      "replaced": "Replaced",
+      "rejected": "Rejected",
+      "returned_to_customer": "Handed back"
+    },
+    "detail": {
+      "issue": "Problem",
+      "notes": "Notes",
+      "warranty": "Warranty",
+      "coveredAtIntake": "Under warranty when logged",
+      "outOfWarrantyAtIntake": "Out of warranty when logged",
+      "history": "History",
+      "moveTo": "Move to",
+      "note": "Note",
+      "serviceCharge": "Service charge",
+      "update": "Update",
+      "replace": "Replace from stock",
+      "replaceHint": "Hands one new unit per claimed item out of this location's stock. The faulty unit is not restocked.",
+      "replacement": "Replaced {quantity} from stock on {date}",
+      "resolution": "Resolution",
+      "resolutions": {
+        "repaired": "Repaired",
+        "replaced": "Replaced",
+        "rejected": "Rejected"
+      },
+      "validUntil": "Valid until {date}",
+      "serials": "Serial numbers",
+      "replacementSerials": "New unit",
+      "replaceSerialsPrompt": "Scan or type the serial / IMEI number of the new unit you are handing over. You can leave it empty.",
+      "sameAsFaulty": "This is the faulty unit's number. Scan the new unit you are handing over."
+    }
+  },
+  "serials": {
+    "title": "Serial numbers — {product}",
+    "titleImei": "IMEI numbers — {product}",
+    "description": "One per unit. Scan the barcode on the box or type it. You can leave some empty and add them on the sale later.",
+    "unit": "Unit {n}",
+    "placeholderSerial": "Serial number",
+    "placeholderImei": "IMEI",
+    "notImei": "This doesn't look like an IMEI (15 digits).",
+    "duplicate": "Entered twice on this sale.",
+    "tooLong": "Too long — at most {max} characters.",
+    "alreadySold": "Already sold on {invoice}.",
+    "alreadyReplaced": "Already given out as a warranty replacement on {invoice}.",
+    "entered": "{count} of {total} entered",
+    "camera": "Scan with camera",
+    "cameraStop": "Stop camera",
+    "save": "Save",
+    "cancel": "Cancel",
+    "chip": "Serials {count}/{total}",
+    "chipImei": "IMEI {count}/{total}",
+    "tooMany": "{product} has more serial numbers than units. Remove the extra ones.",
+    "missingConfirmTitle": "Some serial numbers are missing",
+    "missingConfirmDescription": "{count, plural, one {# unit has} other {# units have}} no serial number. Sell anyway? A manager can add them on the sale later.",
+    "missingConfirm": "Sell anyway",
+    "label": "S/N",
+    "edit": "Add / edit serials",
+    "editTitle": "Serial numbers — {invoice}",
+    "editDescription": "Add or correct the serial / IMEI number of each unit sold. Every change is kept.",
+    "units": "{count, plural, one {# unit} other {# units}}",
+    "missing": "{count} missing",
+    "editLine": "Edit",
+    "historyEntry": "{date}: {before} → {after}",
+    "returnPick": "Which units are coming back? (optional)",
+    "historyEntryBy": "{date} · {name}: {before} → {after}",
+    "returned": "returned"
   }
 }

@@ -193,11 +193,13 @@ export function ProductGallery({
     );
   }
 
+  // One image (or none) has nothing to switch to, so the rail is dropped and
+  // the hero takes its width — the same rule the `top` row follows above.
   return (
     <div className="sf-pdp-gallery">
-      <div className="sf-pdp-thumbs">
-        {(thumbs.length ? thumbs : [undefined]).map((th, i) => thumbButton(th, i))}
-      </div>
+      {thumbs.length > 1 ? (
+        <div className="sf-pdp-thumbs">{thumbs.map((th, i) => thumbButton(th, i))}</div>
+      ) : null}
       <div className="sf-pdp-hero">{hero}</div>
     </div>
   );

@@ -25,6 +25,7 @@ const ALL_ON: OrganizationFeatures = {
   multiLocation: true,
   purchases: true,
   inventoryTracking: true,
+  warranty: true,
 };
 
 const START: OrganizationFeatures = {

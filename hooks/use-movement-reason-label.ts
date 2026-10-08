@@ -1,7 +1,7 @@
 // coding-standard: maintained
 /**
  * Translated label for a stock-movement reason (opening_stock, purchase, sale,
- * adjustment, return, transfer, expiry). Shared by inventory and product detail
+ * adjustment, return, transfer, expiry, warranty_replacement). Shared by inventory and product detail
  * surfaces so the reason vocabulary stays consistent (docs/I18N-GLOSSARY.md).
  * Falls back to a title-cased raw reason for values without a translation.
  */

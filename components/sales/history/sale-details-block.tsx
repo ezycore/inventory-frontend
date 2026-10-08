@@ -22,6 +22,10 @@ import type { Sale, SaleItem, SalesReturn } from '@/types';
 import { populatedRef } from '@/utils/populated-ref';
 import { splitLineTax } from '@/utils/tax';
 import { groupSaleItemsByCombo } from '@/components/sales/helpers';
+import { SaleLineWarranty } from '@/components/sales/warranty/sale-line-warranty';
+import { SaleLineSerials } from '@/components/sales/serials/sale-line-serials';
+import { SaleSerialsEditor } from '@/components/sales/serials/sale-serials-editor';
+import { useMissingSerials } from '@/components/sales/serials/use-missing-serials';
 
 // ── Headline stats ───────────────────────────────────────────────────────────
 
@@ -105,6 +109,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
   const t = useTranslations('sales.history.details');
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
+  const missingOf = useMissingSerials(sale);
   const rows = buildItemRows(sale.items, t('combo'));
   // Added (exclusive) vs in-price (inclusive, informational) tax of the sale.
   const { addedTax, includedTax } = splitLineTax(sale.items);
@@ -125,9 +130,19 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
             name={row.item.productName}
             indent={row.inCombo}
             sub={
-              canViewCosts
-                ? `Cost ${fmt(row.item.costPrice)} × ${row.item.quantity} = ${fmt(row.item.costPrice * row.item.quantity)}`
-                : undefined
+              canViewCosts || row.item.warranty || row.item.serials?.length || missingOf(row.item) > 0 ? (
+                <>
+                  {canViewCosts && (
+                    <div>
+                      {`Cost ${fmt(row.item.costPrice)} × ${row.item.quantity} = ${fmt(row.item.costPrice * row.item.quantity)}`}
+                    </div>
+                  )}
+                  <SaleLineWarranty warranty={row.item.warranty} />
+                  <div>
+                    <SaleLineSerials serials={row.item.serials} missing={missingOf(row.item)} />
+                  </div>
+                </>
+              ) : undefined
             }
           />
         ),
@@ -189,9 +204,14 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-medium">
-        {t('itemsHeading')}{' '}
-        <span className="font-normal text-muted-foreground">({sale.items.length})</span>
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-medium">
+          {t('itemsHeading')}{' '}
+          <span className="font-normal text-muted-foreground">({sale.items.length})</span>
+        </div>
+        <div className="ml-auto">
+          <SaleSerialsEditor sale={sale} />
+        </div>
       </div>
       <div className="overflow-x-auto rounded-lg border">
         <SimpleTable

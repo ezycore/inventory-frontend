@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/ui/components/button';
@@ -50,6 +51,8 @@ interface ReturnItemRowProps {
   onSelect: (index: number, selected: boolean) => void;
   onQtyChange: (index: number, qty: number) => void;
   onRefundChange: (index: number, amount: number) => void;
+  /** Extra controls under the fields — sales returns put the serial picker here. */
+  extra?: ReactNode;
 }
 
 export function ReturnItemRow({
@@ -59,6 +62,7 @@ export function ReturnItemRow({
   onSelect,
   onQtyChange,
   onRefundChange: _onRefundChange,
+  extra,
 }: ReturnItemRowProps) {
   const t = useTranslations('common.returns');
   const isDisabled = item.maxReturnableQty === 0;
@@ -186,6 +190,7 @@ export function ReturnItemRow({
               />
             </div>
           </div>
+          {extra}
         </div>
       </div>
     </div>

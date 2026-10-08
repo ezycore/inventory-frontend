@@ -19,6 +19,7 @@
     "saveDraftFailed": "Failed to save draft"
   },
   "form": {
+    "zeroCostWarning": "{name} was added with a cost price of 0. Check it if that's not right.",
     "supplier": "Supplier",
     "supplierPlaceholder": "Search or select supplier...",
     "draftSupplierHelp": "Can't change supplier in draft order",

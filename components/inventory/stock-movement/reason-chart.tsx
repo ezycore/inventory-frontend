@@ -25,6 +25,7 @@ const reasonColors: Record<string, string> = {
   sale: "var(--color-chart-1)",
   return: "var(--color-chart-5)",
   transfer: "var(--color-chart-3)",
+  warranty_replacement: "var(--color-teal-600)",
 };
 
 export function ReasonChart({ data, isLoading }: ReasonChartProps) {

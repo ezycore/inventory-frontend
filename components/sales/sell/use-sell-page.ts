@@ -38,6 +38,9 @@ import {
 import type { AppLocale } from "@/i18n/config";
 import type { Payment, Sale, TaxType } from "@/types";
 import { populatedRef } from "@/utils/populated-ref";
+import { normalizeSerials } from "@/utils/serial";
+import { useSerialCheckout } from "@/components/sales/serials/use-serial-checkout";
+import { useSerialsEnabled } from "@/components/sales/serials/use-serial-kinds";
 
 /**
  * Map cart lines to the tax util's input shape (preview only; backend is authoritative).
@@ -76,6 +79,7 @@ const toSaleItemPayload = (item: {
   taxRate?: number;
   taxType?: TaxType;
   batchId?: string | null;
+  serials?: string[];
 }): SaleItemPayload =>
   item.isCombo && item.comboProductId
     ? { comboProductId: item.comboProductId, quantity: item.quantity, discount: item.discount }
@@ -93,6 +97,8 @@ const toSaleItemPayload = (item: {
         taxRate: item.taxRate,
         taxType: item.taxType,
         ...(item.batchId ? { batchId: item.batchId } : {}),
+        // Serial / IMEI codes typed so far (docs/plan/sale-serials.md); blanks dropped.
+        ...(normalizeSerials(item.serials).length > 0 ? { serials: normalizeSerials(item.serials) } : {}),
       };
 
 /**
@@ -164,6 +170,8 @@ export function useSellPage({
   } = useSellPageStore();
 
   const { mutateAsync, isPending } = useCreateSalesOrder();
+  const serialsEnabled = useSerialsEnabled();
+  const serialCheckout = useSerialCheckout();
   const updateDraftMutation = useUpdateDraftSale();
   const finalizeDraftMutation = useFinalizeDraftSale();
 
@@ -335,6 +343,7 @@ export function useSellPage({
         // Restore per-line tax snapshot from the draft (else finalize loses tax).
         taxRate: item.taxRate ?? 0,
         taxType: item.taxType ?? "inclusive",
+        ...(item.serials?.length ? { serials: item.serials } : {}),
       });
     }
   }, [draftId, draftSale, clearAll, setCustomer, setOrderDiscount, setAdditionalDiscount, setNotes, addItem, customerForm, defaultCustomer, defaultAccountType, defaultAccount, t]);
@@ -424,8 +433,9 @@ export function useSellPage({
         isTaxEnabled,
         renderThumb,
         handleUpdatePrice,
+        serialsEnabled ? (id, serials) => updateItem(id, { serials }) : undefined,
       ),
-    [updateItem, handleUpdateDiscount, handleUpdatePrice, removeItem, symbol, isExpiryEnabled, isTaxEnabled, renderThumb, t],
+    [updateItem, handleUpdateDiscount, handleUpdatePrice, removeItem, symbol, isExpiryEnabled, isTaxEnabled, renderThumb, serialsEnabled, t],
   );
   const salesColumns = useCostGatedColumns(allSalesColumns);
 
@@ -489,8 +499,11 @@ export function useSellPage({
         // Onto the line, so the row keeps knowing its number is a sentinel long
         // after the picker list it came from has been replaced.
         tracked,
+        heldQuantity: product.heldQuantity,
         unitName: product.unitName, saleUnitName: product.saleUnitName,
         hasExpiry: product.hasExpiry,
+        serialKind: product.serialKind,
+        warranty: product.warranty,
         taxRate: product.taxRate ?? 0,
         taxType: product.taxType ?? "inclusive",
         // Combo lines carry the combo ref; inventoryId holds the synthetic combo key.
@@ -550,6 +563,7 @@ export function useSellPage({
           purchaseUnitName: null,
           quantityAlert: 0,
           barcode: r.barcode,
+          serialKind: r.serialKind,
           taxRate: r.taxRate ?? 0,
           taxType: r.taxType ?? "inclusive",
         });
@@ -579,6 +593,7 @@ export function useSellPage({
       toast.error(t("toasts.addItems"));
       return;
     }
+    if (!(await serialCheckout.check(items))) return;
     const accountId = customerForm.getValues("accountId");
     let updatedCustomerId = customerForm.getValues("customerId") as unknown as { value?: string } | string | undefined;
     updatedCustomerId =
@@ -708,7 +723,7 @@ export function useSellPage({
       console.error("Failed to complete sale:", error);
       toast.error(t("toasts.saleFailed"));
     }
-  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, homePath, resetCustomerForm, user, t, autoPrint, formatCurrency, tPrintDoc, locale]);
+  }, [items, customerId, customerName, customerEmail, notes, isAccountsEnabled, isTaxEnabled, getTotalCostPrice, clearAll, customerForm, localAdditionalDiscount, useCreditBalance, creditBalanceAmount, customerCreditBalance, mutateAsync, isDraftMode, draftId, finalizeDraftMutation, router, homePath, resetCustomerForm, user, t, autoPrint, formatCurrency, tPrintDoc, locale, serialCheckout]);
 
   // Reprint the just-completed sale's receipt (paper chosen in the PrintMenu).
   const printLastReceipt = useCallback(
@@ -847,6 +862,9 @@ export function useSellPage({
     handleUpdateDiscount,
     handleUpdatePrice,
     isExpiryEnabled,
+    // Serial / IMEI capture (cards cart) and the checkout's "codes missing" question.
+    serialsEnabled,
+    SerialsConfirmDialog: serialCheckout.ConfirmDialog,
     isPending,
     isSavingDraft: updateDraftMutation.isPending,
     isFinalizing: finalizeDraftMutation.isPending,

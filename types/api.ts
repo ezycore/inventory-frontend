@@ -206,6 +206,20 @@ export type CourierBalances = Schemas["CourierBalances"];
 export type CourierWriteOff = Schemas["CourierWriteOff"];
 /** `supported: false` is Steadfast's honest answer — it publishes no charge anywhere. */
 export type CourierChargeRefresh = Schemas["CourierChargeRefresh"];
+
+/**
+ * Warranty — the counter lookup and claims (backend `docs/features/warranty.md`).
+ * `claimableQuantity`, `active` and `daysLeft` are the server's own reading on
+ * the org's calendar; never re-derive them from `warranty.until`.
+ */
+export type WarrantyLookupSale = Schemas["WarrantyLookupSale"];
+export type WarrantyClaim = Schemas["WarrantyClaim"];
+/** A product's warranty terms (months, kind, note) — what the cart line shows. */
+export type WarrantyTerms = Schemas["WarrantyTerms"];
+/** A sale's serial / IMEI codes per line, with each line's change log (backend `docs/plan/sale-serials.md`). */
+export type SaleSerials = Schemas["SaleSerials"];
+/** Where else a code was already handed out — the "already sold" warning. Advice only. */
+export type SerialCheckResult = Schemas["SerialCheckResult"];
 export type FraudScore = Schemas["FraudScore"];
 export type ApiStorefrontSettings = Schemas["StorefrontSettings"];
 /** Owner-preview credential for an unpublished shop — see `lib/storefront-preview.ts`. */
