@@ -155,7 +155,7 @@ function LookupLineRow({ line, onClaim }: { line: WarrantyLookupLine; onClaim: (
         </div>
         {line.warranty.note && <p className="text-sm text-muted-foreground">{line.warranty.note}</p>}
         <div className="text-muted-foreground">
-          <SaleLineSerials serials={line.serials} highlight={line.matchedSerial} />
+          <SaleLineSerials serials={line.serials} highlight={line.matchedSerial} returned={line.returnedSerials} />
         </div>
         <p className="text-xs text-muted-foreground">
           {t("lookup.quantities", {

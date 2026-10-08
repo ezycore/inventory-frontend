@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
 import { BatchSelect } from "@/components/shared/batch-select";
-import { CartLineSerials } from "@/components/sales/serials/cart-line-serials";
+import { CartLineChips } from "@/components/sales/sell/cart-line-chips";
 
 /**
  * Editable number input that allows clearing and commits on blur/Enter
@@ -127,9 +127,9 @@ export const getSalesColumns = (
               </div>
             )}
             {onUpdateSerials && (
-              <CartLineSerials
+              <CartLineChips
                 item={row.original}
-                onChange={(serials) => onUpdateSerials(row.original.id, serials)}
+                onSerialsChange={(serials) => onUpdateSerials(row.original.id, serials)}
               />
             )}
           </div>

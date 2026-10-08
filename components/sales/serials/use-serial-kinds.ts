@@ -2,6 +2,7 @@
 import { useCallback, useMemo } from "react";
 import { productItemsCreateCallback } from "@/components/sales/helpers";
 import type { ExtractedProduct, SerialKind } from "@/components/sales/types";
+import type { WarrantyTerms } from "@/types/api";
 import { useSelectOptions } from "@/services/api";
 import { selectOptions } from "@/services/api/select-options";
 import { useAuthStore } from "@/services/stores";
@@ -16,32 +17,71 @@ export function useSerialsEnabled(): boolean {
 }
 
 /**
- * Which kind of code a cart line needs, if any. The line carries `serialKind`
- * when it was added from the picker or a scan; a line restored from a draft, or
- * one persisted in the cart before serials existed, does not — so fall back to
- * the cached sellable-products list the search box already loaded.
+ * The cached sellable-products list the search box already loaded, keyed by
+ * inventory id. A cart line restored from a draft, or persisted before a field
+ * existed, does not carry `serialKind` / `warranty` — this is the fallback.
  */
-export function useSerialKindOf(): (line: {
-  serialKind?: SerialKind;
-  inventoryId: string;
-  isCombo?: boolean;
-}) => SerialKind | undefined {
-  const enabled = useSerialsEnabled();
+function useSellableByInventory(enabled: boolean): Map<string, ExtractedProduct> {
   const { data: sellable = [] } = useSelectOptions(
     enabled ? selectOptions("sellableProducts") : null,
     productItemsCreateCallback,
   );
-  const byInventory = useMemo(
-    () =>
-      new Map(
-        (sellable as unknown as ExtractedProduct[]).map((row) => [row.value, row.serialKind]),
-      ),
+  return useMemo(
+    () => new Map((sellable as unknown as ExtractedProduct[]).map((row) => [row.value, row])),
     [sellable],
   );
+}
+
+type CartLineRef = { inventoryId: string; isCombo?: boolean };
+
+/** Which kind of code a cart line needs, if any. */
+export function useSerialKindOf(): (
+  line: CartLineRef & { serialKind?: SerialKind },
+) => SerialKind | undefined {
+  const enabled = useSerialsEnabled();
+  const byInventory = useSellableByInventory(enabled);
   return useCallback(
     (line) => {
       if (!enabled || line.isCombo) return undefined;
-      return line.serialKind ?? byInventory.get(line.inventoryId);
+      return line.serialKind ?? byInventory.get(line.inventoryId)?.serialKind;
+    },
+    [enabled, byInventory],
+  );
+}
+
+/**
+ * A product's serial kind by product / variant, for screens that hold no
+ * inventory id (a warranty claim). Only knows products in stock here — which a
+ * replacement from stock needs anyway.
+ */
+export function useSerialKindOfProduct(): (
+  productId: string,
+  variantId?: string | null,
+) => SerialKind | undefined {
+  const enabled = useSerialsEnabled();
+  const byInventory = useSellableByInventory(enabled);
+  return useCallback(
+    (productId, variantId) => {
+      if (!enabled) return undefined;
+      for (const row of byInventory.values()) {
+        if (row.productId === productId && (row.variantId ?? null) === (variantId ?? null)) return row.serialKind;
+      }
+      return undefined;
+    },
+    [enabled, byInventory],
+  );
+}
+
+/** The warranty a cart line's product carries, if any — shown while warranty is on. */
+export function useWarrantyOf(): (
+  line: CartLineRef & { warranty?: WarrantyTerms },
+) => WarrantyTerms | undefined {
+  const enabled = useSerialsEnabled();
+  const byInventory = useSellableByInventory(enabled);
+  return useCallback(
+    (line) => {
+      if (!enabled || line.isCombo) return undefined;
+      return line.warranty ?? byInventory.get(line.inventoryId)?.warranty;
     },
     [enabled, byInventory],
   );

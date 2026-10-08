@@ -503,6 +503,7 @@ export function useSellPage({
         unitName: product.unitName, saleUnitName: product.saleUnitName,
         hasExpiry: product.hasExpiry,
         serialKind: product.serialKind,
+        warranty: product.warranty,
         taxRate: product.taxRate ?? 0,
         taxType: product.taxType ?? "inclusive",
         // Combo lines carry the combo ref; inventoryId holds the synthetic combo key.

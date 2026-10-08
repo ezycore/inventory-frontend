@@ -42,7 +42,7 @@ export function CartLineSerials({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium tabular-nums",
+          "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium tabular-nums",
           tooMany
             ? "border-destructive/50 text-destructive"
             : missing

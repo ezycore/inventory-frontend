@@ -1,6 +1,7 @@
 // coding-standard: maintained
 import type { DiscountType } from "@/utils/discount";
 import type { AccountPaymentOption, SaleItemPayload, TaxType } from "@/types";
+import type { WarrantyTerms } from "@/types/api";
 
 /** A product's serial tracking (backend `Product.serialKind`). Absent = not tracked. */
 export type SerialKind = "serial" | "imei";
@@ -42,6 +43,8 @@ export interface ProductApiItem {
   barcode?: string;
   hasExpiry?: boolean;
   serialKind?: SerialKind;
+  /** Warranty terms (sellable-products only). Absent = no warranty. */
+  warranty?: WarrantyTerms;
   taxRate?: number;
   taxType?: TaxType;
   /** Purchase-side tax (from product.purchaseTax); present on purchasable-products. */
@@ -124,6 +127,7 @@ export interface ExtractedProduct {
   barcode?: string;
   hasExpiry?: boolean;
   serialKind?: SerialKind;
+  warranty?: WarrantyTerms;
   taxRate?: number;
   taxType?: TaxType;
   /** Purchase-side tax (from product.purchaseTax); used by the purchase form. */
@@ -159,6 +163,8 @@ export interface OrderItem {
   serialKind?: SerialKind;
   /** Codes typed or scanned so far, one slot per unit (blank = not yet). Sent normalised. */
   serials?: string[];
+  /** The product's warranty terms, shown on the cart line. UI-only — the server freezes its own. */
+  warranty?: WarrantyTerms;
   /** True for a combo line — `inventoryId` holds the synthetic `combo:<id>` key;
    *  the line is sent to the API as a `{ comboProductId, quantity }` reference. */
   isCombo?: boolean;

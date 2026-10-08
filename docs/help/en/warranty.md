@@ -39,6 +39,9 @@ Open the product and fill in **Warranty (months)**. Leave it empty for no warran
 Every sale freezes the warranty at the moment it is made. If you change the months later, customers
 who already bought keep exactly what they were promised.
 
+When you sell it, the line in the cart shows the warranty, for example *12 months · Replacement*,
+so you can tell the customer before the sale.
+
 ## 2. It prints on the invoice
 
 Each item sold with a warranty prints a line under its name, for example *12-month replacement

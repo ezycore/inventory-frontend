@@ -406,7 +406,8 @@
       "validUntil": "Valid until {date}",
       "serials": "Serial numbers",
       "replacementSerials": "New unit",
-      "replaceSerialsPrompt": "Scan or type the serial / IMEI number of the new unit you are handing over. You can leave it empty."
+      "replaceSerialsPrompt": "Scan or type the serial / IMEI number of the new unit you are handing over. You can leave it empty.",
+      "sameAsFaulty": "This is the faulty unit's number. Scan the new unit you are handing over."
     }
   },
   "serials": {
@@ -440,6 +441,8 @@
     "missing": "{count} missing",
     "editLine": "Edit",
     "historyEntry": "{date}: {before} → {after}",
-    "returnPick": "Which units are coming back? (optional)"
+    "returnPick": "Which units are coming back? (optional)",
+    "historyEntryBy": "{date} · {name}: {before} → {after}",
+    "returned": "returned"
   }
 }

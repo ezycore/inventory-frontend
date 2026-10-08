@@ -9309,6 +9309,12 @@ export interface components {
             hasExpiry: boolean;
             /** @enum {string} */
             serialKind?: "serial" | "imei";
+            warranty?: {
+                months: number;
+                /** @enum {string} */
+                kind: "replacement" | "service" | "parts";
+                note?: string;
+            };
             /** @enum {string} */
             taxType: "inclusive" | "exclusive" | "exempt";
             taxRate: number;
@@ -19105,11 +19111,14 @@ export interface components {
                 lineIndex: number;
                 productName: string;
                 quantity: number;
+                /** @enum {string|null} */
+                serialKind: "serial" | "imei" | null;
                 serials: string[];
                 serialHistory: {
                     /** Format: date-time */
                     at: string;
                     by?: string;
+                    byName?: string;
                     before: string[];
                     after: string[];
                 }[];

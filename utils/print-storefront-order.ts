@@ -6,7 +6,7 @@ import {
   type PrintDoc,
 } from "./print-documents";
 import { amountToWords } from "./number-to-words";
-import { printHtml } from "./print";
+import { escapeHtml, printHtml } from "./print";
 
 /**
  * Storefront/ecommerce order → letterhead invoice, on the SAME print engine as
@@ -23,7 +23,14 @@ export interface PrintableStorefrontOrder {
   status: string;
   paymentMethod: string;
   paymentStatus: string;
-  items: { productName: string; price: number; quantity: number; subtotal: number }[];
+  items: {
+    productName: string;
+    price: number;
+    quantity: number;
+    subtotal: number;
+    /** Muted lines under the name (warranty, S/N) — set by the admin print from the linked Sale. */
+    note?: string;
+  }[];
   subtotal: number;
   discountAmount?: number;
   couponCode?: string;
@@ -193,7 +200,12 @@ const orderToDoc = (
       { header: t.amount, align: "right" },
     ],
     rows: order.items.map((item) => [
-      item.productName,
+      // Same markup as a sale invoice's item note (`print-blocks`), one line each.
+      item.note
+        ? {
+            html: `${escapeHtml(item.productName)}<div class="muted item-note">${escapeHtml(item.note).replace(/\n/g, "<br>")}</div>`,
+          }
+        : item.productName,
       item.quantity,
       currency(item.price),
       currency(item.subtotal),

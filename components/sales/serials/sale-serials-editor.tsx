@@ -34,7 +34,10 @@ export function SaleSerialsEditor({ sale }: { sale: Sale }) {
   const kindOf = useSerialKindOf();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);
-  const { data: serialView } = useSaleSerials(sale._id, open);
+  const posted = sale.status !== "draft" && sale.status !== "cancelled";
+  // Loaded up front, not on open: its per-line `serialKind` decides whether the
+  // button shows at all — the sellable list misses a sold-out product.
+  const { data: serialView } = useSaleSerials(sale._id, enabled && canEdit && posted);
   const update = useUpdateSaleSerials();
 
   const lines = useMemo(
@@ -46,7 +49,7 @@ export function SaleSerialsEditor({ sale }: { sale: Sale }) {
             lineIndex,
             name: item.productName,
             quantity: item.quantity,
-            kind: kindOf({ inventoryId: String(item.inventoryId) }),
+            kind: live ? live.serialKind : kindOf({ inventoryId: String(item.inventoryId) }),
             serials: live?.serials ?? item.serials ?? [],
             history: live?.serialHistory ?? [],
           };
@@ -55,7 +58,6 @@ export function SaleSerialsEditor({ sale }: { sale: Sale }) {
     [sale.items, serialView, kindOf],
   );
 
-  const posted = sale.status !== "draft" && sale.status !== "cancelled";
   if (!enabled || !canEdit || !posted || lines.length === 0) return null;
 
   const current = lines.find((line) => line.lineIndex === editing);
@@ -102,8 +104,9 @@ export function SaleSerialsEditor({ sale }: { sale: Sale }) {
                     <ul className="space-y-0.5 text-[11px] text-muted-foreground">
                       {[...line.history].reverse().map((entry, i) => (
                         <li key={`${String(entry.at)}-${i}`}>
-                          {t("historyEntry", {
+                          {t(entry.byName ? "historyEntryBy" : "historyEntry", {
                             date: formatDateTime(entry.at),
+                            name: entry.byName ?? "",
                             before: entry.before.join(", ") || "—",
                             after: entry.after.join(", ") || "—",
                           })}

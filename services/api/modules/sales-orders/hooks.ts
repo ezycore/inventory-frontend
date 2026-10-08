@@ -8,7 +8,7 @@ import {
   SaleFilters,
   UpdateSaleDraftDto,
 } from "@/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleMutationError } from "@/lib/error-handling";
 
@@ -38,6 +38,19 @@ export const useSale = (id: string) => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+/**
+ * Several sales by id, sharing `useSale`'s cache entries — for printing a
+ * selection of online orders with their linked Sales.
+ */
+export const useSalesByIds = (ids: readonly string[]) =>
+  useQueries({
+    queries: ids.map((id) => ({
+      queryKey: queryKeys.salesOrders.detail(id),
+      queryFn: () => salesApi.getById(id),
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
 
 /**
  * Get sales summary statistics (for sales history page)

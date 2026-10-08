@@ -38,6 +38,8 @@ export interface SerialEntryDialogProps {
   onSave: (slots: string[]) => void;
   /** Codes on the sale's other lines — a code may appear once per sale. */
   otherCodes?: readonly string[];
+  /** Shown instead of "Entered twice on this sale" when a code repeats one of `otherCodes`. */
+  otherCodesMessage?: string;
   /** This sale's own id, so the "already sold" check does not report itself. */
   excludeSaleId?: string;
   saving?: boolean;
@@ -65,6 +67,7 @@ export function SerialEntryDialog({
   value,
   onSave,
   otherCodes = [],
+  otherCodesMessage,
   excludeSaleId,
   saving,
   description,
@@ -84,6 +87,7 @@ export function SerialEntryDialog({
 
   const codes = useMemo(() => slots.map(normalizeSerial), [slots]);
   const twice = useMemo(() => duplicateSerials([...codes, ...otherCodes]), [codes, otherCodes]);
+  const others = useMemo(() => new Set(otherCodes.map(normalizeSerial)), [otherCodes]);
   const checkCodes = useDebounce(
     codes.filter((code) => code.length > 0 && code.length <= MAX_SERIAL_LENGTH),
     400,
@@ -129,7 +133,9 @@ export function SerialEntryDialog({
             const error = !code
               ? undefined
               : twice.has(code)
-                ? t("duplicate")
+                ? otherCodesMessage && others.has(code)
+                  ? otherCodesMessage
+                  : t("duplicate")
                 : code.length > MAX_SERIAL_LENGTH
                   ? t("tooLong", { max: MAX_SERIAL_LENGTH })
                   : undefined;

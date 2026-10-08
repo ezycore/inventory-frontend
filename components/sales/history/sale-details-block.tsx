@@ -25,6 +25,7 @@ import { groupSaleItemsByCombo } from '@/components/sales/helpers';
 import { SaleLineWarranty } from '@/components/sales/warranty/sale-line-warranty';
 import { SaleLineSerials } from '@/components/sales/serials/sale-line-serials';
 import { SaleSerialsEditor } from '@/components/sales/serials/sale-serials-editor';
+import { useMissingSerials } from '@/components/sales/serials/use-missing-serials';
 
 // ── Headline stats ───────────────────────────────────────────────────────────
 
@@ -108,6 +109,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
   const t = useTranslations('sales.history.details');
   const { format: fmt } = useCurrency();
   const canViewCosts = useHasPermission(PERMISSIONS.costsView);
+  const missingOf = useMissingSerials(sale);
   const rows = buildItemRows(sale.items, t('combo'));
   // Added (exclusive) vs in-price (inclusive, informational) tax of the sale.
   const { addedTax, includedTax } = splitLineTax(sale.items);
@@ -128,7 +130,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
             name={row.item.productName}
             indent={row.inCombo}
             sub={
-              canViewCosts || row.item.warranty || row.item.serials?.length ? (
+              canViewCosts || row.item.warranty || row.item.serials?.length || missingOf(row.item) > 0 ? (
                 <>
                   {canViewCosts && (
                     <div>
@@ -137,7 +139,7 @@ export function SaleItemsTable({ sale }: { sale: Sale }) {
                   )}
                   <SaleLineWarranty warranty={row.item.warranty} />
                   <div>
-                    <SaleLineSerials serials={row.item.serials} />
+                    <SaleLineSerials serials={row.item.serials} missing={missingOf(row.item)} />
                   </div>
                 </>
               ) : undefined

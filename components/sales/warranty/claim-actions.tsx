@@ -17,6 +17,7 @@ import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { SerialEntryDialog } from "@/components/sales/serials/serial-entry-dialog";
+import { useSerialKindOfProduct } from "@/components/sales/serials/use-serial-kinds";
 import { CLAIM_TRANSITIONS, canReplace } from "./claim-status";
 
 type NextStatus = UpdateWarrantyClaimStatusInput["status"];
@@ -38,6 +39,7 @@ export function ClaimActions({ claim }: { claim: WarrantyClaim }) {
   // A claim that named the faulty units' codes asks for the new units' codes too.
   const [askSerials, setAskSerials] = useState(false);
   const tracksSerials = (claim.serials?.length ?? 0) > 0;
+  const kindOfProduct = useSerialKindOfProduct();
 
   if (!canEdit || (next.length === 0 && !canReplace(claim.status))) return null;
 
@@ -125,8 +127,10 @@ export function ClaimActions({ claim }: { claim: WarrantyClaim }) {
               open={askSerials}
               onOpenChange={setAskSerials}
               productName={claim.productName}
+              kind={kindOfProduct(String(claim.productId), claim.variantId ? String(claim.variantId) : null)}
               quantity={claim.quantity}
               otherCodes={claim.serials}
+              otherCodesMessage={t("detail.sameAsFaulty")}
               saving={replace.isPending}
               description={t("detail.replaceSerialsPrompt")}
               onSave={(slots) => handOver(slots.filter((slot) => slot.trim().length > 0))}

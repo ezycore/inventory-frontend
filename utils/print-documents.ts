@@ -773,8 +773,11 @@ const serialNote = (item: SaleItem, t?: Translator): string | undefined => {
   return t ? t("serialLine", { codes }) : `S/N: ${codes}`;
 };
 
-/** Every muted line under an item name, one per line. */
-const itemNote = (item: SaleItem, t?: Translator, locale: AppLocale = "en"): string | undefined =>
+/**
+ * Every muted line under an item name, one per line. Exported for the online
+ * order invoice, which prints its linked Sale's warranty and codes the same way.
+ */
+export const saleItemNote = (item: SaleItem, t?: Translator, locale: AppLocale = "en"): string | undefined =>
   [warrantyNote(item, t, locale), serialNote(item, t)].filter(Boolean).join("\n") || undefined;
 
 /** One sale line as a structured print item (snapshots blank on older sales). */
@@ -793,7 +796,7 @@ const saleLineToItem = (
   vatRate: (item.taxAmount ?? 0) > 0 ? item.taxRate ?? undefined : undefined,
   vatAmount: (item.taxAmount ?? 0) > 0 ? currency(item.taxAmount as number) : undefined,
   amount: currency(item.subtotal),
-  note: itemNote(item, t, locale),
+  note: saleItemNote(item, t, locale),
 });
 
 /**

@@ -187,6 +187,7 @@
       "warrantyNote": "Warranty note",
       "warrantyNotePlaceholder": "e.g. Motor only",
       "trackSerial": "Record serial / IMEI number of each unit sold",
+      "trackSerialHint": "e.g. phones and laptops — the cashier scans or types each unit's number when selling.",
       "trackSerialTooltip": "The cashier scans or types each unit's number when selling. It prints on the invoice, and a warranty check by that number finds the exact sale.",
       "serialKind": "Number type",
       "serialKindSerial": "Serial number",

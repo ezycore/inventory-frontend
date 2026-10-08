@@ -198,6 +198,7 @@ function PurchasesPageContent() {
         editCostPrice={editCostPrice}
         editForm={editForm}
         handleEditFieldChange={handleEditFieldChange}
+        showDiscount={ctx.editShowDiscount}
         handleSaveEdit={handleSaveEdit}
       />
     </div>

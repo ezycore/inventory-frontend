@@ -214,6 +214,8 @@ export type CourierChargeRefresh = Schemas["CourierChargeRefresh"];
  */
 export type WarrantyLookupSale = Schemas["WarrantyLookupSale"];
 export type WarrantyClaim = Schemas["WarrantyClaim"];
+/** A product's warranty terms (months, kind, note) — what the cart line shows. */
+export type WarrantyTerms = Schemas["WarrantyTerms"];
 /** A sale's serial / IMEI codes per line, with each line's change log (backend `docs/plan/sale-serials.md`). */
 export type SaleSerials = Schemas["SaleSerials"];
 /** Where else a code was already handed out — the "already sold" warning. Advice only. */

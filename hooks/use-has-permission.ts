@@ -8,6 +8,8 @@ import { useAuthStore } from '@/services/stores';
 export const PERMISSIONS = {
   /** Unit costs / COGS figures shown in detail views. */
   costsView: 'costs.view',
+  /** Reading sales — an online order's print reads its linked Sale for warranty and codes. */
+  salesView: 'sales.view',
   /** Editing a posted sale's collections — and its serial / IMEI codes (managers). */
   salesEdit: 'sales.edit',
   /** Reading the product catalogue (the POS reads product photos from it). */
