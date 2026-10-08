@@ -53,7 +53,10 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - Sale and POS batch pickers no longer offer expired batches — choosing one only failed at
   Confirm. Stock adjustment still lists them for write-off.
 - Receipt & Print: "Organization profile" links now open `/settings/organization` instead of the personal `/profile` page.
-
+- Storefront product cards: a tag badge on the photo ("New Arrival | 12″ × 20″ Cushions") no longer
+  cuts off at a fixed ~104px. It now uses the whole row and only shortens with "…" when it would
+  actually run off the card.
+  
 ### Deploy notes
 - **Deploy inventory-backend first.** Its warranty / serial / `reservedQuantity` release (still
   under its Unreleased when this was cut) must be live before this one, or Sales → Warranty,
