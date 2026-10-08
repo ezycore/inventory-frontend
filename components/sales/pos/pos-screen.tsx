@@ -136,6 +136,7 @@ export function PosScreen() {
       </div>
 
       {isDesktop ? <PosShortcutBar ctx={ctx} /> : <PosMobileCheckout ctx={ctx} />}
+      <ctx.SerialsConfirmDialog />
     </div>
   );
 }

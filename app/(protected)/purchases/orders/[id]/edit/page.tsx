@@ -93,6 +93,7 @@ export default function EditPurchaseOrderPage() {
                 onFieldChange={(field, value) => {
                   if (field === "invoiceNumber") ctx.setInvoiceNumber(value as string);
                   if (field === "invoiceDate") ctx.setInvoiceDate(value as string);
+                  if (field === "discountValue") ctx.handleDiscountValueChange(Number(value) || 0);
                 }}
               />
             </CardContent>
@@ -307,6 +308,7 @@ export default function EditPurchaseOrderPage() {
         editCostPrice={ctx.editCostPrice}
         editForm={ctx.editForm}
         handleEditFieldChange={ctx.handleEditFieldChange}
+        showDiscount={ctx.editShowDiscount}
         handleSaveEdit={ctx.handleSaveEdit}
       />
     </div>

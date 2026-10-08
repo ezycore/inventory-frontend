@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { computeLineTax } from "@/utils/tax";
 import { LineTaxCell } from "@/components/shared/line-tax-cell";
 import { BatchSelect } from "@/components/shared/batch-select";
+import { CartLineChips } from "@/components/sales/sell/cart-line-chips";
 
 /**
  * Editable number input that allows clearing and commits on blur/Enter
@@ -71,6 +72,7 @@ function BatchPickerCell({
       value={item.batchId ?? null}
       onChange={(batchId) => onUpdateBatch(item.id, batchId)}
       emptyLabel={t("autoFefo")}
+      hideExpired
       title={t("fefoTooltip")}
       className="h-7 w-[150px] px-2 py-1 text-xs"
     />
@@ -95,6 +97,8 @@ export const getSalesColumns = (
   renderThumb?: (item: SellOrderItem) => ReactNode,
   /** Edits this sale's line price; the product MRP is untouched. Combo lines stay read-only. */
   onUpdatePrice?: (id: string, price: number) => void,
+  /** Serial / IMEI codes for a tracked line — passed only while warranty is on. */
+  onUpdateSerials?: (id: string, serials: string[]) => void,
 ): ColumnDef<SellOrderItem>[] => [
     {
       accessorKey: "productName",
@@ -116,6 +120,17 @@ export const getSalesColumns = (
               <div className="text-xs text-muted-foreground">
                 Available: {row.original.availableQuantity} {row.original.unitName || "units"}
               </div>
+            )}
+            {row.original.tracked !== false && (row.original.heldQuantity ?? 0) > 0 && (
+              <div className="text-xs text-amber-700 dark:text-amber-400">
+                {t("heldForOnline", { count: row.original.heldQuantity as number })}
+              </div>
+            )}
+            {onUpdateSerials && (
+              <CartLineChips
+                item={row.original}
+                onSerialsChange={(serials) => onUpdateSerials(row.original.id, serials)}
+              />
             )}
           </div>
         </div>

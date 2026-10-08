@@ -133,6 +133,7 @@ function SalesPageContent() {
         </div>
       </div>
       <ConfirmDialog />
+      <ctx.SerialsConfirmDialog />
     </div>
   );
 }

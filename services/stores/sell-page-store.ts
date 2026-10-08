@@ -49,6 +49,12 @@ export type SellOrderItem = OrderItem & {
    * sentinel.
    */
   tracked?: boolean;
+  /**
+   * Units held by confirmed online orders, already taken off
+   * `availableQuantity` — printed as "(N held for online orders)" so the line's
+   * cap does not silently disagree with a batch's "6 left".
+   */
+  heldQuantity?: number;
 }
 
 /**

@@ -66,6 +66,11 @@ question is "what would a shopkeeper call this?", not "what is the correct Bangl
 | Tax (in price) | মূল্যসহ কর | translate | inclusive tax |
 | Tax (added) | অতিরিক্ত কর | translate | REVIEW — exclusive tax phrasing |
 | Invoice | চালান | translate | standard BD trade term (chalan) |
+| Warranty | ওয়ারেন্টি | transliterate | what shops print on the memo; জামানত means a deposit |
+| Warranty claim | ওয়ারেন্টি ক্লেইম | transliterate | দাবি reads legal/insurance — REVIEW |
+| Replacement (warranty) | রিপ্লেসমেন্ট | transliterate | the word shopkeepers use |
+| Serial number | সিরিয়াল নম্বর | transliterate | what shops write on the memo; "সিরিয়াল" alone on a print line |
+| IMEI | IMEI | keep | printed on the phone box in Latin letters |
 | Receipt | রসিদ | translate | |
 | Payment | পেমেন্ট | transliterate | পরিশোধ formal alt |
 | Paid | পরিশোধিত | translate | |

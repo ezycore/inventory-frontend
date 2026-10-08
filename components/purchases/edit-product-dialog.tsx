@@ -21,12 +21,16 @@ type Props = {
   editForm: any;
   handleEditFieldChange: (name: string, value: unknown) => void;
   handleSaveEdit: () => void;
+  /** False when the line's supplier gives no discount (`hasDiscountTerms`): no Discount field. */
+  showDiscount?: boolean;
 };
 
 /**
  * Edit one purchase line — shared by New Purchase and Edit Purchase Order.
  * Price (MRP) is editable; a changed value is written back as the product's
  * MRP when the purchase is saved, which the hint under the field says.
+ * Discount shows only when the supplier gives one — the same rule as the
+ * add-product row.
  */
 export const EditProductDialog: FC<Props> = ({
   open,
@@ -39,6 +43,7 @@ export const EditProductDialog: FC<Props> = ({
   editForm,
   handleEditFieldChange,
   handleSaveEdit,
+  showDiscount = true,
 }) => {
   const t = useTranslations("purchases.editDialog");
   const tForm = useTranslations("purchases.form");
@@ -94,7 +99,7 @@ export const EditProductDialog: FC<Props> = ({
               {mrpHint && <p className="text-xs text-muted-foreground">{mrpHint}</p>}
             </div>
 
-            {numberRow("edit-discount", "discount", t("discount"), editDiscount, 2, 0)}
+            {showDiscount && numberRow("edit-discount", "discount", t("discount"), editDiscount, 2, 0)}
             {numberRow("edit-cost", "costPrice", t("costPrice"), editCostPrice, 2, 0)}
           </div>
         )}

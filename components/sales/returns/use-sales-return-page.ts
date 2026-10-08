@@ -228,6 +228,7 @@ export function useSalesReturnPage() {
       taxRate: item.taxRate,
       taxType: item.taxType,
       refundAmount: roundMoney(item.refundAmount),
+      ...(item.returnSerials.length > 0 ? { serials: item.returnSerials } : {}),
     }));
 
     if (items.length === 0) {
@@ -368,6 +369,7 @@ export function useSalesReturnPage() {
     initFromPendingDues,
     handleItemSelect: itemsHook.handleItemSelect,
     handleItemQtyChange: itemsHook.handleItemQtyChange,
+    handleItemSerialsChange: itemsHook.handleItemSerialsChange,
     handleRefundAmountChange: itemsHook.handleRefundAmountChange,
     handleDueAllocationToggle: allocationHook.handleDueAllocationToggle,
     handleDueAllocationAmountChange: allocationHook.handleDueAllocationAmountChange,

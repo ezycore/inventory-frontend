@@ -55,6 +55,7 @@ const FEATURE_ORDER: FeatureName[] = [
   "combo",
   "purchases",
   "inventoryTracking",
+  "warranty",
 ];
 
 export default function FeatureSettingsPage() {

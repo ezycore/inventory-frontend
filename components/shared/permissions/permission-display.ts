@@ -174,6 +174,11 @@ const CATEGORY_STYLES: Record<string, Omit<CategoryConfig, "name">> = {
     bgColor: "bg-zinc-50 dark:bg-zinc-950/30",
     textColor: "text-zinc-600 dark:text-zinc-400",
   },
+  warranty: {
+    color: "border-teal-200 dark:border-teal-800",
+    bgColor: "bg-teal-50 dark:bg-teal-950/30",
+    textColor: "text-teal-600 dark:text-teal-400",
+  },
 };
 
 /**

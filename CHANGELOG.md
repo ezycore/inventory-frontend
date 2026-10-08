@@ -9,6 +9,62 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-08
+
+### Added
+- Purchases: the Discount (per unit) field on the add-product row shows only when the order has a
+  supplier discount. Without one the row is Sale Price + Cost Price, cost opens at what you last
+  paid and a typed Sale Price no longer turns into a fake discount (the 1200 / 1200 / 0 row).
+  Adding a line at cost 0 warns. The Edit Item dialog follows the same rule. Order details are
+  unchanged.
+- Purchases: a cart line's Total is quantity × cost price, the same basis as the subtotal. It
+  used sale price − discount, which showed ৳15,000 on a line costing ৳0.
+- The cart shows each product's warranty under its name ("12 months · Replacement", note on
+  hover) on New Sale and the POS counter, while warranty is on.
+- Warranty: a Warranty section on the product form, a warranty line under each item on printed
+  invoices, and Sales → Warranty to check a sale by invoice or phone and log/track claims
+  (repair, supplier, replacement from stock). Feature switch under Settings → Features.
+- Sale Summary shows each item's warranty under its name ("12 months · Replacement · Covered
+  until …"), in red as "Expired on …" once it has run out.
+- Serial / IMEI numbers (shown while warranty is on): a "Record serial / IMEI number of each unit
+  sold" switch on the product form; the cart asks for one code per unit (scan or type, camera too)
+  and warns on a bad IMEI or a code already sold; missing codes ask once and never block. Codes
+  print on the invoice, show on the sale, and managers can add/correct them afterwards ("Add / edit
+  serials", also on an online order). Warranty lookup finds a sale by serial at any branch; claims
+  pick the unit by its code and a replacement records the new unit's code; returns can name the
+  units coming back.
+- POS and sale lines show "N held for online orders" under Available when confirmed
+  storefront orders hold some of the stock (needs inventory-backend with `reservedQuantity`).
+
+### Changed
+- Storefront product page: a product with only one photo no longer shows a one-thumbnail rail
+  beside it; the main photo takes that space instead.
+
+### Fixed
+- Online orders: the printed invoice (admin order page, single or bulk) now shows each item's
+  warranty and serial / IMEI numbers from the order's sale, like a counter invoice.
+- Serials: a sold-out product's sale line can still get its missing codes added; the editor now
+  asks the server which lines track codes instead of the in-stock list.
+- Serials: the change history names who made each change; the sale line says "N missing"; the
+  warranty lookup strikes through returned codes; the replacement dialog says IMEI for an IMEI
+  product and "This is the faulty unit's number" instead of "Entered twice on this sale".
+- Sales History: the Sale Summary drawer shows serials saved from inside it straight away, instead of
+  only after closing and reopening it.
+- Sale and POS batch pickers no longer offer expired batches — choosing one only failed at
+  Confirm. Stock adjustment still lists them for write-off.
+- Receipt & Print: "Organization profile" links now open `/settings/organization` instead of the personal `/profile` page.
+- Storefront product cards: a tag badge on the photo ("New Arrival | 12″ × 20″ Cushions") no longer
+  cuts off at a fixed ~104px. It now uses the whole row and only shortens with "…" when it would
+  actually run off the card.
+  
+### Deploy notes
+- **Deploy inventory-backend first.** Its warranty / serial / `reservedQuantity` release (still
+  under its Unreleased when this was cut) must be live before this one, or Sales → Warranty,
+  the serial editor and "held for online orders" call routes that don't exist yet.
+- Warranty needs inventory-backend with `/api/warranty` (its next release) deployed first.
+- Serial / IMEI needs the same inventory-backend release (`/api/warranty/serials/check`,
+  `/api/warranty/sales/:id/serials`, `serialKind` on sellable products and barcode lookup).
+
 ## [1.2.0] - 2026-10-05
 
 ### Added

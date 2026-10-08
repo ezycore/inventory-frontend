@@ -106,8 +106,16 @@ export const getSupplierFormConfig = (t: Translator, isDraft = false): DynamicFo
   return { fields };
 };
 
-/** Add-product form. `t` is bound to the `purchases` namespace. */
-export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): DynamicFormConfig => {
+/**
+ * Add-product form. `t` is bound to the `purchases` namespace. `showDiscount`
+ * is false when the order has no supplier discount (`hasDiscountTerms`): the
+ * row is then Sale Price + Cost Price only.
+ */
+export const getProductFormConfig = (
+  t: Translator,
+  isUOMEnabled: boolean,
+  showDiscount = true,
+): DynamicFormConfig => {
   const fields: FormFieldConfig[] = [
     {
       name: "productId",
@@ -163,7 +171,7 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       precision: 2,
       required: true,
       placeholder: "0",
-      columnSpan: 4,
+      columnSpan: showDiscount ? 4 : 6,
       validation: { min: 0 },
       helperText: (values) => {
         const product = values?.productId;
@@ -186,6 +194,7 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       required: false,
       placeholder: "0",
       columnSpan: 4,
+      hidden: !showDiscount,
       validation: { min: 0 },
     },
     {
@@ -195,7 +204,7 @@ export const getProductFormConfig = (t: Translator, isUOMEnabled: boolean): Dyna
       precision: 2,
       required: false,
       placeholder: "0",
-      columnSpan: 4,
+      columnSpan: showDiscount ? 4 : 6,
       validation: { min: 0 },
     },
   );

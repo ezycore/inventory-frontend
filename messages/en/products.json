@@ -97,7 +97,9 @@
         "mediaTitle": "Media",
         "mediaDescription": "Up to 5 images. First image is the primary.",
         "publishTitle": "Publish to store",
-        "publishDescription": "This product goes live on your store as soon as you save."
+        "publishDescription": "This product goes live on your store as soon as you save.",
+        "warrantyTitle": "Warranty",
+        "warrantyDescription": "Printed on the invoice and checked when a customer brings it back"
       },
       "trackStock": "Track stock",
       "name": "Product name",
@@ -174,7 +176,22 @@
       "weightKg": "Shipping weight (kg)",
       "weightKgTooltip": "Used to book courier consignments. Left empty, the courier bills at its own fallback weight — usually more than the parcel actually weighs.",
       "featured": "Feature on the homepage",
-      "featuredTooltip": "Surfaces this product in your storefront's featured rails."
+      "featuredTooltip": "Surfaces this product in your storefront's featured rails.",
+      "warrantyMonths": "Warranty (months)",
+      "warrantyMonthsPlaceholder": "No warranty",
+      "warrantyMonthsTooltip": "How long the warranty lasts from the day of sale. Leave empty for no warranty. Changing it later does not change what earlier customers were promised.",
+      "warrantyKind": "Warranty type",
+      "warrantyKindReplacement": "Replacement",
+      "warrantyKindService": "Service (repair)",
+      "warrantyKindParts": "Parts only",
+      "warrantyNote": "Warranty note",
+      "warrantyNotePlaceholder": "e.g. Motor only",
+      "trackSerial": "Record serial / IMEI number of each unit sold",
+      "trackSerialHint": "e.g. phones and laptops — the cashier scans or types each unit's number when selling.",
+      "trackSerialTooltip": "The cashier scans or types each unit's number when selling. It prints on the invoice, and a warranty check by that number finds the exact sale.",
+      "serialKind": "Number type",
+      "serialKindSerial": "Serial number",
+      "serialKindImei": "IMEI (mobile phone)"
     },
     "taxType": {
       "inclusive": "Inclusive",

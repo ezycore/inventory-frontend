@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, deriveLinePricing, discountForEditedPrice, isMrpEdited } from "@/components/purchases";
+import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, discountForEditedPrice, hasDiscountTerms, isMrpEdited, linePricingAfterEdit, openingLinePricing, type DiscountTerms } from "@/components/purchases";
 import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { roundMoney } from "@/lib/money";
@@ -26,6 +26,8 @@ export function usePurchasePage() {
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSellerId, setEditingSellerId] = useState<string | null>(null);
+  // The edited line's supplier discount — its own seller's, not the active one's.
+  const [editTerms, setEditTerms] = useState<DiscountTerms>({ type: "percentage", value: 0 });
 
   const lowStockImport = useMemo<{ ids: string[]; shouldOpen: boolean }>(() => {
     if (typeof window === "undefined") return { ids: [], shouldOpen: false };
@@ -100,7 +102,6 @@ export function usePurchasePage() {
   const hydratedDraftIdRef = useRef<string | null>(null);
 
   const supplierFormConfig = useMemo(() => getSupplierFormConfig(t, isDraftMode), [t, isDraftMode]);
-  const productFormConfig = useMemo(() => getProductFormConfig(t, isUOMEnabled), [t, isUOMEnabled]);
   const productFormSchema = useMemo(
     () =>
       makeProductFormSchema({
@@ -133,6 +134,31 @@ export function usePurchasePage() {
       stock: "",
     },
   });
+
+  // Discount (per unit) shows only while the order has a supplier discount.
+  const supplierDiscountValue = useWatch({ control: supplierForm.control, name: "discountValue" });
+  const showDiscount = hasDiscountTerms({ type: "percentage", value: Number(supplierDiscountValue) || 0 });
+  const productFormConfig = useMemo(() => getProductFormConfig(t, isUOMEnabled, showDiscount), [t, isUOMEnabled, showDiscount]);
+  const discountTerms = useCallback((): DiscountTerms => ({
+    type: supplierForm.getValues("discountType") || "percentage",
+    value: Number(supplierForm.getValues("discountValue")) || 0,
+  }), [supplierForm]);
+
+  /**
+   * Prices the add-product row from the product picked in it. `rowPrice` keeps
+   * a Sale Price the merchant already typed when only the discount changed.
+   * Lines already in the order are never repriced.
+   */
+  const priceOpenRow = useCallback((terms: DiscountTerms, rowPrice?: number) => {
+    const product = extractProductValue(productForm.getValues("productId"));
+    if (!product) return;
+    const conversionFactor = product.conversionFactor || 1;
+    const boxPrice = rowPrice ?? product.price * conversionFactor;
+    const pricing = openingLinePricing(boxPrice, (product.costPrice || 0) * conversionFactor, terms);
+    productForm.setValue("price", pricing.price);
+    productForm.setValue("discount", pricing.discount);
+    productForm.setValue("costPrice", pricing.costPrice);
+  }, [productForm]);
 
   const editForm = useForm({
     resolver: zodResolver(productFormSchema as any),
@@ -221,6 +247,8 @@ export function usePurchasePage() {
   const handleEditItem = useCallback((sellerId: string, item: any) => {
     setEditingItem(item);
     setEditingSellerId(sellerId);
+    const seller = usePurchasePageStore.getState().sellers.find((s) => s.id === sellerId);
+    setEditTerms({ type: seller?.discountType || "percentage", value: Number(seller?.discountValue) || 0 });
     const convertedQuantity = item.convertedQuantity || item.quantity;
     const boxPrice = item.price;
     editForm.reset({
@@ -307,6 +335,7 @@ export function usePurchasePage() {
       setDiscountType(current.id, value as any);
     } else if (fieldName === "discountValue") {
       setDiscountValue(current.id, value as number);
+      priceOpenRow({ ...discountTerms(), value: Number(value) || 0 }, productForm.getValues("price") || undefined);
     } else if (fieldName === "purchaseType") {
       setPurchaseType(current.id, value as any);
     } else if (fieldName === "invoiceNumber") {
@@ -314,7 +343,7 @@ export function usePurchasePage() {
     } else if (fieldName === "invoiceDate") {
       setInvoiceDate(current.id, value as string);
     }
-  }, [addSeller, setActiveSeller, setSupplier, setPurchaseType, setInvoiceNumber, setInvoiceDate, setDiscountType, setDiscountValue, supplierForm]);
+  }, [addSeller, setActiveSeller, setSupplier, setPurchaseType, setInvoiceNumber, setInvoiceDate, setDiscountType, setDiscountValue, supplierForm, priceOpenRow, discountTerms, productForm]);
 
   const handleProductFieldChange = useCallback((fieldName: string, value: unknown) => {
     if (fieldName === "productId") {
@@ -326,18 +355,11 @@ export function usePurchasePage() {
         const quantity = productForm.getValues("quantity") || 1;
         const conversionFactor = product.conversionFactor || 1;
         const convertedQuantity = quantity * conversionFactor;
-        const perUnitPrice = product.price;
-        const boxPrice = perUnitPrice * conversionFactor;
-        const discountType = supplierForm.getValues("discountType") || "percentage";
-        const discountValue = supplierForm.getValues("discountValue") || 0;
         const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
-        const pricing = deriveLinePricing(boxPrice, discountType, discountValue);
         productForm.setValue("stock", stock);
         productForm.setValue("quantity", purchaseQuantity);
         productForm.setValue("convertedQuantity", convertedQuantity);
-        productForm.setValue("price", pricing.price);
-        productForm.setValue("discount", pricing.discount);
-        productForm.setValue("costPrice", pricing.costPrice);
+        priceOpenRow(discountTerms());
       }
     } else if (fieldName === "quantity") {
       const product = extractProductValue(productForm.getValues("productId"));
@@ -346,18 +368,18 @@ export function usePurchasePage() {
         const conversionFactor = product.conversionFactor || 1;
         productForm.setValue("convertedQuantity", quantity * conversionFactor);
       }
-    } else if (fieldName === "price") {
-      productForm.setValue("discount", discountForEditedPrice((value as number) || 0, productForm.getValues("costPrice") || 0));
-    } else if (fieldName === "discount") {
-      const boxPrice = productForm.getValues("price") || 0;
-      const boxDiscount = (value as number) || 0;
-      productForm.setValue("costPrice", Math.max(0, boxPrice - boxDiscount));
-    } else if (fieldName === "costPrice") {
-      const boxPrice = productForm.getValues("price") || 0;
-      const boxCostPrice = (value as number) || 0;
-      productForm.setValue("discount", Math.max(0, boxPrice - boxCostPrice));
+    } else if (fieldName === "price" || fieldName === "discount" || fieldName === "costPrice") {
+      const line = {
+        price: productForm.getValues("price") || 0,
+        discount: productForm.getValues("discount") || 0,
+        costPrice: productForm.getValues("costPrice") || 0,
+        [fieldName]: (value as number) || 0,
+      };
+      for (const [key, next] of Object.entries(linePricingAfterEdit(fieldName, line, discountTerms()))) {
+        productForm.setValue(key as "price" | "discount" | "costPrice", next);
+      }
     }
-  }, [productForm, supplierForm]);
+  }, [productForm, priceOpenRow, discountTerms]);
 
   const handleAddToOrder = useCallback((data: any) => {
     const supplierValue = supplierForm.getValues("supplierId");
@@ -377,39 +399,48 @@ export function usePurchasePage() {
     const boxPrice = roundMoney(product.price * conversionFactor);
     const price = roundMoney(data.price || 0);
     const updateMrp = isMrpEdited(price, boxPrice);
-    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: updateMrp ? price : boxPrice, updateMrp, costPrice: data.costPrice, discount: data.discount, conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
+    addItem(currentSeller.id, { inventoryId: product.value, productId: product.productId, variantId: product.variantId, productName: product.label, quantity: data.quantity, price: updateMrp ? price : boxPrice, updateMrp, costPrice: data.costPrice, discount: showDiscount ? data.discount : discountForEditedPrice(updateMrp ? price : boxPrice, data.costPrice || 0), conversionFactor, convertedQuantity: data.convertedQuantity, unitName: product.unitName ?? undefined, purchaseUnitName: product.purchaseUnitName ?? undefined,
       // Per-line purchase tax from the product (neutralized when tax is inactive).
       taxRate: isTaxEnabled ? product.purchaseTaxRate ?? 0 : 0,
       taxType: isTaxEnabled ? product.purchaseTaxType ?? "inclusive" : undefined,
     });
     toast.success(t("create.addedToOrder", { name: product.label }));
+    // Free samples happen, so a zero cost is allowed — but said out loud.
+    if (!(data.costPrice > 0)) toast.warning(t("form.zeroCostWarning", { name: product.label }));
     productForm.reset({ productId: "", quantity: 1, convertedQuantity: 1, price: 0, discount: 0, costPrice: 0 });
-  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled, t]);
+  }, [addItem, productForm, supplierForm, setActiveSeller, setSupplier, addSeller, isTaxEnabled, showDiscount, t]);
 
   const handleSaveEdit = useCallback(() => {
     if (!editingItem || !editingSellerId) return;
     const data = editForm.getValues();
     const price = roundMoney(data.price || 0);
     const updateMrp = editingItem.updateMrp === true || isMrpEdited(price, editingItem.price);
-    updateItem(editingSellerId, editingItem.id, { quantity: data.quantity, price: updateMrp ? price : editingItem.price, updateMrp, discount: data.discount, costPrice: data.costPrice, convertedQuantity: data.convertedQuantity });
+    const linePrice = updateMrp ? price : editingItem.price;
+    // Without a supplier discount the line's discount is just price − cost, as the backend stores it.
+    const discount = hasDiscountTerms(editTerms) ? data.discount : discountForEditedPrice(linePrice, data.costPrice || 0);
+    updateItem(editingSellerId, editingItem.id, { quantity: data.quantity, price: linePrice, updateMrp, discount, costPrice: data.costPrice, convertedQuantity: data.convertedQuantity });
     toast.success(t("create.itemUpdated"));
     setIsEditDialogOpen(false);
     setEditingItem(null);
     setEditingSellerId(null);
-  }, [editingItem, editingSellerId, editForm, updateItem, t]);
+  }, [editingItem, editingSellerId, editForm, updateItem, editTerms, t]);
 
   const handleEditFieldChange = useCallback((fieldName: string, value: unknown) => {
     if (fieldName === "quantity") {
       const product = extractProductValue(editForm.getValues("productId"));
       if (product) { const quantity = (value as number) || 1; const conversionFactor = product.conversionFactor || 1; editForm.setValue("convertedQuantity", quantity * conversionFactor); }
-    } else if (fieldName === "price") {
-      editForm.setValue("discount", discountForEditedPrice((value as number) || 0, editForm.getValues("costPrice") || 0));
-    } else if (fieldName === "discount") {
-      const boxPrice = editForm.getValues("price") || 0; const boxDiscount = (value as number) || 0; editForm.setValue("costPrice", Math.max(0, boxPrice - boxDiscount));
-    } else if (fieldName === "costPrice") {
-      editForm.setValue("discount", discountForEditedPrice(editForm.getValues("price") || 0, (value as number) || 0));
+    } else if (fieldName === "price" || fieldName === "discount" || fieldName === "costPrice") {
+      const line = {
+        price: editForm.getValues("price") || 0,
+        discount: editForm.getValues("discount") || 0,
+        costPrice: editForm.getValues("costPrice") || 0,
+        [fieldName]: (value as number) || 0,
+      };
+      for (const [key, next] of Object.entries(linePricingAfterEdit(fieldName, line, editTerms))) {
+        editForm.setValue(key as "price" | "discount" | "costPrice", next);
+      }
     }
-  }, [editForm]);
+  }, [editForm, editTerms]);
 
   const handleImportLowStock = useCallback((result: any) => {
     const storeState = usePurchasePageStore.getState();
@@ -534,6 +565,7 @@ export function usePurchasePage() {
     editPrice,
     editDiscount,
     editCostPrice,
+    editShowDiscount: hasDiscountTerms(editTerms),
     supplierFormConfig,
     productFormConfig,
     handleSupplierFieldChange,

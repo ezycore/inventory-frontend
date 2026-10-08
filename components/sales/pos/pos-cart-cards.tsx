@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/components/sales";
 import { ProductThumb } from "@/components/sales/product-thumb";
 import type { SellPageContext } from "@/components/sales/sell/use-sell-page";
+import { CartLineChips } from "@/components/sales/sell/cart-line-chips";
 import { BatchSelect } from "@/components/shared/batch-select";
 import { Button } from "@/ui/components/button";
 import { NumberField } from "@/ui/components/number-field";
@@ -23,7 +24,7 @@ export function PosCartCards({
 }) {
   const t = useTranslations("sales.sell.cart");
   const tPos = useTranslations("sales.pos");
-  const { items, updateItem, removeItem, handleUpdateDiscount, handleUpdatePrice, isExpiryEnabled, symbol } = ctx;
+  const { items, updateItem, removeItem, handleUpdateDiscount, handleUpdatePrice, isExpiryEnabled, serialsEnabled, symbol } = ctx;
 
   return (
     <ul className="divide-y">
@@ -42,6 +43,14 @@ export function PosCartCards({
                       unit: item.unitName || "",
                     })}
                   </div>
+                )}
+                {item.tracked !== false && (item.heldQuantity ?? 0) > 0 && (
+                  <div className="text-xs text-amber-700 dark:text-amber-400">
+                    {t("heldForOnline", { count: item.heldQuantity as number })}
+                  </div>
+                )}
+                {serialsEnabled && (
+                  <CartLineChips item={item} onSerialsChange={(serials) => updateItem(item.id, { serials })} />
                 )}
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
                   {/* This sale's price only; combo lines are priced by the server. */}
@@ -126,6 +135,7 @@ export function PosCartCards({
                 value={item.batchId ?? null}
                 onChange={(batchId) => updateItem(item.id, { batchId })}
                 emptyLabel={t("autoFefo")}
+                hideExpired
                 title={t("fefoTooltip")}
                 className="h-10 w-full text-sm"
               />
