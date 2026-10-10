@@ -297,6 +297,8 @@
     "netProfit": "Net profit",
     "vsPrevious": "Previous period",
     "netProfitChange": "vs previous period",
+    "unknownCostRevenue": "Sales with no cost price (not counted in profit)",
+    "unknownCostNote": "{amount} of revenue has no cost price, so it is left out of gross profit rather than counted as pure profit. Add cost prices to your products to see profit on these sales from now on.",
     "expensesNotTracked": "The Accounts module is off, so operating expenses are not being tracked. Net profit below equals gross profit — it does not mean you had no expenses.",
     "basisNote": "Revenue is recognised at the time of sale (including unpaid credit sales); expenses are recognised when paid. This is not an audited financial statement.",
     "basisNoteOrders": "Revenue is recognised when an order is dispatched (cash on delivery included, before the courier pays you); expenses are recognised when paid. This is not an audited financial statement.",

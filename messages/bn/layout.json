@@ -7,7 +7,8 @@
       "stock": "স্টক",
       "money": "অর্থ",
       "insights": "রিপোর্ট",
-      "admin": "অ্যাডমিন"
+      "admin": "অ্যাডমিন",
+      "products": "পণ্য"
     },
     "items": {
       "dashboard": "ড্যাশবোর্ড",
@@ -45,7 +46,6 @@
       "customers": "গ্রাহক",
       "suppliers": "সরবরাহকারী",
       "online-store": "অনলাইন স্টোর",
-      "store-overview": "স্টোর ওভারভিউ",
       "online-orders": "অনলাইন অর্ডার",
       "collections": "কালেকশন",
       "campaigns": "ক্যাম্পেইন",

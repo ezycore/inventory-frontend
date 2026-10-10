@@ -5,7 +5,7 @@
 
 import { apiClient } from "@/lib/api-client";
 import { buildQueryParams } from "../../utils";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, SalesReturnReason } from "@/types";
 
 export interface CustomerPendingDueRow {
   _id: string;
@@ -32,7 +32,7 @@ export interface SalesReturnFilters {
   saleId?: string;
   customerId?: string;
   status?: "pending" | "completed" | "cancelled";
-  reason?: "damaged" | "defective" | "wrong_item" | "customer_changed_mind" | "expired" | "other";
+  reason?: SalesReturnReason;
   startDate?: string;
   endDate?: string;
   search?: string;
@@ -90,7 +90,7 @@ export interface RefundAllocation {
 export interface CreateSalesReturnDto {
   saleId: string;
   items: ReturnItem[];
-  reason: "damaged" | "defective" | "wrong_item" | "customer_changed_mind" | "expired" | "other";
+  reason: SalesReturnReason;
   notes?: string;
   deductionAmount?: number;
   refundAllocation?: RefundAllocation;

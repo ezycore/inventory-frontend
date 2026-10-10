@@ -55,9 +55,7 @@ describe("collection summary", () => {
     // on the shelf.
     expect(screen.getByText("Cotton Kurta × 1")).toBeInTheDocument();
     expect(screen.getByText(/negotiated at the door/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /view the sales return/i }),
-    ).toBeInTheDocument();
+    // The returns themselves are listed by the order's own Returns card (D6), not linked from here.
   });
 
   it("renders nothing when no collection was recorded", () => {

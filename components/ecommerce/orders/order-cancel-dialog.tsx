@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/ui/components/dialog";
 import { Button } from "@/ui/components/button";
+import { Input } from "@/ui/components/input";
 import { Label } from "@/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@/ui/components/radio-group";
 import { SimpleSelect } from "@/ui/components/simple-select";
@@ -59,7 +60,11 @@ export function OrderCancelDialog({
   // Fair default when a customer's order is cancelled: give the money back.
   const [choice, setChoice] = useState<"refund" | "keep">("refund");
   const [reason, setReason] = useState("");
+  // What "Other" meant. Required with it — 56 of 78 rejections at one shop said "Other" and
+  // nothing else, so the report could not say what to fix (G10).
+  const [note, setNote] = useState("");
   const [accountId, setAccountId] = useState("");
+  const needsNote = reject && reason === "other" && !note.trim();
 
   const setOpen = (next: boolean) => {
     setOpenState(next);
@@ -72,6 +77,7 @@ export function OrderCancelDialog({
     // should inherit from the previous order.
     if (!next) {
       setReason("");
+      setNote("");
       setChoice("refund");
       setAccountId("");
     }
@@ -95,6 +101,7 @@ export function OrderCancelDialog({
         // cancel, because a cancelled order records the merchant's own change of
         // mind and would poison the counts this field exists to produce.
         reason: reject ? (reason as RejectionReason) : undefined,
+        note: reject && reason === "other" ? note.trim() : undefined,
         refundPrepayment: hasPrepayment ? choice === "refund" : undefined,
         accountId:
           hasPrepayment && choice === "refund"
@@ -138,6 +145,15 @@ export function OrderCancelDialog({
                 answered. This is the only moment the answer is actually known,
                 and a shop rejecting most of what it receives cannot tell fake
                 numbers from stock-outs later without it. */}
+            {reason === "other" && (
+              <Input
+                aria-label="What was the reason?"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                maxLength={280}
+                placeholder="What was the reason? (required)"
+              />
+            )}
             <p className="text-xs text-muted-foreground">
               Counted on your rejection report, so you can see what you are
               actually turning away.
@@ -204,7 +220,7 @@ export function OrderCancelDialog({
           </Button>
           <Button
             variant="destructive"
-            disabled={cancel.isPending || (reject && !reason)}
+            disabled={cancel.isPending || (reject && !reason) || needsNote}
             onClick={submit}
           >
             {cancel.isPending

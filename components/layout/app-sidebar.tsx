@@ -5,7 +5,7 @@ import { navGroups } from "@/constants/navItem";
 import { APP_VERSION_LABEL } from "@/constants/app-version";
 import { useLogout } from "@/hooks";
 import { useCanManageBilling } from "@/hooks/use-has-permission";
-import { filterNavItems, navLinkTarget } from "@/lib/nav-utils";
+import { filterNavItems, navGroupLabel, navLinkTarget } from "@/lib/nav-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import {
   Collapsible,
@@ -218,7 +218,9 @@ export default function AppSidebar() {
             {/* An empty group label renders no heading — `SidebarGroupLabel` is a
                 fixed-height row, so an empty one would leave a blank gap. */}
             {group.label && (
-              <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                {groupLabel(navGroupLabel(group, features))}
+              </SidebarGroupLabel>
             )}
             <SidebarMenu>
               {group.items.map((item) => {

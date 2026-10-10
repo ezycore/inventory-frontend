@@ -1,8 +1,6 @@
 "use client";
 // coding-standard: maintained
 
-import Link from "next/link";
-import { RotateCcw } from "lucide-react";
 import type { AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
@@ -115,15 +113,6 @@ export function OrderCollectionSummary({
         </p>
       ) : null}
 
-      {(order.returns ?? []).length > 0 ? (
-        <Link
-          href="/sales/returns"
-          className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          View the sales return
-        </Link>
-      ) : null}
     </Card>
   );
 }

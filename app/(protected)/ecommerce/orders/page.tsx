@@ -130,6 +130,10 @@ function OrdersList() {
         courier: "all",
         fulfillment: "all",
         channel: "all",
+        // "1" = the "Courier says returned" queue (business-modes G3).
+        returned: "",
+        // "1" = every order with a return taken — online returns live here (D6).
+        returns: "",
         period: ALL_TIME as string,
         start: "",
         end: "",
@@ -139,8 +143,17 @@ function OrdersList() {
     limitOptions: LIST_PAGE_SIZES,
   });
   const { page, limit } = list;
-  const { status, courier, fulfillment, channel, start: customStart, end: customEnd, q: search } =
-    list.filters as Record<string, string>;
+  const {
+    status,
+    courier,
+    fulfillment,
+    channel,
+    returned,
+    returns,
+    start: customStart,
+    end: customEnd,
+    q: search,
+  } = list.filters as Record<string, string>;
   const period = list.filters.period as OrderListPeriod | typeof ALL_TIME;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -184,6 +197,8 @@ function OrdersList() {
   const changeCourier = (v: string) => changeFilter({ courier: v });
   const changeFulfillment = (v: string) => changeFilter({ fulfillment: v });
   const changeChannel = (v: string) => changeFilter({ channel: v });
+  const toggleReturned = () => changeFilter({ returned: returned === "1" ? "" : "1" });
+  const toggleReturns = () => changeFilter({ returns: returns === "1" ? "" : "1" });
   // Back to every page's orders, from the chip `LandingPageFilter` draws.
   const clearPageFilter = () => {
     setSelected(new Set());
@@ -230,6 +245,8 @@ function OrdersList() {
     courier: courier === "all" ? undefined : courier,
     fulfillmentType: fulfillment === "all" ? undefined : fulfillment,
     channel: channel === "all" ? undefined : channel,
+    courierReturned: returned === "1" ? "true" : undefined,
+    hasReturns: returns === "1" ? "true" : undefined,
     pageId,
     ...dateParams,
     page,
@@ -417,6 +434,26 @@ function OrdersList() {
             </span>
           </h2>
           {pageId ? <LandingPageFilter pageId={pageId} onClear={clearPageFilter} /> : null}
+          {/* The courier already reported these returned; each waits for "Return whole order".
+              A Pathao parcel that comes back unpaid is returned on its own and never lands here. */}
+          {(stats?.courierReturned.count ?? 0) > 0 || returned === "1" ? (
+            <Button
+              size="sm"
+              variant={returned === "1" ? "default" : "outline"}
+              onClick={toggleReturned}
+            >
+              Courier says returned ({stats?.courierReturned.count ?? 0})
+            </Button>
+          ) : null}
+          {/* Every order a return was taken against, partial or full — the home of online
+              returns (D6); each order lists its returns on its own page. */}
+          <Button
+            size="sm"
+            variant={returns === "1" ? "default" : "outline"}
+            onClick={toggleReturns}
+          >
+            Returns
+          </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SimpleSelect

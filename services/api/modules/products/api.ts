@@ -7,6 +7,7 @@ import type {
   ApiVariant,
   ApiImage,
   ProductBulkUpdateResult,
+  ProductCostResult,
   ProductMatchList,
   ProductTaxonomySheet,
 } from "@/types/api";
@@ -49,6 +50,17 @@ export const productsApi = {
     action: ProductBulkAction;
   }): Promise<ApiResponse<ProductBulkUpdateResult>> =>
     apiClient.post("/products/bulk-update", body),
+
+  /**
+   * Set the cost price for sales made from now on — every location's row of the
+   * product (or the one variant) gets it. Past sales keep the cost they were sold
+   * at. Refused with `COST_OWNED_BY_PURCHASES` when purchases maintain the cost.
+   */
+  setCost: (
+    id: string,
+    body: { variantId?: string | null; costPrice: number },
+  ): Promise<ApiResponse<ProductCostResult>> =>
+    apiClient.put(`/products/${id}/cost`, body),
 
   /** Resolve a pasted list of product names / barcodes to products. */
   matchList: (lines: string[]): Promise<ApiResponse<ProductMatchList>> =>

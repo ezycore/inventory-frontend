@@ -160,17 +160,6 @@
     "viewAll": "View all",
     "empty": "No orders yet."
   },
-  "storeOverview": {
-    "title": "Store Overview",
-    "subtitle": "Your online shop at a glance — how it looks, what is listed, what shoppers left behind.",
-    "liveProducts": "Products online",
-    "abandonedCarts": "Abandoned carts",
-    "cartValue": "Value left in carts",
-    "abandonmentRate": "Cart abandonment",
-    "tradeTitle": "Looking for today’s orders and revenue?",
-    "tradeBody": "Order counts, revenue, the confirmation queue, COD awaiting collection and delivery outcomes are all on your dashboard, beside the rest of your business.",
-    "tradeLink": "Go to dashboard"
-  },
   "topCounter": {
     "title": "Top at the counter",
     "subtitle": "Best sellers at your POS this period",

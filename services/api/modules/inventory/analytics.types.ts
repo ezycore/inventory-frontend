@@ -63,8 +63,12 @@ export interface ProductAnalytics {
     unitsSold: number
     revenue: number
     cogs: number
+    /** Profit on sales that had a cost — uncosted sales are left out, not counted at 100%. */
     grossProfit: number
-    margin: number
+    /** Revenue on sales sold with no cost entered. */
+    unknownRevenue: number
+    /** `null` when no sale had a cost — show no margin. */
+    margin: number | null
     orderCount: number
   }
   movement: MovementSummary

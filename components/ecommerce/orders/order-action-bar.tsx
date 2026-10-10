@@ -12,6 +12,7 @@ import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import { OrderEditButton } from "./order-edit-button";
+import { OrderItemsReturnDialog } from "./order-items-return-dialog";
 import { OrderReturnDialog } from "./order-return-dialog";
 import { OrderReverseStatusDialog } from "./order-reverse-status-dialog";
 
@@ -84,7 +85,10 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
         </>
       )}
 
-      {canCancel && order.status !== "pending" && (
+      {/* On a new order too (G10): a customer who asks to cancel before you confirm is a
+          cancellation, not a rejection — with only Reject on offer, those were filed as a
+          rejection marked "Other", which is most of what that bucket held. */}
+      {canCancel && (
         <OrderCancelDialog
           order={order}
           trigger={
@@ -171,6 +175,22 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             trigger={
               <Button variant="outline" size="sm">
                 Return whole order
+              </Button>
+            }
+          />
+        )}
+      {/* Some items back after a paid delivery (G5). An unpaid COD order takes part of the
+          parcel back through `OrderCollectionDialog` instead, so this waits for payment;
+          `partially_returned` keeps it, so the rest can follow later. */}
+      {!isPickup &&
+        !!order.saleId &&
+        isPaid &&
+        (order.status === "delivered" || order.status === "partially_returned") && (
+          <OrderItemsReturnDialog
+            order={order}
+            trigger={
+              <Button variant="outline" size="sm">
+                Return items
               </Button>
             }
           />

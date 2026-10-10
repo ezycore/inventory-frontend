@@ -3,6 +3,7 @@ import {
   featuresForPath,
   filterNavItems,
   isReadOnlyRoute,
+  navGroupLabel,
   permissionsForPath,
   unmetRouteFeatures,
 } from "../nav-utils";
@@ -267,10 +268,11 @@ describe("filterNavItems", () => {
     });
 
     it("carries both gate shapes when a route declares each", () => {
-      // Sales Returns needs `returns` AND (sales OR storefront) — a shopper
-      // return happens on an online-only workspace too.
+      // Sales Returns — the counter's returns — needs `returns` AND `sales` (D6): an online-only
+      // workspace takes its returns from the order instead. The Sell group's any-of still rides
+      // along from the parent.
       const gate = featuresForPath("/sales/returns");
-      expect(gate?.all).toEqual(["returns"]);
+      expect(gate?.all).toEqual(["returns", "sales"]);
       expect(gate?.anyOf).toContainEqual(["sales", "storefront"]);
     });
 
@@ -456,5 +458,22 @@ describe("isReadOnlyRoute", () => {
 
   it("says no for a path nav does not know", () => {
     expect(isReadOnlyRoute("/nowhere")).toBe(false);
+  });
+});
+
+// G9: a stock-free shop's "Stock" group holds only Products, so it is headed Products.
+describe("navGroupLabel", () => {
+  const group = {
+    label: "Stock",
+    labelWhenOff: { feature: "inventoryTracking" as const, label: "Products" },
+  };
+
+  it("swaps the heading while the feature is off", () => {
+    expect(navGroupLabel(group, without("inventoryTracking"))).toBe("Products");
+  });
+
+  it("keeps it while the feature is on, or before the map loads", () => {
+    expect(navGroupLabel(group, ALL_ON)).toBe("Stock");
+    expect(navGroupLabel(group, undefined)).toBe("Stock");
   });
 });

@@ -8,7 +8,7 @@ import { Skeleton } from "@/ui/components/skeleton";
 /**
  * The purchase funnel — how many carts reached each step, and where they were lost.
  *
- * **Form:** magnitude comparison across five ordered stages of ONE measure, so it is
+ * **Form:** magnitude comparison across three ordered stages of ONE measure, so it is
  * a sequential bar chart, not a categorical one — every bar wears the same hue and
  * length alone carries magnitude (a colour ramp here would double-encode what the
  * bar already says). Single series ⇒ no legend; the heading names what is plotted.
@@ -16,10 +16,10 @@ import { Skeleton } from "@/ui/components/skeleton";
  * `globals.css` explicitly reserves for series that carry no good/bad meaning —
  * status colours would wrongly moralise a funnel step.
  *
- * **Steps 3 and 4 are ours alone.** No other platform's funnel has "signed in" and
- * "email verified", because no other platform puts an account wall and a
- * verification wall in front of its checkout. The drop between them is the number
- * the whole feature exists to expose.
+ * **Three steps, not five** (G10/G12, backend `business-modes.md`). "Signed in" and "Email
+ * verified" were bars between checkout and order back when an account was required to order.
+ * Every store takes guest orders now, so they are not steps — drawn as bars they showed 8 sign-ins
+ * in front of 458 orders, a funnel that widens. Sign-ins are reported beside it instead.
  */
 interface CartFunnelProps {
   data?: CartFunnelStats;
@@ -42,7 +42,7 @@ export function CartFunnel({ data, isLoading }: CartFunnelProps) {
       <Card className="p-5">
         <Skeleton className="h-5 w-40" />
         <div className="mt-5 space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-9 w-full" />
           ))}
         </div>
@@ -58,18 +58,6 @@ export function CartFunnel({ data, isLoading }: CartFunnelProps) {
       label: "Reached checkout",
       hint: "Opened the checkout page",
       value: f.reachedCheckout,
-    },
-    {
-      key: "signedIn",
-      label: "Signed in",
-      hint: "Your store requires an account to order",
-      value: f.signedIn,
-    },
-    {
-      key: "verified",
-      label: "Email verified",
-      hint: "Unverified shoppers cannot place an order",
-      value: f.verified,
     },
     { key: "ordered", label: "Ordered", hint: "Became a real order", value: f.ordered },
   ];
@@ -135,6 +123,13 @@ export function CartFunnel({ data, isLoading }: CartFunnelProps) {
             );
           })}
         </ol>
+      )}
+
+      {top > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Signing in is optional — shoppers can order as guests. {f.signedIn.toLocaleString()}{" "}
+          of these carts signed in.
+        </p>
       )}
     </Card>
   );

@@ -44,14 +44,10 @@ top to bottom and look for the **biggest single drop** — that is where to spen
 
 1. **Built a cart** — added at least one item.
 2. **Reached checkout** — opened the checkout page.
-3. **Signed in** — chose to use an account rather than checking out as a guest.
-4. **Email verified** — of those, the ones who have confirmed their address.
-5. **Ordered** — became a real order.
+3. **Ordered** — became a real order.
 
-Steps 3 and 4 are **not** walls: shoppers can check out as guests, so a cart that skips them and
-still reaches **Ordered** is a perfectly healthy one. Read them as "how many chose an account",
-not as drop-off — a big gap between step 2 and step 3 with a healthy step 5 means guest checkout is
-doing its job.
+Signing in is not a step: shoppers can order as guests. Under the funnel you see how many of these
+carts signed in anyway — read it as "how many chose an account", not as a drop-off.
 
 Signed-in shoppers are worth having (order history, saved addresses, and they are the only ones
 reminder emails can reach), so **Google sign-in** in your store settings is still worth turning on —
