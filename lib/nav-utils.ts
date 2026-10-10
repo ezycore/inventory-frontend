@@ -17,6 +17,19 @@ export function navLabelKey(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * The heading a sidebar group shows for this workspace: its `labelWhenOff.label` while that
+ * feature is off, its `label` otherwise. Unknown features (map not loaded) keep the usual label.
+ */
+export function navGroupLabel(
+  group: Pick<NavGroup, "label" | "labelWhenOff">,
+  features: Partial<OrganizationFeatures> | null | undefined,
+): string {
+  const alt = group.labelWhenOff;
+  if (alt && features && !isFeatureOn(features, alt.feature)) return alt.label;
+  return group.label;
+}
+
 /** Link props for a nav row — a new tab when the item asks for one. */
 export function navLinkTarget(item: NavItem): { target?: string; rel?: string } {
   return item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {};

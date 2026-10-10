@@ -65,7 +65,11 @@ export function DetailVariants({ variants, formatCurrency }: DetailVariantsProps
                 <div className="text-right">
                   <p className="text-lg font-bold text-emerald-600">{formatCurrency(variant.price)}</p>
                   {canViewCosts && (
-                    <p className="text-sm text-muted-foreground">{t('cost', { amount: formatCurrency(variant.costPrice) })}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {variant.costPrice > 0
+                        ? t('cost', { amount: formatCurrency(variant.costPrice) })
+                        : t('noCost')}
+                    </p>
                   )}
                   {canViewCosts && variant.costPrice > 0 && (
                     <p className="text-xs font-medium text-blue-600">

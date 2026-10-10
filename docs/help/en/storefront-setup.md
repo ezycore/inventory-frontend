@@ -5,7 +5,6 @@ summary: Turn on your storefront, set how it trades, and put it on your own doma
 order: 100
 covers_routes:
   - /ecommerce
-  - /ecommerce/dashboard
   - /ecommerce/settings
   - /settings/domains
 features:

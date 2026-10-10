@@ -19,6 +19,14 @@ their charges.
 when it arrives. It works the same way for every courier: Pathao, Steadfast, eCourier, and your own
 delivery partners.
 
+## Only if you track your money
+
+Recording courier payments is part of the **Accounts** feature. If Accounts is off, the screen is
+called **Courier charges** and shows only what each courier really billed for delivery against what
+you charged your customers. There is no "owed to you" figure and no payment to record — a delivered
+parcel simply counts as paid. Turn Accounts on in Settings → Customize workspace when you want to
+check every courier payment.
+
 ## What happens when a parcel is delivered
 
 As soon as the courier reports a COD parcel **delivered** — or you mark your own delivery partner's

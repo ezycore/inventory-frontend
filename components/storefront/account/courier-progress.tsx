@@ -22,7 +22,7 @@ export function CourierProgress({ courier }: { courier: Courier }) {
   const { t, lang } = useStorefrontUI();
   const bn = lang === "bn";
 
-  const p = courierStatusPresentation(courier.normalizedStatus);
+  const p = courierStatusPresentation(courier.normalizedStatus, courier.returnStage);
   const carrier = courier.name || courier.provider;
   const tracking = courier.trackingCode || courier.consignmentId;
 

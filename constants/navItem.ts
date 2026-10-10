@@ -154,15 +154,15 @@ export const navGroups: NavGroup[] = [
             features: ["sales"],
           },
           {
-            // Needs returns AND (sales OR storefront): `features` is all-of,
-            // `anyFeatures` is any-of, and filterNavItems applies both.
+            // The counter's returns, found by invoice. Needs counter sales (D6, backend
+            // business-modes.md): a shop that sells only online takes its returns from the
+            // order — Online Orders → Returns, and each order's own Returns card.
             title: "Sales Returns",
             titleWithoutPos: "Returns",
             url: "/sales/returns",
             permissions: ["returns.view"],
             icon: "corner-up-left",
-            features: ["returns"],
-            anyFeatures: ["sales", "storefront"],
+            features: ["returns", "sales"],
           },
           {
             // Lookup ("is this still covered?") and claims. Sits with the sales
@@ -208,13 +208,6 @@ export const navGroups: NavGroup[] = [
         isActive: false,
         features: ["storefront"],
         items: [
-          {
-            title: "Store Overview",
-            url: "/ecommerce/dashboard",
-            icon: "layout-dashboard",
-            features: ["storefront"],
-            permissions: ["storefront.view"],
-          },
           {
             // The catalog's product listing moved to Products → Online: it
             // edits the same product records, so two sidebar entries for one
@@ -363,6 +356,8 @@ export const navGroups: NavGroup[] = [
 
   {
     label: "Stock",
+    // With stock off only Products is left in here (G9, backend business-modes.md).
+    labelWhenOff: { feature: "inventoryTracking", label: "Products" },
     items: [
       {
         // The whole group goes when the business does not count stock. Every
@@ -545,17 +540,22 @@ export const navGroups: NavGroup[] = [
             icon: "file-text",
             features: ["purchases"],
           },
+          // Both need the money ledger (business-modes D4): without `accounts` the P&L has no
+          // expenses and the position has no cash, so each only repeated the Orders Report with
+          // banners explaining its zeros. Profit for such a shop lives on the Orders Report.
           {
             title: "Profit & Loss",
             url: "/reports/profit-loss",
             permissions: ["reports.view"],
             icon: "trending-up",
+            features: ["accounts"],
           },
           {
             title: "Business Position",
             url: "/reports/position",
             permissions: ["reports.view"],
             icon: "scale",
+            features: ["accounts"],
           },
           {
             title: "Cash Report",

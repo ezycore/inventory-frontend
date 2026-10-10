@@ -24,6 +24,9 @@ ui_labels:
   - products:tags.form.showOnCard
   - products:tags.form.cardPriority
   - products:categories.moveProducts.menuItem
+  - products:products.detail.pricing.noCost
+  - products:products.detail.pricing.addCost
+  - products:products.detail.pricing.costFromPurchases
 ---
 
 # Add your products
@@ -106,6 +109,22 @@ Give a product a name, a unit, a selling price and a cost price. Everything else
 
 New products are **Active** by default, meaning they can be sold. Set a product to inactive when you
 stop selling it — this is better than deleting, because deleting loses its sales history.
+
+## Add or change a cost price later
+
+Open the product. In the **Pricing** card, the cost price reads *No cost yet* until you give one.
+Press **Add cost** (or **Edit** once there is one), type what you pay for one piece, and save. For a
+product with options, pick the option's tab first. Each option has its own cost.
+
+**The new cost counts from now on.** Sales you already made keep the cost they were sold at, so last
+month's profit does not change. A sale made with no cost stays out of your profit figures. Reports
+show it on its own line instead of counting the whole price as profit.
+
+If you buy stock through **Purchases**, there is no **Add cost** button. The card says *Updated
+automatically each time you receive a purchase.* instead. Each delivery you receive updates the
+cost, based on what you paid.
+
+You need permission to edit products and to see costs. Without it, the button does not appear.
 
 ## Creating a product does not stock it
 

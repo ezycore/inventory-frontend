@@ -183,4 +183,26 @@ describe("collection dialog", () => {
     await waitFor(() => expect(record.mutateAsync).toHaveBeenCalled());
     expect(record.mutateAsync.mock.calls[0][0]).toMatchObject({ collected: 1110 });
   });
+  // Two sizes of one product are two lines. Keyed by product alone, they shared one input and
+  // went to the server with no variant — which matches no sale line, so the return was refused.
+  it("returns one size of a product with options, naming the variant", async () => {
+    const user = await openDialog({
+      totalAmount: 1000,
+      items: [
+        { productId: "p", variantId: "s", productName: "Shirt S", quantity: 1, price: 500, subtotal: 500 },
+        { productId: "p", variantId: "l", productName: "Shirt L", quantity: 1, price: 500, subtotal: 500 },
+      ],
+    });
+    await setNumber(user, /collected/i, "500");
+    await setNumber(user, /return shirt l/i, "1");
+
+    await waitFor(() => expect(submitButton()).toBeEnabled());
+    expect(screen.getByLabelText(/return shirt s/i)).toHaveValue("0");
+    await user.click(submitButton());
+
+    await waitFor(() => expect(record.mutateAsync).toHaveBeenCalled());
+    expect(record.mutateAsync.mock.calls[0][0]).toMatchObject({
+      returnLines: [{ productId: "p", variantId: "l", quantity: 1 }],
+    });
+  });
 });

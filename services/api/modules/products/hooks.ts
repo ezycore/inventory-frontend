@@ -35,6 +35,16 @@ export const useBulkUpdateProducts = () => {
   })
 }
 
+/** A cost edit moves the product page's cost, profit and stock value — `catalog.changed`. */
+export const useSetProductCost = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string; variantId?: string | null; costPrice: number }) =>
+      productsApi.setCost(id, body),
+    onSuccess: () => invalidate(qc, 'catalog.changed'),
+  })
+}
+
 export const useMatchProductList = () =>
   useMutation({ mutationFn: productsApi.matchList })
 

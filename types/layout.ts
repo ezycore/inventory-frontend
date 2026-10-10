@@ -55,5 +55,10 @@ export type NavItem = {
 // A labeled sidebar section (e.g. "Operations") holding top-level nav items.
 export type NavGroup = {
   label: string;
+  /**
+   * A different heading while a feature is OFF — the "Stock" group holds only Products when the
+   * business does not count stock (G9). Resolved by `navGroupLabel`.
+   */
+  labelWhenOff?: { feature: FeatureName; label: string };
   items: NavItem[];
 };

@@ -10,6 +10,7 @@ import {
   useRefreshCourierCharges,
   type AdminStorefrontOrder,
 } from "@/services/api";
+import { isFeatureOn } from "@/lib/feature-utils";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Button } from "@/ui/components/button";
 import { Card } from "@/ui/components/card";
@@ -45,6 +46,12 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
+  // Who owes what is shown only to a merchant who records courier payments (business-modes D2):
+  // with `accounts` off a delivered parcel would read "they owe it to you" forever.
+  const tracksPayouts = isFeatureOn(
+    useAuthStore((s) => s.user?.organization?.features),
+    "accounts",
+  );
   const canManage = useHasPermission("storefront.orders.manage");
   const refresh = useRefreshCourierCharges();
 
@@ -174,7 +181,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
           actually collected with <b>Collected a different amount…</b>
         </p>
       )}
-      {remittance?.status === "with_courier" && (
+      {tracksPayouts && remittance?.status === "with_courier" && (
         <div className="mt-4 border-t pt-3 text-sm text-muted-foreground">
           {(remittance.clearingAmount ?? 0) > 0 ? (
             <p>
@@ -193,7 +200,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
           )}
         </div>
       )}
-      {remittance?.status === "remitted" && (
+      {tracksPayouts && remittance?.status === "remitted" && (
         <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
           Covered by a payment from {courierName}
           {remittance.remittedAt ? ` on ${longDate(remittance.remittedAt)}` : ""}.

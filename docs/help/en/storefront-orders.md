@@ -45,6 +45,44 @@ Most orders are cash on delivery: the shopper pays your courier, and the payment
 order completes. Until then it is money owed, not money held — so an order marked delivered but never
 settled will quietly distort your cash figures. Reconcile with your courier regularly.
 
+## When a parcel comes back
+
+If the shopper refuses a cash-on-delivery parcel, the courier brings it back to you. What happens next
+depends on what the courier tells us:
+
+- **Pathao says the parcel is back with you** and the shopper paid nothing — the order is returned for
+  you. The goods go back into stock and the sale is reversed. The activity log shows it was done by
+  the courier.
+- **Anything else** — a "Paid Return" (the shopper paid the delivery charge at the door), an order
+  already marked delivered, or a courier that does not report "back with you" — waits for you. These
+  orders are counted on the **Courier says returned** card, and the button of the same name above the
+  list shows only them. Open each one and press **Return whole order** once the parcel is in your
+  hands.
+
+A parcel the courier has reported returned no longer counts as cash in transit. While it travels
+back, its courier status reads **Returning to you**, and **Back with you** once Pathao hands it
+over — so you know whether the goods are actually in your hands before you return the order.
+
+### The customer sends some items back later
+
+A customer who kept the parcel can still return part of it — one shirt out of three, a wrong size.
+Once the order is paid, open it and press **Return items**. Enter how many of each item came back.
+The dialog shows what is left to return on each line and how much the customer gets back. The
+delivery charge is not refunded.
+
+If you keep accounts, choose where the money goes: out of an account, or as store credit for the
+customer's next order. Without accounts, the sale is reduced and you pay the customer back yourself.
+The order then reads partly returned, and **Return items** stays on it so more can follow later.
+
+If the order is still unpaid — the courier has not paid you yet and part of the parcel was refused
+at the door — use **Collected a different amount…** in the payment card instead.
+
+### Find your returns
+
+Press **Returns** above the order list to see every order something came back from, whole or in
+part. Each order lists its own returns in a **Returns** card; open one to see what came back, the
+sale reversed, what was refunded and the delivery charge you kept.
+
 ## Store customers
 
 Shoppers with a store account live on the **Customers** page, under its **Online** tab — one place

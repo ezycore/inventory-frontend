@@ -10,8 +10,13 @@ import { useMovementReasonLabel } from '@/hooks/use-movement-reason-label'
 
 interface DetailChartsProps {
   analytics: ProductAnalytics
-  /** Sales module gate — hide the transactional sales mini-stats when off. */
+  /** Selling at all (counter or online) — hide the sales mini-stats when neither is on. */
   salesEnabled: boolean
+  /**
+   * Off for a business that never counts stock. The movement trend, the reasons donut and stock
+   * by location then have nothing to draw, so they are not drawn (G9) — they read "No data yet".
+   */
+  stockTracked: boolean
   formatCurrency: (n: number) => string
 }
 
@@ -26,7 +31,7 @@ function shortDate(iso: string): string {
   return iso
 }
 
-export function DetailCharts({ analytics, salesEnabled, formatCurrency }: DetailChartsProps) {
+export function DetailCharts({ analytics, salesEnabled, stockTracked, formatCurrency }: DetailChartsProps) {
   const t = useTranslations('products.products.detail.charts')
   const reasonLabel = useMovementReasonLabel()
   const { trend, movement, stock } = analytics
@@ -50,6 +55,47 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
 
   return (
     <div className="space-y-6">
+      {stockTracked && (
+        <StockCharts
+          trendData={trendData}
+          reasonData={reasonData}
+          locationData={locationData}
+          totalMovedUnits={totalMovedUnits}
+          t={t}
+        />
+      )}
+
+      {salesEnabled && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <MiniStat label={t('unitsSold')} value={analytics.sales.unitsSold.toLocaleString()} />
+          <MiniStat label={t('revenue')} value={formatCurrency(analytics.sales.revenue)} />
+          {/* `margin: null` = no sale had a cost: there is no profit figure, not a ৳0 one. */}
+          <MiniStat
+            label={t('grossProfit')}
+            value={analytics.sales.margin === null ? '—' : formatCurrency(analytics.sales.grossProfit)}
+          />
+          <MiniStat label={t('orders')} value={analytics.sales.orderCount.toLocaleString()} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StockCharts({
+  trendData,
+  reasonData,
+  locationData,
+  totalMovedUnits,
+  t,
+}: {
+  trendData: { label: string; in: number; out: number }[]
+  reasonData: { name: string; value: number }[]
+  locationData: { label: string; quantity: number }[]
+  totalMovedUnits: number
+  t: ReturnType<typeof useTranslations>
+}) {
+  return (
+    <>
       <AreaChart
         title={t('movementTitle')}
         subtitle={t('movementSubtitle')}
@@ -90,16 +136,7 @@ export function DetailCharts({ analytics, salesEnabled, formatCurrency }: Detail
           <EmptyChart title={t('locationTitle')} noData={t('noData')} />
         )}
       </div>
-
-      {salesEnabled && (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <MiniStat label={t('unitsSold')} value={analytics.sales.unitsSold.toLocaleString()} />
-          <MiniStat label={t('revenue')} value={formatCurrency(analytics.sales.revenue)} />
-          <MiniStat label={t('grossProfit')} value={formatCurrency(analytics.sales.grossProfit)} />
-          <MiniStat label={t('orders')} value={analytics.sales.orderCount.toLocaleString()} />
-        </div>
-      )}
-    </div>
+    </>
   )
 }
 

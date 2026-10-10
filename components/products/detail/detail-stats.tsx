@@ -18,8 +18,9 @@ interface DetailStatsProps {
   locationCount: number
   totalSold: number
   totalRevenue: number
-  profitMarginPercent: number
-  profitPerUnit: number
+  /** `null` when neither a sale nor today's price has a cost behind it — no margin to show. */
+  profitMarginPercent: number | null
+  profitPerUnit: number | null
   stockValue: number
   /** Sales module gate — hide transactional sales tiles when off. */
   salesEnabled: boolean
@@ -119,8 +120,11 @@ export function DetailStats({
           {
             icon: BarChart3,
             label: t('profitMargin'),
-            value: `${profitMarginPercent}%`,
-            sub: t('perUnit', { amount: formatCurrency(profitPerUnit) }),
+            value: profitMarginPercent === null ? '—' : `${profitMarginPercent}%`,
+            sub:
+              profitPerUnit === null
+                ? t('noCost')
+                : t('perUnit', { amount: formatCurrency(profitPerUnit) }),
           },
         ]
       : []),

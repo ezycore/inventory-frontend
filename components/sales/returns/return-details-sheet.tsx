@@ -1,6 +1,8 @@
 'use client';
+// coding-standard: maintained
 
 import type { SalesReturn } from '@/types';
+import { useSalesReturn } from '@/services/api';
 import {
   ReturnDetailsSheet as SharedReturnDetailsSheet,
   type ReturnDetailsData,
@@ -44,6 +46,13 @@ function normalizeSalesReturn(r: SalesReturn): ReturnDetailsData {
       comboName: item.comboName,
       serials: item.serials,
     })),
+    online: r.onlineOrder
+      ? {
+          orderNumber: r.onlineOrder.orderNumber,
+          shippingCharged: r.onlineOrder.shippingCharged,
+          returnCharge: r.onlineOrder.returnCharge,
+        }
+      : undefined,
     refundAllocation: r.refundAllocation
       ? {
           adjustDocumentDue: r.refundAllocation.adjustSaleDue,
@@ -70,7 +79,12 @@ export function ReturnDetailsSheet({
   salesReturn,
   ...rest
 }: ReturnDetailsSheetProps) {
-  const returnData = salesReturn ? normalizeSalesReturn(salesReturn) : null;
+  // The list row opens the sheet at once; the detail read adds what only it carries — the online
+  // order behind the return (G7). Fetched only while open.
+  const { data: detail } = useSalesReturn(rest.open && salesReturn ? salesReturn._id : '');
+  const loaded = (detail as { data?: SalesReturn } | undefined)?.data;
+  const source = loaded && loaded._id === salesReturn?._id ? loaded : salesReturn;
+  const returnData = source ? normalizeSalesReturn(source) : null;
   return (
     <SharedReturnDetailsSheet {...rest} returnData={returnData} variant="sales" />
   );

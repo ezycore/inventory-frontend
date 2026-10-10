@@ -23,6 +23,9 @@ import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { codToCollect } from "./order-detail-helpers";
 
+const itemKey = (item: { productId: unknown; variantId?: unknown }) =>
+  `${String(item.productId)}|${item.variantId ? String(item.variantId) : ""}`;
+
 /**
  * Record what the courier actually handed over.
  *
@@ -68,17 +71,22 @@ export function OrderCollectionDialog({
   const [discount, setDiscount] = useState<number>(0);
   const [discountNote, setDiscountNote] = useState("");
   const [stillOwed, setStillOwed] = useState<number>(0);
-  /** productId → units coming back. */
+  /** `productId|variantId` → units coming back. Keyed per variant: two sizes of one product
+   *  are two lines, and the server matches a return line on both ids. */
   const [returning, setReturning] = useState<Record<string, number>>({});
 
   const money = (n: number) => formatMoney(n, currency);
 
   const returnLines = useMemo(
     () =>
-      Object.entries(returning)
-        .filter(([, quantity]) => quantity > 0)
-        .map(([productId, quantity]) => ({ productId, variantId: null, quantity })),
-    [returning],
+      (order.items ?? [])
+        .map((item) => ({
+          productId: String(item.productId),
+          variantId: item.variantId ? String(item.variantId) : null,
+          quantity: returning[itemKey(item)] ?? 0,
+        }))
+        .filter((line) => line.quantity > 0),
+    [order.items, returning],
   );
 
   // Priced off the ORDER's own lines, which is what the merchant is looking at.
@@ -87,7 +95,7 @@ export function OrderCollectionDialog({
   const returnValue = useMemo(
     () =>
       (order.items ?? []).reduce((sum, item) => {
-        const qty = returning[String(item.productId)] ?? 0;
+        const qty = returning[itemKey(item)] ?? 0;
         if (qty <= 0) return sum;
         return sum + (item.subtotal / item.quantity) * qty;
       }, 0),
@@ -174,7 +182,7 @@ export function OrderCollectionDialog({
               <div className="space-y-1.5 rounded-md border p-3">
                 {(order.items ?? []).map((item) => (
                   <div
-                    key={String(item.productId)}
+                    key={itemKey(item)}
                     className="flex items-center justify-between gap-3"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm">
@@ -187,11 +195,11 @@ export function OrderCollectionDialog({
                       precision={0}
                       min={0}
                       max={item.quantity}
-                      value={returning[String(item.productId)] ?? 0}
+                      value={returning[itemKey(item)] ?? 0}
                       onChange={(v) =>
                         setReturning((prev) => ({
                           ...prev,
-                          [String(item.productId)]: v ?? 0,
+                          [itemKey(item)]: v ?? 0,
                         }))
                       }
                       className="h-8 w-24"

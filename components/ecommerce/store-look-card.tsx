@@ -11,7 +11,8 @@ import { Card } from "@/ui/components/card";
 import { useLiveStoreSettings } from "@/components/ecommerce/use-live-store-settings";
 
 /**
- * Store Overview → the one prompt to give the shop a look of its own.
+ * Dashboard → "Your store" → the one prompt to give the shop a look of its own. (It sat on Store
+ * Overview until that page was removed, G11.)
  *
  * **Why it is here and not only in Customize.** The evidence that a new shop
  * launches on default everything is also the evidence that the panel holding

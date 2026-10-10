@@ -6,7 +6,9 @@ import { CourierBalanceCards } from "@/components/ecommerce/payouts/courier-bala
 import { PayoutHistorySummary } from "@/components/ecommerce/payouts/payout-history";
 import { PayoutList } from "@/components/ecommerce/payouts/payout-list";
 import { useHasPermission } from "@/hooks/use-has-permission";
+import { isFeatureOn } from "@/lib/feature-utils";
 import { useCourierBalances, useCourierMoneySummary } from "@/services/api";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import PageHeader from "@/ui/components/header";
 
 /**
@@ -18,12 +20,39 @@ import PageHeader from "@/ui/components/header";
  * **Why this lives under `/ecommerce` and not under `/accounts`.** A route's feature gate is
  * resolved from its URL by prefix (`lib/nav-utils.ts` → `featuresForPath`), so anything under
  * `/accounts` would demand the `accounts` feature. These endpoints are gated on `storefront`
- * on purpose: a merchant with the ledger switched off still needs to see what a courier owes.
+ * on purpose: a merchant with the ledger switched off still needs to see what each courier
+ * CHARGED for delivery.
+ *
+ * **What a courier OWES is shown only with `accounts` on** (business-modes D2 / G2). Without it the
+ * merchant records no courier payments, so every delivered parcel stayed "owed" forever — a live
+ * store read "Pathao owes you ৳2,65,133" from a courier that had long since paid. Off = hidden,
+ * never ৳0: the balances, the record-payment buttons and the payment history go; the delivery-cost
+ * comparison stays.
  */
 export default function CourierPayoutsPage() {
   const canManage = useHasPermission("storefront.orders.manage");
-  const { data: balances } = useCourierBalances();
+  const tracksPayouts = isFeatureOn(
+    useAuthStore((state) => state.user?.organization?.features),
+    "accounts",
+  );
+  const { data: balances } = useCourierBalances(tracksPayouts);
   const { data: summary } = useCourierMoneySummary();
+
+  if (!tracksPayouts) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Courier charges"
+          subTitle="What each courier really billed for delivery, against what you charged your customers"
+        />
+        <ChargeVariance data={summary?.variance} />
+        <p className="text-sm text-muted-foreground">
+          Courier payments are not tracked because the Accounts feature is off. Turn it on in
+          Settings → Customize workspace to record what each courier pays you.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

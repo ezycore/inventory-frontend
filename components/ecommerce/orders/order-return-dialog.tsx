@@ -22,8 +22,8 @@ import {
 import { Button } from "@/ui/components/button";
 import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
-import { RadioGroup, RadioGroupItem } from "@/ui/components/radio-group";
 import { SimpleSelect } from "@/ui/components/simple-select";
+import { OrderRefundDestination, type RefundMode } from "./order-refund-destination";
 
 /**
  * Return (RTO / post-delivery) a committed delivery order. It reverses the sale
@@ -60,7 +60,7 @@ export function OrderReturnDialog({
   const [returnCharge, setReturnCharge] = useState<number | null>(null);
   const [collectedAmount, setCollectedAmount] = useState<number | null>(null);
   const [accountId, setAccountId] = useState("");
-  const [refundMode, setRefundMode] = useState<"account" | "credit">("account");
+  const [refundMode, setRefundMode] = useState<RefundMode>("account");
   const [refundAccountId, setRefundAccountId] = useState("");
 
   // Fetched only while the dialog is open — the preview reads the Sale, and an
@@ -179,35 +179,14 @@ export function OrderReturnDialog({
           </div>
 
           {needsRefundMode && accountsEnabled && (
-            <div className="space-y-2">
-              <Label>Refund the paid amount</Label>
-              <RadioGroup
-                value={refundMode}
-                onValueChange={(v) => setRefundMode(v as "account" | "credit")}
-                className="gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="account" id="rm-account" />
-                  <Label htmlFor="rm-account" className="font-normal">
-                    Refund to an account (cash out)
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="credit" id="rm-credit" />
-                  <Label htmlFor="rm-credit" className="font-normal">
-                    Store credit (customer balance)
-                  </Label>
-                </div>
-              </RadioGroup>
-              {refundMode === "account" && accountOptions.length > 0 && (
-                <SimpleSelect
-                  value={refundAccountId}
-                  onValueChange={setRefundAccountId}
-                  options={accountOptions}
-                  placeholder="Refund from account (default)"
-                />
-              )}
-            </div>
+            <OrderRefundDestination
+              idPrefix="rm-whole"
+              mode={refundMode}
+              onModeChange={setRefundMode}
+              accountId={refundAccountId}
+              onAccountChange={setRefundAccountId}
+              accountOptions={accountOptions}
+            />
           )}
 
           {/*

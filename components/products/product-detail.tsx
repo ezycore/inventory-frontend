@@ -17,7 +17,7 @@ import {
   inventoryApi,
 } from '@/services/api'
 import { useCurrency } from '@/lib/currency'
-import { isFeatureEnabled, isVatActive } from '@/lib/feature-utils'
+import { canHandEditCost, isFeatureEnabled, isVatActive } from '@/lib/feature-utils'
 import { useAuthStore } from '@/services/stores'
 import { DetailHero } from './detail/detail-hero'
 import { DetailStats } from './detail/detail-stats'
@@ -146,10 +146,13 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
     ? product.variants?.find((v: any) => v._id === selectedVariantId)
     : null
   const unitPrice = selectedVariant?.price ?? product.price ?? 0
-  const profitPerUnit = unitPrice ? unitPrice - costPrice : 0
+  // No cost entered means no profit figure — the selling price is not profit (rule R4).
+  const hasCost = costPrice > 0
+  const profitPerUnit = hasCost && unitPrice ? unitPrice - costPrice : null
+  // Margin on lifetime sales that had a cost; with none, the margin today's price and cost give.
   const profitMarginPercent =
     analytics?.sales.margin ??
-    (unitPrice > 0 ? Math.round(((unitPrice - costPrice) / unitPrice) * 100) : 0)
+    (hasCost && unitPrice > 0 ? Math.round(((unitPrice - costPrice) / unitPrice) * 100) : null)
   const stockValue = analytics?.stock.stockValue ?? totalStock * costPrice
   const salesTaxRate = product.salesTax?.taxType === 'exempt' ? 0 : product.salesTax?.rate ?? 0
   const purchaseTaxRate = product.purchaseTax?.taxType === 'exempt' ? 0 : product.purchaseTax?.rate ?? 0
@@ -164,7 +167,10 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
   // Module gates — keep every detail surface honest to the org's enabled features.
   const expiryEnabled = isFeatureEnabled(organization?.features, 'expiryTracking')
   const barcodeEnabled = isFeatureEnabled(organization?.features, 'barcodeSystem')
-  const salesEnabled = isFeatureEnabled(organization?.features, 'sales')
+  // Online orders become Sales too, so a storefront-only shop has sales to show here.
+  const salesEnabled =
+    isFeatureEnabled(organization?.features, 'sales') ||
+    isFeatureEnabled(organization?.features, 'storefront')
   const salesTaxActive = isVatActive(organization)
   const purchaseTaxActive = isVatActive(organization)
   // Barcode is only meaningful with the barcode module on.
@@ -211,7 +217,7 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
       />
 
       {analytics && (
-        <DetailCharts analytics={analytics} salesEnabled={salesEnabled} formatCurrency={formatCurrency} />
+        <DetailCharts analytics={analytics} salesEnabled={salesEnabled} stockTracked={stockTracked} formatCurrency={formatCurrency} />
       )}
 
       <DetailInfoCard
@@ -241,6 +247,8 @@ export function ProductDetail({ productId, slug, onClose }: ProductDetailProps) 
           sellingPrice={unitPrice}
           costPrice={costPrice}
           profitPerUnit={profitPerUnit}
+          variantId={selectedVariantId}
+          costHandEditable={canHandEditCost(organization?.features)}
           salesTaxRate={salesTaxRate}
           purchaseTaxRate={purchaseTaxRate}
           salesTaxActive={salesTaxActive}

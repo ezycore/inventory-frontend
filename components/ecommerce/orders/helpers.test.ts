@@ -35,6 +35,7 @@ const stats = (over: Partial<OrderStats> = {}): OrderStats =>
     inTransitCod: { count: 2, value: 3720 },
     awaitingPickup: { count: 0, value: 0 },
     deliveredUncollected: { count: 0, value: 0 },
+    courierReturned: { count: 0, value: 0 },
     collectedToday: { count: 3, value: 8280 },
     fullyReturnedToday: { count: 0, value: 0 },
     partlyReturnedToday: { count: 0, value: 0 },
@@ -49,6 +50,15 @@ const tile = (data: ReturnType<typeof getOrderStats>, label: string) =>
   data.find((d) => d.label === label);
 
 describe("getOrderStats", () => {
+  // G3 (inventory-backend/docs/features/business-modes.md): a to-do, so it appears only when
+  // there is one — and it is a count of orders, not money.
+  it("shows the courier-returned queue only when something is waiting", () => {
+    expect(tile(getOrderStats(stats(), "BDT"), "Courier says returned")).toBeUndefined();
+
+    const data = getOrderStats(stats({ courierReturned: { count: 3, value: 1560 } }), "BDT");
+    expect(tile(data, "Courier says returned")?.value).toBe(3);
+  });
+
   it("shows both kinds of return, kept apart", () => {
     const data = getOrderStats(
       stats({
