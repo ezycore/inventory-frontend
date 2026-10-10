@@ -1123,6 +1123,14 @@ export interface Customer extends BaseEntity {
   source?: "manual" | "storefront";
   /** Backref to the public Shopper account when source === "storefront". */
   shopperId?: string;
+  /** Online order history — list rows only, and only for a customer with storefront orders. */
+  orderStats?: {
+    onlineOrders: number;
+    onlineSpent: number;
+    lastOrderAt: string | null;
+    /** Orders that came back whole — the parcel was refused or returned. */
+    returnedOrders: number;
+  };
 }
 
 export interface CreateCustomerDto {

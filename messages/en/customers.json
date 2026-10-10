@@ -70,6 +70,11 @@
     "sourceManual": "Manual",
     "due": "Due",
     "creditBalance": "Credit Balance",
+    "phone": "Phone",
+    "onlineOrders": "Orders",
+    "onlineSpent": "Bought",
+    "lastOrder": "Last order",
+    "returnedOrders": "Came back",
     "createdDate": "Created Date",
     "updatedDate": "Updated Date"
   },

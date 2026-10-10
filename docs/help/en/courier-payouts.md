@@ -23,7 +23,7 @@ delivery partners.
 
 Recording courier payments is part of the **Accounts** feature. If Accounts is off, the screen is
 called **Courier charges** and shows only what each courier really billed for delivery against what
-you charged your customers. There is no "owed to you" figure and no payment to record — a delivered
+your customers actually paid for it. There is no "owed to you" figure and no payment to record — a delivered
 parcel simply counts as paid. Turn Accounts on in Settings → Customize workspace when you want to
 check every courier payment.
 
@@ -57,6 +57,18 @@ One card per courier:
 
 Below the cards: **Quoted vs actual** (what delivery was quoted at dispatch against what the courier
 really billed) and your payment history.
+
+## Why the delivery margin is lower than you expect
+
+**Delivery margin** is what customers paid for delivery, less what the courier billed. A parcel that
+came back still costs you the courier's charge, but the customer usually paid nothing for it — so it
+counts as ৳0 paid, marked **(came back)**. Only money you actually took counts: the delivery charge a
+customer paid at the door when refusing the goods, or a delivery advance you kept. Many returns mean
+a negative margin even when your delivery fee looks right on every order.
+
+The card opens on **this month**; pick another period above it, or **All time** for every parcel.
+**Biggest losses on delivery** lists the parcels that cost you the most, worst first — the place to
+look for heavy parcels charged a flat fee, and for returns.
 
 The owed figure is only as good as each parcel's charge. Where the courier has not told us its real
 charge yet, the dispatch quote is used and the parcel says the charge is an estimate.

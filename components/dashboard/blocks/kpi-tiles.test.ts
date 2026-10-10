@@ -106,3 +106,24 @@ describe('gross profit tile', () => {
     expect(tile?.description).toBe('costsPending')
   })
 })
+
+describe('delivery margin tile', () => {
+  const deliveryTile = (shipping: Record<string, number>) =>
+    KPI_TILES['shipping.money']!(ctx({ shipping } as never), t)
+
+  it('reads what customers paid against the couriers, and says how many came back', () => {
+    const tile = deliveryTile({ parcels: 2, returned: 1, charged: 140, received: 70, cost: 200, margin: -130 })
+
+    expect(tile?.value).toBe('৳-130')
+    expect(tile?.variant).toBe('warning')
+    expect(tile?.description).toBe(
+      'deliveryPaidCostReturned:{"received":"৳70","cost":"৳200","parcels":2,"returned":1}',
+    )
+  })
+
+  it('a month with no returns needs no returns clause', () => {
+    const tile = deliveryTile({ parcels: 3, returned: 0, charged: 210, received: 210, cost: 180, margin: 30 })
+
+    expect(tile?.description?.startsWith('deliveryPaidCost:')).toBe(true)
+  })
+})

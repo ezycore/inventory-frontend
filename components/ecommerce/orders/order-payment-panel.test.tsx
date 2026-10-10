@@ -49,6 +49,21 @@ describe("OrderPaymentPanel collection buttons", () => {
     expect(screen.getByText(/recorded automatically when the courier reports/i)).toBeInTheDocument();
   });
 
+  // Live ORD-20261002-00015: a Pathao Paid Return still reading Shipped was told it was
+  // "Recorded automatically when the courier reports the delivery" — a delivery that never comes.
+  it("does not promise a delivery report on a parcel the courier reported returned", () => {
+    render(
+      <OrderPaymentPanel
+        order={order({
+          status: "shipped",
+          courier: { provider: "pathao", integration: "api", normalizedStatus: "returned" },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/recorded automatically/i)).toBeNull();
+    expect(screen.getByText(/courier reported this parcel returned/i)).toBeInTheDocument();
+  });
+
   it("keeps the buttons for a courier tracked by hand", () => {
     render(
       <OrderPaymentPanel

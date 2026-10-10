@@ -334,11 +334,12 @@
     "afterDiscounts": "after {amount} in discounts",
     "avgOrderValue": "Average order",
     "avgBasis": "Across orders that counted as revenue",
-    "outstanding": "Still owed",
-    "outstandingNote": "On these orders, after advances and returns",
+    "outstanding": "Not collected yet",
+    "outstandingNote": "Cash on delivery still to come in on these orders, after advances and returns",
     "profit": {
       "title": "Gross profit",
-      "afterCarriage": "after {amount} paid to couriers",
+      "afterCarriage": "after what the couriers billed",
+      "costsMissing": "Set cost prices on your products to see profit. Until then there is nothing to take the cost away from.",
       "marginBasis": "Margin on revenue with a known cost",
       "unknownCost": "{amount} of revenue has no cost behind it yet ({orders} orders not dispatched). The margin excludes it."
     },
@@ -377,6 +378,8 @@
       "returned": "Returned",
       "rto": "Returned rate",
       "deliveryMargin": "Delivery margin",
+      "deliveryPaidCost": "{received} paid · {cost} to the courier",
+      "notSent": "No parcels sent",
       "noCourier": "No courier (pickup or not dispatched)"
     },
     "districts": {
@@ -425,7 +428,7 @@
       "orders": "{count, plural, one {# order} other {# orders}}",
       "guest": "Guest",
       "refunded": "returned {amount}",
-      "due": "Due: {amount}"
+      "due": "{amount} to collect"
     },
     "breakdown": {
       "title": "Orders by category, brand and tag",
