@@ -267,6 +267,8 @@ export const storefrontOrdersApi = {
     if (params.paymentStatus) qs.append("paymentStatus", params.paymentStatus);
     if (params.channel) qs.append("channel", params.channel);
     if (params.pageId) qs.append("pageId", params.pageId);
+    if (params.courierReturned) qs.append("courierReturned", params.courierReturned);
+    if (params.hasReturns) qs.append("hasReturns", params.hasReturns);
     if (params.period) qs.append("period", params.period);
     if (params.startDate) qs.append("startDate", params.startDate);
     if (params.endDate) qs.append("endDate", params.endDate);
