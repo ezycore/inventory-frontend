@@ -14,6 +14,8 @@ export const PERMISSIONS = {
   salesEdit: 'sales.edit',
   /** Reading the product catalogue (the POS reads product photos from it). */
   productsView: 'products.view',
+  /** Editing products — with `costsView`, also setting a cost price. */
+  productsEdit: 'products.edit',
   /** Any write that changes stock — adjust, transfer, assign a lot an expiry. */
   stockManage: 'stock.manage',
   /** User administration — placing people in roles. */

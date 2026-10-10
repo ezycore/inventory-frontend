@@ -171,7 +171,12 @@
       "costLine": "খরচ {amount}",
       "taxLineIncl": "ভ্যাট {rate}% অন্তর্ভুক্ত · {amount}",
       "taxLineExcl": "ভ্যাট {rate}% · {amount}",
-      "serialsLine": "সিরিয়াল: {codes}"
+      "serialsLine": "সিরিয়াল: {codes}",
+      "saleReversedLabel": "বিক্রি বাতিল",
+      "refundedLabel": "রিফান্ড হয়েছে",
+      "deliveryKeptLabel": "রাখা ডেলিভারি চার্জ",
+      "courierReturnChargeLabel": "কুরিয়ারের ফেরত চার্জ",
+      "onlineOrder": "অনলাইন অর্ডার"
     }
   },
   "payments": {

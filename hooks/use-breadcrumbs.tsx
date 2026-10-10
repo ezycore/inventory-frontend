@@ -19,7 +19,7 @@ export type BreadcrumbItem = {
 const NON_ROUTABLE_PATHS = new Set(['/settings']);
 
 // Index segments whose page only redirects — link the destination, not a hop through it.
-const LINK_TARGETS = new Map([['/ecommerce', '/ecommerce/dashboard']]);
+const LINK_TARGETS = new Map([['/ecommerce', '/ecommerce/orders']]);
 
 // "/url" → "Title" from the nav config so crumbs match the sidebar labels.
 // Parents are registered before children so shared URLs (e.g. /purchases is

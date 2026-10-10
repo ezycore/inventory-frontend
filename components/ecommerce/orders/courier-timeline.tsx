@@ -59,7 +59,10 @@ export function CourierTimeline({
       name: group.name,
       // The group's tone follows its chronologically LAST event: a heading is a
       // phase, and the phase is however it ended up.
-      tone: courierStatusPresentation(group.events[group.events.length - 1]?.status)
+      tone: courierStatusPresentation(
+        group.events[group.events.length - 1]?.status,
+        group.events[group.events.length - 1]?.returnStage,
+      )
         .tone,
       events: [...group.events].reverse(),
     }))
@@ -90,7 +93,7 @@ export function CourierTimeline({
               ) : null}
 
               {group.events.map((event, i) => {
-                const presentation = courierStatusPresentation(event.status);
+                const presentation = courierStatusPresentation(event.status, event.returnStage);
                 return (
                   <div
                     key={i}

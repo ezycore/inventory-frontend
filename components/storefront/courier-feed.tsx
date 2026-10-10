@@ -11,6 +11,8 @@ export interface CourierFeedEvent {
   label?: string;
   group?: string;
   at?: string;
+  /** The return leg (G15) — a refused parcel coming back is not "On the way". */
+  returnStage?: string;
 }
 
 /**
@@ -57,7 +59,10 @@ export function CourierFeed({ history }: { history: CourierFeedEvent[] }) {
       name: group.name,
       // A phase is however it ended up, so the heading takes its tone from the
       // chronologically LAST event under it — resolved before the flip.
-      tone: courierStatusPresentation(group.events[group.events.length - 1]?.status)
+      tone: courierStatusPresentation(
+        group.events[group.events.length - 1]?.status,
+        group.events[group.events.length - 1]?.returnStage,
+      )
         .tone,
       events: [...group.events].reverse(),
     }))
@@ -135,7 +140,7 @@ export function CourierFeed({ history }: { history: CourierFeedEvent[] }) {
               ) : null}
 
               {group.events.map((entry, i) => {
-                const ep = courierStatusPresentation(entry.status);
+                const ep = courierStatusPresentation(entry.status, entry.returnStage);
                 return (
                   <span
                     key={i}

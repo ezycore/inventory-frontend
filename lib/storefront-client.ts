@@ -9,7 +9,7 @@ import {
   previewApiHeaders,
   storefrontPreviewToken,
 } from "@/lib/storefront-preview";
-import type { CourierNormalizedStatus } from "@/lib/courier-status";
+import type { CourierNormalizedStatus, CourierReturnStage } from "@/lib/courier-status";
 import type { StoreFocalPoint } from "@/lib/storefront-focal";
 import type { ContactButtonPage, ContactChannelKind } from "@/types";
 
@@ -1256,12 +1256,20 @@ export interface StorefrontOrder {
     /** Raw provider status (admin-only). Shopper UI renders `normalizedStatus`. */
     status?: string;
     normalizedStatus?: CourierNormalizedStatus;
+    /** The return leg (G15) — wins over `normalizedStatus` for the label when present. */
+    returnStage?: CourierReturnStage;
     /**
      * The parcel's progress feed. For a manual courier these are the merchant's
      * own updates — the only delivery detail the shopper gets. The staff `by` is
      * stripped server-side.
      */
-    history?: { status: string; label?: string; group?: string; at?: string }[];
+    history?: {
+      status: string;
+      label?: string;
+      group?: string;
+      at?: string;
+      returnStage?: CourierReturnStage;
+    }[];
   };
   createdAt: string;
   statusHistory?: { status: string; at: string }[];
@@ -1340,7 +1348,15 @@ export interface TrackedOrder {
     trackingCode?: string;
     trackingUrl?: string;
     normalizedStatus?: string;
-    history: { status: string; label?: string; group?: string; at?: string }[];
+    /** The return leg (G15) — see `StorefrontOrder.courier.returnStage`. */
+    returnStage?: CourierReturnStage;
+    history: {
+      status: string;
+      label?: string;
+      group?: string;
+      at?: string;
+      returnStage?: CourierReturnStage;
+    }[];
   };
   statusHistory: { status: string; at?: string }[];
 }

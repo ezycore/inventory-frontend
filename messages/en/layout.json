@@ -7,7 +7,8 @@
       "stock": "Stock",
       "money": "Money",
       "insights": "Insights",
-      "admin": "Admin"
+      "admin": "Admin",
+      "products": "Products"
     },
     "items": {
       "dashboard": "Dashboard",
@@ -45,7 +46,6 @@
       "customers": "Customers",
       "suppliers": "Suppliers",
       "online-store": "Online Store",
-      "store-overview": "Store Overview",
       "online-orders": "Online Orders",
       "collections": "Collections",
       "campaigns": "Campaigns",

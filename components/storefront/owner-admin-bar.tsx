@@ -25,7 +25,7 @@ import { useOwnerbarHeight } from "@/components/storefront/use-ownerbar-height";
  *     in the admin Customize editor's live-preview embed.
  *
  * On a tenant subdomain admin + store share one origin, so the links navigate
- * same-origin (`/ecommerce/customize`, `/ecommerce/dashboard`).
+ * same-origin (`/ecommerce/customize`, `/dashboard`).
  */
 export function OwnerAdminBar() {
   const hydrated = useHydrated();
@@ -75,7 +75,7 @@ export function OwnerAdminBar() {
             Customize
           </Link>
           <Link
-            href="/ecommerce/dashboard"
+            href="/dashboard"
             className="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-neutral-300 hover:bg-white/10 hover:text-white"
           >
             <LayoutDashboard className="h-4 w-4" />

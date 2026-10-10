@@ -226,12 +226,12 @@
     },
     "summary": {
       "totalReturns": "Total Returns",
-      "returnAmount": "Return Amount",
+      "returnAmount": "Value of goods returned",
       "pending": "Pending",
       "cashRefunded": "Cash Refunded",
       "allTime": "all time",
-      "totalRefunded": "total refunded",
-      "awaitingReview": "awaiting review"
+      "awaitingReview": "awaiting review",
+      "allTimeThisMonth": "all time · {amount} this month"
     },
     "allocation": {
       "adjustCurrentSaleDue": "Adjust Current Sale Due",
@@ -244,6 +244,7 @@
       "wrongItem": "Wrong Item",
       "customerChangedMind": "Customer Changed Mind",
       "expired": "Expired",
+      "refusedDelivery": "Refused at delivery",
       "other": "Other"
     },
     "filters": {

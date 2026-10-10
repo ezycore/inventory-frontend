@@ -9,6 +9,78 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-10
+
+### Added
+- Online Orders: a **Returns** filter (every order something came back from), and a **Returns**
+  card on each order that opens its return documents. Sales → Returns (the counter's
+  find-by-invoice page) now needs counter sales; a shop that sells only online takes returns from
+  the order. Help guide "Handle online orders" (en + bn) updated.
+- Online order: **Return items** takes back some items of a delivered, paid order (or more of a
+  partly returned one) — quantity per line, refund to an account or store credit. Help guide
+  "Handle online orders" (en + bn) has a new section.
+- Product page → Pricing: **Add cost** / **Edit** sets a cost price at any time (per variant tab),
+  for sales from now on. Hidden where purchases maintain the cost ("Updated automatically each time
+  you receive a purchase.") and without `products.edit` + `costs.view`. Help guide "Add your
+  products" (en + bn) has a new section.
+
+### Changed
+- Abandoned Carts: the purchase funnel is Built a cart → Reached checkout → Ordered. "Signed in"
+  and "Email verified" were bars as if an account were required; shoppers order as guests, so
+  sign-ins are now a note under the funnel.
+- New online orders offer **Cancel order** beside Reject — a customer who cancels is not a
+  rejection, and with only Reject on offer those were filed as "Other". Rejecting as "Other" asks
+  what it was.
+- **Return items** asks why the items came back; Sales → Returns lists and filters
+  **Refused at delivery**.
+- Shops that don't count stock: the product page no longer draws the three stock charts (they
+  only ever read "No data yet"), and the sidebar's "Stock" group is headed **Products**.
+- Product page sales figures (units sold, revenue, gross profit, orders) also show for a
+  storefront-only shop — online orders are sales too. Gross profit reads "—" when no sale had a cost.
+- Product page with no cost price: cost reads "No cost yet", Profit/Unit and margin read "—" with
+  "Add a cost price to see profit" — the selling price was shown as profit.
+- Warranty help guide (en + bn) says warranty starts switched off and where to turn it on —
+  it is opt-in from inventory-backend's warranty opt-in release.
+- Profit & Loss and Business Position need the Accounts feature: hidden from the menu (and the
+  URL shows the locked screen) when it is off — profit for those shops is on the Orders Report.
+- Profit & Loss shows a "Sales with no cost price (not counted in profit)" line and notice, matching
+  the dashboard and Orders Report. Help guide "Read your reports" (en + bn) updated.
+- With Accounts off, Courier Payouts becomes **Courier charges** (only what each courier billed vs
+  what you charged), and the order's courier panel no longer says the courier owes the money — a
+  merchant who records no courier payments was told couriers owed them forever. Help guide
+  "Record courier payments" (en + bn) updated.
+- Online Orders: a **Courier says returned** card and filter button list orders the courier reported
+  returned that still need **Return whole order**; Pathao parcels that come back unpaid are returned
+  automatically. Activity log shows **Courier** (not Staff) for courier updates. Help guide "Handle
+  online orders" (en + bn) updated.
+- A refused parcel on its way back reads **Returning to you** (shopper: "Returning to sender"), and
+  **Back with you** once Pathao hands it over — it used to read "In transit" / "On the way".
+
+### Fixed
+- Sales → Returns: the value card showed this month's total under an all-time count and called it
+  "total refunded". It now reads **Value of goods returned**, all time, with this month in the
+  caption.
+- Return detail of an online order: **Sale reversed**, **Refunded**, **Delivery kept** and
+  **Courier return charge** (when recorded) instead of "Total refund" — which read as money paid
+  back on a parcel nobody paid for — plus the order number. A line with no cost no longer shows
+  "Cost ৳0.00".
+- **Collected a different amount…**: a refused item from a product with options (size, colour) is
+  returned as that variant — every line was sent with no variant, so the server refused it, and two
+  sizes of one product shared one input.
+
+### Removed
+- **Store Overview** (Online Store → Store Overview). Its store status and counts were the
+  dashboard's **Your store** card; the "give your store a look" card now sits under that card.
+  Old links (`/ecommerce`, `/ecommerce/dashboard`, the storefront's "Back to admin") go to the
+  dashboard.
+
+### Deploy notes
+- **Needs inventory-backend ≥ 1.3.0** — deploy the backend first.
+- Needs inventory-backend with `summary.costCoverage` on `GET /api/reports/profit-loss` (same
+  release as the one-profit-formula fix) `PUT /api/products/:id/cost`, and `lines` on `GET /api/ecommerce/orders/:id/return-preview`, `onlineOrder` on
+  `GET /api/sales/returns/:id`, `hasReturns` on `GET /api/ecommerce/orders`;
+  deploy the backend first.
+
 ## [1.3.0] - 2026-10-08
 
 ### Added

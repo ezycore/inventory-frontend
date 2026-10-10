@@ -175,7 +175,7 @@ export function AccountPageView({ layout }: { layout?: string } = {}) {
                     {t.staffNoticeMsg}
                   </p>
                   <Link
-                    href="/ecommerce/dashboard"
+                    href="/dashboard"
                     style={{ ...brandButton({ radius: 8, padding: "9px 14px", fontSize: 13 }), display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600 }}
                   >
                     {t.goToAdmin}

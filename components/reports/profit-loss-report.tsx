@@ -24,6 +24,10 @@ import { PeriodFilter } from '@/components/shared/period-filter'
  *   gross profit, which reads as "no expenses" unless we say "not tracked". Hence the banner.
  * - **The basis footnote** — revenue is accrual, expenses are cash. This is not an audited
  *   income statement and must not be presented as one.
+ * - **`summary.costCoverage.unknownRevenue`** — revenue with no cost price is left OUT of gross
+ *   profit (one formula with the dashboard and Orders Report, G6 in
+ *   `inventory-backend/docs/features/business-modes.md`), so it gets its own statement line or the
+ *   lines stop adding up.
  */
 
 /** One line of the statement. `emphasis` marks a subtotal; `negate` renders a deduction. */
@@ -89,6 +93,7 @@ export function ProfitLossReport() {
     ? calcChange(data.summary.netProfit, data.previous.netProfit)
     : null
   const isProfit = (data?.summary.netProfit ?? 0) >= 0
+  const unknownCostRevenue = data?.summary.costCoverage.unknownRevenue ?? 0
 
   return (
     <div className="space-y-6">
@@ -119,6 +124,15 @@ export function ProfitLossReport() {
             </div>
           )}
 
+          {unknownCostRevenue > 0 && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/40">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-amber-900 dark:text-amber-200">
+                {t('unknownCostNote', { amount: format(unknownCostRevenue) })}
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader>
@@ -144,6 +158,17 @@ export function ProfitLossReport() {
                   row={{ label: t('revenueNet'), value: data.summary.revenue.net, emphasis: true }}
                   format={format}
                 />
+                {unknownCostRevenue > 0 && (
+                  <StatementLine
+                    row={{
+                      label: t('unknownCostRevenue'),
+                      value: unknownCostRevenue,
+                      negate: true,
+                      muted: true,
+                    }}
+                    format={format}
+                  />
+                )}
                 <StatementLine
                   row={{ label: t('cogs'), value: data.summary.cogs.net, negate: true }}
                   format={format}

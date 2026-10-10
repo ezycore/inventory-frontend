@@ -99,9 +99,35 @@ export function courierGroupLabel(group: string, bn: boolean): string {
   return COURIER_GROUP_BN[key] ?? group;
 }
 
-/** Resolve presentation for a status, falling back to `unknown` for any stray value. */
+/**
+ * The return leg (G15, backend `courierReturnStage`). The normalized vocabulary has one
+ * `in_transit`, so a refused parcel travelling BACK read "In transit" beside an order already
+ * reading Returned, and the shopper was told it was "On the way". The backend marks the leg;
+ * these labels win over the normalized status whenever it is present.
+ */
+export type CourierReturnStage = "returning" | "back";
+
+const RETURN_STAGE: Record<CourierReturnStage, CourierStatusPresentation> = {
+  returning: {
+    admin: "Returning to you",
+    shopper: { en: "Returning to sender", bn: "প্রেরকের কাছে ফেরত যাচ্ছে" },
+    tone: "#c2410c",
+  },
+  back: {
+    admin: "Back with you",
+    shopper: { en: "Returned to sender", bn: "প্রেরকের কাছে ফেরত" },
+    tone: "#c2410c",
+  },
+};
+
+/**
+ * Resolve presentation for a status, falling back to `unknown` for any stray value. A return
+ * stage, when the backend sent one, overrides the status.
+ */
 export function courierStatusPresentation(
   status: string | null | undefined,
+  returnStage?: string | null,
 ): CourierStatusPresentation {
+  if (returnStage === "returning" || returnStage === "back") return RETURN_STAGE[returnStage];
   return COURIER_STATUS[(status as CourierNormalizedStatus) ?? "unknown"] ?? COURIER_STATUS.unknown;
 }

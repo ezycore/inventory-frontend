@@ -2644,6 +2644,8 @@ export type SalesReturnReason =
   | "wrong_item"
   | "customer_changed_mind"
   | "expired"
+  /** Online only: refused at the door, brought back by the courier (G10). */
+  | "refused_delivery"
   | "other";
 
 /**
@@ -2687,6 +2689,13 @@ export interface SalesReturn extends BaseEntity {
   deductionAmount?: number; // Optional fee withheld from gross refund
   refundedAmount: number; // Actual cash refunded
   taxTotal?: number; // Σ line taxAmount refunded (mirrors Sale.taxTotal)
+  /** Detail read only, for a return of an online order (G7). `returnCharge: null` = not recorded. */
+  onlineOrder?: {
+    orderId: string;
+    orderNumber: string;
+    shippingCharged: number;
+    returnCharge: number | null;
+  };
   totalCostAmount?: number;
   reason: SalesReturnReason;
   notes?: string;
