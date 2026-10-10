@@ -137,8 +137,11 @@ describe("navGroups — online-only merchant", () => {
     expect(visibleTitles(ONLINE_ONLY)).not.toContain("POS");
   });
 
-  it("keeps returns, titled Returns, which returns online orders too", () => {
-    expect(visibleTitles(ONLINE_ONLY)).toContain("Returns");
+  // D6 (backend business-modes.md): Sales Returns is the counter's find-by-invoice screen. An
+  // online-only shop takes its returns from the order — Online Orders → Returns, and each order's
+  // own Returns card — so the menu row goes with counter sales.
+  it("keeps the counter's returns screen with counter sales only", () => {
+    expect(visibleTitles(ONLINE_ONLY)).not.toContain("Returns");
     expect(visibleTitles(ONLINE_ONLY)).not.toContain("Sales Returns");
     expect(visibleTitles(BOTH)).toContain("Sales Returns");
   });
@@ -154,7 +157,8 @@ describe("navGroups — online-only merchant", () => {
 
   it("still shows Online Store", () => {
     expect(visibleTitles(ONLINE_ONLY)).toContain("Online Store");
-    expect(visibleTitles(ONLINE_ONLY)).toContain("Store Overview");
+    // Store Overview was removed (G11, D5): it repeated the dashboard's "Your store" card.
+    expect(visibleTitles(ONLINE_ONLY)).not.toContain("Store Overview");
   });
 
   it("lists Online Orders under Orders, not under Online Store", () => {
@@ -201,8 +205,8 @@ describe("navGroups — Online Store as its own group", () => {
   });
 
   it("keeps every storefront screen reachable under that one row", () => {
+    // No Store Overview (G11, D5) — its numbers are the dashboard's "Your store" card.
     expect(childrenOf(BOTH, "Online Store")).toEqual([
-      "Store Overview",
       "Collections",
       "Campaigns",
       "Coupons",
