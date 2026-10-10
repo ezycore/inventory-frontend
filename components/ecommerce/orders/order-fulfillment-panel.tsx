@@ -73,8 +73,8 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
           <div className="flex-1">
             <div className="text-sm font-semibold">In-store pickup</div>
             <div className="text-xs text-muted-foreground">
-              No courier — the customer collects from your store. Marking it ready
-              for pickup books the sale; use the status button above.
+              No courier — the customer collects from your store. Mark it ready for
+              pickup with the status button above.
             </div>
           </div>
         </div>
@@ -133,13 +133,13 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
           <>
             <p className="text-xs text-muted-foreground">
               {reDispatch
-                ? "The previous consignment was cancelled. Re-dispatching books a fresh consignment (same courier or another) — the sale is already recorded."
+                ? "The previous consignment was cancelled. Re-dispatching books a fresh consignment with the same courier or another."
                 : stockTracked
-                  ? "Dispatching books the sale (consuming the reserved stock) and marks the order shipped."
+                  ? "Sending it to the courier marks the order shipped and takes the held items out of stock."
                   // Nothing was reserved at confirm on a stock-free workspace,
                   // so there is nothing to consume here either (QA-N6). The
                   // sale and the status change are real at both tiers.
-                  : "Dispatching books the sale and marks the order shipped."}
+                  : "Sending it to the courier marks the order shipped."}
             </p>
             {reDispatch ? (
               <button

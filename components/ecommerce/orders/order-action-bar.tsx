@@ -9,12 +9,16 @@ import { Button } from "@/ui/components/button";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
 import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { useOrderStatusLabels } from "@/hooks/use-order-status-labels";
+import { formatMoney } from "@/components/storefront/format";
+import { useAuthStore } from "@/services/stores/use-auth-store";
 import { OrderCancelDialog } from "./order-cancel-dialog";
+import { OrderCollectionDialog } from "./order-collection-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import { OrderEditButton } from "./order-edit-button";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";
 import { OrderReturnDialog } from "./order-return-dialog";
 import { OrderReverseStatusDialog } from "./order-reverse-status-dialog";
+import { codToCollect, collectionLabels, confirmOrderPrompt } from "./order-detail-helpers";
 
 /**
  * The header action cluster — the order's forward controls. Reflects the
@@ -33,6 +37,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
   // reads as one vocabulary — a "Mark processing" button under a stepper the
   // merchant relabelled "Packing" is the mismatch this avoids.
   const { labelFor } = useOrderStatusLabels();
+  const currency = useAuthStore((s) => s.user?.organization?.currency);
 
   const isPaid = order.paymentStatus === "paid";
   const isPickup = order.fulfillmentType === "pickup";
@@ -41,7 +46,6 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
     !order.saleId &&
     ["pending", "confirmed", "processing"].includes(order.status);
   const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
-  const plural = itemCount === 1 ? "" : "s";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -61,27 +65,24 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
               </Button>
             }
           />
-          <OrderConfirmDialog
-            trigger={<Button size="sm">Confirm order</Button>}
-            title="Confirm this order?"
-            // Two tiers, two truths. `reservationLines` returns an empty list
-            // for an org that does not count stock, so `reserveStock` is a
-            // no-op and `reservedQuantity` never moves — a dialog naming a
-            // quantity and offering to release it later described something
-            // that had not happened (QA-N5). What IS true at both tiers is the
-            // sale timing, so that is what the stock-free wording keeps.
-            description={
-              stockTracked
-                ? `This reserves stock for ${itemCount} item${plural} from the fulfillment location — no sale is booked yet. The sale is created when you ${
-                    isPickup ? "mark it ready for pickup" : "ship it"
-                  }. You can cancel until then to release the reservation.`
-                : `This accepts the order — no sale is booked yet. The sale is created when you ${
-                    isPickup ? "mark it ready for pickup" : "ship it"
-                  }. You can cancel until then.`
-            }
-            actionLabel={stockTracked ? "Confirm & reserve stock" : "Confirm order"}
-            onConfirm={() => confirm.mutate(order._id)}
-          />
+          {/* A prompt only where confirming has a hidden effect: with stock it holds the items.
+              Without stock it just moves the order on, cancellable until it ships — one click. */}
+          {stockTracked ? (
+            <OrderConfirmDialog
+              trigger={<Button size="sm">Confirm order</Button>}
+              {...confirmOrderPrompt(itemCount, isPickup)}
+              cancelLabel="Not yet"
+              onConfirm={() => confirm.mutate(order._id)}
+            />
+          ) : (
+            <Button
+              size="sm"
+              disabled={confirm.isPending}
+              onClick={() => confirm.mutate(order._id)}
+            >
+              Confirm order
+            </Button>
+          )}
         </>
       )}
 
@@ -115,7 +116,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             updateStatus.mutate({ id: order._id, status: "ready_for_pickup" })
           }
         >
-          {labelFor("ready_for_pickup")} — books the sale
+          Mark as {labelFor("ready_for_pickup")}
         </Button>
       )}
       {order.status === "ready_for_pickup" && (
@@ -154,7 +155,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             disabled={markPaid.isPending}
             onClick={() => markPaid.mutate({ id: order._id })}
           >
-            Mark COD collected
+            {collectionLabels(order, formatMoney(codToCollect(order), currency)).full}
           </Button>
         )}
 
@@ -179,22 +180,26 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
             }
           />
         )}
-      {/* Some items back after a paid delivery (G5). An unpaid COD order takes part of the
-          parcel back through `OrderCollectionDialog` instead, so this waits for payment;
-          `partially_returned` keeps it, so the rest can follow later. */}
+      {/* Some items back — one button whatever the payment state. Unpaid: the same step records
+          what was collected, so a part-refused parcel needs no "Mark as Delivered" first.
+          Paid: a return after delivery (G5). `partially_returned` keeps it, so the rest can
+          follow later. */}
       {!isPickup &&
         !!order.saleId &&
-        isPaid &&
-        (order.status === "delivered" || order.status === "partially_returned") && (
-          <OrderItemsReturnDialog
-            order={order}
-            trigger={
-              <Button variant="outline" size="sm">
-                Return items
-              </Button>
-            }
-          />
-        )}
+        (isPaid
+          ? order.status === "delivered" || order.status === "partially_returned"
+          : ["shipped", "delivered", "partially_returned"].includes(order.status)) &&
+        (isPaid ? (
+          <OrderItemsReturnDialog order={order} trigger={returnItemsButton} />
+        ) : (
+          <OrderCollectionDialog order={order} mode="returnItems" trigger={returnItemsButton} />
+        ))}
     </div>
   );
 }
+
+const returnItemsButton = (
+  <Button variant="outline" size="sm">
+    Return items
+  </Button>
+);

@@ -2695,6 +2695,8 @@ export interface SalesReturn extends BaseEntity {
     orderNumber: string;
     shippingCharged: number;
     returnCharge: number | null;
+    /** What the customer paid at the door on a refused parcel, as the courier reported it; `null` = not reported. */
+    collectedAtDoor: number | null;
   };
   totalCostAmount?: number;
   reason: SalesReturnReason;

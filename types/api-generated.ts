@@ -10302,6 +10302,7 @@ export interface components {
                 orderNumber: string;
                 shippingCharged: number;
                 returnCharge: number | null;
+                collectedAtDoor: number | null;
             };
         };
         SalesReturnPendingDues: {
@@ -10429,6 +10430,7 @@ export interface components {
                     orderNumber: string;
                     shippingCharged: number;
                     returnCharge: number | null;
+                    collectedAtDoor: number | null;
                 };
             };
             refundPayment?: {
@@ -10547,6 +10549,7 @@ export interface components {
                     orderNumber: string;
                     shippingCharged: number;
                     returnCharge: number | null;
+                    collectedAtDoor: number | null;
                 };
             }[];
             summary: {
@@ -11928,6 +11931,9 @@ export interface components {
                     normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                     /** @enum {string} */
                     returnStage?: "returning" | "back";
+                    partialDelivery?: boolean;
+                    paidReturn?: boolean;
+                    collectedAmount?: number;
                     history?: {
                         status: string;
                         code?: string;
@@ -12157,6 +12163,9 @@ export interface components {
                 normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                 /** @enum {string} */
                 returnStage?: "returning" | "back";
+                partialDelivery?: boolean;
+                paidReturn?: boolean;
+                collectedAmount?: number;
                 history?: {
                     status: string;
                     code?: string;
@@ -12376,6 +12385,9 @@ export interface components {
                     normalizedStatus?: "pending" | "in_transit" | "delivered" | "returned" | "cancelled" | "unknown";
                     /** @enum {string} */
                     returnStage?: "returning" | "back";
+                    partialDelivery?: boolean;
+                    paidReturn?: boolean;
+                    collectedAmount?: number;
                     history?: {
                         status: string;
                         code?: string;

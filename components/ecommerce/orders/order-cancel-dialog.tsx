@@ -127,7 +127,7 @@ export function OrderCancelDialog({
                 // is no hold to give back (QA-N13). The half that stays true at
                 // both tiers is the sentence below.
                 : ""}
-            No sale has been booked yet. This can&apos;t be undone.
+            This can&apos;t be undone.
           </DialogDescription>
         </DialogHeader>
 
@@ -196,8 +196,8 @@ export function OrderCancelDialog({
               {choice === "keep" && keptGoodsLeg > 0 && (
                 <p className="text-xs text-amber-700">
                   {money(keptGoodsLeg)} of this was collected against the goods.
-                  The cash stays in your account, but no sale will be recorded for
-                  it — add it as other income if you want it counted as profit.
+                  The cash stays in your account, but it is not counted in your order
+                  revenue — add it as other income if you want it counted as profit.
                 </p>
               )}
               {choice === "refund" &&

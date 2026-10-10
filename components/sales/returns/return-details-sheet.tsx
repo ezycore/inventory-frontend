@@ -49,7 +49,7 @@ function normalizeSalesReturn(r: SalesReturn): ReturnDetailsData {
     online: r.onlineOrder
       ? {
           orderNumber: r.onlineOrder.orderNumber,
-          shippingCharged: r.onlineOrder.shippingCharged,
+          collectedAtDoor: r.onlineOrder.collectedAtDoor,
           returnCharge: r.onlineOrder.returnCharge,
         }
       : undefined,

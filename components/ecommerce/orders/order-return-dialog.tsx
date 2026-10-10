@@ -58,7 +58,11 @@ export function OrderReturnDialog({
 
   const [open, setOpen] = useState(false);
   const [returnCharge, setReturnCharge] = useState<number | null>(null);
-  const [collectedAmount, setCollectedAmount] = useState<number | null>(null);
+  // Starts from what the courier reported collecting on a refused parcel (a paid return), so the
+  // merchant confirms the figure rather than having to find it in the courier's panel.
+  const [collectedAmount, setCollectedAmount] = useState<number | null>(
+    order.courier?.paidReturn ? (order.courier.collectedAmount ?? null) : null,
+  );
   const [accountId, setAccountId] = useState("");
   const [refundMode, setRefundMode] = useState<RefundMode>("account");
   const [refundAccountId, setRefundAccountId] = useState("");
@@ -121,22 +125,25 @@ export function OrderReturnDialog({
               // there is no quantity to put back (QA-L3).
               : "Reverses the sale with a full return — the goods refund is processed."}{" "}
             This can&apos;t be undone.
-            {/* Only where that button exists: it is offered on an unpaid COD
-                order, because a part-refused parcel is a collection, not a
-                return of everything. */}
-            {!neverDispatched &&
-            order.paymentMethod === "cod" &&
-            order.paymentStatus !== "paid" ? (
+            {/* Return items sits beside this button on every dispatched order. */}
+            {!neverDispatched ? (
               <>
                 {" "}
-                If only part of the parcel came back, use{" "}
-                <b>Collected a different amount…</b> instead.
+                If only part of the parcel came back, use <b>Return items</b> instead.
               </>
             ) : null}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* The courier said the customer kept part of it. Returning everything would reverse
+              goods that were sold and paid for — found live on three UriiBaba orders. */}
+          {order.courier?.partialDelivery && (
+            <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+              The courier reported a <b>partial delivery</b> — the customer kept some items. Use{" "}
+              <b>Return items</b> for the ones that came back.
+            </p>
+          )}
           <div className="rounded-lg bg-muted p-3 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Goods refund (net)</span>
@@ -224,6 +231,17 @@ export function OrderReturnDialog({
               />
             </div>
           </div>
+          )}
+          {/* Without accounts there is no box to put it in, but the merchant should still see
+              that the courier collected something on this refused parcel. */}
+          {!showLegs && order.courier?.paidReturn && (
+            <p className="text-xs text-muted-foreground">
+              The customer paid{" "}
+              {order.courier.collectedAmount !== undefined
+                ? money(order.courier.collectedAmount)
+                : "the delivery charge"}{" "}
+              at the door. The courier holds it until they pay you.
+            </p>
           )}
 
           {showLegs && accountOptions.length > 0 && hasLegs ? (

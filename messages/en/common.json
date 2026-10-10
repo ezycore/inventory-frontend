@@ -174,7 +174,7 @@
       "serialsLine": "S/N: {codes}",
       "saleReversedLabel": "Sale reversed",
       "refundedLabel": "Refunded",
-      "deliveryKeptLabel": "Delivery kept",
+      "paidAtDoorLabel": "Paid at the door",
       "courierReturnChargeLabel": "Courier return charge",
       "onlineOrder": "Online order"
     }
@@ -282,6 +282,10 @@
     "deduction": "Deduction",
     "totalRefund": "Total Refund",
     "refunded": "Refunded",
+    "saleReversed": "Sale reversed",
+    "paidAtDoor": "Paid at the door",
+    "courierReturnCharge": "Courier return charge",
+    "onlineOrder": "Online order",
     "receivedFrom": "Received from",
     "paidTo": "Paid to",
     "method": "Method",
