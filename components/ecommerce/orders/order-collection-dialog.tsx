@@ -20,11 +20,8 @@ import { Label } from "@/ui/components/label";
 import { NumberField } from "@/ui/components/number-field";
 import { SimpleSelect } from "@/ui/components/simple-select";
 import { useOrderAccountOptions } from "@/hooks/use-order-account-options";
-import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { codToCollect } from "./order-detail-helpers";
-
-const itemKey = (item: { productId: unknown; variantId?: unknown }) =>
-  `${String(item.productId)}|${item.variantId ? String(item.variantId) : ""}`;
+import { ReturnLinesPicker, returnLineKey as itemKey } from "./return-lines-picker";
 
 /**
  * Record what the courier actually handed over.
@@ -45,19 +42,24 @@ const itemKey = (item: { productId: unknown; variantId?: unknown }) =>
  * validation nicety: making the merchant account for the gap is what stops it
  * silently becoming fabricated cash (mark paid in full) or a phantom receivable
  * (record the short amount and leave the rest owing forever).
+ *
+ * `mode="returnItems"` is the same dialog opened from **Return items** on an unpaid order: the
+ * merchant starts from what came back, and what the courier collected follows from it. One
+ * action, so a part-refused parcel no longer needs "Mark as Delivered" first.
  */
 export function OrderCollectionDialog({
   order,
   trigger,
+  mode = "collection",
 }: {
   order: AdminStorefrontOrder;
   trigger: React.ReactNode;
+  mode?: "collection" | "returnItems";
 }) {
   const [open, setOpen] = useState(false);
   const record = useRecordCollection();
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
-  const stockTracked = useStockTracked();
 
   // What the COURIER was asked to bring back — the order total net of any
   // advance. The prepayment's shipping leg is already banked and its goods leg
@@ -66,7 +68,11 @@ export function OrderCollectionDialog({
   // computes it the same way and refuses anything that does not reconcile to it.
   const prepaid = order.prepaidAmount ?? 0;
   const expected = codToCollect(order);
-  const [collected, setCollected] = useState<number>(expected);
+  // What the courier says it collected at the door (Pathao reports it on a partial delivery).
+  const courierFigure = order.courier?.collectedAmount;
+  // Until the merchant types a figure, "collected" follows the items: the order less what came
+  // back — or the courier's own figure when it sent one.
+  const [typedCollected, setTypedCollected] = useState<number | null>(null);
   const [accountId, setAccountId] = useState("");
   const [discount, setDiscount] = useState<number>(0);
   const [discountNote, setDiscountNote] = useState("");
@@ -102,6 +108,10 @@ export function OrderCollectionDialog({
     [order.items, returning],
   );
 
+  const collected =
+    typedCollected ??
+    courierFigure ??
+    Math.max(0, Math.round((expected - returnValue) * 100) / 100);
   const accounted = collected + returnValue + discount + stillOwed;
   const difference = Math.round((expected - accounted) * 100) / 100;
   const reconciles = Math.abs(difference) < 0.01;
@@ -129,10 +139,11 @@ export function OrderCollectionDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Record collection</DialogTitle>
+          <DialogTitle>{mode === "returnItems" ? "Return items" : "Record collection"}</DialogTitle>
           <DialogDescription>
-            What the courier handed over. Anything short of {money(expected)} has
-            to be accounted for below.
+            {mode === "returnItems"
+              ? `Pick what came back. The rest is what was collected — anything short of ${money(expected)} has to be accounted for below.`
+              : `What was collected at the door. Anything short of ${money(expected)} has to be accounted for below.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -160,6 +171,10 @@ export function OrderCollectionDialog({
             </div>
           </div>
 
+          {/* Items first: what was collected follows from what came back. Shown with or without
+              stock tracking — a refused item still comes off the sale. */}
+          <ReturnLinesPicker items={order.items ?? []} value={returning} onChange={setReturning} />
+
           <div className="space-y-1.5">
             <Label htmlFor="collected">Collected</Label>
             <NumberField
@@ -168,48 +183,14 @@ export function OrderCollectionDialog({
               min={0}
               max={expected}
               value={collected}
-              onChange={(v) => setCollected(v ?? 0)}
+              onChange={(v) => setTypedCollected(v ?? 0)}
             />
+            {courierFigure !== undefined && (
+              <p className="text-xs text-muted-foreground">
+                The courier reported collecting {money(courierFigure)}.
+              </p>
+            )}
           </div>
-
-          {/* Goods coming back. Hidden on a workspace with no stock: nothing is
-              restocked there, so the line picker would promise a movement that
-              does not happen — the concession below is the only shape a short
-              collection can take. */}
-          {stockTracked && (order.items ?? []).length > 0 && (
-            <div className="space-y-2">
-              <Label>Goods coming back</Label>
-              <div className="space-y-1.5 rounded-md border p-3">
-                {(order.items ?? []).map((item) => (
-                  <div
-                    key={itemKey(item)}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      {item.productName}
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        × {item.quantity}
-                      </span>
-                    </span>
-                    <NumberField
-                      precision={0}
-                      min={0}
-                      max={item.quantity}
-                      value={returning[itemKey(item)] ?? 0}
-                      onChange={(v) =>
-                        setReturning((prev) => ({
-                          ...prev,
-                          [itemKey(item)]: v ?? 0,
-                        }))
-                      }
-                      className="h-8 w-24"
-                      aria-label={`Return ${item.productName}`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -286,7 +267,11 @@ export function OrderCollectionDialog({
             onClick={submit}
             disabled={!reconciles || needsNote || record.isPending}
           >
-            {record.isPending ? "Recording…" : "Record collection"}
+            {record.isPending
+              ? "Recording…"
+              : mode === "returnItems"
+                ? "Return items"
+                : "Record collection"}
           </Button>
         </DialogFooter>
       </DialogContent>

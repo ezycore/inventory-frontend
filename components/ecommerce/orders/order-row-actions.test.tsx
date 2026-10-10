@@ -28,7 +28,8 @@ vi.mock("@/services/api", () => ({
   useConfirmOrder: () => ({ mutate: confirmMutate }),
   useDeleteOrder: () => ({ mutate: deleteMutate }),
 }));
-vi.mock("@/hooks/use-stock-tracked", () => ({ useStockTracked: () => true }));
+const stock = vi.hoisted(() => ({ tracked: true }));
+vi.mock("@/hooks/use-stock-tracked", () => ({ useStockTracked: () => stock.tracked }));
 vi.mock("@/hooks/use-has-permission", () => ({
   PERMISSIONS: { storefrontOrdersDelete: "storefront.orders.delete" },
   useHasPermission: (p: string) => permissions.value.includes(p),
@@ -112,14 +113,29 @@ describe("order row actions", () => {
       await user.click(screen.getByRole("menuitem", { name: /confirm order/i }));
 
       // The stock-tracked wording — the item count is the merchant's check that
-      // they picked the row they meant.
-      expect(screen.getByText(/reserves stock for 2 items/i)).toBeTruthy();
+      // they picked the row they meant. Order language: no "sale" (2026-10-10).
+      expect(screen.getByText(/holds 2 items in stock for this order/i)).toBeTruthy();
+      expect(screen.queryByText(/sale/i)).toBeNull();
+      expect(screen.getByRole("button", { name: "Not yet" })).toBeTruthy();
       expect(confirmMutate).not.toHaveBeenCalled();
 
-      await user.click(
-        screen.getByRole("button", { name: /confirm & reserve stock/i }),
-      );
+      await user.click(screen.getByRole("button", { name: "Confirm order" }));
       expect(confirmMutate).toHaveBeenCalledWith("o1");
+    });
+
+    // Nothing is held without stock, and the order can be cancelled until it ships, so a
+    // prompt on the most-pressed action in the shop was only an extra click.
+    it("confirms in one click when the shop does not track stock", async () => {
+      stock.tracked = false;
+      try {
+        const { user } = await openMenu();
+        await user.click(screen.getByRole("menuitem", { name: /confirm order/i }));
+
+        expect(confirmMutate).toHaveBeenCalledWith("o1");
+        expect(screen.queryByText(/confirm this order\?/i)).toBeNull();
+      } finally {
+        stock.tracked = true;
+      }
     });
   });
 
