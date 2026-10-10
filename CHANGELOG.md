@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-10
+
 ### Added
 - Online Orders: a **Returns** filter (every order something came back from), and a **Returns**
   card on each order that opens its return documents. Sales → Returns (the counter's
@@ -73,6 +75,7 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   dashboard.
 
 ### Deploy notes
+- **Needs inventory-backend ≥ 1.3.0** — deploy the backend first.
 - Needs inventory-backend with `summary.costCoverage` on `GET /api/reports/profit-loss` (same
   release as the one-profit-formula fix) `PUT /api/products/:id/cost`, and `lines` on `GET /api/ecommerce/orders/:id/return-preview`, `onlineOrder` on
   `GET /api/sales/returns/:id`, `hasReturns` on `GET /api/ecommerce/orders`;
