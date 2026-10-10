@@ -20,6 +20,7 @@ import {
 } from "@/ui/components/dropdown-menu";
 import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
+import { confirmOrderPrompt } from "./order-detail-helpers";
 
 /**
  * The row's action menu — the triage loop (confirm / reject a pending order)
@@ -60,7 +61,6 @@ export function OrderRowActions({
   const isDeletable = canDelete && isDeletableOrder(order);
   const isPickup = order.fulfillmentType === "pickup";
   const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
-  const plural = itemCount === 1 ? "" : "s";
 
   return (
     <>
@@ -98,7 +98,13 @@ export function OrderRowActions({
           {isPending && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setDialog("confirm")}>
+              {/* Straight through without stock: nothing is held, and the order can be
+                  cancelled until it ships. With stock the prompt says what is held. */}
+              <DropdownMenuItem
+                onSelect={() =>
+                  stockTracked ? setDialog("confirm") : confirm.mutate(order._id)
+                }
+              >
                 <Check className="h-4 w-4" />
                 Confirm order
               </DropdownMenuItem>
@@ -126,22 +132,12 @@ export function OrderRowActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Same copy as the detail page's confirm — see `OrderActionBar` for why
-          the stock-free wording drops the reservation sentence. */}
+      {/* Same copy as the detail page's confirm (`confirmOrderPrompt`). */}
       <OrderConfirmDialog
         open={dialog === "confirm"}
         onOpenChange={(o) => setDialog(o ? "confirm" : null)}
-        title="Confirm this order?"
-        description={
-          stockTracked
-            ? `This reserves stock for ${itemCount} item${plural} from the fulfillment location — no sale is booked yet. The sale is created when you ${
-                isPickup ? "mark it ready for pickup" : "ship it"
-              }. You can cancel until then to release the reservation.`
-            : `This accepts the order — no sale is booked yet. The sale is created when you ${
-                isPickup ? "mark it ready for pickup" : "ship it"
-              }. You can cancel until then.`
-        }
-        actionLabel={stockTracked ? "Confirm & reserve stock" : "Confirm order"}
+        {...confirmOrderPrompt(itemCount, isPickup)}
+        cancelLabel="Not yet"
         onConfirm={() => confirm.mutate(order._id)}
       />
       <OrderCancelDialog

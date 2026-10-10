@@ -38,6 +38,7 @@ import {
   printReturn,
   resolveDefaultPaper,
 } from '@/utils/print-documents';
+import { refundedOnReturn } from '@/utils/return-money';
 
 // ── Normalized data types ────────────────────────────────────────────────────
 
@@ -81,12 +82,16 @@ export interface ReturnDetailsData {
   items: ReturnDetailsItem[];
   /**
    * Set when the return reversed an online order (sales only). The screen then speaks in order
-   * terms — sale reversed, refunded, delivery kept — rather than "total refund" (rule R5).
+   * terms — sale reversed, refunded, paid at the door — rather than "total refund" (rule R5).
    */
   online?: {
     orderNumber: string;
-    /** Delivery the shopper paid; kept, never refunded. */
-    shippingCharged: number;
+    /**
+     * What the customer paid at the door on a refused parcel, as the courier reported it (a paid
+     * return). `null` = the courier said nothing. Not the delivery fee asked: a refused parcel with
+     * nothing paid kept ৳0, and showing the fee as "Delivery kept" was wrong on 33 UriiBaba orders.
+     */
+    collectedAtDoor: number | null;
     /** What the courier charged for the trip back; `null` = not recorded. */
     returnCharge: number | null;
   };
@@ -227,7 +232,7 @@ function ReturnStats({
 /**
  * An online return's headline (G7). "Total refund −৳450" read as money handed back, and on a COD
  * parcel the shopper refused nobody paid anything: the sale was reversed and nothing was refunded.
- * So the two are separate tiles, and the delivery kept and the courier's return charge are shown
+ * So the two are separate tiles, and what the customer paid at the door and the courier's return charge are shown
  * rather than left for the merchant to wonder about.
  */
 function OnlineReturnStats({
@@ -241,10 +246,7 @@ function OnlineReturnStats({
   formatCurrency: (n: number) => string;
   t: (key: string) => string;
 }) {
-  // Money that actually went back: cash out of an account plus store credit.
-  const refunded =
-    (returnData.refundAllocation?.accountRefund?.amount ?? returnData.refundedAmount ?? 0) +
-    (returnData.refundAllocation?.counterpartyCredit?.amount ?? 0);
+  const refunded = refundedOnReturn(returnData);
   return (
     <StatStrip>
       <StatTile
@@ -256,10 +258,10 @@ function OnlineReturnStats({
         value={formatCurrency(refunded)}
         valueClassName={refunded > 0 ? 'text-red-600' : 'text-muted-foreground'}
       />
-      {online.shippingCharged > 0 && (
+      {online.collectedAtDoor !== null && (
         <StatTile
-          label={t('deliveryKeptLabel')}
-          value={formatCurrency(online.shippingCharged)}
+          label={t('paidAtDoorLabel')}
+          value={formatCurrency(online.collectedAtDoor)}
           valueClassName="text-muted-foreground"
         />
       )}
@@ -476,16 +478,27 @@ function ReturnItemsTable({
                 : null,
           },
         ] as SimpleColumn<ReturnItemRow>[])),
-    {
-      key: 'refund',
-      header: t('refund'),
-      align: 'right',
-      cellClassName: `font-semibold ${cfg.refundAmountColor}`,
-      cell: (row) =>
-        row.kind === 'combo'
-          ? `${cfg.totalRefundPrefix}${formatCurrency(row.refundTotal)}`
-          : `${cfg.totalRefundPrefix}${formatCurrency(row.item.refundAmount)}`,
-    },
+    // An online return's line is sale reversed, not money handed back (G7) — so no "Refund"
+    // header and no red minus there; the Refunded tile says what actually went back.
+    returnData.online
+      ? {
+          key: 'refund',
+          header: t('saleReversedLabel'),
+          align: 'right',
+          cellClassName: 'font-semibold',
+          cell: (row) =>
+            formatCurrency(row.kind === 'combo' ? row.refundTotal : row.item.refundAmount),
+        }
+      : {
+          key: 'refund',
+          header: t('refund'),
+          align: 'right',
+          cellClassName: `font-semibold ${cfg.refundAmountColor}`,
+          cell: (row) =>
+            row.kind === 'combo'
+              ? `${cfg.totalRefundPrefix}${formatCurrency(row.refundTotal)}`
+              : `${cfg.totalRefundPrefix}${formatCurrency(row.item.refundAmount)}`,
+        },
   ];
 
   return (

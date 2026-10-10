@@ -63,25 +63,40 @@ A parcel the courier has reported returned no longer counts as cash in transit. 
 back, its courier status reads **Returning to you**, and **Back with you** once Pathao hands it
 over — so you know whether the goods are actually in your hands before you return the order.
 
-### The customer sends some items back later
+### Part of the parcel came back
 
-A customer who kept the parcel can still return part of it — one shirt out of three, a wrong size.
-Once the order is paid, open it and press **Return items**. Enter how many of each item came back.
-The dialog shows what is left to return on each line and how much the customer gets back. The
-delivery charge is not refunded.
+The customer kept some items and refused the rest, or sends one back later — one shirt out of
+three, a wrong size. Open the order and press **Return items**, beside **Return whole order**. You
+do not need to mark the order delivered first. Enter how many of each item came back.
+
+- **Not paid yet:** the dialog also asks what was collected. It fills that in as the order total
+  less the returned items — or with the amount the courier reported collecting, when it sent one.
+  Anything still short (a discount given at the door, money still owed) has to be accounted for
+  before you can save.
+- **Already paid:** the dialog shows what is left to return on each line and how much the customer
+  gets back. The delivery charge is not refunded.
+
+When the courier reports a **partial delivery**, the order says so. Use **Return items** for the
+refused items — **Return whole order** would also reverse the items the customer kept and paid
+for.
 
 If you keep accounts, choose where the money goes: out of an account, or as store credit for the
 customer's next order. Without accounts, the sale is reduced and you pay the customer back yourself.
 The order then reads partly returned, and **Return items** stays on it so more can follow later.
 
-If the order is still unpaid — the courier has not paid you yet and part of the parcel was refused
-at the door — use **Collected a different amount…** in the payment card instead.
+### What the payment buttons mean
+
+**Courier collected ৳…** and **Courier collected less…** record what the courier took from the
+customer at the door. That money is with the courier, not with you, until the courier pays you
+(**Courier Payouts**). With a connected courier such as Pathao you rarely need them: the app records
+the collection when the courier reports the delivery, and the buttons wait until then. At a pickup
+counter they read **Customer paid ৳…**.
 
 ### Find your returns
 
 Press **Returns** above the order list to see every order something came back from, whole or in
 part. Each order lists its own returns in a **Returns** card; open one to see what came back, the
-sale reversed, what was refunded and the delivery charge you kept.
+sale reversed, what was refunded and what the customer paid at the door.
 
 ## Store customers
 

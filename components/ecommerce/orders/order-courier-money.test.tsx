@@ -161,6 +161,74 @@ describe("OrderCourierMoney", () => {
     expect(screen.getByText(/reported a partial delivery/)).toBeInTheDocument();
   });
 
+  // Live ORD-20260923-00005: paid in full at ৳1,870, Pathao collected ৳935, and the
+  // "Courier says returned" queue told the merchant to Return whole order.
+  it("flags a partial delivery that was already paid, with what the courier collected", () => {
+    render(
+      <OrderCourierMoney
+        order={
+          {
+            _id: "order-1",
+            status: "delivered",
+            paymentStatus: "paid",
+            courier: {
+              provider: "pathao",
+              integration: "api",
+              partialDelivery: true,
+              collectedAmount: 935,
+            },
+          } as unknown as AdminStorefrontOrder
+        }
+      />,
+    );
+    expect(screen.getByText(/reported a partial delivery and collected ৳935/)).toBeInTheDocument();
+    expect(screen.getByText("Return items")).toBeInTheDocument();
+  });
+
+  // Live ORD-20261004-00014 (Steadfast `partial_delivered`, amount 520 → 70) and
+  // ORD-20261002-00015 (Pathao "Paid Return", ৳120): refused, delivery charge paid.
+  it("says a refused parcel was paid for at the door, not that items were kept", () => {
+    render(
+      <OrderCourierMoney
+        order={
+          {
+            _id: "order-1",
+            status: "delivered",
+            paymentStatus: "pending",
+            courier: {
+              provider: "steadfast",
+              name: "Steadfast",
+              integration: "api",
+              paidReturn: true,
+              collectedAmount: 70,
+              remittance: { status: "with_courier", partialDelivery: true },
+            },
+          } as unknown as AdminStorefrontOrder
+        }
+      />,
+    );
+    expect(
+      screen.getByText(/refused the parcel but paid ৳\s?70 at the door\. Steadfast holds it/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/reported a partial delivery/)).toBeNull();
+  });
+
+  it("stops flagging once the refused items are recorded", () => {
+    render(
+      <OrderCourierMoney
+        order={
+          {
+            _id: "order-1",
+            status: "partially_returned",
+            paymentStatus: "paid",
+            courier: { provider: "pathao", integration: "api", partialDelivery: true },
+          } as unknown as AdminStorefrontOrder
+        }
+      />,
+    );
+    expect(screen.queryByText(/reported a partial delivery/)).toBeNull();
+  });
+
   it("says a payment covered it, without the retired payout reference", () => {
     render(
       <OrderCourierMoney
