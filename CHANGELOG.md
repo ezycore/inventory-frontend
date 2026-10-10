@@ -9,6 +9,47 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-10
+
+### Changed
+- A **paid return** (refused, delivery charge paid at the door — Pathao "Paid Return" or the
+  Steadfast equivalent) is stated on the order: "The customer refused the parcel but paid ৳120 at
+  the door. Pathao holds it until they pay you." **Return whole order** fills **Collected at door**
+  with that amount (accounts on), or states it (accounts off). Such a parcel is not shown as a
+  partial delivery any more.
+- Order page: **Return items** now shows on every shipped, delivered or partly returned order. On an
+  unpaid order it records the collection in the same step — what was collected fills in as the
+  order total less the returned items, or starts from the amount the courier reported collecting —
+  so a part-refused parcel no longer needs **Mark as Delivered** first. The item picker now shows
+  on a shop that does not track stock too; it was hidden there, so refused items could not be
+  recorded at all.
+- Payment card: **Mark COD collected** / **Collected a different amount…** are now **Courier
+  collected ৳X** / **Courier collected less…** (**Customer paid ৳X** at a pickup counter) — the
+  money is with the courier, not the merchant. On a shipped parcel with a connected courier they
+  wait for the courier's delivery report instead of booking money early.
+- **Confirm order** confirms in one click on a shop that does not track stock — nothing is held,
+  and the order can be cancelled until it ships. With stock tracked the prompt now says what it
+  holds ("This holds 2 items in stock for this order"), with **Not yet** instead of "Keep". Order
+  screens no longer talk about a "sale" being booked, which a storefront-only merchant never sees
+  (confirm, reject, cancel, dispatch and pickup texts).
+- A courier-reported **partial delivery** is shown on the order with what the courier collected,
+  and **Return whole order** warns to use **Return items** — it would also reverse the items the
+  customer kept. Help: "Handle online orders" and "Courier payouts" (en + bn).
+### Fixed
+- An online return's detail and printout showed **Delivery kept ৳120** for every refused parcel —
+  the delivery fee asked, not money received; a customer who refused and paid nothing left the
+  merchant ৳0 (33 UriiBaba orders). It now shows **Paid at the door** with what the courier
+  reported, and nothing when the courier reported nothing.
+- The printed return of an online order no longer says **Total Refund** for a parcel nobody paid
+  for. It prints the same figures as the screen: **Sale reversed**, **Refunded**, **Delivery kept**
+  and, when recorded, **Courier return charge**, plus the order number. The item column on the
+  return screen reads **Sale reversed** instead of a red "Refund −৳450". Counter returns are
+  unchanged.
+
+### Deploy notes
+- Needs inventory-backend ≥ 1.4.0 (`courier.partialDelivery`, `courier.collectedAmount`). Deploy
+  the backend first.
+
 ## [1.4.1] - 2026-10-10
 
 ### Fixed

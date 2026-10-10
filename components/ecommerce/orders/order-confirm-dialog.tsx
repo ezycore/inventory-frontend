@@ -31,6 +31,7 @@ export function OrderConfirmDialog({
   onOpenChange,
   children,
   actionDisabled,
+  cancelLabel = "Keep",
 }: {
   trigger?: React.ReactNode;
   title: string;
@@ -47,6 +48,8 @@ export function OrderConfirmDialog({
   children?: React.ReactNode;
   /** Holds the action closed while `children` is still unanswered. */
   actionDisabled?: boolean;
+  /** The dismiss button. "Keep" fits a delete or a reject; a forward step reads "Not yet". */
+  cancelLabel?: string;
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +61,7 @@ export function OrderConfirmDialog({
         </AlertDialogHeader>
         {children}
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
           <AlertDialogAction
             disabled={actionDisabled}
             onClick={onConfirm}

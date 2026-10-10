@@ -40,8 +40,8 @@ parcel delivered — the order is settled automatically:
 While a parcel is still on its way, its payment shows as **COD pending**.
 
 If the courier reports a **partial delivery** (the shopper kept only part, or paid less), nothing is
-settled automatically. The order asks you to record what was actually collected, with **Collected a
-different amount…** on the order.
+settled automatically. Open the order and press **Return items** to record the items that came
+back; the amount the courier reported collecting is filled in for you.
 
 ## What the screen shows
 

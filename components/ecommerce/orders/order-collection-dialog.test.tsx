@@ -26,7 +26,6 @@ vi.mock("@/services/stores/use-auth-store", () => ({
 vi.mock("@/hooks/use-order-account-options", () => ({
   useOrderAccountOptions: () => ({ accountsEnabled: false, options: [] }),
 }));
-vi.mock("@/hooks/use-stock-tracked", () => ({ useStockTracked: () => true }));
 
 /** A ৳500 + ৳400 + ৳300 order with ৳60 delivery — the merchant's own example. */
 const order = {
@@ -206,3 +205,50 @@ describe("collection dialog", () => {
     });
   });
 });
+
+/**
+ * "Return items" on an unpaid order opens this dialog (2026-10-10). A merchant asked why one
+ * refused item meant pressing Mark as Delivered first; now they start from what came back.
+ */
+describe("collection dialog — return items", () => {
+  const submitButton = () => screen.getByRole("button", { name: "Return items" });
+  const openAsReturn = async (overrides: Record<string, unknown> = {}) => {
+    const user = userEvent.setup();
+    render(
+      <OrderCollectionDialog
+        order={{ ...(order as object), ...overrides } as never}
+        mode="returnItems"
+        trigger={<button>Open</button>}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    return user;
+  };
+
+  it("lets what was collected follow the items that came back", async () => {
+    const user = await openAsReturn();
+    expect(screen.getByRole("heading", { name: "Return items" })).toBeInTheDocument();
+
+    await setNumber(user, /return item c/i, "1");
+
+    // ৳1,260 less Item C's ৳300 — reconciles with no typing.
+    await waitFor(() => expect(submitButton()).toBeEnabled());
+    await user.click(submitButton());
+    await waitFor(() => expect(record.mutateAsync).toHaveBeenCalled());
+    expect(record.mutateAsync.mock.calls[0][0]).toMatchObject({
+      collected: 960,
+      returnLines: [{ productId: "c", variantId: null, quantity: 1 }],
+    });
+  });
+
+  it("starts from what the courier reported collecting", async () => {
+    // Live ORD-20260923-00005: Pathao collected ৳935 of ৳1,870 on a partial delivery.
+    await openAsReturn({ courier: { provider: "pathao", collectedAmount: 960 } });
+
+    expect(screen.getByText(/courier reported collecting/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/collected/i)).toHaveValue("960");
+    // Nothing ticked yet, so ৳300 is still unexplained.
+    expect(submitButton()).toBeDisabled();
+  });
+});
+

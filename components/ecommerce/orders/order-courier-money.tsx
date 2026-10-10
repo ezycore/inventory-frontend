@@ -58,8 +58,13 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   const courier = order.courier;
   const charges = courier?.charges;
   const remittance = courier?.remittance;
+  // A paid return (refused, delivery charge paid) is not a partial delivery, even when the courier
+  // called it one — Steadfast reports it as `partial_delivered` (see backend `withDoorOutcome`).
+  const paidReturn = !!courier?.paidReturn;
+  const partialDelivery =
+    !paidReturn && !!(courier?.partialDelivery || remittance?.partialDelivery);
   // Nothing to say about a parcel that never went to a courier.
-  if (!courier || (!charges && !remittance)) return null;
+  if (!courier || (!charges && !remittance && !partialDelivery && !paidReturn)) return null;
 
   const money = (n: number) => formatMoney(n, currency);
   const courierName = courier.name?.trim() || providerLabel(courier.provider);
@@ -175,12 +180,31 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
       {/* Where this parcel's money is, per backend courier-settlement-manual §2. Delivered
           COD is settled into the courier's account automatically; the courier owes it, less
           their charge, until the merchant records the payment that covers it. */}
-      {remittance?.partialDelivery && order.paymentStatus === "pending" && (
+      {/* A partial delivery: the customer kept some items, the rest come back. Shown until the
+          refused items are recorded — "Return whole order" here would reverse the kept goods too. */}
+      {/* Refused, but the customer paid at the door. Stated whether or not the shop keeps
+          accounts: with accounts off it is the only place the money is written down. */}
+      {paidReturn && (
         <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-          {courierName} reported a partial delivery. Nothing was settled — record what was
-          actually collected with <b>Collected a different amount…</b>
+          The customer refused the parcel but paid{" "}
+          {courier.collectedAmount !== undefined
+            ? money(courier.collectedAmount)
+            : "the delivery charge"}{" "}
+          at the door. {courierName} holds it until they pay you.
         </p>
       )}
+      {partialDelivery &&
+        order.status !== "partially_returned" &&
+        order.status !== "returned" && (
+          <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+            {courierName} reported a partial delivery
+            {courier?.collectedAmount !== undefined
+              ? ` and collected ${money(courier.collectedAmount)}`
+              : ""}
+            . The customer kept some items — record the ones that came back with{" "}
+            <b>Return items</b>, not Return whole order.
+          </p>
+        )}
       {tracksPayouts && remittance?.status === "with_courier" && (
         <div className="mt-4 border-t pt-3 text-sm text-muted-foreground">
           {(remittance.clearingAmount ?? 0) > 0 ? (

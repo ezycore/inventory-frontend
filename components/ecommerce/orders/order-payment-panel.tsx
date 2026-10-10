@@ -11,7 +11,7 @@ import { SimpleSelect } from "@/ui/components/simple-select";
 import { paymentMethodLabel } from "./helpers";
 import { OrderPrepaymentDialog } from "./order-prepayment-dialog";
 import { OrderCollectionDialog } from "./order-collection-dialog";
-import { codToCollect } from "./order-detail-helpers";
+import { awaitsCourierReport, codToCollect, collectionLabels } from "./order-detail-helpers";
 
 /**
  * Payment card. An unpaid COD order out with a courier reads **COD pending**, never "due": the
@@ -49,6 +49,8 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
       order.status,
     );
   const money = (n: number) => formatMoney(n, currency);
+  const labels = collectionLabels(order, money(codToCollect(order)));
+  const waitingForCourier = awaitsCourierReport(order);
 
   const prepaid = order.prepaidAmount ?? 0;
   const hasPrepayment = prepaid > 0;
@@ -117,7 +119,16 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
         </div>
       )}
 
-      {collectable && !isPaid && (
+      {/* A connected courier reports the delivery and the collection is recorded from it, so
+          nothing is offered here until then — recording it earlier booked money before anyone
+          said the parcel arrived. Items that came back go through Return items. */}
+      {collectable && !isPaid && waitingForCourier && (
+        <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
+          Recorded automatically when the courier reports the delivery. If items came back, use{" "}
+          <b>Return items</b>.
+        </p>
+      )}
+      {collectable && !isPaid && !waitingForCourier && (
         <div className="mt-4 space-y-2 border-t pt-4">
           {accountsEnabled && accountOptions.length > 0 && (
             <SimpleSelect
@@ -137,7 +148,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
               })
             }
           >
-            {order.paymentMethod === "cod" ? "Mark COD collected" : "Mark as paid"}
+            {labels.full}
           </Button>
           {/* The button above records the amount the system already believed.
               This one records what the courier actually handed over, which on
@@ -150,7 +161,7 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
               order={order}
               trigger={
                 <Button variant="outline" className="w-full">
-                  Collected a different amount…
+                  {labels.less}
                 </Button>
               }
             />

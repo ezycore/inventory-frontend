@@ -44,6 +44,7 @@ import { formatDateOnly, formatDateTime } from "@/lib/format";
 import { getOrgTimezone } from "@/hooks/use-org-calendar";
 import { amountToWords } from "./number-to-words";
 import { populatedRef } from "./populated-ref";
+import { refundedOnReturn } from "./return-money";
 import { escapeHtml, printHtml } from "./print";
 import { storefrontUrl } from "@/lib/storefront-url";
 
@@ -997,17 +998,36 @@ const returnToDoc = (
 ): PrintDoc => {
   const tt = tr(t);
   const isSales = variant === "sales";
+  const online = isSales ? data.online : undefined;
   const totals: PrintDoc["totals"] = [];
   if (data.deductionAmount && data.deductionAmount > 0) {
     totals.push({ label: tt("deduction", "Deduction"), value: `- ${currency(data.deductionAmount)}` });
   }
-  totals.push({
-    label: tt("totalRefund", "Total Refund"),
-    value: currency(data.totalRefundAmount),
-    strong: true,
-  });
-  if (data.refundedAmount !== undefined) {
-    totals.push({ label: tt("refunded", "Refunded"), value: currency(data.refundedAmount) });
+  if (online) {
+    // An online return reverses a delivered order; on a refused COD parcel nobody was paid, so
+    // "Total Refund" printed money that never moved. Same four figures as the screen (G7).
+    totals.push(
+      { label: tt("saleReversed", "Sale reversed"), value: currency(data.totalRefundAmount), strong: true },
+      { label: tt("refunded", "Refunded"), value: currency(refundedOnReturn(data)) },
+    );
+    if (online.collectedAtDoor !== null) {
+      totals.push({ label: tt("paidAtDoor", "Paid at the door"), value: currency(online.collectedAtDoor) });
+    }
+    if (online.returnCharge !== null) {
+      totals.push({
+        label: tt("courierReturnCharge", "Courier return charge"),
+        value: `- ${currency(online.returnCharge)}`,
+      });
+    }
+  } else {
+    totals.push({
+      label: tt("totalRefund", "Total Refund"),
+      value: currency(data.totalRefundAmount),
+      strong: true,
+    });
+    if (data.refundedAmount !== undefined) {
+      totals.push({ label: tt("refunded", "Refunded"), value: currency(data.refundedAmount) });
+    }
   }
 
   return {
@@ -1029,12 +1049,13 @@ const returnToDoc = (
         value: data.counterpartyName ?? "-",
         ...(isSales ? { key: "customer" as const } : {}),
       },
+      ...(online ? [{ label: tt("onlineOrder", "Online order"), value: online.orderNumber }] : []),
       { label: tt("status", "Status"), value: data.status, key: "status" },
       ...(data.reason ? [{ label: tt("reason", "Reason"), value: data.reason }] : []),
     ],
     itemTable: {
       priceHeader: isSales ? tt("price", "Price") : tt("cost", "Cost"),
-      amountHeader: tt("refund", "Refund"),
+      amountHeader: online ? tt("amount", "Amount") : tt("refund", "Refund"),
       items: data.items.map((item) => ({
         name: item.comboName ? `${item.productName} (in ${item.comboName})` : item.productName,
         quantity: item.quantity,

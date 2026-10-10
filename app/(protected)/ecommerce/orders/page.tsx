@@ -593,7 +593,7 @@ function OrdersList() {
               // only ever acts on `pending` orders, and a pending order has never
               // reserved anything — `confirmOrder` is what reserves. Promising a
               // release that cannot happen is what put a wrong line in the QA doc.
-              description={`Each shopper is notified their order was rejected. No sale has been booked yet. This can't be undone.${
+              description={`Each shopper is notified their order was rejected. This can't be undone.${
                 prepaidSkipped
                   ? ` ${prepaidSkipped} selected order${
                       prepaidSkipped === 1

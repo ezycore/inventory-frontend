@@ -60,17 +60,20 @@ const renderSheet = (data: ReturnDetailsData) =>
   );
 
 describe("return detail of an online order (G7)", () => {
-  it("separates the sale reversed from the money refunded, and shows the delivery kept", () => {
+  it("separates the sale reversed from the money refunded, and shows what was paid at the door", () => {
     renderSheet({
       ...base,
-      online: { orderNumber: "ORD-20261006-00014", shippingCharged: 120, returnCharge: null },
+      online: { orderNumber: "ORD-20261006-00014", collectedAtDoor: 120, returnCharge: null },
     });
 
     expect(screen.queryByText("totalRefundLabel")).toBeNull();
-    expect(screen.getByText("saleReversedLabel")).toBeInTheDocument();
+    // The tile and the line column both say "Sale reversed" — no "Refund" header, no red minus.
+    expect(screen.getAllByText("saleReversedLabel")).toHaveLength(2);
+    expect(screen.queryByText("refund")).toBeNull();
+    expect(screen.queryByText("-৳450")).toBeNull();
     expect(screen.getByText("refundedLabel")).toBeInTheDocument();
     expect(screen.getByText("৳0")).toBeInTheDocument();
-    expect(screen.getByText("deliveryKeptLabel")).toBeInTheDocument();
+    expect(screen.getByText("paidAtDoorLabel")).toBeInTheDocument();
     expect(screen.getByText("৳120")).toBeInTheDocument();
     // Not recorded is not ৳0 — the row stays out.
     expect(screen.queryByText("courierReturnChargeLabel")).toBeNull();
@@ -80,10 +83,20 @@ describe("return detail of an online order (G7)", () => {
   it("shows the courier's return charge when one was recorded", () => {
     renderSheet({
       ...base,
-      online: { orderNumber: "ORD-1", shippingCharged: 120, returnCharge: 60 },
+      online: { orderNumber: "ORD-1", collectedAtDoor: 120, returnCharge: 60 },
     });
     expect(screen.getByText("courierReturnChargeLabel")).toBeInTheDocument();
     expect(screen.getByText("-৳60")).toBeInTheDocument();
+  });
+
+  // A parcel refused with nothing paid: the courier reported no amount, so no tile — it used to
+  // show the delivery FEE as "Delivery kept ৳120" (33 UriiBaba orders).
+  it("shows nothing paid at the door when the courier reported nothing", () => {
+    renderSheet({
+      ...base,
+      online: { orderNumber: "ORD-1", collectedAtDoor: null, returnCharge: null },
+    });
+    expect(screen.queryByText("paidAtDoorLabel")).toBeNull();
   });
 
   it("prints no cost for a line that never had one", () => {
@@ -95,6 +108,7 @@ describe("return detail of an online order (G7)", () => {
   it("keeps a counter return's headline as it was", () => {
     renderSheet({ ...base, items: [{ ...base.items[0], costPrice: 200 }] });
     expect(screen.getByText("totalRefundLabel")).toBeInTheDocument();
+    expect(screen.getByText("refund")).toBeInTheDocument();
     expect(screen.getByText("costLine ৳200")).toBeInTheDocument();
   });
 });
