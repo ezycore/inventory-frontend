@@ -9,6 +9,13 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-10
+
+### Fixed
+- Online Orders: the **Courier says returned** and **Returns** buttons now filter the list. Both
+  lit up and changed the address but still listed every order — the two filters never reached the
+  server.
+
 ## [1.4.0] - 2026-10-10
 
 ### Added
