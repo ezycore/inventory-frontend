@@ -79,6 +79,17 @@ export interface ReturnDetailsData {
   totalCostAmount?: number;
   notes?: string;
   items: ReturnDetailsItem[];
+  /**
+   * Set when the return reversed an online order (sales only). The screen then speaks in order
+   * terms — sale reversed, refunded, delivery kept — rather than "total refund" (rule R5).
+   */
+  online?: {
+    orderNumber: string;
+    /** Delivery the shopper paid; kept, never refunded. */
+    shippingCharged: number;
+    /** What the courier charged for the trip back; `null` = not recorded. */
+    returnCharge: number | null;
+  };
   refundAllocation?: {
     /** Mapped from adjustSaleDue or adjustPurchaseDue */
     adjustDocumentDue?: number;
@@ -163,6 +174,17 @@ function ReturnStats({
   // refund — same split the order detail views use. Tax-off returns carry 0 (no rows).
   const { addedTax, includedTax } = splitLineTax(returnData.items);
 
+  if (returnData.online) {
+    return (
+      <OnlineReturnStats
+        returnData={returnData}
+        online={returnData.online}
+        formatCurrency={formatCurrency}
+        t={t}
+      />
+    );
+  }
+
   return (
     <StatStrip>
       <StatTile
@@ -196,6 +218,56 @@ function ReturnStats({
           label={t('taxInPriceLabel')}
           value={formatCurrency(includedTax)}
           valueClassName="text-muted-foreground"
+        />
+      )}
+    </StatStrip>
+  );
+}
+
+/**
+ * An online return's headline (G7). "Total refund −৳450" read as money handed back, and on a COD
+ * parcel the shopper refused nobody paid anything: the sale was reversed and nothing was refunded.
+ * So the two are separate tiles, and the delivery kept and the courier's return charge are shown
+ * rather than left for the merchant to wonder about.
+ */
+function OnlineReturnStats({
+  returnData,
+  online,
+  formatCurrency,
+  t,
+}: {
+  returnData: ReturnDetailsData;
+  online: NonNullable<ReturnDetailsData['online']>;
+  formatCurrency: (n: number) => string;
+  t: (key: string) => string;
+}) {
+  // Money that actually went back: cash out of an account plus store credit.
+  const refunded =
+    (returnData.refundAllocation?.accountRefund?.amount ?? returnData.refundedAmount ?? 0) +
+    (returnData.refundAllocation?.counterpartyCredit?.amount ?? 0);
+  return (
+    <StatStrip>
+      <StatTile
+        label={t('saleReversedLabel')}
+        value={formatCurrency(returnData.totalRefundAmount)}
+      />
+      <StatTile
+        label={t('refundedLabel')}
+        value={formatCurrency(refunded)}
+        valueClassName={refunded > 0 ? 'text-red-600' : 'text-muted-foreground'}
+      />
+      {online.shippingCharged > 0 && (
+        <StatTile
+          label={t('deliveryKeptLabel')}
+          value={formatCurrency(online.shippingCharged)}
+          valueClassName="text-muted-foreground"
+        />
+      )}
+      {online.returnCharge !== null && (
+        <StatTile
+          label={t('courierReturnChargeLabel')}
+          value={`-${formatCurrency(online.returnCharge)}`}
+          valueClassName="text-destructive"
         />
       )}
     </StatStrip>
@@ -304,7 +376,8 @@ function itemSubline(
   t: (key: string, values?: Record<string, string | number>) => string,
 ): string {
   const parts: string[] = [];
-  if (cfg.showSalePrice && canViewCosts) {
+  // A ৳0 cost means none was entered — printing "Cost ৳0.00" states a fact nobody recorded.
+  if (cfg.showSalePrice && canViewCosts && item.costPrice > 0) {
     parts.push(t('costLine', { amount: formatCurrency(item.costPrice * item.quantity) }));
   }
   if ((item.taxAmount ?? 0) > 0) {
@@ -561,6 +634,14 @@ export function ReturnDetailsSheet({
                     ) : undefined,
                   },
                   {
+                    label: t('onlineOrder'),
+                    value: returnData.online ? (
+                      <span className="font-mono text-primary">
+                        <CopyField value={returnData.online.orderNumber} />
+                      </span>
+                    ) : undefined,
+                  },
+                  {
                     label: t(cfg.documentLabel),
                     value: (
                       <span className="font-mono text-primary">
@@ -579,8 +660,8 @@ export function ReturnDetailsSheet({
                   {
                     label: t('costAmount'),
                     value:
-                      canViewCosts && returnData.totalCostAmount != null
-                        ? formatCurrency(returnData.totalCostAmount)
+                      canViewCosts && (returnData.totalCostAmount ?? 0) > 0
+                        ? formatCurrency(returnData.totalCostAmount!)
                         : undefined,
                     muted: true,
                   },

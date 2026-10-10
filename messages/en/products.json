@@ -286,7 +286,8 @@
         "revenue": "Revenue",
         "lifetimeEarnings": "lifetime earnings",
         "profitMargin": "Profit Margin",
-        "perUnit": "{amount} per unit"
+        "perUnit": "{amount} per unit",
+        "noCost": "Add a cost price to see profit"
       },
       "charts": {
         "movementTitle": "Stock Movement",
@@ -329,7 +330,11 @@
         "mrp": "MRP",
         "profitPerUnit": "Profit/Unit",
         "salesTax": "Sales VAT",
-        "purchaseTax": "Purchase VAT"
+        "purchaseTax": "Purchase VAT",
+        "noCost": "No cost yet",
+        "addCost": "Add cost",
+        "editCost": "Edit",
+        "costFromPurchases": "Updated automatically each time you receive a purchase."
       },
       "storefront": {
         "title": "Online Storefront",
@@ -347,7 +352,8 @@
       "variants": {
         "title": "Product Variants ({count})",
         "cost": "Cost: {amount}",
-        "marginSuffix": "% margin"
+        "marginSuffix": "% margin",
+        "noCost": "No cost yet"
       },
       "stockCard": {
         "title": "Stock by Location",
@@ -365,6 +371,16 @@
         "change": "Change",
         "balance": "Balance",
         "noActivity": "No stock activity yet"
+      },
+      "setCost": {
+        "title": "Cost price",
+        "description": "What you pay for one piece. Profit on sales from now on uses it. Sales already made keep the cost they were sold at.",
+        "label": "Cost price (per piece)",
+        "profitPreview": "Profit per piece: {amount}",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saved": "Cost price saved",
+        "failed": "Couldn't save the cost price"
       }
     },
     "bulk": {

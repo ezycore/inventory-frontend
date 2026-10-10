@@ -94,7 +94,7 @@ sidebar must say which one it is opening.
 | English | Bangla | Decision | Notes |
 |---|---|---|---|
 | Online Store | অনলাইন স্টোর | transliterate | what BD shopkeepers say; ই-কমার্স only for the plan/feature name |
-| Store Overview | স্টোর ওভারভিউ | transliterate | the storefront's own dashboard — never plain "Dashboard" |
+| Store Overview | স্টোর ওভারভিউ | transliterate | **removed 2026-10-10 (G11)** — the page no longer exists; kept so old copy can be recognised |
 | Order (online) | অর্ডার | transliterate | matches Ordered = অর্ডারকৃত |
 | Online Orders | অনলাইন অর্ডার | mixed | distinct from Purchase Orders = ক্রয় অর্ডার |
 | Storefront Accounts | স্টোরফ্রন্ট অ্যাকাউন্ট | transliterate | storefront LOGIN accounts (Shopper), a different collection from Customers = গ্রাহক — not a subset of it. Renamed from "Store Customers"/স্টোর গ্রাহক, which read as a filtered view of Customers |

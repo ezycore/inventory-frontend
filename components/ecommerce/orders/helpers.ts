@@ -307,6 +307,19 @@ export const getOrderStats = (
           },
         ] as StatData[])
       : []),
+    // Only when there is something to do: the courier reported these returned and each still
+    // needs "Return whole order" (business-modes G3). Not money — no ৳ until it is processed.
+    ...((stats?.courierReturned?.count ?? 0) > 0
+      ? ([
+          {
+            label: "Courier says returned",
+            value: stats?.courierReturned.count ?? 0,
+            description: "to process — open each and return the order",
+            icon: PackageX,
+            variant: "warning",
+          },
+        ] as StatData[])
+      : []),
     {
       label: "Delivered · uncollected",
       value: money(stats?.deliveredUncollected.value),

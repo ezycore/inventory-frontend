@@ -49,5 +49,13 @@ export const longDate = (iso: string) =>
     timeZone: getOrgTimezone(),
   });
 
+// "courier" is what a courier's poll or push writes (and an automatic return, G3). It read
+// "Staff" until 2026-10-10 — the activity log credited a person with Pathao's delivery (G14).
+const ACTOR_LABELS: Record<string, string> = {
+  shopper: "Customer",
+  system: "System",
+  courier: "Courier",
+};
+
 export const actorLabel = (by?: string) =>
-  by === "shopper" ? "Customer" : by === "system" ? "System" : by ? "Staff" : "—";
+  by ? (ACTOR_LABELS[by] ?? "Staff") : "—";

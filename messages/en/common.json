@@ -171,7 +171,12 @@
       "costLine": "Cost {amount}",
       "taxLineIncl": "VAT {rate}% incl. · {amount}",
       "taxLineExcl": "VAT {rate}% · {amount}",
-      "serialsLine": "S/N: {codes}"
+      "serialsLine": "S/N: {codes}",
+      "saleReversedLabel": "Sale reversed",
+      "refundedLabel": "Refunded",
+      "deliveryKeptLabel": "Delivery kept",
+      "courierReturnChargeLabel": "Courier return charge",
+      "onlineOrder": "Online order"
     }
   },
   "payments": {

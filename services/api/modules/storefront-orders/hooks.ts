@@ -1,9 +1,15 @@
 // coding-standard: maintained
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { handleMutationError } from "@/lib/error-handling";
 import { invalidate } from "@/services/api/invalidation";
 import { queryKeys } from "@/services/api/query-keys";
 import { handleMutationSuccess } from "../query-helpers";
+import type { SalesReturnReason } from "@/types";
 import type {
   CreateAdminOrderInput,
   EditAdminOrderInput,
@@ -15,6 +21,7 @@ import {
   type AdminOrderListParams,
   type CustomCourierPayload,
   type ManualConsignmentPayload,
+  type OrderReturnLine,
 } from "./api";
 
 export const useStorefrontOrders = (params: AdminOrderListParams) =>
@@ -187,12 +194,14 @@ export const useCancelOrder = () => {
       id: string;
       reject?: boolean;
       reason?: string;
+      note?: string;
       refundPrepayment?: boolean;
       accountId?: string;
     }) =>
       storefrontOrdersApi.cancel(v.id, {
         reject: v.reject,
         reason: v.reason,
+        note: v.note,
         refundPrepayment: v.refundPrepayment,
         accountId: v.accountId,
       }),
@@ -342,12 +351,18 @@ export const useReturnOrder = () => {
       collectedAmount?: number;
       accountId?: string;
       refund?: { mode: "account" | "credit"; accountId?: string };
+      returnLines?: OrderReturnLine[];
+      reason?: SalesReturnReason;
+      idempotencyKey?: string;
     }) =>
       storefrontOrdersApi.returnOrder(v.id, {
         returnCharge: v.returnCharge,
         collectedAmount: v.collectedAmount,
         accountId: v.accountId,
         refund: v.refund,
+        returnLines: v.returnLines,
+        reason: v.reason,
+        idempotencyKey: v.idempotencyKey,
       }),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Order returned");
@@ -445,12 +460,19 @@ export const useResolveLocation = () => {
  * `enabled` so it only runs once the dialog is actually open — the preview reads
  * the Sale, and an order list has no business fetching one per row.
  */
-export const useOrderReturnPreview = (id: string, enabled: boolean) =>
+export const useOrderReturnPreview = (
+  id: string,
+  enabled: boolean,
+  /** The ticked lines ("Return items"); absent = everything still returnable. */
+  lines?: OrderReturnLine[],
+) =>
   useQuery({
-    queryKey: queryKeys.storefrontOrders.returnPreview(id),
-    queryFn: () => storefrontOrdersApi.returnPreview(id),
+    queryKey: queryKeys.storefrontOrders.returnPreview(id, lines),
+    queryFn: () => storefrontOrdersApi.returnPreview(id, lines),
     select: (r) => r.data,
     enabled: enabled && !!id,
+    // Keep the last answer on screen while a changed quantity is re-priced.
+    placeholderData: keepPreviousData,
   });
 
 // A pre-dispatch delivery-price quote (no cache change — read-only).

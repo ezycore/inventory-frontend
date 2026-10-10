@@ -1,7 +1,7 @@
 // coding-standard: maintained
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OrderCourierMoney } from "./order-courier-money";
 import type { AdminStorefrontOrder } from "@/services/api";
@@ -21,8 +21,20 @@ import type { AdminStorefrontOrder } from "@/services/api";
  *   the row is dropped rather than printed as 0.
  * - **`not_collected` says nothing.** The payment panel already covers an uncollected order.
  */
+const auth = vi.hoisted(() => ({
+  state: {
+    user: {
+      organization: {
+        currency: "BDT",
+        timezone: "Asia/Dhaka",
+        features: { accounts: true } as Record<string, boolean>,
+      },
+    },
+  },
+}));
+
 vi.mock("@/services/stores/use-auth-store", () => {
-  const state = { user: { organization: { currency: "BDT", timezone: "Asia/Dhaka" } } };
+  const state = auth.state;
   // A selector hook that also answers `getState()`, which `getOrgTimezone` reads.
   const useAuthStore = (selector: (s: unknown) => unknown) => selector(state);
   return { useAuthStore: Object.assign(useAuthStore, { getState: () => state }) };
@@ -43,6 +55,26 @@ const order = (courier: Record<string, unknown>) =>
   ({ _id: "order-1", courier }) as unknown as AdminStorefrontOrder;
 
 describe("OrderCourierMoney", () => {
+  beforeEach(() => {
+    auth.state.user.organization.features = { accounts: true };
+  });
+
+  // business-modes D2 / G2: a merchant who records no courier payments must not be told a
+  // courier owes them — the parcel would read "owed" forever.
+  it("says nothing about what the courier owes when Accounts is off", () => {
+    auth.state.user.organization.features = { accounts: false };
+    render(
+      <OrderCourierMoney
+        order={order({
+          provider: "steadfast",
+          integration: "api",
+          remittance: { status: "with_courier", clearingAmount: 570 },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/collected by Steadfast/)).not.toBeInTheDocument();
+  });
+
   it("shows the courier's real bill against the quote, and the gap", () => {
     render(
       <OrderCourierMoney

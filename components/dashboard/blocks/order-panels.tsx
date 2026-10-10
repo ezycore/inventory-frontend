@@ -9,6 +9,7 @@ import { Progress } from '@ui/components/progress'
 import { useEcommerceDashboard } from '@/services/api'
 import { useAuthStore } from '@/services/stores/use-auth-store'
 import { storefrontUrl } from '@/lib/storefront-url'
+import { StoreLookCard } from '@/components/ecommerce/store-look-card'
 import { CheckCircle2, ExternalLink, PackageX, Store } from 'lucide-react'
 import type { DashboardBlockContext } from './context'
 
@@ -151,54 +152,59 @@ export function StoreHealth() {
       ? storefrontUrl(slug)
       : null
 
+  // One grid cell: the store card, and under it the look nudge that lived on the removed Store
+  // Overview page (G11) — it renders nothing once the shop has a look of its own.
   return (
-    <Card className="p-5">
-      <h2 className="mb-4 text-sm font-semibold">{t('title')}</h2>
+    <div className="space-y-4">
+      <Card className="p-5">
+        <h2 className="mb-4 text-sm font-semibold">{t('title')}</h2>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
-          {data.published ? (
-            <>
-              <CheckCircle2 className="h-4 w-4 text-chart-2" />
-              <span>{t('open')}</span>
-            </>
-          ) : (
-            <>
-              <PackageX className="h-4 w-4 text-destructive" />
-              <Link href="/ecommerce/settings" className="font-medium text-primary">
-                {t('closed')}
-              </Link>
-            </>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm">
+            {data.published ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-chart-2" />
+                <span>{t('open')}</span>
+              </>
+            ) : (
+              <>
+                <PackageX className="h-4 w-4 text-destructive" />
+                <Link href="/ecommerce/settings" className="font-medium text-primary">
+                  {t('closed')}
+                </Link>
+              </>
+            )}
+          </div>
+
+          {address && (
+            <a
+              href={address}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 text-sm text-primary"
+            >
+              <Store className="h-4 w-4" />
+              <span className="truncate">{address.replace(/^https?:\/\//, '')}</span>
+              <ExternalLink className="h-3 w-3 flex-none" />
+            </a>
           )}
+
+          <dl className="grid grid-cols-2 gap-3 pt-1">
+            <Metric
+              label={t('liveProducts')}
+              value={data.stats.liveProducts}
+              href="/products?tab=online"
+            />
+            <Metric
+              label={t('abandonedCarts')}
+              value={data.stats.abandonedCarts}
+              href="/ecommerce/carts"
+            />
+          </dl>
         </div>
-
-        {address && (
-          <a
-            href={address}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 text-sm text-primary"
-          >
-            <Store className="h-4 w-4" />
-            <span className="truncate">{address.replace(/^https?:\/\//, '')}</span>
-            <ExternalLink className="h-3 w-3 flex-none" />
-          </a>
-        )}
-
-        <dl className="grid grid-cols-2 gap-3 pt-1">
-          <Metric
-            label={t('liveProducts')}
-            value={data.stats.liveProducts}
-            href="/products?tab=online"
-          />
-          <Metric
-            label={t('abandonedCarts')}
-            value={data.stats.abandonedCarts}
-            href="/ecommerce/carts"
-          />
-        </dl>
-      </div>
-    </Card>
+      </Card>
+      <StoreLookCard />
+    </div>
   )
 }
 

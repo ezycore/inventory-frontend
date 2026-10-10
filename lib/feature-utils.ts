@@ -51,6 +51,19 @@ export function resolveFeatureMap(
 }
 
 /**
+ * May the merchant type a cost price by hand? (`docs/features/business-modes.md` §2.2 in the
+ * backend repo.) No only when stock AND purchases are on — purchase receive then keeps the cost as
+ * a weighted average, and the backend refuses the edit with `COST_OWNED_BY_PURCHASES`. Mirrors the
+ * backend's `costOwnedByPurchases`. `false` before the map loads, so no edit button flashes on.
+ */
+export function canHandEditCost(
+  features: Partial<OrganizationFeatures> | null | undefined,
+): boolean {
+  if (!features) return false;
+  return !(isFeatureOn(features, "inventoryTracking") && isFeatureOn(features, "purchases"));
+}
+
+/**
  * Check if a specific feature is enabled
  */
 export function isFeatureEnabled(

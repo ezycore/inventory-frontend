@@ -1,6 +1,6 @@
 // coding-standard: maintained
 import { apiClient } from "@/lib/api-client";
-import type { ApiResponse, PaginatedResponse } from "@/types";
+import type { ApiResponse, PaginatedResponse, SalesReturnReason } from "@/types";
 import type {
   AdminStorefrontOrder,
   CourierChargeRefresh,
@@ -49,6 +49,10 @@ export interface AdminOrderListParams {
   channel?: string;
   /** Orders from shoppers who came through one landing page (`source.pageId`). */
   pageId?: string;
+  /** Only orders the courier reported returned that are still shipped/delivered here (G3). */
+  courierReturned?: "true";
+  /** Only orders with a return taken against them (D6). */
+  hasReturns?: "true";
   /**
    * Resolved server-side against the ORG's timezone, so a Dhaka merchant's day
    * does not roll over at a UTC boundary. Omit all three for no date filter —
@@ -243,6 +247,13 @@ export type AdminOrderChannel =
   | "manual"
   | "website";
 
+/** One line coming back, in the shape `POST /:id/return` takes as `returnLines`. */
+export interface OrderReturnLine {
+  productId: string;
+  variantId: string | null;
+  quantity: number;
+}
+
 export const storefrontOrdersApi = {
   list: (
     params: AdminOrderListParams,
@@ -369,6 +380,8 @@ export const storefrontOrdersApi = {
       reject?: boolean;
       /** Required by the server when `reject` is true, refused when it is not. */
       reason?: string;
+      /** Required with `reason: "other"`. */
+      note?: string;
       refundPrepayment?: boolean;
       accountId?: string;
     },
@@ -427,8 +440,9 @@ export const storefrontOrdersApi = {
     },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/collection`, body),
-  // Reverse a committed delivery order (RTO / post-delivery) with a full Sales Return.
-  // `refund` routes the cash remainder of a *paid* order (account or store credit).
+  // Reverse a committed delivery order (RTO / post-delivery) with a Sales Return —
+  // the whole order, or only `returnLines`. `refund` routes the cash remainder of a
+  // *paid* order (account or store credit).
   returnOrder: (
     id: string,
     body: {
@@ -436,6 +450,11 @@ export const storefrontOrdersApi = {
       collectedAmount?: number;
       accountId?: string;
       refund?: { mode: "account" | "credit"; accountId?: string };
+      /** Absent = the whole order (everything still returnable). */
+      returnLines?: OrderReturnLine[];
+      /** Absent: "refused at delivery" before delivery, "other" after (server default). */
+      reason?: SalesReturnReason;
+      idempotencyKey?: string;
     },
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/return`, body),
@@ -466,8 +485,16 @@ export const storefrontOrdersApi = {
    * `paymentStatus`, while the server computed it from the SALE. On a COD order
    * with an advance they disagreed and the return became impossible.
    */
-  returnPreview: (id: string): Promise<ApiResponse<OrderReturnPreview>> =>
-    apiClient.get(`${base}/${id}/return-preview`),
+  returnPreview: (
+    id: string,
+    /** The ticked lines; absent = everything still returnable. */
+    lines?: OrderReturnLine[],
+  ): Promise<ApiResponse<OrderReturnPreview>> =>
+    apiClient.get(
+      `${base}/${id}/return-preview${
+        lines?.length ? `?lines=${encodeURIComponent(JSON.stringify(lines))}` : ""
+      }`,
+    ),
   courierPrice: (
     id: string,
     provider: string,

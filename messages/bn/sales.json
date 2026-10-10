@@ -226,12 +226,12 @@
     },
     "summary": {
       "totalReturns": "মোট ফেরত",
-      "returnAmount": "ফেরতের টাকা",
+      "returnAmount": "ফেরত পণ্যের মূল্য",
       "pending": "অপেক্ষমাণ",
       "cashRefunded": "নগদ রিফান্ড",
       "allTime": "সর্বমোট",
-      "totalRefunded": "মোট রিফান্ড",
-      "awaitingReview": "পর্যালোচনার অপেক্ষায়"
+      "awaitingReview": "পর্যালোচনার অপেক্ষায়",
+      "allTimeThisMonth": "সর্বমোট · এই মাসে {amount}"
     },
     "allocation": {
       "adjustCurrentSaleDue": "এই বিক্রয়ের বাকি সমন্বয়",
@@ -244,6 +244,7 @@
       "wrongItem": "ভুল পণ্য",
       "customerChangedMind": "গ্রাহকের মত পরিবর্তন",
       "expired": "মেয়াদোত্তীর্ণ",
+      "refusedDelivery": "ডেলিভারির সময় নেননি",
       "other": "অন্যান্য"
     },
     "filters": {

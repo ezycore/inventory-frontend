@@ -5,7 +5,6 @@ summary: স্টোরফ্রন্ট চালু করুন, বেচ�
 order: 100
 covers_routes:
   - /ecommerce
-  - /ecommerce/dashboard
   - /ecommerce/settings
   - /settings/domains
 features:

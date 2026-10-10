@@ -329,8 +329,8 @@ export const queryKeys = {
      * that changes the order's money — a payment recorded, an advance taken —
      * drops a preview that no longer describes it.
      */
-    returnPreview: (id: string) =>
-      ["storefront-orders", "return-preview", id] as const,
+    returnPreview: (id: string, lines?: readonly unknown[]) =>
+      ["storefront-orders", "return-preview", id, lines ?? null] as const,
   },
 
   /**

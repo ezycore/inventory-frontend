@@ -84,6 +84,7 @@ export function useSalesReturnPage() {
           { label: t('reasons.wrongItem'), value: 'wrong_item' },
           { label: t('reasons.customerChangedMind'), value: 'customer_changed_mind' },
           { label: t('reasons.expired'), value: 'expired' },
+          { label: t('reasons.refusedDelivery'), value: 'refused_delivery' },
           { label: t('reasons.other'), value: 'other' },
         ],
       },

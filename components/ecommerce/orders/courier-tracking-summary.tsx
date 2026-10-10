@@ -35,7 +35,7 @@ export function CourierTrackingSummary({
     : cap(courier?.provider ?? "Courier");
   const tracking = courier?.trackingCode || courier?.consignmentId;
   const presentation = courier?.normalizedStatus
-    ? courierStatusPresentation(courier.normalizedStatus)
+    ? courierStatusPresentation(courier.normalizedStatus, courier.returnStage)
     : null;
 
   return (

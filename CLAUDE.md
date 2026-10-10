@@ -656,6 +656,13 @@ Two consequences:
 
 ### Feature Flags & Subscription
 
+**Business modes are the source of truth for what a switch means ON vs OFF:**
+[`../inventory-backend/docs/features/business-modes.md`](../inventory-backend/docs/features/business-modes.md)
+— business types B1–B7, per-switch behaviour per screen, and rules R1–R6 (OFF = hidden, never ৳0 ·
+never show money the merchant doesn't track · one number, one home · one profit formula · online
+orders are *returned*, counter sales *refunded*). Read it before changing nav gating, a report,
+dashboard tile, money screen or return UI; update its §4 "Today" cell and §7 gap row in the same change.
+
 `OrganizationFeatures` (defined in `types/index.ts`) controls which modules are enabled per organization. Helper functions in `lib/feature-utils.ts` (`isFeatureEnabled`, `areAllFeaturesEnabled`) check feature state from `user.organization.features` in the auth store.
 
 **Plans are grouped, not listed flat.** A tier sold monthly *and* yearly is **two** plans in Mission

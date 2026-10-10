@@ -36,10 +36,15 @@ export function SummaryCards({
         sub={t('allTime')}
         isLoading={isLoading}
       />
+      {/* G7/G8: all time, like the count beside it — it showed this month's figure under
+          "total refunded", which was neither the period nor the meaning (an online return
+          reverses a sale; often nothing is refunded). This month stays in the caption. */}
       <StatCard
         label={t('returnAmount')}
-        value={formatCurrency(summary?.thisMonth?.totalRefunds ?? 0)}
-        sub={t('totalRefunded')}
+        value={formatCurrency(summary?.allTime?.totalRefunds ?? 0)}
+        sub={t('allTimeThisMonth', {
+          amount: formatCurrency(summary?.thisMonth?.totalRefunds ?? 0),
+        })}
         isLoading={isLoading}
       />
       <StatCard

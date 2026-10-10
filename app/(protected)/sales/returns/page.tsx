@@ -31,6 +31,7 @@ const REASON_KEYS: Record<string, string> = {
   wrong_item: 'wrongItem',
   customer_changed_mind: 'customerChangedMind',
   expired: 'expired',
+  refused_delivery: 'refusedDelivery',
   other: 'other',
 };
 
