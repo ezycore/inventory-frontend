@@ -51,6 +51,8 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
   const money = (n: number) => formatMoney(n, currency);
   const labels = collectionLabels(order, money(codToCollect(order)));
   const waitingForCourier = awaitsCourierReport(order);
+  // Reported refused or returned: no delivery report will ever come, so "waiting" would mislead.
+  const reportedReturned = order.courier?.normalizedStatus === "returned";
 
   const prepaid = order.prepaidAmount ?? 0;
   const hasPrepayment = prepaid > 0;
@@ -124,8 +126,17 @@ export function OrderPaymentPanel({ order }: { order: AdminStorefrontOrder }) {
           said the parcel arrived. Items that came back go through Return items. */}
       {collectable && !isPaid && waitingForCourier && (
         <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
-          Recorded automatically when the courier reports the delivery. If items came back, use{" "}
-          <b>Return items</b>.
+          {reportedReturned ? (
+            <>
+              The courier reported this parcel returned — nothing to collect for the goods. Use{" "}
+              <b>Return whole order</b> once it is back with you.
+            </>
+          ) : (
+            <>
+              Recorded automatically when the courier reports the delivery. If items came back,
+              use <b>Return items</b>.
+            </>
+          )}
         </p>
       )}
       {collectable && !isPaid && !waitingForCourier && (

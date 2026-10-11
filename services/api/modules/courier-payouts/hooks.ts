@@ -8,6 +8,7 @@ import { createResourceHooks, handleMutationSuccess } from "../query-helpers";
 import {
   courierPayoutsApi,
   type CourierPayoutListParams,
+  type CourierSummaryFilters,
   type RecordCourierPaymentInput,
   type WriteOffCourierShortfallInput,
 } from "./api";
@@ -38,7 +39,7 @@ export const useCourierPayout = payoutHooks.useDetail!;
  * Keyed under the payouts root, so recording a payment drops it along with the list.
  */
 export function useCourierMoneySummary(
-  filters?: { startDate?: string; endDate?: string },
+  filters?: CourierSummaryFilters,
   enabled = true,
 ) {
   return useQuery({

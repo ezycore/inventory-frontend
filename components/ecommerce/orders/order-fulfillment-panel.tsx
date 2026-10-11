@@ -13,6 +13,7 @@ import { useStockTracked } from "@/hooks/use-stock-tracked";
 import { cap, codToCollect } from "./order-detail-helpers";
 import { CourierDispatchForm } from "./courier-dispatch-form";
 import { CourierTimeline } from "./courier-timeline";
+import { withMerchantReturns } from "./merchant-return-events";
 import { CourierTrackingSummary } from "./courier-tracking-summary";
 import { ManualDispatchForm } from "./manual-dispatch-form";
 import { ManualStatusPanel } from "./manual-status-panel";
@@ -111,7 +112,7 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
                 Parcel progress
               </div>
               <CourierTimeline
-                history={order.courier?.history ?? []}
+                history={withMerchantReturns(order)}
                 emptyHint="No updates from the courier yet. Statuses refresh automatically every 30 minutes, or use Refresh above."
               />
             </div>
