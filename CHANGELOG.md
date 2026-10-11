@@ -9,6 +9,53 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-11
+
+### Fixed
+- Payment card on a parcel the courier reported returned (e.g. a Pathao Paid Return still reading
+  Shipped) no longer says "Recorded automatically when the courier reports the delivery" — no
+  delivery report is coming. It says there is nothing to collect and to use **Return whole order**.
+- A connected courier is named properly in the order's courier notes ("Pathao holds it", not
+  "pathao").
+- **Courier charges:** the delivery margin now counts what customers actually paid for delivery. A
+  parcel that came back counts ৳0 (or what was taken at the door / kept as an advance) and is marked
+  "(came back)" — before, it was credited with the delivery fee printed on the order. The column is
+  now **Customer paid**. Expect the margin to drop for stores with many returns.
+- **Courier charges:** the note on parcels without a real charge no longer says Steadfast publishes
+  none — Steadfast does; those parcels are simply still waiting.
+
+- **Courier charges / payouts:** the delivery card now has a period filter, opening on **this
+  month** (All time is still one click away) — the totals no longer only ever grow. Its list is
+  now **Biggest losses on delivery**: the parcels that cost the most, not the biggest quote misses.
+
+- **Order page, courier card:** a paid return no longer shows a green **Delivered** badge (Steadfast
+  reports one as `partial_delivered`). It reads **Paid return · coming back**, then **Paid return ·
+  back with you** once the order is returned; a real part-delivery reads **Part delivered**. The
+  heading no longer says "consignment created" for the parcel's whole life.
+- **Order page, parcel progress:** when you return the whole order or some items, that is now the
+  latest row ("Parcel received back — returned by you", "Items received back — part of the order
+  returned by you"), and a returned order's badge reads **Back with you**. Steadfast never reports
+  the hand-back — its last message is always "Return status … Processing" — so the feed used to
+  look stuck. Works on past orders too; nothing is written to the courier's record.
+
+- **Gross profit** reads "—, set cost prices to see profit" for a shop with no cost prices, on the
+  dashboard and the Orders Report (it showed a number made of delivery fees). A negative profit is
+  red, not green.
+- **Delivery margin** is the same everywhere: dashboard ("৳X paid by customers · ৳Y to couriers ·
+  N of M parcels came back"), Orders Report total and per courier, Courier charges. Orders not sent
+  say **No parcels sent** instead of a margin. Courier names read "Pathao", not "pathao".
+- **Orders Report:** "Still owed" is now **Not collected yet** (cash on delivery still to come in),
+  and top customers show "৳X to collect" instead of "Due".
+- **Customers:** with Cash & Bank off, no Due / Credit Balance columns; with the counter off, no
+  Discount column. Online shops get **Phone, Orders, Bought, Came back, Last order**.
+- **Order page:** the courier cost before dispatch says **Estimated courier cost**; once the
+  courier bills, "Courier charged ৳X · delivery margin ৳Y".
+
+### Deploy notes
+- **Needs inventory-backend ≥ 1.5.0 deployed first** — Courier charges, the dashboard and Orders
+  Report delivery margin, the gross-profit "—" and the Customers order columns all read fields that
+  release adds.
+
 ## [1.5.0] - 2026-10-10
 
 ### Changed

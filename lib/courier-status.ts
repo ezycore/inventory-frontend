@@ -121,6 +121,29 @@ const RETURN_STAGE: Record<CourierReturnStage, CourierStatusPresentation> = {
 };
 
 /**
+ * What happened at the door, for the MERCHANT's badge (backend `withDoorOutcome`, admin read only).
+ * A courier's word for these is "delivered" — Steadfast reports a paid return as
+ * `partial_delivered` — so the plain status badge read **Delivered** on a parcel the customer
+ * refused (live: UriiBaba ORD-20261004-00014, paid ৳70 at the door, already returned).
+ */
+const DOOR_OUTCOME = {
+  paidReturnComing: { admin: "Paid return · coming back", tone: "#c2410c" },
+  paidReturnBack: { admin: "Paid return · back with you", tone: "#c2410c" },
+  partial: { admin: "Part delivered", tone: "#b45309" },
+} as const;
+
+export function courierDoorBadge(
+  courier: { paidReturn?: boolean; partialDelivery?: boolean } | null | undefined,
+  orderStatus: string | undefined,
+): { admin: string; tone: string } | null {
+  if (courier?.paidReturn) {
+    // The merchant's Return whole order is what says the goods are back.
+    return orderStatus === "returned" ? DOOR_OUTCOME.paidReturnBack : DOOR_OUTCOME.paidReturnComing;
+  }
+  return courier?.partialDelivery ? DOOR_OUTCOME.partial : null;
+}
+
+/**
  * Resolve presentation for a status, falling back to `unknown` for any stray value. A return
  * stage, when the backend sent one, overrides the status.
  */

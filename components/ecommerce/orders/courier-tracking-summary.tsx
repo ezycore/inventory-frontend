@@ -4,7 +4,7 @@ import {
   useRefreshTracking,
   type AdminStorefrontOrder,
 } from "@/services/api";
-import { courierStatusPresentation } from "@/lib/courier-status";
+import { courierDoorBadge, courierStatusPresentation } from "@/lib/courier-status";
 import { Button } from "@/ui/components/button";
 import { cap } from "./order-detail-helpers";
 
@@ -34,9 +34,15 @@ export function CourierTrackingSummary({
     ? cap(courier.name)
     : cap(courier?.provider ?? "Courier");
   const tracking = courier?.trackingCode || courier?.consignmentId;
-  const presentation = courier?.normalizedStatus
-    ? courierStatusPresentation(courier.normalizedStatus, courier.returnStage)
-    : null;
+  // A paid return or part-delivery outranks the courier's own "delivered", and the merchant's
+  // own return outranks a courier that never reports the hand-back (Steadfast stops at
+  // "Processing").
+  const presentation =
+    courierDoorBadge(courier, order.status) ??
+    (order.status === "returned" ? courierStatusPresentation("returned", "back") : null) ??
+    (courier?.normalizedStatus
+      ? courierStatusPresentation(courier.normalizedStatus, courier.returnStage)
+      : null);
 
   return (
     <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
@@ -46,7 +52,8 @@ export function CourierTrackingSummary({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="text-sm font-semibold">
-          {carrier} · {isManual ? "dispatched" : "consignment created"}
+          {/* Was "consignment created" for the parcel's whole life, delivered or returned. */}
+          {carrier} · {isManual ? "sent by hand" : "booked through the courier"}
         </div>
 
         {/* Consignment ids are long and unbroken — without `break-all` one

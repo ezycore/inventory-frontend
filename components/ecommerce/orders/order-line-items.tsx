@@ -127,12 +127,42 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
           <span>Total</span>
           <span className="tabular-nums">{money(order.totalAmount)}</span>
         </div>
-        <p className="pt-1 text-xs text-muted-foreground">
-          Courier cost (your expense): {money(order.shippingCost)} · shipping
-          margin {money(order.shippingCharged - order.shippingCost)}
-        </p>
+        <CourierCostLine order={order} money={money} />
       </div>
     </Card>
+  );
+}
+
+/**
+ * What carrying this order costs, said as what it is. Before dispatch it is the store's ESTIMATE
+ * (live, UriiBaba: "Courier cost ৳60 · shipping margin ৳60" on a Moulvibazar order Pathao bills
+ * ৳110–130 for) — printed as fact, it promised a margin the courier then took back. Once the
+ * courier bills, its own figure replaces the estimate.
+ */
+function CourierCostLine({
+  order,
+  money,
+}: {
+  order: AdminStorefrontOrder;
+  money: (n: number) => string;
+}) {
+  const billed = order.courier?.charges?.actual?.totalFee;
+  const sent = !!order.courier?.consignmentId || order.courier?.integration === "manual";
+  if (billed !== undefined && billed !== null) {
+    return (
+      <p className="pt-1 text-xs text-muted-foreground">
+        Courier charged {money(billed)} · delivery margin{" "}
+        {money(order.shippingCharged - billed)}
+      </p>
+    );
+  }
+  return (
+    <p className="pt-1 text-xs text-muted-foreground">
+      Estimated courier cost {money(order.shippingCost)} —{" "}
+      {sent
+        ? "the courier's own charge replaces it when they bill."
+        : "the courier's real charge replaces it after dispatch, and weight and district can raise it."}
+    </p>
   );
 }
 

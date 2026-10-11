@@ -4,6 +4,7 @@
 import { useTranslations } from 'next-intl'
 import { MapPin, Radio, ThumbsDown, Truck } from 'lucide-react'
 import type { OrdersReportData } from '@/services/api/modules/reports/api'
+import { providerLabel } from '@/components/ecommerce/payouts/helpers'
 import {
   Card,
   CardContent,
@@ -92,7 +93,8 @@ export function OrderCourierCard({
                       pickup order is collected by the customer and never has a
                       courier at all. A browser pass caught this row reading
                       "Not dispatched yet" beside "Delivered 2". */}
-                  {row.name ?? row.provider ?? t('noCourier')}
+                  {/* "Pathao", never the raw `pathao` the courier split used to print. */}
+                  {row.name ?? (row.provider ? providerLabel(row.provider) : t('noCourier'))}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {t('orders', { count: row.orders })}
@@ -108,16 +110,26 @@ export function OrderCourierCard({
                 <span>
                   {t('rto')} <RateText rate={row.rtoRate} />
                 </span>
-                <span>
-                  {t('deliveryMargin')}{' '}
-                  <span
-                    className={
-                      row.margin < 0 ? 'font-medium text-red-600' : 'font-medium'
-                    }
-                  >
-                    {formatCurrency(row.margin)}
+                {/* Parcels really sent, paid not printed (backend `utils/delivery-margin.ts`). The
+                    not-sent bucket has no delivery and no margin — it read "+৳1,040" before. */}
+                {row.margin === null ? (
+                  <span>{t('notSent')}</span>
+                ) : (
+                  <span>
+                    {t('deliveryMargin')}{' '}
+                    <span
+                      className={
+                        row.margin < 0 ? 'font-medium text-red-600' : 'font-medium'
+                      }
+                    >
+                      {formatCurrency(row.margin)}
+                    </span>{' '}
+                    ({t('deliveryPaidCost', {
+                      received: formatCurrency(row.received),
+                      cost: formatCurrency(row.cost),
+                    })})
                   </span>
-                </span>
+                )}
               </div>
             </div>
           ))

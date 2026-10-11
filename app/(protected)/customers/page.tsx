@@ -168,10 +168,14 @@ export default function CustomersPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={getCustomerFilterConfig(t)}
-        columns={getCustomerColumns(t)}
+        columns={getCustomerColumns(t, {
+          tracksMoney: isAccountsEnabled,
+          online: !!user?.organization?.features?.storefront,
+          counter: user?.organization?.features?.sales !== false,
+        })}
         selectable={true}
         enableSorting={true}
-        defaultColumnVisibility={{ email: false, phone: false }}
+        defaultColumnVisibility={{ email: false }}
         enableRowHover={true}
         rowClassName={(row: Customer) =>
           row.status === "inactive" ? "bg-red-50 opacity-70 dark:bg-red-950/40" : ""

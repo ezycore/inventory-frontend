@@ -20,6 +20,16 @@ export type CourierPayoutLine = CourierPayout["lines"][number];
 /** What the courier kept, by kind. `delivery` and `paymentCharge` are never merged. */
 export type CourierPayoutDeductions = CourierPayout["deductions"];
 
+/**
+ * Summary window. `period` is a named range resolved on the org's calendar server-side
+ * (`thisMonth`…); `custom` reads `startDate`/`endDate`. None at all = every parcel on file.
+ */
+export interface CourierSummaryFilters {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 /** List filters. Everything is optional — the default view is every payout on file. */
 export interface CourierPayoutListParams {
   provider?: string;
@@ -98,7 +108,7 @@ export const courierPayoutsApi = {
     apiClient.get(`${base}/balances`),
 
   getSummary: (
-    filters: { startDate?: string; endDate?: string } = {},
+    filters: CourierSummaryFilters = {},
   ): Promise<ApiResponse<CourierMoneySummary>> =>
     apiClient.get(`${base}/summary${queryString({ ...filters })}`),
 };

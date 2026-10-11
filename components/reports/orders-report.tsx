@@ -112,20 +112,33 @@ export function OrdersReport() {
 
           {/* Profit — absent entirely for a caller without `costs.view`, because
               the server never computed it. */}
-          {data.profit && (
+          {/* A shop with no cost prices has no profit to show — "—" and why, like the dashboard,
+              never a figure built from delivery fees alone (live: "−৳355.75" at UriiBaba). */}
+          {data.profit && data.profit.costCoverage.knownRevenue <= 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t('profit.title')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">—</div>
+                <p className="text-xs text-muted-foreground">{t('profit.costsMissing')}</p>
+              </CardContent>
+            </Card>
+          )}
+          {data.profit && data.profit.costCoverage.knownRevenue > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">{t('profit.title')}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                 <div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div
+                    className={`text-2xl font-bold ${data.profit.grossProfit < 0 ? 'text-red-600' : 'text-green-600'}`}
+                  >
                     {formatCurrency(data.profit.grossProfit)}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {t('profit.afterCarriage', {
-                      amount: formatCurrency(data.shipping.cost),
-                    })}
+                    {t('profit.afterCarriage')}
                   </p>
                 </div>
                 <div>

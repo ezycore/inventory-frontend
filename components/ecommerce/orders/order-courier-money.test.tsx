@@ -213,6 +213,29 @@ describe("OrderCourierMoney", () => {
     expect(screen.queryByText(/reported a partial delivery/)).toBeNull();
   });
 
+  // A connected courier's stored name is its id: the note read "pathao holds it".
+  it("names a connected courier properly, not by its stored id", () => {
+    render(
+      <OrderCourierMoney
+        order={
+          {
+            _id: "order-1",
+            status: "shipped",
+            paymentStatus: "pending",
+            courier: {
+              provider: "pathao",
+              name: "pathao",
+              integration: "api",
+              paidReturn: true,
+              collectedAmount: 120,
+            },
+          } as unknown as AdminStorefrontOrder
+        }
+      />,
+    );
+    expect(screen.getByText(/Pathao holds it/)).toBeInTheDocument();
+  });
+
   it("stops flagging once the refused items are recorded", () => {
     render(
       <OrderCourierMoney
