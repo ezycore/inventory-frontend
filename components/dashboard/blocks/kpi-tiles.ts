@@ -298,7 +298,7 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
         variant: 'warning',
         description: t(onlyUndispatched ? 'costsPending' : 'costsMissing'),
         // "Set cost prices" opens the screen that sets them, all products on one page.
-        href: onlyUndispatched ? '/reports/orders' : '/products/costs',
+        href: onlyUndispatched ? '/reports/orders' : '/products/cost-prices',
       }
     }
 

@@ -9,6 +9,17 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Changed
+- **Customers:** "Came back" is now **Returned** (bn ফেরত). Orders, Bought, Returned and Last order
+  sort from their column header, not only the sort menu.
+- **Customers:** a customer's phone opens Online Orders searched by that number (storefront on and
+  allowed to see orders). An online-only shop (no counter, no Cash & Bank) no longer gets the ledger
+  button, which showed only invoice numbers there. Help: "Add customers and suppliers" (en + bn).
+
+### Fixed
+- **Dashboard:** "Set cost prices to see profit" opened a missing page (`/products/costs`); it now
+  opens Products → Cost prices.
+
 ## [1.7.0] - 2026-10-11
 
 ### Added
