@@ -74,7 +74,8 @@
     "onlineOrders": "Orders",
     "onlineSpent": "Bought",
     "lastOrder": "Last order",
-    "returnedOrders": "Came back",
+    "returnedOrders": "Returned",
+    "phoneOpensOrders": "See this buyer's online orders",
     "createdDate": "Created Date",
     "updatedDate": "Updated Date"
   },
