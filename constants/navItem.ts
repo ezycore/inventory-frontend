@@ -430,6 +430,8 @@ export const navGroups: NavGroup[] = [
           "tags.view",
           "variants.view",
           "units.view",
+          // Cost prices — its own child, gated on the permission that shows costs.
+          "costs.view",
         ],
         icon: "package",
         isActive: false,
@@ -439,6 +441,8 @@ export const navGroups: NavGroup[] = [
           // The /products crumb and tab title still read "Products": breadcrumbs
           // register the parent's title first for a shared URL.
           { title: "All products", url: "/products", permissions: ["products.view"], icon: "list" },
+          // Every product's buying price on one page — what profit is worked out from.
+          { title: "Cost prices", url: "/products/cost-prices", permissions: ["costs.view"], icon: "tag" },
           { title: "Categories", url: "/categories", permissions: ["categories.view"], icon: "tag" },
           { title: "Brands", url: "/brands", permissions: ["brands.view"], icon: "star" },
           { title: "Tags", url: "/tags", permissions: ["tags.view"], icon: "tag" },

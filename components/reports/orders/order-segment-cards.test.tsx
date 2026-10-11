@@ -30,7 +30,11 @@ const money = (n: number) => `৳${n}`;
 
 describe("OrderCourierCard", () => {
   it("names the courier properly and shows what customers paid against the bill", () => {
-    renderWithProviders(<OrderCourierCard data={data([row({})])} formatCurrency={money} />);
+    // The live shape: a connected courier stores its provider id as its name. The first fix
+    // preferred `name`, so production still read "pathao" after deploy.
+    renderWithProviders(
+      <OrderCourierCard data={data([row({ name: "pathao" })])} formatCurrency={money} />,
+    );
 
     expect(screen.getByText("Pathao")).toBeInTheDocument();
     expect(screen.queryByText("pathao")).not.toBeInTheDocument();
@@ -48,5 +52,16 @@ describe("OrderCourierCard", () => {
 
     expect(screen.getByText("No parcels sent")).toBeInTheDocument();
     expect(screen.queryByText("Delivery margin")).not.toBeInTheDocument();
+  });
+
+  it("keeps a merchant's own courier name", () => {
+    renderWithProviders(
+      <OrderCourierCard
+        data={data([row({ provider: null, name: "Sundarban Courier" })])}
+        formatCurrency={money}
+      />,
+    );
+
+    expect(screen.getByText("Sundarban Courier")).toBeInTheDocument();
   });
 });

@@ -53,6 +53,25 @@ export default function CustomersPage() {
   );
   const { user } = useAuthStore();
   const isAccountsEnabled = user?.organization?.features?.accounts ?? false;
+  const isOnline = !!user?.organization?.features?.storefront;
+
+  // Sorted by the SERVER, so a column sorts every customer, not just the page on screen — the
+  // online columns are not stored fields, and the backend ranks them (`ORDER_STAT_SORTS`).
+  // "Came back" first: the buyer a cash-on-delivery seller checks before confirming.
+  const customerSorting = {
+    sortOptions: [
+      { field: "name", label: t("columns.name") },
+      { field: "createdAt", label: t("columns.createdDate") },
+      ...(isOnline
+        ? [
+            { field: "returnedOrders", label: t("columns.returnedOrders") },
+            { field: "onlineOrders", label: t("columns.onlineOrders") },
+            { field: "onlineSpent", label: t("columns.onlineSpent") },
+            { field: "lastOrderAt", label: t("columns.lastOrder") },
+          ]
+        : []),
+    ],
+  };
 
   // The storefront lists are a different collection, not a different filter, so
   // they need both the feature AND the permission — a staff member without
@@ -168,9 +187,10 @@ export default function CustomersPage() {
         defaultPageSize={10}
         pageSizes={[10, 20, 50, 100]}
         filterConfig={getCustomerFilterConfig(t)}
+        sortingConfig={customerSorting}
         columns={getCustomerColumns(t, {
           tracksMoney: isAccountsEnabled,
-          online: !!user?.organization?.features?.storefront,
+          online: isOnline,
           counter: user?.organization?.features?.sales !== false,
         })}
         selectable={true}

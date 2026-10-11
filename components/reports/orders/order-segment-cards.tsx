@@ -4,7 +4,8 @@
 import { useTranslations } from 'next-intl'
 import { MapPin, Radio, ThumbsDown, Truck } from 'lucide-react'
 import type { OrdersReportData } from '@/services/api/modules/reports/api'
-import { providerLabel } from '@/components/ecommerce/payouts/helpers'
+import Link from 'next/link'
+import { courierDisplayName } from '@/components/ecommerce/payouts/helpers'
 import {
   Card,
   CardContent,
@@ -76,7 +77,13 @@ export function OrderCourierCard({
           <Truck className="h-4 w-4" />
           {t('title')}
         </CardTitle>
-        <CardDescription>{t('subtitle')}</CardDescription>
+        <CardDescription>
+          {t('subtitle')}{' '}
+          {/* Delivery money's home is Courier charges (business-modes R3) — per parcel, by period. */}
+          <Link href="/ecommerce/payouts" className="font-medium text-primary hover:underline">
+            {t('seeCharges')}
+          </Link>
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {data.byCourier.length === 0 ? (
@@ -94,7 +101,9 @@ export function OrderCourierCard({
                       courier at all. A browser pass caught this row reading
                       "Not dispatched yet" beside "Delivered 2". */}
                   {/* "Pathao", never the raw `pathao` the courier split used to print. */}
-                  {row.name ?? (row.provider ? providerLabel(row.provider) : t('noCourier'))}
+                  {row.name || row.provider
+                    ? courierDisplayName(row.name, row.provider)
+                    : t('noCourier')}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {t('orders', { count: row.orders })}

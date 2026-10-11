@@ -380,6 +380,7 @@
       "deliveryMargin": "ডেলিভারি মার্জিন",
       "deliveryPaidCost": "ক্রেতারা দিয়েছেন {received} · কুরিয়ার নিয়েছে {cost}",
       "notSent": "কোনো পার্সেল পাঠানো হয়নি",
+      "seeCharges": "প্রতিটি পার্সেলের চার্জ →",
       "noCourier": "কুরিয়ার নেই (পিকআপ বা পাঠানো হয়নি)"
     },
     "districts": {

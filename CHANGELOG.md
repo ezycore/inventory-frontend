@@ -9,6 +9,31 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-11
+
+### Added
+- **Products → Cost prices:** every product's buying price on one page. Filter by category or
+  "only products without a cost", set all shown at once, fix the odd ones, save together. The
+  dashboard's "Set cost prices to see profit" opens it. Help: "Set your cost prices" (en + bn).
+- **Customers:** sort by Came back, Orders, Bought or Last order — across every customer, not just
+  the page on screen.
+- **One home per number:** dashboard tiles link to where the number lives in full — Orders placed
+  and Gross profit → Orders Report, Awaiting confirmation → Online Orders (pending), With couriers
+  → Online Orders (shipped), Delivery margin → Courier charges. The Orders Report courier card
+  links to each parcel's charge.
+
+### Fixed
+- Orders Report courier rows read "Pathao" / "Steadfast" — a connected courier stores its id as
+  its name, so 1.6.0 still printed "pathao" (seen live after deploy). One helper,
+  `courierDisplayName`, now names couriers on the order page and the report.
+- Order page: a returned parcel's "delivery margin" is what the customer paid less the courier's
+  bill (usually minus the whole bill), with "customer paid ৳X for delivery" when it differs from
+  the fee — the same rule as the dashboard and reports.
+
+### Deploy notes
+- **Needs inventory-backend ≥ 1.6.0** — Cost prices, the customer sorts and the order page's
+  margin line read what that release adds.
+
 ## [1.6.0] - 2026-10-11
 
 ### Fixed

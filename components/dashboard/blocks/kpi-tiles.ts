@@ -68,6 +68,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     return {
       label: t('deliveryMargin'),
       value: formatCurrency(margin),
+      // Home: Courier charges (R3) — per parcel, per courier, biggest losses.
+      href: '/ecommerce/payouts',
       description: t(returned > 0 ? 'deliveryPaidCostReturned' : 'deliveryPaidCost', {
         received: formatCurrency(received),
         cost: formatCurrency(cost),
@@ -140,6 +142,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     return {
       label: t('ordersPlaced'),
       value: placed,
+      // Home: the Orders Report (R3) — the period's orders in full.
+      href: '/reports/orders',
       description: t('ordersValue', { amount: formatCurrency(value) }),
       icon: ShoppingBag,
       variant: 'primary',
@@ -159,6 +163,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     return {
       label: t('awaitingConfirmation'),
       value: pending,
+      // Home: Online Orders (R3) — the queue, opened on exactly these orders.
+      href: '/ecommerce/orders?status=pending',
       description: t('ordersInFlight', { count: open }),
       icon: Clock,
       variant: pending > 0 ? 'warning' : 'info',
@@ -188,6 +194,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     return {
       label: t('codFromCouriers'),
       value: formatCurrency(inTransit + held),
+      // Home: Online Orders (R3) — the parcels still out.
+      href: '/ecommerce/orders?status=shipped',
       // `rtoRate` is null until a parcel has reached a door — a shop with no
       // outcomes has no rate, and printing 0% would report a flawless week.
       description:
@@ -289,6 +297,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
         icon: TrendingUp,
         variant: 'warning',
         description: t(onlyUndispatched ? 'costsPending' : 'costsMissing'),
+        // "Set cost prices" opens the screen that sets them, all products on one page.
+        href: onlyUndispatched ? '/reports/orders' : '/products/costs',
       }
     }
 
@@ -304,6 +314,8 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
     return {
       label: t('grossProfit'),
       value: formatCurrency(grossProfit),
+      // Home: the Orders Report (R3).
+      href: '/reports/orders',
       icon: TrendingUp,
       variant: grossProfit >= 0 ? 'success' : 'warning',
       description:
