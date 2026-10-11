@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { productsApi } from '@/services/api'
 import { invalidate } from '@/services/api/invalidation'
 import { createResourceHooks } from '../query-helpers'
@@ -41,6 +41,23 @@ export const useSetProductCost = () => {
   return useMutation({
     mutationFn: ({ id, ...body }: { id: string; variantId?: string | null; costPrice: number }) =>
       productsApi.setCost(id, body),
+    onSuccess: () => invalidate(qc, 'catalog.changed'),
+  })
+}
+
+/** The Cost prices screen's rows. */
+export const useProductCosts = () =>
+  useQuery({
+    queryKey: queryKeys.products.costs(),
+    queryFn: productsApi.listCosts,
+    select: (res) => res.data,
+  })
+
+/** Save many costs at once — the same `catalog.changed` as one product's cost. */
+export const useSetProductCosts = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: productsApi.setCosts,
     onSuccess: () => invalidate(qc, 'catalog.changed'),
   })
 }

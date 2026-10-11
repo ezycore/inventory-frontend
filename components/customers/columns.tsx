@@ -62,7 +62,8 @@ export function getCustomerColumns(
       },
     },
     modes.online && {
-      id: "lastOrder",
+      // The id IS the server's sort field (`sort_by=lastOrderAt`, backend `ORDER_STAT_SORTS`).
+      id: "lastOrderAt",
       header: t("columns.lastOrder"),
       cell: ({ row }) =>
         row.original.orderStats?.lastOrderAt ? (

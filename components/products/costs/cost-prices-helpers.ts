@@ -1,0 +1,39 @@
+// coding-standard: maintained
+import type { ProductCostRow } from "@/types/api";
+
+/** One row per single product and per variant — the key the edits are held under. */
+export const costRowKey = (row: Pick<ProductCostRow, "productId" | "variantId">): string =>
+  `${row.productId}:${row.variantId ?? ""}`;
+
+/** The rows the filters leave on screen — and the set "Set all shown" applies to. */
+export function filterCostRows(
+  rows: ProductCostRow[],
+  filters: { search: string; categoryId: string | null; onlyMissing: boolean },
+): ProductCostRow[] {
+  const needle = filters.search.trim().toLowerCase();
+  return rows.filter(
+    (row) =>
+      (!filters.categoryId || row.categoryId === filters.categoryId) &&
+      (!filters.onlyMissing || row.costPrice <= 0) &&
+      (!needle ||
+        row.productName.toLowerCase().includes(needle) ||
+        (row.variantName ?? "").toLowerCase().includes(needle)),
+  );
+}
+
+/**
+ * What Save sends: only rows whose cost really changed, and never a cleared field — an empty box
+ * means "leave it", not "set ৳0" (a ৳0 cost reads as free goods in every profit figure).
+ */
+export function costsToSave(
+  rows: ProductCostRow[],
+  edits: Record<string, number | null>,
+): Array<{ productId: string; variantId: string | null; costPrice: number }> {
+  return rows.flatMap((row) => {
+    const key = costRowKey(row);
+    if (!(key in edits)) return [];
+    const next = edits[key];
+    if (next === null || next === undefined || next === row.costPrice) return [];
+    return [{ productId: row.productId, variantId: row.variantId, costPrice: next }];
+  });
+}

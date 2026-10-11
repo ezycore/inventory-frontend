@@ -139,7 +139,7 @@ export function OrderLineItems({ order }: { order: AdminStorefrontOrder }) {
  * ৳110–130 for) — printed as fact, it promised a margin the courier then took back. Once the
  * courier bills, its own figure replaces the estimate.
  */
-function CourierCostLine({
+export function CourierCostLine({
   order,
   money,
 }: {
@@ -149,10 +149,13 @@ function CourierCostLine({
   const billed = order.courier?.charges?.actual?.totalFee;
   const sent = !!order.courier?.consignmentId || order.courier?.integration === "manual";
   if (billed !== undefined && billed !== null) {
+    // What the customer PAID for delivery (the backend's shared rule), not the fee printed on the
+    // order: a parcel that came back paid nothing, so its margin is minus the whole bill.
+    const paid = order.courier?.deliveryReceived ?? order.shippingCharged;
     return (
       <p className="pt-1 text-xs text-muted-foreground">
-        Courier charged {money(billed)} · delivery margin{" "}
-        {money(order.shippingCharged - billed)}
+        Courier charged {money(billed)} · delivery margin {money(paid - billed)}
+        {paid !== order.shippingCharged && ` (customer paid ${money(paid)} for delivery)`}
       </p>
     );
   }

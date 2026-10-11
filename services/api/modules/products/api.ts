@@ -7,6 +7,8 @@ import type {
   ApiVariant,
   ApiImage,
   ProductBulkUpdateResult,
+  ProductCostBulkResult,
+  ProductCostList,
   ProductCostResult,
   ProductMatchList,
   ProductTaxonomySheet,
@@ -61,6 +63,14 @@ export const productsApi = {
     body: { variantId?: string | null; costPrice: number },
   ): Promise<ApiResponse<ProductCostResult>> =>
     apiClient.put(`/products/${id}/cost`, body),
+
+  /** Every sellable item with its current cost — the Cost prices screen. */
+  listCosts: (): Promise<ApiResponse<ProductCostList>> => apiClient.get("/products/costs"),
+
+  /** Many costs at once, for sales from now on. A failing row does not stop the rest. */
+  setCosts: (
+    items: Array<{ productId: string; variantId?: string | null; costPrice: number }>,
+  ): Promise<ApiResponse<ProductCostBulkResult>> => apiClient.put("/products/costs", { items }),
 
   /** Resolve a pasted list of product names / barcodes to products. */
   matchList: (lines: string[]): Promise<ApiResponse<ProductMatchList>> =>
