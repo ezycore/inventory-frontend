@@ -21,6 +21,23 @@ export const providerLabel = (provider?: string | null): string =>
   provider ? (PROVIDER_LABELS[provider] ?? provider) : "Courier";
 
 /**
+ * The name to print for a courier on an order or a report row.
+ *
+ * A connected courier stores its provider id as its NAME ("pathao"), so preferring the name
+ * printed lowercase codes — on the order page, then on the Orders Report's courier split (live,
+ * UriiBaba, after the first fix). Only a name that differs from the provider is the merchant's
+ * own (a manual partner), and only that is printed as-is.
+ */
+export const courierDisplayName = (
+  name?: string | null,
+  provider?: string | null,
+): string => {
+  const own = name?.trim();
+  if (own && own.toLowerCase() !== (provider ?? "").toLowerCase()) return own;
+  return providerLabel(own || provider);
+};
+
+/**
  * The deduction kinds, in the order a merchant reads a statement.
  *
  * `paymentCharge` is deliberately its own line and never folded into `delivery`: it is the
