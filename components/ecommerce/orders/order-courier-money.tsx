@@ -67,7 +67,11 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   if (!courier || (!charges && !remittance && !partialDelivery && !paidReturn)) return null;
 
   const money = (n: number) => formatMoney(n, currency);
-  const courierName = courier.name?.trim() || providerLabel(courier.provider);
+  // A connected courier stores its provider id as the name ("pathao"); only a merchant's own
+  // partner carries a name worth printing as-is.
+  const ownName = courier.name?.trim();
+  const courierName =
+    ownName && ownName !== courier.provider ? ownName : providerLabel(courier.provider);
   const actual = charges?.actual;
   const quoted = charges?.quoted;
   const variance =

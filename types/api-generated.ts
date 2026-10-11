@@ -9000,6 +9000,13 @@ export interface components {
                 type: "percentage" | "fixed";
             };
             totalDue?: number;
+            orderStats?: {
+                onlineOrders: number;
+                onlineSpent: number;
+                /** Format: date-time */
+                lastOrderAt: string | null;
+                returnedOrders: number;
+            };
         };
         Location: {
             _id: string;
@@ -12545,6 +12552,8 @@ export interface components {
                     actual: number;
                     variance: number;
                     shippingCharged: number;
+                    shippingReceived: number;
+                    returned: number;
                     margin: number;
                 };
                 outliers: {
@@ -12554,6 +12563,9 @@ export interface components {
                     actual: number;
                     variance: number;
                     shippingCharged: number;
+                    shippingReceived: number;
+                    /** @enum {boolean} */
+                    returned?: true;
                     margin: number;
                 }[];
             };
@@ -16396,7 +16408,10 @@ export interface components {
                 uncommittedOrders: number;
             };
             shipping?: {
+                parcels: number;
+                returned: number;
                 charged: number;
+                received: number;
                 cost: number;
                 margin: number;
             };
@@ -16658,9 +16673,11 @@ export interface components {
                 delivered: number;
                 returned: number;
                 rtoRate: number | null;
+                parcels: number;
                 charged: number;
+                received: number;
                 cost: number;
-                margin: number;
+                margin: number | null;
             }[];
             byDistrict: {
                 district: string | null;
@@ -16687,7 +16704,9 @@ export interface components {
                 count: number;
             }[];
             shipping: {
+                parcels: number;
                 charged: number;
+                received: number;
                 cost: number;
                 margin: number;
             };
@@ -44493,6 +44512,7 @@ export interface operations {
     get_api_ecommerce_payouts_summary: {
         parameters: {
             query?: {
+                period?: "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "last6Months" | "thisYear" | "lastYear" | "custom";
                 startDate?: string;
                 endDate?: string;
                 locationId?: string;

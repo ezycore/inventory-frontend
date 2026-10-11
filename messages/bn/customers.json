@@ -70,6 +70,11 @@
     "sourceManual": "ম্যানুয়াল",
     "due": "বকেয়া",
     "creditBalance": "ক্রেডিট ব্যালেন্স",
+    "phone": "ফোন",
+    "onlineOrders": "অর্ডার",
+    "onlineSpent": "মোট কেনা",
+    "lastOrder": "শেষ অর্ডার",
+    "returnedOrders": "ফেরত এসেছে",
     "createdDate": "তৈরির তারিখ",
     "updatedDate": "আপডেটের তারিখ"
   },

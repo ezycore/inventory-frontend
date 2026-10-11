@@ -55,22 +55,24 @@ const trend = (
 
 export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
   /**
-   * Delivery charged against what it cost to carry.
+   * What customers PAID for delivery on parcels really sent, against what the couriers billed —
+   * the backend's one rule (`utils/delivery-margin.ts`), shared with the Orders Report and Courier
+   * charges. It was every order's printed fee less an estimate, and read +৳984 for a month a live
+   * shop lost money on delivery. A parcel that came back pays nothing, so the line says how many did.
    *
-   * Not extra revenue — the charge is already inside the orders tile, because an
-   * order's total includes it. This is the tile that says how much of that was
-   * carriage and what carrying it took back, which for cash-on-delivery trade is
-   * the largest cost after the goods themselves.
+   * Not extra revenue — the charge is already inside the orders tile.
    */
   'shipping.money': ({ overview, formatCurrency }, t) => {
     if (!overview?.shipping) return null
-    const { charged, cost, margin } = overview.shipping
+    const { received, cost, margin, parcels, returned } = overview.shipping
     return {
       label: t('deliveryMargin'),
       value: formatCurrency(margin),
-      description: t('deliveryChargedCost', {
-        charged: formatCurrency(charged),
+      description: t(returned > 0 ? 'deliveryPaidCostReturned' : 'deliveryPaidCost', {
+        received: formatCurrency(received),
         cost: formatCurrency(cost),
+        parcels,
+        returned,
       }),
       icon: Truck,
       variant: margin >= 0 ? 'success' : 'warning',
