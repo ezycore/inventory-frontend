@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-11
+
 ### Changed
 - **Customers:** "Came back" is now **Returned** (bn ফেরত). Orders, Bought, Returned and Last order
   sort from their column header, not only the sort menu.
@@ -19,6 +21,9 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ### Fixed
 - **Dashboard:** "Set cost prices to see profit" opened a missing page (`/products/costs`); it now
   opens Products → Cost prices.
+
+### Deploy notes
+- Frontend only; works with backend ≥ 1.6.0 (same as 1.7.0).
 
 ## [1.7.0] - 2026-10-11
 
