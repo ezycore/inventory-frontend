@@ -380,6 +380,7 @@
       "deliveryMargin": "Delivery margin",
       "deliveryPaidCost": "{received} paid · {cost} to the courier",
       "notSent": "No parcels sent",
+      "seeCharges": "Each parcel's charge →",
       "noCourier": "No courier (pickup or not dispatched)"
     },
     "districts": {

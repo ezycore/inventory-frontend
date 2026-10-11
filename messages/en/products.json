@@ -451,6 +451,33 @@
         "cancel": "Cancel",
         "done": "{count, plural, one {# product updated} other {# products updated}}"
       }
+    },
+    "costs": {
+      "title": "Cost prices",
+      "subtitle": "What you pay for each product. Profit is worked out from these, for orders and sales from now on.",
+      "searchPlaceholder": "Search products",
+      "allCategories": "All categories",
+      "onlyMissing": "Only products without a cost",
+      "columns": {
+        "product": "Product",
+        "category": "Category",
+        "price": "Sells at",
+        "cost": "Cost (what you pay)",
+        "margin": "Margin"
+      },
+      "fillLabel": "Set the cost of all {count} shown products to",
+      "fillApply": "Apply",
+      "save": "Save {count, plural, one {# change} other {# changes}}",
+      "nothingToSave": "No changes",
+      "saved": "{count, plural, one {# cost saved} other {# costs saved}}",
+      "partlySaved": "{updated} saved, {failed} could not be saved",
+      "saveFailed": "Could not save the cost prices",
+      "missingCount": "{missing} of {total} products have no cost yet",
+      "allCosted": "Every product has a cost",
+      "futureOnly": "A new cost applies to orders sent to the courier and sales made from now on. Past orders and sales keep the cost they had.",
+      "costOwned": "Your cost prices come from your purchases — they update each time you receive stock, so they can't be edited here.",
+      "empty": "No products match.",
+      "noCost": "No cost"
     }
   },
   "brands": {

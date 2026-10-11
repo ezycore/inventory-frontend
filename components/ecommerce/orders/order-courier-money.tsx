@@ -4,7 +4,7 @@
 import { RefreshCw } from "lucide-react";
 
 import { formatMoney } from "@/components/storefront/format";
-import { providerLabel } from "@/components/ecommerce/payouts/helpers";
+import { courierDisplayName } from "@/components/ecommerce/payouts/helpers";
 import { useHasPermission } from "@/hooks/use-has-permission";
 import {
   useRefreshCourierCharges,
@@ -67,11 +67,7 @@ export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   if (!courier || (!charges && !remittance && !partialDelivery && !paidReturn)) return null;
 
   const money = (n: number) => formatMoney(n, currency);
-  // A connected courier stores its provider id as the name ("pathao"); only a merchant's own
-  // partner carries a name worth printing as-is.
-  const ownName = courier.name?.trim();
-  const courierName =
-    ownName && ownName !== courier.provider ? ownName : providerLabel(courier.provider);
+  const courierName = courierDisplayName(courier.name, courier.provider);
   const actual = charges?.actual;
   const quoted = charges?.quoted;
   const variance =

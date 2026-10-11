@@ -3285,13 +3285,13 @@ export interface paths {
         };
         /**
          * GET /api/products
-         * @description Defined in `src/routes/products.routes.ts:27`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:28`. Requires permission `products.view`.
          */
         get: operations["get_api_products"];
         put?: never;
         /**
          * POST /api/products
-         * @description Defined in `src/routes/products.routes.ts:175`. Requires permission `products.create`.
+         * @description Defined in `src/routes/products.routes.ts:196`. Requires permission `products.create`.
          */
         post: operations["post_api_products"];
         delete?: never;
@@ -3309,7 +3309,7 @@ export interface paths {
         };
         /**
          * GET /api/products/lookup
-         * @description Defined in `src/routes/products.routes.ts:35`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:36`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_lookup"];
         put?: never;
@@ -3329,10 +3329,34 @@ export interface paths {
         };
         /**
          * GET /api/products/labels/image
-         * @description Defined in `src/routes/products.routes.ts:43`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
+         * @description Defined in `src/routes/products.routes.ts:44`. Requires permission `products.view`. Gated by organization feature `barcodeSystem` — returns 403 when disabled.
          */
         get: operations["get_api_products_labels_image"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/costs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/products/costs
+         * @description Defined in `src/routes/products.routes.ts:58`. Requires permission `costs.view`.
+         */
+        get: operations["get_api_products_costs"];
+        /**
+         * PUT /api/products/costs
+         * @description Defined in `src/routes/products.routes.ts:63`. Requires permission `costs.view`.
+         */
+        put: operations["put_api_products_costs"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3349,7 +3373,7 @@ export interface paths {
         };
         /**
          * GET /api/products/export
-         * @description Defined in `src/routes/products.routes.ts:51`. Requires permission `products.export`.
+         * @description Defined in `src/routes/products.routes.ts:72`. Requires permission `products.export`.
          */
         get: operations["get_api_products_export"];
         put?: never;
@@ -3369,7 +3393,7 @@ export interface paths {
         };
         /**
          * GET /api/products/import/template
-         * @description Defined in `src/routes/products.routes.ts:58`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:79`. Requires permission `products.import`.
          */
         get: operations["get_api_products_import_template"];
         put?: never;
@@ -3391,7 +3415,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/description-image
-         * @description Defined in `src/routes/products.routes.ts:84`.
+         * @description Defined in `src/routes/products.routes.ts:105`.
          */
         post: operations["post_api_products_description_image"];
         delete?: never;
@@ -3411,7 +3435,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/bulk-update
-         * @description Defined in `src/routes/products.routes.ts:97`. Requires permission `products.edit`.
+         * @description Defined in `src/routes/products.routes.ts:118`. Requires permission `products.edit`.
          */
         post: operations["post_api_products_bulk_update"];
         delete?: never;
@@ -3431,7 +3455,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/match-list
-         * @description Defined in `src/routes/products.routes.ts:105`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:126`. Requires permission `products.view`.
          */
         post: operations["post_api_products_match_list"];
         delete?: never;
@@ -3449,7 +3473,7 @@ export interface paths {
         };
         /**
          * GET /api/products/taxonomy/export
-         * @description Defined in `src/routes/products.routes.ts:113`. Requires permission `products.export`.
+         * @description Defined in `src/routes/products.routes.ts:134`. Requires permission `products.export`.
          */
         get: operations["get_api_products_taxonomy_export"];
         put?: never;
@@ -3471,7 +3495,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/taxonomy/import
-         * @description Defined in `src/routes/products.routes.ts:120`. Requires permission `products.edit`.
+         * @description Defined in `src/routes/products.routes.ts:141`. Requires permission `products.edit`.
          */
         post: operations["post_api_products_taxonomy_import"];
         delete?: never;
@@ -3491,7 +3515,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/import
-         * @description Defined in `src/routes/products.routes.ts:128`. Requires permission `products.import`.
+         * @description Defined in `src/routes/products.routes.ts:149`. Requires permission `products.import`.
          */
         post: operations["post_api_products_import"];
         delete?: never;
@@ -3509,7 +3533,7 @@ export interface paths {
         };
         /**
          * GET /api/products/stats
-         * @description Defined in `src/routes/products.routes.ts:136`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:157`. Requires permission `products.view`.
          */
         get: operations["get_api_products_stats"];
         put?: never;
@@ -3529,7 +3553,7 @@ export interface paths {
         };
         /**
          * GET /api/products/active
-         * @description Defined in `src/routes/products.routes.ts:143`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:164`. Requires permission `products.view`.
          */
         get: operations["get_api_products_active"];
         put?: never;
@@ -3549,7 +3573,7 @@ export interface paths {
         };
         /**
          * GET /api/products/slug/:slug
-         * @description Defined in `src/routes/products.routes.ts:151`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:172`. Requires permission `products.view`.
          */
         get: operations["get_api_products_slug_slug"];
         put?: never;
@@ -3569,7 +3593,7 @@ export interface paths {
         };
         /**
          * GET /api/products/:id/variants
-         * @description Defined in `src/routes/products.routes.ts:159`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:180`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id_variants"];
         put?: never;
@@ -3589,18 +3613,18 @@ export interface paths {
         };
         /**
          * GET /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:166`. Requires permission `products.view`.
+         * @description Defined in `src/routes/products.routes.ts:187`. Requires permission `products.view`.
          */
         get: operations["get_api_products_id"];
         /**
          * PUT /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:201`. Requires permission `products.edit`.
+         * @description Defined in `src/routes/products.routes.ts:222`. Requires permission `products.edit`.
          */
         put: operations["put_api_products_id"];
         post?: never;
         /**
          * DELETE /api/products/:id
-         * @description Defined in `src/routes/products.routes.ts:210`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:231`. Requires permission `products.delete`.
          */
         delete: operations["delete_api_products_id"];
         options?: never;
@@ -3618,7 +3642,7 @@ export interface paths {
         get?: never;
         /**
          * PUT /api/products/:id/cost
-         * @description Defined in `src/routes/products.routes.ts:191`. Requires permission `costs.view`.
+         * @description Defined in `src/routes/products.routes.ts:212`. Requires permission `costs.view`.
          */
         put: operations["put_api_products_id_cost"];
         post?: never;
@@ -3639,7 +3663,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/products/bulk-delete
-         * @description Defined in `src/routes/products.routes.ts:218`. Requires permission `products.delete`.
+         * @description Defined in `src/routes/products.routes.ts:239`. Requires permission `products.delete`.
          */
         post: operations["post_api_products_bulk_delete"];
         delete?: never;
@@ -8183,6 +8207,29 @@ export interface components {
             matched: number;
             modified: number;
         };
+        ProductCostBulkResult: {
+            updated: number;
+            failed: {
+                productId: string;
+                variantId: string | null;
+                code: string;
+                message: string;
+            }[];
+        };
+        ProductCostList: {
+            costOwned: boolean;
+            items: {
+                productId: string;
+                variantId: string | null;
+                productName: string;
+                variantName: string | null;
+                categoryId: string | null;
+                categoryName: string | null;
+                status: string;
+                price: number;
+                costPrice: number;
+            }[];
+        };
         ProductCostResult: {
             productId: string;
             variantId: string | null;
@@ -11941,6 +11988,7 @@ export interface components {
                     partialDelivery?: boolean;
                     paidReturn?: boolean;
                     collectedAmount?: number;
+                    deliveryReceived?: number;
                     history?: {
                         status: string;
                         code?: string;
@@ -12173,6 +12221,7 @@ export interface components {
                 partialDelivery?: boolean;
                 paidReturn?: boolean;
                 collectedAmount?: number;
+                deliveryReceived?: number;
                 history?: {
                     status: string;
                     code?: string;
@@ -12395,6 +12444,7 @@ export interface components {
                     partialDelivery?: boolean;
                     paidReturn?: boolean;
                     collectedAmount?: number;
+                    deliveryReceived?: number;
                     history?: {
                         status: string;
                         code?: string;
@@ -29664,6 +29714,111 @@ export interface operations {
                 };
             };
             /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_api_products_costs: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductCostList"];
+                    };
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    put_api_products_costs: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    items: {
+                        productId: string;
+                        variantId?: string | null;
+                        costPrice: number;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["ProductCostBulkResult"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied */
             403: {
                 headers: {
                     [name: string]: unknown;

@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import Link from "next/link";
 import { cn } from "@/ui/lib/utils";
 import { LucideIcon, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Card } from "../card";
@@ -37,6 +38,12 @@ interface StatData {
   suffix?: string;
   prefix?: string;
   description?: string;
+  /**
+   * Where this number lives in full (business-modes R3, "one number, one home"). A tile that
+   * repeats a figure owned by another page links there, so the two can never be read as two
+   * different answers. The whole card is the link.
+   */
+  href?: string;
 }
 
 interface StatsCardProps {
@@ -179,8 +186,13 @@ const StatCardItem = ({
           : "text-success"
         : "text-muted-foreground";
 
-  return (
-    <Card className="min-w-0 p-4 sm:p-5 hover:shadow-md transition-shadow gap-2">
+  const card = (
+    <Card
+      className={cn(
+        "min-w-0 p-4 sm:p-5 hover:shadow-md transition-shadow gap-2",
+        stat.href && "h-full cursor-pointer hover:border-primary/40",
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-1 break-words">
           <p className="text-sm font-medium text-muted-foreground">
@@ -245,6 +257,13 @@ const StatCardItem = ({
         <MiniChart data={stat.chart.data} color={stat.chart.color} />
       )}
     </Card>
+  );
+  return stat.href ? (
+    <Link href={stat.href} className="block min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 };
 
