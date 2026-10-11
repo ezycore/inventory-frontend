@@ -57,7 +57,7 @@ export default function CustomersPage() {
 
   // Sorted by the SERVER, so a column sorts every customer, not just the page on screen — the
   // online columns are not stored fields, and the backend ranks them (`ORDER_STAT_SORTS`).
-  // "Came back" first: the buyer a cash-on-delivery seller checks before confirming.
+  // "Returned" first: the buyer a cash-on-delivery seller checks before confirming.
   const customerSorting = {
     sortOptions: [
       { field: "name", label: t("columns.name") },
@@ -87,6 +87,10 @@ export default function CustomersPage() {
   // an Online tab when the storefront is switched off would be stranded there
   // with no strip to click back through.
   const activeTab: CustomerTab = showStorefrontTabs ? tab : "all";
+  const sellsAtCounter = user?.organization?.features?.sales !== false;
+  // The ledger is a counter + dues story. With neither — an online-only shop — it showed bare
+  // invoice numbers and amounts, a worse copy of the Online Orders list the phone now opens.
+  const showLedger = isAccountsEnabled || sellsAtCounter;
   const [ledgerSheetOpen, setLedgerSheetOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -140,7 +144,7 @@ export default function CustomersPage() {
     [totals, currency, t],
   );
 
-  const customActions: CustomAction[] = useMemo(() => [
+  const customActions: CustomAction[] = useMemo(() => showLedger ? [
     {
       type: "ledger",
       placement: "cell",
@@ -151,7 +155,7 @@ export default function CustomersPage() {
         setLedgerSheetOpen(true);
       },
     },
-  ], [t]);
+  ] : [], [showLedger, t]);
 
   // Hoisted out of the JSX: the table now sits in a ternary branch, and an
   // object literal inside an unrendered branch never evaluates — which would
@@ -191,7 +195,8 @@ export default function CustomersPage() {
         columns={getCustomerColumns(t, {
           tracksMoney: isAccountsEnabled,
           online: isOnline,
-          counter: user?.organization?.features?.sales !== false,
+          counter: sellsAtCounter,
+          phoneOpensOrders: user?.permissions?.includes("storefront.orders.view") ?? false,
         })}
         selectable={true}
         enableSorting={true}

@@ -74,7 +74,8 @@
     "onlineOrders": "অর্ডার",
     "onlineSpent": "মোট কেনা",
     "lastOrder": "শেষ অর্ডার",
-    "returnedOrders": "ফেরত এসেছে",
+    "returnedOrders": "ফেরত",
+    "phoneOpensOrders": "এই ক্রেতার অনলাইন অর্ডার দেখুন",
     "createdDate": "তৈরির তারিখ",
     "updatedDate": "আপডেটের তারিখ"
   },

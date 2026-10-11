@@ -48,6 +48,10 @@ Every customer has a ledger — a running record of what they bought, what they 
 outstanding. It is the answer to "how much does this person owe me", and it updates itself as you
 record sales and payments.
 
+If you only sell online — no counter, no Cash & Bank — there is no ledger button. Press a customer's
+phone number instead: it opens Online Orders searched by that number, so you see every order they
+placed and which ones came back.
+
 ### Store credit
 
 When you refund a customer as credit rather than cash, that credit sits on their account and can be

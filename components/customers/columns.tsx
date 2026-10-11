@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import type { Customer } from "@/types";
 import type { Translator } from "@/i18n/config";
@@ -14,9 +15,20 @@ export interface CustomerColumnModes {
   online: boolean;
   /** `sales` (the counter) on — a default discount applies at the counter only. */
   counter: boolean;
+  /** The phone opens this buyer's online orders — storefront on and `storefront.orders.view` held. */
+  phoneOpensOrders?: boolean;
 }
 
-const ALL_MODES: CustomerColumnModes = { tracksMoney: true, online: true, counter: true };
+const ALL_MODES: CustomerColumnModes = {
+  tracksMoney: true,
+  online: true,
+  counter: true,
+  phoneOpensOrders: true,
+};
+
+/** The Online Orders list searched by this phone — the server matches the shipping phone. */
+export const ordersByPhoneHref = (phone: string) =>
+  `/ecommerce/orders?q=${encodeURIComponent(phone)}`;
 
 /**
  * `t` is bound to the `customers` namespace.
@@ -37,20 +49,39 @@ export function getCustomerColumns(
     {
       accessorKey: "phone",
       header: t("columns.phone"),
-      cell: ({ row }) => row.original.phone || <span className="text-muted-foreground">—</span>,
+      cell: ({ row }) => {
+        const phone = row.original.phone;
+        if (!phone) return <span className="text-muted-foreground">—</span>;
+        return modes.online && modes.phoneOpensOrders ? (
+          <Link
+            href={ordersByPhoneHref(phone)}
+            className="text-primary hover:underline"
+            title={t("columns.phoneOpensOrders")}
+          >
+            {phone}
+          </Link>
+        ) : (
+          phone
+        );
+      },
     },
     modes.online && {
+      // The ids ARE the server's sort fields (`sort_by=…`, backend `ORDER_STAT_SORTS`), and the
+      // accessor is what lets the header sort at all — TanStack never sorts an id-only column.
       id: "onlineOrders",
+      accessorFn: (customer) => customer.orderStats?.onlineOrders ?? 0,
       header: t("columns.onlineOrders"),
       cell: ({ row }) => row.original.orderStats?.onlineOrders ?? 0,
     },
     modes.online && {
       id: "onlineSpent",
+      accessorFn: (customer) => customer.orderStats?.onlineSpent ?? 0,
       header: t("columns.onlineSpent"),
       cell: ({ row }) => <MoneyCell value={row.original.orderStats?.onlineSpent ?? 0} />,
     },
     modes.online && {
       id: "returnedOrders",
+      accessorFn: (customer) => customer.orderStats?.returnedOrders ?? 0,
       header: t("columns.returnedOrders"),
       cell: ({ row }) => {
         const count = row.original.orderStats?.returnedOrders ?? 0;
@@ -62,8 +93,8 @@ export function getCustomerColumns(
       },
     },
     modes.online && {
-      // The id IS the server's sort field (`sort_by=lastOrderAt`, backend `ORDER_STAT_SORTS`).
       id: "lastOrderAt",
+      accessorFn: (customer) => customer.orderStats?.lastOrderAt ?? null,
       header: t("columns.lastOrder"),
       cell: ({ row }) =>
         row.original.orderStats?.lastOrderAt ? (
