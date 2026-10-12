@@ -362,8 +362,14 @@ export const storefrontOrdersApi = {
     id: string,
     status: string,
     note?: string,
+    /** Delivered although the courier says returned — the merchant saw the warning. */
+    confirmCourierReturned?: boolean,
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
-    apiClient.patch(`${base}/${id}/status`, { status, note }),
+    apiClient.patch(`${base}/${id}/status`, {
+      status,
+      note,
+      ...(confirmCourierReturned ? { confirmCourierReturned } : {}),
+    }),
   /**
    * Correct an order that already exists — same form as `create`, against an
    * order rather than a blank. Allowed until the parcel reaches the courier.

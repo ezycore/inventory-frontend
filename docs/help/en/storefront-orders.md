@@ -39,6 +39,11 @@ invoice. Invoices use the same letterhead as everything else — see
 
 Cancelling a confirmed order releases the reserved stock back for sale.
 
+**Know the buyer before you confirm.** Under a returning customer's name the list shows their record,
+such as *4 orders · 2 returned*. A cash-on-delivery buyer who sends parcels back costs you the courier
+both ways, so check it before confirming. Press it to list every order from that customer, across all
+tabs and dates.
+
 ## Cash on delivery
 
 Most orders are cash on delivery: the shopper pays your courier, and the payment is recorded when the
@@ -62,6 +67,10 @@ depends on what the courier tells us:
 A parcel the courier has reported returned no longer counts as cash in transit. While it travels
 back, its courier status reads **Returning to you**, and **Back with you** once Pathao hands it
 over — so you know whether the goods are actually in your hands before you return the order.
+
+**Mark as Delivered asks first when the courier says returned.** Pressing it on such an order shows
+"*courier* says this parcel came back". If you have the parcel, go back and return the order instead.
+Press **Mark delivered anyway** only when the customer really received it — the courier can be wrong.
 
 ### Part of the parcel came back
 
@@ -95,7 +104,8 @@ counter they read **Customer paid ৳…**.
 ### Find your returns
 
 Press **Returns** above the order list to see every order something came back from, whole or in
-part. Each order lists its own returns in a **Returns** card; open one to see what came back, the
+part. **Returns** and **Courier says returned** show one list at a time: the first is returns you
+have recorded, the second is parcels the courier says came back that you have not processed yet. Each order lists its own returns in a **Returns** card; open one to see what came back, the
 sale reversed, what was refunded and what the customer paid at the door.
 
 ## Store customers

@@ -10,6 +10,7 @@ import { CopyTrackLink } from "@/components/ecommerce/orders/copy-track-link";
 import { CustomerPhone } from "@/components/ecommerce/orders/customer-phone";
 import { OrderRowActions } from "@/components/ecommerce/orders/order-row-actions";
 import {
+  type BuyerHistory,
   buyerHistoryIsWarning,
   buyerHistoryLabel,
   orderAge,
@@ -33,6 +34,7 @@ export function OrderRow({
   now,
   onToggle,
   onOpen,
+  onShowBuyer,
 }: {
   order: AdminStorefrontOrder;
   currency?: string;
@@ -43,7 +45,7 @@ export function OrderRow({
    * What this buyer has ordered before, looked up by the list in one aggregate.
    * Absent for a first-time buyer, and the row says nothing in that case.
    */
-  buyerHistory?: { orders: number; rejected: number };
+  buyerHistory?: BuyerHistory;
   /**
    * The clock the Age cell is measured against, ticked by the LIST (`useNow`).
    * Passed in rather than read here so a page of rows shares one timer instead
@@ -52,6 +54,8 @@ export function OrderRow({
   now: Date;
   onToggle: (on: boolean) => void;
   onOpen: () => void;
+  /** Filter the list to this buyer's orders — the history chip is the button for it. */
+  onShowBuyer?: () => void;
 }) {
   const { timezone } = useOrgCalendar();
   const provider = order.courier?.provider;
@@ -107,17 +111,27 @@ export function OrderRow({
               customer — and the number is the half that is actually unique. Two
               buyers called Rahim are told apart by nothing else on this row. */}
           <CustomerPhone phone={order.shippingAddress?.phone} />
+          {/* The chip IS "this buyer's orders", so it is the one-click filter to them —
+              rather than the name, which reads as "open this order" like the rest of the row. */}
           {historyLabel && (
-            <span
+            <button
+              type="button"
+              disabled={!onShowBuyer}
+              title="Show all orders from this customer"
+              onClick={(event) => {
+                // The row opens the order on click; this filters instead.
+                event.stopPropagation();
+                onShowBuyer?.();
+              }}
               className={cn(
-                "text-xs",
+                "w-fit text-left text-xs underline-offset-2 enabled:hover:underline",
                 historyWarns
                   ? "text-amber-700 dark:text-amber-500"
                   : "text-muted-foreground",
               )}
             >
               {historyLabel}
-            </span>
+            </button>
           )}
         </div>
       </td>
