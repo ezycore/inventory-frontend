@@ -9,6 +9,8 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-12
+
 ### Added
 - **Courier payouts is its own switch** in Customize workspace (opt-in, like Warranty), no longer
   tied to Cash & Bank. On: the Courier payouts screen (balances, Record payment, payment history),
