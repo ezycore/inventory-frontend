@@ -28,28 +28,38 @@ import { formatMoney } from "@/components/storefront/format";
  * an action that will be refused.
  */
 
-/**
- * The buyer's record beside their name — `5 orders · 3 rejected`.
- *
- * Returns nothing for a first-time buyer: "1 order · 0 rejected" on every new
- * order is noise, and a chip that appears on every row stops being read. It is
- * the REPEAT that carries information, in both directions — a number with three
- * rejections behind it is the fraud signal this exists for, and one with seven
- * clean orders is a customer worth recognising.
- */
-export const buyerHistoryLabel = (h?: {
+/** One phone's record across the shop's online orders (backend `phoneHistoryFor`). */
+export interface BuyerHistory {
   orders: number;
   rejected: number;
-}): string | undefined =>
-  !h || h.orders < 2
-    ? undefined
-    : `${h.orders} orders · ${h.rejected} rejected`;
+  /** Parcels that came back whole. Optional: a backend older than 1.7.0 does not send it. */
+  returned?: number;
+}
 
-/** Whether that history should read as a warning rather than a fact. */
-export const buyerHistoryIsWarning = (h?: {
-  orders: number;
-  rejected: number;
-}): boolean => !!h && h.orders >= 2 && h.rejected >= 2;
+/**
+ * The buyer's record beside their name — `4 orders · 2 returned`, plus `· 1 rejected` when the
+ * merchant has turned any down.
+ *
+ * Returned leads because on a cash-on-delivery business it is the costly half: a rejected
+ * order never left the shop, a returned one paid the courier both ways. The chip counted only
+ * rejections until 2026-10-12, so a buyer with two parcels back read "4 orders · 0 rejected"
+ * here while Customers said "2 returned" (live, UriiBaba).
+ *
+ * Returns nothing for a first-time buyer: "1 order · 0 returned" on every new order is noise,
+ * and a chip that appears on every row stops being read. It is the REPEAT that carries
+ * information, in both directions — a number with returns behind it is the signal this exists
+ * for, and one with seven clean orders is a customer worth recognising.
+ */
+export const buyerHistoryLabel = (h?: BuyerHistory): string | undefined => {
+  if (!h || h.orders < 2) return undefined;
+  const parts = [`${h.orders} orders`, `${h.returned ?? 0} returned`];
+  if (h.rejected > 0) parts.push(`${h.rejected} rejected`);
+  return parts.join(" · ");
+};
+
+/** Whether that history should read as a warning: two or more orders that went nowhere. */
+export const buyerHistoryIsWarning = (h?: BuyerHistory): boolean =>
+  !!h && h.orders >= 2 && (h.returned ?? 0) + h.rejected >= 2;
 
 /**
  * How long an order has been sitting, as a merchant reads it.

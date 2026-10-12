@@ -11,6 +11,7 @@ import { isFeatureOn } from "@/lib/feature-utils";
 import { useCourierBalances, useCourierMoneySummary } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import PageHeader from "@/ui/components/header";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 /**
@@ -25,11 +26,13 @@ import { useMemo, useState } from "react";
  * on purpose: a merchant with the ledger switched off still needs to see what each courier
  * CHARGED for delivery.
  *
- * **What a courier OWES is shown only with `accounts` on** (business-modes D2 / G2). Without it the
- * merchant records no courier payments, so every delivered parcel stayed "owed" forever — a live
- * store read "Pathao owes you ৳2,65,133" from a courier that had long since paid. Off = hidden,
- * never ৳0: the balances, the record-payment buttons and the payment history go; the delivery-cost
- * comparison stays.
+ * **What a courier OWES is shown only with `courierPayouts` on** — its own opt-in switch in
+ * Customize workspace since 2026-10-12, no longer tied to `accounts` (business-modes D2). A shop
+ * that records no courier payments has every delivered parcel "owed" forever — a live store read
+ * "Pathao owes you ৳2,65,133" from a courier that had long since paid. Off = hidden, never ৳0:
+ * the balances, the record-payment buttons and the payment history go; the delivery-cost
+ * comparison stays. On, the count starts the day it was switched on (backend
+ * `courierPayoutsStartFilter`), so turning it on never opens with months of settled parcels.
  *
  * **The charge and payment cards follow a period, the balances do not.** What a courier owes is
  * a balance today; the delivery comparison is "how did this month go". It opened on all time
@@ -39,7 +42,7 @@ export default function CourierPayoutsPage() {
   const canManage = useHasPermission("storefront.orders.manage");
   const tracksPayouts = isFeatureOn(
     useAuthStore((state) => state.user?.organization?.features),
-    "accounts",
+    "courierPayouts",
   );
   const { data: balances } = useCourierBalances(tracksPayouts);
   const [period, setPeriod] = useState<string>("thisMonth");
@@ -76,8 +79,12 @@ export default function CourierPayoutsPage() {
         {periodFilter}
         <ChargeVariance data={summary?.variance} />
         <p className="text-sm text-muted-foreground">
-          Courier payments are not tracked because the Accounts feature is off. Turn it on in
-          Settings → Customize workspace to record what each courier pays you.
+          Courier payments are not tracked. To record what each courier pays you and see what they
+          still owe, turn on <strong>Courier payouts</strong> in{" "}
+          <Link href="/settings/features" className="text-primary hover:underline">
+            Customize workspace
+          </Link>
+          . It counts parcels from the day you turn it on.
         </p>
       </div>
     );

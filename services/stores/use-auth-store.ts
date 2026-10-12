@@ -75,6 +75,8 @@ export interface User {
      * select, like `planFeatures`.
      */
     posUsedAt?: string | null;
+    /** When courier payouts were switched on — the courier balances count parcels from here. */
+    courierPayoutsSince?: string | null;
     /** Admin-configurable VAT settings (BIN, default rate, price semantics). */
     vatSettings?: VatSettings;
     /**

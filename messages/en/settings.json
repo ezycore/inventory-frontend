@@ -27,7 +27,8 @@
       "multiLocation": "Multiple Locations",
       "purchases": "Purchasing",
       "inventoryTracking": "Stock tracking",
-      "warranty": "Warranty"
+      "warranty": "Warranty",
+      "courierPayouts": "Courier payouts"
     },
     "descriptions": {
       "sales": "Enable sales orders, customer invoices, and sales history tracking",
@@ -44,7 +45,8 @@
       "multiLocation": "Run more than one shop or warehouse, with stock transfers between them",
       "purchases": "Purchase orders, receiving stock, purchase returns and supplier records. Turn this off if you do not buy from suppliers to resell.",
       "inventoryTracking": "Count what you have on hand — stock levels, adjustments, transfers and the movement history. Turn this off if you sell to order and do not hold inventory.",
-      "warranty": "Set warranty terms on products, print them on the invoice, check whether a sale is still covered and log warranty claims"
+      "warranty": "Set warranty terms on products, print them on the invoice, check whether a sale is still covered and log warranty claims",
+      "courierPayouts": "Record what each courier pays you and see what they still owe. Works with or without Cash & Bank — with it on, payments also go into your accounts."
     },
     "disable": {
       "title": "Turn off {feature}?",
@@ -56,7 +58,9 @@
       "confirm": "Turn it off",
       "cancel": "Keep it on",
       "cascade": "This also switches off: {features}. Turning it back on restores them exactly as you had them.",
-      "inventoryTracking": "Your stock figures stop being used — nothing is deleted, and turning this back on brings them back."
+      "inventoryTracking": "Your stock figures stop being used — nothing is deleted, and turning this back on brings them back.",
+      "courierPayouts": "Each courier's balance stops here. If you turn this back on later, the count starts again from ৳0 on that day — parcels delivered while it is off, and parcels still open now, will not be included. Any shortfall from earlier payments stays on the card. Record any payment a courier still owes you before switching off.",
+      "courierPayoutsKept": "Payments you have already recorded are kept, and show again when you turn it back on."
     },
     "needsParent": "Needs {parent}",
     "needsParentHint": "Turn {parent} back on to use this. Your setting is remembered.",

@@ -9,6 +9,32 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- **Courier payouts is its own switch** in Customize workspace (opt-in, like Warranty), no longer
+  tied to Cash & Bank. On: the Courier payouts screen (balances, Record payment, payment history),
+  the dashboard "coming from couriers" tile and the order's "they owe it to you" line. It counts
+  parcels from the day it is switched on, so a shop that never recorded payments does not open
+  with months of "owed". Help: "Record courier payments" (en + bn).
+
+### Changed
+- **Online Orders:** the buyer chip reads `4 orders · 2 returned` (plus `· N rejected` when any) and
+  warns from two returns or rejections. It counted only rejections, so a buyer with parcels back
+  read "0 rejected" beside Customers' "2 returned".
+- **Online Orders:** the buyer chip is a button — one click lists every order from that customer
+  (their phone in the search, every tab and date). A typed phone finds orders saved in any format.
+- **Online Orders:** **Returns** and **Courier says returned** are one-at-a-time: pressing one clears
+  the other (together they met on almost nothing and read as an empty list).
+- **Customize workspace:** turning **Courier payouts** off asks first, and says that turning it back
+  on restarts every balance from ৳0 (parcels delivered while off and parcels still open are not
+  counted; an earlier shortfall stays; recorded payments are kept).
+- **Mark as Delivered** on an order the courier says was returned asks first ("Pathao says this
+  parcel came back") and offers "Mark delivered anyway". Help: "Online orders" (en + bn).
+
+### Deploy notes
+- Needs **inventory-backend ≥ 1.7.0** (the switch, the chip's `returned` count, and
+  `confirmCourierReturned`). Deploy the backend first: its migration keeps payouts on for every shop
+  that has Cash & Bank on or has recorded a courier payment.
+
 ## [1.7.1] - 2026-10-11
 
 ### Changed

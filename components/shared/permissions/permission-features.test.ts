@@ -26,6 +26,7 @@ const ALL_ON: OrganizationFeatures = {
   purchases: true,
   inventoryTracking: true,
   warranty: true,
+  courierPayouts: true,
 };
 
 const START: OrganizationFeatures = {
