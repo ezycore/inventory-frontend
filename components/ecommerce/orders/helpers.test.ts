@@ -458,26 +458,31 @@ describe("rejectionReasonLabel", () => {
 describe("buyerHistoryLabel", () => {
   it("says nothing about a first-time buyer", () => {
     // A chip on every row is a chip nobody reads.
-    expect(buyerHistoryLabel({ orders: 1, rejected: 0 })).toBeUndefined();
-    expect(buyerHistoryLabel({ orders: 1, rejected: 1 })).toBeUndefined();
+    expect(buyerHistoryLabel({ orders: 1, rejected: 0, returned: 0 })).toBeUndefined();
+    expect(buyerHistoryLabel({ orders: 1, rejected: 1, returned: 0 })).toBeUndefined();
     expect(buyerHistoryLabel(undefined)).toBeUndefined();
   });
 
-  it("reports the whole record once there is a repeat", () => {
-    expect(buyerHistoryLabel({ orders: 5, rejected: 3 })).toBe(
-      "5 orders · 3 rejected",
+  it("leads with returns, and names rejections only when there are any", () => {
+    // Live, UriiBaba: this buyer read "4 orders · 0 rejected" with two parcels back.
+    expect(buyerHistoryLabel({ orders: 4, rejected: 0, returned: 2 })).toBe("4 orders · 2 returned");
+    expect(buyerHistoryLabel({ orders: 5, rejected: 1, returned: 2 })).toBe(
+      "5 orders · 2 returned · 1 rejected",
     );
     // The loyal-customer case the chip must also be able to say.
-    expect(buyerHistoryLabel({ orders: 7, rejected: 0 })).toBe(
-      "7 orders · 0 rejected",
-    );
+    expect(buyerHistoryLabel({ orders: 7, rejected: 0, returned: 0 })).toBe("7 orders · 0 returned");
   });
 
-  it("warns only when the rejections are a pattern", () => {
-    expect(buyerHistoryIsWarning({ orders: 7, rejected: 0 })).toBe(false);
-    // One bad delivery among several is not a fraud signal.
-    expect(buyerHistoryIsWarning({ orders: 5, rejected: 1 })).toBe(false);
-    expect(buyerHistoryIsWarning({ orders: 5, rejected: 3 })).toBe(true);
+  it("reads an older backend's record (no returned count) as zero returns", () => {
+    expect(buyerHistoryLabel({ orders: 3, rejected: 0 })).toBe("3 orders · 0 returned");
+  });
+
+  it("warns once returns and rejections together make a pattern", () => {
+    expect(buyerHistoryIsWarning({ orders: 7, rejected: 0, returned: 0 })).toBe(false);
+    // One bad delivery among several is not a pattern.
+    expect(buyerHistoryIsWarning({ orders: 5, rejected: 0, returned: 1 })).toBe(false);
+    expect(buyerHistoryIsWarning({ orders: 4, rejected: 0, returned: 2 })).toBe(true);
+    expect(buyerHistoryIsWarning({ orders: 5, rejected: 1, returned: 1 })).toBe(true);
     expect(buyerHistoryIsWarning(undefined)).toBe(false);
   });
 });

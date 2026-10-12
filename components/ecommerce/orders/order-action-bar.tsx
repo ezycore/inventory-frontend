@@ -16,6 +16,7 @@ import { OrderCollectionDialog } from "./order-collection-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import { OrderEditButton } from "./order-edit-button";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";
+import { OrderMarkDelivered } from "./order-mark-delivered";
 import { OrderReturnDialog } from "./order-return-dialog";
 import { OrderReverseStatusDialog } from "./order-reverse-status-dialog";
 import { codToCollect, collectionLabels, confirmOrderPrompt } from "./order-detail-helpers";
@@ -130,14 +131,7 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
         </Button>
       )}
       {order.status === "shipped" && (
-        <Button
-          size="sm"
-          onClick={() =>
-            updateStatus.mutate({ id: order._id, status: "delivered" })
-          }
-        >
-          Mark as {labelFor("delivered")}
-        </Button>
+        <OrderMarkDelivered order={order} label={`Mark as ${labelFor("delivered")}`} />
       )}
       {/* Only when the merchant has no account to choose. With `accounts` on,
           `OrderPaymentPanel` owns this action because it carries the receiving-

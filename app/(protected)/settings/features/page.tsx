@@ -50,6 +50,7 @@ const FEATURE_ORDER: FeatureName[] = [
   "invoicePrinting",
   "uomConversion",
   "storefront",
+  "courierPayouts",
   "multiLocation",
   "tax",
   "combo",
@@ -337,6 +338,7 @@ export default function FeatureSettingsPage() {
       <DisableFeatureDialog
         open={!!confirming}
         onOpenChange={(open) => !open && setConfirming(null)}
+        feature={confirming?.feature}
         featureName={confirming ? featureNames[confirming.feature] : ""}
         consequence={confirming?.consequence ?? null}
         onConfirm={() => {

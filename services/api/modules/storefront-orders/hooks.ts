@@ -174,8 +174,12 @@ export const useConfirmOrder = () => {
 export const useUpdateOrderStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: string; status: string; note?: string }) =>
-      storefrontOrdersApi.updateStatus(v.id, v.status, v.note),
+    mutationFn: (v: {
+      id: string;
+      status: string;
+      note?: string;
+      confirmCourierReturned?: boolean;
+    }) => storefrontOrdersApi.updateStatus(v.id, v.status, v.note, v.confirmCourierReturned),
     onSuccess: (res) => {
       handleMutationSuccess(res.message || "Status updated");
       const order = res.data;
