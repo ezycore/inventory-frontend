@@ -19,13 +19,24 @@ their charges.
 when it arrives. It works the same way for every courier: Pathao, Steadfast, eCourier, and your own
 delivery partners.
 
-## Only if you track your money
+## Turn it on first
 
-Recording courier payments is part of the **Accounts** feature. If Accounts is off, the screen is
-called **Courier charges** and shows only what each courier really billed for delivery against what
-your customers actually paid for it. There is no "owed to you" figure and no payment to record — a delivered
-parcel simply counts as paid. Turn Accounts on in Settings → Customize workspace when you want to
-check every courier payment.
+Courier payments are their own switch: turn on **Courier payouts** under **Customize workspace** at
+the bottom of the sidebar. You do not need Cash & Bank for it — with Cash & Bank off, a payment still
+clears its parcels and keeps each courier's balance right; it just is not added to an account.
+
+While it is off, the screen is called **Courier charges** and shows only what each courier really
+billed for delivery against what your customers actually paid for it. There is no "owed to you"
+figure and no payment to record.
+
+**It counts from the day you turn it on.** Parcels delivered before that are treated as already
+paid, so the card does not open with months of money the courier has long since sent you. From that
+day, record every payment you receive here — one you skip makes the courier look like they still owe
+it.
+
+**Think before switching it off.** Turning it off and on again starts every balance from ৳0 again:
+parcels delivered while it was off, and parcels still open when you switched off, are not counted.
+A shortfall from earlier payments stays. Payments you recorded are kept. You are asked to confirm.
 
 ## What happens when a parcel is delivered
 
@@ -79,7 +90,7 @@ When money arrives, press **Record payment received** on that courier's card.
 
 1. **Amount received** — what actually arrived in your bank or bKash.
 2. **Date** — leave it for today.
-3. **Received into** — the account the money landed in.
+3. **Received into** — the account the money landed in. Only asked when Cash & Bank is on.
 4. **Parcels this covers** — ticked for you, oldest first, until they add up to the amount. Change the
    ticks if the courier's statement lists different parcels.
 5. **Reference** (optional) — the courier's statement number or the bKash TrxID.

@@ -18,6 +18,11 @@ vi.mock("@/services/api", () => ({
     return { data: undefined };
   },
 }));
+// The payouts half has its own tests; here only whether the page shows it.
+vi.mock("@/components/ecommerce/payouts/payout-list", () => ({ PayoutList: () => null }));
+vi.mock("@/components/ecommerce/payouts/courier-balance-cards", () => ({
+  CourierBalanceCards: () => null,
+}));
 vi.mock("@/hooks/use-has-permission", () => ({ useHasPermission: () => true }));
 
 import CourierPayoutsPage from "./page";
@@ -27,9 +32,9 @@ afterEach(() => {
   useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
 });
 
-const signIn = () =>
+const signIn = (features: Record<string, boolean> = { accounts: false }) =>
   useAuthStore.setState({
-    user: { organization: { features: { accounts: false }, currency: "BDT" } },
+    user: { organization: { features, currency: "BDT" } },
     isAuthenticated: true,
   } as never);
 
@@ -41,5 +46,22 @@ describe("Courier charges page", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /all time/i }));
     expect(summaryCalls.at(-1)).toEqual({});
+  });
+
+  it("follows the Courier payouts switch, not Cash & Bank", () => {
+    // Cash & Bank on, payouts off: still only the charges, and the way to turn tracking on.
+    signIn({ accounts: true, courierPayouts: false });
+    const { unmount } = renderWithProviders(<CourierPayoutsPage />);
+    expect(screen.getByRole("heading", { name: "Courier charges" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Customize workspace" })).toHaveAttribute(
+      "href",
+      "/settings/features",
+    );
+    unmount();
+
+    // Cash & Bank off, payouts on: the full payouts screen.
+    signIn({ accounts: false, courierPayouts: true });
+    renderWithProviders(<CourierPayoutsPage />);
+    expect(screen.getByRole("heading", { name: "Courier payouts" })).toBeInTheDocument();
   });
 });

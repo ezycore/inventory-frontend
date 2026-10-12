@@ -38,6 +38,17 @@ export const courierDisplayName = (
 };
 
 /**
+ * Whether a parcel is on the courier's balance: opened on or after the day courier payouts were
+ * switched on. Mirrors the backend `courierPayoutsStartFilter` (`remittance.openedAt`, else the
+ * order's last change). No start date = everything counts — the shops that tracked payouts
+ * before the switch existed.
+ */
+export const countsTowardPayouts = (
+  openedAt?: string | null,
+  since?: string | null,
+): boolean => !since || (!!openedAt && openedAt >= since);
+
+/**
  * The deduction kinds, in the order a merchant reads a statement.
  *
  * `paymentCharge` is deliberately its own line and never folded into `delivery`: it is the

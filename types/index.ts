@@ -119,6 +119,12 @@ export interface OrganizationFeatures {
    * against (Sales → Warranty). Mirrors the backend `OrganizationFeatures`.
    */
   warranty: boolean;
+  /**
+   * What each courier owes you and has paid (Online Store → Courier payouts). Opt-in, and NOT
+   * tied to `accounts`: with Cash & Bank off a payment still records and clears its parcels, it
+   * just posts nothing to the books. Mirrors the backend `OrganizationFeatures`.
+   */
+  courierPayouts: boolean;
 }
 
 /**
@@ -144,6 +150,7 @@ export const DEFAULT_ORGANIZATION_FEATURES: OrganizationFeatures = {
   purchases: true,
   inventoryTracking: true,
   warranty: true,
+  courierPayouts: true,
 };
 
 /**

@@ -4,7 +4,7 @@
 import { RefreshCw } from "lucide-react";
 
 import { formatMoney } from "@/components/storefront/format";
-import { courierDisplayName } from "@/components/ecommerce/payouts/helpers";
+import { countsTowardPayouts, courierDisplayName } from "@/components/ecommerce/payouts/helpers";
 import { useHasPermission } from "@/hooks/use-has-permission";
 import {
   useRefreshCourierCharges,
@@ -46,12 +46,14 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export function OrderCourierMoney({ order }: { order: AdminStorefrontOrder }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  // Who owes what is shown only to a merchant who records courier payments (business-modes D2):
-  // with `accounts` off a delivered parcel would read "they owe it to you" forever.
-  const tracksPayouts = isFeatureOn(
-    useAuthStore((s) => s.user?.organization?.features),
-    "accounts",
-  );
+  // Who owes what is shown only to a merchant who records courier payments (`courierPayouts`,
+  // business-modes D2): otherwise a delivered parcel would read "they owe it to you" forever.
+  // A parcel from before the switch went on is not on the courier's balance either, so it
+  // says nothing here (`countsTowardPayouts`).
+  const organization = useAuthStore((s) => s.user?.organization);
+  const tracksPayouts =
+    isFeatureOn(organization?.features, "courierPayouts") &&
+    countsTowardPayouts(order.courier?.remittance?.openedAt ?? order.updatedAt, organization?.courierPayoutsSince);
   const canManage = useHasPermission("storefront.orders.manage");
   const refresh = useRefreshCourierCharges();
 

@@ -193,12 +193,36 @@ function OrdersList() {
     setSelected(new Set());
   };
   const changeSearch = (v: string) => changeFilter({ q: v });
+  // Every order from one buyer: their phone in the search, every other filter cleared — "all
+  // their orders" means across tabs and time. The box is re-seeded so it shows the number.
+  const [searchSeed, setSearchSeed] = useState(0);
+  const showBuyer = (phone?: string) => {
+    if (!phone) return;
+    changeFilter({
+      q: phone,
+      status: "",
+      courier: "all",
+      fulfillment: "all",
+      channel: "all",
+      returned: "",
+      returns: "",
+      period: ALL_TIME,
+      start: "",
+      end: "",
+    });
+    setSearchSeed((n) => n + 1);
+  };
   const changeStatus = (v: string) => changeFilter({ status: v });
   const changeCourier = (v: string) => changeFilter({ courier: v });
   const changeFulfillment = (v: string) => changeFilter({ fulfillment: v });
   const changeChannel = (v: string) => changeFilter({ channel: v });
-  const toggleReturned = () => changeFilter({ returned: returned === "1" ? "" : "1" });
-  const toggleReturns = () => changeFilter({ returns: returns === "1" ? "" : "1" });
+  // One queue at a time. "Courier says returned" is work not yet done (the return is not
+  // recorded), "Returns" is orders where it was — together they meet on almost nothing, so
+  // pressing both read as an empty list rather than as two questions.
+  const toggleReturned = () =>
+    changeFilter({ returned: returned === "1" ? "" : "1", returns: "" });
+  const toggleReturns = () =>
+    changeFilter({ returns: returns === "1" ? "" : "1", returned: "" });
   // Back to every page's orders, from the chip `LandingPageFilter` draws.
   const clearPageFilter = () => {
     setSelected(new Set());
@@ -502,7 +526,7 @@ function OrdersList() {
             placeholder="Search order #, customer or phone"
             // The URL's search, after Back from an order; remounted on an
             // outside URL change so the box shows what the list is filtered by.
-            key={list.revision}
+            key={`${list.revision}-${searchSeed}`}
             defaultValue={search}
             onSearch={changeSearch}
           />
@@ -728,6 +752,7 @@ function OrdersList() {
                     }
                     onToggle={(on) => toggleOne(o._id, on)}
                     onOpen={() => router.push(orderDetailHref(o._id))}
+                    onShowBuyer={() => showBuyer(o.shippingAddress?.phone)}
                   />
                 ))
               )}

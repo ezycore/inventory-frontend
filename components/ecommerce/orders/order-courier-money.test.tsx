@@ -27,7 +27,8 @@ const auth = vi.hoisted(() => ({
       organization: {
         currency: "BDT",
         timezone: "Asia/Dhaka",
-        features: { accounts: true } as Record<string, boolean>,
+        features: { courierPayouts: true } as Record<string, boolean>,
+        courierPayoutsSince: undefined as string | undefined,
       },
     },
   },
@@ -56,13 +57,15 @@ const order = (courier: Record<string, unknown>) =>
 
 describe("OrderCourierMoney", () => {
   beforeEach(() => {
-    auth.state.user.organization.features = { accounts: true };
+    auth.state.user.organization.features = { courierPayouts: true };
+    auth.state.user.organization.courierPayoutsSince = undefined;
   });
 
   // business-modes D2 / G2: a merchant who records no courier payments must not be told a
-  // courier owes them — the parcel would read "owed" forever.
-  it("says nothing about what the courier owes when Accounts is off", () => {
-    auth.state.user.organization.features = { accounts: false };
+  // courier owes them — the parcel would read "owed" forever. The switch is Courier payouts,
+  // not Cash & Bank, since 2026-10-12.
+  it("says nothing about what the courier owes when Courier payouts is off", () => {
+    auth.state.user.organization.features = { accounts: true, courierPayouts: false };
     render(
       <OrderCourierMoney
         order={order({
@@ -74,6 +77,25 @@ describe("OrderCourierMoney", () => {
     );
     expect(screen.queryByText(/collected by Steadfast/)).not.toBeInTheDocument();
   });
+  it("says nothing for a parcel from before Courier payouts was switched on", () => {
+    // It is not on the courier's balance either (backend `courierPayoutsStartFilter`).
+    auth.state.user.organization.courierPayoutsSince = "2026-10-12T00:00:00.000Z";
+    render(
+      <OrderCourierMoney
+        order={order({
+          provider: "steadfast",
+          integration: "api",
+          remittance: {
+            status: "with_courier",
+            clearingAmount: 570,
+            openedAt: "2026-10-01T00:00:00.000Z",
+          },
+        })}
+      />,
+    );
+    expect(screen.queryByText(/collected by Steadfast/)).not.toBeInTheDocument();
+  });
+
 
   it("shows the courier's real bill against the quote, and the gap", () => {
     render(

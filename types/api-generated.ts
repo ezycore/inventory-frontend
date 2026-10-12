@@ -7337,7 +7337,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts/balances
-         * @description Defined in `src/routes/courier-payouts.routes.ts:41`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:45`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts_balances"];
         put?: never;
@@ -7357,7 +7357,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts/summary
-         * @description Defined in `src/routes/courier-payouts.routes.ts:49`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:53`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts_summary"];
         put?: never;
@@ -7379,7 +7379,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/payouts/write-off
-         * @description Defined in `src/routes/courier-payouts.routes.ts:57`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:61`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront`, `courierPayouts` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_payouts_write_off"];
         delete?: never;
@@ -7397,13 +7397,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts
-         * @description Defined in `src/routes/courier-payouts.routes.ts:64`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:69`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts"];
         put?: never;
         /**
          * POST /api/ecommerce/payouts
-         * @description Defined in `src/routes/courier-payouts.routes.ts:75`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:80`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront`, `courierPayouts` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_payouts"];
         delete?: never;
@@ -7421,7 +7421,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/payouts/:id
-         * @description Defined in `src/routes/courier-payouts.routes.ts:82`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/courier-payouts.routes.ts:88`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_payouts_id"];
         put?: never;
@@ -12539,6 +12539,7 @@ export interface components {
                 [key: string]: {
                     orders: number;
                     rejected: number;
+                    returned: number;
                 };
             };
             pagination: {
@@ -13212,6 +13213,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13229,6 +13231,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -13464,6 +13467,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             vatSettings?: {
                 bin?: string;
@@ -13502,6 +13506,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             featureOverrides: {
                 [key: string]: boolean;
@@ -13544,6 +13549,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             planFeatures: {
                 sales: boolean;
@@ -13561,6 +13567,7 @@ export interface components {
                 purchases: boolean;
                 inventoryTracking: boolean;
                 warranty: boolean;
+                courierPayouts: boolean;
             };
             featureRequires: {
                 [key: string]: string[];
@@ -13591,6 +13598,7 @@ export interface components {
             purchases: boolean;
             inventoryTracking: boolean;
             warranty: boolean;
+            courierPayouts: boolean;
         };
         OrganizationFormSettings: {
             excludedFields: {
@@ -17205,6 +17213,7 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                     warranty: boolean;
+                    courierPayouts: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -17222,9 +17231,12 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                     warranty: boolean;
+                    courierPayouts: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
+                /** Format: date-time */
+                courierPayoutsSince?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -17475,6 +17487,7 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                     warranty: boolean;
+                    courierPayouts: boolean;
                 };
                 planFeatures?: {
                     sales: boolean;
@@ -17492,9 +17505,12 @@ export interface components {
                     purchases: boolean;
                     inventoryTracking: boolean;
                     warranty: boolean;
+                    courierPayouts: boolean;
                 };
                 /** Format: date-time */
                 posUsedAt?: string | null;
+                /** Format: date-time */
+                courierPayoutsSince?: string | null;
                 vatSettings?: {
                     bin?: string;
                     pricesIncludeVat: boolean;
@@ -17749,6 +17765,7 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -17766,9 +17783,12 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
+                    /** Format: date-time */
+                    courierPayoutsSince?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -18020,6 +18040,7 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18037,9 +18058,12 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
+                    /** Format: date-time */
+                    courierPayoutsSince?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -18329,6 +18353,7 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18346,9 +18371,12 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
+                    /** Format: date-time */
+                    courierPayoutsSince?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -18623,6 +18651,7 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     planFeatures?: {
                         sales: boolean;
@@ -18640,9 +18669,12 @@ export interface components {
                         purchases: boolean;
                         inventoryTracking: boolean;
                         warranty: boolean;
+                        courierPayouts: boolean;
                     };
                     /** Format: date-time */
                     posUsedAt?: string | null;
+                    /** Format: date-time */
+                    courierPayoutsSince?: string | null;
                     vatSettings?: {
                         bin?: string;
                         pricesIncludeVat: boolean;
@@ -23519,6 +23551,7 @@ export interface operations {
                     purchases?: boolean;
                     inventoryTracking?: boolean;
                     warranty?: boolean;
+                    courierPayouts?: boolean;
                 };
             };
         };
@@ -23636,6 +23669,7 @@ export interface operations {
                         purchases?: boolean;
                         inventoryTracking?: boolean;
                         warranty?: boolean;
+                        courierPayouts?: boolean;
                     };
                     vatRegistration?: {
                         /** @enum {string} */
@@ -42762,6 +42796,7 @@ export interface operations {
                     /** @enum {string} */
                     status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "picked_up";
                     note?: string;
+                    confirmCourierReturned?: boolean;
                 };
             };
         };

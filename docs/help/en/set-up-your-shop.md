@@ -76,6 +76,7 @@ Features worth deciding on early:
 | **Sales Management** | You sell from this system, not just track stock. Most businesses want this. |
 | **Expiry Tracking** | You sell anything perishable — medicine, food, cosmetics. |
 | **Ecommerce Storefront** | You want a public online shop as well as your counter. |
+| Courier payouts | You sell online and want to record what each courier pays you. Starts off. |
 | VAT | You charge VAT on sales. |
 | Returns Management | Customers return goods, or you return goods to suppliers. |
 | Barcode System | You scan barcodes at the counter. |

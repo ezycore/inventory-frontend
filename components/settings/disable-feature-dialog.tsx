@@ -37,6 +37,9 @@ export function disableConsequence(
    */
   cascaded: string[] = [],
 ): string | null {
+  // No count behind it, and it must not wait for one: switching off and on again restarts
+  // every courier balance (backend `courierPayoutsSince`), so it always asks.
+  if (feature === "courierPayouts") return t("disable.courierPayouts");
   if (!impact) return null;
 
   // A cascade is worth saying out loud even when nothing is at stake data-wise
@@ -83,13 +86,23 @@ export function disableConsequence(
   }
 }
 
+/**
+ * The reassurance under the consequence. "Everything reappears exactly as it was" is true for
+ * every switch but one: courier balances restart when Courier payouts comes back on, so there
+ * it says what IS kept instead.
+ */
+const reassuranceKey = (feature?: FeatureName) =>
+  feature === "courierPayouts" ? "disable.courierPayoutsKept" : "disable.dataSafe";
+
 export function DisableFeatureDialog({
+  feature,
   featureName,
   consequence,
   open,
   onOpenChange,
   onConfirm,
 }: {
+  feature?: FeatureName;
   featureName: string;
   consequence: string | null;
   open: boolean;
@@ -109,7 +122,7 @@ export function DisableFeatureDialog({
             {consequence && <span className="block">{consequence}</span>}
             {/* Stated every time, because "hidden" reads as "deleted" to most
                 people and the difference is the whole reassurance. */}
-            <span className="block">{t("disable.dataSafe")}</span>
+            <span className="block">{t(reassuranceKey(feature))}</span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
