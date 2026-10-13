@@ -63,6 +63,10 @@ money is counted as yours — not as money a courier owes you.
 If the courier cancelled the pickup, **Mark as Delivered** is not offered on that order. Use
 **Handed over in person** instead: otherwise the money would be counted as held by that courier.
 
+To see every order handed over this way, pick **Handed over in person** in the courier filter on
+Online Orders. Reports count these orders on their own line too, never under a courier — even one
+whose cancelled booking the order still shows.
+
 ## When a parcel comes back
 
 If the shopper refuses a cash-on-delivery parcel, the courier brings it back to you. What happens next

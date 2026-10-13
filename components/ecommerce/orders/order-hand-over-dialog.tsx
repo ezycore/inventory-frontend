@@ -45,7 +45,8 @@ export const canHandOver = (order: AdminStorefrontOrder): boolean =>
 export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
-  const [removeDeliveryCharge, setRemoveDeliveryCharge] = useState(true);
+  // Unticked by default — the merchant opts in to dropping the charge (owner, 2026-10-13).
+  const [removeDeliveryCharge, setRemoveDeliveryCharge] = useState(false);
   const [accountId, setAccountId] = useState("");
   const handOver = useHandOverOrder();
   const { accountsEnabled, options } = useOrderAccountOptions();
@@ -63,7 +64,7 @@ export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) 
   const close = () => {
     setOpen(false);
     setNote("");
-    setRemoveDeliveryCharge(true);
+    setRemoveDeliveryCharge(false);
     setAccountId("");
   };
 
