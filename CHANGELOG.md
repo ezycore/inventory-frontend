@@ -9,6 +9,25 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Added
+- Order page: **Handed over in person** — for a delivery order the customer collected from you
+  (no courier booked, or the courier cancelled the pickup). A note is required; optionally removes
+  the delivery charge; marks it Delivered and Paid in one step, the money counted as yours, never as
+  held by a courier. **Mark as Delivered** is no longer offered over a courier-cancelled booking.
+  Help: "Handle online orders" (en + bn). Needs inventory-backend with `POST
+  /ecommerce/orders/:id/hand-over`.
+
+### Changed
+- Sidebar: **Courier Payouts reads "Courier Charges"** (bn: কুরিয়ার চার্জ) while courier payouts are
+  off — the page then shows only what couriers billed. It switches back the moment the feature is
+  turned on. Same in ⌘K, the breadcrumb and the browser tab.
+
+### Fixed
+- Courier charges, "Biggest losses on delivery": the Courier column shows a custom courier's own
+  name instead of "Courier" (needs inventory-backend with `courierName` on the rows).
+- Breadcrumb: no more duplicate-key warning on Online Orders, where "Online Store" and "Online
+  Orders" both link to `/ecommerce/orders`.
+
 ## [1.8.0] - 2026-10-12
 
 ### Added

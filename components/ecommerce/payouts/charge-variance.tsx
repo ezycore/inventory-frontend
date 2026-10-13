@@ -6,7 +6,7 @@ import type { CourierMoneySummary } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { Card } from "@/ui/components/card";
 import { cn } from "@/ui/lib/utils";
-import { providerLabel } from "./helpers";
+import { courierDisplayName } from "./helpers";
 
 type Variance = CourierMoneySummary["variance"];
 
@@ -112,7 +112,7 @@ export function ChargeVariance({ data }: { data?: Variance }) {
                 <tr key={row.orderNumber} className="border-b last:border-0">
                   <td className="py-2 pr-3 font-medium">{row.orderNumber}</td>
                   <td className="py-2 pr-3 text-muted-foreground">
-                    {providerLabel(row.provider)}
+                    {courierDisplayName(row.courierName, row.provider)}
                   </td>
                   <td className="py-2 pr-3 tabular-nums text-muted-foreground">
                     {money(row.quoted)}
