@@ -9,13 +9,23 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-13
+
+### Deploy notes
+- Needs inventory-backend **≥ 1.8.0** (`POST /ecommerce/orders/:id/hand-over`, `courierName` on the
+  courier charges rows). Against an older backend the hand-over dialog fails with 404 and custom
+  couriers still read "Courier"; nothing else changes.
+
 ### Added
 - Order page: **Handed over in person** — for a delivery order the customer collected from you
   (no courier booked, or the courier cancelled the pickup). A note is required; optionally removes
   the delivery charge; marks it Delivered and Paid in one step, the money counted as yours, never as
   held by a courier. **Mark as Delivered** is no longer offered over a courier-cancelled booking.
   Help: "Handle online orders" (en + bn). Needs inventory-backend with `POST
-  /ecommerce/orders/:id/hand-over`.
+  /ecommerce/orders/:id/hand-over`. "Remove the delivery charge" starts unticked.
+- Online Orders: courier filter **Handed over in person**. Orders Report → couriers: a **Handed over
+  in person** row (bn সরাসরি হাতে দেওয়া হয়েছে) — such an order is never counted under a courier,
+  even one whose cancelled booking it carries.
 
 ### Changed
 - Sidebar: **Courier Payouts reads "Courier Charges"** (bn: কুরিয়ার চার্জ) while courier payouts are
