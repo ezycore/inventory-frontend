@@ -13,6 +13,7 @@ import { Trash2 } from "lucide-react";
 import type { FC } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { TaxSummaryLines } from "@/components/shared/tax-summary-lines";
+import { hasDiscountTerms } from "./helpers";
 
 type Props = {
   seller: any;
@@ -93,7 +94,18 @@ export const ItemsTable: FC<Props> = ({
         </div>
 
         <CardTable
-          columns={getPurchaseColumns(handleEditItem, removeItem, formatCurrency, seller.id, t, isUOMEnabled, isTaxEnabled, isExpiryEnabled && seller.purchaseType === "instant", updateItem)}
+          columns={getPurchaseColumns(
+            handleEditItem,
+            removeItem,
+            formatCurrency,
+            seller.id,
+            t,
+            isUOMEnabled,
+            isTaxEnabled,
+            isExpiryEnabled && seller.purchaseType === "instant",
+            updateItem,
+            !hasDiscountTerms({ type: seller.discountType, value: seller.discountValue }),
+          )}
           data={seller.items}
           emptyMessage={t("items.empty")}
           showCard={false}

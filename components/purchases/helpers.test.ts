@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   discountForEditedPrice,
+  formatStockWithUnits,
   hasDiscountTerms,
   isMrpEdited,
   linePricingAfterEdit,
@@ -72,5 +73,22 @@ describe("add-product row pricing — with and without a supplier discount", () 
     expect(linePricingAfterEdit("costPrice", { price: 1200, discount: 120, costPrice: 1000 }, tenPct)).toEqual({ discount: 200 });
     // Cost above price: no negative discount.
     expect(linePricingAfterEdit("costPrice", { price: 1200, discount: 0, costPrice: 1300 }, tenPct)).toEqual({ discount: 0 });
+  });
+});
+
+describe("formatStockWithUnits — stock as the purchase screens print it", () => {
+  it("prints the base unit", () => {
+    expect(formatStockWithUnits(12, "pcs")).toBe("12 pcs");
+  });
+
+  it("prints purchase units with the remainder in base units", () => {
+    expect(formatStockWithUnits(27, "pcs", { unit: "box", conversionFactor: 12 })).toBe("2 box 3 pcs");
+    expect(formatStockWithUnits(24, "pcs", { unit: "box", conversionFactor: 12 })).toBe("2 box");
+  });
+
+  it("never prints null for a missing unit (shadow test S8)", () => {
+    expect(formatStockWithUnits(1, null)).toBe("1");
+    expect(formatStockWithUnits(0, undefined)).toBe("0");
+    expect(formatStockWithUnits(27, null, { unit: "box", conversionFactor: 12 })).toBe("2 box 3");
   });
 });

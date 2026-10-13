@@ -2,7 +2,7 @@
 // coding-standard: maintained
 
 import { useTranslations } from "next-intl";
-import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, discountForEditedPrice, hasDiscountTerms, isMrpEdited, linePricingAfterEdit, openingLinePricing, type DiscountTerms } from "@/components/purchases";
+import { getSupplierFormConfig, getProductFormConfig, extractSupplierValue, discountForEditedPrice, formatStockWithUnits, hasDiscountTerms, isMrpEdited, linePricingAfterEdit, openingLinePricing, type DiscountTerms } from "@/components/purchases";
 import { extractProductValue, inventoryIdForApi } from "@/components/sales";
 import { useCurrency } from "@/lib/currency";
 import { roundMoney } from "@/lib/money";
@@ -355,7 +355,10 @@ export function usePurchasePage() {
         const quantity = productForm.getValues("quantity") || 1;
         const conversionFactor = product.conversionFactor || 1;
         const convertedQuantity = quantity * conversionFactor;
-        const stock = product.purchaseUnitName ? `${Math.floor(availableStock / conversionFactor)} ${product.purchaseUnitName} ${availableStock % conversionFactor > 0 ? `${availableStock % conversionFactor} ${product.unitName}` : ""}` : `${availableStock} ${product.unitName}`;
+        const stock = formatStockWithUnits(availableStock, product.unitName, {
+          unit: product.purchaseUnitName,
+          conversionFactor,
+        });
         productForm.setValue("stock", stock);
         productForm.setValue("quantity", purchaseQuantity);
         productForm.setValue("convertedQuantity", convertedQuantity);
