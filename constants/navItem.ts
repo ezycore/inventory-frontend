@@ -1,4 +1,5 @@
 // coding-standard: maintained
+import type { FeatureName } from "@/types";
 import { NavGroup, NavItem } from "@/types/layout";
 
 /**
@@ -785,3 +786,21 @@ export const navGroups: NavGroup[] = [
 // Flat list for consumers that don't care about grouping
 // (⌘K search, breadcrumbs, the Reports hub page).
 export const navItems: NavItem[] = navGroups.flatMap((group) => group.items);
+
+/**
+ * A destination whose NAME depends on a feature switch, while its URL and identity
+ * do not. Keyed by the English title (identity); the alternate title is what shows
+ * while the feature is OFF, and is translated like any other title
+ * (`layout.nav.items.<kebab>`). Applied by `useNavLabels`, so the sidebar, ⌘K, the
+ * breadcrumb and the browser tab all switch together.
+ *
+ * Courier Payouts with payouts off shows only what couriers billed — the page itself
+ * is titled "Courier charges" then, and a menu row promising payouts misled
+ * (shadow test S6, 2026-10-13).
+ */
+export const NAV_TITLE_WHEN_FEATURE_OFF: Record<
+  string,
+  { feature: FeatureName; title: string }
+> = {
+  "Courier Payouts": { feature: "courierPayouts", title: "Courier Charges" },
+};

@@ -15,6 +15,8 @@ export const PROVIDER_LABELS: Record<string, string> = {
   pathao: "Pathao",
   steadfast: "Steadfast",
   ecourier: "eCourier",
+  // Not a courier: the backend's key for orders handed over in person (`IN_PERSON_COURIER_KEY`).
+  in_person: "Handed over in person",
 };
 
 export const providerLabel = (provider?: string | null): string =>

@@ -6653,13 +6653,13 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:78`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:79`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders"];
         put?: never;
         /**
          * POST /api/ecommerce/orders
-         * @description Defined in `src/routes/storefront-orders.routes.ts:42`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:43`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders"];
         delete?: never;
@@ -6679,7 +6679,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/quote
-         * @description Defined in `src/routes/storefront-orders.routes.ts:53`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:54`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_quote"];
         delete?: never;
@@ -6697,7 +6697,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/products
-         * @description Defined in `src/routes/storefront-orders.routes.ts:63`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:64`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_products"];
         put?: never;
@@ -6719,7 +6719,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/bulk-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:71`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:72`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_bulk_consignment"];
         delete?: never;
@@ -6737,7 +6737,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/stats
-         * @description Defined in `src/routes/storefront-orders.routes.ts:85`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:86`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_stats"];
         put?: never;
@@ -6757,21 +6757,21 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:90`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:91`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id"];
         put?: never;
         post?: never;
         /**
          * DELETE /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:108`. Requires permission `storefront.orders.delete`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:109`. Requires permission `storefront.orders.delete`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         delete: operations["delete_api_ecommerce_orders_id"];
         options?: never;
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id
-         * @description Defined in `src/routes/storefront-orders.routes.ts:99`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:100`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id"];
         trace?: never;
@@ -6785,7 +6785,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/fraud-check
-         * @description Defined in `src/routes/storefront-orders.routes.ts:114`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:115`. Requires permission `storefront.orders.view`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_fraud_check"];
         put?: never;
@@ -6807,7 +6807,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/confirm
-         * @description Defined in `src/routes/storefront-orders.routes.ts:120`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:121`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_confirm"];
         delete?: never;
@@ -6831,7 +6831,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:126`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:127`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_status"];
         trace?: never;
@@ -6847,7 +6847,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/cancel
-         * @description Defined in `src/routes/storefront-orders.routes.ts:132`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:133`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_cancel"];
         delete?: never;
@@ -6871,7 +6871,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-cost
-         * @description Defined in `src/routes/storefront-orders.routes.ts:138`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:139`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_cost"];
         trace?: never;
@@ -6887,9 +6887,29 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/prepayment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:144`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:145`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_prepayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ecommerce/orders/{id}/hand-over": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/ecommerce/orders/:id/hand-over
+         * @description Defined in `src/routes/storefront-orders.routes.ts:152`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         */
+        post: operations["post_api_ecommerce_orders_id_hand_over"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6907,7 +6927,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/payment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:150`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:158`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_payment"];
         delete?: never;
@@ -6927,7 +6947,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/collection
-         * @description Defined in `src/routes/storefront-orders.routes.ts:160`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:168`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_collection"];
         delete?: never;
@@ -6947,7 +6967,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/return
-         * @description Defined in `src/routes/storefront-orders.routes.ts:166`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:174`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_return"];
         delete?: never;
@@ -6967,7 +6987,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/resolve-location
-         * @description Defined in `src/routes/storefront-orders.routes.ts:172`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:180`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_resolve_location"];
         delete?: never;
@@ -6987,7 +7007,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:178`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:186`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_consignment"];
         delete?: never;
@@ -7007,7 +7027,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/manual-consignment
-         * @description Defined in `src/routes/storefront-orders.routes.ts:184`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:192`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_manual_consignment"];
         delete?: never;
@@ -7031,7 +7051,7 @@ export interface paths {
         head?: never;
         /**
          * PATCH /api/ecommerce/orders/:id/courier-status
-         * @description Defined in `src/routes/storefront-orders.routes.ts:190`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:198`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         patch: operations["patch_api_ecommerce_orders_id_courier_status"];
         trace?: never;
@@ -7047,7 +7067,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/refresh-tracking
-         * @description Defined in `src/routes/storefront-orders.routes.ts:196`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:204`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_refresh_tracking"];
         delete?: never;
@@ -7065,7 +7085,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/return-preview
-         * @description Defined in `src/routes/storefront-orders.routes.ts:204`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:212`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_return_preview"];
         put?: never;
@@ -7085,7 +7105,7 @@ export interface paths {
         };
         /**
          * GET /api/ecommerce/orders/:id/courier-price
-         * @description Defined in `src/routes/storefront-orders.routes.ts:210`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:218`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         get: operations["get_api_ecommerce_orders_id_courier_price"];
         put?: never;
@@ -7107,7 +7127,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/ecommerce/orders/:id/courier-charges
-         * @description Defined in `src/routes/storefront-orders.routes.ts:222`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
+         * @description Defined in `src/routes/storefront-orders.routes.ts:230`. Requires permission `storefront.orders.manage`. Gated by organization feature `storefront` — returns 403 when disabled.
          */
         post: operations["post_api_ecommerce_orders_id_courier_charges"];
         delete?: never;
@@ -11941,6 +11961,8 @@ export interface components {
                 prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
+                /** Format: date-time */
+                handedOverAt?: string | null;
                 returns?: {
                     salesReturnId: string;
                     idempotencyKey?: string | null;
@@ -12174,6 +12196,8 @@ export interface components {
             prepaidAt?: string | null;
             /** Format: date-time */
             paidAt?: string | null;
+            /** Format: date-time */
+            handedOverAt?: string | null;
             returns?: {
                 salesReturnId: string;
                 idempotencyKey?: string | null;
@@ -12397,6 +12421,8 @@ export interface components {
                 prepaidAt?: string | null;
                 /** Format: date-time */
                 paidAt?: string | null;
+                /** Format: date-time */
+                handedOverAt?: string | null;
                 returns?: {
                     salesReturnId: string;
                     idempotencyKey?: string | null;
@@ -12610,6 +12636,7 @@ export interface components {
                 outliers: {
                     orderNumber: string;
                     provider?: string;
+                    courierName?: string;
                     quoted: number;
                     actual: number;
                     variance: number;
@@ -43009,6 +43036,77 @@ export interface operations {
             content: {
                 "application/json": {
                     amount: number;
+                    accountId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"] & {
+                        data?: components["schemas"]["StorefrontOrder"];
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Permission denied, or the required organization feature is disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_api_ecommerce_orders_id_hand_over: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */
+                "X-Active-Location"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note: string;
+                    removeDeliveryCharge?: boolean;
                     accountId?: string;
                 };
             };

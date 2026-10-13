@@ -23,7 +23,10 @@ export function Breadcrumbs() {
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <Fragment key={item.link ?? `${item.title}-${index}`}>
+            // Keyed by position, not link: two crumbs can share one link —
+            // "Online Store" (/ecommerce, a redirect) links to /ecommerce/orders,
+            // which is also the Online Orders crumb on that page.
+            <Fragment key={`${index}-${item.title}`}>
               {isLast ? (
                 <BreadcrumbPage>{item.title}</BreadcrumbPage>
               ) : (
