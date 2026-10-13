@@ -313,6 +313,27 @@ export const useMarkOrderPaid = () => {
   });
 };
 
+/** Handed over in person: the order is delivered AND paid, so it dirties money like a payment. */
+export const useHandOverOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: {
+      id: string;
+      note: string;
+      removeDeliveryCharge?: boolean;
+      accountId?: string;
+    }) => {
+      const { id, ...body } = v;
+      return storefrontOrdersApi.handOver(id, body);
+    },
+    onSuccess: (res) => {
+      handleMutationSuccess(res.message || "Order handed over");
+      invalidate(qc, "order.settled");
+    },
+    onError: handleMutationError,
+  });
+};
+
 /**
  * Record a collection.
  *

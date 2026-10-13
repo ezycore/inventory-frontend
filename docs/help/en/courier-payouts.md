@@ -25,7 +25,7 @@ Courier payments are their own switch: turn on **Courier payouts** under **Custo
 the bottom of the sidebar. You do not need Cash & Bank for it — with Cash & Bank off, a payment still
 clears its parcels and keeps each courier's balance right; it just is not added to an account.
 
-While it is off, the screen is called **Courier charges** and shows only what each courier really
+While it is off, the screen — and its menu item — is called **Courier charges** and shows only what each courier really
 billed for delivery against what your customers actually paid for it. There is no "owed to you"
 figure and no payment to record.
 

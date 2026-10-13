@@ -15,6 +15,7 @@ import { OrderCancelDialog } from "./order-cancel-dialog";
 import { OrderCollectionDialog } from "./order-collection-dialog";
 import { OrderConfirmDialog } from "./order-confirm-dialog";
 import { OrderEditButton } from "./order-edit-button";
+import { OrderHandOverDialog, courierBookingCancelled } from "./order-hand-over-dialog";
 import { OrderItemsReturnDialog } from "./order-items-return-dialog";
 import { OrderMarkDelivered } from "./order-mark-delivered";
 import { OrderReturnDialog } from "./order-return-dialog";
@@ -130,7 +131,12 @@ export function OrderActionBar({ order }: { order: AdminStorefrontOrder }) {
           Mark as {labelFor("picked_up")}
         </Button>
       )}
-      {order.status === "shipped" && (
+      {/* The customer collected it from you — no courier booked, or the courier cancelled.
+          Renders itself only where the backend allows it. */}
+      <OrderHandOverDialog order={order} />
+      {/* Not over a booking the courier cancelled: it never carried the parcel, and the
+          backend refuses (`COURIER_BOOKING_CANCELLED`) — Handed over in person is the path. */}
+      {order.status === "shipped" && !courierBookingCancelled(order) && (
         <OrderMarkDelivered order={order} label={`Mark as ${labelFor("delivered")}`} />
       )}
       {/* Only when the merchant has no account to choose. With `accounts` on,

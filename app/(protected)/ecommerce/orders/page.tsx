@@ -489,6 +489,9 @@ function OrdersList() {
               { label: "All couriers", value: "all" },
               ...carrierOptions,
               { label: "No courier", value: "none" },
+              // Delivery orders the customer collected from you (`handedOverAt`) — counted
+              // here and under no courier, even one whose cancelled booking they carry.
+              { label: "Handed over in person", value: "in_person" },
             ]}
             className="h-9 w-40"
           />

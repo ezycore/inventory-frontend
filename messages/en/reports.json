@@ -381,7 +381,8 @@
       "deliveryPaidCost": "{received} paid · {cost} to the courier",
       "notSent": "No parcels sent",
       "seeCharges": "Each parcel's charge →",
-      "noCourier": "No courier (pickup or not dispatched)"
+      "noCourier": "No courier (pickup or not dispatched)",
+      "inPerson": "Handed over in person"
     },
     "districts": {
       "title": "Districts",
