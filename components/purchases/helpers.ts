@@ -130,3 +130,27 @@ export const isMrpEdited = (linePrice: number, mrpBoxPrice: number): boolean =>
 /** Per-base-unit MRP for a pack-priced line — what `updateMrp` will store. */
 export const mrpPerBaseUnit = (boxPrice: number, conversionFactor: number): number =>
   roundMoney(boxPrice / (conversionFactor > 0 ? conversionFactor : 1));
+
+/**
+ * Stock as the purchase screens print it: "12 pcs", or in purchase units with the
+ * remainder in base units ("2 box 3 pcs"). One formatter for the add-product row, the
+ * order edit row and the low-stock import, which each built the string by hand.
+ *
+ * A missing unit name prints nothing — never "null" (owner's rule, shadow test S8). Unit
+ * is required on a product, so this only happens on bad data, and a bare number reads
+ * better than a word that looks like a bug.
+ */
+export const formatStockWithUnits = (
+  quantity: number,
+  unit?: string | null,
+  purchase?: { unit?: string | null; conversionFactor?: number },
+): string => {
+  const join = (...parts: (string | null | undefined)[]) =>
+    parts.filter((part) => part !== "" && part != null).join(" ");
+  const factor = purchase?.conversionFactor || 1;
+  if (purchase?.unit) {
+    const rest = quantity % factor;
+    return join(String(Math.floor(quantity / factor)), purchase.unit, rest > 0 ? join(String(rest), unit) : "");
+  }
+  return join(String(quantity), unit);
+};

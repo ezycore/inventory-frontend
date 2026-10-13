@@ -9,6 +9,17 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-10-13
+
+### Fixed
+- New Purchase / Edit Purchase: the column between Sale Price and Cost Price reads **Margin (per
+  unit)** (bn মার্জিন (প্রতি একক)) when the supplier gives no discount — it is `sale price − cost`,
+  the shop's margin on each piece, and "Discount" read as money off the purchase. It stays
+  **Discount** when the supplier has discount terms. Help: "Receive stock" (en + bn).
+- Purchase screens: stock with a missing unit name prints just the number, never "1 null". One
+  shared formatter (`formatStockWithUnits`) now serves the add-product row, the order edit row and
+  the low-stock import.
+
 ## [1.9.0] - 2026-10-13
 
 ### Deploy notes

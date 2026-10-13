@@ -59,6 +59,7 @@
     "colQty": "পরিমাণ",
     "colPriceMrp": "বিক্রয়মূল্য",
     "colDiscount": "ছাড়",
+    "colMargin": "মার্জিন (প্রতি একক)",
     "colCostPrice": "ক্রয়মূল্য",
     "colTax": "ভ্যাট",
     "colExpiry": "মেয়াদ",

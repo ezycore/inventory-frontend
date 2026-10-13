@@ -15,6 +15,11 @@ import { BatchNumberCell, ExpiryDateCell } from "./expiry-cells";
  * When `showExpiryCapture` is set (expiry tracking on + instant purchase), two
  * inline columns let the user record expiry date / batch number per line —
  * matching the order receive flow.
+ *
+ * The column between Sale Price and Cost Price is always `price − cost` per unit. With the
+ * supplier's discount terms that gap IS the discount; without them it is the shop's margin,
+ * and labelling it "Discount" read as money off the purchase (shadow test S9) — so
+ * `withoutDiscountTerms` names it "Margin (per unit)".
  */
 export const getPurchaseColumns = (
   onEdit: (sellerId: string, item: PurchaseOrderItem) => void,
@@ -30,6 +35,7 @@ export const getPurchaseColumns = (
     itemId: string,
     data: Partial<Omit<PurchaseOrderItem, "id">>,
   ) => void,
+  withoutDiscountTerms?: boolean,
 ): ColumnDef<PurchaseOrderItem>[] => {
   const columns: ColumnDef<PurchaseOrderItem>[] = [
     {
@@ -69,7 +75,7 @@ export const getPurchaseColumns = (
     },
     {
       accessorKey: "discount",
-      header: t("items.colDiscount"),
+      header: t(withoutDiscountTerms ? "items.colMargin" : "items.colDiscount"),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">
           {formatCurrency(row.original.discount)}
