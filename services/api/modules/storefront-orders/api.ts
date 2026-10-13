@@ -428,6 +428,15 @@ export const storefrontOrdersApi = {
   ): Promise<ApiResponse<AdminStorefrontOrder>> =>
     apiClient.post(`${base}/${id}/payment`, { accountId }),
   /**
+   * The customer collected a delivery order in person — no courier. Delivered and paid to
+   * the merchant in one step; the note is required (backend `storefrontOrderHandoverService`).
+   */
+  handOver: (
+    id: string,
+    body: { note: string; removeDeliveryCharge?: boolean; accountId?: string },
+  ): Promise<ApiResponse<AdminStorefrontOrder>> =>
+    apiClient.post(`${base}/${id}/hand-over`, body),
+  /**
    * What the courier actually handed over.
    *
    * Separate from `markPaid`, which can only settle the amount the system

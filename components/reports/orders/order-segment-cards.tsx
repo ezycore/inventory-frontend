@@ -101,9 +101,11 @@ export function OrderCourierCard({
                       courier at all. A browser pass caught this row reading
                       "Not dispatched yet" beside "Delivered 2". */}
                   {/* "Pathao", never the raw `pathao` the courier split used to print. */}
-                  {row.name || row.provider
-                    ? courierDisplayName(row.name, row.provider)
-                    : t('noCourier')}
+                  {row.provider === 'in_person'
+                    ? t('inPerson')
+                    : row.name || row.provider
+                      ? courierDisplayName(row.name, row.provider)
+                      : t('noCourier')}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {t('orders', { count: row.orders })}
