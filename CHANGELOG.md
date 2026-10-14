@@ -9,6 +9,28 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-10-14
+
+### Fixed
+- Online order page, **Activity log**: a step's note is shown under it — the reason given for
+  **Handed over in person** and for moving an order back. Notes were saved but never displayed,
+  so "saved to the order history" in the hand-over dialog was not true on screen. Live orders
+  already carry such notes (the five repaired on 2026-10-13) and show them once deployed.
+- A handed-over order no longer talks about a courier: **Fulfillment** reads "Handed over in
+  person" with the note (a courier booking that was cancelled stays listed, without re-dispatch),
+  and the line under the total says there is no courier charge instead of "Estimated courier
+  cost ৳0 — the courier's real charge replaces it after dispatch". Help: "Online orders" (en + bn).
+- Printed order invoice and receipt (A4, A5, 80/58 mm, and the shopper's own invoice): the address
+  now ends with the **district** the customer picked — it printed "House 31, Road 46" with no town.
+  A part already written in the address line is not repeated.
+- Dashboard **Gross Profit** in a shop with no cost prices says "Set cost prices to see profit" in
+  every period. On a day with nothing dispatched yet it said "Shows once orders are dispatched",
+  which stays true only for a shop that has costs. Reads the new `costCoverage.costsSet`.
+
+### Deploy notes
+- The Gross Profit wording needs **inventory-backend ≥ 1.9.0** (`costCoverage.costsSet`).
+  Against an older backend the tile behaves as before — nothing breaks.
+
 ## [1.9.1] - 2026-10-13
 
 ### Fixed
