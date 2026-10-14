@@ -60,6 +60,11 @@ Products you have not placed show under **Not placed yet**, in the order shopper
 yours. A new product lands there too, so it never jumps into the middle of your list. Press
 **Start from the current order** to place them all at once and rearrange from there.
 
+A tag's order also follows shoppers into a collection. When a shopper opens **Cushions** and picks
+the **Trending** tag, they see the trending cushions in the order you gave the tag. If you have not
+arranged that tag, they see the collection's own order instead. Picking two tags, a brand or a price
+range never changes the collection's order.
+
 Two things still outrank your order. A product that is out of stock always shows after the ones
 shoppers can buy, and a shopper who picks a sort, like price, sees that sort instead. Your order is
 the **Featured** sort, so if your store opens on another one, the screen says so and links to
