@@ -146,6 +146,14 @@ export function CourierCostLine({
   order: AdminStorefrontOrder;
   money: (n: number) => string;
 }) {
+  // Handed over in person: no courier carries it, so there is no cost to estimate (S16).
+  if (order.handedOverAt) {
+    return (
+      <p className="pt-1 text-xs text-muted-foreground">
+        Handed over in person — no courier, no courier charge.
+      </p>
+    );
+  }
   const billed = order.courier?.charges?.actual?.totalFee;
   const sent = !!order.courier?.consignmentId || order.courier?.integration === "manual";
   if (billed !== undefined && billed !== null) {

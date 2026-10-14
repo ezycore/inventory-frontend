@@ -42,9 +42,25 @@ export interface PrintableStorefrontOrder {
     /** Omitted for pickup orders (name + phone only). */
     address?: string;
     area?: string;
+    /** The district the shopper picked. Printed after the area: the courier and the packer need it (shadow test S11). */
+    district?: string;
     zone?: string;
   };
 }
+
+/**
+ * The address line from its parts, each printed once: a part already written into the line
+ * before it ("House 6, Banani" + area "Banani") is not repeated.
+ */
+export const joinAddress = (...parts: (string | undefined)[]): string =>
+  parts
+    .map((part) => part?.trim())
+    .reduce<string[]>((line, part) => {
+      if (!part) return line;
+      const sofar = line.join(", ").toLowerCase();
+      return sofar.includes(part.toLowerCase()) ? line : [...line, part];
+    }, [])
+    .join(", ");
 
 /** Every printed string, so the shopper side can render the document in Bengali. */
 export interface OrderInvoiceLabels {
@@ -170,8 +186,9 @@ const orderToDoc = (
         : []),
       {
         label: t.address,
-        // Pickup orders have no address line — join whatever parts exist.
-        value: [addr.address, addr.area].filter(Boolean).join(", "),
+        // Pickup orders have no address line — join whatever parts exist. The district was
+        // left out until 2026-10-14 (shadow test S11): "House 31, Road 46" with no town.
+        value: joinAddress(addr.address, addr.area, addr.district),
         key: "address",
       },
       {
