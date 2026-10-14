@@ -54,7 +54,7 @@ settled will quietly distort your cash figures. Reconcile with your courier regu
 
 Sometimes a customer picks up a delivery order at your shop or office instead of waiting for the
 courier. Open the order and press **Handed over in person**. Write why there was no courier — for
-example "Customer collected it from our office". The note stays in the order's history.
+example "Customer collected it from our office". The note stays on the order: under **Fulfillment**, and under the Delivered step of the **Activity log**.
 
 Tick **Remove the delivery charge** if the customer did not pay for delivery. With Cash & Bank on,
 choose the account the money went into. The order becomes Delivered and Paid in one step, and the
