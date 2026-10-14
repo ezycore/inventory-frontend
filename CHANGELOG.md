@@ -9,6 +9,12 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.9.3] - 2026-10-14
+
+### Deploy notes
+- Help text only. Describes behaviour that ships in **inventory-backend 1.10.0**; either can deploy
+  first.
+
 ### Changed
 - Help, "Choose what to sell online" (en + bn): a tag's arranged order now also applies when a
   shopper picks that tag inside a collection, falling back to the collection's own order. The
