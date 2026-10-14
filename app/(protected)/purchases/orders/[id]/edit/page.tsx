@@ -145,6 +145,9 @@ export default function EditPurchaseOrderPage() {
                   t,
                   ctx.isUOMEnabled,
                   ctx.isTaxEnabled,
+                  undefined,
+                  undefined,
+                  !ctx.editShowDiscount,
                 )}
                 data={ctx.items}
                 emptyMessage={t("edit.emptyItems")}

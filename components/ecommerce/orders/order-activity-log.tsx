@@ -15,6 +15,11 @@ import { actorLabel, longDate } from "./order-detail-helpers";
  * wording is a noun phrase, so the same template produced "Order Needs review" and
  * "Order Cash collected". "Moved to" reads correctly for both, and keeps the entry
  * distinct from the "Order placed" row below it.
+ *
+ * **A step's note is shown under it.** It is the merchant's only record of why: the
+ * reason for a step backward (required), or why an order was handed over in person
+ * (required). Saved but never rendered until shadow test S15 (2026-10-14), so the
+ * hand-over dialog's "saved to the order history" was not true on screen.
  */
 export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
   const { labelFor } = useOrderStatusLabels();
@@ -24,8 +29,9 @@ export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
       text: `Moved to ${labelFor(e.status)}`,
       at: e.at,
       by: e.by,
+      note: e.note,
     })),
-    { text: "Order placed", at: order.createdAt, by: "shopper" },
+    { text: "Order placed", at: order.createdAt, by: "shopper", note: undefined },
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   if (events.length === 0) {
@@ -45,6 +51,9 @@ export function OrderActivityLog({ order }: { order: AdminStorefrontOrder }) {
             <div className="text-xs text-muted-foreground">
               {longDate(String(ev.at))} · {actorLabel(ev.by)}
             </div>
+            {ev.note && (
+              <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{ev.note}</p>
+            )}
           </div>
         </div>
       ))}

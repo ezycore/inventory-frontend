@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import {
   discountForEditedPrice,
+  formatStockWithUnits,
   getProductFormConfig,
   getSupplierFormConfig,
   hasDiscountTerms,
@@ -256,9 +257,10 @@ export function useEditPurchaseOrder(orderId: string | undefined) {
           priceOpenRow(discountTerms());
           productForm.setValue(
             "stock",
-            product.purchaseUnitName
-              ? `${Math.floor((product.availableQuantity || 0) / conversionFactor)} ${product.purchaseUnitName}`
-              : `${product.availableQuantity || 0} ${product.unitName ?? ""}`,
+            formatStockWithUnits(product.availableQuantity || 0, product.unitName, {
+              unit: product.purchaseUnitName,
+              conversionFactor,
+            }),
           );
         }
       } else if (fieldName === "quantity") {

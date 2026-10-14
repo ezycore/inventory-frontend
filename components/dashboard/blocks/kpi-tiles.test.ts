@@ -105,6 +105,25 @@ describe('gross profit tile', () => {
     expect(tile?.value).toBe('—')
     expect(tile?.description).toBe('costsPending')
   })
+
+  it('asks for cost prices, not dispatch, when the shop has no cost price at all (shadow test S14)', () => {
+    // B1 on a morning with nothing dispatched yet: dispatch would still leave profit at "—".
+    const tile = profitTile({
+      netRevenue: 1540,
+      grossProfit: 0,
+      costCoverage: {
+        knownRevenue: 0,
+        unknownRevenue: 1540,
+        unknownLines: 0,
+        uncommittedOrders: 2,
+        costsSet: false,
+      },
+    } as never)
+
+    expect(tile?.value).toBe('—')
+    expect(tile?.description).toBe('costsMissing')
+    expect(tile?.href).toBe('/products/cost-prices')
+  })
 })
 
 describe('delivery margin tile', () => {

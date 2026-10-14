@@ -48,7 +48,9 @@ counts that do not match the shelf.
    is different, type the new one: saving the purchase updates the product's sale price, and its
    online price too if it has its own. When you buy in packs, enter the pack's price and it is
    divided per piece. **Discount (per unit)** is what the supplier takes off the sale price, so
-   Sale Price − Discount = Cost Price; change any one and the other two follow.
+   Sale Price − Discount = Cost Price; change any one and the other two follow. It appears only
+   when the supplier gives a discount. Otherwise the order lists **Margin (per unit)** in that
+   column: what you make on each piece at the sale price — not money off the purchase.
 4. If you track expiry, enter the batch number and expiry date for each line.
 5. Enter what you paid. Paying less than the total leaves a balance owing to that supplier.
 6. Complete the purchase.

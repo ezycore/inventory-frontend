@@ -33,7 +33,7 @@ import {
 } from "@/ui/components/select";
 import { useSelectOptions } from "@/services/api";
 import { roundMoney } from "@/lib/money";
-import { deriveLinePricing } from "./helpers";
+import { deriveLinePricing, formatStockWithUnits } from "./helpers";
 
 // ---------- Types ----------
 
@@ -631,9 +631,10 @@ export function ImportLowStockDialog({
               const purchaseConversion = item.purchaseUnit?.conversionFactor || 1;
               const neededQty = Math.max(0, item.quantityAlert - item.quantity + 1);
 
-              const stock = purchaseUnit
-                ? `${Math.floor(item.quantity / purchaseConversion)} ${purchaseUnit} ${item.quantity % purchaseConversion > 0 ? `${item.quantity % purchaseConversion} ${unitName}` : ""}`
-                : `${item.quantity} ${unitName}`;
+              const stock = formatStockWithUnits(item.quantity, unitName, {
+                unit: purchaseUnit,
+                conversionFactor: purchaseConversion,
+              });
 
               const baseUnitShortName = getBaseUnitShortName(item);
               const purchaseUnitQty = Math.ceil(neededQty / purchaseConversion);
