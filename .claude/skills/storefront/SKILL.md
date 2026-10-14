@@ -4973,7 +4973,8 @@ Category and tag `refs` stay a multi-select, because their order means nothing. 
 `inventory-backend/docs/plan/storefront-product-order.md` §8.
 
 **Arranging a listing (2026-10-05).** A merchant saves their own product order for **All products**,
-any **collection** (either level, each independent) or any **tag**.
+any **collection** (either level, each independent) or any **tag**. A collection filtered to exactly
+one tag uses the tag's order when the tag has one (2026-10-14), else the collection's.
 
 - **Backend.** It stores one ordered id list per listing, and it is the default (`featured`) sort.
   A shopper-chosen sort or a search ignores it, and sold-out products still sink. The backend
