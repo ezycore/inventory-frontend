@@ -59,6 +59,7 @@
     "colQty": "Qty",
     "colPriceMrp": "Sale Price",
     "colDiscount": "Discount",
+    "colMargin": "Margin (per unit)",
     "colCostPrice": "Cost Price",
     "colTax": "VAT",
     "colExpiry": "Expiry",

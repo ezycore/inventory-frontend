@@ -289,8 +289,11 @@ export const KPI_TILES: Partial<Record<DashboardBlockId, KpiTileBuilder>> = {
      */
     if (coverage && known <= 0) {
       // Orders not dispatched yet are not a missing cost price — telling that
-      // merchant to "set cost prices" sends them to fix nothing.
-      const onlyUndispatched = coverage.unknownLines === 0 && coverage.uncommittedOrders > 0
+      // merchant to "set cost prices" sends them to fix nothing. Unless the shop has no
+      // cost price at all: then dispatch changes nothing, and the cost reason is the true
+      // one in every period (shadow test S14; `costsSet` is absent from an older API).
+      const onlyUndispatched =
+        coverage.costsSet !== false && coverage.unknownLines === 0 && coverage.uncommittedOrders > 0
       return {
         label: t('grossProfit'),
         value: '—',

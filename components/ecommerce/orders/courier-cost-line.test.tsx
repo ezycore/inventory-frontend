@@ -29,6 +29,14 @@ describe("CourierCostLine", () => {
     expect(screen.getByText(/customer paid ৳0 for delivery/)).toBeInTheDocument();
   });
 
+  it("handed over in person: no courier cost to estimate (shadow test S16)", () => {
+    renderWithProviders(
+      <CourierCostLine order={order({ handedOverAt: "2026-10-14T06:00:43.138Z", shippingCost: 0 })} money={money} />,
+    );
+    expect(screen.getByText("Handed over in person — no courier, no courier charge.")).toBeInTheDocument();
+    expect(screen.queryByText(/Estimated courier cost/)).not.toBeInTheDocument();
+  });
+
   it("a delivered parcel: fee minus bill, no extra note", () => {
     renderWithProviders(
       <CourierCostLine

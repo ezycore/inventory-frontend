@@ -16491,6 +16491,7 @@ export interface components {
                 unknownRevenue: number;
                 unknownLines: number;
                 uncommittedOrders: number;
+                costsSet: boolean;
             };
             shipping?: {
                 parcels: number;

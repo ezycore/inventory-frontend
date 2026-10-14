@@ -1,7 +1,7 @@
 // coding-standard: maintained
 import { useState } from "react";
 import Link from "next/link";
-import { Store } from "lucide-react";
+import { HandHelping, Store } from "lucide-react";
 import { useCouriers, type AdminStorefrontOrder } from "@/services/api";
 import { useAuthStore } from "@/services/stores/use-auth-store";
 import { formatMoney } from "@/components/storefront/format";
@@ -79,6 +79,30 @@ export function OrderFulfillmentPanel({ order }: { order: AdminStorefrontOrder }
             </div>
           </div>
         </div>
+      </Card>
+    );
+  }
+
+  // Handed over in person (shadow test S16, 2026-10-14): no courier will carry it, so the
+  // dispatch controls and "Available once the order reaches Processing" said the wrong thing.
+  // A booking the courier cancelled stays visible, for the record.
+  if (order.handedOverAt) {
+    const reason = [...(order.statusHistory ?? [])].reverse().find((h) => h.status === "delivered")?.note;
+    return (
+      <Card className="gap-3 p-5 shadow-none">
+        <h3 className="text-sm font-semibold">Fulfillment</h3>
+        <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+          <div className="flex h-9 w-9 flex-none items-center justify-center rounded-md border bg-card">
+            <HandHelping className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Handed over in person</div>
+            <div className="text-xs text-muted-foreground">
+              {reason ?? "The customer got this order from you, not from a courier."}
+            </div>
+          </div>
+        </div>
+        {order.courier?.consignmentId && <CourierTrackingSummary order={order} />}
       </Card>
     );
   }
