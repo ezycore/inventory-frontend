@@ -14,6 +14,11 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   change) deployed first. Against an older backend the signup page shows the old open form.
 
 ### Added
+- **Collect dues from the dashboard in three clicks**: the Receivable card and the Customers page's
+  receivable and debtor totals open the customer list filtered to who owes money, biggest first, and
+  each of those rows has a **Receive** button beside the amount owed that opens the payment form
+  directly. Before, the figures linked nowhere and paying meant finding the filter and a small
+  ledger icon.
 - **Choose the plan on the signup form**: one card per package with price and limits and the same
   monthly/yearly switch as Billing. A `?plan=` link preselects its plan; with none the entry plan
   is selected. It used to come only from the URL, so opening `/signup` directly could not pick one.
@@ -21,7 +26,12 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   store with you" with a link to the contact page, and the login screens say "New to EzyCore? Talk
   to us". The team opens `/signup?key=<key>` to create a merchant's workspace.
 
+### Removed
+- The **Updated Date** column on Customers — the last-edit time of the record told a merchant nothing.
+
 ### Fixed
+- **Receive Payment opened with an empty amount** the first time it was opened for a customer (the
+  form read the dues before they had loaded); it now starts at the full amount owed.
 - Notification settings: the new template variables (Total paid, Stock status, Online orders)
   have labels in English and Bangla instead of showing their raw names.
 - Online order page, returned order: the banner no longer says "the refund was processed" when

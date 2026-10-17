@@ -43,7 +43,12 @@ import { CustomerLedgerSummary } from "./customer-ledger-summary";
 import { CustomerPaymentForm } from "./customer-payment-form";
 import { groupLedgerPayments } from "./group-ledger-payments";
 
+/** Where the sheet opens: the history, or straight on the customer-level payment form. */
+export type LedgerSheetMode = "ledger" | "bulk";
+
 interface CustomerLedgerSheetProps {
+  /** Read once on mount — remount (a new `key`) to open in another mode. */
+  initialMode?: LedgerSheetMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer: Customer | null;
@@ -52,6 +57,7 @@ interface CustomerLedgerSheetProps {
 }
 
 export function CustomerLedgerSheet({
+  initialMode = "ledger",
   open,
   onOpenChange,
   customer,
@@ -70,7 +76,7 @@ export function CustomerLedgerSheet({
 
   // "ledger" is the history; "invoice" pays one bill; "bulk" is a customer-level
   // receipt settling several invoices at once.
-  const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">("ledger");
+  const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">(initialMode);
   const [paymentSale, setPaymentSale] = useState<CustomerLedgerSale | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentAccountId, setPaymentAccountId] = useState("");
@@ -299,6 +305,9 @@ export function CustomerLedgerSheet({
 
           {mode === "bulk" ? (
             <CustomerBulkPaymentForm
+              // The form seeds its amount with the full due once, on mount. Mounted before the
+              // dues arrive, it seeded an empty box; remount when they land.
+              key={outstanding ? "loaded" : "loading"}
               sales={outstanding?.sales ?? []}
               totalDue={outstanding?.totalDue ?? 0}
               creditBalance={outstanding?.creditBalance ?? creditBalance}

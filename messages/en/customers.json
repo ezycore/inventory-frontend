@@ -77,7 +77,7 @@
     "returnedOrders": "Returned",
     "phoneOpensOrders": "See this buyer's online orders",
     "createdDate": "Created Date",
-    "updatedDate": "Updated Date"
+    "receive": "Receive"
   },
   "ledger": {
     "title": "Customer Ledger - {name}",
