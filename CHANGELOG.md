@@ -9,11 +9,13 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-10-18
+
 ### Deploy notes
-- The supplier Due column, totals and filter need **inventory-backend** with supplier dues on
-  `GET /purchases/suppliers`; against an older backend Due reads ৳0 and the totals stay empty.
-- Needs **inventory-backend** with `GET /api/public/signup-options` (the `SIGNUP_ACCESS_KEY`
-  change) deployed first. Against an older backend the signup page shows the old open form.
+- **Needs inventory-backend ≥ 1.11.0, deployed first.** Against 1.10.1: the signup page shows the
+  old open form (no `GET /api/public/signup-options`), the supplier Due column reads ৳0 with no
+  totals (no supplier dues on `GET /api/suppliers`), and the S24–S31 additions (gross-profit split,
+  courier charges line, Rejected) simply do not show.
 
 ### Added
 - **Supplier dues on the Suppliers page**: with Cash & Bank on, a **Due** column, totals above the
@@ -31,6 +33,16 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 - **While self-signup is closed** (backend `SIGNUP_ACCESS_KEY`), `/signup` shows "We set up your
   store with you" with a link to the contact page, and the login screens say "New to EzyCore? Talk
   to us". The team opens `/signup?key=<key>` to create a merchant's workspace.
+- Record Expense / Record Income: a **Date** field, today on the shop's calendar by default, no
+  future dates; and the categories **Ads & marketing** and **Packaging** (S26).
+- Business Position: **Courier charges to come off the payout** under liabilities, so the courier
+  money nets to what Courier Payouts says is owed; the asset reads **With courier (COD collected)**
+  (S25).
+- Dashboard and Orders Report gross profit show **Goods ৳X · delivery ৳Y** under the figure; the
+  P&L's gross profit says it is goods only (S24).
+- Online Orders, **Closed** tab: chips **All · Cancelled · Rejected · Returned** with their counts
+  filter the tab to one status (11 closed = 3 cancelled + 7 rejected + 1 returned). Shown on the
+  Closed tab only; the other tabs are unchanged.
 
 ### Changed
 - **Every payment form starts on the default account** (Cash & Bank → default): customer and
@@ -64,22 +76,6 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   and the header search reads "খুঁজুন...". A test now fails on any menu item without a label in
   either language (S28).
 - Record Expense / Record Income no longer offer a courier's COD account to pay from (S26).
-
-### Added
-- Record Expense / Record Income: a **Date** field, today on the shop's calendar by default, no
-  future dates; and the categories **Ads & marketing** and **Packaging** (S26).
-- Business Position: **Courier charges to come off the payout** under liabilities, so the courier
-  money nets to what Courier Payouts says is owed; the asset reads **With courier (COD collected)**
-  (S25).
-- Dashboard and Orders Report gross profit show **Goods ৳X · delivery ৳Y** under the figure; the
-  P&L's gross profit says it is goods only (S24).
-- Online Orders, **Closed** tab: chips **All · Cancelled · Rejected · Returned** with their counts
-  filter the tab to one status (11 closed = 3 cancelled + 7 rejected + 1 returned). Shown on the
-  Closed tab only; the other tabs are unchanged.
-
-### Deploy notes
-- Needs **inventory-backend** with the S23–S31 fixes (the release after 1.10.1) for the new fields;
-  against 1.10.1 the split, the charges line and Rejected simply do not show.
 
 ## [1.9.3] - 2026-10-14
 
