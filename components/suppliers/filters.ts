@@ -19,6 +19,16 @@ export function getSupplierFilterConfig(t: Translator): FilterConfig {
         placeholder: t("filters.emailPlaceholder"),
       },
       {
+        // Server-side: only suppliers the shop owes, AND ordered biggest debt first
+        // (`supplierService.getAll`) — the supplier twin of the customers' "Owes money".
+        name: "hasDues",
+        label: t("filters.dues"),
+        type: "select",
+        placeholder: t("filters.allSuppliers"),
+        columnSpan: 2,
+        options: [{ label: t("filters.owed"), value: "true" }],
+      },
+      {
         name: "status",
         label: t("filters.status"),
         type: "select",

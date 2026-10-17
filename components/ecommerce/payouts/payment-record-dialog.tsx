@@ -51,7 +51,11 @@ export function PaymentRecordDialog({
   trigger: React.ReactNode;
 }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
-  const { accountsEnabled, options } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions();
   const record = useRecordCourierPayment();
   const money = (n: number) => formatMoney(n, currency);
 
@@ -66,7 +70,9 @@ export function PaymentRecordDialog({
   const [ticked, setTicked] = useState<string[]>(allIds);
   const [touched, setTouched] = useState(false);
   const [receivedAt, setReceivedAt] = useState<string | undefined>();
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [shortReason, setShortReason] = useState<ShortReason>("still_owed");

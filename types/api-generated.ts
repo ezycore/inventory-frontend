@@ -3917,13 +3917,13 @@ export interface paths {
         };
         /**
          * GET /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:29`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:31`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers"];
         put?: never;
         /**
          * POST /api/suppliers
-         * @description Defined in `src/routes/suppliers.routes.ts:61`. Requires permission `suppliers.create`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:63`. Requires permission `suppliers.create`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers"];
         delete?: never;
@@ -3941,7 +3941,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/active
-         * @description Defined in `src/routes/suppliers.routes.ts:37`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:39`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_active"];
         put?: never;
@@ -3961,7 +3961,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/slug/:slug
-         * @description Defined in `src/routes/suppliers.routes.ts:45`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:47`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_slug_slug"];
         put?: never;
@@ -3981,18 +3981,18 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:53`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:55`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_id"];
         /**
          * PUT /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:69`. Requires permission `suppliers.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:71`. Requires permission `suppliers.edit`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         put: operations["put_api_suppliers_id"];
         post?: never;
         /**
          * DELETE /api/suppliers/:id
-         * @description Defined in `src/routes/suppliers.routes.ts:77`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:79`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         delete: operations["delete_api_suppliers_id"];
         options?: never;
@@ -4011,7 +4011,7 @@ export interface paths {
         put?: never;
         /**
          * POST /api/suppliers/bulk-delete
-         * @description Defined in `src/routes/suppliers.routes.ts:85`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:87`. Requires permission `suppliers.delete`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         post: operations["post_api_suppliers_bulk_delete"];
         delete?: never;
@@ -4029,7 +4029,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/ledger
-         * @description Defined in `src/routes/suppliers.routes.ts:93`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:95`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_ledger"];
         put?: never;
@@ -4049,7 +4049,7 @@ export interface paths {
         };
         /**
          * GET /api/suppliers/:supplierId/statement
-         * @description Defined in `src/routes/suppliers.routes.ts:100`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
+         * @description Defined in `src/routes/suppliers.routes.ts:102`. Requires permission `suppliers.view`. Gated by organization feature `purchases` — returns 403 when disabled.
          */
         get: operations["get_api_suppliers_supplierId_statement"];
         put?: never;
@@ -9181,6 +9181,7 @@ export interface components {
                 /** @enum {string} */
                 type: "percentage" | "fixed";
             };
+            totalDue?: number;
         };
         Inventory: {
             _id: string;
@@ -31912,6 +31913,7 @@ export interface operations {
                 status?: string;
                 start_date?: string;
                 end_date?: string;
+                hasDues?: boolean;
             };
             header?: {
                 /** @description Overrides the caller's default location for this request. Location-scoped resources (inventory, stock movements, sales, purchases) are filtered by it. */

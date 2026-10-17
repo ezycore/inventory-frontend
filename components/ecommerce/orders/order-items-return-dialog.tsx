@@ -60,7 +60,11 @@ export function OrderItemsReturnDialog({
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const stockTracked = useStockTracked();
   const returnOrder = useReturnOrder();
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
 
   const [open, setOpen] = useState(false);
   /** `productId|variantId` → units coming back. */
@@ -68,7 +72,10 @@ export function OrderItemsReturnDialog({
   const [refundMode, setRefundMode] = useState<RefundMode>("account");
   // No default: a pre-picked reason is the "every return says Other" problem again.
   const [reason, setReason] = useState<ItemReturnReason | "">("");
-  const [refundAccountId, setRefundAccountId] = useState("");
+  const [pickedRefundAccountId, setRefundAccountId] = useState("");
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const refundAccountId = pickedRefundAccountId || defaultOrderAccountId;
 
   // The unticked preview lists the lines; the ticked one prices them. Both read the Sale.
   const { data: listing } = useOrderReturnPreview(order._id, open);

@@ -10,10 +10,16 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 ## [Unreleased]
 
 ### Deploy notes
+- The supplier Due column, totals and filter need **inventory-backend** with supplier dues on
+  `GET /purchases/suppliers`; against an older backend Due reads ৳0 and the totals stay empty.
 - Needs **inventory-backend** with `GET /api/public/signup-options` (the `SIGNUP_ACCESS_KEY`
   change) deployed first. Against an older backend the signup page shows the old open form.
 
 ### Added
+- **Supplier dues on the Suppliers page**: with Cash & Bank on, a **Due** column, totals above the
+  list (payable, suppliers owed, supplier credit) and a **You owe them (largest first)** filter. The
+  totals and the dashboard Payable card open that filtered list, and an owed row has **Pay** beside
+  the amount, opening the supplier's ledger. The Updated Date column is gone, as on Customers.
 - **Collect dues from the dashboard in three clicks**: the Receivable card and the Customers page's
   receivable and debtor totals open the customer list filtered to who owes money, biggest first, and
   each of those rows has a **Receive** button beside the amount owed that opens the payment form
@@ -26,10 +32,22 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
   store with you" with a link to the contact page, and the login screens say "New to EzyCore? Talk
   to us". The team opens `/signup?key=<key>` to create a merchant's workspace.
 
+### Changed
+- **Every payment form starts on the default account** (Cash & Bank → default): customer and
+  supplier payments, Receive Payment, sales and purchase history payments, return refunds, courier
+  payouts and the online-order dialogs. An online order starts on the account its payment method is
+  mapped to in Store Settings → Payments, else the default.
+- **Paying a supplier no longer asks for a Payment Method**: the account you pay from decides it
+  (Cash → cash, bank → bank, bKash/Nagad → mobile money, custom → other), so the two can no
+  longer contradict each other. The Payment Account select is full width on the supplier and
+  customer payment forms.
+
 ### Removed
 - The **Updated Date** column on Customers — the last-edit time of the record told a merchant nothing.
 
 ### Fixed
+- Customers and Suppliers: a fixed default discount shows in the shop's currency, not "$".
+- Supplier ledger: no more "<div> cannot be a descendant of <p>" warning while it loads.
 - **Receive Payment opened with an empty amount** the first time it was opened for a customer (the
   form read the dues before they had loaded); it now starts at the full amount owed.
 - Notification settings: the new template variables (Total paid, Stock status, Online orders)

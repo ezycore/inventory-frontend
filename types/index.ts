@@ -1485,6 +1485,8 @@ export interface Supplier extends BaseEntity {
   defaultDiscount?: Discount;
   /** Credit accumulated from purchase-return overpayments. Spendable on future POs. */
   creditBalance?: number;
+  /** What the shop still owes this supplier at the active location (list rows only). */
+  totalDue?: number;
 }
 
 export interface CreateSupplierDto {

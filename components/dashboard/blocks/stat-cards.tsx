@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { CUSTOMERS_WITH_DUES_URL } from '@/components/customers/dues-link'
+import { SUPPLIERS_OWED_URL } from '@/components/suppliers/dues-link'
 import { useHasPermission } from '@/hooks/use-has-permission'
 import type { DashboardBlockContext } from './context'
 
@@ -92,6 +93,7 @@ export function ReceivablesCard({ overview, formatCurrency }: DashboardBlockCont
 
 export function PayablesCard({ overview, formatCurrency }: DashboardBlockContext) {
   const t = useTranslations('dashboard.summary')
+  const canOpenSuppliers = useHasPermission('suppliers.view')
   if (!overview) return null
   return (
     <StatCardShell
@@ -100,6 +102,8 @@ export function PayablesCard({ overview, formatCurrency }: DashboardBlockContext
       label={t('payable')}
       value={formatCurrency(overview.outstanding?.payable ?? 0)}
       hint={t('owedToSuppliers')}
+      // Opens who the shop owes, biggest first.
+      href={canOpenSuppliers ? SUPPLIERS_OWED_URL : undefined}
     />
   )
 }

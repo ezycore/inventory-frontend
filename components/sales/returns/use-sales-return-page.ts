@@ -37,6 +37,7 @@ import type { PendingDueRaw } from './types';
 import { getReturnsColumns } from './columns';
 import { useReturnableItems } from './use-returnable-items';
 import { useRefundAllocation } from './use-refund-allocation';
+import { defaultAccountId } from '@/utils/default-account';
 
 // Message resolved per-locale inside the hook (docs/I18N.md)
 const makeSaleSearchSchema = (message: string) =>
@@ -155,6 +156,8 @@ export function useSalesReturnPage() {
     totalRefundAmount: 0, // overridden below
     saleDueAmount: sale?.dueAmount ?? 0,
   });
+  // The refund account: the merchant's pick, else the default account (`utils/default-account.ts`).
+  const refundAccountId = allocationHook.selectedAccountId || defaultAccountId(accounts);
   const netTotalRefundAmount = Math.max(
     0,
     totalRefundAmount - allocationHook.deductionAmount,
@@ -260,9 +263,9 @@ export function useSalesReturnPage() {
         }));
       }
 
-      if (allocationHook.accountRefundAmount > 0 && allocationHook.selectedAccountId) {
+      if (allocationHook.accountRefundAmount > 0 && refundAccountId) {
         refundAllocation.accountRefund = {
-          accountId: allocationHook.selectedAccountId,
+          accountId: refundAccountId,
           amount: roundMoney(allocationHook.accountRefundAmount),
           paymentMethod: 'cash',
         };
@@ -327,7 +330,7 @@ export function useSalesReturnPage() {
     dueAllocations: allocationHook.dueAllocations,
     accountRefundAmount: allocationHook.accountRefundAmount,
     setAccountRefundAmount: allocationHook.setAccountRefundAmount,
-    selectedAccountId: allocationHook.selectedAccountId,
+    selectedAccountId: refundAccountId,
     setSelectedAccountId: allocationHook.setSelectedAccountId,
     customerCreditAmount: allocationHook.customerCreditAmount,
     setCustomerCreditAmount: allocationHook.setCustomerCreditAmount,

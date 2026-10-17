@@ -24,6 +24,7 @@ import type { ListFilters } from '@/lib/list-url-state';
 import { POS_PATH, openPos } from '@/constants/pos';
 
 import { getSalesHistoryColumns, getSalesHistoryActions } from './columns';
+import { defaultAccountId } from '@/utils/default-account';
 
 // ── Hook ────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ export function useSalesHistoryPage() {
 
   // ── Payment form state ────────────────────────────────────────
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentAccountId, setPaymentAccountId] = useState('');
+  const [pickedPaymentAccountId, setPaymentAccountId] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');  const [useCreditBalance, setUseCreditBalance] = useState(false);
   // ── API queries ───────────────────────────────────────────────
   const { data: salesData, isLoading, refetch } = useSales({ page, limit, ...filters });
@@ -103,6 +104,8 @@ export function useSalesHistoryPage() {
   const sales: Sale[] = salesData?.data?.items || [];
   const payments: Payment[] = paymentsData?.data || [];  const transactions = transactionsData?.data;  const saleReturns: SalesReturn[] = (saleReturnsData as any)?.data?.returns || [];
   const accounts = accountsData || [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const paymentAccountId = pickedPaymentAccountId || defaultAccountId(accounts);
   const summary = summaryData?.data;
   // The drawer opens on the row it was clicked from. Read it back from the
   // refetched list, or an edit made inside the drawer (serials) stays invisible

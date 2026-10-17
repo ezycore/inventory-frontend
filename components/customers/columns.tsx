@@ -7,7 +7,8 @@ import type { Translator } from "@/i18n/config";
 import { DateCell } from "@/ui/components/dataTable/cells/date-cell";
 import { MoneyCell } from "@/ui/components/dataTable/cells/money-cell";
 import { Badge } from "@/ui/components/badge";
-import { Button } from "@/ui/components/button";
+import { Button } from "@/ui/components/button";
+import { DiscountCell } from "@/components/ecommerce/discount-cell";
 
 /** Which of the merchant's switches decide a column (business-modes R1: OFF means hidden). */
 export interface CustomerColumnModes {
@@ -117,11 +118,12 @@ export function getCustomerColumns(
         const discount = row.original.defaultDiscount;
         if (!discount) return <span className="text-muted-foreground">{t("columns.none")}</span>;
 
-        const { value, type } = discount;
-        const displayValue =
-          type === "percentage" ? `${value}%` : `$${value.toFixed(2)}`;
-
-        return <span className="font-medium">{displayValue}</span>;
+        // The shop's currency, not a hard-coded "$".
+        return (
+          <span className="font-medium">
+            <DiscountCell type={discount.type} value={discount.value} />
+          </span>
+        );
       },
     },
     {

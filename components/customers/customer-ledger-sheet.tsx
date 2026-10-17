@@ -42,6 +42,7 @@ import { CustomerBulkPaymentForm } from "./customer-bulk-payment-form";
 import { CustomerLedgerSummary } from "./customer-ledger-summary";
 import { CustomerPaymentForm } from "./customer-payment-form";
 import { groupLedgerPayments } from "./group-ledger-payments";
+import { defaultAccountId } from "@/utils/default-account";
 
 /** Where the sheet opens: the history, or straight on the customer-level payment form. */
 export type LedgerSheetMode = "ledger" | "bulk";
@@ -79,7 +80,7 @@ export function CustomerLedgerSheet({
   const [mode, setMode] = useState<"ledger" | "invoice" | "bulk">(initialMode);
   const [paymentSale, setPaymentSale] = useState<CustomerLedgerSale | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentAccountId, setPaymentAccountId] = useState("");
+  const [pickedPaymentAccountId, setPaymentAccountId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
   const [useCreditBalance, setUseCreditBalance] = useState(false);
 
@@ -142,6 +143,8 @@ export function CustomerLedgerSheet({
   const inboundCredits = ledger?.inboundCredits || [];
   const creditBalance = ledger?.creditBalance ?? customer?.creditBalance ?? 0;
   const accounts = accountsData ?? [];
+  // The merchant's pick, else the default account (`utils/default-account.ts`).
+  const paymentAccountId = pickedPaymentAccountId || defaultAccountId(accounts);
 
   const totalPaid = sales.reduce((sum, sale) => sum + sale.paidAmount, 0);
   // Online sales are COD the courier collects — never this customer's debt.

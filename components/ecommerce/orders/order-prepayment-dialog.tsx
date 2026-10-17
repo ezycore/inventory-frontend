@@ -41,7 +41,11 @@ export function OrderPrepaymentDialog({
 }) {
   const currency = useAuthStore((s) => s.user?.organization?.currency);
   const recordPrepayment = useRecordPrepayment();
-  const { accountsEnabled, options: accountOptions } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options: accountOptions,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
 
   const total = order.totalAmount ?? 0;
   const shippingCharged = order.shippingCharged ?? 0;
@@ -53,7 +57,10 @@ export function OrderPrepaymentDialog({
     order.paymentMethod === "cod" ? null : total,
   );
   const [open, setOpen] = useState(false);
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
 
   const money = (n: number) => formatMoney(n, currency);
   const entered = amount ?? 0;

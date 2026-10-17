@@ -227,6 +227,8 @@ export const queryKeys = {
       ["suppliers", "ledger", supplierId, params ?? {}] as const,
     statement: (supplierId: string, params?: Params) =>
       ["suppliers", "statement", supplierId, params ?? {}] as const,
+    /** Org-wide payable / credit totals, served on the supplier list response. */
+    totals: () => ["suppliers", "totals"] as const,
   },
 
   // ── Money ───────────────────────────────────────────────────────────────────

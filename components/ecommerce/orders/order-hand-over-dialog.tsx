@@ -47,9 +47,16 @@ export function OrderHandOverDialog({ order }: { order: AdminStorefrontOrder }) 
   const [note, setNote] = useState("");
   // Unticked by default — the merchant opts in to dropping the charge (owner, 2026-10-13).
   const [removeDeliveryCharge, setRemoveDeliveryCharge] = useState(false);
-  const [accountId, setAccountId] = useState("");
+  const [pickedAccountId, setAccountId] = useState("");
   const handOver = useHandOverOrder();
-  const { accountsEnabled, options } = useOrderAccountOptions();
+  const {
+    accountsEnabled,
+    options,
+    defaultAccountId: defaultOrderAccountId,
+  } = useOrderAccountOptions(order.paymentMethod);
+  // The merchant's pick, else the account this order's payment method maps to, else
+  // the org default (`useOrderAccountOptions`).
+  const accountId = pickedAccountId || defaultOrderAccountId;
   const currency = useAuthStore((s) => s.user?.organization?.currency);
 
   if (!canHandOver(order)) return null;
