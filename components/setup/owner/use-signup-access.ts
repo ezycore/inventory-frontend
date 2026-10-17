@@ -1,5 +1,5 @@
 // coding-standard: maintained
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useHydrated } from "@/hooks/use-hydrated";
 import { useSignupOptions } from "@/services/api";
@@ -29,19 +29,19 @@ export type SignupAccessStatus = "loading" | "closed" | "open";
  */
 export function useSignupAccess() {
   const hydrated = useHydrated();
-  const [key, setKey] = useState<string | undefined>();
-  const [urlPlan, setUrlPlan] = useState<SignupPlanFromUrl>({});
-  const [planSlug, setPlanSlug] = useState<string | undefined>();
-  // Asking before the key is read would answer "closed" to the team for a moment.
-  const [urlRead, setUrlRead] = useState(false);
-
-  // The URL is client-only; read it once after hydration.
-  useEffect(() => {
-    if (!hydrated) return;
-    setKey(getSignupKeyFromUrl());
-    setUrlPlan(getSignupPlanFromUrl());
-    setUrlRead(true);
-  }, [hydrated]);
+  // The URL is client-only: read after hydration. Asking for options before the key is read
+  // would answer "closed" to the team for a moment, so `urlRead` gates the query.
+  const urlRead = hydrated;
+  const key = useMemo(
+    () => (hydrated ? getSignupKeyFromUrl() : undefined),
+    [hydrated],
+  );
+  const urlPlan = useMemo<SignupPlanFromUrl>(
+    () => (hydrated ? getSignupPlanFromUrl() : {}),
+    [hydrated],
+  );
+  // The visitor's pick; until they pick, the starting plan below.
+  const [pickedPlanSlug, setPlanSlug] = useState<string | undefined>();
 
   const options = useSignupOptions(key, urlRead);
   const plans = useMemo(
@@ -50,12 +50,13 @@ export function useSignupAccess() {
   );
   const groups = useMemo(() => groupPlans(plans), [plans]);
 
-  // Pick the starting plan once the list arrives: the URL's when on sale, else the entry plan.
-  useEffect(() => {
-    if (planSlug === undefined && groups.length > 0) {
-      setPlanSlug(initialSignupPlanSlug(groups, urlPlan.planSlug));
-    }
-  }, [groups, planSlug, urlPlan.planSlug]);
+  // Derived, not copied into state in an effect: the plan list arrives after mount. Until the
+  // visitor picks, the URL's plan when on sale, else the entry plan.
+  const planSlug =
+    pickedPlanSlug ??
+    (groups.length > 0
+      ? initialSignupPlanSlug(groups, urlPlan.planSlug)
+      : undefined);
 
   const status: SignupAccessStatus =
     !urlRead || options.isPending
