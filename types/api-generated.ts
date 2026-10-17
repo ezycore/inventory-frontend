@@ -16442,6 +16442,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -16486,6 +16487,8 @@ export interface components {
                 totalItems: number;
             };
             grossProfit?: number;
+            goodsProfit?: number;
+            deliveryMargin?: number;
             costCoverage?: {
                 knownRevenue: number;
                 unknownRevenue: number;
@@ -16724,6 +16727,8 @@ export interface components {
             };
             profit?: {
                 grossProfit: number;
+                goodsProfit: number;
+                deliveryMargin: number;
                 totalCOGS: number;
                 costCoverage: {
                     knownRevenue: number;
@@ -16811,6 +16816,7 @@ export interface components {
                 payables: number;
                 payableCount: number;
                 customerCredit: number;
+                courierCharges: number;
                 total: number;
             };
             netPosition: number;
@@ -16921,6 +16927,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -17046,6 +17053,7 @@ export interface components {
                 delivered: number;
                 returned: number;
                 cancelled: number;
+                rejected: number;
                 returnedValue: number;
                 byCourier: {
                     provider: string;
@@ -18917,7 +18925,7 @@ export interface components {
             /** @enum {string} */
             type: "income" | "expense" | "transfer" | "opening_balance";
             /** @enum {string} */
-            category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+            category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
             /** @enum {string} */
             kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
             /** Format: date-time */
@@ -18999,7 +19007,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
@@ -19043,7 +19051,7 @@ export interface components {
                 /** @enum {string} */
                 type: "income" | "expense" | "transfer" | "opening_balance";
                 /** @enum {string} */
-                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 /** @enum {string} */
                 kind: "operating_income" | "operating_expense" | "equity" | "settlement" | "internal";
                 /** Format: date-time */
@@ -38694,7 +38702,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 type?: "income" | "expense" | "transfer" | "opening_balance";
-                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 accountId?: string;
                 startDate?: string;
                 endDate?: string;
@@ -38868,7 +38876,7 @@ export interface operations {
                 start_date?: string;
                 end_date?: string;
                 type?: "income" | "expense" | "transfer" | "opening_balance";
-                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
+                category?: "sale" | "purchase" | "saleRefund" | "purchaseRefund" | "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_in" | "capital_out" | "transfer" | "opening_balance";
                 accountId?: string;
                 startDate?: string;
                 endDate?: string;
@@ -39024,7 +39032,6 @@ export interface operations {
                     description?: string;
                     reference?: string;
                     customerId?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };
@@ -39085,12 +39092,11 @@ export interface operations {
                 "application/json": {
                     accountId: string;
                     /** @enum {string} */
-                    category: "salary" | "rent" | "utilities" | "shipping" | "delivery" | "adjustment" | "other" | "capital_out";
+                    category: "salary" | "rent" | "utilities" | "shipping" | "delivery" | "marketing" | "packaging" | "adjustment" | "other" | "capital_out";
                     amount: number;
                     description?: string;
                     reference?: string;
                     supplierId?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };
@@ -39223,7 +39229,6 @@ export interface operations {
                     amount: number;
                     description?: string;
                     reference?: string;
-                    /** Format: date-time */
                     date?: string;
                 };
             };

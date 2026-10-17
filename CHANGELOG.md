@@ -9,6 +9,36 @@ The running release is shown at the bottom of the user menu (`v1.0.0 · <commit>
 
 ## [Unreleased]
 
+### Fixed
+- Online order page, returned order: the banner no longer says "the refund was processed" when
+  nothing was refunded (a COD parcel refused at the door). It names a refund only when the order
+  was paid; otherwise it reads "the sale reversed. Nothing was refunded."
+- Online order page, custom (manual) courier: the "sale is still recorded — use Return whole order"
+  warning no longer shows once the order has been returned.
+- Dashboard Low Stock Alerts lists sold-out products with a "Sold out" badge instead of "All stock
+  healthy" beside a "Low Stock · 4" button (S23).
+- Dashboard Fulfillment shows **Rejected** apart from **Cancelled** (S31).
+- Bangla: Orders Report, Tags, Notifications, Support Access and Meta Ad Reporting have menu labels,
+  and the header search reads "খুঁজুন...". A test now fails on any menu item without a label in
+  either language (S28).
+- Record Expense / Record Income no longer offer a courier's COD account to pay from (S26).
+
+### Added
+- Record Expense / Record Income: a **Date** field, today on the shop's calendar by default, no
+  future dates; and the categories **Ads & marketing** and **Packaging** (S26).
+- Business Position: **Courier charges to come off the payout** under liabilities, so the courier
+  money nets to what Courier Payouts says is owed; the asset reads **With courier (COD collected)**
+  (S25).
+- Dashboard and Orders Report gross profit show **Goods ৳X · delivery ৳Y** under the figure; the
+  P&L's gross profit says it is goods only (S24).
+- Online Orders, **Closed** tab: chips **All · Cancelled · Rejected · Returned** with their counts
+  filter the tab to one status (11 closed = 3 cancelled + 7 rejected + 1 returned). Shown on the
+  Closed tab only; the other tabs are unchanged.
+
+### Deploy notes
+- Needs **inventory-backend** with the S23–S31 fixes (the release after 1.10.1) for the new fields;
+  against 1.10.1 the split, the charges line and Rejected simply do not show.
+
 ## [1.9.3] - 2026-10-14
 
 ### Deploy notes

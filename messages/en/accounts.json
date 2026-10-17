@@ -100,6 +100,8 @@
       "utilities": "Utilities",
       "shipping": "Shipping",
       "delivery": "Delivery",
+      "marketing": "Ads & marketing",
+      "packaging": "Packaging",
       "adjustment": "Adjustment",
       "other": "Other",
       "capital_in": "Owner Investment",
@@ -154,6 +156,7 @@
       "amountPlaceholder": "Enter amount",
       "category": "Category",
       "categoryPlaceholder": "Select category",
+      "date": "Date",
       "reference": "Reference (Optional)",
       "referencePlaceholder": "Invoice/receipt number",
       "transferReferencePlaceholder": "Transfer reference",
@@ -167,6 +170,7 @@
         "selectAccount": "Select an account",
         "amountPositive": "Amount must be positive",
         "selectCategory": "Select a category",
+        "futureDate": "The date cannot be in the future",
         "selectSourceAccount": "Select source account",
         "selectDestinationAccount": "Select destination account"
       }

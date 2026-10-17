@@ -336,6 +336,8 @@ export interface FormFieldConfig {
   // Output format for `date` fields (date-fns tokens). Forwarded to <DatePicker>.
   // Omit for a full ISO datetime; use "yyyy-MM-dd" to emit a local date-only value.
   outputFormat?: string;
+  /** Latest pickable day for `date` fields (inclusive) — forwarded to <DatePicker>. */
+  toDate?: Date;
 
   // Change handlers
   onChange?: (value: any) => void;

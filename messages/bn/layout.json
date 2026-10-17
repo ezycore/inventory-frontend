@@ -83,7 +83,12 @@
       "profit-loss": "লাভ ও ক্ষতি",
       "business-position": "ব্যবসার অবস্থান",
       "customize-workspace": "ওয়ার্কস্পেস কাস্টমাইজ",
-      "pos": "POS"
+      "pos": "POS",
+      "orders-report": "অর্ডার রিপোর্ট",
+      "tags": "ট্যাগ",
+      "notifications": "নোটিফিকেশন",
+      "support-access": "সাপোর্ট অ্যাক্সেস",
+      "meta-ad-reporting": "মেটা বিজ্ঞাপন রিপোর্ট"
     }
   },
   "brand": {

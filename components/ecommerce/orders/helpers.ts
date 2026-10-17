@@ -190,8 +190,14 @@ const TAB_STATUSES = {
   processing: ["processing"],
   shipped: ["shipped", "ready_for_pickup"],
   delivered: ["delivered", "picked_up", "partially_returned"],
-  closed: ["returned", "cancelled", "rejected"],
+  closed: ["cancelled", "rejected", "returned"],
 } as const satisfies Record<string, readonly AdminStorefrontOrder["status"][]>;
+
+/**
+ * The statuses folded into the Closed tab, in the order its filter chips show them. Read off
+ * `TAB_STATUSES` so the chips and the tab highlight cannot disagree.
+ */
+export const CLOSED_STATUSES = TAB_STATUSES.closed;
 
 /**
  * Whether a tab should render as the current one.

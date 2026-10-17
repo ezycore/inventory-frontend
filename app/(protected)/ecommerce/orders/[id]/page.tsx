@@ -142,9 +142,15 @@ function OrderDetail({ order }: { order: AdminStorefrontOrder }) {
             <RotateCcw className="h-5 w-5" />
             This order was returned
             {order.returnedAt ? ` on ${longDate(order.returnedAt)}` : ""}.{" "}
-            {stockTracked
-              ? "Stock was restocked and the refund processed."
-              : "The refund was processed."}
+            {/* `refunded` is set only when a paid order comes back. A COD parcel refused
+                at the door was never paid, so claiming a refund there is false (S20). */}
+            {order.paymentStatus === "refunded"
+              ? stockTracked
+                ? "Stock was restocked and the payment refunded."
+                : "The payment was refunded."
+              : stockTracked
+                ? "Stock was restocked and the sale reversed. Nothing was refunded."
+                : "The sale was reversed. Nothing was refunded."}
             <Link
               href="/sales/returns"
               className="font-medium text-primary underline"

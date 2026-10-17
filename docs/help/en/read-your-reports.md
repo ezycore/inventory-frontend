@@ -163,12 +163,21 @@ out sales with no cost price the same way. The pages can still show different to
 month because they date a sale differently — the Orders Report by the day the order was placed,
 Profit & Loss by the day it was sent to the courier.
 
+**Gross profit on the Dashboard and the Orders Report includes delivery; on Profit & Loss it does
+not.** The Dashboard and Orders Report count the delivery charge you collected less what the courier
+billed, and show both parts under the figure: *Goods ৳20,004.80 · delivery ৳121.71*. Profit & Loss
+keeps gross profit to the goods alone and shows delivery money further down, so its gross profit
+matches the **Goods** part.
+
 **Business Position** — *What the business is worth right now — assets minus what you owe.* Unlike
 every other report this one has no date range: it is a snapshot of today. Like Profit & Loss, it
 needs the Accounts feature, and it shows stock only if you count stock.
 
-- **Assets** — cash and bank balances, stock value, and money customers owe you.
-- **Liabilities** — money you owe suppliers, plus any customer credit you are holding.
+- **Assets** — cash and bank balances, cash-on-delivery money a courier has collected for you
+  (**With courier**), stock value, and money customers owe you.
+- **Liabilities** — money you owe suppliers, any customer credit you are holding, and the courier
+  charges that will come off the courier's next payment. **With courier** less those charges is what
+  the courier will actually pay you — the same figure as Courier Payouts.
 - **Net position** — assets minus liabilities.
 
 **Stock is counted at what it cost you, not what you will sell it for.** The margin is not yours

@@ -15,6 +15,7 @@
     "purchaseCost": "ক্রয় খরচ",
     "grossProfit": "মোট মুনাফা",
     "marginOfSales": "বিক্রয়ের উপর {margin}% মার্জিন",
+    "profitSplit": "পণ্য {goods} · ডেলিভারি {delivery}",
     "transactions": "লেনদেন",
     "vsPrevious": "আগের তুলনায়",
     "salesPurchaseCount": "{sales}টি বিক্রয় · {purchases}টি ক্রয়",
@@ -87,7 +88,8 @@
     "viewAll": "সব দেখুন",
     "viewAllCount": "সব {count}টি আইটেম দেখুন",
     "emptyTitle": "সব স্টক পর্যাপ্ত",
-    "emptyDescription": "সীমার নিচে কোনো আইটেম নেই"
+    "emptyDescription": "সীমার নিচে কোনো আইটেম নেই",
+    "soldOut": "স্টক নেই"
   },
   "activity": {
     "title": "সাম্প্রতিক কার্যক্রম",
@@ -143,6 +145,7 @@
     "delivered": "ডেলিভারি হয়েছে",
     "returned": "ফেরত এসেছে",
     "cancelled": "বাতিল",
+    "rejected": "প্রত্যাখ্যাত",
     "arrivalRate": "দরজায় পৌঁছেছে",
     "byCourier": "কুরিয়ার অনুযায়ী",
     "confirmed": "কনফার্মড",
